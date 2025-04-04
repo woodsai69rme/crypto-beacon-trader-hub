@@ -7,7 +7,11 @@ import {
   TrendingUp, 
   Settings, 
   Menu, 
-  X 
+  X,
+  PieChart,
+  LineChart,
+  Calculator,
+  Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,12 +38,24 @@ const Navbar = () => {
               <span>Dashboard</span>
             </a>
             <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+              <PieChart className="h-4 w-4" />
+              <span>Portfolio</span>
+            </a>
+            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
               <TrendingUp className="h-4 w-4" />
               <span>Markets</span>
             </a>
             <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+              <LineChart className="h-4 w-4" />
+              <span>Trading</span>
+            </a>
+            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
               <MessageCircle className="h-4 w-4" />
               <span>News</span>
+            </a>
+            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+              <Calculator className="h-4 w-4" />
+              <span>Taxes</span>
             </a>
           </div>
           
@@ -72,10 +88,19 @@ const Navbar = () => {
                 Dashboard
               </a>
               <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+                Portfolio
+              </a>
+              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
                 Markets
               </a>
               <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+                Trading
+              </a>
+              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
                 News
+              </a>
+              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+                Taxes
               </a>
               <Button variant="outline" size="sm" className="w-full justify-center mt-4">
                 <Settings className="h-4 w-4 mr-2" />
