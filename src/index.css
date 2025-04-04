@@ -1,69 +1,80 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 95%;
-
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 35 90% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 240 5% 65%;
-
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 95%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 35 90% 55%;
-
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
     --radius: 0.5rem;
   }
 
+  .dark-theme {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-crypto-dark text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
 
+@layer components {
   .crypto-card {
-    @apply bg-crypto-dark-card rounded-lg border border-border p-4 transition-all hover:shadow-md;
-  }
-  
-  .crypto-card-header {
-    @apply flex justify-between items-center mb-4 pb-2 border-b border-border;
-  }
-  
-  .crypto-price-up {
-    @apply text-crypto-green font-medium;
-  }
-  
-  .crypto-price-down {
-    @apply text-crypto-red font-medium;
+    @apply rounded-lg border border-border bg-card p-4 shadow-sm;
   }
 
-  .live-indicator {
-    @apply inline-block w-2 h-2 rounded-full bg-crypto-green animate-pulse-slow mr-2;
+  .crypto-card-header {
+    @apply mb-4 flex items-center justify-between;
   }
+}
+
+/* Default to dark theme */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-crypto-dark text-white;
 }

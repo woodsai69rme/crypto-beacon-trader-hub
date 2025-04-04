@@ -66,6 +66,9 @@ export default {
 				crypto: {
 					'bitcoin': '#F7931A',
 					'ethereum': '#627EEA',
+					'solana': '#00FFA3',
+					'cardano': '#0033AD',
+					'ripple': '#23292F',
 					'green': '#00C853',
 					'red': '#FF3D00',
 					'dark': '#121212',
