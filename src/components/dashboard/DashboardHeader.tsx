@@ -7,16 +7,38 @@ import AlertsSystem from "../AlertsSystem";
 import UserSettings from "../UserSettings";
 import AuthDialog from "../AuthDialog";
 import NotificationBadge from "../NotificationBadge";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface DashboardHeaderProps {
   notificationCount: number;
   alertCount: number;
+  onRefresh?: () => void;
+  isLoading?: boolean;
 }
 
-const DashboardHeader = ({ notificationCount, alertCount }: DashboardHeaderProps) => {
+const DashboardHeader = ({ 
+  notificationCount, 
+  alertCount, 
+  onRefresh, 
+  isLoading = false 
+}: DashboardHeaderProps) => {
   return (
     <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <h1 className="text-2xl font-bold">Crypto Dashboard</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold">Crypto Dashboard</h1>
+        {onRefresh && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onRefresh} 
+            disabled={isLoading}
+            className="ml-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          </Button>
+        )}
+      </div>
       <div className="flex items-center gap-2">
         <CryptoSearch />
         <ThemeToggle />
