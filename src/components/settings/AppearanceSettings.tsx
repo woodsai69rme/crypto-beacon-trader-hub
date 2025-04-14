@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
@@ -60,6 +62,41 @@ const AppearanceSettings = ({ form }: AppearanceSettingsProps) => {
                 <SelectItem value="portfolio">Portfolio Focus</SelectItem>
               </SelectContent>
             </Select>
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="dashboardCustomization.defaultTimeframe"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormLabel>Default Chart Timeframe</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className="flex flex-wrap gap-2"
+              >
+                {[
+                  { value: '1D', label: '1D' },
+                  { value: '1W', label: '1W' },
+                  { value: '1M', label: '1M' },
+                  { value: '3M', label: '3M' },
+                  { value: '6M', label: '6M' },
+                  { value: '1Y', label: '1Y' },
+                  { value: 'MAX', label: 'MAX' },
+                ].map((option) => (
+                  <div key={option.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option.value} id={`timeframe-${option.value}`} />
+                    <Label htmlFor={`timeframe-${option.value}`}>{option.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormDescription>
+              The default timeframe for charts across the platform
+            </FormDescription>
           </FormItem>
         )}
       />

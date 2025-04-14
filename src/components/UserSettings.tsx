@@ -2,23 +2,13 @@
 import { useState } from "react";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "@/components/ui/use-toast";
+import SettingsTabs from "./settings/SettingsTabs";
+import SettingsFooter from "./settings/SettingsFooter";
 import GeneralSettings from "./settings/GeneralSettings";
 import AppearanceSettings from "./settings/AppearanceSettings";
 import NotificationSettings from "./settings/NotificationSettings";
@@ -29,18 +19,32 @@ interface UserSettingsProps {
   className?: string;
 }
 
+const defaultSettings: SettingsFormValues = {
+  darkMode: true,
+  notifications: true,
+  language: "en",
+  layout: "default",
+  timeZone: "UTC",
+  exportFormat: "csv",
+  alertVolume: 70,
+  alertFrequency: "medium",
+  dataPrivacy: {
+    shareAnalytics: true,
+    storeHistory: true
+  },
+  dashboardCustomization: {
+    showPortfolioValue: true,
+    defaultCurrency: "USD",
+    defaultTimeframe: "1M"
+  }
+};
+
 const UserSettings = ({ className }: UserSettingsProps) => {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
   
   const form = useForm<SettingsFormValues>({
-    defaultValues: {
-      darkMode: true,
-      notifications: true,
-      language: "en",
-      layout: "default",
-      timeZone: "UTC",
-      exportFormat: "csv"
-    }
+    defaultValues: defaultSettings
   });
 
   const onSubmit = (data: SettingsFormValues) => {
@@ -70,13 +74,8 @@ const UserSettings = ({ className }: UserSettingsProps) => {
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="general">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="data">Data & Privacy</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab}>
+          <SettingsTabs activeTab={activeTab} />
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -96,9 +95,7 @@ const UserSettings = ({ className }: UserSettingsProps) => {
                 <DataPrivacySettings form={form} />
               </TabsContent>
               
-              <div className="flex justify-end">
-                <Button type="submit">Save Settings</Button>
-              </div>
+              <SettingsFooter />
             </form>
           </Form>
         </Tabs>

@@ -4,9 +4,11 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
   FormControl,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
@@ -35,6 +37,7 @@ const GeneralSettings = ({ form }: GeneralSettingsProps) => {
                 <SelectItem value="fr">French</SelectItem>
                 <SelectItem value="de">German</SelectItem>
                 <SelectItem value="ja">Japanese</SelectItem>
+                <SelectItem value="zh">Chinese</SelectItem>
               </SelectContent>
             </Select>
           </FormItem>
@@ -55,12 +58,63 @@ const GeneralSettings = ({ form }: GeneralSettingsProps) => {
               </FormControl>
               <SelectContent>
                 <SelectItem value="UTC">UTC</SelectItem>
+                <SelectItem value="GMT">GMT</SelectItem>
                 <SelectItem value="EST">Eastern Time (EST)</SelectItem>
                 <SelectItem value="CST">Central Time (CST)</SelectItem>
                 <SelectItem value="MST">Mountain Time (MST)</SelectItem>
                 <SelectItem value="PST">Pacific Time (PST)</SelectItem>
+                <SelectItem value="IST">Indian Standard Time (IST)</SelectItem>
               </SelectContent>
             </Select>
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="dashboardCustomization.defaultCurrency"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Default Currency</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                <SelectItem value="GBP">British Pound (GBP)</SelectItem>
+                <SelectItem value="JPY">Japanese Yen (JPY)</SelectItem>
+                <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              Used for displaying prices and values across the platform
+            </FormDescription>
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="dashboardCustomization.showPortfolioValue"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">Show Portfolio Value</FormLabel>
+              <FormDescription>
+                Display your total portfolio value in the header
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
           </FormItem>
         )}
       />
