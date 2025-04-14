@@ -24,9 +24,14 @@ import DataExportImport from "./DataExportImport";
 import RiskAssessment from "./RiskAssessment";
 import TaxReporting from "./TaxReporting";
 import ApiKeyManagement from "./ApiKeyManagement";
+import NotificationBadge from "./NotificationBadge";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<string>("overview");
+  // Example state for notification badges
+  const [notificationCount, setNotificationCount] = useState(3);
+  const [alertCount, setAlertCount] = useState(2);
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -35,8 +40,14 @@ const Dashboard = () => {
         <div className="flex items-center gap-2">
           <CryptoSearch />
           <ThemeToggle />
-          <NotificationSystem />
-          <AlertsSystem />
+          <div className="relative">
+            <NotificationSystem />
+            <NotificationBadge count={notificationCount} />
+          </div>
+          <div className="relative">
+            <AlertsSystem />
+            <NotificationBadge count={alertCount} />
+          </div>
           <UserSettings />
           <AuthDialog />
         </div>

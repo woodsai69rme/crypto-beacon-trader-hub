@@ -39,6 +39,8 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import AlertPrompt from "./AlertPrompt";
 
 interface UserSettingsProps {
   className?: string;
@@ -73,6 +75,7 @@ const UserSettings = ({ className }: UserSettingsProps) => {
     toast({
       title: "Settings updated",
       description: "Your preferences have been saved successfully.",
+      variant: "default"
     });
     setOpen(false);
   };
