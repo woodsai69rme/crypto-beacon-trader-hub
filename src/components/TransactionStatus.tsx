@@ -7,6 +7,7 @@ import {
   Clock, 
   AlertTriangle 
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type TransactionStatusType = "success" | "failed" | "pending" | "warning";
 
