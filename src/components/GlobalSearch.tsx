@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowRight, Coin, LineChart, Settings, BarChart } from "lucide-react";
+import { Search, ArrowRight, Coins, LineChart, Settings, BarChart } from "lucide-react";
 
 interface SearchResult {
   id: string;
@@ -26,7 +25,7 @@ const GlobalSearch = () => {
       type: "coin",
       title: "Bitcoin (BTC)",
       description: "View Bitcoin price chart and details",
-      icon: <Coin className="h-4 w-4" />,
+      icon: <Coins className="h-4 w-4" />,
       url: "#bitcoin"
     },
     {
@@ -34,7 +33,7 @@ const GlobalSearch = () => {
       type: "coin",
       title: "Ethereum (ETH)",
       description: "View Ethereum price chart and details",
-      icon: <Coin className="h-4 w-4" />,
+      icon: <Coins className="h-4 w-4" />,
       url: "#ethereum"
     },
     {
