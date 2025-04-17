@@ -7,6 +7,7 @@ import AlertsSystem from "../AlertsSystem";
 import UserSettings from "../UserSettings";
 import AuthDialog from "../AuthDialog";
 import NotificationBadge from "../NotificationBadge";
+import GlobalSearch from "../GlobalSearch";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
@@ -40,6 +41,7 @@ const DashboardHeader = ({
         )}
       </div>
       <div className="flex items-center gap-2">
+        <GlobalSearch />
         <CryptoSearch />
         <ThemeToggle />
         <div className="relative">

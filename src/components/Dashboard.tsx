@@ -10,8 +10,15 @@ import DashboardWatchlist from "./dashboard/DashboardWatchlist";
 import DashboardTrading from "./dashboard/DashboardTrading";
 import DashboardAnalysis from "./dashboard/DashboardAnalysis";
 import DashboardTools from "./dashboard/DashboardTools";
+import DashboardCustomizer from "./DashboardCustomizer";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export type DashboardTab = 'overview' | 'portfolio' | 'watchlist' | 'trading' | 'analysis' | 'tools';
+
+interface DashboardLayoutOptions {
+  compactMode: boolean;
+  densityLevel: 'comfortable' | 'compact' | 'spacious';
+}
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
@@ -23,6 +30,10 @@ const Dashboard = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [alertCount, setAlertCount] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
+  const [layoutOptions, setLayoutOptions] = useLocalStorage<DashboardLayoutOptions>("dashboard-layout", {
+    compactMode: false,
+    densityLevel: 'comfortable'
+  });
   
   // Save the active tab to localStorage when it changes
   useEffect(() => {
@@ -52,6 +63,14 @@ const Dashboard = () => {
     }, 1000);
   }, []);
   
+  const handleLayoutChange = (newLayout: any) => {
+    // In a real app, this would update the dashboard's layout
+    toast({
+      title: "Layout updated",
+      description: "Your dashboard layout preferences have been saved",
+    });
+  };
+  
   return (
     <div className="container mx-auto px-4 py-6">
       <DashboardHeader 
@@ -61,10 +80,15 @@ const Dashboard = () => {
         isLoading={isLoading}
       />
       
-      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange}>
-        <DashboardTabList activeTab={activeTab} onTabChange={handleTabChange} />
-        
-        <div className={isLoading ? "animate-pulse" : ""}>
+      <div className="flex items-center justify-between mb-6">
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <DashboardTabList activeTab={activeTab} onTabChange={handleTabChange} />
+        </Tabs>
+        <DashboardCustomizer onLayoutChange={handleLayoutChange} className="ml-2" />
+      </div>
+      
+      <div className={isLoading ? "animate-pulse" : ""}>
+        <Tabs value={activeTab}>
           <TabsContent value="overview">
             <DashboardOverview />
           </TabsContent>
@@ -88,8 +112,8 @@ const Dashboard = () => {
           <TabsContent value="tools">
             <DashboardTools />
           </TabsContent>
-        </div>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 };
