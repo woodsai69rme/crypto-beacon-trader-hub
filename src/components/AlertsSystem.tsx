@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Bell } from "lucide-react";
+import React, { useState } from "react";
+import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { useAlerts } from "@/hooks/use-alerts";
