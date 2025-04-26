@@ -5,20 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { COIN_OPTIONS } from "./AlertTypes";
+import { PriceAlert } from "@/types/alerts";
+
+type AlertFormData = Omit<PriceAlert, 'id' | 'createdAt'>;
 
 interface AlertFormProps {
-  formData: {
-    coinId: string;
-    coinName: string;
-    coinSymbol: string;
-    targetPrice: number;
-    isAbove: boolean;
-    enabled: boolean;
-    recurring: boolean;
-    percentageChange: number;
-    notifyVia: ("email" | "app" | "push")[];
-  };
-  onFormChange: (data: any) => void;
+  formData: AlertFormData;
+  onFormChange: (data: AlertFormData) => void;
   onSubmit: () => void;
 }
 

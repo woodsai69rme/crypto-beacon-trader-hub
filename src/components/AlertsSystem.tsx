@@ -1,46 +1,22 @@
 
-import React, { useState } from "react";
-import { Bell, Trash } from "lucide-react";
+import React from "react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  Sheet, 
-  SheetTrigger, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-} from "@/components/ui/sheet";
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { useAlerts } from "@/hooks/use-alerts";
+import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
-import { COIN_OPTIONS } from "./widgets/AlertComponents/AlertTypes";
+import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
+import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
+  const { formData, setFormData, resetForm } = useAlertForm();
   const [isOpen, setIsOpen] = useState(false);
-  const [newAlert, setNewAlert] = useState({
-    coinId: "bitcoin",
-    coinName: "Bitcoin",
-    coinSymbol: "BTC",
-    targetPrice: 0,
-    isAbove: true,
-    enabled: true,
-    recurring: false,
-    percentageChange: 0,
-    notifyVia: ["app"] as ("email" | "app" | "push")[]
-  });
-  
+
   const handleSubmit = () => {
-    addAlert(newAlert);
-    setNewAlert({
-      coinId: "bitcoin",
-      coinName: "Bitcoin",
-      coinSymbol: "BTC",
-      targetPrice: 0,
-      isAbove: true,
-      enabled: true,
-      recurring: false,
-      percentageChange: 0,
-      notifyVia: ["app"]
-    });
+    addAlert(formData);
+    resetForm();
     setIsOpen(false);
   };
 
@@ -49,21 +25,16 @@ const AlertsSystem = () => {
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
-          {alerts.length > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-              {alerts.length}
-            </span>
-          )}
+          <AlertBadge count={alerts.length} />
         </Button>
       </SheetTrigger>
+      
       <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Price Alerts</SheetTitle>
-        </SheetHeader>
+        <AlertHeader />
         
         <AlertFormSheet 
-          formData={newAlert}
-          onFormChange={setNewAlert}
+          formData={formData}
+          onFormChange={setFormData}
           onSubmit={handleSubmit}
         />
         
