@@ -25,31 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-
-interface PriceAlert {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  targetPrice: number;
-  isAbove: boolean; // true for price above target, false for below
-  createdAt: Date;
-  enabled: boolean;
-  recurring: boolean;
-  percentageChange?: number;
-  notifyVia: Array<"app" | "email" | "push">;
-}
-
-interface VolumeAlert {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  thresholdPercent: number;
-  timeframe: "1h" | "4h" | "24h";
-  createdAt: Date;
-  enabled: boolean;
-}
+import { PriceAlert, VolumeAlert, AlertFrequency } from "@/types/alerts";
 
 interface TechnicalAlert {
   id: string;
@@ -63,7 +39,10 @@ interface TechnicalAlert {
   enabled: boolean;
 }
 
-type AlertType = PriceAlert | VolumeAlert | TechnicalAlert;
+type AlertWithType = 
+  | (PriceAlert & { type: 'price' })
+  | (VolumeAlert & { type: 'volume' })
+  | (TechnicalAlert & { type: 'technical' });
 
 export const createPriceAlert = (formData: any): PriceAlert => {
   return {
@@ -99,7 +78,7 @@ const EnhancedAlertSystem = () => {
     enabled: true,
     recurring: false,
     percentageChange: 0,
-    notifyVia: ["app"]
+    notifyVia: ["app"] as ("email" | "app" | "push")[]
   });
 
   // Volume alert state
@@ -108,9 +87,10 @@ const EnhancedAlertSystem = () => {
     coinId: "bitcoin",
     coinName: "Bitcoin",
     coinSymbol: "BTC",
-    thresholdPercent: 15,
-    timeframe: "1h" as const,
-    enabled: true
+    volumeThreshold: 15,
+    frequency: "1h" as AlertFrequency,
+    enabled: true,
+    notifyVia: ["app"] as ("email" | "app" | "push")[]
   });
 
   // Technical alert state
@@ -174,7 +154,6 @@ const EnhancedAlertSystem = () => {
     if (!alertsEnabled) return;
     
     const checkInterval = setInterval(() => {
-      // In a real implementation, we'd fetch current prices here
       const currentPrices = { 
         bitcoin: Math.random() * 50000 + 20000,
         ethereum: Math.random() * 3000 + 1500,
@@ -183,7 +162,6 @@ const EnhancedAlertSystem = () => {
         ripple: Math.random() * 1 + 0.3
       };
       
-      // Check price alerts
       priceAlerts.forEach(alert => {
         if (!alert.enabled) return;
         
@@ -196,7 +174,6 @@ const EnhancedAlertSystem = () => {
             description: `${alert.coinName} is now ${alert.isAbove ? "above" : "below"} ${formatValue(alert.targetPrice)}`,
           });
           
-          // Disable non-recurring alerts after triggering
           if (!alert.recurring) {
             setPriceAlerts(prev => 
               prev.map(a => a.id === alert.id ? {...a, enabled: false} : a)
@@ -205,25 +182,21 @@ const EnhancedAlertSystem = () => {
         }
       });
       
-      // Simulate checking volume alerts (in a real app, we'd fetch actual volume data)
       volumeAlerts.forEach(alert => {
         if (!alert.enabled) return;
         
-        // Random chance to trigger volume alert for simulation
         if (Math.random() > 0.95) {
-          const currentVolume = alert.thresholdPercent * 1.2; // Just for simulation
+          const currentVolume = alert.volumeThreshold * 1.2;
           toast({
             title: "Volume Alert!",
-            description: `${alert.coinName} ${alert.timeframe} volume increased by ${currentVolume.toFixed(1)}%`,
+            description: `${alert.coinName} ${alert.frequency} volume increased by ${currentVolume.toFixed(1)}%`,
           });
         }
       });
       
-      // Simulate checking technical alerts
       technicalAlerts.forEach(alert => {
         if (!alert.enabled) return;
         
-        // Random chance to trigger technical alert for simulation
         if (Math.random() > 0.95) {
           toast({
             title: "Technical Alert!",
@@ -231,7 +204,7 @@ const EnhancedAlertSystem = () => {
           });
         }
       });
-    }, 30000); // Check every 30 seconds
+    }, 30000);
     
     return () => clearInterval(checkInterval);
   }, [priceAlerts, volumeAlerts, technicalAlerts, alertsEnabled, formatValue]);
@@ -248,7 +221,15 @@ const EnhancedAlertSystem = () => {
     
     const alert: PriceAlert = {
       id: Date.now().toString(),
-      ...newPriceAlert,
+      coinId: newPriceAlert.coinId,
+      coinName: newPriceAlert.coinName,
+      coinSymbol: newPriceAlert.coinSymbol,
+      targetPrice: newPriceAlert.targetPrice,
+      isAbove: newPriceAlert.isAbove,
+      enabled: true,
+      recurring: newPriceAlert.recurring,
+      percentageChange: newPriceAlert.percentageChange,
+      notifyVia: [...newPriceAlert.notifyVia],
       createdAt: new Date()
     };
     
@@ -265,7 +246,7 @@ const EnhancedAlertSystem = () => {
   };
   
   const addVolumeAlert = () => {
-    if (newVolumeAlert.thresholdPercent <= 0) {
+    if (newVolumeAlert.volumeThreshold <= 0) {
       toast({
         title: "Invalid Volume Threshold",
         description: "Please enter a valid volume percentage",
@@ -276,7 +257,13 @@ const EnhancedAlertSystem = () => {
     
     const alert: VolumeAlert = {
       id: Date.now().toString(),
-      ...newVolumeAlert,
+      coinId: newVolumeAlert.coinId,
+      coinName: newVolumeAlert.coinName,
+      coinSymbol: newVolumeAlert.coinSymbol,
+      volumeThreshold: newVolumeAlert.volumeThreshold,
+      frequency: newVolumeAlert.frequency,
+      enabled: true,
+      notifyVia: [...newVolumeAlert.notifyVia],
       createdAt: new Date()
     };
     
@@ -284,7 +271,7 @@ const EnhancedAlertSystem = () => {
     
     toast({
       title: "Volume Alert Created",
-      description: `You'll be notified when ${alert.coinName} ${alert.timeframe} volume increases by ${alert.thresholdPercent}%`,
+      description: `You'll be notified when ${alert.coinName} ${alert.frequency} volume increases by ${alert.volumeThreshold}%`,
     });
   };
   
@@ -442,7 +429,7 @@ const EnhancedAlertSystem = () => {
                 <Badge variant="outline">Volume</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {alert.timeframe} volume increase of {alert.thresholdPercent}%+
+                {alert.frequency} volume increase of {alert.volumeThreshold}%+
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -725,10 +712,10 @@ const EnhancedAlertSystem = () => {
                           type="number"
                           min="1"
                           max="100"
-                          value={newVolumeAlert.thresholdPercent || ""}
+                          value={newVolumeAlert.volumeThreshold || ""}
                           onChange={(e) => setNewVolumeAlert({ 
                             ...newVolumeAlert, 
-                            thresholdPercent: parseFloat(e.target.value) || 0 
+                            volumeThreshold: parseFloat(e.target.value) || 0 
                           })}
                         />
                         <span className="ml-2">%</span>
@@ -738,10 +725,10 @@ const EnhancedAlertSystem = () => {
                     <div className="flex flex-col space-y-2">
                       <label className="text-sm font-medium">Timeframe</label>
                       <Select
-                        value={newVolumeAlert.timeframe}
+                        value={newVolumeAlert.frequency}
                         onValueChange={(value: "1h" | "4h" | "24h") => setNewVolumeAlert({ 
                           ...newVolumeAlert, 
-                          timeframe: value
+                          frequency: value
                         })}
                       >
                         <SelectTrigger>

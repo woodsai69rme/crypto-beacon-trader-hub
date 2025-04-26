@@ -1,42 +1,44 @@
 
-import { toast } from "@/components/ui/use-toast";
+import axios from "axios";
 import type { CurrencyConversion } from "@/types/trading";
 
-const API_BASE_URL = "https://api.exchangerate.host";
-
-export const fetchCurrencyRates = async (): Promise<CurrencyConversion> => {
+// Function to fetch current exchange rates
+export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
   try {
-    const response = await fetch(`${API_BASE_URL}/latest?base=USD&symbols=AUD`);
+    // Free alternative API that doesn't require an API key
+    const response = await axios.get('https://api.exchangerate.host/latest?base=USD&symbols=AUD');
     
-    if (!response.ok) {
-      throw new Error("Failed to fetch currency rates");
+    if (response.data && response.data.rates) {
+      const USD_AUD = response.data.rates.AUD || 1.45; // Default fallback if API fails
+      return {
+        USD_AUD,
+        AUD_USD: 1 / USD_AUD,
+        lastUpdated: new Date().toISOString()
+      };
     }
     
-    const data = await response.json();
-    
-    return {
-      USD_AUD: data.rates.AUD || 1.45, // Default fallback rate
-      AUD_USD: 1 / (data.rates.AUD || 1.45),
-      lastUpdated: new Date().toISOString()
-    };
+    // Fallback if API response doesn't have the expected structure
+    console.error("Invalid response format from currency API:", response.data);
+    return getDefaultRates();
   } catch (error) {
     console.error("Error fetching currency rates:", error);
-    // Return fallback rates if the API fails
-    return {
-      USD_AUD: 1.45, // Approximate AUD/USD rate
-      AUD_USD: 0.69, // Approximate USD/AUD rate
-      lastUpdated: new Date().toISOString()
-    };
+    return getDefaultRates();
   }
-};
+}
 
-// Update crypto prices with AUD conversion
-export const updateWithAUDPrices = (
-  coins: any[], 
-  conversionRate: number
-): any[] => {
+// Helper function to update coin prices with AUD values
+export function updateWithAUDPrices(coins: any[], audRate: number): any[] {
   return coins.map(coin => ({
     ...coin,
-    priceAUD: coin.price * conversionRate
+    priceAUD: coin.price * audRate
   }));
-};
+}
+
+// Function to get default rates when API fails
+function getDefaultRates(): CurrencyConversion {
+  return {
+    USD_AUD: 1.45, // Default fallback rate
+    AUD_USD: 0.69, // Default fallback rate
+    lastUpdated: new Date().toISOString()
+  };
+}
