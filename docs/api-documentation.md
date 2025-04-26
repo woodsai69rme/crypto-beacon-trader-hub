@@ -20,6 +20,8 @@ API requests requiring authentication use bearer tokens. To authenticate:
 - `GET /markets/coins` - List all available coins
 - `GET /markets/coins/:id` - Get detailed information about a specific coin
 - `GET /markets/coins/:id/history` - Get historical price data for a coin
+- `GET /markets/technical-indicators/:id` - Get technical indicators for a specific coin
+- `GET /markets/correlations` - Get correlation matrix between assets
 
 ### User Portfolio
 - `GET /portfolio` - Get user's portfolio summary
@@ -51,6 +53,13 @@ API requests requiring authentication use bearer tokens. To authenticate:
 - `GET /ai/insights/coin/:coinId` - Get AI insights for a specific cryptocurrency
 - `POST /ai/insights/generate` - Trigger generation of new insights
 - `GET /ai/models` - Get information about available AI models
+
+### Technical Analysis
+- `GET /analysis/technical/:coinId` - Get technical indicators for a specific coin
+- `GET /analysis/technical/:coinId/:indicator` - Get specific technical indicator data
+- `GET /analysis/correlations` - Get correlation matrix between assets
+- `GET /analysis/patterns/:coinId` - Get detected chart patterns for a coin
+- `GET /analysis/risk-assessment` - Get risk assessment for user portfolio
 
 ## Data Models
 
@@ -146,6 +155,38 @@ interface MarketInsight {
 }
 ```
 
+### TechnicalIndicator
+```typescript
+interface TechnicalIndicator {
+  coin_id: string;
+  timestamp: string;
+  indicators: {
+    rsi: number;       // Relative Strength Index
+    macd: number;      // Moving Average Convergence Divergence
+    signal: number;    // MACD Signal Line
+    histogram: number; // MACD Histogram
+    sma20: number;     // Simple Moving Average (20 periods)
+    sma50: number;     // Simple Moving Average (50 periods)
+    sma200: number;    // Simple Moving Average (200 periods)
+    ema12: number;     // Exponential Moving Average (12 periods)
+    ema26: number;     // Exponential Moving Average (26 periods)
+    upper_band: number; // Upper Bollinger Band
+    lower_band: number; // Lower Bollinger Band
+  };
+}
+```
+
+### AssetCorrelation
+```typescript
+interface AssetCorrelation {
+  base_asset: string;
+  quote_asset: string;
+  correlation: number;  // -1 to 1 correlation coefficient
+  period: string;       // Time period for correlation calculation
+  timestamp: string;
+}
+```
+
 ## Error Handling
 All API endpoints return standard HTTP status codes:
 - 200: Success
@@ -174,3 +215,4 @@ API requests are rate-limited to 100 requests per minute per API key. When a rat
 - **v1.0.1** (2025-04-15): Added portfolio performance endpoints
 - **v1.0.2** (2025-04-26): Added fake trading system endpoints
 - **v1.0.3** (2025-04-30): Added AI market insights endpoints
+- **v1.0.4** (2025-05-05): Added technical indicator and correlation analysis endpoints

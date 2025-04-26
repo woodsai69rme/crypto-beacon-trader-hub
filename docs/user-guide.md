@@ -40,10 +40,10 @@ The main dashboard is organized into six key sections:
    - Fake trading system for practice
 
 5. **Analysis**: Detailed market analysis and insights
-   - Technical indicators
+   - Technical indicators (RSI, MACD, Moving Averages, Bollinger Bands)
    - Sentiment analysis
    - Correlation metrics
-   - Historical performance
+   - Risk assessment
    - AI-powered market insights
 
 6. **Tools**: Additional utilities for crypto investors
@@ -122,10 +122,19 @@ Stay informed about market movements:
    - Custom intervals
    - Quiet hours
 
+### Using the Fake Trading System
+1. Navigate to the Trading tab
+2. Start with your initial virtual balance of $10,000
+3. Select cryptocurrencies to trade
+4. Execute buy/sell orders
+5. Track your performance over time
+6. View trade history and portfolio value
+7. Reset your account anytime to start fresh
+
 ### Using Analysis Tools
 Make informed decisions with:
 - **Technical indicators**:
-  - Moving averages
+  - Moving averages (SMA20, SMA50, SMA200)
   - RSI (Relative Strength Index)
   - MACD (Moving Average Convergence Divergence)
   - Bollinger Bands
@@ -149,12 +158,12 @@ Make informed decisions with:
   - Risk-adjusted return metrics
 
 - **AI-powered market insights**:
-  - Automated trend identification
-  - Market pattern recognition
-  - Predictive price models
-  - Anomaly detection
-  - Sentiment-based forecasts
-  - Trading signal suggestions
+  - Trend identification (long-term market patterns)
+  - Signal detection (short-term trading opportunities)
+  - Alert generation (unusual market activity)
+  - Price predictions (future price forecasts)
+  - Confidence scores for each insight
+  - Impact assessment (high/medium/low)
 
 ### Using AI Market Insights
 1. Navigate to the Analysis tab
@@ -168,6 +177,28 @@ Make informed decisions with:
 5. Review confidence scores for each insight
 6. Click "Refresh Analysis" to generate new insights
 7. Use tag filters to find insights for specific assets or topics
+
+### Using Technical Indicators
+1. Navigate to the Analysis tab
+2. Select the Technical Indicators component
+3. Choose your desired cryptocurrency from the dropdown
+4. Select the timeframe (1D, 1W, 1M, 3M, 6M, 1Y)
+5. Switch between indicator types using the tabs:
+   - Moving Averages (SMA20, SMA50, SMA200)
+   - RSI (Relative Strength Index)
+   - MACD (Moving Average Convergence Divergence)
+   - Bollinger Bands
+6. Hover over the charts to see detailed values
+7. Click "Refresh" to update the data
+
+### Using Market Correlations Analysis
+1. Navigate to the Analysis tab
+2. Locate the Asset Correlations component
+3. Select a time period for correlation calculation
+4. Review the correlation heatmap between major cryptocurrencies
+5. Hover over cells to see detailed correlation statistics
+6. Use the help button to understand correlation interpretation
+7. Click "Refresh" to update with latest market data
 
 ### Managing Your Watchlist
 1. Create multiple watchlists:
@@ -187,15 +218,6 @@ Make informed decisions with:
    - Set sorting preferences
    - Configure refresh rate
    - Show/hide price charts
-
-### Using the Fake Trading System
-1. Navigate to the Trading tab
-2. Start with your initial virtual balance of $10,000
-3. Select cryptocurrencies to trade
-4. Execute buy/sell orders
-5. Track your performance over time
-6. View trade history and portfolio value
-7. Reset your account anytime to start fresh
 
 ### Troubleshooting
 - **Data not loading**: Refresh the page or check your internet connection

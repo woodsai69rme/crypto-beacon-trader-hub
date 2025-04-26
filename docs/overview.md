@@ -15,6 +15,9 @@ This crypto dashboard application provides a comprehensive platform for users to
 - **User preferences & settings**: Customize your dashboard experience to match your needs
 - **Fake trading system**: Practice trading strategies without risking real money
 - **AI-powered market insights**: Get automated analysis and predictions based on market data
+- **Technical indicators**: Access RSI, MACD, Moving Averages, and Bollinger Bands
+- **Asset correlation analysis**: Understand relationships between different cryptocurrencies
+- **Categorized market insights**: Filter AI insights by trends, signals, alerts, and predictions
 
 ## Current Status
 - **Core Features**: Implemented and functional
@@ -26,19 +29,27 @@ This crypto dashboard application provides a comprehensive platform for users to
   - AI-powered market insights
   - Basic API integrations
 
+- **Advanced Features**: Implemented and functional
+  - Categorized AI market insights
+  - Technical indicators (RSI, MACD, Moving Averages, Bollinger Bands)
+  - Asset correlation analysis
+  - Risk assessment tools
+
 - **Recent Updates**:
-  - Added AI-powered market insights
-  - Added fake trading system for practice trading
-  - Enhanced portfolio tracking capabilities
+  - Added categorized AI market insights
+  - Added technical indicators with multiple timeframes
+  - Added asset correlation analysis
+  - Enhanced analysis dashboard with integrated tools
   - Improved market data visualization
   - Added responsive design improvements
 
 ## Upcoming Features
 - Enhanced data analytics tools
-- Advanced technical indicators
-- Social trading features
+- Advanced social trading features
 - Extended API integrations
 - Mobile app development
+- Exchange API integration
+- Strategy backtesting
 
 ## Target Users
 - Individual crypto investors
@@ -77,11 +88,12 @@ The Crypto Dashboard follows these key design principles:
 - **Performance**: Optimized rendering and data fetching
 - **Modularity**: Component-based architecture for easy maintenance
 - **Extensibility**: Easy to add new features and integrations
+- **Progressive disclosure**: Complex features revealed as needed
 
 ## Roadmap Overview
 The project is being developed in phases:
 - **Phase 1**: Core dashboard functionality and market data
-- **Phase 2**: Advanced portfolio tools and analysis
+- **Phase 2**: Advanced portfolio tools and analysis (current phase)
 - **Phase 3**: Trading integration and social features
 - **Phase 4**: AI-powered insights and recommendations
 

@@ -5,7 +5,9 @@ import TradingPairComparison from "../TradingPairComparison";
 import MarketDepthChart from "../MarketDepthChart";
 import SentimentAnalysis from "../SentimentAnalysis";
 import FilteredNewsFeed from "../FilteredNewsFeed";
-import AiMarketInsights from "../AiMarketInsights";
+import AiInsightsCategorized from "../AiInsightsCategorized";
+import TechnicalIndicators from "../TechnicalIndicators";
+import MarketCorrelations from "../MarketCorrelations";
 import { Button } from "@/components/ui/button";
 import { BarChart3, TrendingUp, HelpCircle, DownloadCloud, Sparkles } from "lucide-react";
 import AlertPrompt from "../AlertPrompt";
@@ -68,12 +70,23 @@ const DashboardAnalysis = () => {
       )}
     
       <div className="grid grid-cols-1 gap-6">
-        <AiMarketInsights />
+        <AiInsightsCategorized />
+      </div>
+      
+      <div className="grid grid-cols-1 gap-6">
+        <TechnicalIndicators />
       </div>
     
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RiskAssessment />
+        <MarketCorrelations />
+      </div>
+      
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TradingPairComparison />
+        <div>
+          <SentimentAnalysis />
+        </div>
       </div>
       
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -81,12 +94,8 @@ const DashboardAnalysis = () => {
           <MarketDepthChart coinId="bitcoin" symbol="BTC" />
         </div>
         <div>
-          <SentimentAnalysis />
+          <FilteredNewsFeed />
         </div>
-      </div>
-      
-      <div className="mt-6">
-        <FilteredNewsFeed />
       </div>
     </div>
   );

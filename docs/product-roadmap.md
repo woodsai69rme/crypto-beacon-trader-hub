@@ -27,6 +27,17 @@
   - Notification system
   - Onboarding tutorial
 
+- **AI-Powered Analysis**
+  - Market insights categorized by trends, signals, alerts, and predictions
+  - Technical indicators (RSI, MACD, Moving Averages, Bollinger Bands)
+  - Asset correlation analysis
+  - Risk assessment tools
+
+- **Trading Features**
+  - Market depth visualization
+  - Trading pair comparison
+  - Practice trading with virtual balance
+
 ## Short-term Goals (Q2 2025)
 - **Enhanced Data Integration**
   - **Connect to additional crypto data APIs**

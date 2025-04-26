@@ -27,10 +27,10 @@ The application now includes these additional components:
 - **RiskAssessment**: Portfolio risk analysis
 
 ### Analysis Components
-- **SentimentAnalysis**: Market sentiment tracking
-- **TechnicalIndicators**: Advanced technical analysis
+- **AiInsightsCategorized**: Categorized AI-powered market insights with trends, signals, alerts, and predictions
+- **TechnicalIndicators**: Advanced technical analysis tools including RSI, MACD, Moving Averages, and Bollinger Bands
 - **MarketCorrelations**: Asset correlation analysis
-- **AiMarketInsights**: AI-powered market trend analysis and predictions
+- **SentimentAnalysis**: Market sentiment tracking
 
 ## State Management
 The application uses multiple strategies for state management:
@@ -73,6 +73,64 @@ The application uses multiple strategies for state management:
 3. **Component Rendering**: Components render based on the data and loading states
 4. **User Interaction**: Event handlers update state accordingly
 5. **State Updates**: Components re-render based on state changes
+
+## Component Architecture
+The application follows a modular component architecture:
+
+### Dashboard Framework
+- **Dashboard**: Main container component that manages navigation and layout
+- **DashboardTabList**: Navigation tabs for different dashboard sections
+- **DashboardHeader**: Top bar with user info, notifications, and global actions
+
+### Dashboard Section Components
+Each dashboard section is encapsulated in its own component:
+- **DashboardOverview**
+- **DashboardPortfolio**
+- **DashboardWatchlist**
+- **DashboardTrading**
+- **DashboardAnalysis**
+- **DashboardTools**
+
+### Feature Components
+Feature-specific components that are used within dashboard sections:
+- **AiInsightsCategorized**: AI-powered market analysis categorized by type
+- **TechnicalIndicators**: Technical analysis charts and indicators
+- **MarketCorrelations**: Asset correlation visualization
+- **FakeTrading**: Practice trading system
+- **RiskAssessment**: Portfolio risk analysis tools
+
+### UI Components
+Reusable UI components from shadcn and custom implementations:
+- **Card**: Container for grouped content
+- **Button**: Interactive triggers for actions
+- **Tabs**: Organize content into tabbed interfaces
+- **Select**: Dropdown selection menus
+- **Charts**: Various chart types using Recharts
+
+## AI Market Insights Implementation
+The AI-powered market insights system uses:
+- **Categorization**: Insights are categorized as trends, signals, alerts, or predictions
+- **Confidence Scoring**: Each insight includes a confidence score (0-100%)
+- **Impact Assessment**: Insights are tagged with impact levels (high/medium/low)
+- **Tag System**: Insights can be filtered by tags
+- **Coin Association**: Insights are associated with specific cryptocurrencies
+- **Refresh Mechanism**: Users can trigger refreshes for the latest analysis
+
+## Technical Indicators Implementation
+The technical analysis tools include:
+- **Multiple Indicator Support**: RSI, MACD, Moving Averages, Bollinger Bands
+- **Interactive Charts**: Users can hover for detailed values
+- **Timeframe Selection**: Multiple timeframe options (1D to 1Y)
+- **Coin Selection**: Analysis available for all supported cryptocurrencies
+- **Visual Indicators**: Clear visual representation of indicator values
+
+## Market Correlations Features
+The correlation analysis system offers:
+- **Correlation Matrix**: Visual heatmap of correlations between assets
+- **Correlation Strength Classification**: Strong to weak, positive and negative
+- **Time Period Selection**: Adjustable time periods for correlation calculation
+- **Interactive Data**: Detailed information on hover
+- **Educational Content**: Help tooltips explaining correlation concepts
 
 ## Responsive Design Approach
 The application uses Tailwind's responsive classes with these breakpoints:
@@ -152,12 +210,31 @@ toast({
 - **Image Optimization**: Proper sizing, lazy loading, and modern formats
 - **Bundle Optimization**: Tree shaking and chunk optimization
 
-## Testing Approach
-- **Unit Tests**: For individual functions and components
-- **Integration Tests**: For component interactions
-- **E2E Tests**: For critical user flows
-- **Testing Library**: React Testing Library for component tests
-- **Mock Service Worker**: For API mocking
+## Advanced Features Implementation
+
+### AI Market Insights
+The AI-powered market insights system is implemented with:
+- **Categorization Logic**: Algorithm to classify insights into trends, signals, alerts, and predictions
+- **Confidence Calculation**: Statistical model for determining insight confidence
+- **Impact Assessment**: Heuristic evaluation for high/medium/low impact
+- **Data Sources**: Integration with multiple data providers for comprehensive analysis
+- **Update Mechanism**: Periodic background updates with manual refresh option
+
+### Technical Indicators
+The technical analysis tools are implemented using:
+- **Calculation Functions**: Pure functions for computing indicator values
+- **Data Processing**: Functions to transform raw price data into indicator data
+- **Visualization Components**: Chart components using Recharts library
+- **Interactive Elements**: Tooltips and hover states for detailed information
+- **Timeframe Management**: Logic for adjusting calculations based on selected timeframe
+
+### Market Correlations
+The correlation analysis system is built with:
+- **Correlation Algorithm**: Pearson correlation coefficient calculation
+- **Heatmap Visualization**: Custom styling for correlation matrix display
+- **Interpretation Logic**: Functions to classify and explain correlation values
+- **Period Selection**: Logic for adjusting the time window for correlation calculation
+- **Educational Elements**: Context-sensitive help for understanding correlation concepts
 
 ## Building New Features
 When adding new features:
