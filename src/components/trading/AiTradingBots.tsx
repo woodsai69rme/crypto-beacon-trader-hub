@@ -11,6 +11,8 @@ import LocalModelTrading from "./LocalModelTrading";
 import AiTradingMcp from "./AiTradingMcp";
 import MultiCoinChart from "../charts/MultiCoinChart";
 import RealTimeTrading from "./RealTimeTrading";
+import RealTimeStrategyPerformance from "./RealTimeStrategyPerformance";
+import AiBotTrading from "./AiBotTrading";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");
@@ -33,22 +35,48 @@ const AiTradingBots = () => {
         
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-8 mb-6">
+            <TabsList className="grid grid-cols-9 mb-6">
               <TabsTrigger value="strategies">Strategies</TabsTrigger>
               <TabsTrigger value="backtest">Backtest</TabsTrigger>
               <TabsTrigger value="optimize">Optimize</TabsTrigger>
               <TabsTrigger value="charts">Charts</TabsTrigger>
               <TabsTrigger value="custom">Custom</TabsTrigger>
               <TabsTrigger value="real-time">Real-Time</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="local">Local AI</TabsTrigger>
               <TabsTrigger value="mcp">MCP Servers</TabsTrigger>
             </TabsList>
             
             <TabsContent value="strategies">
-              <StrategyCardList 
-                strategies={predefinedStrategies} 
-                onSelectStrategy={handleSelectStrategy} 
-              />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <StrategyCardList 
+                    strategies={predefinedStrategies} 
+                    onSelectStrategy={handleSelectStrategy} 
+                  />
+                </div>
+                <div className="lg:col-span-1">
+                  {selectedStrategyId ? (
+                    <AiBotTrading 
+                      botId={selectedStrategyId} 
+                      strategyId={selectedStrategyId} 
+                      strategyName={predefinedStrategies.find(s => s.id === selectedStrategyId)?.name || "AI Strategy"} 
+                    />
+                  ) : (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>AI Trading Bot</CardTitle>
+                        <CardDescription>Select a strategy to start a trading bot</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center py-12 text-muted-foreground">
+                          Select a strategy from the list to get started
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
             </TabsContent>
             
             <TabsContent value="backtest">
@@ -69,6 +97,10 @@ const AiTradingBots = () => {
             
             <TabsContent value="real-time">
               <RealTimeTrading />
+            </TabsContent>
+            
+            <TabsContent value="performance">
+              <RealTimeStrategyPerformance />
             </TabsContent>
             
             <TabsContent value="local">

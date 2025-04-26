@@ -12,7 +12,10 @@ import RealTimePrices from "./RealTimePrices";
 import OrderBookVisualizer from "./OrderBookVisualizer";
 import TradeNotifications from "./TradeNotifications";
 import MarketAlerts from "./MarketAlerts";
-import { Activity, BarChart4 } from "lucide-react";
+import RealTimeAlerts from "./RealTimeAlerts";
+import RealTimePortfolio from "./RealTimePortfolio";
+import RealTimeStrategyPerformance from "./RealTimeStrategyPerformance";
+import { Activity, BarChart4, Bell, Wallet, Zap } from "lucide-react";
 
 const RealTimeTrading = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -34,15 +37,17 @@ const RealTimeTrading = () => {
           <Activity className="h-5 w-5" />
           Real-Time Trading
         </CardTitle>
-        <CardDescription>Live market data and trading activity</CardDescription>
+        <CardDescription>Live market data, portfolio updates, and trading activity</CardDescription>
       </CardHeader>
       
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-5 mb-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="market">Market Depth</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+            <TabsTrigger value="strategies">Strategies</TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard">
@@ -67,74 +72,70 @@ const RealTimeTrading = () => {
             </div>
           </TabsContent>
           
-          <TabsContent value="notifications">
+          <TabsContent value="alerts">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <RealTimeAlerts />
               <TradeNotifications />
-              <div className="flex flex-col gap-6">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart4 className="h-5 w-5" />
-                      Activity Summary
-                    </CardTitle>
-                    <CardDescription>Recent trading activity overview</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">Today's Trades: </span>
-                          <span className="font-medium">12</span>
-                        </div>
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">Volume: </span>
-                          <span className="font-medium">$35,480.45</span>
-                        </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="portfolio">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <RealTimePortfolio />
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Wallet className="h-5 w-5" />
+                    Account Activity
+                  </CardTitle>
+                  <CardDescription>Recent deposits, withdrawals and transfers</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-muted/40 p-3 rounded-md border">
+                      <div className="flex justify-between">
+                        <div className="font-medium">Deposit</div>
+                        <div className="text-green-600">+$5,000.00</div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium">Recent Activity</div>
-                        <div className="space-y-2">
-                          <div className="bg-muted/40 p-2 rounded-md text-sm">
-                            <div className="flex justify-between">
-                              <span>Bitcoin purchase</span>
-                              <span className="text-green-600">+0.15 BTC</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Today, 10:45 AM
-                            </div>
-                          </div>
-                          <div className="bg-muted/40 p-2 rounded-md text-sm">
-                            <div className="flex justify-between">
-                              <span>Ethereum sale</span>
-                              <span className="text-red-600">-2.5 ETH</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Yesterday, 2:30 PM
-                            </div>
-                          </div>
-                          <div className="bg-muted/40 p-2 rounded-md text-sm">
-                            <div className="flex justify-between">
-                              <span>Solana purchase</span>
-                              <span className="text-green-600">+10 SOL</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Apr 25, 11:20 AM
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center">
-                        <button className="text-sm text-primary hover:underline">
-                          View All Activity
-                        </button>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Today, 10:45 AM
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    <div className="bg-muted/40 p-3 rounded-md border">
+                      <div className="flex justify-between">
+                        <div className="font-medium">Purchase BTC</div>
+                        <div className="text-muted-foreground">0.056 BTC</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Yesterday, 2:30 PM
+                      </div>
+                    </div>
+                    <div className="bg-muted/40 p-3 rounded-md border">
+                      <div className="flex justify-between">
+                        <div className="font-medium">Transfer to Hardware Wallet</div>
+                        <div className="text-amber-600">-0.25 ETH</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Apr 25, 11:20 AM
+                      </div>
+                    </div>
+                    <div className="bg-muted/40 p-3 rounded-md border">
+                      <div className="flex justify-between">
+                        <div className="font-medium">Sale SOL</div>
+                        <div className="text-muted-foreground">-10 SOL</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Apr 24, 9:15 AM
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="strategies">
+            <RealTimeStrategyPerformance />
           </TabsContent>
         </Tabs>
       </CardContent>
