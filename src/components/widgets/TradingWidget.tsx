@@ -27,42 +27,41 @@ const TradingWidget = ({ isCompact = false }: TradingWidgetProps) => {
 
   const portfolioValue = calculatePortfolioValue();
   const performance = calculatePerformance();
-  const performanceColor = performance >= 0 ? "text-green-500" : "text-red-500";
+  const isPositive = performance >= 0;
 
   return (
-    <Card className="shadow-md">
-      <CardHeader className="pb-2">
+    <Card className="h-full overflow-hidden">
+      <CardHeader className={`pb-2 ${isCompact ? 'pb-1' : ''}`}>
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-semibold">Quick Trading</CardTitle>
-          <CurrencySelector 
-            activeCurrency={activeCurrency} 
-            onCurrencyChange={setActiveCurrency} 
-          />
+          <CardTitle className="text-lg">Quick Trading</CardTitle>
+          <CurrencySelector activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-muted/30 p-3 rounded-lg">
-            <div className="text-sm text-muted-foreground mb-1">Available Balance</div>
-            <div className="text-xl font-semibold">{formatValue(balance)}</div>
-          </div>
-          
-          <div className="bg-muted/30 p-3 rounded-lg">
-            <div className="text-sm text-muted-foreground mb-1">Portfolio Value</div>
-            <div className="text-xl font-semibold">{formatValue(portfolioValue)}</div>
-          </div>
-        </div>
-        
-        {performance !== 0 && (
-          <div className="mb-4 p-2 bg-background rounded-lg border flex justify-between items-center">
-            <div className="text-sm">Performance</div>
-            <div className={`flex items-center ${performanceColor}`}>
-              {performance > 0 ? "+" : ""}
-              {performance.toFixed(2)}%
-              <ArrowUpDown className={`ml-1 h-4 w-4 ${performance >= 0 ? "rotate-0" : "rotate-180"}`} />
+      
+      <CardContent className={isCompact ? 'pt-2' : ''}>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-sm text-muted-foreground">Portfolio Value</div>
+              <div className="text-2xl font-bold">{formatValue(portfolioValue)}</div>
+            </div>
+            
+            <div className="text-right">
+              <div className="text-sm text-muted-foreground">Performance</div>
+              <div className={`flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                <ArrowUpDown className="h-4 w-4 mr-1" />
+                <span className="text-lg font-medium">{isPositive ? '+' : ''}{performance.toFixed(2)}%</span>
+              </div>
             </div>
           </div>
-        )}
+          
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-sm text-muted-foreground">Available Balance</div>
+              <div className="font-medium">{formatValue(balance)}</div>
+            </div>
+          </div>
+        </div>
         
         {!isCompact && (
           <TradingForm

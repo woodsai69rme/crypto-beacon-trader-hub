@@ -14,7 +14,11 @@ export type WidgetType =
   | "correlations" 
   | "news" 
   | "sentiment"
-  | "trading";
+  | "trading"
+  | "aiTrading"
+  | "multiExchange"
+  | "education"
+  | "community";
 
 interface Widget {
   id: string;
