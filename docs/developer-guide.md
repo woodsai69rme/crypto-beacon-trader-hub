@@ -23,14 +23,17 @@ The application follows a component-based architecture with a focus on:
 ```
 src/
 ├── components/         # UI components
+│   ├── charts/         # Chart components
+│   │   └── indicators/ # Technical indicator charts
 │   ├── dashboard/      # Dashboard-specific components
 │   ├── trading/        # Trading-specific components
-│   ├── community/      # Community-specific components
+│   ├── widgets/        # Widget components
 │   └── ui/             # Shadcn UI components
 ├── contexts/           # React contexts
 ├── hooks/              # Custom React hooks
 ├── pages/              # Page components
 ├── services/           # API services
+│   └── api/            # API service modules
 ├── types/              # TypeScript types
 └── utils/              # Utility functions
 ```
@@ -42,12 +45,13 @@ src/
 - **Dashboard Component**: Main container with tab navigation
 - **CustomizableDashboard**: User-configurable widgets system
 - **Responsive Design**: Adapts to all device sizes
+- **Theme Support**: Light, dark, and system themes
 
 ### Trading Features
 
 - **FakeTrading**: Practice trading simulator with virtual balance
 - **MultiExchangeTrading**: Connect and trade across multiple exchanges
-- **TradingEducation**: Educational resources and professional signals
+- **TechnicalIndicators**: Advanced chart visualization for analysis
 - **CommunityHub**: Social features for trader interaction
 
 ### AI-Powered Features
@@ -56,25 +60,37 @@ src/
 - **AiMarketAnalysis**: AI-powered market insights
 - **MarketCorrelations**: Asset correlation analysis
 
-## Data Flow
+## API Integration
 
-The application uses a combination of:
+The application integrates with multiple cryptocurrency APIs with a fallback system:
 
-1. **Local state**: Component-specific UI state
-2. **React Context**: Cross-component shared state
-3. **React Query**: API data fetching and caching
-4. **Local Storage**: Persistent user data
+### Primary APIs
 
-### Example Data Flow
+- **CoinGecko**: Market data, coin prices, historical data
+- **CryptoCompare**: Technical indicators, alternative market data
+- **Exchangerate.host**: Currency conversion rates
 
-```
-User Action → Component Handler → API Call → Update UI
-```
+### API Architecture
 
-For example, when executing a trade:
+The API service implementation follows these principles:
 
-```
-Click "Buy" → handleExecuteTrade() → Update trade history → Update balance → Show toast
+1. **Modular Services**: Each API provider has its own service module
+2. **Caching Layer**: Efficient caching with customizable expiry times
+3. **Fallback Mechanism**: Automatic fallback to alternative providers
+4. **Mock Data**: Fallback to mock data when all APIs fail
+
+### API Usage Example
+
+```typescript
+// Example using enhanced API hooks
+const { data: coins, isLoading, error } = useEnhancedApi(
+  fetchTopCoins,
+  {
+    cacheKey: buildApiCacheKey("topCoins", 20),
+    cacheDuration: 5 * 60 * 1000, // 5 minutes
+    retries: 2
+  }
+);
 ```
 
 ## Component Development Guidelines
@@ -86,6 +102,7 @@ When adding new components:
 3. **Use TypeScript interfaces**: Define clear props interfaces
 4. **Support responsiveness**: Use Tailwind responsive classes
 5. **Implement error handling**: Handle loading and error states
+6. **Theme support**: Ensure all components work with both light and dark themes
 
 Example component structure:
 
@@ -125,6 +142,25 @@ export default MyComponent;
 
 The application includes several custom hooks:
 
+### useEnhancedApi
+
+Advanced API hook with caching and retry logic:
+
+```typescript
+const {
+  data,
+  isLoading,
+  isRefreshing,
+  error,
+  fetchData,
+  clearCache
+} = useEnhancedApi(apiFunction, {
+  cacheKey: "uniqueKey",
+  retries: 2,
+  onSuccess: (data) => console.log("Success", data)
+});
+```
+
 ### useCurrencyConverter
 
 Handles currency conversion throughout the app:
@@ -136,71 +172,38 @@ const { activeCurrency, setActiveCurrency, formatValue } = useCurrencyConverter(
 const formattedPrice = formatValue(product.price);
 ```
 
-### useLocalStorage
+### useTheme
 
-Persists state in localStorage:
-
-```typescript
-const [settings, setSettings] = useLocalStorage("userSettings", defaultSettings);
-
-// Update settings
-setSettings({ ...settings, theme: "dark" });
-```
-
-### useTradingPortfolio
-
-Manages the trading functionality:
+Manages theme settings:
 
 ```typescript
-const {
-  trades,
-  balance,
-  availableCoins,
-  handleExecuteTrade
-} = useTradingPortfolio();
+const { theme, setTheme, resolvedTheme } = useTheme();
 
-// Execute a trade
-handleExecuteTrade("buy", "bitcoin", 0.5);
+// Change theme
+setTheme("dark");
 ```
 
-## AI Trading Implementation
+## Technical Indicators
 
-The AI trading system uses:
+The application implements several technical indicators:
 
-1. **Predefined strategies**: Collection of AI trading strategies
-2. **Strategy customization**: User-adjustable parameters
-3. **Backtesting**: Historical performance simulation
-4. **Execution engine**: Automated trading based on strategy signals
+1. **RSI**: Relative Strength Index for momentum analysis
+2. **MACD**: Moving Average Convergence Divergence for trend following
+3. **Bollinger Bands**: Volatility indicator showing price channels
+4. **Moving Averages**: Multiple timeframe moving averages
 
-### Strategy Definition
+Each indicator has its own chart component for optimized rendering and focused updates.
 
-```typescript
-interface TradingStrategy {
-  id: string;
-  name: string;
-  type: "momentum" | "mean-reversion" | "breakout" | "ai-predictive";
-  riskLevel: "low" | "medium" | "high";
-  parameters: Record<string, any>;
-  // Additional properties
-}
-```
+## Performance Optimization
 
-## API Integration
+The application implements several performance optimizations:
 
-The application integrates with multiple cryptocurrency APIs:
-
-### Primary APIs
-
-- **CoinGecko**: Market data, coin prices, historical data
-- **Exchangerate.host**: Currency conversion rates
-
-### API Implementation
-
-API services are organized in the `src/services/` directory:
-
-- `cryptoApi.ts`: Cryptocurrency data
-- `currencyApi.ts`: Currency conversion
-- `marketDataService.ts`: Market metrics
+1. **API Caching**: Reduces unnecessary network requests
+2. **API Fallbacks**: Provides redundancy for service failures
+3. **Component Splitting**: Smaller, focused components to reduce rerenders
+4. **Virtualized Lists**: Efficient rendering for large datasets
+5. **Optimized Re-renders**: Use of React.memo, useMemo, and useCallback
+6. **Skeleton Loading States**: Better user experience during data fetching
 
 ## Testing Guidelines
 
@@ -238,6 +241,15 @@ describe('MyComponent', () => {
 });
 ```
 
+## Theme System
+
+The application implements a flexible theme system with:
+
+1. **Light/Dark/System modes**: User-selectable theme preferences
+2. **Persistent preferences**: Theme choices saved to localStorage
+3. **System preference detection**: Automatic theme based on system settings
+4. **Runtime theme switching**: Change themes without page reload
+
 ## Adding New Features
 
 When adding new features to the dashboard:
@@ -248,8 +260,8 @@ When adding new features to the dashboard:
    - Define clear props interfaces
 
 2. **Implement data fetching**
-   - Use React Query for API data
-   - Implement error handling
+   - Use Enhanced API hooks for API data
+   - Implement proper error handling
    - Add loading states
 
 3. **Create UI components**

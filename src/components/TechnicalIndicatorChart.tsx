@@ -1,21 +1,14 @@
 
-import React, { useState, useEffect } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Legend,
-  ReferenceLine,
-} from "recharts";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/loading-skeleton";
 import { fetchTechnicalIndicators } from "@/services/enhancedCryptoApi";
 import { handleError } from "@/utils/errorHandling";
+import ChartSkeleton from "./charts/indicators/ChartSkeleton";
+import RSIChart from "./charts/indicators/RSIChart";
+import MACDChart from "./charts/indicators/MACDChart";
+import BollingerBandsChart from "./charts/indicators/BollingerBandsChart";
+import MovingAverageChart from "./charts/indicators/MovingAverageChart";
 
 interface TechnicalIndicatorChartProps {
   coinId: string;
@@ -35,6 +28,14 @@ const TechnicalIndicatorChart: React.FC<TechnicalIndicatorChartProps> = ({
   const [data, setData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState<number>(timeRange);
+  
+  // Description of each indicator
+  const indicatorDescriptions = useMemo(() => ({
+    "RSI": "Relative Strength Index (RSI) is a momentum oscillator that measures the speed and change of price movements. Values over 70 indicate overbought conditions, while values under 30 indicate oversold conditions.",
+    "MACD": "Moving Average Convergence Divergence (MACD) is a trend-following momentum indicator that shows the relationship between two moving averages of a security's price.",
+    "Bollinger Bands": "Bollinger Bands consist of a middle band being a moving average, and two outer bands that are standard deviations away from the middle band. They help identify volatility and potential overbought/oversold conditions.",
+    "Moving Average": "Moving Averages smooth out price data to create a single flowing line, making it easier to identify the direction of the trend. They lag behind current price action, helping to confirm trends and potential support/resistance levels."
+  }), []);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -120,14 +121,9 @@ const TechnicalIndicatorChart: React.FC<TechnicalIndicatorChartProps> = ({
     }));
   };
   
-  // Configure chart components based on indicator
   const renderChart = () => {
     if (isLoading) {
-      return (
-        <div className="h-64 flex items-center justify-center">
-          <Skeleton variant="rectangular" height={200} width="100%" />
-        </div>
-      );
+      return <ChartSkeleton height={300} />;
     }
     
     if (data.length === 0) {
@@ -140,82 +136,16 @@ const TechnicalIndicatorChart: React.FC<TechnicalIndicatorChartProps> = ({
     
     switch (indicator) {
       case "RSI":
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
-              <ReferenceLine y={70} stroke="red" strokeDasharray="3 3" />
-              <ReferenceLine y={30} stroke="green" strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="RSI" stroke={color} activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-        
+        return <RSIChart data={data} color={color} />;
       case "MACD":
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="MACD" stroke={color} activeDot={{ r: 8 }} />
-              <Line type="monotone" dataKey="Signal" stroke="#ff7300" dot={false} />
-              <Line type="monotone" dataKey="Histogram" stroke="#82ca9d" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-        
+        return <MACDChart data={data} color={color} />;
       case "Bollinger Bands":
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="Price" stroke="#ff7300" dot={false} />
-              <Line type="monotone" dataKey="Upper" stroke="#8884d8" dot={false} strokeDasharray="5 5" />
-              <Line type="monotone" dataKey="Middle" stroke={color} dot={false} />
-              <Line type="monotone" dataKey="Lower" stroke="#8884d8" dot={false} strokeDasharray="5 5" />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-        
+        return <BollingerBandsChart data={data} color={color} />;
       case "Moving Average":
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="Price" stroke="#ff7300" dot={false} />
-              <Line type="monotone" dataKey="MA7" stroke="#8884d8" dot={false} />
-              <Line type="monotone" dataKey="MA25" stroke={color} dot={false} />
-              <Line type="monotone" dataKey="MA99" stroke="#82ca9d" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-        
+        return <MovingAverageChart data={data} color={color} />;
       default:
         return <div>Unsupported indicator</div>;
     }
-  };
-  
-  // Description of each indicator
-  const indicatorDescriptions = {
-    "RSI": "Relative Strength Index (RSI) is a momentum oscillator that measures the speed and change of price movements. Values over 70 indicate overbought conditions, while values under 30 indicate oversold conditions.",
-    "MACD": "Moving Average Convergence Divergence (MACD) is a trend-following momentum indicator that shows the relationship between two moving averages of a security's price.",
-    "Bollinger Bands": "Bollinger Bands consist of a middle band being a moving average, and two outer bands that are standard deviations away from the middle band. They help identify volatility and potential overbought/oversold conditions.",
-    "Moving Average": "Moving Averages smooth out price data to create a single flowing line, making it easier to identify the direction of the trend. They lag behind current price action, helping to confirm trends and potential support/resistance levels."
   };
   
   return (

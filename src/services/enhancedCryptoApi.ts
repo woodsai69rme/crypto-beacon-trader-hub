@@ -1,47 +1,17 @@
+
 import { toast } from "@/components/ui/use-toast";
 import { getMockCryptoData, CryptoData, CryptoChartData } from "./cryptoApi";
-
-// Cache implementation
-interface CacheItem<T> {
-  data: T;
-  timestamp: number;
-  expiry: number; // In milliseconds
-}
-
-class ApiCache {
-  private cache: Map<string, CacheItem<any>> = new Map();
-  
-  get<T>(key: string): T | null {
-    const item = this.cache.get(key);
-    if (!item) return null;
-    
-    if (Date.now() > item.timestamp + item.expiry) {
-      this.cache.delete(key);
-      return null;
-    }
-    
-    return item.data as T;
-  }
-  
-  set<T>(key: string, data: T, expiry: number = 5 * 60 * 1000): void { // Default 5 minutes
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      expiry
-    });
-  }
-  
-  clear(): void {
-    this.cache.clear();
-  }
-}
-
-const apiCache = new ApiCache();
-
-// Primary API endpoints (CoinGecko)
-const COINGECKO_API_BASE_URL = "https://api.coingecko.com/api/v3";
-// Fallback API endpoints (CryptoCompare)
-const CRYPTOCOMPARE_API_BASE_URL = "https://min-api.cryptocompare.com/data";
+import apiCache from "./api/cacheService";
+import { 
+  fetchCoinsFromCoinGecko, 
+  fetchCoinHistoryFromCoinGecko,
+  searchCoinsFromCoinGecko 
+} from "./api/coinGeckoService";
+import { 
+  fetchCoinsFromCryptoCompare, 
+  fetchCoinHistoryFromCryptoCompare,
+  fetchTechnicalIndicatorsFromCryptoCompare 
+} from "./api/cryptoCompareService";
 
 // Utility function to handle API errors with fallbacks
 async function fetchWithFallback<T>(
@@ -79,50 +49,10 @@ export const fetchTopCoins = async (limit: number = 20): Promise<CryptoData[]> =
     return cachedData;
   }
   
-  const fetchFromCoinGecko = async (): Promise<CryptoData[]> => {
-    const response = await fetch(
-      `${COINGECKO_API_BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`
-    );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch cryptocurrency data from CoinGecko");
-    }
-    
-    return await response.json();
-  };
-  
-  const fetchFromCryptoCompare = async (): Promise<CryptoData[]> => {
-    // CryptoCompare requires different formatting than CoinGecko
-    const response = await fetch(
-      `${CRYPTOCOMPARE_API_BASE_URL}/top/mktcapfull?limit=${limit}&tsym=USD`
-    );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch cryptocurrency data from CryptoCompare");
-    }
-    
-    const data = await response.json();
-    
-    // Transform to match our CryptoData interface
-    return data.Data.map((item: any) => ({
-      id: item.CoinInfo.Name.toLowerCase(),
-      name: item.CoinInfo.FullName,
-      symbol: item.CoinInfo.Name,
-      current_price: item.RAW?.USD?.PRICE || 0,
-      market_cap: item.RAW?.USD?.MKTCAP || 0,
-      market_cap_rank: item.CoinInfo.SortOrder,
-      price_change_percentage_24h: item.RAW?.USD?.CHANGEPCT24HOUR || 0,
-      image: `https://www.cryptocompare.com${item.CoinInfo.ImageUrl}`,
-      ath: item.RAW?.USD?.HIGHDAY || 0,
-      total_volume: item.RAW?.USD?.TOTALVOLUME24H || 0,
-      circulating_supply: item.RAW?.USD?.SUPPLY || 0
-    }));
-  };
-  
   try {
     const coins = await fetchWithFallback<CryptoData[]>(
-      fetchFromCoinGecko,
-      fetchFromCryptoCompare,
+      () => fetchCoinsFromCoinGecko(limit),
+      () => fetchCoinsFromCryptoCompare(limit),
       "Failed to fetch cryptocurrency data"
     );
     
@@ -163,49 +93,10 @@ export const fetchCoinHistory = async (
     return cachedData;
   }
   
-  const fetchFromCoinGecko = async (): Promise<CryptoChartData> => {
-    const response = await fetch(
-      `${COINGECKO_API_BASE_URL}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
-    );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch coin history from CoinGecko");
-    }
-    
-    return await response.json();
-  };
-  
-  const fetchFromCryptoCompare = async (): Promise<CryptoChartData> => {
-    // For CryptoCompare, we need to map days to hours and get historical data
-    const hours = days * 24;
-    const limit = Math.min(hours, 2000); // API limit
-    const response = await fetch(
-      `${CRYPTOCOMPARE_API_BASE_URL}/v2/histohour?fsym=${coinId.toUpperCase()}&tsym=USD&limit=${limit}`
-    );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch coin history from CryptoCompare");
-    }
-    
-    const data = await response.json();
-    
-    // Transform to match CryptoChartData
-    const prices: [number, number][] = data.Data.Data.map((item: any) => [
-      item.time * 1000, // Convert to milliseconds
-      item.close
-    ]);
-    
-    return {
-      prices,
-      market_caps: [], // CryptoCompare doesn't provide this
-      total_volumes: [] // CryptoCompare doesn't provide this
-    };
-  };
-  
   try {
     const data = await fetchWithFallback<CryptoChartData>(
-      fetchFromCoinGecko,
-      fetchFromCryptoCompare,
+      () => fetchCoinHistoryFromCoinGecko(coinId, days),
+      () => fetchCoinHistoryFromCryptoCompare(coinId, days),
       `Failed to fetch history for ${coinId}`
     );
     
@@ -231,29 +122,7 @@ export const searchCoins = async (query: string): Promise<CryptoData[]> => {
   }
   
   try {
-    const response = await fetch(`${COINGECKO_API_BASE_URL}/search?query=${query}`);
-    
-    if (!response.ok) {
-      throw new Error("Search failed");
-    }
-    
-    const data = await response.json();
-    
-    // Return the first 10 coins from the search results
-    const results = data.coins.slice(0, 10).map((coin: any) => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol.toUpperCase(),
-      market_cap_rank: coin.market_cap_rank || 9999,
-      image: coin.large,
-      // The search endpoint doesn't return these values, so we set defaults
-      current_price: 0,
-      market_cap: 0,
-      price_change_percentage_24h: 0,
-      ath: 0,
-      total_volume: 0,
-      circulating_supply: 0
-    }));
+    const results = await searchCoinsFromCoinGecko(query);
     
     // Cache the result
     apiCache.set(cacheKey, results, 5 * 60 * 1000); // 5 minutes cache
@@ -279,21 +148,7 @@ export const fetchTechnicalIndicators = async (
   
   try {
     // CryptoCompare provides technical indicators
-    const endpoint = indicator.toLowerCase() === 'rsi' 
-      ? 'rsi' 
-      : indicator.toLowerCase() === 'macd' 
-        ? 'macd' 
-        : 'bbands'; // Default to Bollinger Bands
-    
-    const response = await fetch(
-      `${CRYPTOCOMPARE_API_BASE_URL}/ta/${endpoint}?fsym=${coinId.toUpperCase()}&tsym=USD&limit=30`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${indicator} data`);
-    }
-    
-    const data = await response.json();
+    const data = await fetchTechnicalIndicatorsFromCryptoCompare(coinId, indicator);
     
     // Cache the result
     apiCache.set(cacheKey, data, 5 * 60 * 1000); // 5 minutes cache
