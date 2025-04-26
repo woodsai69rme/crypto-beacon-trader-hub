@@ -45,6 +45,13 @@ API requests requiring authentication use bearer tokens. To authenticate:
 - `POST /fake-trading/reset` - Reset fake trading account
 - `GET /fake-trading/performance` - Get performance metrics for the fake trading account
 
+### AI Market Insights
+- `GET /ai/insights` - Get AI-generated market insights
+- `GET /ai/insights/:category` - Get insights by category (trends, signals, alerts, predictions)
+- `GET /ai/insights/coin/:coinId` - Get AI insights for a specific cryptocurrency
+- `POST /ai/insights/generate` - Trigger generation of new insights
+- `GET /ai/models` - Get information about available AI models
+
 ## Data Models
 
 ### Coin
@@ -122,6 +129,23 @@ interface FakeTradingAccount {
 }
 ```
 
+### MarketInsight
+```typescript
+interface MarketInsight {
+  id: string;
+  type: 'trend' | 'signal' | 'alert' | 'prediction';
+  title: string;
+  description: string;
+  coins: string[];     // Array of related coin IDs
+  confidence: number;  // 0-100 confidence score
+  impact: 'high' | 'medium' | 'low';
+  timestamp: string;
+  tags: string[];
+  model: string;       // AI model used for generation
+  sources?: string[];  // Data sources used for analysis
+}
+```
+
 ## Error Handling
 All API endpoints return standard HTTP status codes:
 - 200: Success
@@ -149,3 +173,4 @@ API requests are rate-limited to 100 requests per minute per API key. When a rat
 - **v1.0.0** (2025-04-01): Initial release
 - **v1.0.1** (2025-04-15): Added portfolio performance endpoints
 - **v1.0.2** (2025-04-26): Added fake trading system endpoints
+- **v1.0.3** (2025-04-30): Added AI market insights endpoints

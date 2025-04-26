@@ -1,3 +1,4 @@
+
 # Crypto Dashboard User Guide
 
 ## Getting Started
@@ -43,6 +44,7 @@ The main dashboard is organized into six key sections:
    - Sentiment analysis
    - Correlation metrics
    - Historical performance
+   - AI-powered market insights
 
 6. **Tools**: Additional utilities for crypto investors
    - Tax reporting assistant
@@ -145,6 +147,27 @@ Make informed decisions with:
   - Diversification analyzer
   - Drawdown simulator
   - Risk-adjusted return metrics
+
+- **AI-powered market insights**:
+  - Automated trend identification
+  - Market pattern recognition
+  - Predictive price models
+  - Anomaly detection
+  - Sentiment-based forecasts
+  - Trading signal suggestions
+
+### Using AI Market Insights
+1. Navigate to the Analysis tab
+2. Access the AI Market Insights panel
+3. View automated insights categorized by:
+   - Trends: Long-term market patterns
+   - Signals: Short-term trading opportunities
+   - Alerts: Unusual market activity
+   - Predictions: Future price forecasts
+4. Filter insights by type using the category buttons
+5. Review confidence scores for each insight
+6. Click "Refresh Analysis" to generate new insights
+7. Use tag filters to find insights for specific assets or topics
 
 ### Managing Your Watchlist
 1. Create multiple watchlists:

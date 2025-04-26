@@ -1,3 +1,4 @@
+
 # Crypto Dashboard Documentation
 
 ## Overview
@@ -13,6 +14,7 @@ This crypto dashboard application provides a comprehensive platform for users to
 - **Tax reporting**: Generate tax reports for cryptocurrency transactions
 - **User preferences & settings**: Customize your dashboard experience to match your needs
 - **Fake trading system**: Practice trading strategies without risking real money
+- **AI-powered market insights**: Get automated analysis and predictions based on market data
 
 ## Current Status
 - **Core Features**: Implemented and functional
@@ -21,9 +23,11 @@ This crypto dashboard application provides a comprehensive platform for users to
   - Watchlist customization
   - Fake trading system
   - Technical analysis tools
+  - AI-powered market insights
   - Basic API integrations
 
 - **Recent Updates**:
+  - Added AI-powered market insights
   - Added fake trading system for practice trading
   - Enhanced portfolio tracking capabilities
   - Improved market data visualization
@@ -33,7 +37,6 @@ This crypto dashboard application provides a comprehensive platform for users to
 - Enhanced data analytics tools
 - Advanced technical indicators
 - Social trading features
-- AI-powered market insights
 - Extended API integrations
 - Mobile app development
 

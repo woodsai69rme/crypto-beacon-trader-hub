@@ -1,3 +1,4 @@
+
 # Developer Technical Guide
 
 ## Architecture Overview
@@ -29,6 +30,7 @@ The application now includes these additional components:
 - **SentimentAnalysis**: Market sentiment tracking
 - **TechnicalIndicators**: Advanced technical analysis
 - **MarketCorrelations**: Asset correlation analysis
+- **AiMarketInsights**: AI-powered market trend analysis and predictions
 
 ## State Management
 The application uses multiple strategies for state management:

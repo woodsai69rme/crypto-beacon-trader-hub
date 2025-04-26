@@ -5,8 +5,9 @@ import TradingPairComparison from "../TradingPairComparison";
 import MarketDepthChart from "../MarketDepthChart";
 import SentimentAnalysis from "../SentimentAnalysis";
 import FilteredNewsFeed from "../FilteredNewsFeed";
+import AiMarketInsights from "../AiMarketInsights";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, HelpCircle, DownloadCloud } from "lucide-react";
+import { BarChart3, TrendingUp, HelpCircle, DownloadCloud, Sparkles } from "lucide-react";
 import AlertPrompt from "../AlertPrompt";
 
 const DashboardAnalysis = () => {
@@ -43,6 +44,10 @@ const DashboardAnalysis = () => {
           Custom Indicators
         </Button>
         <Button variant="outline" className="gap-2">
+          <Sparkles className="h-4 w-4" />
+          AI Insights
+        </Button>
+        <Button variant="outline" className="gap-2">
           <DownloadCloud className="h-4 w-4" />
           Export Analysis
         </Button>
@@ -61,6 +66,10 @@ const DashboardAnalysis = () => {
           className="mb-4"
         />
       )}
+    
+      <div className="grid grid-cols-1 gap-6">
+        <AiMarketInsights />
+      </div>
     
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RiskAssessment />
