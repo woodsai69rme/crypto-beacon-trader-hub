@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +9,7 @@ import StrategyOptimization from "../widgets/StrategyOptimization";
 import CustomStrategy from "../widgets/CustomStrategy";
 import LocalModelTrading from "./LocalModelTrading";
 import AiTradingMcp from "./AiTradingMcp";
-import MultiCoinChart from "../widgets/MultiCoinChart";
+import MultiCoinChart from "../charts/MultiCoinChart";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");

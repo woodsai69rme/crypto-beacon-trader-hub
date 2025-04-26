@@ -8,9 +8,11 @@ export interface Trade {
   price: number;
   totalValue: number;
   timestamp: string;
-  currentValue?: number;
+  currency: string;
   profitLoss?: number;
-  currency: 'USD' | 'AUD';
+  currentValue?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
 }
 
 export interface CoinOption {
@@ -51,7 +53,23 @@ export interface TradingAccount {
   id: string;
   name: string;
   balance: number;
-  trades: Trade[];
   initialBalance: number;
+  trades: Trade[];
   createdAt: string;
+}
+
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: 'ai' | 'traditional' | 'hybrid';
+  color: string;
+  indicators: string[];
+  timeframes: string[];
+  stats: {
+    winRate: number;
+    averageReturn: number;
+    riskLevel: string;
+    maxDrawdown: number;
+  };
 }
