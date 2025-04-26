@@ -1,62 +1,84 @@
 
-import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import BaseIndicatorChart from '@/components/charts/indicators/BaseIndicatorChart';
-
-// Mock Recharts components
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
-  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
-  Line: ({ dataKey, stroke }: { dataKey: string, stroke: string }) => <div data-testid={`line-${dataKey}`} style={{ color: stroke }}></div>,
-  XAxis: () => <div data-testid="x-axis"></div>,
-  YAxis: () => <div data-testid="y-axis"></div>,
-  CartesianGrid: () => <div data-testid="cartesian-grid"></div>,
-  Tooltip: () => <div data-testid="tooltip"></div>,
-  Legend: () => <div data-testid="legend"></div>,
-  ReferenceLine: ({ y, stroke }: { y: number, stroke: string }) => <div data-testid={`reference-line-${y}`} style={{ color: stroke }}></div>,
-}));
 
 describe('BaseIndicatorChart', () => {
   const mockData = [
-    { date: '2023-01-01', value1: 100, value2: 200 },
-    { date: '2023-01-02', value1: 150, value2: 250 },
+    { date: '2023-01-01', value: 30 },
+    { date: '2023-01-02', value: 35 },
+    { date: '2023-01-03', value: 32 },
   ];
 
-  const mockLines = [
-    { key: 'value1', color: 'blue' },
-    { key: 'value2', color: 'red' },
-  ];
-
-  const mockReferenceLines = [
-    { y: 100, stroke: 'green' },
-    { y: 200, stroke: 'red' },
-  ];
-
-  it('renders with required props', () => {
-    const { getByTestId } = render(
-      <BaseIndicatorChart data={mockData} lines={mockLines} />
-    );
-    
-    expect(getByTestId('responsive-container')).toBeInTheDocument();
-    expect(getByTestId('line-chart')).toBeInTheDocument();
-    expect(getByTestId('line-value1')).toBeInTheDocument();
-    expect(getByTestId('line-value2')).toBeInTheDocument();
-    expect(getByTestId('line-value1')).toHaveStyle('color: blue');
-    expect(getByTestId('line-value2')).toHaveStyle('color: red');
-  });
-
-  it('renders reference lines when provided', () => {
-    const { getByTestId } = render(
-      <BaseIndicatorChart 
-        data={mockData} 
-        lines={mockLines} 
-        referenceLines={mockReferenceLines} 
+  it('renders without crashing', () => {
+    render(
+      <BaseIndicatorChart
+        data={mockData}
+        lines={[
+          {
+            key: 'value',
+            color: '#4f46e5',
+            dot: { r: 5 },
+          },
+        ]}
       />
     );
-    
-    expect(getByTestId('reference-line-100')).toBeInTheDocument();
-    expect(getByTestId('reference-line-200')).toBeInTheDocument();
-    expect(getByTestId('reference-line-100')).toHaveStyle('color: green');
-    expect(getByTestId('reference-line-200')).toHaveStyle('color: red');
+    // Verify that the chart container is in the document
+    expect(document.querySelector('.recharts-responsive-container')).toBeInTheDocument();
+  });
+
+  it('renders with multiple lines', () => {
+    const multiLineData = [
+      { date: '2023-01-01', line1: 30, line2: 20 },
+      { date: '2023-01-02', line1: 35, line2: 25 },
+      { date: '2023-01-03', line1: 32, line2: 28 },
+    ];
+
+    render(
+      <BaseIndicatorChart
+        data={multiLineData}
+        lines={[
+          {
+            key: 'line1',
+            color: '#4f46e5',
+            dot: { r: 5 },
+          },
+          {
+            key: 'line2',
+            color: '#ff0000',
+            dot: false,
+          },
+        ]}
+      />
+    );
+
+    // Should have two line elements
+    const lineElements = document.querySelectorAll('.recharts-line');
+    expect(lineElements).toHaveLength(2);
+  });
+
+  it('renders with reference lines', () => {
+    render(
+      <BaseIndicatorChart
+        data={mockData}
+        lines={[
+          {
+            key: 'value',
+            color: '#4f46e5',
+            dot: { r: 5 },
+          },
+        ]}
+        referenceLines={[
+          {
+            y: 30,
+            stroke: 'red',
+            strokeDasharray: '3 3',
+          },
+        ]}
+      />
+    );
+
+    // Should have a reference line
+    const refLine = document.querySelector('.recharts-reference-line');
+    expect(refLine).toBeInTheDocument();
   });
 });

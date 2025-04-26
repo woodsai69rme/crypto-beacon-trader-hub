@@ -39,8 +39,29 @@
 
 .card {
   padding: 2em;
+  background-color: #222333;  /* Dark card background */
+  border: 1px solid #333344;
+  color: #fff;
 }
 
 .read-the-docs {
   color: #888;
+}
+
+/* Override for shadcn components to ensure dark theme */
+.bg-card, 
+.bg-background, 
+.bg-popover {
+  background-color: #222333 !important;
+  color: white !important;
+}
+
+.border {
+  border-color: #333344 !important;
+}
+
+.crypto-card {
+  background-color: #222333 !important;
+  border-color: #333344 !important;
+  color: white !important;
 }
