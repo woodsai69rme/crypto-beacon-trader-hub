@@ -10,12 +10,17 @@ jest.mock('@/components/ui/use-toast', () => ({
 }));
 
 describe('useEnhancedApi', () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
       },
-    },
+    });
+    jest.clearAllMocks();
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -23,11 +28,6 @@ describe('useEnhancedApi', () => {
       {children}
     </QueryClientProvider>
   );
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    queryClient.clear();
-  });
 
   it('should return data when API call is successful', async () => {
     const mockData = { test: 'success' };
@@ -48,16 +48,13 @@ describe('useEnhancedApi', () => {
 
     const { result } = renderHook(() => useEnhancedApi(mockFn), { wrapper });
     
-    const fetchedData = await result.current.fetchData();
-    
-    expect(fetchedData).toBeUndefined();
+    await expect(result.current.fetchData()).resolves.toBeUndefined();
     expect(result.current.error).toEqual(error);
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'API Error',
-        variant: 'destructive'
-      })
-    );
+    expect(toast).toHaveBeenCalledWith({
+      title: 'API Error',
+      description: error.message,
+      variant: 'destructive'
+    });
   });
 
   it('should use cache when available', async () => {
@@ -72,9 +69,7 @@ describe('useEnhancedApi', () => {
     await result.current.fetchData();
     const firstCallCount = mockFn.mock.calls.length;
     
-    // Second call should use cache
     const cachedData = await result.current.fetchData();
-    
     expect(mockFn.mock.calls.length).toBe(firstCallCount);
     expect(cachedData).toEqual(mockData);
     expect(result.current.data).toEqual(mockData);
