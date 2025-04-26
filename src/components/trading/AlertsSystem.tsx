@@ -9,11 +9,14 @@ import { handleError } from "@/utils/errorHandling";
 import LoadingSpinner from "./LoadingSpinner";
 import { AlertFormSheet } from "../widgets/AlertComponents/AlertFormSheet";
 import { PriceAlertFormData } from "../widgets/AlertComponents/AlertTypes";
+import { formatCurrency } from "@/utils/formatters";
+import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 
 const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { alerts, addAlert, removeAlert } = useAlerts();
+  const { formatValue, activeCurrency } = useCurrencyConverter();
   
   // Create a default form data object that matches the PriceAlertFormData type
   const defaultFormData: PriceAlertFormData = {
@@ -32,14 +35,26 @@ const AlertsSystem = () => {
   const [formData, setFormData] = useState<PriceAlertFormData>(defaultFormData);
 
   const handleSubmit = async () => {
+    if (formData.targetPrice <= 0) {
+      toast({
+        title: "Invalid Price",
+        description: "Please enter a valid price target",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       setIsLoading(true);
       await addAlert(formData);
       setIsOpen(false);
       toast({
         title: "Alert Created",
-        description: "Your price alert has been set successfully",
+        description: `You'll be notified when ${formData.coinName} is ${formData.isAbove ? "above" : "below"} ${formatValue(formData.targetPrice)}`,
       });
+      
+      // Reset form after submission
+      setFormData(defaultFormData);
     } catch (error) {
       handleError(error, "error", "Alert Creation");
     } finally {
@@ -95,15 +110,20 @@ const AlertsSystem = () => {
 
         {alerts.length > 0 && (
           <div className="mt-4 space-y-2">
+            <h4 className="text-sm font-medium mb-2">Active Alerts</h4>
             {alerts.map((alert) => (
               <div
                 key={alert.id}
                 className="flex items-center justify-between p-2 rounded-md border"
               >
-                <span className="text-sm">
-                  {alert.coinSymbol} {alert.isAbove ? "above" : "below"} $
-                  {alert.targetPrice.toLocaleString()}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    {alert.coinSymbol} {alert.isAbove ? "↑" : "↓"} {formatValue(alert.targetPrice)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {alert.recurring ? "Recurring" : "One-time"}
+                  </span>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"

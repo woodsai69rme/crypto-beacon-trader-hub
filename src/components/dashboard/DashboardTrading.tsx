@@ -4,11 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyManagement from "../ApiKeyManagement";
 import FakeTrading from "../FakeTrading";
 import AiTradingBots from "../trading/AiTradingBots";
-import AiTradingMcp from "../trading/AiTradingMcp"; // Add missing import
+import AiTradingMcp from "../trading/AiTradingMcp"; 
 import TradingEducation from "../trading/TradingEducation";
 import MultiExchangeTrading from "../trading/MultiExchangeTrading";
 import AiMarketAnalysis from "../trading/AiMarketAnalysis";
 import SocialTradingFeatures from "../trading/SocialTradingFeatures";
+import AlertsSystem from "../trading/AlertsSystem";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -30,35 +31,42 @@ const DashboardTrading = () => {
           {isMobile && <TabsTrigger value="more">More</TabsTrigger>}
         </TabsList>
         
-        <TabsContent value="trade">
-          <FakeTrading />
+        <TabsContent value="trade" className="animate-fade-in">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <FakeTrading />
+            </div>
+            <div className="lg:col-span-1">
+              <AlertsSystem />
+            </div>
+          </div>
         </TabsContent>
         
-        <TabsContent value="ai-bots">
+        <TabsContent value="ai-bots" className="animate-fade-in">
           <AiTradingBots />
         </TabsContent>
         
-        <TabsContent value="mcp">
+        <TabsContent value="mcp" className="animate-fade-in">
           <AiTradingMcp />
         </TabsContent>
         
-        <TabsContent value="multi-exchange">
+        <TabsContent value="multi-exchange" className="animate-fade-in">
           <MultiExchangeTrading />
         </TabsContent>
         
-        <TabsContent value="analysis">
+        <TabsContent value="analysis" className="animate-fade-in">
           <AiMarketAnalysis />
         </TabsContent>
         
-        <TabsContent value="social">
+        <TabsContent value="social" className="animate-fade-in">
           <SocialTradingFeatures />
         </TabsContent>
         
-        <TabsContent value="education">
+        <TabsContent value="education" className="animate-fade-in">
           <TradingEducation />
         </TabsContent>
         
-        <TabsContent value="api-keys">
+        <TabsContent value="api-keys" className="animate-fade-in">
           <Card>
             <CardContent className="pt-6">
               <ApiKeyManagement />
@@ -67,7 +75,7 @@ const DashboardTrading = () => {
         </TabsContent>
         
         {isMobile && (
-          <TabsContent value="more">
+          <TabsContent value="more" className="animate-fade-in">
             <Tabs defaultValue="analysis">
               <TabsList className="grid grid-cols-4 mb-6">
                 <TabsTrigger value="analysis">Analysis</TabsTrigger>

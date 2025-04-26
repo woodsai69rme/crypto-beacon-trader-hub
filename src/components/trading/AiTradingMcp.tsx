@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Bot } from "lucide-react";
@@ -7,6 +8,8 @@ import ModelConfigPanel from "./ModelConfigPanel";
 import TradingControls from "./TradingControls";
 import ServerStatus from "./ServerStatus";
 import DisconnectedState from "./DisconnectedState";
+import AlertsSystem from "./AlertsSystem";
+import { handleError } from "@/utils/errorHandling";
 
 const AiTradingMcp = () => {
   const [mcpServers, setMcpServers] = useState<McpServerConfig[]>([
@@ -63,31 +66,31 @@ const AiTradingMcp = () => {
         description: `Successfully connected to ${finalServers.find(s => s.id === serverId)?.name}`,
       });
     } catch (error) {
-      toast({
-        title: "Connection Failed",
-        description: "Unable to connect to MCP server. Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, "error", "Server Connection");
     }
   };
   
   const disconnectServer = (serverId: string) => {
-    const updatedServers = mcpServers.map(server => 
-      server.id === serverId 
-        ? { ...server, status: "offline" as const } 
-        : server
-    );
-    
-    setMcpServers(updatedServers);
-    
-    if (activeServerId === serverId) {
-      setActiveServerId(null);
+    try {
+      const updatedServers = mcpServers.map(server => 
+        server.id === serverId 
+          ? { ...server, status: "offline" as const } 
+          : server
+      );
+      
+      setMcpServers(updatedServers);
+      
+      if (activeServerId === serverId) {
+        setActiveServerId(null);
+      }
+      
+      toast({
+        title: "MCP Server Disconnected",
+        description: `Disconnected from ${updatedServers.find(s => s.id === serverId)?.name}`,
+      });
+    } catch (error) {
+      handleError(error, "error", "Server Disconnection");
     }
-    
-    toast({
-      title: "MCP Server Disconnected",
-      description: `Disconnected from ${updatedServers.find(s => s.id === serverId)?.name}`,
-    });
   };
   
   const addMcpServer = () => {
@@ -134,16 +137,16 @@ const AiTradingMcp = () => {
       }, 800);
     } catch (error) {
       setIsTraining(false);
-      toast({
-        title: "Training Failed",
-        description: "An error occurred during model training",
-        variant: "destructive",
-      });
+      handleError(error, "error", "Model Training");
     }
   };
   
   const toggleTrading = () => {
-    setIsTradingActive(!isTradingActive);
+    try {
+      setIsTradingActive(!isTradingActive);
+    } catch (error) {
+      handleError(error, "error", "Trading Toggle");
+    }
   };
   
   return (
@@ -159,35 +162,47 @@ const AiTradingMcp = () => {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <McpServerList 
-          servers={mcpServers}
-          onConnectServer={connectToServer}
-          onDisconnectServer={disconnectServer}
-          onAddServer={addMcpServer}
-        />
-        
-        {activeServerId ? (
-          <>
-            <ModelConfigPanel 
-              selectedModel={selectedModel}
-              setSelectedModel={setSelectedModel}
-              timeframe={timeframe}
-              setTimeframe={setTimeframe}
-              activeServerId={activeServerId}
-              isTraining={isTraining}
-              trainingProgress={trainingProgress}
-              startTraining={startTraining}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <McpServerList 
+              servers={mcpServers}
+              onConnectServer={connectToServer}
+              onDisconnectServer={disconnectServer}
+              onAddServer={addMcpServer}
             />
             
-            <TradingControls 
-              isTradingActive={isTradingActive}
-              toggleTrading={toggleTrading}
-              activeServerId={activeServerId}
-            />
-          </>
-        ) : (
-          <DisconnectedState />
-        )}
+            {activeServerId ? (
+              <>
+                <div className="mt-6">
+                  <ModelConfigPanel 
+                    selectedModel={selectedModel}
+                    setSelectedModel={setSelectedModel}
+                    timeframe={timeframe}
+                    setTimeframe={setTimeframe}
+                    activeServerId={activeServerId}
+                    isTraining={isTraining}
+                    trainingProgress={trainingProgress}
+                    startTraining={startTraining}
+                  />
+                </div>
+                
+                <div className="mt-6">
+                  <TradingControls 
+                    isTradingActive={isTradingActive}
+                    toggleTrading={toggleTrading}
+                    activeServerId={activeServerId}
+                  />
+                </div>
+              </>
+            ) : (
+              <DisconnectedState />
+            )}
+          </div>
+          
+          <div className="md:col-span-1">
+            <AlertsSystem />
+          </div>
+        </div>
       </CardContent>
       
       <CardFooter>
