@@ -6,10 +6,13 @@ import EnhancedCryptoChart from "../EnhancedCryptoChart";
 import TradingPairComparison from "../TradingPairComparison";
 import CoinComparison from "../CoinComparison";
 import FilteredNewsFeed from "../FilteredNewsFeed";
+import FakeTrading from "../FakeTrading";
 
 const DashboardTrading = () => {
   return (
     <div className="grid grid-cols-1 gap-6">
+      <FakeTrading />
+      
       <ApiKeyManagement />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

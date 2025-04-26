@@ -38,6 +38,13 @@ API requests requiring authentication use bearer tokens. To authenticate:
 - `PUT /alerts/:id` - Update an alert
 - `DELETE /alerts/:id` - Delete an alert
 
+### Fake Trading System
+- `GET /fake-trading/account` - Get fake trading account details
+- `GET /fake-trading/transactions` - Get fake trading transaction history
+- `POST /fake-trading/execute` - Execute a fake trade
+- `POST /fake-trading/reset` - Reset fake trading account
+- `GET /fake-trading/performance` - Get performance metrics for the fake trading account
+
 ## Data Models
 
 ### Coin
@@ -85,6 +92,36 @@ interface Alert {
 }
 ```
 
+### FakeTrade
+```typescript
+interface FakeTrade {
+  id: string;
+  coin_id: string;
+  coin_symbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  total_value: number;
+  timestamp: string;   // ISO date string
+  current_value?: number;
+  profit_loss?: number;
+}
+```
+
+### FakeTradingAccount
+```typescript
+interface FakeTradingAccount {
+  id: string;
+  user_id: string;
+  balance: number;
+  initial_balance: number;
+  portfolio_value: number;
+  performance_percentage: number;
+  created_at: string;
+  updated_at: string;
+}
+```
+
 ## Error Handling
 All API endpoints return standard HTTP status codes:
 - 200: Success
@@ -111,4 +148,4 @@ API requests are rate-limited to 100 requests per minute per API key. When a rat
 ## Changelog
 - **v1.0.0** (2025-04-01): Initial release
 - **v1.0.1** (2025-04-15): Added portfolio performance endpoints
-
+- **v1.0.2** (2025-04-26): Added fake trading system endpoints

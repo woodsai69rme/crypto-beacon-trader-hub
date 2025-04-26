@@ -13,6 +13,7 @@ This crypto dashboard application provides a comprehensive platform for users to
 - **Risk assessment**: Analyze the risk profile of your portfolio and individual assets
 - **Tax reporting**: Generate tax reports for cryptocurrency transactions
 - **User preferences & settings**: Customize your dashboard experience to match your needs
+- **Fake trading system**: Practice trading strategies without risking real money
 
 ## Target Users
 - Individual crypto investors
@@ -23,6 +24,7 @@ This crypto dashboard application provides a comprehensive platform for users to
 - Portfolio managers
 - Financial advisors
 - Institutional investors
+- Beginner traders learning the market
 
 ## Project Structure
 The application follows a component-based architecture with:
