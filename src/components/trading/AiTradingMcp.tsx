@@ -1,6 +1,8 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Bot, AlertCircle, Check } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import McpServerList, { McpServerConfig } from "./McpServerList";
 import ModelConfigPanel from "./ModelConfigPanel";
 import TradingControls from "./TradingControls";
