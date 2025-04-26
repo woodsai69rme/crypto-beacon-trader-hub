@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { useAlerts } from "@/hooks/use-alerts";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
+import { COIN_OPTIONS } from "./widgets/AlertComponents/AlertTypes";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -18,10 +19,31 @@ const AlertsSystem = () => {
   const [newAlert, setNewAlert] = useState({
     coinId: "bitcoin",
     coinName: "Bitcoin",
+    coinSymbol: "BTC",
     targetPrice: 0,
-    isAbove: true
+    isAbove: true,
+    enabled: true,
+    recurring: false,
+    percentageChange: 0,
+    notifyVia: ["app"] as ("email" | "app" | "push")[]
   });
   
+  const handleSubmit = () => {
+    addAlert(newAlert);
+    setNewAlert({
+      coinId: "bitcoin",
+      coinName: "Bitcoin",
+      coinSymbol: "BTC",
+      targetPrice: 0,
+      isAbove: true,
+      enabled: true,
+      recurring: false,
+      percentageChange: 0,
+      notifyVia: ["app"]
+    });
+    setIsOpen(false);
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -42,16 +64,7 @@ const AlertsSystem = () => {
         <AlertFormSheet 
           formData={newAlert}
           onFormChange={setNewAlert}
-          onSubmit={() => {
-            addAlert(newAlert);
-            setNewAlert({
-              coinId: "bitcoin",
-              coinName: "Bitcoin",
-              targetPrice: 0,
-              isAbove: true
-            });
-            setIsOpen(false);
-          }}
+          onSubmit={handleSubmit}
         />
         
         <div className="mt-6">

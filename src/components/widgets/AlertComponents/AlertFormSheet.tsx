@@ -4,13 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
+import { COIN_OPTIONS } from "./AlertTypes";
 
 interface AlertFormProps {
   formData: {
     coinId: string;
     coinName: string;
+    coinSymbol: string;
     targetPrice: number;
     isAbove: boolean;
+    enabled: boolean;
+    recurring: boolean;
+    percentageChange: number;
+    notifyVia: ("email" | "app" | "push")[];
   };
   onFormChange: (data: any) => void;
   onSubmit: () => void;
@@ -28,17 +34,21 @@ export const AlertFormSheet: React.FC<AlertFormProps> = ({
         <select
           className="rounded border border-border bg-background px-2 py-1 text-foreground"
           value={formData.coinId}
-          onChange={(e) => onFormChange({ 
-            ...formData, 
-            coinId: e.target.value,
-            coinName: e.target.options[e.target.selectedIndex].text 
-          })}
+          onChange={(e) => {
+            const selectedCoin = COIN_OPTIONS[e.target.value];
+            onFormChange({
+              ...formData,
+              coinId: selectedCoin.id,
+              coinName: selectedCoin.name,
+              coinSymbol: selectedCoin.symbol
+            });
+          }}
         >
-          <option value="bitcoin">Bitcoin</option>
-          <option value="ethereum">Ethereum</option>
-          <option value="solana">Solana</option>
-          <option value="cardano">Cardano</option>
-          <option value="ripple">XRP</option>
+          {Object.values(COIN_OPTIONS).map((coin) => (
+            <option key={coin.id} value={coin.id}>
+              {coin.name} ({coin.symbol})
+            </option>
+          ))}
         </select>
       </div>
       
