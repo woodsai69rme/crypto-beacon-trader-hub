@@ -15,6 +15,39 @@ interface TradingHoldingsProps {
   conversionRate: number;
 }
 
+// Generate mock history data for demo purposes
+const generateMockHistoryData = () => {
+  const baseDate = new Date();
+  const data = [];
+  let invested = 10000;
+  let value = 10000;
+  
+  // Generate last 30 days
+  for (let i = 30; i >= 0; i--) {
+    const date = new Date(baseDate);
+    date.setDate(date.getDate() - i);
+    
+    // Random daily change between -3% and +4%
+    const dailyChange = (Math.random() * 7) - 3;
+    value = value * (1 + (dailyChange / 100));
+    
+    // Occasional investments
+    if (i % 5 === 0 && i > 0) {
+      const investment = Math.floor(Math.random() * 500) + 200;
+      invested += investment;
+      value += investment;
+    }
+    
+    data.push({
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: Math.round(value * 100) / 100,
+      invested: Math.round(invested * 100) / 100
+    });
+  }
+  
+  return data;
+};
+
 const TradingHoldings = ({ 
   availableCoins, 
   getOwnedCoinAmount, 
@@ -26,6 +59,9 @@ const TradingHoldings = ({
   const [activeTab, setActiveTab] = useState<string>("holdings");
   
   const hasHoldings = availableCoins.some(coin => getOwnedCoinAmount(coin.id) > 0);
+
+  // Generate mock portfolio history data
+  const portfolioHistoryData = generateMockHistoryData();
 
   return (
     <div>
@@ -104,7 +140,11 @@ const TradingHoldings = ({
         
         <TabsContent value="chart">
           {hasHoldings ? (
-            <PortfolioHistoryChart currency={activeCurrency} isCompact />
+            <PortfolioHistoryChart 
+              currency={activeCurrency} 
+              isCompact 
+              data={portfolioHistoryData} 
+            />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <p>No portfolio history to display.</p>
