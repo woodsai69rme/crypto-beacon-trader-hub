@@ -25,6 +25,15 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
+    
+    /* Crypto-specific light theme colors */
+    --crypto-green: 142 76% 36%;
+    --crypto-red: 0 72% 51%;
+    --crypto-blue: 217 91% 60%;
+    --crypto-yellow: 41 96% 61%;
+    --crypto-purple: 262 83% 58%;
+    --crypto-dark: 222 47% 11%;
+    --crypto-dark-hover: 222 47% 20%;
   }
 
   .dark-theme {
@@ -47,6 +56,22 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    
+    /* Crypto-specific dark theme colors */
+    --crypto-green: 142 70% 45%;
+    --crypto-red: 0 85% 60%;
+    --crypto-blue: 217 91% 60%;
+    --crypto-yellow: 41 96% 61%;
+    --crypto-purple: 262 83% 65%;
+    --crypto-dark: 222 47% 11%;
+    --crypto-dark-hover: 223 47% 15%;
+
+    color-scheme: dark;
+  }
+
+  /* Additional theme color for auto/system */
+  .system-theme {
+    /* This will use system preference through media query */
   }
 }
 
@@ -68,6 +93,58 @@
   .crypto-card-header {
     @apply mb-4 flex items-center justify-between;
   }
+  
+  /* Enhanced card with animation */
+  .crypto-card-animated {
+    @apply transition-all duration-300 ease-in-out hover:shadow-md hover:scale-[1.01];
+  }
+  
+  /* Gradient text for headings */
+  .gradient-text {
+    @apply bg-gradient-to-r from-crypto-blue to-crypto-purple bg-clip-text text-transparent;
+  }
+  
+  /* Status indicators */
+  .status-indicator {
+    @apply inline-block h-2 w-2 rounded-full;
+  }
+  
+  .status-indicator-success {
+    @apply bg-green-500;
+  }
+  
+  .status-indicator-warning {
+    @apply bg-yellow-500;
+  }
+  
+  .status-indicator-error {
+    @apply bg-red-500;
+  }
+  
+  /* Chart tooltip */
+  .chart-tooltip {
+    @apply rounded-md border border-border bg-popover p-2 text-xs shadow-md;
+  }
+}
+
+/* Animation for skeleton loading */
+@keyframes skeleton-wave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-skeleton-wave {
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, 
+    hsl(var(--muted)) 25%, 
+    hsl(var(--muted-foreground) / 0.1) 50%, 
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
 }
 
 /* Default to dark theme */
@@ -77,4 +154,27 @@
 
 body {
   @apply bg-crypto-dark text-white;
+}
+
+/* Remove focus outlines for mouse users but keep for keyboard users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Make scrollbars match the theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-card;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
 }
