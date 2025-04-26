@@ -1,3 +1,4 @@
+
 # Developer Technical Guide
 
 ## Architecture Overview
@@ -21,16 +22,22 @@ The Crypto Dashboard is built using modern frontend technologies:
 - **TradingHoldings**: Portfolio holdings with real-time valuation
 - **MultiExchangeTrading**: Cross-exchange trading capabilities
 - **ApiKeyManagement**: Exchange API key management
+- **PortfolioHistoryChart**: Historical performance visualization
+- **EnhancedAlertSystem**: Advanced price, volume and technical alerts
+- **SocialTradingFeatures**: Strategy sharing and community engagement
 
 ### AI Components
 - **AiTradingBots**: Automated trading strategies
 - **AiMarketAnalysis**: Market insights and predictions
 - **MarketCorrelations**: Asset correlation analysis
+- **LocalModelTrading**: Integration with locally run AI models
+- **BacktestingPanel**: Historical strategy testing
 
 ### Community Features
 - **CommunityHub**: Social interaction platform
 - **TradingEducation**: Educational resources
 - **SignalSharing**: Trading signal distribution
+- **SocialTradingFeatures**: Strategy sharing and collaboration
 
 ## AI Trading Bot Implementation
 The application implements AI trading strategies with:
@@ -38,7 +45,9 @@ The application implements AI trading strategies with:
 ### Strategy Management
 - **Predefined Strategies**: Collection of AI-powered trading strategies
 - **Strategy Customization**: Users can modify parameters of existing strategies
+- **Custom Strategy Builder**: Create completely custom trading strategies
 - **Backtesting**: Test strategies against historical data
+- **Strategy Optimization**: Fine-tune parameters for optimal performance
 - **Performance Metrics**: Detailed statistics on strategy performance
 
 ### Bot Configuration
@@ -46,6 +55,84 @@ The application implements AI trading strategies with:
 - **Timeframe Options**: Multiple trading intervals (5m to 1w)
 - **Parameter Customization**: Fine-tune strategy parameters
 - **Trade Automation**: Set and forget trading with predefined rules
+
+### Local AI Model Integration
+- **Model Connection**: Connect to local LLMs and inference engines
+- **Strategy Generation**: Generate strategies using local models
+- **Privacy-Focused**: Keep trading data on your own device
+- **Custom Model Support**: Support for various model architectures
+
+## Enhanced Alert System
+The application includes a comprehensive alert management system:
+
+### Alert Types
+- **Price Alerts**: Get notified when prices cross specified thresholds
+- **Volume Alerts**: Monitor for volume spikes across different timeframes
+- **Technical Indicator Alerts**: Be alerted when technical indicators reach specific levels
+
+### Alert Management
+- **Tabbed Interface**: Easily switch between different alert types
+- **Alert Filtering**: Filter alerts by type or status
+- **Recurring Alerts**: Set alerts that can trigger repeatedly
+- **Notification Channels**: Configure app, email, or push notification delivery
+- **Global Toggle**: Enable/disable all alerts with a single switch
+
+## Backtesting System
+The application implements a comprehensive backtesting system for strategy validation:
+
+### Backtesting Features
+- **Historical Data**: Test strategies against actual market data
+- **Multiple Timeframes**: Validate strategies across different time intervals
+- **Performance Metrics**: Calculate key metrics like win rate, profit factor, and drawdown
+- **Capital Simulation**: Simulate starting with different capital amounts
+- **Visual Progress**: Track backtesting progress with visual indicators
+
+### Results Analysis
+- **Detailed Metrics**: View comprehensive performance statistics
+- **Card-Based Interface**: Easily digest key performance indicators
+- **Performance Classification**: Automatic rating of strategy effectiveness
+- **Historical Comparison**: Compare to benchmark market performance
+
+## Strategy Optimization
+The application includes an advanced strategy optimization engine:
+
+### Optimization Features
+- **Parameter Tuning**: Automatically fine-tune strategy parameters
+- **Multi-Timeframe Testing**: Test across various market timeframes
+- **Risk Adjustment**: Optimize risk-reward parameters
+- **Visual Comparison**: Compare original vs. optimized parameters
+- **Performance Impact**: Measure improvements in key metrics
+
+### Optimization Interface
+- **Settings Configuration**: Set optimization constraints and goals
+- **Progress Tracking**: Visual progress indicator during optimization
+- **Results Visualization**: Easy-to-understand performance improvements
+- **Parameter Comparison**: Side-by-side view of original vs. optimized parameters
+- **Apply Changes**: Seamlessly update strategies with optimized parameters
+
+## Social Trading Features
+The application includes comprehensive social trading capabilities:
+
+### Strategy Sharing
+- **Community Strategies**: Browse strategies shared by other traders
+- **Strategy Details**: View detailed information about shared strategies
+- **Performance Metrics**: See actual performance of shared strategies
+- **Comments & Discussion**: Engage in discussions about strategies
+- **Strategy Copying**: Copy strategies from other traders to your account
+
+### Trading Signals
+- **Community Signals**: Access trading signals from other traders and AI
+- **Signal Details**: View comprehensive information about each signal
+- **Confidence Metrics**: See the confidence level of each signal
+- **Signal Filtering**: Filter signals by asset, timeframe, or source
+- **Signal Discussion**: Discuss signal validity with community members
+
+### Social Engagement
+- **Top Traders**: Discover and follow successful traders
+- **User Profiles**: View trader performance and shared content
+- **Following System**: Follow traders to see their activity
+- **Community Discussion**: Engage in various trading discussions
+- **Portfolio Sharing**: Share your portfolio performance with the community
 
 ## Multi-Currency Support
 The application supports multiple currencies:
@@ -61,6 +148,57 @@ The application supports multiple currencies:
 - **Trading Components**: All trading interfaces adapted for multi-currency
 - **Formatters**: Currency formatting utilities supporting multiple currencies
 - **Type Definitions**: Updated to include currency information
+
+## Multi-Exchange Trading
+The application supports trading across multiple exchanges:
+
+### Exchange Features
+- **Exchange Connection**: Securely connect to multiple exchanges
+- **API Key Management**: Add, edit and remove exchange API keys
+- **Cross-Exchange Trading**: Trade on different exchanges from one interface
+- **Exchange Comparison**: Compare prices and liquidity across exchanges
+- **Arbitrage Detection**: Find arbitrage opportunities between exchanges
+
+### Exchange Implementation
+- **API Integration**: Secure integration with exchange APIs
+- **Key Storage**: Encrypted storage of API credentials
+- **Trading Execution**: Unified interface for all connected exchanges
+- **Balance Management**: View balances across all exchanges
+- **Order Management**: Monitor orders across all exchanges
+
+## Custom Strategy Builder
+The application includes a comprehensive strategy building interface:
+
+### Builder Features
+- **Visual Builder**: Create strategies without coding
+- **Parameter Configuration**: Fine-tune all strategy parameters
+- **Indicator Selection**: Choose from common technical indicators
+- **Risk Management**: Set stop-loss and take-profit levels
+- **Strategy Testing**: Test custom strategies before deployment
+
+### Strategy Templates
+- **Predefined Templates**: Start with proven strategy templates
+- **AI Generation**: Generate strategies using AI models
+- **Template Customization**: Modify templates to your needs
+- **Strategy Saving**: Save and manage multiple custom strategies
+-  **Strategy Sharing**: Share successful strategies with the community
+
+## Mobile Responsive Design
+The application is fully responsive across all device sizes:
+
+### Responsive Features
+- **Adaptive Layout**: Layout adjusts based on screen size
+- **Touch-Friendly Controls**: Larger touch targets on mobile devices
+- **Simplified Navigation**: Streamlined navigation on smaller screens
+- **Optimized Charts**: Charts optimized for touch interaction
+- **Tab Condensation**: Intelligent tab management on small screens
+
+### Responsive Implementation
+- **Tailwind Breakpoints**: Uses Tailwind's responsive classes
+- **Mobile-First Approach**: Designed mobile-first, then enhanced for larger screens
+- **Conditional Rendering**: Different components rendered based on screen size
+- **Touch Events**: Support for touch events on mobile devices
+- **Performance Optimization**: Optimized for mobile performance
 
 ## State Management
 The application uses multiple strategies for state management:
@@ -138,6 +276,7 @@ The technical analysis tools include:
 - **Timeframe Selection**: Multiple timeframe options (1D to 1Y)
 - **Coin Selection**: Analysis available for all supported cryptocurrencies
 - **Visual Indicators**: Clear visual representation of indicator values
+- **Technical Alerts**: Set alerts based on indicator values and conditions
 
 ## AI Market Insights Implementation
 The AI-powered market insights system uses:
@@ -147,6 +286,7 @@ The AI-powered market insights system uses:
 - **Tag System**: Insights can be filtered by tags
 - **Coin Association**: Insights are associated with specific cryptocurrencies
 - **Refresh Mechanism**: Users can trigger refreshes for the latest analysis
+- **Local AI Integration**: Option to use locally running AI models for analysis
 
 ## Trading Education Features
 The trading education system includes:
@@ -163,6 +303,28 @@ The community features provide:
 - **Social Sharing**: Ability to share portfolio and analysis
 - **Expert Analysis**: Community-contributed market insights
 - **Signal Sharing**: Trading signal distribution among community
+- **Strategy Sharing**: Share and discover trading strategies
+- **Performance Metrics**: View performance of shared strategies
+
+## Local Model Integration
+The local model integration features include:
+- **Model Connection**: Connect to models running on your local machine
+- **Model Selection**: Choose from detected local models
+- **Strategy Generation**: Generate trading strategies using local models
+- **Customization**: Customize generated strategies
+- **Local Inference**: Run predictions and analysis locally
+- **Privacy Focused**: Keep your trading data private
+- **Multi-Model Support**: Connect to multiple local models simultaneously
+
+## Enhanced Alert System
+The advanced alert system offers:
+- **Price Alerts**: Alert when price crosses threshold
+- **Volume Alerts**: Alert on volume spikes
+- **Technical Alerts**: Alert on technical indicator conditions
+- **Recurring Alerts**: Alerts that can trigger multiple times
+- **Multi-Channel Notifications**: App, email, and push notifications
+- **Global Toggle**: Enable/disable all alerts at once
+- **Alert Management**: Filter and organize alerts
 
 ## Customizable Dashboard
 The dashboard customization system offers:
@@ -188,10 +350,10 @@ Example responsive component:
 ## Custom Hooks
 The application includes several custom hooks to abstract common functionality:
 
-### useMediaQuery
+### useMediaQuery / useIsMobile
 Detects if a media query matches:
 ```typescript
-const isMobile = useMediaQuery('(max-width: 640px)');
+const isMobile = useIsMobile();
 ```
 
 ### useLocalStorage
@@ -239,12 +401,54 @@ const {
    return getMockCryptoData(limit);
    ```
 
+4. **Toast Notifications**: Informing users about errors
+   ```typescript
+   toast({
+     title: "Error",
+     description: "Failed to fetch data. Using cached data instead.",
+     variant: "destructive",
+   });
+   ```
+
 ## Performance Optimization Techniques
 - **Code Splitting**: Using React.lazy for component-level code splitting
 - **Memoization**: Using React.memo, useMemo, and useCallback for expensive computations
 - **Virtualization**: For rendering large lists efficiently
 - **Image Optimization**: Proper sizing, lazy loading, and modern formats
 - **Bundle Optimization**: Tree shaking and chunk optimization
+- **Component Architecture**: Breaking large components into smaller, focused ones
+
+## Recent Feature Implementations
+
+### Backtesting System
+- Comprehensive backtesting for trading strategies
+- Historical data testing with customizable parameters
+- Detailed performance metrics and visualizations
+
+### Strategy Optimization
+- Automatic parameter optimization for better performance
+- Comparative analysis of original vs. optimized parameters
+- Visual indicators of performance improvements
+
+### Enhanced Alert System
+- Multi-type alerts (price, volume, technical)
+- Recurring alert functionality
+- Multi-channel notifications
+
+### Social Trading Features
+- Strategy sharing and discovery
+- Trading signal distribution
+- Community discussion and engagement
+
+### Custom Strategy Builder
+- Visual strategy building interface
+- Parameter customization
+- Indicator selection and configuration
+
+### Local Model Integration
+- Connection to locally running AI models
+- Privacy-focused analysis and predictions
+- Custom strategy generation using local models
 
 ## Building New Features
 When adding new features:
@@ -264,3 +468,5 @@ When adding new features:
 - Prefer functional components with hooks over class components
 - Extract reusable logic to custom hooks
 - Optimize rendering performance with memoization
+- Use proper error handling and fallback mechanisms
+- Maintain consistent coding style and naming conventions

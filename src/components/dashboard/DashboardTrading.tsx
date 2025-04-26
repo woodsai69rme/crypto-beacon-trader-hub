@@ -8,20 +8,26 @@ import TradingEducation from "../trading/TradingEducation";
 import MultiExchangeTrading from "../trading/MultiExchangeTrading";
 import AiMarketAnalysis from "../trading/AiMarketAnalysis";
 import CommunityHub from "../community/CommunityHub";
+import EnhancedAlertSystem from "../widgets/EnhancedAlertSystem";
+import SocialTradingFeatures from "../trading/SocialTradingFeatures";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const DashboardTrading = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="grid grid-cols-1 gap-6">
       <Tabs defaultValue="trade" className="w-full">
-        <TabsList className="grid grid-cols-7 mb-6">
+        <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-7'} mb-6`}>
           <TabsTrigger value="trade">Basic Trading</TabsTrigger>
-          <TabsTrigger value="ai-bots">AI Trading Bots</TabsTrigger>
+          <TabsTrigger value="ai-bots">AI Bots</TabsTrigger>
           <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>
-          <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
-          <TabsTrigger value="education">Education</TabsTrigger>
-          <TabsTrigger value="community">Community</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+          <TabsTrigger value="analysis">Analysis</TabsTrigger>
+          {!isMobile && <TabsTrigger value="social">Social</TabsTrigger>}
+          {!isMobile && <TabsTrigger value="education">Education</TabsTrigger>}
+          {!isMobile && <TabsTrigger value="api-keys">API Keys</TabsTrigger>}
+          {isMobile && <TabsTrigger value="more">More</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="trade">
@@ -40,12 +46,12 @@ const DashboardTrading = () => {
           <AiMarketAnalysis />
         </TabsContent>
         
-        <TabsContent value="education">
-          <TradingEducation />
+        <TabsContent value="social">
+          <SocialTradingFeatures />
         </TabsContent>
         
-        <TabsContent value="community">
-          <CommunityHub />
+        <TabsContent value="education">
+          <TradingEducation />
         </TabsContent>
         
         <TabsContent value="api-keys">
@@ -55,6 +61,34 @@ const DashboardTrading = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        
+        {isMobile && (
+          <TabsContent value="more">
+            <Tabs defaultValue="social">
+              <TabsList className="grid grid-cols-3 mb-6">
+                <TabsTrigger value="social">Social</TabsTrigger>
+                <TabsTrigger value="education">Education</TabsTrigger>
+                <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="social">
+                <SocialTradingFeatures />
+              </TabsContent>
+              
+              <TabsContent value="education">
+                <TradingEducation />
+              </TabsContent>
+              
+              <TabsContent value="api-keys">
+                <Card>
+                  <CardContent className="pt-6">
+                    <ApiKeyManagement />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
