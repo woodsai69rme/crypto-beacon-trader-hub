@@ -80,4 +80,3 @@ describe('useEnhancedApi', () => {
     expect(result.current.data).toEqual(mockData);
   });
 });
-

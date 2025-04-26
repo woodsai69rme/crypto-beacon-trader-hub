@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Moon, Sun, CircleHalf, Palette } from "lucide-react";
+import { Moon, Sun, Monitor, Palette } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,7 @@ const ThemeSwitcher = () => {
       case "light":
         return <Sun className="h-5 w-5" />;
       case "system":
-        return <CircleHalf className="h-5 w-5" />;
+        return <Monitor className="h-5 w-5" />;
       default:
         return <Palette className="h-5 w-5" />;
     }
@@ -69,7 +69,7 @@ const ThemeSwitcher = () => {
           {theme === "dark" && <span className="ml-auto">✓</span>}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          <CircleHalf className="h-4 w-4 mr-2" />
+          <Monitor className="h-4 w-4 mr-2" />
           <span>System</span>
           {theme === "system" && <span className="ml-auto">✓</span>}
         </DropdownMenuItem>
