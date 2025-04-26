@@ -1,51 +1,36 @@
-
 # Developer Technical Guide
 
 ## Architecture Overview
-The Crypto Dashboard is built using the following technologies:
-- **React**: Component library for UI
-- **TypeScript**: Type-safe JavaScript
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: Pre-built UI components
-- **React Query**: Data fetching and state management
-- **React Router**: Navigation
-- **Recharts**: Chart visualization
-- **Lucide React**: Icon library
+The Crypto Dashboard is built using modern frontend technologies:
+- React with TypeScript
+- Tailwind CSS for styling
+- Shadcn/UI for components
+- React Query for data management
+- Recharts for visualizations
 
 ## Component Structure Updates
-The application includes these components:
 
 ### Dashboard Organization
-- **Dashboard**: Main container component
-- **DashboardHeader**: Navigation and user controls
-- **DashboardTabList**: Tab navigation system
-- **CustomizableDashboard**: User-configurable widget layout system
+- **CustomizableDashboard**: User-configurable widget system
+  - WidgetGrid: Responsive grid layout for widgets
+  - WidgetList: Widget management interface
+  - Individual widget components
 
 ### Trading Components
-- **TradingForm**: Execute buy/sell trades with multi-currency support (USD/AUD)
-- **TradingHoldings**: View portfolio holdings with real-time valuations
-- **TradeHistory**: Track trade history and performance
-- **MarketDepthChart**: Order book visualization
-- **TradingPairComparison**: Compare trading pairs
+- **TradingForm**: Execute trades with multi-currency support
+- **TradingHoldings**: Portfolio holdings with real-time valuation
+- **MultiExchangeTrading**: Cross-exchange trading capabilities
+- **ApiKeyManagement**: Exchange API key management
 
-### Portfolio Components
-- **PortfolioAnalytics**: Portfolio performance metrics
-- **TransactionHistory**: Trade history tracking
-- **RiskAssessment**: Portfolio risk analysis
+### AI Components
+- **AiTradingBots**: Automated trading strategies
+- **AiMarketAnalysis**: Market insights and predictions
+- **MarketCorrelations**: Asset correlation analysis
 
-### AI Trading Components
-- **AiTradingBots**: AI-powered trading strategy implementation
-- **AiMarketAnalysis**: AI market insights and predictions
-- **AiInsightsCategorized**: Categorized market insights with trends, signals, alerts, and predictions
-
-### Multi-Exchange Trading
-- **ApiKeyManagement**: Connect and manage exchange API keys
-- **MultiExchangeTrading**: Trade across multiple exchanges
-- **CrossExchangeArbitrage**: Find and execute arbitrage opportunities
-
-### Social/Community Features
-- **CommunityHub**: Social interaction platform for traders
-- **TradingEducation**: Educational resources and trading signals
+### Community Features
+- **CommunityHub**: Social interaction platform
+- **TradingEducation**: Educational resources
+- **SignalSharing**: Trading signal distribution
 
 ## AI Trading Bot Implementation
 The application implements AI trading strategies with:
