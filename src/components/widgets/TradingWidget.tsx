@@ -1,13 +1,11 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { useTradingPortfolio } from "@/hooks/use-trading-portfolio";
 import TradingForm from "@/components/trading/TradingForm";
 import CurrencySelector from "@/components/trading/CurrencySelector";
-import TradeValueDisplay from "@/components/trading/TradeValueDisplay";
-import { formatCurrency } from "@/utils/formatters";
 
 interface TradingWidgetProps {
   isCompact?: boolean;
@@ -16,11 +14,15 @@ interface TradingWidgetProps {
 const TradingWidget = ({ isCompact = false }: TradingWidgetProps) => {
   const {
     balance,
+    availableCoins,
     activeCurrency,
     setActiveCurrency,
+    conversionRates,
+    getOwnedCoinAmount,
     calculatePortfolioValue,
     calculatePerformance,
-    formatValue
+    formatValue,
+    handleExecuteTrade
   } = useTradingPortfolio();
 
   const portfolioValue = calculatePortfolioValue();
@@ -62,7 +64,17 @@ const TradingWidget = ({ isCompact = false }: TradingWidgetProps) => {
           </div>
         )}
         
-        {!isCompact && <TradingForm />}
+        {!isCompact && (
+          <TradingForm
+            balance={balance}
+            availableCoins={availableCoins}
+            onExecuteTrade={handleExecuteTrade}
+            getOwnedCoinAmount={getOwnedCoinAmount}
+            activeCurrency={activeCurrency}
+            onCurrencyChange={setActiveCurrency}
+            conversionRate={conversionRates.USD_AUD}
+          />
+        )}
         
         {isCompact && (
           <Button className="w-full mt-2" variant="outline" onClick={() => window.location.href = "/#trading"}>
