@@ -1,8 +1,16 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { TechnicalAlertFormData, COIN_OPTIONS } from "./AlertTypes";
 import { validateFormFields } from "@/utils/formValidation";
 import { handleError } from "@/utils/errorHandling";
@@ -61,7 +69,7 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
           <div className="space-y-4">
             <div className="flex flex-col space-y-2">
               <label className="text-sm font-medium">Coin</label>
-              <Select
+              <Select 
                 value={formData.coinId}
                 onValueChange={handleCoinChange}
               >
