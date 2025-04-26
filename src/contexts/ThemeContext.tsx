@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
-type ColorScheme = "default" | "blue" | "purple";
+type ColorScheme = "default" | "blue" | "purple" | "green" | "amber";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -73,7 +73,7 @@ export function ThemeProvider({
     const root = window.document.documentElement;
     
     // Remove all color scheme classes
-    root.classList.remove("theme-default", "theme-blue", "theme-purple");
+    root.classList.remove("theme-default", "theme-blue", "theme-purple", "theme-green", "theme-amber");
     
     // Add the selected color scheme class
     root.classList.add(`theme-${colorScheme}`);

@@ -1,10 +1,13 @@
 
 import React from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export const CorrelationExplainer: React.FC = () => {
+  const { theme } = useTheme();
+  
   return (
-    <div className="p-3 border rounded-md bg-muted/50 text-sm text-muted-foreground">
-      <h4 className="font-medium mb-1">What is Correlation?</h4>
+    <div className="p-3 border rounded-md bg-muted/50 text-sm themed-text-secondary">
+      <h4 className="font-medium mb-1 themed-text">What is Correlation?</h4>
       <p>Correlation measures how assets move in relation to each other:</p>
       <ul className="list-disc list-inside space-y-1 mt-1">
         <li><strong>Positive correlation (0 to 1):</strong> Assets tend to move in the same direction</li>

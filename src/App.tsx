@@ -13,7 +13,7 @@ import './App.css';
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="crypto-app-theme">
+      <ThemeProvider defaultTheme="dark" defaultColorScheme="default" storageKey="crypto-app-theme">
         <AuthProvider>
           <CurrencyProvider>
             <BrowserRouter>

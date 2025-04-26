@@ -32,11 +32,14 @@ describe('ThemeSwitcher', () => {
     expect(screen.getByText(/Theme Mode/i)).toBeInTheDocument();
     expect(screen.getByText(/Light/i)).toBeInTheDocument();
     expect(screen.getByText(/Dark/i)).toBeInTheDocument();
+    expect(screen.getByText(/System/i)).toBeInTheDocument();
     
     // Check if color scheme options are visible
     expect(screen.getByText(/Color Scheme/i)).toBeInTheDocument();
     expect(screen.getByText(/Default/i)).toBeInTheDocument();
     expect(screen.getByText(/Blue/i)).toBeInTheDocument();
     expect(screen.getByText(/Purple/i)).toBeInTheDocument();
+    expect(screen.getByText(/Green/i)).toBeInTheDocument();
+    expect(screen.getByText(/Amber/i)).toBeInTheDocument();
   });
 });

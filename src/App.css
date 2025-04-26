@@ -63,21 +63,21 @@
 [data-theme="dark"] .bg-background,
 [data-theme="dark"] .bg-popover,
 [data-theme="dark"] .bg-white {
-  background-color: #222333 !important;
-  color: white !important;
+  background-color: var(--card-bg, #222333) !important;
+  color: var(--text-primary, white) !important;
 }
 
 .border,
 .border-border,
 [data-theme="dark"] .border,
 [data-theme="dark"] .border-border {
-  border-color: #333344 !important;
+  border-color: var(--border-color, #333344) !important;
 }
 
 .crypto-card {
-  background-color: #222333 !important;
-  border-color: #333344 !important;
-  color: white !important;
+  background-color: var(--card-bg, #222333) !important;
+  border-color: var(--border-color, #333344) !important;
+  color: var(--text-primary, white) !important;
 }
 
 /* Force all text to white */
@@ -87,12 +87,12 @@
 [data-theme="dark"] .text-black,
 [data-theme="dark"] .text-foreground,
 [data-theme="dark"] .text-card-foreground {
-  color: white !important;
+  color: var(--text-primary, white) !important;
 }
 
 /* Light text styles */
 .text-muted-foreground {
-  color: #B0B0C0 !important;
+  color: var(--text-secondary, #B0B0C0) !important;
 }
 
 /* Set all inputs and selects to dark */
@@ -102,22 +102,22 @@ textarea,
 button,
 .bg-gray-100,
 [role="combobox"] {
-  background-color: #2A2A3A !important;
-  color: white !important;
-  border-color: #333344 !important;
+  background-color: var(--input-bg, #2A2A3A) !important;
+  color: var(--text-primary, white) !important;
+  border-color: var(--border-color, #333344) !important;
 }
 
 /* Key indicators styling */
 .key-indicator {
-  color: white !important;
-  background-color: #333344 !important;
-  border: 1px solid #444455 !important;
+  color: var(--text-primary, white) !important;
+  background-color: var(--indicator-bg, #333344) !important;
+  border: 1px solid var(--indicator-border, #444455) !important;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
 }
 
 .border-gray-200 {
-  border-color: #333344 !important;
+  border-color: var(--border-color, #333344) !important;
 }
 
 /* Dark theme for dialogs and popovers */
@@ -125,9 +125,9 @@ button,
 [role="tooltip"],
 [role="menu"],
 [data-state="open"] {
-  background-color: #222333 !important;
-  border-color: #333344 !important;
-  color: white !important;
+  background-color: var(--card-bg, #222333) !important;
+  border-color: var(--border-color, #333344) !important;
+  color: var(--text-primary, white) !important;
 }
 
 /* Dark scrollbars */
@@ -137,41 +137,77 @@ button,
 }
 
 ::-webkit-scrollbar-track {
-  background: #1A1F2C;
+  background: var(--app-bg, #1A1F2C);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333344;
+  background: var(--border-color, #333344);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444455;
+  background: var(--border-hover, #444455);
 }
 
 /* Theme-specific colors */
-.theme-dark {
+.theme-default {
   --app-bg: #1A1F2C;
   --card-bg: #222333;
   --border-color: #333344;
+  --border-hover: #444455;
   --text-primary: #FFFFFF;
   --text-secondary: #B0B0C0;
+  --input-bg: #2A2A3A;
+  --indicator-bg: #333344;
+  --indicator-border: #444455;
 }
 
 .theme-blue {
   --app-bg: #0A192F;
   --card-bg: #112240;
   --border-color: #234067;
+  --border-hover: #345078;
   --text-primary: #E6F1FF;
   --text-secondary: #8892B0;
+  --input-bg: #1A2D4A;
+  --indicator-bg: #234067;
+  --indicator-border: #345078;
 }
 
 .theme-purple {
   --app-bg: #13111C;
   --card-bg: #1E1B2E;
   --border-color: #2D2B3D;
+  --border-hover: #3D3B4D;
   --text-primary: #F8F8FD;
   --text-secondary: #A09CB0;
+  --input-bg: #252336;
+  --indicator-bg: #2D2B3D;
+  --indicator-border: #3D3B4D;
+}
+
+.theme-green {
+  --app-bg: #0A1F1B;
+  --card-bg: #0F2922;
+  --border-color: #1E3D36;
+  --border-hover: #2E4D46;
+  --text-primary: #E6FFF8;
+  --text-secondary: #88B0A0;
+  --input-bg: #14332C;
+  --indicator-bg: #1E3D36;
+  --indicator-border: #2E4D46;
+}
+
+.theme-amber {
+  --app-bg: #1F1707;
+  --card-bg: #332211;
+  --border-color: #443322;
+  --border-hover: #554433;
+  --text-primary: #FFF8E6;
+  --text-secondary: #D6B088;
+  --input-bg: #3A2815;
+  --indicator-bg: #443322;
+  --indicator-border: #554433;
 }
 
 /* Apply theme colors */
@@ -192,4 +228,57 @@ button,
 
 .themed-text-secondary {
   color: var(--text-secondary);
+}
+
+/* Fix for input, select and button focus */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline-color: var(--border-hover) !important;
+  box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--border-color) !important;
+}
+
+/* Light mode overrides */
+.light {
+  --app-bg: #F5F7FA;
+  --card-bg: #FFFFFF;
+  --border-color: #E2E8F0;
+  --border-hover: #CBD5E1;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --input-bg: #F8FAFC;
+  --indicator-bg: #F1F5F9;
+  --indicator-border: #E2E8F0;
+}
+
+.light .themed-app {
+  background-color: var(--app-bg);
+  color: var(--text-primary);
+}
+
+.light .themed-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.light .bg-card, 
+.light .bg-background, 
+.light .bg-popover,
+.light .bg-white,
+.light .bg-muted {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.light .text-black, 
+.light .text-foreground,
+.light .text-card-foreground {
+  color: var(--text-primary) !important;
+}
+
+.light .border,
+.light .border-border {
+  border-color: var(--border-color) !important;
 }
