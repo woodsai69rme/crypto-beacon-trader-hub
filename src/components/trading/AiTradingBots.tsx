@@ -10,6 +10,7 @@ import CustomStrategy from "../widgets/CustomStrategy";
 import LocalModelTrading from "./LocalModelTrading";
 import AiTradingMcp from "./AiTradingMcp";
 import MultiCoinChart from "../charts/MultiCoinChart";
+import RealTimeTrading from "./RealTimeTrading";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");
@@ -32,12 +33,13 @@ const AiTradingBots = () => {
         
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-7 mb-6">
+            <TabsList className="grid grid-cols-8 mb-6">
               <TabsTrigger value="strategies">Strategies</TabsTrigger>
               <TabsTrigger value="backtest">Backtest</TabsTrigger>
               <TabsTrigger value="optimize">Optimize</TabsTrigger>
               <TabsTrigger value="charts">Charts</TabsTrigger>
               <TabsTrigger value="custom">Custom</TabsTrigger>
+              <TabsTrigger value="real-time">Real-Time</TabsTrigger>
               <TabsTrigger value="local">Local AI</TabsTrigger>
               <TabsTrigger value="mcp">MCP Servers</TabsTrigger>
             </TabsList>
@@ -63,6 +65,10 @@ const AiTradingBots = () => {
             
             <TabsContent value="custom">
               <CustomStrategy />
+            </TabsContent>
+            
+            <TabsContent value="real-time">
+              <RealTimeTrading />
             </TabsContent>
             
             <TabsContent value="local">

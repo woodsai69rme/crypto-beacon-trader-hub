@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useAiTrading } from "@/contexts/AiTradingContext";
-import { Bot, Link2, LinkOff } from "lucide-react";
+import { Bot, Link2, Link2Off } from "lucide-react";
 
 interface BotAccountConnectorProps {
   botId: string;
@@ -57,7 +57,7 @@ const BotAccountConnector: React.FC<BotAccountConnectorProps> = ({ botId, botNam
           onClick={handleDisconnect} 
           className="ml-2"
         >
-          <LinkOff className="h-4 w-4 mr-1" />
+          <Link2Off className="h-4 w-4 mr-1" />
           Disconnect
         </Button>
       </div>

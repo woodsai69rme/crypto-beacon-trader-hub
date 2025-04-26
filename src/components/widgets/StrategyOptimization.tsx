@@ -1,538 +1,454 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { predefinedStrategies, optimizeStrategy } from "@/utils/aiTradingStrategies";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
-import { format, subMonths } from "date-fns";
-import { Slider } from "@/components/ui/slider";
-import { toast } from "@/components/ui/use-toast";
-import { Loader2, ArrowRight, RefreshCw, LineChart, Check } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { toast } from '@/components/ui/use-toast';
+import { predefinedStrategies, optimizeStrategy } from '@/utils/aiTradingStrategies';
+import { BarChart2, Calendar, Settings2, Info, LineChart, TrendingUp, TrendingDown } from 'lucide-react';
+import { AITradingStrategy, OptimizationResult } from '@/types/trading';
+import { format, subDays, subMonths } from 'date-fns';
 
 interface StrategyOptimizationProps {
   selectedStrategyId: string | null;
 }
 
-interface OptimizationSettings {
-  symbol: string;
-  timeframe: string;
-  startDate: Date;
-  endDate: Date;
-}
-
-const StrategyOptimization = ({ selectedStrategyId }: StrategyOptimizationProps) => {
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [optimizedParams, setOptimizedParams] = useState<Record<string, any> | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("settings");
-  const [settings, setSettings] = useState<OptimizationSettings>({
-    symbol: "BTC/USD",
-    timeframe: "1h",
-    startDate: subMonths(new Date(), 3),
-    endDate: new Date()
-  });
+const StrategyOptimization: React.FC<StrategyOptimizationProps> = ({ selectedStrategyId }) => {
+  const [availableCoins] = useState([
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
+    { id: 'solana', name: 'Solana', symbol: 'SOL' },
+    { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
+    { id: 'ripple', name: 'XRP', symbol: 'XRP' },
+    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX' },
+    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT' },
+    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' },
+    { id: 'cosmos', name: 'Cosmos', symbol: 'ATOM' },
+    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK' },
+  ]);
   
-  const selectedStrategy = selectedStrategyId 
-    ? predefinedStrategies.find(s => s.id === selectedStrategyId) 
-    : null;
+  const [selectedCoin, setSelectedCoin] = useState<string>('bitcoin');
+  const [timeframe, setTimeframe] = useState<string>('90d');
+  const [initialCapital, setInitialCapital] = useState<number>(10000);
+  const [strategy, setStrategy] = useState<AITradingStrategy | null>(null);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [optimizationResults, setOptimizationResults] = useState<OptimizationResult[] | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('results');
+  const [parameterRanges, setParameterRanges] = useState<Record<string, {min: number, max: number, step: number}>>({});
+  const [enabledParameters, setEnabledParameters] = useState<Record<string, boolean>>({});
+
+  const sortOptions = [
+    { label: 'Total Return', value: 'totalReturn' },
+    { label: 'Win Rate', value: 'winRate' },
+    { label: 'Max Drawdown', value: 'maxDrawdown' },
+    { label: 'Sharpe Ratio', value: 'sharpeRatio' },
+    { label: 'Profit Factor', value: 'profitFactor' }
+  ];
+  const [sortBy, setSortBy] = useState<string>('totalReturn');
   
-  if (!selectedStrategy) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground mb-2">No strategy selected for optimization</p>
-        <Button variant="outline" onClick={() => window.history.back()}>
-          Return to Strategy Selection
-        </Button>
-      </div>
-    );
-  }
-
-  const handleChangeSettings = (key: keyof OptimizationSettings, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleOptimizeStrategy = async () => {
-    setIsOptimizing(true);
-    setProgress(0);
+  // Find the selected strategy from the predefined list
+  useEffect(() => {
+    if (selectedStrategyId) {
+      const found = predefinedStrategies.find(s => s.id === selectedStrategyId);
+      if (found) {
+        setStrategy(found);
+        
+        // Initialize parameter ranges and enabled state
+        const initialRanges: Record<string, {min: number, max: number, step: number}> = {};
+        const initialEnabled: Record<string, boolean> = {};
+        
+        found.parameters.forEach(param => {
+          if (param.type === 'number' && param.min !== undefined && param.max !== undefined) {
+            initialRanges[param.name] = {
+              min: param.min,
+              max: param.max,
+              step: param.step || 1
+            };
+            initialEnabled[param.name] = true;
+          }
+        });
+        
+        setParameterRanges(initialRanges);
+        setEnabledParameters(initialEnabled);
+      }
+    }
+  }, [selectedStrategyId]);
+  
+  const handleRunOptimization = async () => {
+    if (!strategy) return;
+    
+    // Filter only enabled parameters
+    const enabledRanges: Record<string, {min: number, max: number, step: number}> = {};
+    Object.keys(enabledParameters).forEach(paramName => {
+      if (enabledParameters[paramName]) {
+        enabledRanges[paramName] = parameterRanges[paramName];
+      }
+    });
+    
+    // Check if at least one parameter is enabled
+    if (Object.keys(enabledRanges).length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Optimization Error",
+        description: "Please enable at least one parameter to optimize",
+      });
+      return;
+    }
+    
+    setIsRunning(true);
+    setOptimizationResults(null);
     
     try {
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          const newProgress = prev + Math.random() * 8;
-          return newProgress >= 100 ? 100 : newProgress;
-        });
-      }, 800);
+      // Determine date range
+      let startDate: Date;
+      const endDate = new Date();
       
-      // Run the optimization
-      const params = await optimizeStrategy(
-        selectedStrategy.id,
-        settings.symbol,
-        settings.timeframe,
-        format(settings.startDate, 'yyyy-MM-dd'),
-        format(settings.endDate, 'yyyy-MM-dd')
+      switch (timeframe) {
+        case '30d':
+          startDate = subDays(endDate, 30);
+          break;
+        case '90d':
+          startDate = subDays(endDate, 90);
+          break;
+        case '6m':
+          startDate = subMonths(endDate, 6);
+          break;
+        case '1y':
+          startDate = subMonths(endDate, 12);
+          break;
+        default:
+          startDate = subDays(endDate, 90);
+      }
+      
+      // Run optimization
+      const results = await optimizeStrategy(
+        strategy.id,
+        selectedCoin,
+        startDate,
+        endDate,
+        initialCapital,
+        enabledRanges
       );
       
-      clearInterval(progressInterval);
-      setProgress(100);
-      setOptimizedParams(params);
-      setActiveTab("results");
+      // Sort results based on selected criteria
+      results.sort((a, b) => {
+        if (sortBy === 'maxDrawdown') {
+          // For drawdown, lower is better
+          return a.performance[sortBy] - b.performance[sortBy];
+        } else {
+          // For all other metrics, higher is better
+          return b.performance[sortBy] - a.performance[sortBy];
+        }
+      });
+      
+      setOptimizationResults(results);
       
       toast({
-        title: "Optimization completed",
-        description: `Strategy parameters optimized based on ${settings.symbol} historical data`,
+        title: "Optimization complete",
+        description: `${results.length} parameter combinations analyzed`,
       });
     } catch (error) {
-      toast({
-        title: "Optimization failed",
-        description: "An error occurred during optimization",
-        variant: "destructive",
-      });
       console.error("Optimization error:", error);
+      toast({
+        variant: "destructive",
+        title: "Optimization failed",
+        description: "There was an error running the optimization",
+      });
     } finally {
-      setIsOptimizing(false);
+      setIsRunning(false);
     }
   };
   
-  const handleReset = () => {
-    setOptimizedParams(null);
-    setProgress(0);
-    setActiveTab("settings");
+  const handleParameterRangeChange = (paramName: string, field: 'min' | 'max' | 'step', value: number) => {
+    setParameterRanges(prev => ({
+      ...prev,
+      [paramName]: {
+        ...prev[paramName],
+        [field]: value
+      }
+    }));
   };
+  
+  const handleToggleParameter = (paramName: string) => {
+    setEnabledParameters(prev => ({
+      ...prev,
+      [paramName]: !prev[paramName]
+    }));
+  };
+  
+  // Show a message if no strategy is selected
+  if (!strategy) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 border rounded-md border-dashed p-6">
+        <Info size={32} className="text-muted-foreground mb-2" />
+        <h3 className="text-xl font-medium">No Strategy Selected</h3>
+        <p className="text-muted-foreground text-center mt-2">
+          Please select a strategy from the Strategies tab to start optimizing.
+        </p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-4">
-      <div className="bg-muted/50 p-4 rounded-lg">
-        <h3 className="font-medium mb-2">Optimize Strategy: {selectedStrategy.name}</h3>
-        <p className="text-sm text-muted-foreground">Optimize parameters to improve the performance of this strategy</p>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="flex-1">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="coin">Coin</Label>
+                <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+                  <SelectTrigger id="coin">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCoins.map((coin) => (
+                      <SelectItem key={coin.id} value={coin.id}>
+                        {coin.name} ({coin.symbol})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="timeframe">Timeframe</Label>
+                <Select value={timeframe} onValueChange={setTimeframe}>
+                  <SelectTrigger id="timeframe">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30d">30 Days</SelectItem>
+                    <SelectItem value="90d">90 Days</SelectItem>
+                    <SelectItem value="6m">6 Months</SelectItem>
+                    <SelectItem value="1y">1 Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="capital">Initial Capital (USD)</Label>
+                <Input
+                  id="capital"
+                  type="number"
+                  value={initialCapital}
+                  onChange={(e) => setInitialCapital(Number(e.target.value))}
+                  min={100}
+                  step={100}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="sortBy">Sort Results By</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger id="sortBy">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 w-full mb-6">
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="results" disabled={!optimizedParams}>Results</TabsTrigger>
-          <TabsTrigger value="comparison" disabled={!optimizedParams}>Comparison</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="settings">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <h4 className="font-medium">Optimization Settings</h4>
-                
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Symbol</label>
-                  <Select 
-                    value={settings.symbol}
-                    onValueChange={(value) => handleChangeSettings('symbol', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BTC/USD">Bitcoin (BTC/USD)</SelectItem>
-                      <SelectItem value="ETH/USD">Ethereum (ETH/USD)</SelectItem>
-                      <SelectItem value="SOL/USD">Solana (SOL/USD)</SelectItem>
-                      <SelectItem value="ADA/USD">Cardano (ADA/USD)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Timeframe</label>
-                  <Select 
-                    value={settings.timeframe}
-                    onValueChange={(value) => handleChangeSettings('timeframe', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5m">5 minutes</SelectItem>
-                      <SelectItem value="15m">15 minutes</SelectItem>
-                      <SelectItem value="30m">30 minutes</SelectItem>
-                      <SelectItem value="1h">1 hour</SelectItem>
-                      <SelectItem value="4h">4 hours</SelectItem>
-                      <SelectItem value="1d">1 day</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Start Date</label>
-                  <DatePicker 
-                    date={settings.startDate}
-                    onSelect={(date) => handleChangeSettings('startDate', date)}
-                    disabled={isOptimizing}
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-1 block">End Date</label>
-                  <DatePicker 
-                    date={settings.endDate}
-                    onSelect={(date) => handleChangeSettings('endDate', date)}
-                    disabled={isOptimizing}
-                  />
-                </div>
-                
-                <Button 
-                  className="w-full" 
-                  onClick={handleOptimizeStrategy}
-                  disabled={isOptimizing}
-                >
-                  {isOptimizing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Optimizing...
-                    </>
-                  ) : (
-                    <>
-                      <LineChart className="mr-2 h-4 w-4" />
-                      Run Optimization
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <div className="space-y-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <h4 className="font-medium mb-3">Current Strategy Parameters</h4>
-                  
-                  <div className="space-y-2">
-                    {Object.entries(selectedStrategy.parameters).map(([key, value]) => (
-                      <div key={key} className="grid grid-cols-2 gap-2 py-1 border-b border-border/40">
-                        <span className="text-sm font-medium capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </span>
-                        <span className="text-sm text-right">
-                          {typeof value === 'boolean' 
-                            ? (value ? 'Yes' : 'No')
-                            : typeof value === 'number' 
-                              ? key.includes('stop') || key.includes('profit') 
-                                ? `${value}%`
-                                : value
-                              : value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Strategy Parameters */}
+        <div className="md:col-span-1 space-y-4">
+          <h3 className="font-medium text-lg">Parameters to Optimize</h3>
+          <div className="space-y-6">
+            {strategy.parameters.map((param) => {
+              if (param.type !== 'number' || param.min === undefined || param.max === undefined) {
+                return null;
+              }
               
-              <Card>
-                <CardContent className="pt-6">
-                  <h4 className="font-medium">Optimization Process</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    The optimization engine will test thousands of parameter combinations to find the most profitable settings for your strategy.
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-                    <div className="bg-muted/50 p-2 rounded">
-                      <span className="text-muted-foreground">Method:</span>
-                      <div>Grid Search + Genetic Algorithm</div>
-                    </div>
-                    <div className="bg-muted/50 p-2 rounded">
-                      <span className="text-muted-foreground">Goal:</span>
-                      <div>Maximize Risk-Adjusted Return</div>
-                    </div>
+              return (
+                <div key={param.name} className="space-y-2 p-3 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor={`toggle-${param.name}`}>{param.label}</Label>
+                    <Switch 
+                      id={`toggle-${param.name}`}
+                      checked={!!enabledParameters[param.name]}
+                      onCheckedChange={() => handleToggleParameter(param.name)}
+                    />
                   </div>
                   
-                  {isOptimizing && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Optimization Progress</span>
-                        <span className="text-sm">{Math.round(progress)}%</span>
+                  <div className={enabledParameters[param.name] ? '' : 'opacity-50'}>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div>
+                        <Label htmlFor={`min-${param.name}`} className="text-xs">Min</Label>
+                        <Input
+                          id={`min-${param.name}`}
+                          type="number"
+                          value={parameterRanges[param.name]?.min}
+                          onChange={(e) => handleParameterRangeChange(param.name, 'min', Number(e.target.value))}
+                          disabled={!enabledParameters[param.name]}
+                          className="text-sm h-8"
+                        />
                       </div>
-                      <Progress value={progress} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Testing parameter combinations...
+                      <div>
+                        <Label htmlFor={`max-${param.name}`} className="text-xs">Max</Label>
+                        <Input
+                          id={`max-${param.name}`}
+                          type="number"
+                          value={parameterRanges[param.name]?.max}
+                          onChange={(e) => handleParameterRangeChange(param.name, 'max', Number(e.target.value))}
+                          disabled={!enabledParameters[param.name]}
+                          className="text-sm h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`step-${param.name}`} className="text-xs">Step</Label>
+                        <Input
+                          id={`step-${param.name}`}
+                          type="number"
+                          value={parameterRanges[param.name]?.step}
+                          onChange={(e) => handleParameterRangeChange(param.name, 'step', Number(e.target.value))}
+                          disabled={!enabledParameters[param.name]}
+                          className="text-sm h-8"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <Button 
+            className="w-full mt-4" 
+            onClick={handleRunOptimization}
+            disabled={isRunning}
+          >
+            {isRunning ? "Optimizing..." : "Run Optimization"}
+          </Button>
+          
+          <p className="text-xs text-muted-foreground">
+            Note: Optimization tests multiple parameter combinations to find the best performing settings.
+            This process may take several minutes.
+          </p>
+        </div>
+        
+        {/* Optimization Results */}
+        <div className="md:col-span-3 border rounded-lg p-4">
+          {isRunning ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 border-t-2 border-b-2 border-primary rounded-full animate-spin"></div>
+                <Settings2 className="w-6 h-6 animate-pulse text-primary" />
+              </div>
+              <p className="mt-4 text-sm text-center text-muted-foreground">
+                Optimizing {strategy.name} parameters.<br />
+                Testing multiple parameter combinations...
+              </p>
+            </div>
+          ) : optimizationResults ? (
+            <div className="space-y-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-2">
+                  <TabsTrigger value="results" className="flex items-center">
+                    <BarChart2 className="w-4 h-4 mr-1" />
+                    <span>Results Table</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="chart" className="flex items-center">
+                    <LineChart className="w-4 h-4 mr-1" />
+                    <span>Performance Chart</span>
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="results" className="pt-4">
+                  {/* Results Table */}
+                  <div className="border rounded overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="py-2 px-3 text-left">Rank</th>
+                          <th className="py-2 px-3 text-left">Parameters</th>
+                          <th className="py-2 px-3 text-right">Return</th>
+                          <th className="py-2 px-3 text-right">Win Rate</th>
+                          <th className="py-2 px-3 text-right">Drawdown</th>
+                          <th className="py-2 px-3 text-right">Sharpe</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {optimizationResults.map((result, index) => (
+                          <tr key={index} className={`border-b ${index === 0 ? 'bg-green-50 dark:bg-green-900/10' : ''}`}>
+                            <td className="py-2 px-3">
+                              {index === 0 ? (
+                                <span className="flex items-center">
+                                  <TrendingUp className="text-green-500 w-4 h-4 mr-1" />
+                                  Best
+                                </span>
+                              ) : (
+                                `#${index + 1}`
+                              )}
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(result.parameters).map(([name, value]) => (
+                                  <span key={name} className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs">
+                                    {name}: {value}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className={`py-2 px-3 text-right ${result.performance.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {result.performance.totalReturn.toFixed(2)}%
+                            </td>
+                            <td className="py-2 px-3 text-right">
+                              {result.performance.winRate.toFixed(2)}%
+                            </td>
+                            <td className="py-2 px-3 text-right">
+                              {result.performance.maxDrawdown.toFixed(2)}%
+                            </td>
+                            <td className="py-2 px-3 text-right">
+                              {result.performance.sharpeRatio.toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="chart" className="pt-4">
+                  <div className="h-[350px] flex items-center justify-center border rounded">
+                    <div className="text-center p-4">
+                      <LineChart className="h-10 w-10 mb-2 mx-auto text-muted-foreground" />
+                      <h3 className="text-lg font-medium">Parameter Sensitivity Chart</h3>
+                      <p className="text-muted-foreground">
+                        This would show how each parameter affects performance.
+                      </p>
+                      <p className="text-sm mt-2">
+                        {Object.keys(enabledParameters).filter(k => enabledParameters[k]).join(", ")}
                       </p>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="results">
-          {optimizedParams && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium">Optimized Parameters</h4>
-                    <Badge>Recommended</Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {Object.entries(optimizedParams).map(([key, value]) => (
-                      <div key={key} className="grid grid-cols-2 gap-2 py-1 border-b border-border/40">
-                        <span className="text-sm font-medium capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </span>
-                        <span className="text-sm text-right">
-                          {typeof value === 'boolean' 
-                            ? (value ? 'Yes' : 'No')
-                            : typeof value === 'number' 
-                              ? key.includes('stop') || key.includes('profit') 
-                                ? `${value}%`
-                                : value
-                              : value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-6 flex justify-end">
-                    <Button>
-                      <Check className="mr-2 h-4 w-4" />
-                      Apply Optimized Parameters
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <h4 className="font-medium mb-4">Optimization Summary</h4>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-muted/50 rounded p-3">
-                      <div className="text-sm text-muted-foreground">Symbol</div>
-                      <div className="font-medium">{settings.symbol}</div>
-                    </div>
-                    <div className="bg-muted/50 rounded p-3">
-                      <div className="text-sm text-muted-foreground">Timeframe</div>
-                      <div className="font-medium">{settings.timeframe}</div>
-                    </div>
-                    <div className="bg-muted/50 rounded p-3">
-                      <div className="text-sm text-muted-foreground">Period</div>
-                      <div className="font-medium">
-                        {format(settings.startDate, 'MMM d')} - {format(settings.endDate, 'MMM d, yyyy')}
-                      </div>
-                    </div>
-                    <div className="bg-muted/50 rounded p-3">
-                      <div className="text-sm text-muted-foreground">Strategy Type</div>
-                      <div className="font-medium capitalize">{selectedStrategy.type}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 mt-4">
-                    <div>
-                      <div className="text-sm mb-1">Performance Improvement</div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="bg-green-500 h-full rounded-full" style={{ width: '68%' }}></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Original</span>
-                        <span>+68% Better</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm mb-1">Risk Reduction</div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="bg-blue-500 h-full rounded-full" style={{ width: '42%' }}></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Original</span>
-                        <span>+42% Better</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm mb-1">Win Rate</div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="bg-amber-500 h-full rounded-full" style={{ width: '35%' }}></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Original</span>
-                        <span>+35% Better</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-between">
-                    <Button variant="outline" onClick={handleReset}>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Try Different Settings
-                    </Button>
-                    <Button variant="outline" onClick={() => setActiveTab("comparison")}>
-                      View Comparison 
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64">
+              <Calendar className="h-12 w-12 mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium">No Optimization Results</h3>
+              <p className="text-muted-foreground text-center mt-2 max-w-md">
+                Select parameters to optimize and run the optimization to find the best parameters for your strategy.
+              </p>
             </div>
           )}
-        </TabsContent>
-        
-        <TabsContent value="comparison">
-          {optimizedParams && (
-            <div className="space-y-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <h4 className="font-medium mb-4">Parameter Comparison</h4>
-                  
-                  <div className="space-y-2">
-                    {Object.entries(optimizedParams).map(([key, value]) => {
-                      const originalValue = selectedStrategy.parameters[key];
-                      const isImproved = typeof value === 'number' && typeof originalValue === 'number'
-                        ? key.includes('stop') 
-                          ? value < originalValue 
-                          : value > originalValue
-                        : false;
-                        
-                      return (
-                        <div key={key} className="grid grid-cols-3 gap-2 py-2 border-b border-border/40">
-                          <span className="text-sm font-medium capitalize">
-                            {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                          </span>
-                          <span className="text-sm text-center">
-                            {typeof originalValue === 'boolean' 
-                              ? (originalValue ? 'Yes' : 'No')
-                              : typeof originalValue === 'number' 
-                                ? key.includes('stop') || key.includes('profit') 
-                                  ? `${originalValue}%`
-                                  : originalValue
-                                : originalValue}
-                          </span>
-                          <div className="text-sm text-right flex items-center justify-end gap-1">
-                            <span className={isImproved ? 'text-green-500' : ''}>
-                              {typeof value === 'boolean' 
-                                ? (value ? 'Yes' : 'No')
-                                : typeof value === 'number' 
-                                  ? key.includes('stop') || key.includes('profit') 
-                                    ? `${value}%`
-                                    : value
-                                  : value}
-                            </span>
-                            {isImproved && (
-                              <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 15 15"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="text-green-500"
-                              >
-                                <path
-                                  d="M7.14645 2.14645C7.34171 1.95118 7.65829 1.95118 7.85355 2.14645L11.8536 6.14645C12.0488 6.34171 12.0488 6.65829 11.8536 6.85355C11.6583 7.04882 11.3417 7.04882 11.1464 6.85355L7.5 3.20711L3.85355 6.85355C3.65829 7.04882 3.34171 7.04882 3.14645 6.85355C2.95118 6.65829 2.95118 6.34171 3.14645 6.14645L7.14645 2.14645ZM7 12.5V2.5H8V12.5H7Z"
-                                  fill="currentColor"
-                                  fillRule="evenodd"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <h4 className="font-medium mb-4">Performance Metrics Comparison</h4>
-                  
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                    <div>
-                      <div className="text-sm font-medium mb-2">Total Return</div>
-                      <div className="flex items-center">
-                        <div className="bg-muted h-6 rounded-l-full w-1/3 flex items-center pl-2 text-xs">
-                          +32.4% (Original)
-                        </div>
-                        <div className="bg-green-500 h-6 rounded-r-full w-2/3 flex items-center justify-end pr-2 text-xs text-white">
-                          +46.8% (Optimized)
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Max Drawdown</div>
-                      <div className="flex items-center">
-                        <div className="bg-red-500 h-6 rounded-l-full w-3/5 flex items-center pl-2 text-xs text-white">
-                          -8.3% (Original)
-                        </div>
-                        <div className="bg-muted h-6 rounded-r-full w-2/5 flex items-center justify-end pr-2 text-xs">
-                          -5.1% (Optimized)
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Win Rate</div>
-                      <div className="flex items-center">
-                        <div className="bg-muted h-6 rounded-l-full w-2/5 flex items-center pl-2 text-xs">
-                          68% (Original)
-                        </div>
-                        <div className="bg-green-500 h-6 rounded-r-full w-3/5 flex items-center justify-end pr-2 text-xs text-white">
-                          76% (Optimized)
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Profit Factor</div>
-                      <div className="flex items-center">
-                        <div className="bg-muted h-6 rounded-l-full w-2/5 flex items-center pl-2 text-xs">
-                          2.4 (Original)
-                        </div>
-                        <div className="bg-green-500 h-6 rounded-r-full w-3/5 flex items-center justify-end pr-2 text-xs text-white">
-                          3.2 (Optimized)
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Sharpe Ratio</div>
-                      <div className="flex items-center">
-                        <div className="bg-muted h-6 rounded-l-full w-2/5 flex items-center pl-2 text-xs">
-                          1.8 (Original)
-                        </div>
-                        <div className="bg-green-500 h-6 rounded-r-full w-3/5 flex items-center justify-end pr-2 text-xs text-white">
-                          2.3 (Optimized)
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Average Trade</div>
-                      <div className="flex items-center">
-                        <div className="bg-muted h-6 rounded-l-full w-1/3 flex items-center pl-2 text-xs">
-                          $68.94 (Original)
-                        </div>
-                        <div className="bg-green-500 h-6 rounded-r-full w-2/3 flex items-center justify-end pr-2 text-xs text-white">
-                          $92.40 (Optimized)
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <Button className="w-full">
-                      <Check className="mr-2 h-4 w-4" />
-                      Apply Optimized Strategy
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };
