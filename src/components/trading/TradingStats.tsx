@@ -1,44 +1,49 @@
 
 import React from "react";
-import { Card } from "@/components/ui/card";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import PriceDisplay from "./PriceDisplay";
 
 interface TradingStatsProps {
   balance: number;
   portfolioValue: number;
   performance: number;
   formatValue: (value: number) => string;
+  currency: 'USD' | 'AUD';
 }
 
 const TradingStats = ({ 
   balance, 
   portfolioValue, 
-  performance, 
-  formatValue 
+  performance,
+  formatValue,
+  currency
 }: TradingStatsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div className="bg-card rounded-lg border p-4">
-        <div className="text-sm text-muted-foreground mb-1">Available Balance</div>
-        <div className="text-2xl font-bold">{formatValue(balance)}</div>
-      </div>
+      <PriceDisplay
+        price={balance}
+        symbol="Balance"
+        currency={currency}
+        formatValue={formatValue}
+        isCompact
+      />
       
-      <div className="bg-card rounded-lg border p-4">
-        <div className="text-sm text-muted-foreground mb-1">Portfolio Value</div>
-        <div className="text-2xl font-bold">{formatValue(portfolioValue)}</div>
-      </div>
+      <PriceDisplay
+        price={portfolioValue}
+        symbol="Portfolio Value"
+        currency={currency}
+        formatValue={formatValue}
+        isCompact
+      />
       
-      <div className="bg-card rounded-lg border p-4">
-        <div className="text-sm text-muted-foreground mb-1">Performance</div>
-        <div className={`text-2xl font-bold flex items-center ${performance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-          {performance >= 0 ? (
-            <ArrowUp className="mr-1 h-5 w-5" />
-          ) : (
-            <ArrowDown className="mr-1 h-5 w-5" />
-          )}
-          {Math.abs(performance).toFixed(2)}%
-        </div>
-      </div>
+      <PriceDisplay
+        price={portfolioValue}
+        change={performance}
+        symbol="Performance"
+        currency={currency}
+        formatValue={formatValue}
+        isCompact
+      />
     </div>
   );
 };

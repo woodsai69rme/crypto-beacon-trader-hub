@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TradingForm from "./trading/TradingForm";
@@ -130,6 +129,7 @@ const FakeTrading = () => {
               portfolioValue={calculatePortfolioValue()}
               performance={calculatePerformance()}
               formatValue={formatValue}
+              currency={activeCurrency}
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
