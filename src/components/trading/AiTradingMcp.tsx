@@ -1,11 +1,12 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Bot, AlertCircle, Check } from "lucide-react";
+import { Bot } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import McpServerList, { McpServerConfig } from "./McpServerList";
 import ModelConfigPanel from "./ModelConfigPanel";
 import TradingControls from "./TradingControls";
+import ServerStatus from "./ServerStatus";
+import DisconnectedState from "./DisconnectedState";
 
 const AiTradingMcp = () => {
   const [mcpServers, setMcpServers] = useState<McpServerConfig[]>([
@@ -33,15 +34,17 @@ const AiTradingMcp = () => {
   const [timeframe, setTimeframe] = useState("4h");
   
   const connectToServer = async (serverId: string) => {
-    const updatedServers = mcpServers.map(server => 
-      server.id === serverId 
-        ? { ...server, status: "connecting" as const } 
-        : server
-    );
-    
-    setMcpServers(updatedServers);
-    
-    setTimeout(() => {
+    try {
+      const updatedServers = mcpServers.map(server => 
+        server.id === serverId 
+          ? { ...server, status: "connecting" as const } 
+          : server
+      );
+      
+      setMcpServers(updatedServers);
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       const finalServers = mcpServers.map(server => 
         server.id === serverId 
           ? { 
@@ -59,7 +62,13 @@ const AiTradingMcp = () => {
         title: "MCP Server Connected",
         description: `Successfully connected to ${finalServers.find(s => s.id === serverId)?.name}`,
       });
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Connection Failed",
+        description: "Unable to connect to MCP server. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const disconnectServer = (serverId: string) => {
@@ -93,7 +102,7 @@ const AiTradingMcp = () => {
     setMcpServers([...mcpServers, newServer]);
   };
   
-  const startTraining = () => {
+  const startTraining = async () => {
     if (!activeServerId) {
       toast({
         title: "No Server Connected",
@@ -103,25 +112,34 @@ const AiTradingMcp = () => {
       return;
     }
     
-    setIsTraining(true);
-    setTrainingProgress(0);
-    
-    const interval = setInterval(() => {
-      setTrainingProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsTraining(false);
-          
-          toast({
-            title: "Model Training Complete",
-            description: "Your AI trading model has been successfully trained",
-          });
-          
-          return 100;
-        }
-        return prev + 10;
+    try {
+      setIsTraining(true);
+      setTrainingProgress(0);
+      
+      const interval = setInterval(() => {
+        setTrainingProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setIsTraining(false);
+            
+            toast({
+              title: "Model Training Complete",
+              description: "Your AI trading model has been successfully trained",
+            });
+            
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 800);
+    } catch (error) {
+      setIsTraining(false);
+      toast({
+        title: "Training Failed",
+        description: "An error occurred during model training",
+        variant: "destructive",
       });
-    }, 800);
+    }
   };
   
   const toggleTrading = () => {
@@ -168,33 +186,12 @@ const AiTradingMcp = () => {
             />
           </>
         ) : (
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-2" />
-            <div className="font-medium text-lg mb-1">No MCP Server Connected</div>
-            <div className="text-muted-foreground mb-4">
-              Please connect to an MCP server to start using AI trading features
-            </div>
-          </div>
+          <DisconnectedState />
         )}
       </CardContent>
       
-      <CardFooter className="border-t flex justify-between pt-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          {activeServerId ? (
-            <>
-              <Check className="h-3 w-3 text-green-500" />
-              <span>Connected to MCP network</span>
-            </>
-          ) : (
-            <>
-              <AlertCircle className="h-3 w-3 text-amber-500" />
-              <span>No MCP connection</span>
-            </>
-          )}
-        </div>
-        <div>
-          MCP Protocol v2.1
-        </div>
+      <CardFooter>
+        <ServerStatus activeServerId={activeServerId} />
       </CardFooter>
     </Card>
   );
