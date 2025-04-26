@@ -1,8 +1,12 @@
 
 import React from "react";
 import ThemeSwitcher from "./settings/ThemeSwitcher";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-// We're using the ThemeSwitcher component which already has tooltip functionality
-const ThemeToggle = () => <ThemeSwitcher />;
+const ThemeToggle = () => (
+  <TooltipProvider>
+    <ThemeSwitcher />
+  </TooltipProvider>
+);
 
 export default ThemeToggle;
