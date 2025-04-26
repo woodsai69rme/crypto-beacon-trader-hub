@@ -35,7 +35,8 @@ const ThemeSwitcher = () => {
     try {
       await setTheme(newTheme);
     } finally {
-      setIsChanging(false);
+      // Add a small delay to make transition look smoother
+      setTimeout(() => setIsChanging(false), 300);
     }
   };
 
@@ -44,7 +45,8 @@ const ThemeSwitcher = () => {
     try {
       await setColorScheme(newScheme);
     } finally {
-      setIsChanging(false);
+      // Add a small delay to make transition look smoother
+      setTimeout(() => setIsChanging(false), 300);
     }
   };
 
@@ -70,7 +72,7 @@ const ThemeSwitcher = () => {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="rounded-full transition-all duration-200"
+                className="rounded-full transition-all duration-200 hover:bg-secondary"
                 aria-label="Change theme"
                 disabled={isChanging}
               >
@@ -132,6 +134,7 @@ const ThemeSwitcher = () => {
                 style={{ backgroundColor: scheme.color }}
               />
               <span>{scheme.name}</span>
+              <span className="text-xs text-muted-foreground">{scheme.description}</span>
             </div>
             {colorScheme === scheme.id && (
               <span className="text-primary">✓</span>
