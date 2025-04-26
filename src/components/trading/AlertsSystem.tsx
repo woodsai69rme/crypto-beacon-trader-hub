@@ -8,13 +8,30 @@ import { toast } from "@/components/ui/use-toast";
 import { handleError } from "@/utils/errorHandling";
 import LoadingSpinner from "./LoadingSpinner";
 import { AlertFormSheet } from "../widgets/AlertComponents/AlertFormSheet";
+import { PriceAlertFormData } from "../widgets/AlertComponents/AlertTypes";
 
 const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { alerts, addAlert, removeAlert } = useAlerts();
+  
+  // Create a default form data object that matches the PriceAlertFormData type
+  const defaultFormData: PriceAlertFormData = {
+    coinId: "bitcoin",
+    coinName: "Bitcoin",
+    coinSymbol: "BTC",
+    targetPrice: 0,
+    isAbove: true,
+    recurring: false,
+    percentageChange: 0,
+    enabled: true,
+    notifyVia: ["app"]
+  };
+  
+  // State to track form data
+  const [formData, setFormData] = useState<PriceAlertFormData>(defaultFormData);
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async () => {
     try {
       setIsLoading(true);
       await addAlert(formData);
@@ -28,6 +45,10 @@ const AlertsSystem = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFormChange = (updatedData: PriceAlertFormData) => {
+    setFormData(updatedData);
   };
 
   const handleRemoveAlert = async (id: string) => {
@@ -67,15 +88,8 @@ const AlertsSystem = () => {
         ) : (
           <AlertFormSheet 
             onSubmit={handleSubmit}
-            formData={{
-              coinId: "",
-              coinName: "",
-              coinSymbol: "",
-              targetPrice: 0,
-              isAbove: true,
-              enabled: true
-            }}
-            onFormChange={() => {}}
+            formData={formData}
+            onFormChange={handleFormChange}
           />
         )}
 
