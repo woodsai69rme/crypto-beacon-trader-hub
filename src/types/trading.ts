@@ -1,4 +1,3 @@
-
 export interface Trade {
   id: string;
   coinId: string;
@@ -46,4 +45,13 @@ export interface Widget {
   size: WidgetSize;
   position: number;
   customContent?: string;
+}
+
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  trades: Trade[];
+  initialBalance: number;
+  createdAt: string;
 }
