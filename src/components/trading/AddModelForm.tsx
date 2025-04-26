@@ -1,10 +1,11 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight } from "lucide-react";
 import { LocalModel } from "./types";
+import { validateFormFields } from "@/utils/formValidation";
+import { handleError } from "@/utils/errorHandling";
 
 interface AddModelFormProps {
   newModel: Omit<LocalModel, "id" | "isConnected">;
@@ -17,12 +18,34 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
   onModelChange,
   onSubmit
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const isValid = validateFormFields(newModel, ["name", "endpoint", "type"]);
+      
+      if (!isValid) {
+        return;
+      }
+
+      if (!newModel.endpoint.startsWith("http://") && !newModel.endpoint.startsWith("https://")) {
+        handleError("Endpoint must start with http:// or https://", "warning", "Model Form");
+        return;
+      }
+
+      onSubmit();
+    } catch (error) {
+      handleError(error, "error", "Model Form");
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-2">
         <Label htmlFor="name">Model Name</Label>
         <Input 
           id="name" 
+          required
           placeholder="My Price Prediction Model" 
           value={newModel.name}
           onChange={(e) => onModelChange({ ...newModel, name: e.target.value })}
@@ -33,6 +56,7 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
         <Label htmlFor="endpoint">Local Endpoint URL</Label>
         <Input 
           id="endpoint" 
+          required
           placeholder="http://localhost:8000" 
           value={newModel.endpoint}
           onChange={(e) => onModelChange({ ...newModel, endpoint: e.target.value })}
@@ -43,10 +67,12 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
         <Label htmlFor="type">Model Type</Label>
         <select
           id="type"
+          required
           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           value={newModel.type}
           onChange={(e) => onModelChange({ ...newModel, type: e.target.value as LocalModel["type"] })}
         >
+          <option value="">Select a type</option>
           <option value="prediction">Price Prediction</option>
           <option value="sentiment">Sentiment Analysis</option>
           <option value="trading">Trading Strategy</option>
@@ -54,7 +80,7 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
         </select>
       </div>
       
-      <Button onClick={onSubmit} className="w-full">
+      <Button type="submit" className="w-full">
         Add Local Model
       </Button>
       
@@ -76,7 +102,7 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
-    </div>
+    </form>
   );
 };
 

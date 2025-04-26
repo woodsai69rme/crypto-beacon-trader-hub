@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { COIN_OPTIONS } from "./AlertTypes";
 import { PriceAlert } from "@/types/alerts";
+import { validateFormFields } from "@/utils/formValidation";
+import { handleError } from "@/utils/errorHandling";
 
 type AlertFormData = Omit<PriceAlert, 'id' | 'createdAt'>;
 
@@ -20,8 +21,34 @@ export const AlertFormSheet: React.FC<AlertFormProps> = ({
   onFormChange,
   onSubmit,
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const isValid = validateFormFields(formData, [
+        "coinId",
+        "coinName",
+        "coinSymbol",
+        "targetPrice"
+      ]);
+      
+      if (!isValid) {
+        return;
+      }
+
+      if (formData.targetPrice <= 0) {
+        handleError("Price target must be greater than 0", "warning", "Price Alert");
+        return;
+      }
+
+      onSubmit();
+    } catch (error) {
+      handleError(error, "error", "Price Alert");
+    }
+  };
+
   return (
-    <div className="mt-4 space-y-4">
+    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
       <div className="flex flex-col space-y-2">
         <Label className="text-sm font-medium">Coin</Label>
         <select
@@ -78,10 +105,10 @@ export const AlertFormSheet: React.FC<AlertFormProps> = ({
         </div>
       </div>
       
-      <Button className="w-full" onClick={onSubmit}>
+      <Button type="submit" className="w-full">
         <Plus className="mr-1 h-4 w-4" />
         Add Alert
       </Button>
-    </div>
+    </form>
   );
 };
