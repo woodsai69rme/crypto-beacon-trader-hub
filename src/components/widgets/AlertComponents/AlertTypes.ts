@@ -1,4 +1,3 @@
-
 import { AlertFrequency } from "@/types/alerts";
 
 export interface PriceAlertFormData {
@@ -9,6 +8,7 @@ export interface PriceAlertFormData {
   isAbove: boolean;
   recurring: boolean;
   percentageChange: number;
+  enabled: boolean;
   notifyVia: ("email" | "app" | "push")[];
 }
 
