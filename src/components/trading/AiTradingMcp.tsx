@@ -1,11 +1,9 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
 import { Bot, AlertCircle, Check } from "lucide-react";
 import McpServerList, { McpServerConfig } from "./McpServerList";
-import ModelTrainingPanel from "./ModelTrainingPanel";
-import TradingActivityPanel from "./TradingActivityPanel";
+import ModelConfigPanel from "./ModelConfigPanel";
+import TradingControls from "./TradingControls";
 
 const AiTradingMcp = () => {
   const [mcpServers, setMcpServers] = useState<McpServerConfig[]>([
@@ -33,7 +31,6 @@ const AiTradingMcp = () => {
   const [timeframe, setTimeframe] = useState("4h");
   
   const connectToServer = async (serverId: string) => {
-    // In a real app, this would attempt to connect to the MCP server
     const updatedServers = mcpServers.map(server => 
       server.id === serverId 
         ? { ...server, status: "connecting" as const } 
@@ -42,7 +39,6 @@ const AiTradingMcp = () => {
     
     setMcpServers(updatedServers);
     
-    // Simulate connection delay
     setTimeout(() => {
       const finalServers = mcpServers.map(server => 
         server.id === serverId 
@@ -108,7 +104,6 @@ const AiTradingMcp = () => {
     setIsTraining(true);
     setTrainingProgress(0);
     
-    // Simulate training progress
     const interval = setInterval(() => {
       setTrainingProgress(prev => {
         if (prev >= 100) {
@@ -128,23 +123,7 @@ const AiTradingMcp = () => {
   };
   
   const toggleTrading = () => {
-    if (!activeServerId) {
-      toast({
-        title: "No Server Connected",
-        description: "Please connect to an MCP server before activating trading",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsTradingActive(!isTradingActive);
-    
-    toast({
-      title: isTradingActive ? "Trading Stopped" : "Trading Started",
-      description: isTradingActive 
-        ? "AI trading has been deactivated" 
-        : "AI trading is now active and will execute trades based on your settings",
-    });
   };
   
   return (
@@ -169,20 +148,21 @@ const AiTradingMcp = () => {
         
         {activeServerId ? (
           <>
-            <ModelTrainingPanel 
-              isServerConnected={!!activeServerId}
-              isTraining={isTraining}
-              trainingProgress={trainingProgress}
+            <ModelConfigPanel 
               selectedModel={selectedModel}
               setSelectedModel={setSelectedModel}
               timeframe={timeframe}
               setTimeframe={setTimeframe}
+              activeServerId={activeServerId}
+              isTraining={isTraining}
+              trainingProgress={trainingProgress}
               startTraining={startTraining}
             />
             
-            <TradingActivityPanel 
+            <TradingControls 
               isTradingActive={isTradingActive}
               toggleTrading={toggleTrading}
+              activeServerId={activeServerId}
             />
           </>
         ) : (
