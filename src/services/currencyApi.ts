@@ -5,8 +5,8 @@ import type { CurrencyConversion } from "@/types/trading";
 // Function to fetch current exchange rates
 export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
   try {
-    // Free alternative API that doesn't require an API key
-    const response = await axios.get('https://api.exchangerate.host/latest?base=USD&symbols=AUD');
+    // Updated to use exchangerate-api.com which has a free tier that doesn't require an API key
+    const response = await axios.get('https://open.er-api.com/v6/latest/USD');
     
     if (response.data && response.data.rates) {
       const USD_AUD = response.data.rates.AUD || 1.45; // Default fallback if API fails

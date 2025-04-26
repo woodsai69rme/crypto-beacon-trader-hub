@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash, Check, X, ArrowUp, ArrowDown, Settings, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   Sheet, 
   SheetTrigger, 
@@ -11,21 +11,17 @@ import {
   SheetFooter 
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { PriceAlert, VolumeAlert, AlertFrequency } from "@/types/alerts";
+import { COIN_OPTIONS } from "./AlertComponents/AlertTypes";
+import PriceAlertForm from "./AlertComponents/PriceAlertForm";
+import VolumeAlertForm from "./AlertComponents/VolumeAlertForm";
+import TechnicalAlertForm from "./AlertComponents/TechnicalAlertForm";
+import AlertList from "./AlertComponents/AlertList";
 
 interface TechnicalAlert {
   id: string;
@@ -61,7 +57,7 @@ export const createPriceAlert = (formData: any): PriceAlert => {
 };
 
 const EnhancedAlertSystem = () => {
-  const { activeCurrency, formatValue } = useCurrencyConverter();
+  const { formatValue } = useCurrencyConverter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("price");
   const [activeFilterTab, setActiveFilterTab] = useState<string>("all");
@@ -384,109 +380,13 @@ const EnhancedAlertSystem = () => {
     }
   };
   
-  const renderAlertItem = (alert: any) => {
-    switch(alert.type) {
-      case 'price':
-        return (
-          <div key={alert.id} className="flex items-center justify-between rounded-md border border-border bg-background p-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${alert.enabled ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                <span className="font-medium">{alert.coinName} ({alert.coinSymbol})</span>
-                {alert.recurring && <Badge variant="outline">Recurring</Badge>}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Price {alert.isAbove ? "above" : "below"} {formatValue(alert.targetPrice)}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleAlertEnabled('price', alert.id)}
-                className="h-8 w-8"
-              >
-                {alert.enabled ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removePriceAlert(alert.id)}
-                className="h-8 w-8"
-              >
-                <Trash className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          </div>
-        );
-      case 'volume':
-        return (
-          <div key={alert.id} className="flex items-center justify-between rounded-md border border-border bg-background p-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${alert.enabled ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                <span className="font-medium">{alert.coinName} ({alert.coinSymbol})</span>
-                <Badge variant="outline">Volume</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {alert.frequency} volume increase of {alert.volumeThreshold}%+
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleAlertEnabled('volume', alert.id)}
-                className="h-8 w-8"
-              >
-                {alert.enabled ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeVolumeAlert(alert.id)}
-                className="h-8 w-8"
-              >
-                <Trash className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          </div>
-        );
-      case 'technical':
-        return (
-          <div key={alert.id} className="flex items-center justify-between rounded-md border border-border bg-background p-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${alert.enabled ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                <span className="font-medium">{alert.coinName} ({alert.coinSymbol})</span>
-                <Badge variant="outline">Technical</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {alert.indicator} {alert.condition} {alert.value}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleAlertEnabled('technical', alert.id)}
-                className="h-8 w-8"
-              >
-                {alert.enabled ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeTechnicalAlert(alert.id)}
-                className="h-8 w-8"
-              >
-                <Trash className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  const handleRemoveAlert = (type: 'price' | 'volume' | 'technical', id: string) => {
+    if (type === 'price') {
+      removePriceAlert(id);
+    } else if (type === 'volume') {
+      removeVolumeAlert(id);
+    } else {
+      removeTechnicalAlert(id);
     }
   };
   
@@ -520,339 +420,27 @@ const EnhancedAlertSystem = () => {
             </TabsList>
             
             <TabsContent value="price" className="space-y-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Coin</label>
-                      <Select
-                        value={newPriceAlert.coinId}
-                        onValueChange={(value) => {
-                          const coinMap: Record<string, { name: string, symbol: string }> = {
-                            bitcoin: { name: "Bitcoin", symbol: "BTC" },
-                            ethereum: { name: "Ethereum", symbol: "ETH" },
-                            solana: { name: "Solana", symbol: "SOL" },
-                            cardano: { name: "Cardano", symbol: "ADA" },
-                            ripple: { name: "XRP", symbol: "XRP" }
-                          };
-                          
-                          setNewPriceAlert({ 
-                            ...newPriceAlert, 
-                            coinId: value,
-                            coinName: coinMap[value].name,
-                            coinSymbol: coinMap[value].symbol
-                          });
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
-                          <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                          <SelectItem value="solana">Solana (SOL)</SelectItem>
-                          <SelectItem value="cardano">Cardano (ADA)</SelectItem>
-                          <SelectItem value="ripple">XRP</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Alert me when price is</label>
-                      <div className="flex items-center space-x-2">
-                        <Select
-                          value={newPriceAlert.isAbove ? "above" : "below"}
-                          onValueChange={(value) => setNewPriceAlert({ 
-                            ...newPriceAlert, 
-                            isAbove: value === "above"
-                          })}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="above">Above</SelectItem>
-                            <SelectItem value="below">Below</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <div className="flex-1">
-                          <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-                              {activeCurrency === "USD" ? "$" : "A$"}
-                            </span>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              className="pl-6"
-                              value={newPriceAlert.targetPrice || ""}
-                              onChange={(e) => setNewPriceAlert({ 
-                                ...newPriceAlert, 
-                                targetPrice: parseFloat(e.target.value) || 0 
-                              })}
-                              placeholder="Enter price"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="recurring"
-                          checked={newPriceAlert.recurring}
-                          onCheckedChange={(checked) => setNewPriceAlert({
-                            ...newPriceAlert,
-                            recurring: checked
-                          })}
-                        />
-                        <Label htmlFor="recurring">Recurring Alert</Label>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {newPriceAlert.recurring 
-                          ? "Alert will trigger repeatedly" 
-                          : "Alert will trigger once"}
-                      </span>
-                    </div>
-                    
-                    <div className="pt-2">
-                      <label className="text-sm font-medium mb-2 block">Notification Methods</label>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant={newPriceAlert.notifyVia.includes("app") ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            const newNotifyVia = newPriceAlert.notifyVia.includes("app")
-                              ? newPriceAlert.notifyVia.filter(v => v !== "app")
-                              : [...newPriceAlert.notifyVia, "app"];
-                            setNewPriceAlert({ ...newPriceAlert, notifyVia: newNotifyVia });
-                          }}
-                        >
-                          App
-                        </Button>
-                        <Button
-                          variant={newPriceAlert.notifyVia.includes("email") ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            const newNotifyVia = newPriceAlert.notifyVia.includes("email")
-                              ? newPriceAlert.notifyVia.filter(v => v !== "email")
-                              : [...newPriceAlert.notifyVia, "email"];
-                            setNewPriceAlert({ ...newPriceAlert, notifyVia: newNotifyVia });
-                          }}
-                        >
-                          Email
-                        </Button>
-                        <Button
-                          variant={newPriceAlert.notifyVia.includes("push") ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            const newNotifyVia = newPriceAlert.notifyVia.includes("push")
-                              ? newPriceAlert.notifyVia.filter(v => v !== "push")
-                              : [...newPriceAlert.notifyVia, "push"];
-                            setNewPriceAlert({ ...newPriceAlert, notifyVia: newNotifyVia });
-                          }}
-                        >
-                          Push
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <Button className="w-full" onClick={addPriceAlert}>
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add Price Alert
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <PriceAlertForm 
+                formData={newPriceAlert}
+                setFormData={setNewPriceAlert}
+                onSubmit={addPriceAlert}
+              />
             </TabsContent>
             
             <TabsContent value="volume" className="space-y-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Coin</label>
-                      <Select
-                        value={newVolumeAlert.coinId}
-                        onValueChange={(value) => {
-                          const coinMap: Record<string, { name: string, symbol: string }> = {
-                            bitcoin: { name: "Bitcoin", symbol: "BTC" },
-                            ethereum: { name: "Ethereum", symbol: "ETH" },
-                            solana: { name: "Solana", symbol: "SOL" },
-                            cardano: { name: "Cardano", symbol: "ADA" },
-                            ripple: { name: "XRP", symbol: "XRP" }
-                          };
-                          
-                          setNewVolumeAlert({ 
-                            ...newVolumeAlert, 
-                            coinId: value,
-                            coinName: coinMap[value].name,
-                            coinSymbol: coinMap[value].symbol
-                          });
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
-                          <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                          <SelectItem value="solana">Solana (SOL)</SelectItem>
-                          <SelectItem value="cardano">Cardano (ADA)</SelectItem>
-                          <SelectItem value="ripple">XRP</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Volume Increase Threshold (%)</label>
-                      <div className="flex items-center">
-                        <Input
-                          type="number"
-                          min="1"
-                          max="100"
-                          value={newVolumeAlert.volumeThreshold || ""}
-                          onChange={(e) => setNewVolumeAlert({ 
-                            ...newVolumeAlert, 
-                            volumeThreshold: parseFloat(e.target.value) || 0 
-                          })}
-                        />
-                        <span className="ml-2">%</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Timeframe</label>
-                      <Select
-                        value={newVolumeAlert.frequency}
-                        onValueChange={(value: "1h" | "4h" | "24h") => setNewVolumeAlert({ 
-                          ...newVolumeAlert, 
-                          frequency: value
-                        })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1h">1 Hour</SelectItem>
-                          <SelectItem value="4h">4 Hours</SelectItem>
-                          <SelectItem value="24h">24 Hours</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <Button className="w-full" onClick={addVolumeAlert}>
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add Volume Alert
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <VolumeAlertForm 
+                formData={newVolumeAlert}
+                setFormData={setNewVolumeAlert}
+                onSubmit={addVolumeAlert}
+              />
             </TabsContent>
             
             <TabsContent value="technical" className="space-y-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Coin</label>
-                      <Select
-                        value={newTechnicalAlert.coinId}
-                        onValueChange={(value) => {
-                          const coinMap: Record<string, { name: string, symbol: string }> = {
-                            bitcoin: { name: "Bitcoin", symbol: "BTC" },
-                            ethereum: { name: "Ethereum", symbol: "ETH" },
-                            solana: { name: "Solana", symbol: "SOL" },
-                            cardano: { name: "Cardano", symbol: "ADA" },
-                            ripple: { name: "XRP", symbol: "XRP" }
-                          };
-                          
-                          setNewTechnicalAlert({ 
-                            ...newTechnicalAlert, 
-                            coinId: value,
-                            coinName: coinMap[value].name,
-                            coinSymbol: coinMap[value].symbol
-                          });
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
-                          <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                          <SelectItem value="solana">Solana (SOL)</SelectItem>
-                          <SelectItem value="cardano">Cardano (ADA)</SelectItem>
-                          <SelectItem value="ripple">XRP</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">Indicator</label>
-                      <Select
-                        value={newTechnicalAlert.indicator}
-                        onValueChange={(value) => setNewTechnicalAlert({ 
-                          ...newTechnicalAlert, 
-                          indicator: value
-                        })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="RSI">RSI</SelectItem>
-                          <SelectItem value="MACD">MACD</SelectItem>
-                          <SelectItem value="Bollinger Bands">Bollinger Bands</SelectItem>
-                          <SelectItem value="Moving Average">Moving Average</SelectItem>
-                          <SelectItem value="Stochastic">Stochastic</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col space-y-2">
-                        <label className="text-sm font-medium">Condition</label>
-                        <Select
-                          value={newTechnicalAlert.condition}
-                          onValueChange={(value) => setNewTechnicalAlert({ 
-                            ...newTechnicalAlert, 
-                            condition: value
-                          })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="above">Above</SelectItem>
-                            <SelectItem value="below">Below</SelectItem>
-                            <SelectItem value="crosses above">Crosses Above</SelectItem>
-                            <SelectItem value="crosses below">Crosses Below</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="flex flex-col space-y-2">
-                        <label className="text-sm font-medium">Value</label>
-                        <Input
-                          type="number"
-                          value={newTechnicalAlert.value || ""}
-                          onChange={(e) => setNewTechnicalAlert({ 
-                            ...newTechnicalAlert, 
-                            value: parseFloat(e.target.value) || 0 
-                          })}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Button className="w-full" onClick={addTechnicalAlert}>
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add Technical Alert
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <TechnicalAlertForm
+                formData={newTechnicalAlert}
+                setFormData={setNewTechnicalAlert}
+                onSubmit={addTechnicalAlert}
+              />
             </TabsContent>
           </Tabs>
         </div>
@@ -874,15 +462,11 @@ const EnhancedAlertSystem = () => {
             </div>
           </div>
           
-          {getFilteredAlerts().length === 0 ? (
-            <div className="text-center py-4 border rounded-md">
-              <p className="text-sm text-muted-foreground">No alerts found.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {getFilteredAlerts().map(alert => renderAlertItem(alert))}
-            </div>
-          )}
+          <AlertList 
+            alerts={getFilteredAlerts()}
+            onToggleEnabled={toggleAlertEnabled}
+            onRemoveAlert={handleRemoveAlert}
+          />
         </div>
         
         <SheetFooter className="mt-4 flex-row items-center justify-between border-t pt-4">

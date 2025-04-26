@@ -4,11 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyManagement from "../ApiKeyManagement";
 import FakeTrading from "../FakeTrading";
 import AiTradingBots from "../trading/AiTradingBots";
+import AiTradingMcp from "../trading/AiTradingMcp"; // Add missing import
 import TradingEducation from "../trading/TradingEducation";
 import MultiExchangeTrading from "../trading/MultiExchangeTrading";
 import AiMarketAnalysis from "../trading/AiMarketAnalysis";
-import CommunityHub from "../community/CommunityHub";
-import EnhancedAlertSystem from "../widgets/EnhancedAlertSystem";
 import SocialTradingFeatures from "../trading/SocialTradingFeatures";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,11 +18,12 @@ const DashboardTrading = () => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <Tabs defaultValue="trade" className="w-full">
-        <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-7'} mb-6`}>
+        <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-8'} mb-6`}>
           <TabsTrigger value="trade">Basic Trading</TabsTrigger>
           <TabsTrigger value="ai-bots">AI Bots</TabsTrigger>
+          <TabsTrigger value="mcp">MCP Trading</TabsTrigger>
           <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>
-          <TabsTrigger value="analysis">Analysis</TabsTrigger>
+          {!isMobile && <TabsTrigger value="analysis">Analysis</TabsTrigger>}
           {!isMobile && <TabsTrigger value="social">Social</TabsTrigger>}
           {!isMobile && <TabsTrigger value="education">Education</TabsTrigger>}
           {!isMobile && <TabsTrigger value="api-keys">API Keys</TabsTrigger>}
@@ -36,6 +36,10 @@ const DashboardTrading = () => {
         
         <TabsContent value="ai-bots">
           <AiTradingBots />
+        </TabsContent>
+        
+        <TabsContent value="mcp">
+          <AiTradingMcp />
         </TabsContent>
         
         <TabsContent value="multi-exchange">
@@ -64,12 +68,17 @@ const DashboardTrading = () => {
         
         {isMobile && (
           <TabsContent value="more">
-            <Tabs defaultValue="social">
-              <TabsList className="grid grid-cols-3 mb-6">
+            <Tabs defaultValue="analysis">
+              <TabsList className="grid grid-cols-4 mb-6">
+                <TabsTrigger value="analysis">Analysis</TabsTrigger>
                 <TabsTrigger value="social">Social</TabsTrigger>
                 <TabsTrigger value="education">Education</TabsTrigger>
                 <TabsTrigger value="api-keys">API Keys</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="analysis">
+                <AiMarketAnalysis />
+              </TabsContent>
               
               <TabsContent value="social">
                 <SocialTradingFeatures />

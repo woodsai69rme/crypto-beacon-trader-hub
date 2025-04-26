@@ -1,24 +1,11 @@
 
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Server, Bot, Cpu, AlertCircle, Check, RefreshCw, ChevronUp, ChevronDown, TrendingUp, TrendingDown } from "lucide-react";
-
-interface McpServerConfig {
-  id: string;
-  name: string;
-  endpoint: string;
-  status: "online" | "offline" | "connecting";
-  type: "prediction" | "inference" | "optimization";
-  lastSync?: string;
-}
+import { Bot, AlertCircle, Check } from "lucide-react";
+import McpServerList, { McpServerConfig } from "./McpServerList";
+import ModelTrainingPanel from "./ModelTrainingPanel";
+import TradingActivityPanel from "./TradingActivityPanel";
 
 const AiTradingMcp = () => {
   const [mcpServers, setMcpServers] = useState<McpServerConfig[]>([
@@ -173,191 +160,32 @@ const AiTradingMcp = () => {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <div>
-          <h3 className="font-medium mb-3">MCP Server Network</h3>
-          <div className="space-y-3">
-            {mcpServers.map(server => (
-              <div key={server.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Server className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{server.name}</span>
-                    <Badge 
-                      variant={
-                        server.status === "online" ? "default" : 
-                        server.status === "connecting" ? "outline" : "secondary"
-                      }
-                      className={
-                        server.status === "online" ? "bg-green-500" :
-                        server.status === "connecting" ? "border-amber-500 text-amber-500" : ""
-                      }
-                    >
-                      {server.status}
-                    </Badge>
-                  </div>
-                  
-                  {server.status === "offline" ? (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => connectToServer(server.id)}
-                    >
-                      Connect
-                    </Button>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => disconnectServer(server.id)}
-                    >
-                      Disconnect
-                    </Button>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 text-sm text-muted-foreground">
-                  <div>Endpoint: {server.endpoint}</div>
-                  <div>Type: {server.type}</div>
-                  {server.lastSync && (
-                    <div className="col-span-2 mt-1">
-                      Last sync: {new Date(server.lastSync).toLocaleTimeString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            
-            <Button variant="outline" onClick={addMcpServer} className="w-full">
-              Add MCP Server
-            </Button>
-          </div>
-        </div>
+        <McpServerList 
+          servers={mcpServers}
+          onConnectServer={connectToServer}
+          onDisconnectServer={disconnectServer}
+          onAddServer={addMcpServer}
+        />
         
-        {activeServerId && (
+        {activeServerId ? (
           <>
-            <div className="border-t pt-6">
-              <h3 className="font-medium mb-3">AI Model Configuration</h3>
-              
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="model">Trading Model</Label>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lstm-attention">LSTM + Attention</SelectItem>
-                      <SelectItem value="transformer">Transformer</SelectItem>
-                      <SelectItem value="cnn-lstm">CNN-LSTM Hybrid</SelectItem>
-                      <SelectItem value="reinforcement">Reinforcement Learning</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="timeframe">Trading Timeframe</Label>
-                  <Select value={timeframe} onValueChange={setTimeframe}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select timeframe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1m">1 Minute</SelectItem>
-                      <SelectItem value="5m">5 Minutes</SelectItem>
-                      <SelectItem value="15m">15 Minutes</SelectItem>
-                      <SelectItem value="1h">1 Hour</SelectItem>
-                      <SelectItem value="4h">4 Hours</SelectItem>
-                      <SelectItem value="1d">1 Day</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="risk">Risk Level</Label>
-                  <Select defaultValue="medium">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select risk level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="advanced-params" className="cursor-pointer">Advanced Parameters</Label>
-                  <Switch id="advanced-params" />
-                </div>
-              </div>
-            </div>
+            <ModelTrainingPanel 
+              isServerConnected={!!activeServerId}
+              isTraining={isTraining}
+              trainingProgress={trainingProgress}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              timeframe={timeframe}
+              setTimeframe={setTimeframe}
+              startTraining={startTraining}
+            />
             
-            <div className="border-t pt-6">
-              <h3 className="font-medium mb-3">Training & Execution</h3>
-              
-              {isTraining ? (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Training in progress...</span>
-                    <span>{trainingProgress}%</span>
-                  </div>
-                  <Progress value={trainingProgress} className="h-2" />
-                </div>
-              ) : (
-                <Button onClick={startTraining} className="w-full">
-                  <Cpu className="mr-2 h-4 w-4" />
-                  Train Model
-                </Button>
-              )}
-              
-              <div className="mt-4 p-4 border border-dashed rounded flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Automated Trading</div>
-                  <div className="text-sm text-muted-foreground">
-                    Let AI execute trades based on market signals
-                  </div>
-                </div>
-                <Switch 
-                  checked={isTradingActive} 
-                  onCheckedChange={toggleTrading}
-                  className={isTradingActive ? "bg-green-500" : ""}
-                />
-              </div>
-            </div>
-            
-            {isTradingActive && (
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-medium">Live Trading Activity</h3>
-                  <Button variant="ghost" size="sm">
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm p-2 bg-background rounded">
-                    <div className="flex items-center">
-                      <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
-                      <span>BTC/USD</span>
-                    </div>
-                    <div className="text-green-500">Buy @ $61,245.32</div>
-                  </div>
-                  <div className="flex justify-between text-sm p-2 bg-background rounded">
-                    <div className="flex items-center">
-                      <TrendingDown className="h-4 w-4 text-red-500 mr-2" />
-                      <span>ETH/USD</span>
-                    </div>
-                    <div className="text-red-500">Sell @ $3,010.45</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground text-center mt-3">
-                    Last signal: 2 minutes ago
-                  </div>
-                </div>
-              </div>
-            )}
+            <TradingActivityPanel 
+              isTradingActive={isTradingActive}
+              toggleTrading={toggleTrading}
+            />
           </>
-        )}
-        
-        {!activeServerId && (
+        ) : (
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-2" />
             <div className="font-medium text-lg mb-1">No MCP Server Connected</div>
