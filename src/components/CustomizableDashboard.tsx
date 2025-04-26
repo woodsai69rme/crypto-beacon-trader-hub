@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { GripVertical } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import TradingWidget from "./widgets/TradingWidget";
+import { useTradingPortfolio } from "@/hooks/use-trading-portfolio";
+import AiTradingBots from "./trading/AiTradingBots";
+import AiMarketAnalysis from "./trading/AiMarketAnalysis";
+import MultiExchangeTrading from "./trading/MultiExchangeTrading";
+import TradingEducation from "./trading/TradingEducation";
+import CommunityHub from "./community/CommunityHub";
 
 export type WidgetType = 
   | "marketOverview" 
@@ -18,7 +24,8 @@ export type WidgetType =
   | "aiTrading"
   | "multiExchange"
   | "education"
-  | "community";
+  | "community"
+  | "aiAnalysis";
 
 interface Widget {
   id: string;
@@ -29,18 +36,28 @@ interface Widget {
 }
 
 interface CustomizableDashboardProps {
-  availableWidgets: Widget[];
-  onLayoutSave: (layout: Widget[]) => void;
+  availableWidgets?: Widget[];
+  onLayoutSave?: (layout: Widget[]) => void;
   children?: React.ReactNode;
 }
 
+const defaultWidgets: Widget[] = [
+  { id: "widget-trading", type: "trading", title: "Trading", size: "medium", position: 0 },
+  { id: "widget-aiTrading", type: "aiTrading", title: "AI Trading Bots", size: "medium", position: 1 },
+  { id: "widget-multiExchange", type: "multiExchange", title: "Multi-Exchange Trading", size: "full", position: 2 },
+  { id: "widget-aiAnalysis", type: "aiAnalysis", title: "AI Market Analysis", size: "medium", position: 3 },
+  { id: "widget-education", type: "education", title: "Trading Education", size: "medium", position: 4 },
+  { id: "widget-community", type: "community", title: "Community Hub", size: "full", position: 5 },
+];
+
 const CustomizableDashboard = ({
-  availableWidgets,
-  onLayoutSave,
+  availableWidgets = defaultWidgets,
+  onLayoutSave = () => {},
   children
 }: CustomizableDashboardProps) => {
   const [widgets, setWidgets] = useState<Widget[]>(availableWidgets);
   const [isEditing, setIsEditing] = useState(false);
+  const tradingPortfolio = useTradingPortfolio();
 
   const moveWidget = (id: string, direction: "up" | "down") => {
     const index = widgets.findIndex(w => w.id === id);
@@ -94,7 +111,16 @@ const CustomizableDashboard = ({
     switch (widget.type) {
       case "trading":
         return <TradingWidget isCompact={widget.size === "small"} />;
-      // Additional widget types would go here
+      case "aiTrading":
+        return <AiTradingBots />;
+      case "multiExchange":
+        return <MultiExchangeTrading />;
+      case "education":
+        return <TradingEducation />;
+      case "community":
+        return <CommunityHub />;
+      case "aiAnalysis":
+        return <AiMarketAnalysis />;
       default:
         return (
           <Card>

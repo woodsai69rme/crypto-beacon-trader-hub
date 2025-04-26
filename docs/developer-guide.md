@@ -25,6 +25,7 @@ src/
 ├── components/         # UI components
 │   ├── dashboard/      # Dashboard-specific components
 │   ├── trading/        # Trading-specific components
+│   ├── community/      # Community-specific components
 │   └── ui/             # Shadcn UI components
 ├── contexts/           # React contexts
 ├── hooks/              # Custom React hooks
@@ -34,21 +35,26 @@ src/
 └── utils/              # Utility functions
 ```
 
-## Key Components
+## Key Features
 
 ### Core Dashboard
 
-- `Dashboard.tsx`: Main container component
-- `DashboardHeader.tsx`: Navigation and user controls
-- `DashboardTabList.tsx`: Tab navigation system
+- **Dashboard Component**: Main container with tab navigation
+- **CustomizableDashboard**: User-configurable widgets system
+- **Responsive Design**: Adapts to all device sizes
 
-### Feature-Specific Components
+### Trading Features
 
-- `FakeTrading.tsx`: Practice trading simulator
-- `Portfolio.tsx`: Portfolio management
-- `Watchlist.tsx`: Customizable coin watchlists
-- `MarketOverview.tsx`: Market statistics
-- `EnhancedCryptoChart.tsx`: Technical charts
+- **FakeTrading**: Practice trading simulator with virtual balance
+- **MultiExchangeTrading**: Connect and trade across multiple exchanges
+- **TradingEducation**: Educational resources and professional signals
+- **CommunityHub**: Social features for trader interaction
+
+### AI-Powered Features
+
+- **AiTradingBots**: Automated trading with smart strategies
+- **AiMarketAnalysis**: AI-powered market insights
+- **MarketCorrelations**: Asset correlation analysis
 
 ## Data Flow
 
@@ -71,6 +77,114 @@ For example, when executing a trade:
 Click "Buy" → handleExecuteTrade() → Update trade history → Update balance → Show toast
 ```
 
+## Component Development Guidelines
+
+When adding new components:
+
+1. **Create focused files**: Each component should have its own file
+2. **Keep components small**: Aim for 50-150 lines of code
+3. **Use TypeScript interfaces**: Define clear props interfaces
+4. **Support responsiveness**: Use Tailwind responsive classes
+5. **Implement error handling**: Handle loading and error states
+
+Example component structure:
+
+```tsx
+import React from "react";
+import { ComponentProps } from "./types";
+
+// Interface definition
+interface MyComponentProps {
+  title: string;
+  data: ComponentProps[];
+  isLoading?: boolean;
+}
+
+// Component implementation
+const MyComponent = ({ title, data, isLoading = false }: MyComponentProps) => {
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  return (
+    <div>
+      <h2>{title}</h2>
+      <ul>
+        {data.map((item) => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default MyComponent;
+```
+
+## Custom Hooks
+
+The application includes several custom hooks:
+
+### useCurrencyConverter
+
+Handles currency conversion throughout the app:
+
+```typescript
+const { activeCurrency, setActiveCurrency, formatValue } = useCurrencyConverter();
+
+// Format a value in the active currency
+const formattedPrice = formatValue(product.price);
+```
+
+### useLocalStorage
+
+Persists state in localStorage:
+
+```typescript
+const [settings, setSettings] = useLocalStorage("userSettings", defaultSettings);
+
+// Update settings
+setSettings({ ...settings, theme: "dark" });
+```
+
+### useTradingPortfolio
+
+Manages the trading functionality:
+
+```typescript
+const {
+  trades,
+  balance,
+  availableCoins,
+  handleExecuteTrade
+} = useTradingPortfolio();
+
+// Execute a trade
+handleExecuteTrade("buy", "bitcoin", 0.5);
+```
+
+## AI Trading Implementation
+
+The AI trading system uses:
+
+1. **Predefined strategies**: Collection of AI trading strategies
+2. **Strategy customization**: User-adjustable parameters
+3. **Backtesting**: Historical performance simulation
+4. **Execution engine**: Automated trading based on strategy signals
+
+### Strategy Definition
+
+```typescript
+interface TradingStrategy {
+  id: string;
+  name: string;
+  type: "momentum" | "mean-reversion" | "breakout" | "ai-predictive";
+  riskLevel: "low" | "medium" | "high";
+  parameters: Record<string, any>;
+  // Additional properties
+}
+```
+
 ## API Integration
 
 The application integrates with multiple cryptocurrency APIs:
@@ -87,6 +201,42 @@ API services are organized in the `src/services/` directory:
 - `cryptoApi.ts`: Cryptocurrency data
 - `currencyApi.ts`: Currency conversion
 - `marketDataService.ts`: Market metrics
+
+## Testing Guidelines
+
+When writing tests:
+
+1. **Unit test utilities**: Test utility functions thoroughly
+2. **Component testing**: Test component rendering and interactions
+3. **Mock API responses**: Use msw or similar for API mocking
+4. **Test error states**: Verify error handling works correctly
+
+Example test:
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import MyComponent from './MyComponent';
+
+describe('MyComponent', () => {
+  test('renders correctly with data', () => {
+    const testData = [
+      { id: '1', name: 'Item 1' },
+      { id: '2', name: 'Item 2' }
+    ];
+    
+    render(<MyComponent title="Test Title" data={testData} />);
+    
+    expect(screen.getByText('Test Title')).toBeInTheDocument();
+    expect(screen.getByText('Item 1')).toBeInTheDocument();
+    expect(screen.getByText('Item 2')).toBeInTheDocument();
+  });
+  
+  test('shows loading state', () => {
+    render(<MyComponent title="Test Title" data={[]} isLoading={true} />);
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+});
+```
 
 ## Adding New Features
 
@@ -137,99 +287,3 @@ When adding new features to the dashboard:
 - Define explicit TypeScript interfaces
 - Avoid `any` type when possible
 - Use discriminated unions for complex states
-
-## Development Workflow
-
-1. **Feature planning**
-   - Define requirements
-   - Create component structure plan
-   - Identify API needs
-
-2. **Implementation**
-   - Create core functionality
-   - Build UI components
-   - Connect to data sources
-
-3. **Testing and refinement**
-   - Manual testing
-   - Performance optimization
-   - Code review
-
-4. **Documentation**
-   - Update component docs
-   - Add code comments
-   - Update this guide if needed
-
-## Recommended Extensions
-
-These features would enhance the dashboard:
-
-1. **Real exchange API integration**
-   - Connect to trading platforms via API
-   - Enable real trading capabilities
-   - Add order book visualization
-
-2. **Advanced portfolio analytics**
-   - Risk assessment metrics
-   - Correlation analysis
-   - Performance attribution
-
-3. **Social features**
-   - Portfolio sharing
-   - Community insights
-   - Trade copying
-
-4. **Mobile optimization**
-   - Progressive web app
-   - Touch-optimized controls
-   - Offline capabilities
-
-5. **Machine learning insights**
-   - Price prediction models
-   - Pattern recognition
-   - Anomaly detection
-
-## Contribution Guidelines
-
-1. **Code style**
-   - Follow existing patterns
-   - Use ESLint and Prettier
-   - Write meaningful commit messages
-
-2. **Pull requests**
-   - Create feature branches
-   - Write descriptive PR descriptions
-   - Include test coverage
-
-3. **Documentation**
-   - Document new components
-   - Update existing docs
-   - Add JSDoc comments
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **API rate limiting**
-   - Implement caching
-   - Add fallback to mock data
-   - Use multiple API providers
-
-2. **Rendering performance**
-   - Check for unnecessary rerenders
-   - Optimize heavy components
-   - Use React DevTools profiler
-
-3. **State management complexity**
-   - Review data flow
-   - Consider state machines
-   - Refactor large reducers
-
-## Resources
-
-- [React Documentation](https://react.dev/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Shadcn/UI](https://ui.shadcn.com/)
-- [Recharts](https://recharts.org/en-US/)
-- [TanStack Query](https://tanstack.com/query/)

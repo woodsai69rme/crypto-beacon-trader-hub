@@ -37,6 +37,10 @@
   - Market depth visualization
   - Trading pair comparison
   - Practice trading with virtual balance
+  - AI trading bots with customizable strategies
+  - Trading education and signals
+  - Community hub for trader interaction
+  - Multi-exchange trading support
 
 ## Short-term Goals (Q2 2025)
 - **Enhanced Data Integration**
@@ -76,6 +80,25 @@
     - Drift threshold alerts
     - One-click rebalancing simulations
     - Scheduled rebalancing options
+
+- **AI Trading Bot Enhancements**
+  - **Expanded strategy library**
+    - New AI model integrations
+    - Custom strategy builder
+    - Multi-timeframe strategies
+    - Advanced parameter optimization
+
+  - **Performance analytics dashboard**
+    - Strategy comparison tools
+    - Risk/reward visualization
+    - Win rate analytics
+    - Drawdown analysis
+
+  - **Paper trading sandbox environment**
+    - Risk-free strategy testing
+    - Accelerated simulation mode
+    - Multiple scenario testing
+    - Performance comparison
 
 - **User Experience Improvements**
   - **Customizable dashboard layouts**
@@ -216,7 +239,7 @@
 
 | Date | Version | Key Deliverables |
 |------|---------|------------------|
-| April 2025 | 1.0 | Initial release with core features |
+| April 2025 | 1.0 | Initial release with core features, AI trading, community hub |
 | June 2025 | 1.1 | Enhanced data integration, improved mobile experience |
 | August 2025 | 1.2 | Advanced portfolio tools, customizable layouts |
 | October 2025 | 1.3 | Social features, community insights |

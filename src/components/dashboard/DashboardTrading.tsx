@@ -8,25 +8,24 @@ import TradingEducation from "../trading/TradingEducation";
 import MultiExchangeTrading from "../trading/MultiExchangeTrading";
 import AiMarketAnalysis from "../trading/AiMarketAnalysis";
 import CommunityHub from "../community/CommunityHub";
+import { Card, CardContent } from "@/components/ui/card";
 
 const DashboardTrading = () => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <Tabs defaultValue="trade" className="w-full">
-        <TabsList className="grid grid-cols-6 mb-6">
+        <TabsList className="grid grid-cols-7 mb-6">
           <TabsTrigger value="trade">Basic Trading</TabsTrigger>
           <TabsTrigger value="ai-bots">AI Trading Bots</TabsTrigger>
           <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>
           <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="community">Community</TabsTrigger>
+          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
         </TabsList>
         
         <TabsContent value="trade">
           <FakeTrading />
-          <div className="mt-6">
-            <ApiKeyManagement />
-          </div>
         </TabsContent>
         
         <TabsContent value="ai-bots">
@@ -47,6 +46,14 @@ const DashboardTrading = () => {
         
         <TabsContent value="community">
           <CommunityHub />
+        </TabsContent>
+        
+        <TabsContent value="api-keys">
+          <Card>
+            <CardContent className="pt-6">
+              <ApiKeyManagement />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
