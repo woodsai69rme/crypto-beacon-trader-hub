@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import StrategyOptimization from "../widgets/StrategyOptimization";
 import CustomStrategy from "../widgets/CustomStrategy";
 import LocalModelTrading from "./LocalModelTrading";
 import AiTradingMcp from "./AiTradingMcp";
+import MultiCoinChart from "../widgets/MultiCoinChart";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");
@@ -31,10 +31,11 @@ const AiTradingBots = () => {
         
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-6 mb-6">
+            <TabsList className="grid grid-cols-7 mb-6">
               <TabsTrigger value="strategies">Strategies</TabsTrigger>
               <TabsTrigger value="backtest">Backtest</TabsTrigger>
               <TabsTrigger value="optimize">Optimize</TabsTrigger>
+              <TabsTrigger value="charts">Charts</TabsTrigger>
               <TabsTrigger value="custom">Custom</TabsTrigger>
               <TabsTrigger value="local">Local AI</TabsTrigger>
               <TabsTrigger value="mcp">MCP Servers</TabsTrigger>
@@ -53,6 +54,10 @@ const AiTradingBots = () => {
             
             <TabsContent value="optimize">
               <StrategyOptimization selectedStrategyId={selectedStrategyId} />
+            </TabsContent>
+
+            <TabsContent value="charts">
+              <MultiCoinChart />
             </TabsContent>
             
             <TabsContent value="custom">
