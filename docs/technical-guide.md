@@ -1,4 +1,3 @@
-
 # Developer Technical Guide
 
 ## Architecture Overview
@@ -12,49 +11,24 @@ The Crypto Dashboard is built using the following technologies:
 - **Recharts**: Chart visualization
 - **Lucide React**: Icon library
 
-## Component Structure
-The application follows a structured component hierarchy:
+## Component Structure Updates
+The application now includes these additional components:
 
-```
-src/
-├── components/            # Reusable UI components
-│   ├── ui/                # Base UI components (shadcn)
-│   ├── dashboard/         # Dashboard-specific components
-│   │   ├── DashboardHeader.tsx
-│   │   ├── DashboardTabList.tsx
-│   │   ├── DashboardOverview.tsx
-│   │   ├── DashboardPortfolio.tsx
-│   │   ├── DashboardWatchlist.tsx
-│   │   ├── DashboardTrading.tsx
-│   │   ├── DashboardAnalysis.tsx
-│   │   └── DashboardTools.tsx
-│   └── settings/          # Settings-related components
-│       ├── SettingsTabs.tsx
-│       ├── GeneralSettings.tsx
-│       ├── AppearanceSettings.tsx
-│       ├── NotificationSettings.tsx
-│       ├── DataPrivacySettings.tsx
-│       └── SettingsFooter.tsx
-├── contexts/              # React contexts for global state
-│   ├── ThemeContext.tsx
-│   └── AuthContext.tsx
-├── hooks/                 # Custom React hooks
-│   ├── use-toast.ts
-│   ├── use-media-query.tsx
-│   ├── use-local-storage.tsx
-│   └── use-mobile.tsx
-├── pages/                 # Page components
-│   ├── Index.tsx
-│   └── NotFound.tsx
-├── services/              # API and external service integration
-│   ├── api.ts             # Base API configuration
-│   └── cryptoApi.ts       # Cryptocurrency data fetching
-├── utils/                 # Utility functions
-│   ├── utils.ts           # General utilities
-│   ├── formatters.ts      # Data formatting helpers
-│   └── errorHandling.ts   # Error handling utilities
-└── App.tsx                # Main application entry point
-```
+### Trading Components
+- **FakeTrading**: Practice trading system with virtual balance
+- **MarketDepthChart**: Order book visualization
+- **TradingPairComparison**: Compare trading pairs
+- **EnhancedCryptoChart**: Advanced charting capabilities
+
+### Portfolio Components
+- **PortfolioAnalytics**: Portfolio performance metrics
+- **TransactionHistory**: Trade history tracking
+- **RiskAssessment**: Portfolio risk analysis
+
+### Analysis Components
+- **SentimentAnalysis**: Market sentiment tracking
+- **TechnicalIndicators**: Advanced technical analysis
+- **MarketCorrelations**: Asset correlation analysis
 
 ## State Management
 The application uses multiple strategies for state management:

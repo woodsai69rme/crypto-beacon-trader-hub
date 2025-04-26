@@ -1,4 +1,3 @@
-
 # Crypto Dashboard User Guide
 
 ## Getting Started
@@ -37,6 +36,7 @@ The main dashboard is organized into six key sections:
    - Market depth visualization
    - Order book analysis
    - Exchange API integration
+   - Fake trading system for practice
 
 5. **Analysis**: Detailed market analysis and insights
    - Technical indicators
@@ -164,6 +164,15 @@ Make informed decisions with:
    - Set sorting preferences
    - Configure refresh rate
    - Show/hide price charts
+
+### Using the Fake Trading System
+1. Navigate to the Trading tab
+2. Start with your initial virtual balance of $10,000
+3. Select cryptocurrencies to trade
+4. Execute buy/sell orders
+5. Track your performance over time
+6. View trade history and portfolio value
+7. Reset your account anytime to start fresh
 
 ### Troubleshooting
 - **Data not loading**: Refresh the page or check your internet connection
