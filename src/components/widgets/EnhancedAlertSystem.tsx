@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash, Check, X, ArrowUp, ArrowDown, Settings, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,6 +64,22 @@ interface TechnicalAlert {
 }
 
 type AlertType = PriceAlert | VolumeAlert | TechnicalAlert;
+
+export const createPriceAlert = (formData: any): PriceAlert => {
+  return {
+    id: `alert-${Date.now()}`,
+    createdAt: new Date(),
+    coinId: formData.coinId,
+    coinName: formData.coinName,
+    coinSymbol: formData.coinSymbol,
+    targetPrice: formData.targetPrice,
+    isAbove: formData.isAbove,
+    enabled: true,
+    recurring: formData.recurring,
+    percentageChange: formData.percentageChange || 0,
+    notifyVia: formData.notifyVia as ("email" | "app" | "push")[]
+  };
+};
 
 const EnhancedAlertSystem = () => {
   const { activeCurrency, formatValue } = useCurrencyConverter();

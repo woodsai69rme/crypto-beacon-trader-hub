@@ -8,6 +8,7 @@ import BacktestingPanel from "../widgets/BacktestingPanel";
 import StrategyOptimization from "../widgets/StrategyOptimization";
 import CustomStrategy from "../widgets/CustomStrategy";
 import LocalModelTrading from "./LocalModelTrading";
+import AiTradingMcp from "./AiTradingMcp";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");
@@ -30,12 +31,13 @@ const AiTradingBots = () => {
         
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-5 mb-6">
+            <TabsList className="grid grid-cols-6 mb-6">
               <TabsTrigger value="strategies">Strategies</TabsTrigger>
               <TabsTrigger value="backtest">Backtest</TabsTrigger>
               <TabsTrigger value="optimize">Optimize</TabsTrigger>
               <TabsTrigger value="custom">Custom</TabsTrigger>
               <TabsTrigger value="local">Local AI</TabsTrigger>
+              <TabsTrigger value="mcp">MCP Servers</TabsTrigger>
             </TabsList>
             
             <TabsContent value="strategies">
@@ -59,6 +61,10 @@ const AiTradingBots = () => {
             
             <TabsContent value="local">
               <LocalModelTrading />
+            </TabsContent>
+            
+            <TabsContent value="mcp">
+              <AiTradingMcp />
             </TabsContent>
           </Tabs>
         </CardContent>
