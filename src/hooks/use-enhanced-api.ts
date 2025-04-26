@@ -2,7 +2,8 @@
 import React from 'react';
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
-import apiCache from "@/services/api/cacheService";
+import { getCachedData, cacheData, buildApiCacheKey } from '@/utils/apiCacheUtils';
+import { executeWithRetries } from '@/utils/apiRetryUtils';
 
 interface UseApiOptions<T> {
   initialData?: T;
@@ -42,46 +43,6 @@ export function useEnhancedApi<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Helper to get cached data
-  const getCachedData = useCallback(<D>(key: string): D | undefined => {
-    if (!key) return undefined;
-    return apiCache.get<D>(key) || undefined;
-  }, []);
-
-  // Helper to cache data
-  const cacheData = useCallback(<D>(key: string, data: D, duration: number): void => {
-    if (!key) return;
-    apiCache.set<D>(key, data, duration);
-  }, []);
-
-  // Main fetch function with retry logic
-  const executeFetchWithRetries = useCallback(
-    async (
-      fn: () => Promise<T>,
-      retriesLeft: number,
-      args: any[] = []
-    ): Promise<T> => {
-      try {
-        return await fn();
-      } catch (error) {
-        // Check if we should retry
-        if (retriesLeft > 0 && retryIf(error)) {
-          console.log(`Retrying API call. Attempts remaining: ${retriesLeft}`);
-          
-          // Wait before retrying
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          
-          // Recursive retry
-          return executeFetchWithRetries(fn, retriesLeft - 1, args);
-        }
-        
-        // No more retries, propagate the error
-        throw error;
-      }
-    },
-    [retryDelay, retryIf]
-  );
-
   // Main fetch data function
   const fetchData = useCallback(
     async (...args: any[]): Promise<T | undefined> => {
@@ -116,7 +77,7 @@ export function useEnhancedApi<T = any>(
 
         // Execute API call with retry logic
         const fetchFn = () => apiFunction(...args);
-        const result = await executeFetchWithRetries(fetchFn, retries, args);
+        const result = await executeWithRetries(fetchFn, retries, retryDelay, retryIf);
 
         // Update state and cache results
         setData(result);
@@ -156,13 +117,12 @@ export function useEnhancedApi<T = any>(
       apiFunction,
       cacheKey,
       cacheDuration,
-      executeFetchWithRetries,
-      getCachedData,
-      cacheData,
+      retries,
+      retryDelay,
+      retryIf,
+      onSuccess,
       onError,
       onSettled,
-      onSuccess,
-      retries,
       isRefreshing
     ]
   );
@@ -170,7 +130,8 @@ export function useEnhancedApi<T = any>(
   // Function to clear the cache for this specific API
   const clearCache = useCallback(() => {
     if (cacheKey) {
-      apiCache.clearByPrefix(cacheKey.split("_")[0]);
+      const baseKey = cacheKey.split("_")[0];
+      apiCache.clearByPrefix(baseKey);
       toast({
         title: "Cache Cleared",
         description: "Data will be freshly loaded on next request",
@@ -204,7 +165,5 @@ export function useEnhancedApi<T = any>(
   };
 }
 
-// Helper for building a custom cacheKey based on function arguments
-export function buildApiCacheKey(baseKey: string, ...args: any[]): string {
-  return `${baseKey}_${args.map(arg => JSON.stringify(arg)).join('_')}`;
-}
+// Re-export buildApiCacheKey for convenience
+export { buildApiCacheKey };
