@@ -4,7 +4,7 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-  background-color: #1A1F2C;  /* Dark background */
+  background-color: #1A1F2C;
   min-height: 100vh;
   color: #fff;
 }
@@ -39,7 +39,7 @@
 
 .card {
   padding: 2em;
-  background-color: #222333;  /* Dark card background */
+  background-color: #222333;
   border: 1px solid #333344;
   color: #fff;
 }
@@ -64,4 +64,49 @@
   background-color: #222333 !important;
   border-color: #333344 !important;
   color: white !important;
+}
+
+/* Additional dark theme overrides */
+.bg-white {
+  background-color: #222333 !important;
+}
+
+.text-black {
+  color: white !important;
+}
+
+.bg-gray-100 {
+  background-color: #2A2A3A !important;
+}
+
+.border-gray-200 {
+  border-color: #333344 !important;
+}
+
+/* Dark theme for dialogs and popovers */
+[role="dialog"],
+[role="tooltip"],
+[role="menu"] {
+  background-color: #222333 !important;
+  border-color: #333344 !important;
+  color: white !important;
+}
+
+/* Dark scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A1F2C;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333344;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444455;
 }
