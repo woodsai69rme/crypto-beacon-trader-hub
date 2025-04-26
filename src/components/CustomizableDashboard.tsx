@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GripVertical } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import TradingWidget from "./widgets/TradingWidget";
 
 export type WidgetType = 
   | "marketOverview" 
@@ -84,6 +85,23 @@ const CustomizableDashboard = ({
       default: return "col-span-1";
     }
   };
+  
+  const renderWidget = (widget: Widget) => {
+    switch (widget.type) {
+      case "trading":
+        return <TradingWidget isCompact={widget.size === "small"} />;
+      // Additional widget types would go here
+      default:
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>{widget.title}</CardTitle>
+            </CardHeader>
+            <CardContent>Widget content for {widget.type}</CardContent>
+          </Card>
+        );
+    }
+  };
 
   if (!isEditing) {
     return (
@@ -93,6 +111,15 @@ const CustomizableDashboard = ({
             Customize Dashboard
           </Button>
         </div>
+        
+        <div className="grid grid-cols-4 gap-4">
+          {widgets.map(widget => (
+            <div key={widget.id} className={getWidgetClassName(widget.size)}>
+              {renderWidget(widget)}
+            </div>
+          ))}
+        </div>
+        
         {children}
       </div>
     );
