@@ -35,8 +35,9 @@ describe('useEnhancedApi', () => {
 
     const { result } = renderHook(() => useEnhancedApi(mockFn), { wrapper });
     
-    await result.current.fetchData();
+    const fetchedData = await result.current.fetchData();
     
+    expect(fetchedData).toEqual(mockData);
     expect(result.current.data).toEqual(mockData);
     expect(result.current.error).toBeNull();
   });
@@ -47,8 +48,9 @@ describe('useEnhancedApi', () => {
 
     const { result } = renderHook(() => useEnhancedApi(mockFn), { wrapper });
     
-    await result.current.fetchData();
+    const fetchedData = await result.current.fetchData();
     
+    expect(fetchedData).toBeUndefined();
     expect(result.current.error).toEqual(error);
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -71,9 +73,11 @@ describe('useEnhancedApi', () => {
     const firstCallCount = mockFn.mock.calls.length;
     
     // Second call should use cache
-    await result.current.fetchData();
+    const cachedData = await result.current.fetchData();
     
     expect(mockFn.mock.calls.length).toBe(firstCallCount);
+    expect(cachedData).toEqual(mockData);
     expect(result.current.data).toEqual(mockData);
   });
 });
+
