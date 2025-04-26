@@ -14,7 +14,7 @@ const LoadingSpinner = ({ size = "md" }: LoadingSpinnerProps) => {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center p-4">
       <Loader className={`${sizeClasses[size]} animate-spin text-primary`} />
     </div>
   );
