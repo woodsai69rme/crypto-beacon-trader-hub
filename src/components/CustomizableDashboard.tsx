@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import type { Widget, WidgetType } from "@/types/trading";
+import type { Widget } from "@/types/trading";
 import WidgetList from "./dashboard/widgets/WidgetList";
 import WidgetGrid from "./dashboard/widgets/WidgetGrid";
 

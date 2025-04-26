@@ -1,4 +1,3 @@
-
 export interface Trade {
   id: string;
   coinId: string;
@@ -34,4 +33,15 @@ export interface CurrencyConversion {
   USD_AUD: number;
   AUD_USD: number;
   lastUpdated: string;
+}
+
+export type WidgetType = 'trading' | 'aiTrading' | 'multiExchange' | 'education' | 'community' | 'aiAnalysis';
+export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
+
+export interface Widget {
+  id: string;
+  type: WidgetType;
+  title: string;
+  size: WidgetSize;
+  position: number;
 }
