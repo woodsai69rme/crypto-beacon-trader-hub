@@ -3,6 +3,9 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: #1A1F2C;  /* Dark background */
+  min-height: 100vh;
+  color: #fff;
 }
 
 .logo {

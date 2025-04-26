@@ -1,5 +1,6 @@
 
-import { useState, useCallback, useEffect } from "react";
+import React from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import apiCache from "@/services/api/cacheService";
 
