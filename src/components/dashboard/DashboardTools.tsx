@@ -2,9 +2,11 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import TaxCalculator from "../TaxCalculator";
 import PortfolioBenchmarking from "../PortfolioBenchmarking";
 import MarketMetrics from "../MarketMetrics";
+import LocalAiModels from "../trading/LocalAiModels";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { toast } from "@/components/ui/use-toast";
 
@@ -55,10 +57,11 @@ const DashboardTools = () => {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-6">
+        <TabsList className="grid grid-cols-4 mb-6">
           <TabsTrigger value="metrics">Market Metrics</TabsTrigger>
           <TabsTrigger value="benchmarking">Portfolio Benchmarking</TabsTrigger>
           <TabsTrigger value="tax">Tax Calculator</TabsTrigger>
+          <TabsTrigger value="local">Local AI</TabsTrigger>
         </TabsList>
         
         <TabsContent value="metrics">
@@ -74,6 +77,23 @@ const DashboardTools = () => {
         
         <TabsContent value="tax">
           <TaxCalculator trades={trades} />
+        </TabsContent>
+        
+        <TabsContent value="local">
+          <div className="p-4 border rounded-md bg-muted/30 mb-6">
+            <h3 className="font-medium mb-2">Local AI Model Integration</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Connect to AI models running on your local machine for enhanced privacy, customization, 
+              and reduced dependency on cloud APIs.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="default" onClick={() => window.location.href = "#trading"}>
+                Go to Trading Bots
+              </Button>
+              <Button variant="outline">Learn More</Button>
+            </div>
+          </div>
+          <LocalAiModels />
         </TabsContent>
       </Tabs>
       
