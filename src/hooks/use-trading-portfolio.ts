@@ -1,10 +1,10 @@
-
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { updateWithAUDPrices } from "@/services/currencyApi";
 import { toast } from "@/components/ui/use-toast";
 import type { Trade, CoinOption } from "@/types/trading";
 import { useState, useEffect } from "react";
+import { startPriceMonitoring } from "@/services/priceMonitoringService";
 
 const initialCoins: CoinOption[] = [
   { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
@@ -28,10 +28,20 @@ export const useTradingPortfolio = () => {
   } = useCurrencyConverter();
 
   useEffect(() => {
-    if (conversionRates.USD_AUD > 0) {
-      setAvailableCoins(updateWithAUDPrices(initialCoins, conversionRates.USD_AUD));
-    }
-  }, [conversionRates]);
+    const stopMonitoring = startPriceMonitoring(
+      initialCoins.map(coin => coin.id),
+      (updatedPrices) => {
+        if (conversionRates.USD_AUD > 0) {
+          setAvailableCoins(updateWithAUDPrices(updatedPrices, conversionRates.USD_AUD));
+        } else {
+          setAvailableCoins(updatedPrices);
+        }
+      },
+      30000 // Update every 30 seconds
+    );
+
+    return () => stopMonitoring();
+  }, [conversionRates.USD_AUD]);
 
   const getOwnedCoinAmount = (coinId: string): number => {
     return trades
