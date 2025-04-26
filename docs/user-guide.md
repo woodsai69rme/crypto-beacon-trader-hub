@@ -1,239 +1,171 @@
 
-# Crypto Dashboard User Guide
+# Cryptocurrency Platform User Guide
+
+## Welcome to Your Crypto Dashboard
+
+This guide will help you navigate all the features of our cryptocurrency trading and analytics platform. Whether you're a beginner or experienced trader, our platform provides the tools you need to make informed decisions in the volatile crypto market.
 
 ## Getting Started
-Welcome to the Crypto Dashboard! This guide will help you navigate the various features and maximize your experience with the platform.
 
-### Creating an Account
-1. Visit the dashboard login page
-2. Click "Create Account" or "Sign Up"
-3. Enter your email address and create a strong password
-4. Verify your email address through the verification link
-5. Complete your profile with your preferred settings
+### Dashboard Overview
 
-### Dashboard Navigation
-The main dashboard is organized into six key sections:
+When you first log in, you'll see the main dashboard with several sections:
 
-1. **Overview**: General market summary and highlights
-   - Market capitalization statistics
-   - Top gainers and losers
-   - Global market sentiment indicators
-   - Latest crypto news headlines
+1. **Market Overview**: General market statistics and trends
+2. **Trading Section**: Practice trading with virtual funds
+3. **Portfolio**: Your holdings and performance
+4. **Watchlist**: Tracked cryptocurrencies
+5. **Analysis Tools**: Technical indicators and market correlations
 
-2. **Portfolio**: Your cryptocurrency holdings and performance
-   - Current holdings and allocation
-   - Performance metrics (daily, weekly, monthly, all-time)
-   - Transaction history
-   - Profit/loss calculations
+### Currency Settings
 
-3. **Watchlist**: Coins you're monitoring
-   - Custom lists of favorite cryptocurrencies
-   - Price alerts configuration
-   - Performance comparisons
-   - Quick-add to portfolio feature
+The platform supports both USD and AUD currencies. You can toggle between them in the trading interface:
 
-4. **Trading**: Tools for active traders
-   - Trading pair comparison
-   - Market depth visualization
-   - Order book analysis
-   - Exchange API integration
-   - Fake trading system for practice
+1. Look for the currency selector in the trading form (USD/AUD dropdown)
+2. Select your preferred currency
+3. All values throughout the platform will update automatically
+4. Your choice will be remembered for future sessions
 
-5. **Analysis**: Detailed market analysis and insights
-   - Technical indicators (RSI, MACD, Moving Averages, Bollinger Bands)
-   - Sentiment analysis
-   - Correlation metrics
-   - Risk assessment
-   - AI-powered market insights
+## Trading Features
 
-6. **Tools**: Additional utilities for crypto investors
-   - Tax reporting assistant
-   - Portfolio risk assessment
-   - Market calendar
-   - Educational resources
+### Practice Trading
 
-### Customizing Your Experience
-You can personalize your dashboard by:
-- **Setting your preferred currency**: Change the display currency in Settings
-- **Toggling dark/light mode**: Adjust the theme to suit your preference
-- **Configuring notification preferences**: Choose which alerts you want to receive
-- **Customizing data display options**: Select the metrics and timeframes you want to see
-- **Arranging dashboard widgets**: Drag and drop to organize your dashboard
-- **Setting default views**: Choose which section loads when you first log in
+Our platform includes a practice trading environment with virtual funds:
 
-### Working with Portfolio Data
-To track your investments:
-1. Navigate to the Portfolio tab
-2. Add transactions manually:
-   - Click "Add Transaction"
-   - Select the cryptocurrency
-   - Enter the amount, price, and date
-   - Choose the transaction type (buy/sell)
-   - Add optional notes or tags
+1. Navigate to the Trading section
+2. Select a cryptocurrency from the dropdown menu
+3. Choose whether to Buy or Sell
+4. Enter the amount you wish to trade
+5. Review the total value before confirming
+6. Track your portfolio performance over time
 
-3. Import transactions:
-   - Click "Import"
-   - Choose from supported exchanges or upload a CSV file
-   - Map the columns if using a custom format
-   - Verify the imported data before confirming
+### Managing Your Portfolio
 
-4. View performance metrics:
-   - Total portfolio value
-   - All-time return on investment
-   - Daily/weekly/monthly performance
-   - Comparison against market benchmarks
+The Holdings panel shows your current crypto assets:
 
-5. Analyze allocation:
-   - Visual breakdowns by asset
-   - Diversification score
-   - Exposure analysis by sector
-   - Rebalancing recommendations
+1. View all your owned cryptocurrencies
+2. See the current value of each holding
+3. Monitor profit/loss for each asset
+4. Reset your portfolio if you want to start fresh
 
-6. Export reports:
-   - Generate PDF or CSV reports
-   - Select custom date ranges
-   - Include specific metrics
-   - Format for tax purposes
+### Trade History
 
-### Setting Up Alerts
-Stay informed about market movements:
-1. Navigate to the Alerts section
-2. Configure price alerts:
-   - Select the cryptocurrency
-   - Choose alert condition (above/below specific price)
-   - Set threshold values
-   - Configure frequency and expiration
+Keep track of all your transactions:
 
-3. Configure percentage movement alerts:
-   - Select the cryptocurrency
-   - Set percentage change threshold
-   - Choose timeframe (1h, 24h, 7d)
-   - Set whether to trigger on upward or downward movement
+1. View recent trades in the Trade History section
+2. See transaction details including price, amount, and time
+3. Monitor profit/loss for each trade
+4. Filter history by selected currency (USD/AUD)
 
-4. Choose notification methods:
-   - In-app notifications
-   - Email alerts
-   - Push notifications (mobile app)
-   - SMS alerts (premium feature)
+## Analytics Tools
 
-5. Set frequency parameters:
-   - Immediate alerts
-   - Daily digest
-   - Custom intervals
-   - Quiet hours
+### Market Correlations
 
-### Using the Fake Trading System
-1. Navigate to the Trading tab
-2. Start with your initial virtual balance of $10,000
-3. Select cryptocurrencies to trade
-4. Execute buy/sell orders
-5. Track your performance over time
-6. View trade history and portfolio value
-7. Reset your account anytime to start fresh
+Understand how different cryptocurrencies move in relation to each other:
 
-### Using Analysis Tools
-Make informed decisions with:
-- **Technical indicators**:
-  - Moving averages (SMA20, SMA50, SMA200)
-  - RSI (Relative Strength Index)
-  - MACD (Moving Average Convergence Divergence)
-  - Bollinger Bands
+1. Navigate to the Market Correlations tool
+2. View the correlation matrix showing relationship strengths
+3. Select different time periods (7D, 30D, 90D) to see how correlations change
+4. Click on specific assets for detailed analysis
+5. Learn how to use correlations for portfolio diversification
 
-- **Market sentiment analysis**:
-  - Social media sentiment tracking
-  - News sentiment aggregation
-  - Fear & Greed index
-  - Popular opinion metrics
+#### Interpreting the Correlation Matrix:
+- **Green cells**: Positive correlation (assets move in the same direction)
+- **Red cells**: Negative correlation (assets move in opposite directions)
+- **Darker colors**: Stronger correlations
+- **Lighter colors**: Weaker correlations
 
-- **Trading pair comparisons**:
-  - Correlation analysis
-  - Relative strength
-  - Historical performance
-  - Volatility comparison
+### Technical Indicators
 
-- **Risk assessment tools**:
-  - Portfolio volatility calculator
-  - Diversification analyzer
-  - Drawdown simulator
-  - Risk-adjusted return metrics
+Analyze cryptocurrency price movements using industry-standard indicators:
 
-- **AI-powered market insights**:
-  - Trend identification (long-term market patterns)
-  - Signal detection (short-term trading opportunities)
-  - Alert generation (unusual market activity)
-  - Price predictions (future price forecasts)
-  - Confidence scores for each insight
-  - Impact assessment (high/medium/low)
-
-### Using AI Market Insights
-1. Navigate to the Analysis tab
-2. Access the AI Market Insights panel
-3. View automated insights categorized by:
-   - Trends: Long-term market patterns
-   - Signals: Short-term trading opportunities
-   - Alerts: Unusual market activity
-   - Predictions: Future price forecasts
-4. Filter insights by type using the category buttons
-5. Review confidence scores for each insight
-6. Click "Refresh Analysis" to generate new insights
-7. Use tag filters to find insights for specific assets or topics
-
-### Using Technical Indicators
-1. Navigate to the Analysis tab
-2. Select the Technical Indicators component
-3. Choose your desired cryptocurrency from the dropdown
-4. Select the timeframe (1D, 1W, 1M, 3M, 6M, 1Y)
-5. Switch between indicator types using the tabs:
-   - Moving Averages (SMA20, SMA50, SMA200)
+1. Navigate to the Technical Indicators section
+2. Select a cryptocurrency to analyze
+3. Choose from available indicators:
    - RSI (Relative Strength Index)
    - MACD (Moving Average Convergence Divergence)
+   - Moving Averages
    - Bollinger Bands
-6. Hover over the charts to see detailed values
-7. Click "Refresh" to update the data
+4. Adjust timeframes to see different perspectives
+5. Hover over charts for detailed values
 
-### Using Market Correlations Analysis
-1. Navigate to the Analysis tab
-2. Locate the Asset Correlations component
-3. Select a time period for correlation calculation
-4. Review the correlation heatmap between major cryptocurrencies
-5. Hover over cells to see detailed correlation statistics
-6. Use the help button to understand correlation interpretation
-7. Click "Refresh" to update with latest market data
+### AI Market Insights
 
-### Managing Your Watchlist
-1. Create multiple watchlists:
-   - Create themed lists (e.g., "DeFi Projects", "Top 10")
-   - Organize by market cap, sector, or your own categories
-   - Set visibility options (private/public)
-   - Share with others (optional)
+Get AI-powered analysis of market conditions:
 
-2. Add coins to watchlist:
-   - Search for the cryptocurrency
-   - Click the star icon or "Add to Watchlist"
-   - Select which list to add it to
-   - Set optional note or color tag
+1. Check the AI Insights panel for latest market intelligence
+2. View insights categorized as:
+   - Market Trends
+   - Trading Signals
+   - Risk Alerts
+   - Price Predictions
+3. Filter insights by confidence level or impact
+4. Click "Refresh" to get the latest AI analysis
 
-3. Customize display options:
-   - Choose which metrics to display
-   - Set sorting preferences
-   - Configure refresh rate
-   - Show/hide price charts
+## Watchlist Management
 
-### Troubleshooting
-- **Data not loading**: Refresh the page or check your internet connection
-- **Price discrepancies**: Verify the selected exchange source
-- **Portfolio calculation errors**: Check for missing transaction data
-- **Login issues**: Use the password recovery feature or contact support
+Keep track of cryptocurrencies you're interested in:
 
-### Keyboard Shortcuts
-- **⌘+K** or **Ctrl+K**: Open search
-- **⌘+D** or **Ctrl+D**: Toggle dark mode
-- **⌘+1-6** or **Ctrl+1-6**: Navigate between main tabs
-- **⌘+S** or **Ctrl+S**: Save current settings
-- **Esc**: Close dialogs and panels
+1. Navigate to the Watchlist section
+2. Click the star icon to add/remove coins from your watchlist
+3. Toggle between "Show All" and "Show Watchlist" views
+4. Monitor price changes and market cap data
+5. Click "Refresh Data" to update with latest market information
 
-## Contact Support
-If you encounter any issues or have questions, please contact our support team:
-- **Email**: support@cryptodashboard.com
-- **Live Chat**: Available in the dashboard (bottom right corner)
-- **Help Center**: Visit help.cryptodashboard.com for FAQs and guides
+## Account Settings
+
+Customize your experience:
+
+1. Click on the Settings icon
+2. Set your default currency preference
+3. Configure notification preferences
+4. Customize dashboard layout
+5. Set privacy and data preferences
+
+## Tips for New Users
+
+1. **Start with virtual trading**: Practice without risking real money
+2. **Use the correlation tool**: Understand market relationships for better diversification
+3. **Check AI insights regularly**: Get data-driven market perspectives
+4. **Monitor multiple timeframes**: Different time horizons reveal different patterns
+5. **Save important assets to watchlist**: Keep track of cryptocurrencies you're interested in
+
+## Advanced Features
+
+### Portfolio Analysis
+
+Get deeper insights into your portfolio:
+
+1. Diversification score
+2. Risk assessment
+3. Historical performance charts
+4. Suggested optimizations
+
+### Market Correlations Analysis
+
+Dig deeper into asset relationships:
+
+1. Select specific assets for detailed correlation analysis
+2. Learn what correlation values mean for your trading strategy
+3. Discover diversification opportunities
+4. Track how correlations change over time
+
+## Getting Help
+
+If you need assistance:
+
+1. Check the in-app documentation
+2. Look for tooltips (hover over ℹ️ icons)
+3. Contact support through the Help section
+
+## Upcoming Features
+
+We're constantly improving the platform. Coming soon:
+
+1. Mobile app support
+2. Additional currency options
+3. Exchange integrations for live trading
+4. Enhanced AI predictions
+5. Social trading features
+
+Thank you for choosing our cryptocurrency platform. Happy trading!

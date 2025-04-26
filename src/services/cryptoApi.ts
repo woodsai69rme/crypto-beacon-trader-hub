@@ -1,5 +1,5 @@
-
 import { toast } from "@/components/ui/use-toast";
+import { updateWithAUDPrices } from "./currencyApi";
 
 export interface CryptoData {
   id: string;
@@ -13,6 +13,7 @@ export interface CryptoData {
   ath: number;
   total_volume: number;
   circulating_supply: number;
+  priceAUD?: number;
 }
 
 export interface CryptoChartData {
@@ -33,7 +34,24 @@ export const fetchTopCoins = async (limit: number = 20): Promise<CryptoData[]> =
       throw new Error("Failed to fetch cryptocurrency data");
     }
     
-    return await response.json();
+    const data = await response.json();
+    
+    // Get AUD conversion rate
+    const conversionResponse = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=AUD");
+    let audRate = 1.45; // Default fallback rate
+    
+    if (conversionResponse.ok) {
+      const rateData = await conversionResponse.json();
+      audRate = rateData.rates.AUD || audRate;
+    }
+    
+    // Add AUD prices to the coin data
+    const coinsWithAUD = data.map((coin: any) => ({
+      ...coin,
+      priceAUD: coin.current_price * audRate
+    }));
+    
+    return coinsWithAUD;
   } catch (error) {
     toast({
       title: "Error",
@@ -58,6 +76,15 @@ export const fetchCoinData = async (coinId: string): Promise<CryptoData | null> 
     
     const data = await response.json();
     
+    // Get AUD conversion rate
+    const conversionResponse = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=AUD");
+    let audRate = 1.45; // Default fallback rate
+    
+    if (conversionResponse.ok) {
+      const rateData = await conversionResponse.json();
+      audRate = rateData.rates.AUD || audRate;
+    }
+    
     // Transform to match our interface
     return {
       id: data.id,
@@ -70,7 +97,8 @@ export const fetchCoinData = async (coinId: string): Promise<CryptoData | null> 
       image: data.image.small,
       ath: data.market_data.ath.usd,
       total_volume: data.market_data.total_volume.usd,
-      circulating_supply: data.market_data.circulating_supply
+      circulating_supply: data.market_data.circulating_supply,
+      priceAUD: data.market_data.current_price.usd * audRate
     };
   } catch (error) {
     toast({

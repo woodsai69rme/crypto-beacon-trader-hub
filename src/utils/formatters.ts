@@ -76,3 +76,27 @@ export const formatDate = (
   
   return new Intl.DateTimeFormat('en-US', defaultOptions).format(dateObj);
 };
+
+/**
+ * Convert between currencies
+ * 
+ * @param value - Value to convert
+ * @param fromCurrency - Source currency
+ * @param toCurrency - Target currency
+ * @param exchangeRates - Exchange rate object
+ * @returns Converted value
+ */
+export const convertCurrency = (
+  value: number,
+  fromCurrency: 'USD' | 'AUD',
+  toCurrency: 'USD' | 'AUD',
+  exchangeRates: { USD_AUD: number, AUD_USD: number }
+): number => {
+  if (fromCurrency === toCurrency) return value;
+  
+  if (fromCurrency === 'USD' && toCurrency === 'AUD') {
+    return value * exchangeRates.USD_AUD;
+  } else {
+    return value * exchangeRates.AUD_USD;
+  }
+};

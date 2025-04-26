@@ -11,6 +11,7 @@ export interface Trade {
   timestamp: string;
   currentValue?: number;
   profitLoss?: number;
+  currency: 'USD' | 'AUD';
 }
 
 export interface CoinOption {
@@ -18,4 +19,19 @@ export interface CoinOption {
   name: string;
   symbol: string;
   price: number;
+  priceAUD?: number;
+}
+
+export interface PortfolioSummary {
+  totalValue: number;
+  totalProfitLoss: number;
+  isProfitPositive: boolean;
+  percentageChange: number;
+  currency: 'USD' | 'AUD';
+}
+
+export interface CurrencyConversion {
+  USD_AUD: number;
+  AUD_USD: number;
+  lastUpdated: string;
 }

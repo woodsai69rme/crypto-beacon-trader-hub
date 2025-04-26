@@ -5,15 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import type { CoinOption } from "@/types/trading";
+import { formatCurrency } from "@/utils/formatters";
 
 interface TradingFormProps {
   balance: number;
   availableCoins: CoinOption[];
   onExecuteTrade: (type: 'buy' | 'sell', coinId: string, amount: number) => void;
   getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: 'USD' | 'AUD';
+  onCurrencyChange: (currency: 'USD' | 'AUD') => void;
+  conversionRate: number;
 }
 
-const TradingForm = ({ balance, availableCoins, onExecuteTrade, getOwnedCoinAmount }: TradingFormProps) => {
+const TradingForm = ({ 
+  balance, 
+  availableCoins, 
+  onExecuteTrade, 
+  getOwnedCoinAmount, 
+  activeCurrency,
+  onCurrencyChange,
+  conversionRate
+}: TradingFormProps) => {
   const [amount, setAmount] = useState<number>(0);
   const [selectedCoin, setSelectedCoin] = useState<string>("");
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
@@ -36,13 +48,20 @@ const TradingForm = ({ balance, availableCoins, onExecuteTrade, getOwnedCoinAmou
     const coinData = getSelectedCoinData();
     if (!coinData) return;
 
-    const totalValue = amount * coinData.price;
+    // Use the appropriate price based on the active currency
+    const price = activeCurrency === 'AUD' && coinData.priceAUD
+      ? coinData.priceAUD
+      : activeCurrency === 'AUD'
+        ? coinData.price * conversionRate
+        : coinData.price;
+        
+    const totalValue = amount * price;
 
     // Validate trade
     if (tradeType === 'buy' && totalValue > balance) {
       toast({
         title: "Insufficient Funds",
-        description: `You need ${formatCurrency(totalValue)} but only have ${formatCurrency(balance)} available`,
+        description: `You need ${formatCurrencyValue(totalValue)} but only have ${formatCurrencyValue(balance)} available`,
         variant: "destructive",
       });
       return;
@@ -67,16 +86,27 @@ const TradingForm = ({ balance, availableCoins, onExecuteTrade, getOwnedCoinAmou
     }, 1000);
   };
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
+  const formatCurrencyValue = (value: number): string => {
+    return formatCurrency(value, activeCurrency);
   };
 
   return (
     <div>
-      <h3 className="font-medium mb-3">Execute Trade</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-medium">Execute Trade</h3>
+        <Select 
+          value={activeCurrency} 
+          onValueChange={(val) => onCurrencyChange(val as 'USD' | 'AUD')}
+        >
+          <SelectTrigger className="w-24 h-8 text-xs">
+            <SelectValue placeholder="Currency" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="USD">USD</SelectItem>
+            <SelectItem value="AUD">AUD</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -132,15 +162,35 @@ const TradingForm = ({ balance, availableCoins, onExecuteTrade, getOwnedCoinAmou
             <div>
               <label className="text-sm text-muted-foreground block mb-1.5">Price</label>
               <div className="h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground flex items-center">
-                {selectedCoin ? `$${getSelectedCoinData()?.price.toLocaleString()}` : 'Select a coin'}
+                {selectedCoin ? (
+                  <>
+                    {activeCurrency === 'USD' ? (
+                      getSelectedCoinData()?.price ? formatCurrencyValue(getSelectedCoinData()!.price) : 'Loading...'
+                    ) : (
+                      getSelectedCoinData()?.priceAUD ? 
+                        formatCurrencyValue(getSelectedCoinData()!.priceAUD) : 
+                        formatCurrencyValue(getSelectedCoinData()!.price * conversionRate)
+                    )}
+                  </>
+                ) : (
+                  'Select a coin'
+                )}
               </div>
             </div>
             <div>
               <label className="text-sm text-muted-foreground block mb-1.5">Total Value</label>
               <div className="h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground flex items-center font-medium">
-                {selectedCoin && amount > 0 
-                  ? formatCurrency(amount * (getSelectedCoinData()?.price || 0)) 
-                  : '$0.00'}
+                {selectedCoin && amount > 0 ? (
+                  activeCurrency === 'USD' ? (
+                    formatCurrencyValue(amount * (getSelectedCoinData()?.price || 0))
+                  ) : (
+                    getSelectedCoinData()?.priceAUD ?
+                      formatCurrencyValue(amount * (getSelectedCoinData()?.priceAUD || 0)) :
+                      formatCurrencyValue(amount * (getSelectedCoinData()?.price || 0) * conversionRate)
+                  )
+                ) : (
+                  formatCurrencyValue(0)
+                )}
               </div>
             </div>
           </div>

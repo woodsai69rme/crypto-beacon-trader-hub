@@ -9,9 +9,18 @@ interface TradingHoldingsProps {
   getOwnedCoinAmount: (coinId: string) => number;
   onReset: () => void;
   formatCurrency: (value: number) => string;
+  activeCurrency: 'USD' | 'AUD';
+  conversionRate: number;
 }
 
-const TradingHoldings = ({ availableCoins, getOwnedCoinAmount, onReset, formatCurrency }: TradingHoldingsProps) => {
+const TradingHoldings = ({ 
+  availableCoins, 
+  getOwnedCoinAmount, 
+  onReset, 
+  formatCurrency,
+  activeCurrency,
+  conversionRate 
+}: TradingHoldingsProps) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-3">
@@ -26,7 +35,14 @@ const TradingHoldings = ({ availableCoins, getOwnedCoinAmount, onReset, formatCu
           const ownedAmount = getOwnedCoinAmount(coin.id);
           if (ownedAmount <= 0) return null;
           
-          const value = ownedAmount * coin.price;
+          // Use the appropriate price based on currency
+          const price = activeCurrency === 'AUD' && coin.priceAUD 
+            ? coin.priceAUD 
+            : activeCurrency === 'AUD' 
+              ? coin.price * conversionRate 
+              : coin.price;
+              
+          const value = ownedAmount * price;
           
           // Calculate profit/loss (simplified for this component)
           const profitLoss = 0; // This would be calculated based on purchase history

@@ -13,13 +13,14 @@ The Crypto Dashboard is built using the following technologies:
 - **Lucide React**: Icon library
 
 ## Component Structure Updates
-The application now includes these additional components:
+The application includes these components:
 
 ### Trading Components
-- **FakeTrading**: Practice trading system with virtual balance
+- **TradingForm**: Execute buy/sell trades with multi-currency support (USD/AUD)
+- **TradingHoldings**: View portfolio holdings with real-time valuations
+- **TradeHistory**: Track trade history and performance
 - **MarketDepthChart**: Order book visualization
 - **TradingPairComparison**: Compare trading pairs
-- **EnhancedCryptoChart**: Advanced charting capabilities
 
 ### Portfolio Components
 - **PortfolioAnalytics**: Portfolio performance metrics
@@ -29,8 +30,23 @@ The application now includes these additional components:
 ### Analysis Components
 - **AiInsightsCategorized**: Categorized AI-powered market insights with trends, signals, alerts, and predictions
 - **TechnicalIndicators**: Advanced technical analysis tools including RSI, MACD, Moving Averages, and Bollinger Bands
-- **MarketCorrelations**: Asset correlation analysis
+- **MarketCorrelations**: Asset correlation analysis with visualizations and portfolio diversification recommendations
 - **SentimentAnalysis**: Market sentiment tracking
+
+## Multi-Currency Support
+The application supports multiple currencies:
+
+### Currency Features
+- **Toggle between USD and AUD**: Users can switch their preferred currency
+- **Real-time Exchange Rates**: Integration with Exchange Rate API
+- **Currency Conversion**: Automatic conversion of crypto prices and portfolio values
+- **Persistent Preference**: User's currency choice is saved in local storage
+
+### Currency Implementation
+- **CurrencyApi Service**: Fetches latest exchange rates
+- **Trading Components**: All trading interfaces adapted for multi-currency
+- **Formatters**: Currency formatting utilities supporting multiple currencies
+- **Type Definitions**: Updated to include currency information
 
 ## State Management
 The application uses multiple strategies for state management:
@@ -74,47 +90,32 @@ The application uses multiple strategies for state management:
 4. **User Interaction**: Event handlers update state accordingly
 5. **State Updates**: Components re-render based on state changes
 
-## Component Architecture
-The application follows a modular component architecture:
+## External APIs Integration
+The application integrates with several free APIs:
 
-### Dashboard Framework
-- **Dashboard**: Main container component that manages navigation and layout
-- **DashboardTabList**: Navigation tabs for different dashboard sections
-- **DashboardHeader**: Top bar with user info, notifications, and global actions
+### Cryptocurrency Data
+- **CoinGecko API**: For cryptocurrency market data
+  - Endpoints: `/coins/markets`, `/coins/{id}`, `/search`, `/coins/{id}/market_chart`
+  - Features: Top coins, search, historical data, market info
 
-### Dashboard Section Components
-Each dashboard section is encapsulated in its own component:
-- **DashboardOverview**
-- **DashboardPortfolio**
-- **DashboardWatchlist**
-- **DashboardTrading**
-- **DashboardAnalysis**
-- **DashboardTools**
+### Exchange Rate Data
+- **Exchange Rate API**: For currency conversion
+  - Endpoint: `/latest`
+  - Features: USD to AUD conversion rates
 
-### Feature Components
-Feature-specific components that are used within dashboard sections:
-- **AiInsightsCategorized**: AI-powered market analysis categorized by type
-- **TechnicalIndicators**: Technical analysis charts and indicators
-- **MarketCorrelations**: Asset correlation visualization
-- **FakeTrading**: Practice trading system
-- **RiskAssessment**: Portfolio risk analysis tools
+### Future API Integrations
+- **CryptoCompare API**: For additional market data and social stats
+- **Alternative.me Fear & Greed Index**: For market sentiment data
+- **Messari API**: For cryptocurrency fundamentals
 
-### UI Components
-Reusable UI components from shadcn and custom implementations:
-- **Card**: Container for grouped content
-- **Button**: Interactive triggers for actions
-- **Tabs**: Organize content into tabbed interfaces
-- **Select**: Dropdown selection menus
-- **Charts**: Various chart types using Recharts
-
-## AI Market Insights Implementation
-The AI-powered market insights system uses:
-- **Categorization**: Insights are categorized as trends, signals, alerts, or predictions
-- **Confidence Scoring**: Each insight includes a confidence score (0-100%)
-- **Impact Assessment**: Insights are tagged with impact levels (high/medium/low)
-- **Tag System**: Insights can be filtered by tags
-- **Coin Association**: Insights are associated with specific cryptocurrencies
-- **Refresh Mechanism**: Users can trigger refreshes for the latest analysis
+## Market Correlations Implementation
+The correlation analysis system offers:
+- **Correlation Matrix**: Visual heatmap of correlations between assets
+- **Correlation Strength Classification**: Strong to weak, positive and negative correlations
+- **Time Period Selection**: Adjustable time periods (7D, 30D, 90D) for correlation calculation
+- **Detailed Analysis**: In-depth correlation insights for selected assets
+- **Educational Content**: Help documentation explaining correlation concepts
+- **Custom Heatmap**: Implementation of heatmap visualization using Recharts primitives
 
 ## Technical Indicators Implementation
 The technical analysis tools include:
@@ -124,13 +125,14 @@ The technical analysis tools include:
 - **Coin Selection**: Analysis available for all supported cryptocurrencies
 - **Visual Indicators**: Clear visual representation of indicator values
 
-## Market Correlations Features
-The correlation analysis system offers:
-- **Correlation Matrix**: Visual heatmap of correlations between assets
-- **Correlation Strength Classification**: Strong to weak, positive and negative
-- **Time Period Selection**: Adjustable time periods for correlation calculation
-- **Interactive Data**: Detailed information on hover
-- **Educational Content**: Help tooltips explaining correlation concepts
+## AI Market Insights Implementation
+The AI-powered market insights system uses:
+- **Categorization**: Insights are categorized as trends, signals, alerts, or predictions
+- **Confidence Scoring**: Each insight includes a confidence score (0-100%)
+- **Impact Assessment**: Insights are tagged with impact levels (high/medium/low)
+- **Tag System**: Insights can be filtered by tags
+- **Coin Association**: Insights are associated with specific cryptocurrencies
+- **Refresh Mechanism**: Users can trigger refreshes for the latest analysis
 
 ## Responsive Design Approach
 The application uses Tailwind's responsive classes with these breakpoints:
@@ -160,14 +162,10 @@ Persists state in localStorage:
 const [theme, setTheme] = useLocalStorage('theme', 'dark');
 ```
 
-### useToast
-Shows toast notifications:
+### useCurrencyConverter
+Handles currency conversion throughout the app:
 ```typescript
-const { toast } = useToast();
-toast({
-  title: "Success",
-  description: "Your settings have been saved."
-});
+const { convert, formatValue } = useCurrencyConverter('USD');
 ```
 
 ## Error Handling Strategy
@@ -187,21 +185,11 @@ toast({
    </ErrorBoundary>
    ```
 
-3. **Form Validation**: Using Zod schemas with React Hook Form
+3. **Fallback Data**: Using mock data when APIs fail
    ```typescript
-   const schema = z.object({
-     email: z.string().email(),
-     password: z.string().min(8)
-   });
+   // Return mock data as fallback
+   return getMockCryptoData(limit);
    ```
-
-## Authentication Flow
-1. User submits login credentials
-2. API validates credentials and returns JWT token
-3. Token is stored in secure, HttpOnly cookies
-4. AuthContext updates with user information
-5. Protected routes become accessible
-6. Token refresh happens automatically before expiration
 
 ## Performance Optimization Techniques
 - **Code Splitting**: Using React.lazy for component-level code splitting
@@ -210,31 +198,27 @@ toast({
 - **Image Optimization**: Proper sizing, lazy loading, and modern formats
 - **Bundle Optimization**: Tree shaking and chunk optimization
 
-## Advanced Features Implementation
+## Future Development Recommendations
 
-### AI Market Insights
-The AI-powered market insights system is implemented with:
-- **Categorization Logic**: Algorithm to classify insights into trends, signals, alerts, and predictions
-- **Confidence Calculation**: Statistical model for determining insight confidence
-- **Impact Assessment**: Heuristic evaluation for high/medium/low impact
-- **Data Sources**: Integration with multiple data providers for comprehensive analysis
-- **Update Mechanism**: Periodic background updates with manual refresh option
+### Social Trading Features
+- **Copy Trading**: Allow users to follow and copy successful traders
+- **Trading Leaderboards**: Showcase top-performing traders
+- **Trading Signals**: Implement a system for sharing trading signals
 
-### Technical Indicators
-The technical analysis tools are implemented using:
-- **Calculation Functions**: Pure functions for computing indicator values
-- **Data Processing**: Functions to transform raw price data into indicator data
-- **Visualization Components**: Chart components using Recharts library
-- **Interactive Elements**: Tooltips and hover states for detailed information
-- **Timeframe Management**: Logic for adjusting calculations based on selected timeframe
+### Advanced Data Analytics
+- **Machine Learning Predictions**: Implement ML models for price prediction
+- **Pattern Recognition**: Automatic chart pattern detection
+- **Anomaly Detection**: Alert users to unusual market movements
 
-### Market Correlations
-The correlation analysis system is built with:
-- **Correlation Algorithm**: Pearson correlation coefficient calculation
-- **Heatmap Visualization**: Custom styling for correlation matrix display
-- **Interpretation Logic**: Functions to classify and explain correlation values
-- **Period Selection**: Logic for adjusting the time window for correlation calculation
-- **Educational Elements**: Context-sensitive help for understanding correlation concepts
+### Mobile App Development
+- **React Native Implementation**: Develop a mobile version using React Native
+- **Push Notifications**: Real-time alerts for price movements
+- **Biometric Authentication**: Secure login with fingerprint/face ID
+
+### Additional Exchange Integrations
+- **API Connectors**: Connect to major exchanges like Binance, Coinbase
+- **Real Trading**: Allow users to execute real trades via exchange APIs
+- **Order Book Visualization**: Live order book data from exchanges
 
 ## Building New Features
 When adding new features:
@@ -244,26 +228,6 @@ When adding new features:
 4. **Connect Data Sources**: Integrate with APIs or state
 5. **Add Tests**: Ensure feature reliability
 6. **Document**: Update relevant documentation
-
-## Debugging Tips
-- Use React DevTools for component inspection
-- Use the Network tab to debug API requests
-- Add strategic `console.log` statements (remove before production)
-- Use React Query DevTools for data fetching insights
-- Use the Elements panel to debug layout issues
-
-## Common Pitfalls
-- **Prop Drilling**: Use Context or composition for deeply nested props
-- **Memory Leaks**: Properly clean up effects and subscriptions
-- **Unnecessary Re-renders**: Use memoization and proper dependency arrays
-- **API Race Conditions**: Use React Query's built-in request deduplication
-- **Layout Shifts**: Set explicit dimensions for async-loaded content
-
-## Code Style and Conventions
-- **File Naming**: PascalCase for components, camelCase for utilities
-- **Component Structure**: Props interface, then component function, then exports
-- **Imports Order**: React, external libraries, internal modules, styles
-- **CSS Approach**: Tailwind CSS utility classes, minimal custom CSS
 
 ## Best Practices
 - Keep components small and focused

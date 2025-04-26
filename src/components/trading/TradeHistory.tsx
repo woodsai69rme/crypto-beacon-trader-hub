@@ -5,9 +5,10 @@ import type { Trade } from "@/types/trading";
 interface TradeHistoryProps {
   trades: Trade[];
   formatCurrency: (value: number) => string;
+  activeCurrency: 'USD' | 'AUD';
 }
 
-const TradeHistory = ({ trades, formatCurrency }: TradeHistoryProps) => {
+const TradeHistory = ({ trades, formatCurrency, activeCurrency }: TradeHistoryProps) => {
   return (
     <div>
       <h3 className="font-medium mb-3">Recent Trades</h3>
@@ -27,37 +28,40 @@ const TradeHistory = ({ trades, formatCurrency }: TradeHistoryProps) => {
               </tr>
             </thead>
             <tbody>
-              {trades.slice(0, 10).map((trade) => {
-                const date = new Date(trade.timestamp);
-                const isProfitable = trade.profitLoss ? trade.profitLoss > 0 : false;
-                
-                return (
-                  <tr key={trade.id} className="border-b">
-                    <td className="px-4 py-2">
-                      {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span className={`font-medium ${trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}`}>
-                        {trade.type === 'buy' ? 'BUY' : 'SELL'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">{trade.coinSymbol}</td>
-                    <td className="px-4 py-2 text-right">{trade.amount.toFixed(6)}</td>
-                    <td className="px-4 py-2 text-right">{formatCurrency(trade.price)}</td>
-                    <td className="px-4 py-2 text-right">{formatCurrency(trade.totalValue)}</td>
-                    <td className="px-4 py-2 text-right">
-                      {formatCurrency(trade.currentValue || trade.totalValue)}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {trade.profitLoss && (
-                        <span className={isProfitable ? 'text-green-500' : 'text-red-500'}>
-                          {formatCurrency(Math.abs(trade.profitLoss))}
+              {trades
+                .filter(trade => trade.currency === activeCurrency)
+                .slice(0, 10)
+                .map((trade) => {
+                  const date = new Date(trade.timestamp);
+                  const isProfitable = trade.profitLoss ? trade.profitLoss > 0 : false;
+                  
+                  return (
+                    <tr key={trade.id} className="border-b">
+                      <td className="px-4 py-2">
+                        {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={`font-medium ${trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}`}>
+                          {trade.type === 'buy' ? 'BUY' : 'SELL'}
                         </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                      <td className="px-4 py-2">{trade.coinSymbol}</td>
+                      <td className="px-4 py-2 text-right">{trade.amount.toFixed(6)}</td>
+                      <td className="px-4 py-2 text-right">{formatCurrency(trade.price)}</td>
+                      <td className="px-4 py-2 text-right">{formatCurrency(trade.totalValue)}</td>
+                      <td className="px-4 py-2 text-right">
+                        {formatCurrency(trade.currentValue || trade.totalValue)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {trade.profitLoss && (
+                          <span className={isProfitable ? 'text-green-500' : 'text-red-500'}>
+                            {formatCurrency(Math.abs(trade.profitLoss))}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
