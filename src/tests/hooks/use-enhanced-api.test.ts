@@ -17,7 +17,7 @@ describe('useEnhancedApi', () => {
     },
   });
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
+  const wrapper = ({ children }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>

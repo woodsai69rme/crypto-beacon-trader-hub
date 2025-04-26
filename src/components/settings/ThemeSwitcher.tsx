@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Moon, Sun, Palette, CircleHalf, Settings } from "lucide-react";
+import { Moon, Sun, CircleHalf, Palette } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,7 @@ const ThemeSwitcher = () => {
       case "system":
         return <CircleHalf className="h-5 w-5" />;
       default:
-        return <Settings className="h-5 w-5" />;
+        return <Palette className="h-5 w-5" />;
     }
   };
 

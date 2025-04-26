@@ -12,7 +12,7 @@ describe('ThemeToggle', () => {
       </TestWrapper>
     );
     
-    // Check if the button is rendered (now it's using ThemeSwitcher inside)
+    // Check if the button is rendered (now it's using ThemeSwitcher directly)
     const button = screen.getByRole('button', { name: /change theme/i });
     expect(button).toBeInTheDocument();
   });

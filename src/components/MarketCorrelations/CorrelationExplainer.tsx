@@ -3,7 +3,7 @@ import React from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export const CorrelationExplainer: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme, colorScheme } = useTheme();
   
   return (
     <div className="p-3 border rounded-md bg-muted/50 text-sm themed-text-secondary">

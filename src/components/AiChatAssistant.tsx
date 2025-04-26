@@ -28,18 +28,19 @@ const AiChatAssistant: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
+  const { theme, colorScheme } = useTheme();
 
   // Predefined responses for demo purposes
   const predefinedResponses = {
     'default': "I'm not sure about that. Let me help you with something else. You can ask about portfolio setup, dashboard features, or crypto market basics.",
     'hello': "Hello! I'm your crypto dashboard assistant. How can I help you today?",
-    'help': "Here are some things I can help you with:\n- Setting up your portfolio\n- Understanding dashboard features\n- Explaining market indicators\n- Creating price alerts\n- Basic crypto knowledge",
+    'help': "Here are some things I can help you with:\n- Setting up your portfolio\n- Understanding dashboard features\n- Explaining market indicators\n- Creating price alerts\n- Basic crypto knowledge\n- Changing themes and currencies",
     'portfolio': "To set up your portfolio, go to the Portfolio tab and click 'Add Asset'. You can manually enter your holdings or connect to exchanges via API keys in the Settings section.",
     'alerts': "You can set price alerts by going to the Alerts section, selecting a cryptocurrency, and defining your price threshold. You'll receive notifications when your conditions are met.",
-    'theme': "You can change the theme by clicking the theme toggle button in the top right corner of the dashboard. We offer light mode, dark mode, and custom color schemes.",
+    'theme': "You can change the theme by clicking the theme toggle button in the top right corner of the dashboard. We offer light mode, dark mode, and several color schemes like Blue, Purple, Green, and Amber.",
     'trading': "The trading features are simulated for educational purposes. To start, go to the Trading tab and explore the interface. You can practice trading strategies without risking real money.",
     'indicators': "Technical indicators help analyze price charts. Common ones include Moving Averages, RSI, MACD, and Bollinger Bands. Each provides different insights about market trends and momentum.",
+    'currency': "You can change your preferred currency between USD and AUD in the settings. The system will automatically convert all values to your preferred currency across the dashboard.",
   };
 
   const matchResponse = (input: string): string => {
@@ -52,6 +53,7 @@ const AiChatAssistant: React.FC = () => {
     if (lowerInput.includes('theme') || lowerInput.includes('color')) return predefinedResponses.theme;
     if (lowerInput.includes('trade') || lowerInput.includes('trading')) return predefinedResponses.trading;
     if (lowerInput.includes('indicator') || lowerInput.includes('chart')) return predefinedResponses.indicators;
+    if (lowerInput.includes('currency') || lowerInput.includes('dollar') || lowerInput.includes('aud') || lowerInput.includes('usd')) return predefinedResponses.currency;
     
     return predefinedResponses.default;
   };
@@ -107,7 +109,7 @@ const AiChatAssistant: React.FC = () => {
   }
 
   return (
-    <Card className={`fixed bottom-4 right-4 w-80 sm:w-96 shadow-lg z-50 border border-border ${isMinimized ? 'h-12' : 'h-96'}`}>
+    <Card className={`fixed bottom-4 right-4 w-80 sm:w-96 shadow-lg z-50 border border-border themed-card ${isMinimized ? 'h-12' : 'h-96'}`}>
       <div 
         className="bg-primary text-primary-foreground px-4 py-2 flex justify-between items-center cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
@@ -131,7 +133,7 @@ const AiChatAssistant: React.FC = () => {
       
       {!isMinimized && (
         <>
-          <ScrollArea className="h-[calc(384px-88px)] p-4" ref={scrollAreaRef}>
+          <ScrollArea className="h-[calc(384px-88px)] p-4 themed-text" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg, index) => (
                 <div
@@ -145,8 +147,8 @@ const AiChatAssistant: React.FC = () => {
                         : 'bg-muted'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    <p className="text-xs opacity-70 text-right mt-1">
+                    <p className="text-sm whitespace-pre-wrap themed-text">{msg.content}</p>
+                    <p className="text-xs opacity-70 text-right mt-1 themed-text-secondary">
                       {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -172,7 +174,7 @@ const AiChatAssistant: React.FC = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message..."
-                className="flex-1"
+                className="flex-1 themed-text"
               />
               <Button size="icon" onClick={handleSendMessage} disabled={inputValue.trim() === ''}>
                 <Send className="h-4 w-4" />
