@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ResponsiveContainer, 
   XAxis, YAxis, Tooltip, 
-  Cell, Rect, Surface
+  Cell, Surface
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -29,7 +28,7 @@ const CustomHeatmap = ({ data, width, height, colorScale }: any) => {
             : `rgba(220, 53, 69, ${colorIntensity})`;
             
           return (
-            <Rect
+            <rect
               key={`cell-${rowIndex}-${colIndex}`}
               x={colIndex * cellWidth}
               y={rowIndex * cellHeight}

@@ -7,9 +7,11 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import TradingForm from "./trading/TradingForm";
 import TradingHoldings from "./trading/TradingHoldings";
 import TradeHistory from "./trading/TradeHistory";
+import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import type { Trade, CoinOption } from "@/types/trading";
+import { updateWithAUDPrices } from "@/services/currencyApi";
 
-const availableCoins: CoinOption[] = [
+const initialCoins: CoinOption[] = [
   { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
   { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
   { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
@@ -21,13 +23,23 @@ const availableCoins: CoinOption[] = [
 const FakeTrading = () => {
   const [trades, setTrades] = useLocalStorage<Trade[]>("fakeTradingHistory", []);
   const [balance, setBalance] = useLocalStorage<number>("fakeTradingBalance", 10000);
+  const [availableCoins, setAvailableCoins] = useState<CoinOption[]>(initialCoins);
   
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
-  };
+  const {
+    activeCurrency,
+    setActiveCurrency,
+    conversionRates,
+    convert,
+    formatValue,
+    convertAndFormat
+  } = useCurrencyConverter();
+  
+  // Update coins with AUD prices when currency rates change
+  useEffect(() => {
+    if (conversionRates.USD_AUD > 0) {
+      setAvailableCoins(updateWithAUDPrices(initialCoins, conversionRates.USD_AUD));
+    }
+  }, [conversionRates]);
 
   const getOwnedCoinAmount = (coinId: string): number => {
     return trades
@@ -63,7 +75,12 @@ const FakeTrading = () => {
     Object.keys(coinHoldings).forEach(coinId => {
       const coin = availableCoins.find(c => c.id === coinId);
       if (coin && coinHoldings[coinId] > 0) {
-        totalValue += coin.price * coinHoldings[coinId];
+        // Use the appropriate price based on currency
+        const price = activeCurrency === 'AUD' && coin.priceAUD 
+          ? coin.priceAUD 
+          : coin.price;
+          
+        totalValue += price * coinHoldings[coinId];
       }
     });
     
@@ -80,7 +97,12 @@ const FakeTrading = () => {
     const coinData = availableCoins.find(c => c.id === coinId);
     if (!coinData) return;
 
-    const totalValue = amount * coinData.price;
+    // Use the appropriate price based on currency
+    const price = activeCurrency === 'AUD' && coinData.priceAUD 
+      ? coinData.priceAUD 
+      : coinData.price;
+      
+    const totalValue = amount * price;
 
     const newTrade: Trade = {
       id: Date.now().toString(),
@@ -89,9 +111,10 @@ const FakeTrading = () => {
       coinSymbol: coinData.symbol,
       type,
       amount,
-      price: coinData.price,
+      price,
       totalValue,
       timestamp: new Date().toISOString(),
+      currency: activeCurrency, // Add currency to the trade
     };
 
     setTrades([newTrade, ...trades]);
@@ -150,12 +173,12 @@ const FakeTrading = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-card rounded-lg border p-4">
             <div className="text-sm text-muted-foreground mb-1">Available Balance</div>
-            <div className="text-2xl font-bold">{formatCurrency(balance)}</div>
+            <div className="text-2xl font-bold">{formatValue(balance)}</div>
           </div>
           
           <div className="bg-card rounded-lg border p-4">
             <div className="text-sm text-muted-foreground mb-1">Portfolio Value</div>
-            <div className="text-2xl font-bold">{formatCurrency(calculatePortfolioValue())}</div>
+            <div className="text-2xl font-bold">{formatValue(calculatePortfolioValue())}</div>
           </div>
           
           <div className="bg-card rounded-lg border p-4">
@@ -177,20 +200,26 @@ const FakeTrading = () => {
             availableCoins={availableCoins}
             onExecuteTrade={handleExecuteTrade}
             getOwnedCoinAmount={getOwnedCoinAmount}
+            activeCurrency={activeCurrency}
+            onCurrencyChange={setActiveCurrency}
+            conversionRate={conversionRates.USD_AUD}
           />
           
           <TradingHoldings
             availableCoins={availableCoins}
             getOwnedCoinAmount={getOwnedCoinAmount}
             onReset={resetTradingSystem}
-            formatCurrency={formatCurrency}
+            formatCurrency={formatValue}
+            activeCurrency={activeCurrency}
+            conversionRate={conversionRates.USD_AUD}
           />
         </div>
         
         <div className="mt-6">
           <TradeHistory
             trades={trades}
-            formatCurrency={formatCurrency}
+            formatCurrency={formatValue}
+            activeCurrency={activeCurrency}
           />
         </div>
       </CardContent>
