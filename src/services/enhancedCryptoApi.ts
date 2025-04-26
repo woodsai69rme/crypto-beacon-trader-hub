@@ -1,6 +1,5 @@
-
 import { toast } from "@/components/ui/use-toast";
-import { CryptoData, CryptoChartData } from "./cryptoApi";
+import { getMockCryptoData, CryptoData, CryptoChartData } from "./cryptoApi";
 
 // Cache implementation
 interface CacheItem<T> {

@@ -170,7 +170,7 @@ export const fetchCoinHistory = async (
 };
 
 // Mock data to use as fallback if API fails
-const getMockCryptoData = (limit: number): CryptoData[] => {
+export const getMockCryptoData = (limit: number): CryptoData[] => {
   const mockCoins = [
     {
       id: "bitcoin",
