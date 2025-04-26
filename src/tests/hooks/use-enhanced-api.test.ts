@@ -1,7 +1,7 @@
 
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEnhancedApi } from '@/hooks/use-enhanced-api';
+import { useEnhancedApi, buildApiCacheKey } from '@/hooks/use-enhanced-api';
 import { toast } from '@/components/ui/use-toast';
 
 jest.mock('@/components/ui/use-toast', () => ({
@@ -74,5 +74,13 @@ describe('useEnhancedApi', () => {
     
     expect(mockFn.mock.calls.length).toBe(firstCallCount);
     expect(result.current.data).toEqual(mockData);
+  });
+  
+  it('should build proper cache keys', () => {
+    const key1 = buildApiCacheKey('coins', 'bitcoin');
+    const key2 = buildApiCacheKey('coins', { id: 'bitcoin', days: 7 });
+    
+    expect(key1).toBe('coins_"bitcoin"');
+    expect(key2).toBe('coins_{"id":"bitcoin","days":7}');
   });
 });

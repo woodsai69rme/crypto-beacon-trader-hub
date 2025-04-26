@@ -48,15 +48,29 @@
   color: #888;
 }
 
+/* Enhanced dark theme overrides for shadcn components */
+:root {
+  color-scheme: dark;
+}
+
 /* Override for shadcn components to ensure dark theme */
 .bg-card, 
 .bg-background, 
-.bg-popover {
+.bg-popover,
+.bg-white,
+.bg-muted,
+[data-theme="dark"] .bg-card,
+[data-theme="dark"] .bg-background,
+[data-theme="dark"] .bg-popover,
+[data-theme="dark"] .bg-white {
   background-color: #222333 !important;
   color: white !important;
 }
 
-.border {
+.border,
+.border-border,
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-border {
   border-color: #333344 !important;
 }
 
@@ -66,17 +80,40 @@
   color: white !important;
 }
 
-/* Additional dark theme overrides */
-.bg-white {
-  background-color: #222333 !important;
-}
-
-.text-black {
+/* Force all text to white */
+.text-black, 
+.text-foreground,
+.text-card-foreground,
+[data-theme="dark"] .text-black,
+[data-theme="dark"] .text-foreground,
+[data-theme="dark"] .text-card-foreground {
   color: white !important;
 }
 
-.bg-gray-100 {
+/* Light text styles */
+.text-muted-foreground {
+  color: #B0B0C0 !important;
+}
+
+/* Set all inputs and selects to dark */
+input, 
+select, 
+textarea, 
+button,
+.bg-gray-100,
+[role="combobox"] {
   background-color: #2A2A3A !important;
+  color: white !important;
+  border-color: #333344 !important;
+}
+
+/* Key indicators styling */
+.key-indicator {
+  color: white !important;
+  background-color: #333344 !important;
+  border: 1px solid #444455 !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
 }
 
 .border-gray-200 {
@@ -86,7 +123,8 @@
 /* Dark theme for dialogs and popovers */
 [role="dialog"],
 [role="tooltip"],
-[role="menu"] {
+[role="menu"],
+[data-state="open"] {
   background-color: #222333 !important;
   border-color: #333344 !important;
   color: white !important;
@@ -109,4 +147,49 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #444455;
+}
+
+/* Theme-specific colors */
+.theme-dark {
+  --app-bg: #1A1F2C;
+  --card-bg: #222333;
+  --border-color: #333344;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B0C0;
+}
+
+.theme-blue {
+  --app-bg: #0A192F;
+  --card-bg: #112240;
+  --border-color: #234067;
+  --text-primary: #E6F1FF;
+  --text-secondary: #8892B0;
+}
+
+.theme-purple {
+  --app-bg: #13111C;
+  --card-bg: #1E1B2E;
+  --border-color: #2D2B3D;
+  --text-primary: #F8F8FD;
+  --text-secondary: #A09CB0;
+}
+
+/* Apply theme colors */
+.themed-app {
+  background-color: var(--app-bg);
+  color: var(--text-primary);
+}
+
+.themed-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.themed-text {
+  color: var(--text-primary);
+}
+
+.themed-text-secondary {
+  color: var(--text-secondary);
 }
