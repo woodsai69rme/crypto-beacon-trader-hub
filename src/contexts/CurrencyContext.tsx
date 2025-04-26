@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCurrencyRates } from '@/services/currencyApi';
 import { toast } from "@/components/ui/use-toast";
@@ -35,9 +34,9 @@ export const useCurrency = () => useContext(CurrencyContext);
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>(() => {
-    // Try to load from localStorage
+    // Try to load from localStorage, default to AUD instead of USD
     const saved = localStorage.getItem('preferred-currency');
-    return (saved as SupportedCurrency) || 'USD';
+    return (saved as SupportedCurrency) || 'AUD';
   });
   
   const [conversionRates, setConversionRates] = useState(defaultConversionRates);

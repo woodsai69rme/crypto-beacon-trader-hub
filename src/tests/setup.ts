@@ -1,25 +1,9 @@
 
-// Mock for ResizeObserver
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
+import '@testing-library/jest-dom';
+import { expect, jest, describe, beforeEach, it } from '@jest/globals';
 
-// Set up global mocks
-global.ResizeObserver = ResizeObserverMock;
-
-// Mock for matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+global.jest = jest;
+global.describe = describe;
+global.beforeEach = beforeEach;
+global.it = it;
+global.expect = expect;
