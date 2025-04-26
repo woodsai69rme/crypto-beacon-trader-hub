@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DragHandleDots2Icon } from "@radix-ui/react-icons";
+import { GripVertical } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 export type WidgetType = 
@@ -111,7 +111,7 @@ const CustomizableDashboard = ({
               className="flex items-center justify-between p-3 border rounded-md bg-background"
             >
               <div className="flex items-center">
-                <DragHandleDots2Icon className="h-5 w-5 text-muted-foreground mr-2" />
+                <GripVertical className="h-5 w-5 text-muted-foreground mr-2" />
                 <span>{widget.title}</span>
               </div>
               
