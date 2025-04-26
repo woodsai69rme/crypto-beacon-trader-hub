@@ -7,6 +7,8 @@ import MultiExchangeTrading from "@/components/trading/MultiExchangeTrading";
 import TradingEducation from "@/components/trading/TradingEducation";
 import CommunityHub from "@/components/community/CommunityHub";
 import AiMarketAnalysis from "@/components/trading/AiMarketAnalysis";
+import CustomWidget from "@/components/widgets/CustomWidget";
+import { Card } from "@/components/ui/card";
 
 interface WidgetGridProps {
   widgets: Widget[];
@@ -37,8 +39,14 @@ const WidgetGrid = ({ widgets }: WidgetGridProps) => {
         return <CommunityHub />;
       case "aiAnalysis":
         return <AiMarketAnalysis />;
+      case "custom":
+        return <CustomWidget content={widget.customContent} title={widget.title} />;
       default:
-        return null;
+        return (
+          <Card className="p-4 h-full flex items-center justify-center text-muted-foreground">
+            Widget type not implemented
+          </Card>
+        );
     }
   };
 
@@ -49,6 +57,12 @@ const WidgetGrid = ({ widgets }: WidgetGridProps) => {
           {renderWidget(widget)}
         </div>
       ))}
+      
+      {widgets.length === 0 && (
+        <div className="col-span-full text-center p-8 border border-dashed rounded-lg text-muted-foreground">
+          No widgets have been added to your dashboard. Click "Customize Dashboard" to add widgets.
+        </div>
+      )}
     </div>
   );
 };

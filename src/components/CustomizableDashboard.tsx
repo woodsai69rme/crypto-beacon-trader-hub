@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { PlusCircle } from "lucide-react";
 import type { Widget } from "@/types/trading";
 import WidgetList from "./dashboard/widgets/WidgetList";
 import WidgetGrid from "./dashboard/widgets/WidgetGrid";
+import AddWidgetDialog from "./dashboard/widgets/AddWidgetDialog";
 
 interface CustomizableDashboardProps {
   availableWidgets?: Widget[];
@@ -29,6 +31,7 @@ const CustomizableDashboard = ({
 }: CustomizableDashboardProps) => {
   const [widgets, setWidgets] = useState<Widget[]>(availableWidgets);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddingWidget, setIsAddingWidget] = useState(false);
 
   const moveWidget = (id: string, direction: "up" | "down") => {
     const index = widgets.findIndex(w => w.id === id);
@@ -57,6 +60,25 @@ const CustomizableDashboard = ({
     setWidgets(newWidgets);
   };
 
+  const removeWidget = (id: string) => {
+    const newWidgets = widgets
+      .filter(widget => widget.id !== id)
+      .map((widget, index) => ({ ...widget, position: index }));
+    setWidgets(newWidgets);
+  };
+
+  const addWidget = (newWidget: Omit<Widget, "id" | "position">) => {
+    const id = `widget-${Date.now()}`;
+    const position = widgets.length;
+    setWidgets([...widgets, { ...newWidget, id, position }]);
+    setIsAddingWidget(false);
+    
+    toast({
+      title: "Widget Added",
+      description: `${newWidget.title} has been added to your dashboard`
+    });
+  };
+
   const saveLayout = () => {
     onLayoutSave(widgets);
     setIsEditing(false);
@@ -83,14 +105,24 @@ const CustomizableDashboard = ({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Customize Your Dashboard</CardTitle>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setIsAddingWidget(true)}
+          className="flex items-center gap-1"
+        >
+          <PlusCircle className="h-4 w-4" />
+          Add Widget
+        </Button>
       </CardHeader>
       <CardContent>
         <WidgetList 
           widgets={widgets}
           onMoveWidget={moveWidget}
           onSizeChange={changeWidgetSize}
+          onRemoveWidget={removeWidget}
         />
         
         <div className="flex justify-end space-x-2 mt-4">
@@ -102,6 +134,12 @@ const CustomizableDashboard = ({
           </Button>
         </div>
       </CardContent>
+
+      <AddWidgetDialog 
+        open={isAddingWidget} 
+        onOpenChange={setIsAddingWidget} 
+        onAddWidget={addWidget}
+      />
     </Card>
   );
 };
