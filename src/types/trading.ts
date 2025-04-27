@@ -1,3 +1,6 @@
+
+import { SupportedCurrency } from "../components/trading/TradingStats";
+
 export interface Trade {
   id: string;
   coinId: string;
@@ -8,7 +11,7 @@ export interface Trade {
   price: number;
   totalValue: number;
   timestamp: string;
-  currency: string;
+  currency: SupportedCurrency;
   botGenerated?: boolean;
   fee?: number;
   feeAsset?: string;
@@ -16,6 +19,8 @@ export interface Trade {
   notes?: string;
   tags?: string[];
   strategyId?: string;
+  currentValue?: number;
+  profitLoss?: number;
 }
 
 export interface CoinOption {

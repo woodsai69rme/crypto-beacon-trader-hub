@@ -1,8 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CurrencyConversion } from '@/types/trading';
-
-type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+import { SupportedCurrency } from '@/components/trading/TradingStats';
 
 interface CurrencyContextType {
   baseCurrency: SupportedCurrency;
@@ -46,6 +45,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const fetchRates = async () => {
       try {
+        // In a real app, we would fetch real-time rates here
         setConversionRates(defaultConversionRates);
       } catch (error) {
         console.error('Failed to fetch currency rates:', error);
@@ -54,7 +54,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     fetchRates();
     
-    const interval = setInterval(fetchRates, 60 * 60 * 1000);
+    const interval = setInterval(fetchRates, 60 * 60 * 1000); // Update rates every hour
     
     return () => clearInterval(interval);
   }, []);

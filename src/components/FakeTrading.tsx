@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { Trade } from "./trading/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TradingForm from "./trading/TradingForm";
 import TradingHoldings from "./trading/TradingHoldings";
@@ -10,6 +9,7 @@ import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
+import { Trade } from "./trading/types"; // Import Trade from the trading/types.ts not from /types/trading.ts
 
 const FakeTrading = () => {
   const {
@@ -162,7 +162,7 @@ const FakeTrading = () => {
             
             <div className="mt-6">
               <TradeHistory
-                trades={activeAccount.trades}
+                trades={activeAccount.trades as Trade[]} // Add type cast here to fix the error
                 formatCurrency={formatValue}
                 activeCurrency={activeCurrency as SupportedCurrency}
               />

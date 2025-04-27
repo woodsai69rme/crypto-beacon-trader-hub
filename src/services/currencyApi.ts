@@ -5,14 +5,19 @@ import type { CurrencyConversion } from "@/types/trading";
 // Function to fetch current exchange rates
 export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
   try {
-    // Use a more reliable free exchange rate API
-    const response = await axios.get('https://api.exchangerate.host/latest?base=USD&symbols=AUD');
+    // Use a reliable free exchange rate API
+    const response = await axios.get('https://api.exchangerate.host/latest?base=USD&symbols=AUD,EUR,GBP');
     
-    if (response.data && response.data.rates && response.data.rates.AUD) {
-      const USD_AUD = response.data.rates.AUD || 1.45; // Default fallback if API fails
+    if (response.data && response.data.rates) {
+      const { AUD = 1.45, EUR = 0.92, GBP = 0.79 } = response.data.rates;
+      
       return {
-        USD_AUD,
-        AUD_USD: 1 / USD_AUD,
+        USD_AUD: AUD,
+        AUD_USD: 1 / AUD,
+        USD_EUR: EUR,
+        EUR_USD: 1 / EUR,
+        USD_GBP: GBP,
+        GBP_USD: 1 / GBP,
         lastUpdated: new Date().toISOString()
       };
     }
@@ -28,11 +33,13 @@ export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
   }
 }
 
-// Helper function to update coin prices with AUD values
-export function updateWithAUDPrices(coins: any[], audRate: number): any[] {
+// Helper function to update coin prices with currency values
+export function updateWithCurrencyPrices(coins: any[], rates: CurrencyConversion): any[] {
   return coins.map(coin => ({
     ...coin,
-    priceAUD: coin.price * audRate
+    priceAUD: coin.price * rates.USD_AUD,
+    priceEUR: coin.price * rates.USD_EUR,
+    priceGBP: coin.price * rates.USD_GBP
   }));
 }
 
@@ -41,6 +48,10 @@ function getDefaultRates(): CurrencyConversion {
   return {
     USD_AUD: 1.45, // Default fallback rate
     AUD_USD: 0.69, // Default fallback rate
+    USD_EUR: 0.92,
+    EUR_USD: 1.09,
+    USD_GBP: 0.79,
+    GBP_USD: 1.27,
     lastUpdated: new Date().toISOString()
   };
 }

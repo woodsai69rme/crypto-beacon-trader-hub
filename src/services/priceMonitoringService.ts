@@ -1,6 +1,7 @@
+
 import { toast } from "@/components/ui/use-toast";
 import type { CoinOption } from "@/types/trading";
-import { updateWithAUDPrices } from "./currencyApi";
+import { fetchCurrencyRates } from "./currencyApi";
 
 // Free API endpoints
 const COINGECKO_API = "https://api.coingecko.com/api/v3";
@@ -8,9 +9,9 @@ const CRYPTOCOMPARE_API = "https://min-api.cryptocompare.com/data";
 
 export async function fetchLatestPrices(coinIds: string[]): Promise<CoinOption[]> {
   try {
-    // Try CoinGecko first with both USD and AUD
+    // Try CoinGecko first with multiple currencies
     const response = await fetch(
-      `${COINGECKO_API}/simple/price?ids=${coinIds.join(",")}&vs_currencies=usd,aud`
+      `${COINGECKO_API}/simple/price?ids=${coinIds.join(",")}&vs_currencies=usd,aud,eur,gbp`
     );
     
     if (!response.ok) {
@@ -22,17 +23,19 @@ export async function fetchLatestPrices(coinIds: string[]): Promise<CoinOption[]
       id,
       price: priceData.usd,
       priceAUD: priceData.aud,
+      priceEUR: priceData.eur,
+      priceGBP: priceData.gbp,
       name: id.charAt(0).toUpperCase() + id.slice(1),
       symbol: id.toUpperCase().slice(0, 4),
     }));
   } catch (error) {
     console.error("CoinGecko API error:", error);
     
-    // Fallback to CryptoCompare with USD and AUD conversion
+    // Fallback to CryptoCompare with multi-currency conversion
     try {
       const symbols = coinIds.map(id => id.toUpperCase()).join(",");
       const response = await fetch(
-        `${CRYPTOCOMPARE_API}/pricemulti?fsyms=${symbols}&tsyms=USD,AUD`
+        `${CRYPTOCOMPARE_API}/pricemulti?fsyms=${symbols}&tsyms=USD,AUD,EUR,GBP`
       );
       
       if (!response.ok) {
@@ -44,6 +47,8 @@ export async function fetchLatestPrices(coinIds: string[]): Promise<CoinOption[]
         id: symbol.toLowerCase(),
         price: priceData.USD,
         priceAUD: priceData.AUD,
+        priceEUR: priceData.EUR,
+        priceGBP: priceData.GBP,
         name: symbol,
         symbol,
       }));
@@ -55,14 +60,65 @@ export async function fetchLatestPrices(coinIds: string[]): Promise<CoinOption[]
         variant: "destructive",
       });
       
-      // Return default mock prices as final fallback (with AUD prices)
+      // Get currency rates for conversion
+      const rates = await fetchCurrencyRates();
+      
+      // Return default mock prices as final fallback (with multi-currency prices)
       return [
-        { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, priceAUD: 93654.32 },
-        { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, priceAUD: 4598.45 },
-        { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, priceAUD: 218.27 },
-        { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, priceAUD: 0.69 },
-        { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, priceAUD: 0.87 },
-        { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, priceAUD: 0.21 },
+        { 
+          id: "bitcoin", 
+          name: "Bitcoin", 
+          symbol: "BTC", 
+          price: 61245.32, 
+          priceAUD: 61245.32 * rates.USD_AUD,
+          priceEUR: 61245.32 * rates.USD_EUR,
+          priceGBP: 61245.32 * rates.USD_GBP
+        },
+        { 
+          id: "ethereum", 
+          name: "Ethereum", 
+          symbol: "ETH", 
+          price: 3010.45, 
+          priceAUD: 3010.45 * rates.USD_AUD,
+          priceEUR: 3010.45 * rates.USD_EUR,
+          priceGBP: 3010.45 * rates.USD_GBP
+        },
+        { 
+          id: "solana", 
+          name: "Solana", 
+          symbol: "SOL", 
+          price: 142.87,
+          priceAUD: 142.87 * rates.USD_AUD,
+          priceEUR: 142.87 * rates.USD_EUR,
+          priceGBP: 142.87 * rates.USD_GBP
+        },
+        { 
+          id: "cardano", 
+          name: "Cardano", 
+          symbol: "ADA", 
+          price: 0.45,
+          priceAUD: 0.45 * rates.USD_AUD,
+          priceEUR: 0.45 * rates.USD_EUR,
+          priceGBP: 0.45 * rates.USD_GBP
+        },
+        { 
+          id: "ripple", 
+          name: "XRP", 
+          symbol: "XRP", 
+          price: 0.57,
+          priceAUD: 0.57 * rates.USD_AUD,
+          priceEUR: 0.57 * rates.USD_EUR,
+          priceGBP: 0.57 * rates.USD_GBP
+        },
+        { 
+          id: "dogecoin", 
+          name: "Dogecoin", 
+          symbol: "DOGE", 
+          price: 0.14,
+          priceAUD: 0.14 * rates.USD_AUD,
+          priceEUR: 0.14 * rates.USD_EUR,
+          priceGBP: 0.14 * rates.USD_GBP
+        },
       ];
     }
   }
