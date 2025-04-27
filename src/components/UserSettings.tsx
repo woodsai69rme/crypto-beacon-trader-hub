@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -110,7 +109,6 @@ const UserSettings = ({ className }: UserSettingsProps) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       if (isOpen) {
-        // Reset to saved settings when opening
         form.reset(getSavedSettings());
       }
       setOpen(isOpen);
@@ -131,23 +129,23 @@ const UserSettings = ({ className }: UserSettingsProps) => {
         
         <Tabs defaultValue="general" value={activeTab} onValueChange={handleTabChange}>
           <SettingsTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          
+        
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <TabsContent value="general">
-                <GeneralSettings />
+                <GeneralSettings form={form} />
               </TabsContent>
               
               <TabsContent value="appearance">
-                <AppearanceSettings />
+                <AppearanceSettings form={form} />
               </TabsContent>
               
               <TabsContent value="notifications">
-                <NotificationSettings />
+                <NotificationSettings form={form} />
               </TabsContent>
               
               <TabsContent value="data">
-                <DataPrivacySettings />
+                <DataPrivacySettings form={form} />
               </TabsContent>
               
               <SettingsFooter onCancel={handleCancel} isSubmitting={isSubmitting} />

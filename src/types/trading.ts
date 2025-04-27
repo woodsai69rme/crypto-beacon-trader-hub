@@ -1,4 +1,3 @@
-
 export interface Trade {
   id: string;
   coinId: string;
@@ -97,23 +96,9 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  tags: string[];
-  performance?: {
-    winRate: number;
-    profitFactor: number;
-    sharpeRatio?: number;
-    maxDrawdown: number;
-    averageProfit?: number;
-  };
-  parameters: StrategyParameter[];
-  suitableFor?: string[];
-  riskLevel?: 'low' | 'medium' | 'high';
-  timeframes: TradingTimeframe[];
-  indicators: TechnicalIndicator[];
-  backtest?: BacktestResult;
-  stats?: any; // For additional stats
-  type?: string; // Strategy type
-  color?: string; // Card color for visual identification
+  type: 'momentum' | 'mean-reversion' | 'trend-following' | 'custom';
+  timeframe: string;
+  parameters: Record<string, any>;
 }
 
 export interface StrategyParameter {
@@ -271,4 +256,16 @@ export interface ATOTaxRate {
   baseAmount: number;
   marginRate: number; // Percentage
   year: string; // Financial year e.g., "2023-2024"
+}
+
+export interface AiTradingContextType {
+  executeAiTrade: (botId: string, tradeDetails: any) => Promise<void>;
+  getConnectedAccount: (botId: string) => string | undefined;
+  isProcessing: boolean;
+  connectBotToAccount: (botId: string, accountId: string) => void;
+  disconnectBot: (botId: string) => void;
+  activeBots: Record<string, {
+    lastTrade?: string;
+    status: 'connected' | 'disconnected';
+  }>;
 }

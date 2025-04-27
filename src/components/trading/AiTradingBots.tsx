@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,10 +17,10 @@ import PatternRecognition from "./PatternRecognition";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
   
-  const handleSelectStrategy = (strategyId: string) => {
-    setSelectedStrategyId(strategyId);
+  const handleSelectStrategy = (strategy: AITradingStrategy) => {
+    setSelectedStrategy(strategy);
     setActiveTab("backtest");
   };
 
@@ -60,11 +59,11 @@ const AiTradingBots = () => {
                   />
                 </div>
                 <div className="lg:col-span-1">
-                  {selectedStrategyId ? (
+                  {selectedStrategy ? (
                     <AiBotTrading 
-                      botId={selectedStrategyId} 
-                      strategyId={selectedStrategyId} 
-                      strategyName={predefinedStrategies.find(s => s.id === selectedStrategyId)?.name || "AI Strategy"} 
+                      botId={selectedStrategy.id} 
+                      strategyId={selectedStrategy.id} 
+                      strategyName={selectedStrategy.name} 
                     />
                   ) : (
                     <Card>
@@ -92,11 +91,11 @@ const AiTradingBots = () => {
             </TabsContent>
             
             <TabsContent value="backtest">
-              <BacktestingPanel selectedStrategyId={selectedStrategyId} />
+              <BacktestingPanel selectedStrategyId={selectedStrategy?.id} />
             </TabsContent>
             
             <TabsContent value="optimize">
-              <StrategyOptimization selectedStrategyId={selectedStrategyId} />
+              <StrategyOptimization selectedStrategyId={selectedStrategy?.id} />
             </TabsContent>
 
             <TabsContent value="charts">

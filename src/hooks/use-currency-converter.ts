@@ -2,25 +2,31 @@
 import { useCurrency } from './use-currency';
 
 export function useCurrencyConverter() {
-  const { baseCurrency, convertCurrency, formatCurrency } = useCurrency();
+  const { 
+    baseCurrency, 
+    convertCurrency, 
+    formatCurrency,
+    activeCurrency,
+    setActiveCurrency,
+    conversionRates,
+    convertAndFormat 
+  } = useCurrency();
 
-  /**
-   * Format value based on the currency setting
-   */
   const formatValue = (value: number, currency?: string): string => {
-    return formatCurrency(value, currency || baseCurrency);
+    return formatCurrency(value, currency || activeCurrency || baseCurrency);
   };
 
-  /**
-   * Convert value from one currency to another
-   */
   const convertValue = (value: number, fromCurrency: string, toCurrency?: string): number => {
-    return convertCurrency(value, fromCurrency, toCurrency || baseCurrency);
+    return convertCurrency(value, fromCurrency, toCurrency || activeCurrency || baseCurrency);
   };
 
   return {
     formatValue,
     convertValue,
-    baseCurrency
+    baseCurrency,
+    activeCurrency,
+    setActiveCurrency,
+    conversionRates,
+    convertAndFormat
   };
 }

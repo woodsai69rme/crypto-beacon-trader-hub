@@ -1,13 +1,15 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CurrencyConversion } from '@/types/trading';
 
 interface CurrencyContextType {
   baseCurrency: string;
+  activeCurrency: string;
   setBaseCurrency: (currency: string) => void;
+  setActiveCurrency: (currency: string) => void;
   conversionRates: CurrencyConversion;
   formatCurrency: (amount: number, currency?: string) => string;
   convertCurrency: (amount: number, fromCurrency: string, toCurrency: string) => number;
+  convertAndFormat: (amount: number, fromCurrency: string, toCurrency: string) => string;
 }
 
 const defaultConversionRates: CurrencyConversion = {
@@ -22,29 +24,25 @@ const defaultConversionRates: CurrencyConversion = {
 
 const CurrencyContext = createContext<CurrencyContextType>({
   baseCurrency: 'USD',
+  activeCurrency: 'USD',
   setBaseCurrency: () => {},
+  setActiveCurrency: () => {},
   conversionRates: defaultConversionRates,
   formatCurrency: () => '',
   convertCurrency: () => 0,
+  convertAndFormat: () => ''
 });
 
 export const useCurrencyContext = () => useContext(CurrencyContext);
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [baseCurrency, setBaseCurrency] = useState<string>('USD');
+  const [activeCurrency, setActiveCurrency] = useState<string>('USD');
   const [conversionRates, setConversionRates] = useState<CurrencyConversion>(defaultConversionRates);
   
-  // In a real app, you would fetch these rates from an API
   useEffect(() => {
-    // Simulate fetching rates
     const fetchRates = async () => {
       try {
-        // In a real app, fetch from API
-        // const response = await fetch('https://api.example.com/rates');
-        // const data = await response.json();
-        // setConversionRates(data);
-        
-        // For demo, just use static rates
         setConversionRates(defaultConversionRates);
       } catch (error) {
         console.error('Failed to fetch currency rates:', error);
@@ -53,15 +51,13 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     fetchRates();
     
-    // Set up a timer to refresh rates regularly
-    const interval = setInterval(fetchRates, 60 * 60 * 1000); // Every hour
+    const interval = setInterval(fetchRates, 60 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, []);
   
-  // Format a number as a currency string
   const formatCurrency = (amount: number, currency?: string): string => {
-    const currencyToUse = currency || baseCurrency;
+    const currencyToUse = currency || activeCurrency || baseCurrency;
     
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -71,36 +67,41 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }).format(amount);
   };
   
-  // Convert an amount from one currency to another
   const convertCurrency = (amount: number, fromCurrency: string, toCurrency: string): number => {
     if (fromCurrency === toCurrency) return amount;
     
-    // Convert to USD as the intermediate step if needed
     let inUSD = amount;
     
     if (fromCurrency !== 'USD') {
       const rateKey = `${fromCurrency}_USD` as keyof CurrencyConversion;
       const rate = conversionRates[rateKey] || 1;
-      inUSD = amount * rate;
+      inUSD = Number(amount) * Number(rate);
     }
     
-    // Convert from USD to target currency
     if (toCurrency !== 'USD') {
       const rateKey = `USD_${toCurrency}` as keyof CurrencyConversion;
       const rate = conversionRates[rateKey] || 1;
-      return inUSD * rate;
+      return Number(inUSD) * Number(rate);
     }
     
     return inUSD;
+  };
+
+  const convertAndFormat = (amount: number, fromCurrency: string, toCurrency: string): string => {
+    const convertedAmount = convertCurrency(amount, fromCurrency, toCurrency);
+    return formatCurrency(convertedAmount, toCurrency);
   };
   
   return (
     <CurrencyContext.Provider value={{
       baseCurrency,
+      activeCurrency,
       setBaseCurrency,
+      setActiveCurrency,
       conversionRates,
       formatCurrency,
       convertCurrency,
+      convertAndFormat
     }}>
       {children}
     </CurrencyContext.Provider>
