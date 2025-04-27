@@ -1,455 +1,418 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { 
+  Card, CardHeader, CardTitle, CardDescription, CardContent 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
+import { 
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem 
+} from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { predefinedStrategies, optimizeStrategy } from '@/utils/aiTradingStrategies';
-import { BarChart2, Calendar, Settings2, Info, LineChart, TrendingUp, TrendingDown } from 'lucide-react';
-import { AITradingStrategy, OptimizationResult } from '@/types/trading';
-import { format, subDays, subMonths } from 'date-fns';
+import { 
+  AITradingStrategy, 
+  OptimizationResult, 
+  StrategyParameter 
+} from '@/types/trading';
+import { sampleStrategies } from '@/utils/aiTradingStrategies';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, Cell 
+} from 'recharts';
 
-interface StrategyOptimizationProps {
-  selectedStrategyId: string | null;
-}
+const OPTIMIZATION_METHODS = [
+  { value: 'grid', label: 'Grid Search' },
+  { value: 'random', label: 'Random Search' },
+  { value: 'bayesian', label: 'Bayesian Optimization' },
+  { value: 'genetic', label: 'Genetic Algorithm' },
+];
 
-const StrategyOptimization: React.FC<StrategyOptimizationProps> = ({ selectedStrategyId }) => {
-  const [availableCoins] = useState([
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL' },
-    { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
-    { id: 'ripple', name: 'XRP', symbol: 'XRP' },
-    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX' },
-    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT' },
-    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' },
-    { id: 'cosmos', name: 'Cosmos', symbol: 'ATOM' },
-    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK' },
-  ]);
-  
-  const [selectedCoin, setSelectedCoin] = useState<string>('bitcoin');
-  const [timeframe, setTimeframe] = useState<string>('90d');
-  const [initialCapital, setInitialCapital] = useState<number>(10000);
-  const [strategy, setStrategy] = useState<AITradingStrategy | null>(null);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [optimizationResults, setOptimizationResults] = useState<OptimizationResult[] | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('results');
-  const [parameterRanges, setParameterRanges] = useState<Record<string, {min: number, max: number, step: number}>>({});
-  const [enabledParameters, setEnabledParameters] = useState<Record<string, boolean>>({});
+const OPTIMIZATION_METRICS = [
+  { value: 'profit', label: 'Total Profit' },
+  { value: 'sharpe', label: 'Sharpe Ratio' },
+  { value: 'drawdown', label: 'Minimize Drawdown' },
+  { value: 'winRate', label: 'Win Rate' },
+];
 
-  const sortOptions = [
-    { label: 'Total Return', value: 'totalReturn' },
-    { label: 'Win Rate', value: 'winRate' },
-    { label: 'Max Drawdown', value: 'maxDrawdown' },
-    { label: 'Sharpe Ratio', value: 'sharpeRatio' },
-    { label: 'Profit Factor', value: 'profitFactor' }
-  ];
-  const [sortBy, setSortBy] = useState<string>('totalReturn');
+// Generate mock optimization results
+const generateOptimizationResults = (strategy: AITradingStrategy, iterations: number): OptimizationResult[] => {
+  const results: OptimizationResult[] = [];
   
-  // Find the selected strategy from the predefined list
-  useEffect(() => {
-    if (selectedStrategyId) {
-      const found = predefinedStrategies.find(s => s.id === selectedStrategyId);
-      if (found) {
-        setStrategy(found);
-        
-        // Initialize parameter ranges and enabled state
-        const initialRanges: Record<string, {min: number, max: number, step: number}> = {};
-        const initialEnabled: Record<string, boolean> = {};
-        
-        found.parameters.forEach(param => {
-          if (param.type === 'number' && param.min !== undefined && param.max !== undefined) {
-            initialRanges[param.name] = {
-              min: param.min,
-              max: param.max,
-              step: param.step || 1
-            };
-            initialEnabled[param.name] = true;
-          }
-        });
-        
-        setParameterRanges(initialRanges);
-        setEnabledParameters(initialEnabled);
-      }
-    }
-  }, [selectedStrategyId]);
-  
-  const handleRunOptimization = async () => {
-    if (!strategy) return;
+  for (let i = 0; i < iterations; i++) {
+    // Create a random variation of the parameters
+    const parameterValues: Record<string, any> = {};
+    const parameters: StrategyParameter[] = [];
     
-    // Filter only enabled parameters
-    const enabledRanges: Record<string, {min: number, max: number, step: number}> = {};
-    Object.keys(enabledParameters).forEach(paramName => {
-      if (enabledParameters[paramName]) {
-        enabledRanges[paramName] = parameterRanges[paramName];
+    strategy.parameters.forEach(param => {
+      if (param.type === 'number' && param.min !== undefined && param.max !== undefined) {
+        const value = param.min + Math.random() * (param.max - param.min);
+        parameterValues[param.name] = Math.round(value * 100) / 100;
+      } else if (param.type === 'boolean') {
+        parameterValues[param.name] = Math.random() > 0.5;
+      } else if (param.type === 'select' && param.options) {
+        const randomIndex = Math.floor(Math.random() * param.options.length);
+        parameterValues[param.name] = param.options[randomIndex];
+      } else {
+        parameterValues[param.name] = param.value;
       }
+      
+      parameters.push({
+        ...param,
+        value: parameterValues[param.name],
+      });
     });
     
-    // Check if at least one parameter is enabled
-    if (Object.keys(enabledRanges).length === 0) {
+    // Random performance metrics
+    const profit = Math.random() * 5000 - 1000;
+    const profitPercentage = profit / 10000 * 100;
+    const winRate = 0.4 + Math.random() * 0.4;
+    const maxDrawdown = 5 + Math.random() * 15;
+    
+    results.push({
+      strategyId: strategy.id,
+      parameterValues,
+      parameters,
+      performance: {
+        profit,
+        profitPercentage,
+        winRate,
+        maxDrawdown,
+        sharpeRatio: 0.8 + Math.random() * 1.2,
+        profitFactor: 1 + Math.random() * 1.5,
+        totalReturn: profitPercentage,
+      },
+      improvement: Math.random() * 30,
+    });
+  }
+  
+  // Sort by profit (or other performance metric)
+  results.sort((a, b) => b.performance.profit - a.performance.profit);
+  
+  return results;
+};
+
+const StrategyOptimization = () => {
+  const [selectedStrategy, setSelectedStrategy] = useState<string>(sampleStrategies[0]?.id || '');
+  const [selectedMethod, setSelectedMethod] = useState<string>('grid');
+  const [selectedMetric, setSelectedMetric] = useState<string>('profit');
+  const [iterations, setIterations] = useState<number>(50);
+  const [isAdvanced, setIsAdvanced] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<OptimizationResult[] | null>(null);
+
+  const handleRunOptimization = () => {
+    setIsLoading(true);
+    
+    // Find the selected strategy
+    const strategyToOptimize = sampleStrategies.find(s => s.id === selectedStrategy);
+    
+    if (!strategyToOptimize) {
       toast({
+        title: "Error",
+        description: "Strategy not found",
         variant: "destructive",
-        title: "Optimization Error",
-        description: "Please enable at least one parameter to optimize",
       });
+      setIsLoading(false);
       return;
     }
     
-    setIsRunning(true);
-    setOptimizationResults(null);
+    // Simulate API call delay
+    setTimeout(() => {
+      const mockResults = generateOptimizationResults(strategyToOptimize, iterations);
+      setResults(mockResults);
+      setIsLoading(false);
+      
+      toast({
+        title: "Optimization completed",
+        description: `Found ${mockResults.length} parameter combinations.`,
+      });
+    }, 3000);
+  };
+
+  // Format number as currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value);
+  };
+
+  // Format number as percentage
+  const formatPercent = (value: number) => {
+    return `${value.toFixed(2)}%`;
+  };
+  
+  // Get the currently selected strategy
+  const selectedStrategyObj = sampleStrategies.find(s => s.id === selectedStrategy);
+  
+  // Prepare chart data from optimization results
+  const prepareChartData = (optimizationResults: OptimizationResult[] | null) => {
+    if (!optimizationResults) return [];
     
-    try {
-      // Determine date range
-      let startDate: Date;
-      const endDate = new Date();
-      
-      switch (timeframe) {
-        case '30d':
-          startDate = subDays(endDate, 30);
-          break;
-        case '90d':
-          startDate = subDays(endDate, 90);
-          break;
-        case '6m':
-          startDate = subMonths(endDate, 6);
-          break;
-        case '1y':
-          startDate = subMonths(endDate, 12);
-          break;
-        default:
-          startDate = subDays(endDate, 90);
-      }
-      
-      // Run optimization
-      const results = await optimizeStrategy(
-        strategy.id,
-        selectedCoin,
-        startDate,
-        endDate,
-        initialCapital,
-        enabledRanges
-      );
-      
-      // Sort results based on selected criteria
-      results.sort((a, b) => {
-        if (sortBy === 'maxDrawdown') {
-          // For drawdown, lower is better
-          return a.performance[sortBy] - b.performance[sortBy];
-        } else {
-          // For all other metrics, higher is better
-          return b.performance[sortBy] - a.performance[sortBy];
-        }
-      });
-      
-      setOptimizationResults(results);
-      
-      toast({
-        title: "Optimization complete",
-        description: `${results.length} parameter combinations analyzed`,
-      });
-    } catch (error) {
-      console.error("Optimization error:", error);
-      toast({
-        variant: "destructive",
-        title: "Optimization failed",
-        description: "There was an error running the optimization",
-      });
-    } finally {
-      setIsRunning(false);
-    }
-  };
-  
-  const handleParameterRangeChange = (paramName: string, field: 'min' | 'max' | 'step', value: number) => {
-    setParameterRanges(prev => ({
-      ...prev,
-      [paramName]: {
-        ...prev[paramName],
-        [field]: value
-      }
+    // Return top 10 results for the chart
+    return optimizationResults.slice(0, 10).map((result, index) => ({
+      name: `Run ${index + 1}`,
+      profit: result.performance.profit,
+      profitPercentage: result.performance.profitPercentage,
+      winRate: result.performance.winRate * 100,
+      maxDrawdown: result.performance.maxDrawdown,
     }));
   };
   
-  const handleToggleParameter = (paramName: string) => {
-    setEnabledParameters(prev => ({
-      ...prev,
-      [paramName]: !prev[paramName]
-    }));
-  };
-  
-  // Show a message if no strategy is selected
-  if (!strategy) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 border rounded-md border-dashed p-6">
-        <Info size={32} className="text-muted-foreground mb-2" />
-        <h3 className="text-xl font-medium">No Strategy Selected</h3>
-        <p className="text-muted-foreground text-center mt-2">
-          Please select a strategy from the Strategies tab to start optimizing.
-        </p>
-      </div>
-    );
-  }
-  
+  const chartData = prepareChartData(results);
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Card className="flex-1">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="coin">Coin</Label>
-                <Select value={selectedCoin} onValueChange={setSelectedCoin}>
-                  <SelectTrigger id="coin">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCoins.map((coin) => (
-                      <SelectItem key={coin.id} value={coin.id}>
-                        {coin.name} ({coin.symbol})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="timeframe">Timeframe</Label>
-                <Select value={timeframe} onValueChange={setTimeframe}>
-                  <SelectTrigger id="timeframe">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30d">30 Days</SelectItem>
-                    <SelectItem value="90d">90 Days</SelectItem>
-                    <SelectItem value="6m">6 Months</SelectItem>
-                    <SelectItem value="1y">1 Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="capital">Initial Capital (USD)</Label>
-                <Input
-                  id="capital"
-                  type="number"
-                  value={initialCapital}
-                  onChange={(e) => setInitialCapital(Number(e.target.value))}
-                  min={100}
-                  step={100}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="sortBy">Sort Results By</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger id="sortBy">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Strategy Optimization</CardTitle>
+        <CardDescription>
+          Fine-tune strategy parameters for optimal performance
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="strategy">Trading Strategy</Label>
+              <Select
+                value={selectedStrategy}
+                onValueChange={setSelectedStrategy}
+              >
+                <SelectTrigger id="strategy">
+                  <SelectValue placeholder="Select strategy" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sampleStrategies.map(strategy => (
+                    <SelectItem key={strategy.id} value={strategy.id}>
+                      {strategy.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Strategy Parameters */}
-        <div className="md:col-span-1 space-y-4">
-          <h3 className="font-medium text-lg">Parameters to Optimize</h3>
-          <div className="space-y-6">
-            {strategy.parameters.map((param) => {
-              if (param.type !== 'number' || param.min === undefined || param.max === undefined) {
-                return null;
-              }
-              
-              return (
-                <div key={param.name} className="space-y-2 p-3 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor={`toggle-${param.name}`}>{param.label}</Label>
-                    <Switch 
-                      id={`toggle-${param.name}`}
-                      checked={!!enabledParameters[param.name]}
-                      onCheckedChange={() => handleToggleParameter(param.name)}
-                    />
+            
+            <div>
+              <Label htmlFor="metric">Optimization Goal</Label>
+              <Select
+                value={selectedMetric}
+                onValueChange={setSelectedMetric}
+              >
+                <SelectTrigger id="metric">
+                  <SelectValue placeholder="Select optimization metric" />
+                </SelectTrigger>
+                <SelectContent>
+                  {OPTIMIZATION_METRICS.map(metric => (
+                    <SelectItem key={metric.value} value={metric.value}>
+                      {metric.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="method">Optimization Method</Label>
+              <Select
+                value={selectedMethod}
+                onValueChange={setSelectedMethod}
+              >
+                <SelectTrigger id="method">
+                  <SelectValue placeholder="Select optimization method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {OPTIMIZATION_METHODS.map(method => (
+                    <SelectItem key={method.value} value={method.value}>
+                      {method.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="iterations">Number of Iterations</Label>
+              <Input
+                id="iterations"
+                type="number"
+                value={iterations}
+                onChange={(e) => setIterations(Number(e.target.value))}
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2 mb-6">
+          <Switch
+            checked={isAdvanced}
+            onCheckedChange={setIsAdvanced}
+            id="advanced-mode"
+          />
+          <Label htmlFor="advanced-mode">Advanced Optimization Settings</Label>
+        </div>
+        
+        {isAdvanced && (
+          <div className="p-4 border rounded-md mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="max-drawdown">Maximum Allowed Drawdown (%)</Label>
+              <Input
+                id="max-drawdown"
+                type="number"
+                placeholder="25"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="min-win-rate">Minimum Win Rate (%)</Label>
+              <Input
+                id="min-win-rate"
+                type="number"
+                placeholder="50"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="min-trades">Minimum Number of Trades</Label>
+              <Input
+                id="min-trades"
+                type="number"
+                placeholder="20"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="time-period">Optimization Period</Label>
+              <Select defaultValue="6m">
+                <SelectTrigger id="time-period">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1m">1 Month</SelectItem>
+                  <SelectItem value="3m">3 Months</SelectItem>
+                  <SelectItem value="6m">6 Months</SelectItem>
+                  <SelectItem value="1y">1 Year</SelectItem>
+                  <SelectItem value="2y">2 Years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+        
+        {selectedStrategyObj && (
+          <div className="p-4 border rounded-md mb-6">
+            <h3 className="font-medium text-sm mb-2">Parameters to Optimize: {selectedStrategyObj.name}</h3>
+            
+            {selectedStrategyObj.parameters.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedStrategyObj.parameters.map(param => (
+                  <div key={param.id} className="flex items-center justify-between border-b pb-2">
+                    <div>
+                      <span className="font-medium">{param.label || param.name}</span>
+                      <p className="text-xs text-gray-500">{param.description}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <Switch defaultChecked id={`optimize-${param.id}`} />
+                    </div>
                   </div>
-                  
-                  <div className={enabledParameters[param.name] ? '' : 'opacity-50'}>
-                    <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div>
-                        <Label htmlFor={`min-${param.name}`} className="text-xs">Min</Label>
-                        <Input
-                          id={`min-${param.name}`}
-                          type="number"
-                          value={parameterRanges[param.name]?.min}
-                          onChange={(e) => handleParameterRangeChange(param.name, 'min', Number(e.target.value))}
-                          disabled={!enabledParameters[param.name]}
-                          className="text-sm h-8"
-                        />
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-500 text-sm">No parameters available for optimization</div>
+            )}
+          </div>
+        )}
+        
+        <div className="flex justify-center mb-6">
+          <Button onClick={handleRunOptimization} disabled={isLoading}>
+            {isLoading ? 'Optimizing...' : 'Run Optimization'}
+          </Button>
+        </div>
+        
+        {results && results.length > 0 && (
+          <>
+            <h3 className="font-medium mb-3">Top Optimization Results</h3>
+            
+            <div className="w-full h-64 mb-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => 
+                    selectedMetric === 'profit' ? formatCurrency(Number(value)) : 
+                    `${Number(value).toFixed(2)}`
+                  } />
+                  <Bar 
+                    dataKey={selectedMetric === 'profit' ? 'profit' : 
+                            selectedMetric === 'sharpe' ? 'sharpeRatio' :
+                            selectedMetric === 'drawdown' ? 'maxDrawdown' : 'winRate'}
+                    name={OPTIMIZATION_METRICS.find(m => m.value === selectedMetric)?.label}
+                  >
+                    {chartData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={`#${(index * 500 + 2000).toString(16)}`} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="font-medium">Best Parameter Combination</h3>
+              <div className="p-4 bg-muted/30 border rounded-md">
+                <div className="grid grid-cols-2 gap-4">
+                  {results[0].parameters && results[0].parameters.map((param) => (
+                    <div key={param.id} className="space-y-1">
+                      <div className="text-sm font-medium">{param.label || param.name}</div>
+                      <div className="text-lg">{
+                        typeof param.value === 'number' ? 
+                          Number(param.value).toFixed(2) : 
+                          String(param.value)
+                      }</div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <div className="text-sm font-medium mb-2">Performance Metrics</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div>
+                      <div className="text-xs text-gray-500">Profit</div>
+                      <div className={`${results[0].performance.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(results[0].performance.profit)}
                       </div>
-                      <div>
-                        <Label htmlFor={`max-${param.name}`} className="text-xs">Max</Label>
-                        <Input
-                          id={`max-${param.name}`}
-                          type="number"
-                          value={parameterRanges[param.name]?.max}
-                          onChange={(e) => handleParameterRangeChange(param.name, 'max', Number(e.target.value))}
-                          disabled={!enabledParameters[param.name]}
-                          className="text-sm h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`step-${param.name}`} className="text-xs">Step</Label>
-                        <Input
-                          id={`step-${param.name}`}
-                          type="number"
-                          value={parameterRanges[param.name]?.step}
-                          onChange={(e) => handleParameterRangeChange(param.name, 'step', Number(e.target.value))}
-                          disabled={!enabledParameters[param.name]}
-                          className="text-sm h-8"
-                        />
-                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Win Rate</div>
+                      <div>{formatPercent(results[0].performance.winRate * 100)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Max Drawdown</div>
+                      <div className="text-red-600">{formatPercent(results[0].performance.maxDrawdown)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Improvement</div>
+                      <div className="text-green-600">+{formatPercent(results[0].improvement)}</div>
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          
-          <Button 
-            className="w-full mt-4" 
-            onClick={handleRunOptimization}
-            disabled={isRunning}
-          >
-            {isRunning ? "Optimizing..." : "Run Optimization"}
-          </Button>
-          
-          <p className="text-xs text-muted-foreground">
-            Note: Optimization tests multiple parameter combinations to find the best performing settings.
-            This process may take several minutes.
-          </p>
-        </div>
-        
-        {/* Optimization Results */}
-        <div className="md:col-span-3 border rounded-lg p-4">
-          {isRunning ? (
-            <div className="flex flex-col items-center justify-center h-64">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 border-t-2 border-b-2 border-primary rounded-full animate-spin"></div>
-                <Settings2 className="w-6 h-6 animate-pulse text-primary" />
               </div>
-              <p className="mt-4 text-sm text-center text-muted-foreground">
-                Optimizing {strategy.name} parameters.<br />
-                Testing multiple parameter combinations...
-              </p>
+              
+              <div className="flex space-x-4">
+                <Button>Apply Parameters</Button>
+                <Button variant="outline">Export Results</Button>
+              </div>
             </div>
-          ) : optimizationResults ? (
-            <div className="space-y-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-2">
-                  <TabsTrigger value="results" className="flex items-center">
-                    <BarChart2 className="w-4 h-4 mr-1" />
-                    <span>Results Table</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="chart" className="flex items-center">
-                    <LineChart className="w-4 h-4 mr-1" />
-                    <span>Performance Chart</span>
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="results" className="pt-4">
-                  {/* Results Table */}
-                  <div className="border rounded overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-muted/50">
-                          <th className="py-2 px-3 text-left">Rank</th>
-                          <th className="py-2 px-3 text-left">Parameters</th>
-                          <th className="py-2 px-3 text-right">Return</th>
-                          <th className="py-2 px-3 text-right">Win Rate</th>
-                          <th className="py-2 px-3 text-right">Drawdown</th>
-                          <th className="py-2 px-3 text-right">Sharpe</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {optimizationResults.map((result, index) => (
-                          <tr key={index} className={`border-b ${index === 0 ? 'bg-green-50 dark:bg-green-900/10' : ''}`}>
-                            <td className="py-2 px-3">
-                              {index === 0 ? (
-                                <span className="flex items-center">
-                                  <TrendingUp className="text-green-500 w-4 h-4 mr-1" />
-                                  Best
-                                </span>
-                              ) : (
-                                `#${index + 1}`
-                              )}
-                            </td>
-                            <td className="py-2 px-3">
-                              <div className="flex flex-wrap gap-1">
-                                {Object.entries(result.parameters).map(([name, value]) => (
-                                  <span key={name} className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs">
-                                    {name}: {value}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                            <td className={`py-2 px-3 text-right ${result.performance.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {result.performance.totalReturn.toFixed(2)}%
-                            </td>
-                            <td className="py-2 px-3 text-right">
-                              {result.performance.winRate.toFixed(2)}%
-                            </td>
-                            <td className="py-2 px-3 text-right">
-                              {result.performance.maxDrawdown.toFixed(2)}%
-                            </td>
-                            <td className="py-2 px-3 text-right">
-                              {result.performance.sharpeRatio.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="chart" className="pt-4">
-                  <div className="h-[350px] flex items-center justify-center border rounded">
-                    <div className="text-center p-4">
-                      <LineChart className="h-10 w-10 mb-2 mx-auto text-muted-foreground" />
-                      <h3 className="text-lg font-medium">Parameter Sensitivity Chart</h3>
-                      <p className="text-muted-foreground">
-                        This would show how each parameter affects performance.
-                      </p>
-                      <p className="text-sm mt-2">
-                        {Object.keys(enabledParameters).filter(k => enabledParameters[k]).join(", ")}
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64">
-              <Calendar className="h-12 w-12 mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium">No Optimization Results</h3>
-              <p className="text-muted-foreground text-center mt-2 max-w-md">
-                Select parameters to optimize and run the optimization to find the best parameters for your strategy.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

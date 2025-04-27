@@ -16,6 +16,7 @@ export interface Trade {
   exchange?: string;
   notes?: string;
   tags?: string[];
+  strategyId?: string;
 }
 
 export interface CoinOption {
@@ -112,6 +113,7 @@ export interface AITradingStrategy {
   backtest?: BacktestResult;
   stats?: any; // For additional stats
   type?: string; // Strategy type
+  color?: string; // Card color for visual identification
 }
 
 export interface StrategyParameter {
@@ -133,6 +135,7 @@ export interface TechnicalIndicator {
   params?: Record<string, any>;
   key?: string; // Unique identifier
   category?: string; // Category for grouping
+  description?: string; // Description of the indicator
 }
 
 export type ExtendedTradingTimeframe =
@@ -144,9 +147,10 @@ export interface TimeframeOption {
   value: ExtendedTradingTimeframe;
   label: string;
   description: string;
+  minutes?: number;
 }
 
-export type TradingTimeframe = ExtendedTradingTimeframe | string;
+export type TradingTimeframe = ExtendedTradingTimeframe | TimeframeOption;
 
 export interface BacktestResult {
   startDate: string;
@@ -174,6 +178,7 @@ export interface BacktestResult {
 export interface OptimizationResult {
   strategyId: string;
   parameterValues: Record<string, any>;
+  parameters?: StrategyParameter[];
   performance: {
     profit: number;
     profitPercentage: number;
@@ -181,6 +186,7 @@ export interface OptimizationResult {
     winRate: number;
     sharpeRatio?: number;
     profitFactor?: number;
+    totalReturn?: number;
   };
   improvement: number;
 }
@@ -240,4 +246,29 @@ export interface ApiProvider {
   };
   enabled: boolean;
   priority: number; // Lower number = higher priority
+}
+
+// Australian Tax Office specific interfaces
+export interface ATOTaxCalculation {
+  financialYear: string; // Format: "2023-2024"
+  assessableIncome: number;
+  capitalGains: number;
+  shortTermGains: number; // Less than 12 months
+  longTermGains: number; // More than 12 months
+  CGTDiscount?: number; // Capital Gains Tax Discount (usually 50% for individuals)
+  deductions: number;
+  taxableIncome: number;
+  taxPayable: number;
+  medicareLevyPayable: number;
+  taxWithheld?: number;
+  taxRefundOrOwed: number; // Positive = refund, negative = owing
+  currency: string;
+}
+
+export interface ATOTaxRate {
+  minIncome: number;
+  maxIncome: number | null;
+  baseAmount: number;
+  marginRate: number; // Percentage
+  year: string; // Financial year e.g., "2023-2024"
 }

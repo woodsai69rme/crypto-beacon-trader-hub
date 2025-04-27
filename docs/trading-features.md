@@ -121,10 +121,22 @@ Compare your portfolio performance against:
 Comprehensive tax tools for cryptocurrency traders:
 
 - **Tax Calculation**: Calculate capital gains and losses
+- **ATO Integration**: Australian taxation support with CGT discount
 - **Tax Loss Harvesting**: Find opportunities to offset gains
 - **Wash Sale Detection**: Avoid disallowed losses
 - **Multiple Accounting Methods**: FIFO, LIFO, HIFO, and more
 - **Export Reports**: Generate tax forms and reports
+
+#### ATO Tax Calculator
+
+The ATO Tax Calculator provides specialized support for Australian cryptocurrency traders:
+
+- Financial year selection (July-June fiscal year)
+- 50% CGT discount for long-term gains (assets held >12 months)
+- Integration with current ATO tax brackets
+- Medicare levy calculation
+- Support for additional income and deductions
+- Comprehensive tax reporting
 
 ## Error Handling
 
@@ -175,3 +187,32 @@ The application implements comprehensive error handling:
 9. Configure API fallbacks to ensure continuous data availability
 10. Export your data regularly for backup purposes
 
+## Recent Features and Enhancements
+
+### Enhanced API Integration
+- Support for more data providers
+- Improved error handling and fallbacks
+- Better rate limiting management
+- Custom endpoint configuration
+
+### Granular Timeframe Options
+- More detailed time intervals for trading and analysis
+- Custom timeframe selection
+- Extended historical data options
+
+### Tax Loss Harvesting
+- Sophisticated algorithms to identify tax loss opportunities
+- Wash sale rule compliance
+- Tax-efficient trading recommendations
+
+### ATO Tax Integration
+- Australian tax calculations and reporting
+- CGT discount handling
+- Financial year-based reporting (July-June)
+- Integration with ATO tax brackets and rates
+
+### Mobile Experience Improvements
+- Responsive design optimizations
+- Touch-friendly interface elements
+- Streamlined navigation for small screens
+- Performance enhancements for mobile devices

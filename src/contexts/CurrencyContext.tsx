@@ -1,120 +1,107 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchCurrencyRates } from '@/services/currencyApi';
-import { toast } from "@/components/ui/use-toast";
 
-export type SupportedCurrency = 'USD' | 'AUD';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { CurrencyConversion } from '@/types/trading';
 
 interface CurrencyContextType {
-  activeCurrency: SupportedCurrency;
-  setActiveCurrency: (currency: SupportedCurrency) => void;
-  conversionRates: {
-    USD_AUD: number;
-    AUD_USD: number;
-  };
-  isLoading: boolean;
-  formatCurrency: (amount: number, currency?: SupportedCurrency) => string;
-  convertAmount: (amount: number, from: SupportedCurrency, to: SupportedCurrency) => number;
+  baseCurrency: string;
+  setBaseCurrency: (currency: string) => void;
+  conversionRates: CurrencyConversion;
+  formatCurrency: (amount: number, currency?: string) => string;
+  convertCurrency: (amount: number, fromCurrency: string, toCurrency: string) => number;
 }
 
-const defaultConversionRates = {
-  USD_AUD: 1.45,
-  AUD_USD: 0.69
+const defaultConversionRates: CurrencyConversion = {
+  USD_AUD: 1.48,
+  AUD_USD: 0.675,
+  USD_EUR: 0.92,
+  EUR_USD: 1.09,
+  USD_GBP: 0.79,
+  GBP_USD: 1.27,
+  lastUpdated: new Date().toISOString(),
 };
 
 const CurrencyContext = createContext<CurrencyContextType>({
-  activeCurrency: 'USD',
-  setActiveCurrency: () => {},
+  baseCurrency: 'USD',
+  setBaseCurrency: () => {},
   conversionRates: defaultConversionRates,
-  isLoading: false,
   formatCurrency: () => '',
-  convertAmount: () => 0
+  convertCurrency: () => 0,
 });
 
-export const useCurrency = () => useContext(CurrencyContext);
+export const useCurrencyContext = () => useContext(CurrencyContext);
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>(() => {
-    // Try to load from localStorage, default to AUD instead of USD
-    const saved = localStorage.getItem('preferred-currency');
-    return (saved as SupportedCurrency) || 'AUD';
-  });
+  const [baseCurrency, setBaseCurrency] = useState<string>('USD');
+  const [conversionRates, setConversionRates] = useState<CurrencyConversion>(defaultConversionRates);
   
-  const [conversionRates, setConversionRates] = useState(defaultConversionRates);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Update localStorage when currency changes
+  // In a real app, you would fetch these rates from an API
   useEffect(() => {
-    localStorage.setItem('preferred-currency', activeCurrency);
-  }, [activeCurrency]);
-
-  // Fetch conversion rates on mount and every 6 hours
-  useEffect(() => {
+    // Simulate fetching rates
     const fetchRates = async () => {
-      setIsLoading(true);
       try {
-        const rates = await fetchCurrencyRates();
-        setConversionRates(rates);
+        // In a real app, fetch from API
+        // const response = await fetch('https://api.example.com/rates');
+        // const data = await response.json();
+        // setConversionRates(data);
+        
+        // For demo, just use static rates
+        setConversionRates(defaultConversionRates);
       } catch (error) {
         console.error('Failed to fetch currency rates:', error);
-        toast({
-          title: "Currency Conversion Issue",
-          description: "Using default conversion rates due to API error",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
       }
     };
-
+    
     fetchRates();
     
-    // Refresh rates every 6 hours
-    const intervalId = setInterval(fetchRates, 6 * 60 * 60 * 1000);
-    return () => clearInterval(intervalId);
+    // Set up a timer to refresh rates regularly
+    const interval = setInterval(fetchRates, 60 * 60 * 1000); // Every hour
+    
+    return () => clearInterval(interval);
   }, []);
-
-  // Format currency based on active currency or override
-  const formatCurrency = (amount: number, currency?: SupportedCurrency): string => {
-    const currencyToUse = currency || activeCurrency;
+  
+  // Format a number as a currency string
+  const formatCurrency = (amount: number, currency?: string): string => {
+    const currencyToUse = currency || baseCurrency;
     
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currencyToUse,
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   };
-
-  // Convert amount between currencies
-  const convertAmount = (
-    amount: number,
-    from: SupportedCurrency,
-    to: SupportedCurrency
-  ): number => {
-    if (from === to) return amount;
+  
+  // Convert an amount from one currency to another
+  const convertCurrency = (amount: number, fromCurrency: string, toCurrency: string): number => {
+    if (fromCurrency === toCurrency) return amount;
     
-    if (from === 'USD' && to === 'AUD') {
-      return amount * conversionRates.USD_AUD;
+    // Convert to USD as the intermediate step if needed
+    let inUSD = amount;
+    
+    if (fromCurrency !== 'USD') {
+      const rateKey = `${fromCurrency}_USD` as keyof CurrencyConversion;
+      const rate = conversionRates[rateKey] || 1;
+      inUSD = amount * rate;
     }
     
-    if (from === 'AUD' && to === 'USD') {
-      return amount * conversionRates.AUD_USD;
+    // Convert from USD to target currency
+    if (toCurrency !== 'USD') {
+      const rateKey = `USD_${toCurrency}` as keyof CurrencyConversion;
+      const rate = conversionRates[rateKey] || 1;
+      return inUSD * rate;
     }
     
-    return amount;
+    return inUSD;
   };
-
+  
   return (
-    <CurrencyContext.Provider
-      value={{
-        activeCurrency,
-        setActiveCurrency,
-        conversionRates,
-        isLoading,
-        formatCurrency,
-        convertAmount
-      }}
-    >
+    <CurrencyContext.Provider value={{
+      baseCurrency,
+      setBaseCurrency,
+      conversionRates,
+      formatCurrency,
+      convertCurrency,
+    }}>
       {children}
     </CurrencyContext.Provider>
   );

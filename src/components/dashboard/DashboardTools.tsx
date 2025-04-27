@@ -9,9 +9,10 @@ import MarketMetrics from "../MarketMetrics";
 import LocalAiModels from "../trading/LocalAiModels";
 import ApiProviderManagement from "../api/ApiProviderManagement";
 import TaxHarvestingTool from "../tax/TaxHarvestingTool";
+import ATOTaxCalculator from "../tax/ATOTaxCalculator";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { toast } from "@/components/ui/use-toast";
-import { Download, Settings, BarChart4, Tax, Database, Share2 } from "lucide-react";
+import { Download, Settings, BarChart4, FileText, Database, Share2 } from "lucide-react";
 
 // Sample portfolio performance data for demo
 const samplePortfolioData = {
@@ -63,7 +64,7 @@ const DashboardTools = () => {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-6 mb-6">
+        <TabsList className="grid grid-cols-7 mb-6">
           <TabsTrigger value="metrics">
             <BarChart4 className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Market Metrics</span>
@@ -75,12 +76,17 @@ const DashboardTools = () => {
             <span className="sm:hidden">Benchmarking</span>
           </TabsTrigger>
           <TabsTrigger value="tax">
-            <Tax className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Tax Calculator</span>
             <span className="sm:hidden">Tax</span>
           </TabsTrigger>
+          <TabsTrigger value="ato">
+            <FileText className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">ATO Tax</span>
+            <span className="sm:hidden">ATO</span>
+          </TabsTrigger>
           <TabsTrigger value="harvest">
-            <Tax className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Tax Harvesting</span>
             <span className="sm:hidden">Harvest</span>
           </TabsTrigger>
@@ -109,6 +115,10 @@ const DashboardTools = () => {
         
         <TabsContent value="tax">
           <TaxCalculator trades={trades} />
+        </TabsContent>
+        
+        <TabsContent value="ato">
+          <ATOTaxCalculator />
         </TabsContent>
         
         <TabsContent value="harvest">

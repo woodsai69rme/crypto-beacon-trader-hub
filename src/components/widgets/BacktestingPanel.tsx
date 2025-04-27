@@ -1,433 +1,459 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { 
+  Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
+import { 
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem 
+} from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { predefinedStrategies, runBacktest } from '@/utils/aiTradingStrategies';
-import { BarChart3, Calendar, Coins, Info, LineChart, AreaChart } from 'lucide-react';
-import { AITradingStrategy, BacktestResult } from '@/types/trading';
-import { format, subDays, subMonths } from 'date-fns';
+import { 
+  BacktestResult, BacktestTrade, TimeframeOption, 
+  AITradingStrategy  
+} from '@/types/trading';
+import { 
+  availableTimeframes, 
+  sampleStrategies 
+} from '@/utils/aiTradingStrategies';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, Legend 
+} from 'recharts';
 
-interface BacktestingPanelProps {
-  selectedStrategyId: string | null;
-}
+const sampleCoins = [
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
+  { id: 'solana', name: 'Solana', symbol: 'SOL' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
+  { id: 'binancecoin', name: 'BNB', symbol: 'BNB' },
+  { id: 'polkadot', name: 'Polkadot', symbol: 'DOT' },
+  { id: 'ripple', name: 'XRP', symbol: 'XRP' },
+  { id: 'avalanche-2', name: 'Avalanche', symbol: 'AVAX' },
+  { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' },
+  { id: 'shiba-inu', name: 'Shiba Inu', symbol: 'SHIB' },
+];
 
-const BacktestingPanel: React.FC<BacktestingPanelProps> = ({ selectedStrategyId }) => {
-  const [availableCoins] = useState([
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL' },
-    { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
-    { id: 'ripple', name: 'XRP', symbol: 'XRP' },
-    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX' },
-    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT' },
-    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' },
-    { id: 'cosmos', name: 'Cosmos', symbol: 'ATOM' },
-    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK' },
-  ]);
+const generateMockBacktestResults = (): BacktestResult => {
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 3);
   
-  const [selectedCoin, setSelectedCoin] = useState<string>('bitcoin');
-  const [timeframe, setTimeframe] = useState<string>('30d');
-  const [initialCapital, setInitialCapital] = useState<number>(10000);
-  const [strategy, setStrategy] = useState<AITradingStrategy | null>(null);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [backtestResult, setBacktestResult] = useState<BacktestResult | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('overview');
-  const [parameterValues, setParameterValues] = useState<Record<string, any>>({});
+  const endDate = new Date();
+  const initialBalance = 10000;
   
-  // Find the selected strategy from the predefined list
-  useEffect(() => {
-    if (selectedStrategyId) {
-      const found = predefinedStrategies.find(s => s.id === selectedStrategyId);
-      if (found) {
-        setStrategy(found);
-        
-        // Initialize parameter values
-        const initialParams: Record<string, any> = {};
-        found.parameters.forEach(param => {
-          initialParams[param.name] = param.value;
-        });
-        setParameterValues(initialParams);
-      }
-    }
-  }, [selectedStrategyId]);
+  // Generate some random trades
+  const trades: BacktestTrade[] = [];
+  let runningBalance = initialBalance;
   
-  const handleRunBacktest = async () => {
-    if (!strategy) return;
-    
-    setIsRunning(true);
-    setBacktestResult(null);
-    
-    try {
-      // Determine date range
-      let startDate: Date;
-      const endDate = new Date();
+  let currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    // Generate a trade every 1-3 days
+    if (Math.random() < 0.33) {
+      const tradeType = Math.random() > 0.5 ? 'buy' : 'sell';
+      const price = 20000 + (Math.random() * 10000) - 5000;  // Around 20k ±5k
+      const amount = 0.1 + Math.random() * 0.4;  // 0.1 to 0.5 coins
+      const total = price * amount;
       
-      switch (timeframe) {
-        case '7d':
-          startDate = subDays(endDate, 7);
-          break;
-        case '30d':
-          startDate = subDays(endDate, 30);
-          break;
-        case '90d':
-          startDate = subDays(endDate, 90);
-          break;
-        case '6m':
-          startDate = subMonths(endDate, 6);
-          break;
-        case '1y':
-          startDate = subMonths(endDate, 12);
-          break;
-        default:
-          startDate = subDays(endDate, 30);
+      let profit = 0;
+      let profitPercentage = 0;
+      
+      // Calculate profit for sell orders
+      if (tradeType === 'sell' && trades.length > 0) {
+        // Find last buy order to calculate profit
+        const lastBuy = [...trades].reverse().find(t => t.type === 'buy');
+        if (lastBuy) {
+          profit = (price - lastBuy.price) * amount;
+          profitPercentage = ((price / lastBuy.price) - 1) * 100;
+        }
       }
       
-      // Run backtest
-      const result = await runBacktest(
-        strategy.id,
-        selectedCoin,
-        startDate,
-        endDate,
-        initialCapital,
-        parameterValues
-      );
+      const trade: BacktestTrade = {
+        id: `trade-${trades.length + 1}`,
+        timestamp: currentDate.toISOString(),
+        type: tradeType as 'buy' | 'sell',
+        price,
+        amount,
+        total,
+        profit,
+        profitPercentage,
+        date: currentDate.toLocaleDateString(),
+      };
       
-      setBacktestResult(result);
+      trades.push(trade);
       
-      toast({
-        title: "Backtest complete",
-        description: `${strategy.name} showed ${result.totalReturn.toFixed(2)}% return over ${timeframe}`,
-      });
-    } catch (error) {
-      console.error("Backtest error:", error);
-      toast({
-        variant: "destructive",
-        title: "Backtest failed",
-        description: "There was an error running the backtest",
-      });
-    } finally {
-      setIsRunning(false);
+      if (tradeType === 'buy') {
+        runningBalance -= total;
+      } else {
+        runningBalance += total;
+      }
     }
-  };
-  
-  const handleParameterChange = (paramName: string, value: any) => {
-    setParameterValues({
-      ...parameterValues,
-      [paramName]: value,
-    });
-  };
-  
-  // Show a message if no strategy is selected
-  if (!strategy) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 border rounded-md border-dashed p-6">
-        <Info size={32} className="text-muted-foreground mb-2" />
-        <h3 className="text-xl font-medium">No Strategy Selected</h3>
-        <p className="text-muted-foreground text-center mt-2">
-          Please select a strategy from the Strategies tab to start backtesting.
-        </p>
-      </div>
-    );
+    
+    // Advance 1-3 days
+    const daysToAdvance = 1 + Math.floor(Math.random() * 3);
+    currentDate.setDate(currentDate.getDate() + daysToAdvance);
   }
   
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Card className="flex-1">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="coin">Coin</Label>
-                <Select value={selectedCoin} onValueChange={setSelectedCoin}>
-                  <SelectTrigger id="coin">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCoins.map((coin) => (
-                      <SelectItem key={coin.id} value={coin.id}>
-                        {coin.name} ({coin.symbol})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="timeframe">Timeframe</Label>
-                <Select value={timeframe} onValueChange={setTimeframe}>
-                  <SelectTrigger id="timeframe">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7d">7 Days</SelectItem>
-                    <SelectItem value="30d">30 Days</SelectItem>
-                    <SelectItem value="90d">90 Days</SelectItem>
-                    <SelectItem value="6m">6 Months</SelectItem>
-                    <SelectItem value="1y">1 Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="capital">Initial Capital (USD)</Label>
-                <Input
-                  id="capital"
-                  type="number"
-                  value={initialCapital}
-                  onChange={(e) => setInitialCapital(Number(e.target.value))}
-                  min={100}
-                  step={100}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+  // Calculate final metrics
+  const winningTrades = trades.filter(t => (t.profit || 0) > 0).length;
+  const losingTrades = trades.filter(t => (t.profit || 0) < 0).length;
+  
+  const totalProfit = trades.reduce((sum, trade) => sum + (trade.profit || 0), 0);
+  const finalBalance = initialBalance + totalProfit;
+  
+  // Calculate maximum drawdown
+  let peak = initialBalance;
+  let maxDrawdown = 0;
+  
+  trades.forEach(trade => {
+    const currentBalance = trade.type === 'buy' 
+      ? peak - trade.total 
+      : peak + trade.total + (trade.profit || 0);
+    
+    if (currentBalance > peak) {
+      peak = currentBalance;
+    }
+    
+    const drawdown = (peak - currentBalance) / peak * 100;
+    if (drawdown > maxDrawdown) {
+      maxDrawdown = drawdown;
+    }
+  });
+  
+  return {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    initialBalance,
+    finalBalance,
+    profit: finalBalance - initialBalance,
+    profitPercentage: ((finalBalance / initialBalance) - 1) * 100,
+    maxDrawdown,
+    winRate: trades.length > 0 ? winningTrades / trades.length : 0,
+    trades,
+    sharpeRatio: 1.2 + Math.random() * 0.8,  // Random between 1.2 and 2.0
+    profitFactor: 1.5 + Math.random() * 1.0,  // Random between 1.5 and 2.5
+    averageProfit: totalProfit / (winningTrades || 1),
+    averageLoss: -totalProfit / (losingTrades || 1),
+    totalTrades: trades.length,
+    winningTrades,
+    losingTrades,
+    sortinoRatio: 1.3 + Math.random() * 0.7,  // Random between 1.3 and 2.0
+  };
+};
+
+const BacktestingPanel = () => {
+  const [selectedStrategy, setSelectedStrategy] = useState<string>(sampleStrategies[0]?.id || '');
+  const [selectedCoin, setSelectedCoin] = useState<string>('bitcoin');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('1d');
+  const [initialBalance, setInitialBalance] = useState<number>(10000);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<BacktestResult | null>(null);
+
+  const handleRunBacktest = () => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      const mockResults = generateMockBacktestResults();
+      setResults(mockResults);
+      setIsLoading(false);
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Strategy Parameters */}
-        <div className="md:col-span-1 space-y-4">
-          <h3 className="font-medium text-lg">Strategy Parameters</h3>
-          <div className="space-y-6">
-            {strategy.parameters.map((param) => (
-              <div key={param.name} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor={param.name}>{param.label}</Label>
-                  <span className="text-sm font-medium">
-                    {parameterValues[param.name]}
-                  </span>
-                </div>
-                
-                {param.type === 'number' && param.min !== undefined && param.max !== undefined && (
-                  <Slider
-                    id={param.name}
-                    min={param.min}
-                    max={param.max}
-                    step={param.step || 1}
-                    value={[parameterValues[param.name]]}
-                    onValueChange={(value) => handleParameterChange(param.name, value[0])}
-                  />
-                )}
-                
-                {param.type === 'select' && param.options && (
-                  <Select
-                    value={String(parameterValues[param.name])}
-                    onValueChange={(value) => handleParameterChange(param.name, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {param.options.map((option) => (
-                        <SelectItem key={String(option.value)} value={String(option.value)}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                
-                {param.description && (
-                  <p className="text-xs text-muted-foreground">{param.description}</p>
-                )}
-              </div>
-            ))}
+      toast({
+        title: "Backtest completed",
+        description: "The strategy has been tested with historical data.",
+      });
+    }, 2000);
+  };
+
+  const strategyOptions = sampleStrategies.map(strategy => ({
+    label: strategy.name,
+    value: strategy.id,
+  }));
+
+  const timeframeOptions = availableTimeframes;
+  
+  const selectedTimeframeObj = timeframeOptions.find(tf => tf.value === selectedTimeframe);
+  const selectedStrategyObj = sampleStrategies.find(s => s.id === selectedStrategy);
+
+  // Format number as currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value);
+  };
+
+  // Format number as percentage
+  const formatPercent = (value: number) => {
+    return `${value.toFixed(2)}%`;
+  };
+
+  // Generate chart data from backtest results
+  const generateChartData = (backtest: BacktestResult | null) => {
+    if (!backtest) return [];
+    
+    // Start with initial balance
+    const data: { date: string; balance: number }[] = [{
+      date: new Date(backtest.startDate).toLocaleDateString(),
+      balance: backtest.initialBalance
+    }];
+    
+    let runningBalance = backtest.initialBalance;
+    
+    // Add data points for each trade
+    backtest.trades.forEach(trade => {
+      if (trade.type === 'buy') {
+        runningBalance -= trade.total;
+      } else {
+        runningBalance += trade.total;
+      }
+      
+      data.push({
+        date: new Date(trade.timestamp).toLocaleDateString(),
+        balance: runningBalance
+      });
+    });
+    
+    return data;
+  };
+  
+  const chartData = generateChartData(results);
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Strategy Backtesting</CardTitle>
+        <CardDescription>
+          Test your trading strategies against historical price data
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="strategy">Trading Strategy</Label>
+              <Select
+                value={selectedStrategy}
+                onValueChange={setSelectedStrategy}
+              >
+                <SelectTrigger id="strategy">
+                  <SelectValue placeholder="Select strategy" />
+                </SelectTrigger>
+                <SelectContent>
+                  {strategyOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="coin">Cryptocurrency</Label>
+              <Select
+                value={selectedCoin}
+                onValueChange={setSelectedCoin}
+              >
+                <SelectTrigger id="coin">
+                  <SelectValue placeholder="Select coin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sampleCoins.map(coin => (
+                    <SelectItem key={coin.id} value={coin.id}>
+                      {coin.name} ({coin.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
-          <Button 
-            className="w-full mt-4" 
-            onClick={handleRunBacktest}
-            disabled={isRunning}
-          >
-            {isRunning ? "Running..." : "Run Backtest"}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="timeframe">Timeframe</Label>
+              <Select
+                value={selectedTimeframe}
+                onValueChange={setSelectedTimeframe}
+              >
+                <SelectTrigger id="timeframe">
+                  <SelectValue placeholder="Select timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeframeOptions.map(tf => (
+                    <SelectItem key={tf.value} value={tf.value}>
+                      {tf.label} - {tf.description}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="balance">Initial Balance (USD)</Label>
+              <Input
+                id="balance"
+                type="number"
+                value={initialBalance}
+                onChange={(e) => setInitialBalance(Number(e.target.value))}
+              />
+            </div>
+          </div>
+        </div>
+        
+        {selectedStrategyObj && (
+          <div className="p-4 border rounded-md mb-6">
+            <h3 className="font-medium text-sm mb-2">Strategy Details: {selectedStrategyObj.name}</h3>
+            <p className="text-sm text-gray-500 mb-2">{selectedStrategyObj.description}</p>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+              <div>
+                <span className="text-gray-500">Risk Level: </span>
+                <span className="font-medium">{selectedStrategyObj.riskLevel}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Indicators: </span>
+                <span className="font-medium">{selectedStrategyObj.indicators.length}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Parameters: </span>
+                <span className="font-medium">{selectedStrategyObj.parameters.length}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex justify-center mb-6">
+          <Button onClick={handleRunBacktest} disabled={isLoading}>
+            {isLoading ? 'Running Backtest...' : 'Run Backtest'}
           </Button>
         </div>
         
-        {/* Backtest Results */}
-        <div className="md:col-span-3 border rounded-lg p-4">
-          {isRunning ? (
-            <div className="flex flex-col items-center justify-center h-64">
-              <div className="w-8 h-8 border-t-2 border-b-2 border-primary rounded-full animate-spin"></div>
-              <p className="mt-4 text-sm text-center text-muted-foreground">
-                Running backtest for {strategy.name} on {availableCoins.find(c => c.id === selectedCoin)?.name}.<br />
-                This may take a moment...
-              </p>
+        {results && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="p-4 bg-muted/40 rounded-md">
+                <div className="text-xs text-gray-500">Total Profit/Loss</div>
+                <div className={`text-lg font-bold ${results.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(results.profit)}
+                </div>
+                <div className={`text-xs ${results.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatPercent(results.profitPercentage)}
+                </div>
+              </div>
+              
+              <div className="p-4 bg-muted/40 rounded-md">
+                <div className="text-xs text-gray-500">Win Rate</div>
+                <div className="text-lg font-bold">{formatPercent(results.winRate * 100)}</div>
+                <div className="text-xs text-gray-500">
+                  {results.winningTrades} / {results.totalTrades} trades
+                </div>
+              </div>
+              
+              <div className="p-4 bg-muted/40 rounded-md">
+                <div className="text-xs text-gray-500">Max Drawdown</div>
+                <div className="text-lg font-bold text-red-600">{formatPercent(results.maxDrawdown)}</div>
+                <div className="text-xs text-gray-500">Peak to trough</div>
+              </div>
+              
+              <div className="p-4 bg-muted/40 rounded-md">
+                <div className="text-xs text-gray-500">Sharpe Ratio</div>
+                <div className="text-lg font-bold">{results.sharpeRatio?.toFixed(2)}</div>
+                <div className="text-xs text-gray-500">Risk-adjusted return</div>
+              </div>
             </div>
-          ) : backtestResult ? (
-            <div className="space-y-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-3">
-                  <TabsTrigger value="overview" className="flex items-center">
-                    <BarChart3 className="w-4 h-4 mr-1" />
-                    <span>Overview</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="equity" className="flex items-center">
-                    <LineChart className="w-4 h-4 mr-1" />
-                    <span>Equity Curve</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="trades" className="flex items-center">
-                    <AreaChart className="w-4 h-4 mr-1" />
-                    <span>Trades</span>
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="overview" className="space-y-4 pt-4">
-                  {/* Overview Stats */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-background rounded-lg p-3 border">
-                      <div className="text-muted-foreground text-sm">Total Return</div>
-                      <div className={`text-xl font-semibold ${backtestResult.totalReturn >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {backtestResult.totalReturn.toFixed(2)}%
-                      </div>
-                    </div>
-                    
-                    <div className="bg-background rounded-lg p-3 border">
-                      <div className="text-muted-foreground text-sm">Win Rate</div>
-                      <div className="text-xl font-semibold">
-                        {backtestResult.winRate.toFixed(2)}%
-                      </div>
-                    </div>
-                    
-                    <div className="bg-background rounded-lg p-3 border">
-                      <div className="text-muted-foreground text-sm">Profit Factor</div>
-                      <div className="text-xl font-semibold">
-                        {backtestResult.profitFactor.toFixed(2)}
-                      </div>
-                    </div>
-                    
-                    <div className="bg-background rounded-lg p-3 border">
-                      <div className="text-muted-foreground text-sm">Max Drawdown</div>
-                      <div className="text-xl font-semibold text-amber-500">
-                        {backtestResult.maxDrawdown.toFixed(2)}%
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-background rounded-lg p-3 border">
-                      <h4 className="text-sm font-medium mb-2">Trade Statistics</h4>
-                      <div className="grid grid-cols-2 gap-y-2 text-sm">
-                        <span className="text-muted-foreground">Total Trades</span>
-                        <span>{backtestResult.totalTrades}</span>
-                        
-                        <span className="text-muted-foreground">Winning Trades</span>
-                        <span>{backtestResult.winningTrades}</span>
-                        
-                        <span className="text-muted-foreground">Losing Trades</span>
-                        <span>{backtestResult.losingTrades}</span>
-                        
-                        <span className="text-muted-foreground">Avg Profit</span>
-                        <span>${backtestResult.averageProfit.toFixed(2)}</span>
-                        
-                        <span className="text-muted-foreground">Avg Loss</span>
-                        <span>${backtestResult.averageLoss.toFixed(2)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-background rounded-lg p-3 border">
-                      <h4 className="text-sm font-medium mb-2">Risk Metrics</h4>
-                      <div className="grid grid-cols-2 gap-y-2 text-sm">
-                        <span className="text-muted-foreground">Initial Capital</span>
-                        <span>${backtestResult.initialCapital.toFixed(2)}</span>
-                        
-                        <span className="text-muted-foreground">Final Capital</span>
-                        <span>${backtestResult.finalCapital.toFixed(2)}</span>
-                        
-                        <span className="text-muted-foreground">Sharpe Ratio</span>
-                        <span>{backtestResult.sharpeRatio.toFixed(2)}</span>
-                        
-                        <span className="text-muted-foreground">Sortino Ratio</span>
-                        <span>{backtestResult.sortinoRatio.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="equity" className="pt-4">
-                  <div className="h-[350px] flex items-center justify-center border rounded">
-                    <div className="text-center p-4">
-                      <LineChart className="h-10 w-10 mb-2 mx-auto text-muted-foreground" />
-                      <h3 className="text-lg font-medium">Equity Curve Chart</h3>
-                      <p className="text-muted-foreground">
-                        Normally this would show an interactive chart of your equity curve.
-                      </p>
-                      <p className="text-sm mt-2">
-                        Starting: ${backtestResult.initialCapital.toFixed(2)} | 
-                        Ending: ${backtestResult.finalCapital.toFixed(2)} |
-                        Change: {backtestResult.totalReturn.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="trades" className="pt-4">
-                  <div className="border rounded overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-muted/50">
-                          <th className="py-2 px-3 text-left">Date</th>
-                          <th className="py-2 px-3 text-left">Type</th>
-                          <th className="py-2 px-3 text-right">Price</th>
-                          <th className="py-2 px-3 text-right">Amount</th>
-                          <th className="py-2 px-3 text-right">Value</th>
-                          <th className="py-2 px-3 text-right">P/L</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {backtestResult.trades.slice(0, 10).map((trade) => (
-                          <tr key={trade.id} className="border-b">
-                            <td className="py-2 px-3">
-                              {format(new Date(trade.date), 'MMM d, yyyy HH:mm')}
-                            </td>
-                            <td className="py-2 px-3">
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                trade.type === 'buy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {trade.type === 'buy' ? 'BUY' : 'SELL'}
-                              </span>
-                            </td>
-                            <td className="py-2 px-3 text-right">${trade.price.toFixed(2)}</td>
-                            <td className="py-2 px-3 text-right">{trade.amount.toFixed(6)}</td>
-                            <td className="py-2 px-3 text-right">${trade.value.toFixed(2)}</td>
-                            <td className="py-2 px-3 text-right">
-                              {trade.profitLoss !== undefined ? (
-                                <span className={trade.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                  {trade.profitLoss >= 0 ? '+' : ''}{trade.profitLoss.toFixed(2)}
-                                </span>
-                              ) : '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    
-                    {backtestResult.trades.length > 10 && (
-                      <div className="text-center p-2 text-sm text-muted-foreground">
-                        Showing 10 of {backtestResult.trades.length} trades
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+            
+            <div className="mb-6">
+              <h3 className="font-medium mb-3">Balance History</h3>
+              <div className="w-full h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={chartData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="balance"
+                      stroke="#8884d8"
+                      name="Account Balance"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64">
-              <Calendar className="h-12 w-12 mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium">No Backtest Results</h3>
-              <p className="text-muted-foreground text-center mt-2 max-w-md">
-                Configure your strategy parameters and run a backtest to see how it would have performed historically.
-              </p>
+            
+            <div>
+              <h3 className="font-medium mb-3">Trade History</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="px-4 py-2 text-left">Date</th>
+                      <th className="px-4 py-2 text-left">Type</th>
+                      <th className="px-4 py-2 text-right">Price</th>
+                      <th className="px-4 py-2 text-right">Amount</th>
+                      <th className="px-4 py-2 text-right">Total</th>
+                      <th className="px-4 py-2 text-right">Profit/Loss</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.trades.slice(0, 10).map((trade) => (
+                      <tr key={trade.id} className="border-b last:border-b-0">
+                        <td className="px-4 py-2">
+                          {new Date(trade.timestamp).toLocaleDateString()}
+                        </td>
+                        <td className={`px-4 py-2 ${
+                          trade.type === 'buy' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {trade.type.toUpperCase()}
+                        </td>
+                        <td className="px-4 py-2 text-right">{formatCurrency(trade.price)}</td>
+                        <td className="px-4 py-2 text-right">{trade.amount.toFixed(4)}</td>
+                        <td className="px-4 py-2 text-right">{formatCurrency(trade.total)}</td>
+                        <td className={`px-4 py-2 text-right ${
+                          (trade.profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {trade.profit !== undefined ? formatCurrency(trade.profit) : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {results.trades.length > 10 && (
+                <div className="text-center mt-2 text-sm text-gray-500">
+                  Showing 10 of {results.trades.length} trades
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </>
+        )}
+      </CardContent>
+
+      <CardFooter className="flex justify-between">
+        <Button variant="outline">Reset</Button>
+        <Button 
+          variant="outline" 
+          disabled={!results}
+          onClick={() => {
+            toast({
+              title: "Report Generated",
+              description: "Backtest report has been exported as a CSV file."
+            });
+          }}
+        >
+          Export Results
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

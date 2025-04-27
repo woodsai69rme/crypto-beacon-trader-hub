@@ -135,19 +135,19 @@ const UserSettings = ({ className }: UserSettingsProps) => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <TabsContent value="general">
-                <GeneralSettings form={form} />
+                <GeneralSettings />
               </TabsContent>
               
               <TabsContent value="appearance">
-                <AppearanceSettings form={form} />
+                <AppearanceSettings />
               </TabsContent>
               
               <TabsContent value="notifications">
-                <NotificationSettings form={form} />
+                <NotificationSettings />
               </TabsContent>
               
               <TabsContent value="data">
-                <DataPrivacySettings form={form} />
+                <DataPrivacySettings />
               </TabsContent>
               
               <SettingsFooter onCancel={handleCancel} isSubmitting={isSubmitting} />

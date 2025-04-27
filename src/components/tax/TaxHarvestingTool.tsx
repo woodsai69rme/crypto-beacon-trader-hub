@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import { TaxHarvestingOptions, TaxHarvestingOpportunity, Trade } from "@/types/trading";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { Tax, RefreshCw, ArrowDownUp, FileSpreadsheet } from "lucide-react";
+import { FileText, RefreshCw, ArrowDownUp, FileSpreadsheet } from "lucide-react";
 
 const DEFAULT_OPTIONS: TaxHarvestingOptions = {
   year: new Date().getFullYear(),
@@ -26,14 +25,19 @@ const TaxHarvestingTool: React.FC = () => {
   const { accounts, activeAccountId, executeAccountTrade } = useTradingAccounts();
   const { formatValue } = useCurrencyConverter();
   
-  const [options, setOptions] = useState<TaxHarvestingOptions>(DEFAULT_OPTIONS);
+  const [options, setOptions] = useState<TaxHarvestingOptions>({
+    year: new Date().getFullYear(),
+    minLossThreshold: 100,
+    washSalePeriod: 30,
+    includeFees: true,
+    maximizeLoss: true
+  });
   const [opportunities, setOpportunities] = useState<TaxHarvestingOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalPotentialLoss, setTotalPotentialLoss] = useState<number>(0);
   
   const activeAccount = accounts.find(account => account.id === activeAccountId);
   
-  // Mock data for demo purposes - in a real app, this would come from API/calculations
   const availableYears = Array.from(
     { length: 5 }, 
     (_, i) => new Date().getFullYear() - i
@@ -44,17 +48,13 @@ const TaxHarvestingTool: React.FC = () => {
     
     setIsLoading(true);
     
-    // Simulate API call delay
     setTimeout(() => {
-      // This is a simplified mock calculation - in a real app, this would be more complex
-      // and would consider actual cost basis, wash sale rules, etc.
       const holdings: Record<string, { 
         amount: number, 
         avgCost: number, 
         trades: Trade[]
       }> = {};
       
-      // Calculate holdings and average cost
       activeAccount.trades.forEach(trade => {
         if (!holdings[trade.coinId]) {
           holdings[trade.coinId] = { 
@@ -68,7 +68,6 @@ const TaxHarvestingTool: React.FC = () => {
         
         if (trade.type === 'buy') {
           const newAmount = holding.amount + trade.amount;
-          // Weighted average cost
           holding.avgCost = (holding.amount * holding.avgCost + trade.totalValue) / newAmount;
           holding.amount = newAmount;
         } else {
@@ -78,7 +77,6 @@ const TaxHarvestingTool: React.FC = () => {
         holding.trades.push(trade);
       });
       
-      // Mock current prices - in a real app, we'd fetch these from an API
       const currentPrices: Record<string, number> = {
         bitcoin: 50000,
         ethereum: 2500,
@@ -88,19 +86,17 @@ const TaxHarvestingTool: React.FC = () => {
         dogecoin: 0.10
       };
       
-      // Find opportunities where current price < average cost
       const harvestOpportunities: TaxHarvestingOpportunity[] = [];
       
       Object.entries(holdings).forEach(([coinId, holding]) => {
-        if (holding.amount <= 0) return; // Skip coins we don't own
+        if (holding.amount <= 0) return;
         
         const currentPrice = currentPrices[coinId] || 0;
-        if (currentPrice === 0) return; // Skip if we don't have a price
+        if (currentPrice === 0) return;
         
         const unrealizedLoss = (currentPrice - holding.avgCost) * holding.amount;
         
         if (unrealizedLoss < -options.minLossThreshold) {
-          // Check if there's a wash sale risk
           const lastBuy = holding.trades
             .filter(t => t.type === 'buy')
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
@@ -124,7 +120,6 @@ const TaxHarvestingTool: React.FC = () => {
         }
       });
       
-      // Sort by potential loss (highest first)
       harvestOpportunities.sort((a, b) => b.potentialLoss - a.potentialLoss);
       
       setOpportunities(harvestOpportunities);
@@ -155,7 +150,6 @@ const TaxHarvestingTool: React.FC = () => {
     
     executeAccountTrade(activeAccount.id, trade);
     
-    // Remove this opportunity from the list
     setOpportunities(opportunities.filter(o => o.coinId !== opportunity.coinId));
     
     toast({
@@ -165,7 +159,6 @@ const TaxHarvestingTool: React.FC = () => {
   };
   
   const handleExportReport = () => {
-    // Create CSV data
     const headers = [
       'Coin', 'Quantity', 'Current Price', 'Average Cost', 
       'Potential Loss', 'Recommendation', 'Reasoning', 'Wash Sale Warning'
@@ -187,7 +180,6 @@ const TaxHarvestingTool: React.FC = () => {
       ...rows.map(row => row.join(','))
     ].join('\n');
     
-    // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -208,7 +200,7 @@ const TaxHarvestingTool: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Tax className="h-5 w-5" />
+          <FileText className="h-5 w-5" />
           Tax Loss Harvesting Tool
         </CardTitle>
         <CardDescription>
