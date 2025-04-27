@@ -1,21 +1,8 @@
 
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
-
-interface Trade {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  type: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  totalValue: number;
-  timestamp: string;
-  currency: SupportedCurrency;
-}
+import { SupportedCurrency } from "./TradingStats";
+import { Trade } from "./types";
 
 interface TradeHistoryProps {
   trades: Trade[];

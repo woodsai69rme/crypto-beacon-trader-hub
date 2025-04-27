@@ -3,7 +3,7 @@
 
 ## Overview
 
-The trading system provides a comprehensive platform for cryptocurrency trading, including real-time alerts, AI-powered trading features, and multi-exchange connectivity through MCP servers.
+The trading system provides a comprehensive platform for cryptocurrency trading, including real-time alerts, AI-powered trading features, multi-currency support, and multi-exchange connectivity through MCP servers.
 
 ## Key Components
 
@@ -16,6 +16,7 @@ The real-time trading system provides:
 - **Trade Notifications**: Receive notifications for executed trades
 - **Portfolio Tracking**: Monitor your portfolio value in real-time
 - **Strategy Performance**: Track the performance of trading strategies
+- **Multi-Currency Support**: View prices in USD, AUD, EUR, and GBP
 
 #### How to Use Real-Time Features
 
@@ -23,6 +24,7 @@ The real-time trading system provides:
 2. Select the "Real-Time" tab
 3. Choose the specific real-time feature you want to monitor
 4. Set your preferences for update frequency and display options
+5. Select your preferred currency for value display
 
 ### API Integration System
 
@@ -33,6 +35,7 @@ The platform supports multiple cryptocurrency data providers:
 - **Automatic Fallbacks**: System automatically switches to alternative providers if one fails
 - **API Key Management**: Securely store and manage your API keys
 - **Custom Endpoints**: Add custom providers with your own endpoints
+- **Multi-Currency Data**: Retrieve price data in multiple currencies
 
 #### How to Configure API Providers
 
@@ -41,6 +44,7 @@ The platform supports multiple cryptocurrency data providers:
 3. Enable or disable available providers
 4. Add your API keys for premium access
 5. Configure provider priority for fallbacks
+6. Set default currency preferences
 
 ### AlertsSystem
 
@@ -49,6 +53,7 @@ The AlertsSystem provides real-time price and volume alerts for cryptocurrencies
 - **Price Alerts**: Notify users when coins reach specific price targets
 - **Volume Alerts**: Alert users to significant volume changes
 - **Technical Alerts**: Notify users about technical indicator conditions
+- **Currency-Specific Alerts**: Set alerts in your preferred currency
 
 #### How to Use Alerts
 
@@ -56,7 +61,8 @@ The AlertsSystem provides real-time price and volume alerts for cryptocurrencies
 2. Select the cryptocurrency you want to track
 3. Set your desired price target or condition
 4. Choose notification preferences
-5. Enable the alert
+5. Select your preferred currency for the alert
+6. Enable the alert
 
 ### MCP Trading System
 
@@ -66,6 +72,7 @@ The MCP (Model Control Protocol) system allows connection to local AI servers:
 - Train custom models on historical data
 - Execute trades based on AI predictions
 - Monitor model performance
+- Support for multiple model types
 
 #### Server Configuration
 
@@ -73,6 +80,7 @@ The MCP (Model Control Protocol) system allows connection to local AI servers:
 2. Connect to available servers
 3. Select model configuration
 4. Start training or trading
+5. Monitor performance metrics
 
 ### Portfolio Management
 
@@ -85,6 +93,7 @@ The portfolio tracking system provides:
 - Multiple portfolio accounts
 - Custom portfolio naming and organization
 - Performance metrics and analytics
+- Holdings visualization
 
 ### Pattern Recognition
 
@@ -95,6 +104,7 @@ Our pattern recognition system:
 - Calculates trend strength indicators
 - Estimates reversal probabilities
 - Provides AI-powered pattern analysis
+- Supports multiple timeframes
 
 ### Correlation Analysis
 
@@ -105,6 +115,7 @@ The correlation analysis tools enable:
 - Portfolio diversification scoring
 - Finding correlation-based trade opportunities
 - Visual correlation heatmaps
+- Currency-adjusted correlation analysis
 
 ### Portfolio Benchmarking
 
@@ -115,6 +126,7 @@ Compare your portfolio performance against:
 - Commodities (Gold, Silver)
 - Custom benchmarks
 - Risk-adjusted metrics (Sharpe ratio, Sortino ratio)
+- Performance in multiple currencies
 
 ### Tax Tools
 
@@ -126,17 +138,18 @@ Comprehensive tax tools for cryptocurrency traders:
 - **Wash Sale Detection**: Avoid disallowed losses
 - **Multiple Accounting Methods**: FIFO, LIFO, HIFO, and more
 - **Export Reports**: Generate tax forms and reports
+- **Multi-Currency Support**: Handle gains/losses across currencies
 
-#### ATO Tax Calculator
+### Multi-Currency Support
 
-The ATO Tax Calculator provides specialized support for Australian cryptocurrency traders:
+The platform provides comprehensive multi-currency capabilities:
 
-- Financial year selection (July-June fiscal year)
-- 50% CGT discount for long-term gains (assets held >12 months)
-- Integration with current ATO tax brackets
-- Medicare levy calculation
-- Support for additional income and deductions
-- Comprehensive tax reporting
+- **Supported Currencies**: USD, AUD, EUR, GBP
+- **Real-time Conversion**: View all prices and values in your preferred currency
+- **Currency Switching**: Change display currency without affecting underlying data
+- **Currency-specific Reporting**: Generate reports in your preferred currency
+- **Localized Formatting**: Numbers and currencies displayed according to regional standards
+- **Exchange Rate Updates**: Regular updates to currency conversion rates
 
 ## Error Handling
 
@@ -147,6 +160,7 @@ The application implements comprehensive error handling:
 - Error logging for debugging
 - Recovery options for common errors
 - Automatic reconnection for websockets
+- Type safety through TypeScript integration
 
 ## Data Storage
 
@@ -155,13 +169,7 @@ The application implements comprehensive error handling:
 - AI model configurations are saved locally
 - Real-time data caching for performance
 - Data export and backup options
-
-## Multi-Currency Support
-
-- Support for USD, AUD, EUR, GBP as base currencies
-- Real-time currency conversion
-- Configurable default currency in settings
-- Currency-specific price displays
+- Multi-currency preferences saved with user profile
 
 ## Bot Trading Features
 
@@ -173,6 +181,7 @@ The application implements comprehensive error handling:
 - **Risk Management Tools**: Set stop-loss and take-profit parameters
 - **Multi-Coin Bot Support**: Create bots for different cryptocurrencies
 - **Trading Signal Generation**: Receive buy/sell signals from bots
+- **Multi-Currency Support**: Configure bots to work with different base currencies
 
 ## Best Practices
 
@@ -186,33 +195,45 @@ The application implements comprehensive error handling:
 8. Take advantage of tax loss harvesting opportunities
 9. Configure API fallbacks to ensure continuous data availability
 10. Export your data regularly for backup purposes
+11. Choose the currency that's most meaningful for your trading and reporting needs
 
 ## Recent Features and Enhancements
+
+### Enhanced Multi-Currency Support
+- Added support for EUR and GBP currencies
+- Improved currency conversion with real-time rates
+- Currency-specific price data for major cryptocurrencies
+- Consistent currency formatting across the application
 
 ### Enhanced API Integration
 - Support for more data providers
 - Improved error handling and fallbacks
 - Better rate limiting management
 - Custom endpoint configuration
+- Multi-currency data retrieval
 
 ### Granular Timeframe Options
 - More detailed time intervals for trading and analysis
 - Custom timeframe selection
 - Extended historical data options
+- Multi-timeframe analysis for advanced strategies
 
 ### Tax Loss Harvesting
 - Sophisticated algorithms to identify tax loss opportunities
 - Wash sale rule compliance
 - Tax-efficient trading recommendations
+- Multi-currency tax calculations
 
 ### ATO Tax Integration
 - Australian tax calculations and reporting
 - CGT discount handling
 - Financial year-based reporting (July-June)
 - Integration with ATO tax brackets and rates
+- Support for multiple currencies in tax reports
 
 ### Mobile Experience Improvements
 - Responsive design optimizations
 - Touch-friendly interface elements
 - Streamlined navigation for small screens
 - Performance enhancements for mobile devices
+- Optimized currency selector for mobile interfaces

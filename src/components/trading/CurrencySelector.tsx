@@ -8,17 +8,27 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { DollarSign } from "lucide-react";
+import { SupportedCurrency } from "./TradingStats";
 
 interface CurrencySelectorProps {
-  activeCurrency: 'USD' | 'AUD' | string;
-  onCurrencyChange: (currency: 'USD' | 'AUD') => void;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency) => void;
   disabled?: boolean;
   className?: string;
 }
 
 const CURRENCY_NAMES = {
   USD: "US Dollar",
-  AUD: "Australian Dollar"
+  AUD: "Australian Dollar",
+  EUR: "Euro",
+  GBP: "British Pound"
+};
+
+const CURRENCY_SYMBOLS = {
+  USD: "$",
+  AUD: "A$",
+  EUR: "€",
+  GBP: "£"
 };
 
 const CurrencySelector = ({ 
@@ -30,7 +40,7 @@ const CurrencySelector = ({
   return (
     <Select 
       value={activeCurrency} 
-      onValueChange={(val) => onCurrencyChange(val as 'USD' | 'AUD')}
+      onValueChange={(val) => onCurrencyChange(val as SupportedCurrency)}
       disabled={disabled}
     >
       <SelectTrigger 
@@ -41,18 +51,14 @@ const CurrencySelector = ({
         <SelectValue placeholder="Currency" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="USD">
-          <div className="flex items-center">
-            <span className="currency-symbol mr-2">$</span>
-            <span>USD</span>
-          </div>
-        </SelectItem>
-        <SelectItem value="AUD">
-          <div className="flex items-center">
-            <span className="currency-symbol mr-2">A$</span>
-            <span>AUD</span>
-          </div>
-        </SelectItem>
+        {Object.entries(CURRENCY_NAMES).map(([code, name]) => (
+          <SelectItem key={code} value={code}>
+            <div className="flex items-center">
+              <span className="currency-symbol mr-2">{CURRENCY_SYMBOLS[code as SupportedCurrency]}</span>
+              <span>{code}</span>
+            </div>
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

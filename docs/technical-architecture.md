@@ -16,6 +16,10 @@ This trading platform is built using React, TypeScript, and Tailwind CSS with th
 - **MultiExchangeTrading**: Support for trading across multiple exchanges
 - **TechnicalIndicatorChart**: Visualizes technical indicators for analysis
 - **VirtualList**: Performance-optimized component for handling large lists
+- **TradeHistory**: Displays a record of past trading activities
+- **TradingHoldings**: Shows portfolio holdings and allocation
+- **TradingForm**: Manages the interface for executing trades
+- **TradingStats**: Displays key performance metrics
 
 ### Utilities
 
@@ -33,22 +37,24 @@ This trading platform is built using React, TypeScript, and Tailwind CSS with th
 - **use-currency-converter.ts**: Hook for currency conversion
 - **use-local-storage.ts**: Hook for persistent storage
 - **use-crypto-data.ts**: Performance-optimized hook for crypto data
+- **use-trading-accounts.ts**: Manages trading accounts and balances
 
 ## State Management
 
 The application uses a combination of:
 
 - React Context API for global state (themes, authentication, etc.)
-- Custom hooks for domain-specific state
-- Local component state for UI elements
-- Local storage for persistent data
+- Custom hooks for domain-specific state (currencies, trading accounts)
+- Local component state for UI elements (tabs, form inputs)
+- Local storage for persistent data (accounts, settings, preferences)
 
 ## Data Flow
 
-1. User interacts with UI components
-2. Components call hook methods
-3. Hooks update local state and persistence layer
-4. UI reflects changes and displays notifications
+1. User interacts with UI components (Trading forms, settings panels)
+2. Components call hook methods (useTradingAccounts, useCurrencyConverter)
+3. Hooks update local state and persistence layer (localStorage)
+4. UI reflects changes and displays notifications (toast messages)
+5. Global contexts provide application-wide state management
 
 ## Performance Optimizations
 
@@ -58,6 +64,7 @@ The application uses a combination of:
 - **Optimized Re-renders**: Use of React.memo, useMemo, and useCallback
 - **Skeleton Loading States**: Better user experience during data fetching
 - **TypeScript**: Type safety throughout the application
+- **Code Splitting**: Lazy loading for less frequently used components
 
 ## Error Handling Architecture
 
@@ -87,6 +94,16 @@ The application implements a flexible theming system:
 3. Runtime theme switching without page reload
 4. System preference detection and synchronization
 
+## Multi-Currency Support
+
+The platform supports multiple currencies:
+
+1. USD (US Dollar) as the default base currency
+2. AUD (Australian Dollar) with conversion rates
+3. EUR (Euro) with conversion rates
+4. GBP (British Pound) with conversion rates
+5. Automatic conversion for all displayed monetary values
+
 ## Extension Points
 
 The system is designed to be extended through:
@@ -96,6 +113,7 @@ The system is designed to be extended through:
 3. Supporting new exchanges in the multi-exchange trading component
 4. Adding new portfolio analysis metrics
 5. Integrating additional data sources via the API service
+6. Adding support for new currencies
 
 ## Security Considerations
 
@@ -113,3 +131,5 @@ The system is designed to be extended through:
 - Advanced chart annotations for technical analysis
 - Integration with additional cryptocurrency exchanges
 - Enhanced backtesting capabilities for trading strategies
+- Tax reporting and optimization tools
+- Mobile applications for iOS and Android

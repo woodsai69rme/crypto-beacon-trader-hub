@@ -32,12 +32,12 @@ const FakeTrading = () => {
   } = useCurrencyConverter();
 
   const availableCoins = [
-    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, priceAUD: 90747.07 },
-    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, priceAUD: 4455.47 },
-    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, priceAUD: 211.45 },
-    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, priceAUD: 0.67 },
-    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, priceAUD: 0.84 },
-    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, priceAUD: 0.21 },
+    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, priceAUD: 90747.07, priceEUR: 56345.12, priceGBP: 48765.43 },
+    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, priceAUD: 4455.47, priceEUR: 2769.61, priceGBP: 2408.36 },
+    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, priceAUD: 211.45, priceEUR: 131.44, priceGBP: 114.30 },
+    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, priceAUD: 0.67, priceEUR: 0.41, priceGBP: 0.36 },
+    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, priceAUD: 0.84, priceEUR: 0.52, priceGBP: 0.46 },
+    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, priceAUD: 0.21, priceEUR: 0.13, priceGBP: 0.11 },
   ];
 
   const getOwnedCoinAmount = (coinId: string) => {

@@ -48,7 +48,7 @@ const generateMockHistoryData = () => {
   }
   
   return data;
-};
+}
 
 const TradingHoldings: React.FC<TradingHoldingsProps> = ({ 
   availableCoins, 
@@ -99,7 +99,7 @@ const TradingHoldings: React.FC<TradingHoldingsProps> = ({
         <TabsContent value="chart">
           {hasHoldings ? (
             <PortfolioHistoryChart 
-              currency={activeCurrency} 
+              currency={activeCurrency}
               isCompact 
               data={portfolioHistoryData} 
             />

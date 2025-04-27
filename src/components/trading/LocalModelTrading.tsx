@@ -7,7 +7,7 @@ import { ModelGenerationTab } from "./model-trading/ModelGenerationTab";
 import { ModelRunningTab } from "./model-trading/ModelRunningTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import type { LocalModel } from "./model-trading/types";
+import type { LocalModel } from "./types";
 
 const LocalModelTrading = () => {
   const [selectedModel, setSelectedModel] = useState<LocalModel | null>(null);

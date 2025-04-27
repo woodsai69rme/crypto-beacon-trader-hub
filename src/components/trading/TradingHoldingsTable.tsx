@@ -37,11 +37,18 @@ const TradingHoldingsTable: React.FC<TradingHoldingsTableProps> = ({
         if (ownedAmount <= 0) return null;
         
         // Use the appropriate price based on currency
-        const price = activeCurrency === 'AUD' && coin.priceAUD 
-          ? coin.priceAUD 
-          : activeCurrency === 'AUD' 
-            ? coin.price * conversionRate 
-            : coin.price;
+        let price = coin.price; // Default is USD
+        
+        if (activeCurrency === 'AUD' && coin.priceAUD) {
+          price = coin.priceAUD;
+        } else if (activeCurrency === 'EUR' && coin.priceEUR) {
+          price = coin.priceEUR;
+        } else if (activeCurrency === 'GBP' && coin.priceGBP) {
+          price = coin.priceGBP;
+        } else if (activeCurrency !== 'USD') {
+          // Fallback to conversion rate if specific currency price not available
+          price = coin.price * conversionRate;
+        }
             
         const value = ownedAmount * price;
         

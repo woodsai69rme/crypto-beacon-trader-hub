@@ -1,47 +1,61 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Save, X } from "lucide-react";
-import { useMediaQuery } from "@/hooks/use-media-query";
 
 export interface SettingsFooterProps {
-  onCancel?: () => void;
+  isSaving?: boolean;
   isSubmitting?: boolean;
   onReset?: () => void;
-  isSaving?: boolean;
+  onCancel?: () => void;
+  onApply?: () => void;
+  showSaveButton?: boolean;
 }
 
-const SettingsFooter = ({ onCancel, isSubmitting = false, onReset, isSaving = false }: SettingsFooterProps) => {
-  const isMobile = useMediaQuery("(max-width: 640px)");
-  
+const SettingsFooter: React.FC<SettingsFooterProps> = ({
+  isSaving = false,
+  isSubmitting = false,
+  onReset,
+  onCancel,
+  onApply,
+  showSaveButton = true
+}) => {
   return (
-    <div className={`flex ${isMobile ? "flex-col gap-2" : "justify-end gap-4"} mt-6`}>
+    <div className="flex justify-end gap-3 pt-4 border-t mt-6">
       {onCancel && (
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting || isSaving}>
-          <X className="mr-2 h-4 w-4" />
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
       )}
       
       {onReset && (
-        <Button type="button" variant="outline" onClick={onReset} disabled={isSubmitting || isSaving}>
-          Reset
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onReset}
+          disabled={isSaving || isSubmitting}
+        >
+          Reset to Defaults
         </Button>
       )}
       
-      <Button type="submit" disabled={isSubmitting || isSaving} className={isMobile ? "w-full" : ""}>
-        {isSubmitting || isSaving ? (
-          <>
-            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-            Saving...
-          </>
-        ) : (
-          <>
-            <Save className="mr-2 h-4 w-4" />
-            Save Settings
-          </>
-        )}
-      </Button>
+      {showSaveButton && (
+        <Button 
+          type="submit" 
+          disabled={isSaving || isSubmitting}
+        >
+          {isSaving || isSubmitting ? "Saving..." : "Save Changes"}
+        </Button>
+      )}
+      
+      {onApply && (
+        <Button 
+          type="button" 
+          onClick={onApply}
+          disabled={isSaving || isSubmitting}
+        >
+          Apply
+        </Button>
+      )}
     </div>
   );
 };

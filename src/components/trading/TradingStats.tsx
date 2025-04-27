@@ -1,15 +1,16 @@
 
 import React from "react";
+import { Card } from "@/components/ui/card";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
-export type SupportedCurrency = "USD" | "AUD" | "EUR" | "GBP";
+export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 interface TradingStatsProps {
   balance: number;
   portfolioValue: number;
   performance: number;
-  formatValue: (value: number) => string;
   currency: SupportedCurrency;
+  formatValue: (value: number) => string;
 }
 
 const TradingStats: React.FC<TradingStatsProps> = ({
@@ -19,27 +20,38 @@ const TradingStats: React.FC<TradingStatsProps> = ({
   formatValue,
   currency
 }) => {
+  const isPositivePerformance = performance > 0;
+  const perfAbsolute = Math.abs(performance);
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-6">
-      <div className="p-4 border rounded-md">
-        <p className="text-sm text-muted-foreground mb-1">Cash Balance</p>
-        <p className="text-xl font-medium">{formatValue(balance)}</p>
-      </div>
-      <div className="p-4 border rounded-md">
-        <p className="text-sm text-muted-foreground mb-1">Portfolio Value</p>
-        <p className="text-xl font-medium">{formatValue(portfolioValue)}</p>
-      </div>
-      <div className="p-4 border rounded-md">
-        <p className="text-sm text-muted-foreground mb-1">Performance</p>
-        <div className={`text-xl font-medium flex items-center ${performance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-          {performance >= 0 ? (
-            <ArrowUp className="h-4 w-4 mr-1" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <Card className="p-4 flex flex-col">
+        <span className="text-sm text-muted-foreground mb-1">Account Balance</span>
+        <span className="text-2xl font-bold">{formatValue(balance)}</span>
+      </Card>
+      
+      <Card className="p-4 flex flex-col">
+        <span className="text-sm text-muted-foreground mb-1">Portfolio Value</span>
+        <span className="text-2xl font-bold">{formatValue(portfolioValue)}</span>
+      </Card>
+      
+      <Card className="p-4 flex flex-col">
+        <span className="text-sm text-muted-foreground mb-1">Performance</span>
+        <div className="flex items-center">
+          {isPositivePerformance ? (
+            <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
           ) : (
-            <ArrowDown className="h-4 w-4 mr-1" />
+            <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
           )}
-          {Math.abs(performance).toFixed(2)}%
+          <span 
+            className={`text-2xl font-bold ${
+              isPositivePerformance ? 'text-green-500' : 'text-red-500'
+            }`}
+          >
+            {perfAbsolute.toFixed(2)}%
+          </span>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
