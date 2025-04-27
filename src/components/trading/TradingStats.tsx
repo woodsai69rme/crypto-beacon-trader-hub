@@ -2,7 +2,7 @@
 import React from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
-type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 interface TradingStatsProps {
   balance: number;

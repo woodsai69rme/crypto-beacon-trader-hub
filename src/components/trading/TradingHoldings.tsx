@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Wallet, BarChart4, Coins } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { CoinOption } from "@/types/trading";
+import { SupportedCurrency } from "./TradingStats";
 import PortfolioHistoryChart from "./PortfolioHistoryChart";
-
-type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 interface TradingHoldingsProps {
   availableCoins: CoinOption[];

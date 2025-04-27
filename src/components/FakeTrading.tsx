@@ -9,8 +9,7 @@ import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
-
-type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+import { SupportedCurrency } from "./trading/TradingStats";
 
 const FakeTrading = () => {
   const {

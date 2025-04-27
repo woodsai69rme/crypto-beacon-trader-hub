@@ -10,6 +10,8 @@ import MultiExchangeTrading from "../trading/MultiExchangeTrading";
 import AiMarketAnalysis from "../trading/AiMarketAnalysis";
 import SocialTradingFeatures from "../trading/SocialTradingFeatures";
 import AlertsSystem from "../trading/AlertsSystem";
+import ExchangeIntegration from "../trading/ExchangeIntegration";
+import MultiTimeframeStrategy from "../trading/MultiTimeframeStrategy";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -43,7 +45,10 @@ const DashboardTrading = () => {
         </TabsContent>
         
         <TabsContent value="ai-bots" className="animate-fade-in">
-          <AiTradingBots />
+          <div className="grid grid-cols-1 gap-6">
+            <AiTradingBots />
+            <MultiTimeframeStrategy />
+          </div>
         </TabsContent>
         
         <TabsContent value="mcp" className="animate-fade-in">
@@ -51,7 +56,7 @@ const DashboardTrading = () => {
         </TabsContent>
         
         <TabsContent value="multi-exchange" className="animate-fade-in">
-          <MultiExchangeTrading />
+          <ExchangeIntegration />
         </TabsContent>
         
         <TabsContent value="analysis" className="animate-fade-in">

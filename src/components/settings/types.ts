@@ -1,43 +1,50 @@
 
-export type SettingsFormValues = {
+export interface SettingsFormValues {
+  email?: string;
+  username?: string;
+  displayName?: string;
+  bio?: string;
   darkMode: boolean;
-  notifications: boolean;
-  language: LanguageOption;
-  layout: LayoutOption;
-  timeZone: TimeZoneOption;
-  exportFormat: ExportFormatOption;
-  alertVolume: number;
-  alertFrequency: AlertFrequencyOption;
-  dataPrivacy: {
-    shareAnalytics: boolean;
-    storeHistory: boolean;
-    autoDeleteData?: boolean;
-    dataRetentionPeriod?: DataRetentionPeriodOption;
+  language: string;
+  timeZone: string;
+  layout: string;
+  theme: string;
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+    trading?: boolean;
+    marketAlerts?: boolean;
+    newFeatures?: boolean;
   };
-  dashboardCustomization: {
-    showPortfolioValue: boolean;
-    defaultCurrency: CurrencyOption;
-    defaultTimeframe: TimeframeOption;
-    defaultChartType?: ChartTypeOption;
-    chartColors?: ChartColorSchemeOption;
+  privacy?: {
+    publicProfile?: boolean;
+    showPortfolio?: boolean;
+    shareActivity?: boolean;
   };
-  security?: {
-    enableTwoFactor: boolean;
-    autoLock: boolean;
-    lockTimeout: number; // minutes
+  appearance?: {
+    compactMode?: boolean;
+    animationsEnabled?: boolean;
+    showTradingHistory?: boolean;
+    showPortfolioChart?: boolean;
+    highContrastMode?: boolean;
   };
-};
+  account?: {
+    twoFactorEnabled?: boolean;
+    loginAlerts?: boolean;
+  };
+  trading?: {
+    confirmTradeExecutions?: boolean;
+    showPriceAlerts?: boolean;
+    defaultTradingPair?: string;
+  };
+}
 
-export type LayoutOption = 'default' | 'compact' | 'expanded' | 'trading' | 'portfolio';
-export type LanguageOption = 'en' | 'es' | 'fr' | 'de' | 'ja' | 'zh';
-export type TimeZoneOption = 'UTC' | 'EST' | 'CST' | 'MST' | 'PST' | 'GMT' | 'IST';
-export type ExportFormatOption = 'csv' | 'json' | 'pdf' | 'excel';
-export type AlertFrequencyOption = 'high' | 'medium' | 'low' | 'none';
-export type CurrencyOption = 'USD' | 'AUD' | 'EUR' | 'GBP' | 'JPY' | 'BTC' | 'ETH';
-export type TimeframeOption = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | 'MAX';
-export type ChartTypeOption = 'line' | 'candle' | 'bar' | 'area';
-export type ChartColorSchemeOption = 'default' | 'monochrome' | 'colorblind' | 'custom';
-export type DataRetentionPeriodOption = '30days' | '90days' | '1year' | 'forever';
+export interface SettingsTabsProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
 
-// Tab definitions
-export type SettingsTab = 'general' | 'appearance' | 'notifications' | 'data';
+export interface SettingsFooterProps {
+  isSaving: boolean;
+  onReset: () => void;
+}

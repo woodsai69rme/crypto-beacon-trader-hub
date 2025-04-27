@@ -1,8 +1,6 @@
 
 import { useCurrency } from './use-currency';
-
-// Type definition for SupportedCurrency
-export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+import { SupportedCurrency } from '../components/trading/TradingStats';
 
 export function useCurrencyConverter() {
   const { 

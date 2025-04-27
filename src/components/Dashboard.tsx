@@ -11,6 +11,8 @@ import DashboardTrading from "./dashboard/DashboardTrading";
 import DashboardAnalysis from "./dashboard/DashboardAnalysis";
 import DashboardTools from "./dashboard/DashboardTools";
 import DashboardCustomizer from "./DashboardCustomizer";
+import CustomizableDashboardLayout from "./dashboard/CustomizableDashboardLayout";
+import InteractiveOnboarding from "./onboarding/InteractiveOnboarding";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export type DashboardTab = 'overview' | 'portfolio' | 'watchlist' | 'trading' | 'analysis' | 'tools';
@@ -30,6 +32,7 @@ const Dashboard = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [alertCount, setAlertCount] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [layoutOptions, setLayoutOptions] = useLocalStorage<DashboardLayoutOptions>("dashboard-layout", {
     compactMode: false,
     densityLevel: 'comfortable'
@@ -71,8 +74,27 @@ const Dashboard = () => {
     });
   };
   
+  const handleOnboardingComplete = (preferences: any) => {
+    setShowOnboarding(false);
+    console.log("Onboarding preferences:", preferences);
+    
+    // Apply user preferences to the UI
+    if (preferences.darkMode) {
+      // Apply dark mode
+    }
+    
+    toast({
+      title: "Welcome to TradingApp!",
+      description: "Your setup is complete. Explore your personalized dashboard.",
+    });
+  };
+  
   return (
     <div className="container mx-auto px-4 py-6">
+      {showOnboarding && (
+        <InteractiveOnboarding onComplete={handleOnboardingComplete} />
+      )}
+      
       <DashboardHeader 
         notificationCount={notificationCount} 
         alertCount={alertCount}
@@ -80,40 +102,42 @@ const Dashboard = () => {
         isLoading={isLoading}
       />
       
-      <div className="flex items-center justify-between mb-6">
-        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <DashboardTabList activeTab={activeTab} onTabChange={handleTabChange} />
-        </Tabs>
-        <DashboardCustomizer onLayoutChange={handleLayoutChange} className="ml-2" />
-      </div>
-      
-      <div className={isLoading ? "animate-pulse" : ""}>
-        <Tabs value={activeTab}>
-          <TabsContent value="overview">
-            <DashboardOverview />
-          </TabsContent>
-          
-          <TabsContent value="portfolio">
-            <DashboardPortfolio />
-          </TabsContent>
-          
-          <TabsContent value="watchlist">
-            <DashboardWatchlist />
-          </TabsContent>
-          
-          <TabsContent value="trading">
-            <DashboardTrading />
-          </TabsContent>
-          
-          <TabsContent value="analysis">
-            <DashboardAnalysis />
-          </TabsContent>
-          
-          <TabsContent value="tools">
-            <DashboardTools />
-          </TabsContent>
-        </Tabs>
-      </div>
+      <CustomizableDashboardLayout onLayoutChange={handleLayoutChange}>
+        <div className="flex items-center justify-between mb-6">
+          <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <DashboardTabList activeTab={activeTab} onTabChange={handleTabChange} />
+          </Tabs>
+          <DashboardCustomizer onLayoutChange={handleLayoutChange} className="ml-2" />
+        </div>
+        
+        <div className={isLoading ? "animate-pulse" : ""}>
+          <Tabs value={activeTab}>
+            <TabsContent value="overview">
+              <DashboardOverview />
+            </TabsContent>
+            
+            <TabsContent value="portfolio">
+              <DashboardPortfolio />
+            </TabsContent>
+            
+            <TabsContent value="watchlist">
+              <DashboardWatchlist />
+            </TabsContent>
+            
+            <TabsContent value="trading">
+              <DashboardTrading />
+            </TabsContent>
+            
+            <TabsContent value="analysis">
+              <DashboardAnalysis />
+            </TabsContent>
+            
+            <TabsContent value="tools">
+              <DashboardTools />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </CustomizableDashboardLayout>
     </div>
   );
 };
