@@ -1,160 +1,254 @@
 
-import { useState, useCallback } from "react";
-import { Settings } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import SettingsTabs from "./settings/SettingsTabs";
-import SettingsFooter from "./settings/SettingsFooter";
-import GeneralSettings from "./settings/GeneralSettings";
+import { z } from "zod";
+import { useForm, UseFormReturn } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import AppearanceSettings from "./settings/AppearanceSettings";
-import NotificationSettings from "./settings/NotificationSettings";
 import DataPrivacySettings from "./settings/DataPrivacySettings";
-import { SettingsFormValues, SettingsTab } from "./settings/types";
+import GeneralSettings from "./settings/GeneralSettings";
+import NotificationSettings from "./settings/NotificationSettings";
+import SettingsFooter from "./settings/SettingsFooter";
+import SettingsTabs from "./settings/SettingsTabs";
 
-interface UserSettingsProps {
-  className?: string;
-}
+// Define schema for settings form
+const settingsFormSchema = z.object({
+  email: z.string().email(),
+  username: z.string().min(3).max(20),
+  displayName: z.string().min(1).max(50),
+  bio: z.string().max(160).optional(),
+  notifications: z.object({
+    email: z.boolean(),
+    push: z.boolean(),
+    trading: z.boolean(),
+    marketAlerts: z.boolean(),
+    newFeatures: z.boolean(),
+  }),
+  privacy: z.object({
+    publicProfile: z.boolean(),
+    showPortfolio: z.boolean(),
+    shareActivity: z.boolean(),
+  }),
+  appearance: z.object({
+    theme: z.enum(["light", "dark", "system"]),
+    compactView: z.boolean(),
+    animationsEnabled: z.boolean(),
+  }),
+});
 
-const defaultSettings: SettingsFormValues = {
-  darkMode: true,
-  notifications: true,
-  language: "en",
-  layout: "default",
-  timeZone: "UTC",
-  exportFormat: "csv",
-  alertVolume: 70,
-  alertFrequency: "medium",
-  dataPrivacy: {
-    shareAnalytics: true,
-    storeHistory: true,
-    autoDeleteData: false,
-    dataRetentionPeriod: "90days"
+export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
+
+// Initial form values
+const defaultValues: SettingsFormValues = {
+  email: "user@example.com",
+  username: "cryptotrader",
+  displayName: "Crypto Trader",
+  bio: "Crypto enthusiast and trader",
+  notifications: {
+    email: true,
+    push: true,
+    trading: true,
+    marketAlerts: true,
+    newFeatures: true,
   },
-  dashboardCustomization: {
-    showPortfolioValue: true,
-    defaultCurrency: "USD",
-    defaultTimeframe: "1M",
-    defaultChartType: "line",
-    chartColors: "default"
+  privacy: {
+    publicProfile: false,
+    showPortfolio: false,
+    shareActivity: true,
   },
-  security: {
-    enableTwoFactor: false,
-    autoLock: false,
-    lockTimeout: 15
-  }
+  appearance: {
+    theme: "system",
+    compactView: false,
+    animationsEnabled: true,
+  },
 };
 
-const UserSettings = ({ className }: UserSettingsProps) => {
-  const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 640px)");
-  
-  // Load saved settings from localStorage or use defaults
-  const getSavedSettings = useCallback(() => {
-    try {
-      const savedSettings = localStorage.getItem("userSettings");
-      if (savedSettings) {
-        return { ...defaultSettings, ...JSON.parse(savedSettings) };
-      }
-    } catch (error) {
-      console.error("Failed to load saved settings:", error);
-    }
-    return defaultSettings;
-  }, []);
+interface SettingsFormProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
+
+// Modified SettingsTabs to accept form props
+const EnhancedSettingsTabs: React.FC<SettingsFormProps> = ({ form }) => {
+  return <SettingsTabs />;
+};
+
+const UserSettings = () => {
+  const [activeTab, setActiveTab] = useState("general");
+  const [isSaving, setIsSaving] = useState(false);
   
   const form = useForm<SettingsFormValues>({
-    defaultValues: getSavedSettings()
+    resolver: zodResolver(settingsFormSchema),
+    defaultValues,
   });
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as SettingsTab);
-  };
-
-  const handleCancel = () => {
-    form.reset(getSavedSettings());
-    setOpen(false);
-  };
-
-  const onSubmit = (data: SettingsFormValues) => {
-    setIsSubmitting(true);
+  
+  const handleSaveSettings = async (values: SettingsFormValues) => {
+    setIsSaving(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      try {
-        // In a real application, save these settings to a database or localStorage
-        localStorage.setItem("userSettings", JSON.stringify(data));
-        toast({
-          title: "Settings updated",
-          description: "Your preferences have been saved successfully.",
-          variant: "default"
-        });
-        setOpen(false);
-      } catch (error) {
-        toast({
-          title: "Error saving settings",
-          description: "Please try again later.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-    }, 800);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Save to local storage for demo purposes
+      localStorage.setItem('user_settings', JSON.stringify(values));
+      
+      toast({
+        title: "Settings updated",
+        description: "Your settings have been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (isOpen) {
-        form.reset(getSavedSettings());
+  
+  // Load settings from local storage on component mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('user_settings');
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        Object.keys(parsedSettings).forEach(key => {
+          form.setValue(key as any, parsedSettings[key]);
+        });
+      } catch (error) {
+        console.error("Error parsing saved settings:", error);
       }
-      setOpen(isOpen);
-    }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className={className}>
-          <Settings className="h-4 w-4 mr-2" />
-          <span>Settings</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className={isMobile ? "w-[95vw] max-w-none" : "sm:max-w-[625px]"}>
-        <DialogHeader>
-          <DialogTitle>User Settings</DialogTitle>
-          <DialogDescription>
-            Customize your dashboard experience and preferences
-          </DialogDescription>
-        </DialogHeader>
-        
-        <Tabs defaultValue="general" value={activeTab} onValueChange={handleTabChange}>
-          <SettingsTabs activeTab={activeTab} onTabChange={handleTabChange} />
-        
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <TabsContent value="general">
-                <GeneralSettings form={form} />
-              </TabsContent>
-              
-              <TabsContent value="appearance">
-                <AppearanceSettings form={form} />
-              </TabsContent>
-              
-              <TabsContent value="notifications">
-                <NotificationSettings form={form} />
-              </TabsContent>
-              
-              <TabsContent value="data">
-                <DataPrivacySettings form={form} />
-              </TabsContent>
-              
-              <SettingsFooter onCancel={handleCancel} isSubmitting={isSubmitting} />
-            </form>
-          </Form>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+    }
+  }, [form]);
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Account Settings</h2>
+          <p className="text-muted-foreground">Manage your account preferences and settings</p>
+        </div>
+      </div>
+      
+      <form onSubmit={form.handleSubmit(handleSaveSettings)}>
+        <Card>
+          <CardHeader className="pb-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-4 md:grid-cols-6">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                <TabsTrigger value="privacy">Privacy</TabsTrigger>
+                <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                <TabsTrigger value="security" className="hidden md:block">Security</TabsTrigger>
+                <TabsTrigger value="advanced" className="hidden md:block">Advanced</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <TabsContent value="general">
+              <GeneralSettings form={form} />
+            </TabsContent>
+            <TabsContent value="notifications">
+              <NotificationSettings form={form} />
+            </TabsContent>
+            <TabsContent value="privacy">
+              <DataPrivacySettings form={form} />
+            </TabsContent>
+            <TabsContent value="appearance">
+              <AppearanceSettings form={form} />
+            </TabsContent>
+            <TabsContent value="security">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Security Settings</h3>
+                <p className="text-muted-foreground">Manage your account security settings</p>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">Current Password</Label>
+                    <Input id="current-password" type="password" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input id="new-password" type="password" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm New Password</Label>
+                    <Input id="confirm-password" type="password" />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="2fa">Two-factor Authentication</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add an extra layer of security to your account
+                      </p>
+                    </div>
+                    <Switch id="2fa" />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="advanced">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Advanced Settings</h3>
+                <p className="text-muted-foreground">Configure advanced features and options</p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>API Access</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enable API access for third-party applications
+                      </p>
+                    </div>
+                    <Switch />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Developer Mode</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enable advanced features for developers
+                      </p>
+                    </div>
+                    <Switch />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="pt-4">
+                    <Button variant="destructive">Delete Account</Button>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      This will permanently delete your account and all associated data
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </CardContent>
+          <CardFooter>
+            <SettingsFooter 
+              isSaving={isSaving} 
+              onReset={() => form.reset()} 
+            />
+          </CardFooter>
+        </Card>
+      </form>
+    </div>
   );
 };
 

@@ -2,7 +2,7 @@
 import { useCurrency } from './use-currency';
 
 // Type definition for SupportedCurrency
-type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 export function useCurrencyConverter() {
   const { 

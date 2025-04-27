@@ -10,7 +10,6 @@ import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
 
-// Type definition for SupportedCurrency
 type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 const FakeTrading = () => {

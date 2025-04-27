@@ -8,13 +8,15 @@ import { toast } from "@/components/ui/use-toast";
 import type { CoinOption } from "@/types/trading";
 import PriceDisplay from "./PriceDisplay";
 
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
 interface TradingFormProps {
   balance: number;
   availableCoins: CoinOption[];
   onExecuteTrade: (type: 'buy' | 'sell', coinId: string, amount: number) => void;
   getOwnedCoinAmount: (coinId: string) => number;
-  activeCurrency: 'USD' | 'AUD';
-  onCurrencyChange: (currency: 'USD' | 'AUD') => void;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency) => void;
   conversionRate: number;
 }
 
@@ -102,6 +104,8 @@ const TradingForm = ({
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="AUD">AUD</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
+              <SelectItem value="GBP">GBP</SelectItem>
             </SelectContent>
           </Select>
         </div>

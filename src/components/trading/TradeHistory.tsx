@@ -1,94 +1,77 @@
 
 import React from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown } from "lucide-react";
-import type { Trade } from "@/types/trading";
+
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
+interface Trade {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  timestamp: string;
+  currency: SupportedCurrency;
+}
 
 interface TradeHistoryProps {
   trades: Trade[];
-  title?: string;
-  description?: string;
-  limit?: number;
-  formatCurrency?: (value: number) => string;
-  activeCurrency?: string;
+  formatCurrency: (value: number) => string;
+  activeCurrency: SupportedCurrency;
 }
 
-const TradeHistory: React.FC<TradeHistoryProps> = ({ 
-  trades, 
-  title = "Trade History", 
-  description = "Recent trading activity",
-  limit = 10,
-  formatCurrency = (value: number) => `$${value.toLocaleString()}`,
-  activeCurrency = "USD"
-}) => {
-  // Sort by most recent and limit
-  const sortedTrades = [...trades]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, limit);
-  
+const TradeHistory: React.FC<TradeHistoryProps> = ({ trades, formatCurrency, activeCurrency }) => {
+  if (trades.length === 0) {
+    return (
+      <div className="text-center py-6 text-muted-foreground">
+        <p>No trade history yet</p>
+        <p className="text-sm">Your trades will appear here</p>
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>
-        {sortedTrades.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
-            No trades yet
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Asset</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right">Value</TableHead>
-                <TableHead className="text-right">Date</TableHead>
+    <div>
+      <h3 className="font-medium mb-3">Trade History</h3>
+      <div className="rounded-md border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Coin</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead className="text-right">Price</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {trades.slice(0, 10).map((trade) => (
+              <TableRow key={trade.id}>
+                <TableCell className="text-muted-foreground">
+                  {new Date(trade.timestamp).toLocaleDateString()}
+                </TableCell>
+                <TableCell className={trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                  {trade.type.charAt(0).toUpperCase() + trade.type.slice(1)}
+                </TableCell>
+                <TableCell>{trade.coinSymbol}</TableCell>
+                <TableCell>{trade.amount.toFixed(6)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(trade.price)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(trade.totalValue)}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedTrades.map((trade) => (
-                <TableRow key={trade.id}>
-                  <TableCell>
-                    <div className="font-medium">{trade.coinSymbol}</div>
-                  </TableCell>
-                  <TableCell>
-                    {trade.type === "buy" ? (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        <ArrowUp className="h-3 w-3 mr-1 text-green-600" />
-                        Buy
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                        <ArrowDown className="h-3 w-3 mr-1 text-red-600" />
-                        Sell
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {trade.amount.toFixed(6)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {formatCurrency(trade.price)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {formatCurrency(trade.totalValue)}
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground">
-                    {new Date(trade.timestamp).toLocaleString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      {trades.length > 10 && (
+        <div className="text-center mt-2">
+          <p className="text-sm text-muted-foreground">Showing last 10 trades</p>
+        </div>
+      )}
+    </div>
   );
 };
 

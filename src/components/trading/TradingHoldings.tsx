@@ -6,12 +6,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { CoinOption } from "@/types/trading";
 import PortfolioHistoryChart from "./PortfolioHistoryChart";
 
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
 interface TradingHoldingsProps {
   availableCoins: CoinOption[];
   getOwnedCoinAmount: (coinId: string) => number;
   onReset: () => void;
   formatCurrency: (value: number) => string;
-  activeCurrency: 'USD' | 'AUD';
+  activeCurrency: SupportedCurrency;
   conversionRate: number;
 }
 
