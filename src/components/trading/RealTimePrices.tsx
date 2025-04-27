@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +19,6 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
   const [latestUpdates, setLatestUpdates] = useState<{ id: string, timestamp: number }[]>([]);
   
   useEffect(() => {
-    // Start real-time price monitoring
     const stopMonitoring = startPriceMonitoring(
       initialCoins.map(coin => coin.id),
       (updatedCoins) => {
@@ -29,11 +27,9 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
             const updatedCoin = updatedCoins.find(c => c.id === coin.id);
             if (!updatedCoin) return coin;
             
-            // Calculate price change since last update
             const priceChange = updatedCoin.price - coin.price;
             const changePercent = (priceChange / coin.price) * 100;
             
-            // Add to latest updates list
             setLatestUpdates(prev => {
               const newUpdates = prev.filter(u => u.id !== coin.id);
               return [...newUpdates, { id: coin.id, timestamp: Date.now() }]
@@ -52,10 +48,9 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
           return updatedList;
         });
       },
-      5000 // Update every 5 seconds for demonstration
+      5000
     );
     
-    // Notify user that real-time updates are active
     toast({
       title: "Real-Time Updates Active",
       description: "Prices will update every 5 seconds"
@@ -104,7 +99,7 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
   const isRecent = (coinId: string): boolean => {
     const update = latestUpdates.find(u => u.id === coinId);
     if (!update) return false;
-    return Date.now() - update.timestamp < 5000; // Within last 5 seconds
+    return Date.now() - update.timestamp < 5000;
   };
 
   return (
@@ -163,9 +158,9 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
             {filteredCoins.length > 0 ? (
               filteredCoins.map((coin) => {
                 const recent = isRecent(coin.id);
-                const priceChangeClass = coin.priceChange > 0 
+                const priceChangeClass = (coin.priceChange || 0) > 0 
                   ? "text-green-500" 
-                  : coin.priceChange < 0 
+                  : (coin.priceChange || 0) < 0 
                     ? "text-red-500" 
                     : "";
                 
@@ -182,12 +177,12 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
                       ${coin.price.toFixed(2)}
                     </div>
                     <div className="flex items-center justify-end">
-                      {coin.priceChange > 0 ? (
+                      {(coin.priceChange || 0) > 0 ? (
                         <span className="flex items-center text-green-500">
                           <ChevronUp className="h-4 w-4 mr-1" />
                           {Math.abs(coin.changePercent || 0).toFixed(2)}%
                         </span>
-                      ) : coin.priceChange < 0 ? (
+                      ) : (coin.priceChange || 0) < 0 ? (
                         <span className="flex items-center text-red-500">
                           <ChevronDown className="h-4 w-4 mr-1" />
                           {Math.abs(coin.changePercent || 0).toFixed(2)}%

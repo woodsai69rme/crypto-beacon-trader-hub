@@ -1,5 +1,4 @@
-
-import { CoinOption } from "@/types/trading";
+import { CoinOption, CryptoData, CryptoChartData } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
 // Define the CryptoData type that is used by multiple components
@@ -68,7 +67,10 @@ export const fetchTopCoins = async (limit: number = 20): Promise<CoinOption[]> =
       changePercent: coin.price_change_percentage_24h,
       marketCap: coin.market_cap,
       volume: coin.total_volume,
-      image: coin.image
+      image: coin.image,
+      current_price: coin.current_price,
+      market_cap: coin.market_cap,
+      market_cap_rank: coin.market_cap_rank
     }));
   } catch (error) {
     console.error('Error fetching top coins:', error);

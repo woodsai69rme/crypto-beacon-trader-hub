@@ -1,135 +1,73 @@
-
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { CryptoData } from "@/services/cryptoApi";
-import { fetchTopCoins } from "@/services/cryptoApi";
-import { CorrelationHeatmap } from "./CorrelationHeatmap";
-import { CorrelationAnalysis } from "./CorrelationAnalysis";
-import { CorrelationExplainer } from "./CorrelationExplainer";
 import { generateMockCorrelations } from "./mockData";
+import { CorrelationHeatmap } from "./CorrelationHeatmap";
+import { fetchTopCoins } from "@/services/cryptoApi";
+import { CryptoData, CoinOption } from "@/types/trading";
 
-type TimeRange = '7d' | '30d' | '90d';
-
-interface Correlation {
-  [key: string]: {
-    [key: string]: number;
-  };
-}
+const convertToCryptoData = (coins: CoinOption[]): CryptoData[] => {
+  return coins.map(coin => ({
+    id: coin.id,
+    symbol: coin.symbol,
+    name: coin.name,
+    current_price: coin.price || 0,
+    market_cap: coin.marketCap || 0,
+    market_cap_rank: 0,
+    price_change_24h: coin.priceChange,
+    price_change_percentage_24h: coin.changePercent,
+    image: coin.image
+  }));
+};
 
 const MarketCorrelations = () => {
   const [coins, setCoins] = useState<CryptoData[]>([]);
-  const [correlations, setCorrelations] = useState<Correlation>({});
-  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
+  const [correlations, setCorrelations] = useState<{[key: string]: {[key: string]: number}}>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
-  
-  const availableCoins = coins.slice(0, 10);
-  
+
   useEffect(() => {
-    fetchCoinsAndCorrelations();
-  }, [timeRange]);
-  
-  const fetchCoinsAndCorrelations = async () => {
-    setIsLoading(true);
-    try {
-      const coinsData = await fetchTopCoins(10) as unknown as CryptoData[];
-      setCoins(coinsData);
-      
-      // Generate correlation data
-      const correlationData = generateMockCorrelations(coinsData, timeRange);
-      setCorrelations(correlationData);
-    } catch (error) {
-      console.error("Failed to fetch correlation data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch correlation data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const toggleCoinSelection = (coinId: string) => {
-    if (selectedCoins.includes(coinId)) {
-      setSelectedCoins(selectedCoins.filter(id => id !== coinId));
-    } else {
-      if (selectedCoins.length < 3) {
-        setSelectedCoins([...selectedCoins, coinId]);
-      } else {
-        toast({
-          title: "Selection limit reached",
-          description: "You can select up to 3 coins for detailed analysis",
-        });
+    const loadData = async () => {
+      try {
+        const topCoins = await fetchTopCoins(10);
+        const cryptoData = convertToCryptoData(topCoins);
+        setCoins(cryptoData);
+        setCorrelations(generateMockCorrelations(cryptoData, timeRange));
+      } catch (error) {
+        console.error('Error fetching correlation data:', error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-  };
-  
+    };
+
+    loadData();
+  }, [timeRange]);
+
   return (
-    <Card className="shadow-md crypto-card">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle>Market Correlations</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant={timeRange === '7d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('7d')}
-            >
-              7D
-            </Button>
-            <Button 
-              variant={timeRange === '30d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('30d')}
-            >
-              30D
-            </Button>
-            <Button 
-              variant={timeRange === '90d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('90d')}
-            >
-              90D
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="matrix" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="matrix">Correlation Matrix</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="matrix" className="space-y-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-[300px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-              </div>
-            ) : (
-              <CorrelationHeatmap coins={availableCoins} correlations={correlations} />
-            )}
-          </TabsContent>
-          
-          <TabsContent value="analysis">
-            <div className="space-y-4">
-              <CorrelationAnalysis 
-                coins={availableCoins}
-                selectedCoins={selectedCoins}
-                correlations={correlations}
-                onCoinSelect={toggleCoinSelection}
-              />
-              
-              <CorrelationExplainer />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="p-4">
+      <h2 className="text-lg font-semibold mb-4">Market Correlations</h2>
+      
+      <div className="mb-4">
+        <label htmlFor="timeRange" className="block text-sm font-medium text-gray-700">
+          Time Range:
+        </label>
+        <select
+          id="timeRange"
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value as '7d' | '30d' | '90d')}
+          disabled={isLoading}
+        >
+          <option value="7d">7 Days</option>
+          <option value="30d">30 Days</option>
+          <option value="90d">90 Days</option>
+        </select>
+      </div>
+      
+      {isLoading ? (
+        <div className="text-center">Loading correlations...</div>
+      ) : (
+        <CorrelationHeatmap coins={coins} correlations={correlations} />
+      )}
+    </div>
   );
 };
 

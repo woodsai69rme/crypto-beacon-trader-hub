@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Card, 
@@ -23,9 +22,22 @@ import { CoinOption } from "@/types/trading";
 const RealTimeTrading = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   
-  // Sample initial coin data
   const initialCoins: CoinOption[] = [
-    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, priceChange: 1200, changePercent: 2.3, marketCap: 1180000000000, volume: 28000000000, image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", priceAUD: 93654.32 },
+    { 
+      id: "bitcoin", 
+      name: "Bitcoin", 
+      symbol: "BTC", 
+      price: 61245.32, 
+      marketCap: 1180000000000, 
+      volume: 28000000000,
+      priceChange: 1200, 
+      changePercent: 2.3, 
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", 
+      priceAUD: 93654.32,
+      current_price: 61245.32,
+      market_cap: 1180000000000,
+      market_cap_rank: 1
+    },
     { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, priceChange: -120, changePercent: -1.5, marketCap: 360000000000, volume: 15000000000, image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png", priceAUD: 4598.45 },
     { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, priceChange: 8.2, changePercent: 6.1, marketCap: 62000000000, volume: 3800000000, image: "https://assets.coingecko.com/coins/images/4128/large/solana.png", priceAUD: 218.27 },
     { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, priceChange: 0.01, changePercent: 2.2, marketCap: 16000000000, volume: 420000000, image: "https://assets.coingecko.com/coins/images/975/large/cardano.png", priceAUD: 0.69 },

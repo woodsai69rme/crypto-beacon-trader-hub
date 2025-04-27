@@ -1,4 +1,3 @@
-
 import { SupportedCurrency } from "../components/trading/TradingStats";
 
 export type CoinOption = {
@@ -14,6 +13,9 @@ export type CoinOption = {
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
+  current_price?: number;
+  market_cap?: number;
+  market_cap_rank?: number;
 };
 
 export type Trade = {
@@ -107,9 +109,20 @@ export interface AITradingStrategy {
   lastModified?: string;
 }
 
-// Add CryptoChartData export for type compatibility
 export interface CryptoChartData {
   prices: [number, number][];
   market_caps: [number, number][];
   total_volumes: [number, number][];
 }
+
+export type CryptoData = {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  market_cap: number;
+  market_cap_rank: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+  image?: string;
+};

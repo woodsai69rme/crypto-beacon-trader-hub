@@ -1,14 +1,23 @@
-
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { updateWithCurrencyRates } from "@/services/currencyApi";
 import { toast } from "@/components/ui/use-toast";
 import type { Trade, CoinOption } from "@/types/trading";
 import { useState, useEffect } from "react";
-import { startPriceMonitoring } from "@/services/priceMonitoringService";
+import { startPriceMonitoring } from "@/services/priceMonitoring";
 
 const initialCoins: CoinOption[] = [
-  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, marketCap: 1180000000000, volume: 28000000000 },
+  { 
+    id: "bitcoin", 
+    name: "Bitcoin", 
+    symbol: "BTC", 
+    price: 61245.32, 
+    marketCap: 1180000000000, 
+    volume: 28000000000,
+    current_price: 61245.32,
+    market_cap: 1180000000000,
+    market_cap_rank: 1
+  },
   { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, marketCap: 360000000000, volume: 15000000000 },
   { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, marketCap: 62000000000, volume: 3800000000 },
   { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, marketCap: 16000000000, volume: 420000000 },
