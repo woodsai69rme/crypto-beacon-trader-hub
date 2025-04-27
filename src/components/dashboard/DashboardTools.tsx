@@ -4,11 +4,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import TaxCalculator from "../TaxCalculator";
-import PortfolioBenchmarking from "../PortfolioBenchmarking";
+import EnhancedPortfolioBenchmarking from "../portfolio/EnhancedPortfolioBenchmarking";
 import MarketMetrics from "../MarketMetrics";
 import LocalAiModels from "../trading/LocalAiModels";
+import ApiProviderManagement from "../api/ApiProviderManagement";
+import TaxHarvestingTool from "../tax/TaxHarvestingTool";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { toast } from "@/components/ui/use-toast";
+import { Download, Settings, BarChart4, Tax, Database, Share2 } from "lucide-react";
 
 // Sample portfolio performance data for demo
 const samplePortfolioData = {
@@ -48,20 +51,49 @@ const DashboardTools = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Trading & Analysis Tools</h2>
-        <button 
+        <Button 
           onClick={handleExportData}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
+          variant="outline"
+          size="sm"
+          className="flex items-center"
         >
+          <Download className="h-4 w-4 mr-2" />
           Export All Data
-        </button>
+        </Button>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-6">
-          <TabsTrigger value="metrics">Market Metrics</TabsTrigger>
-          <TabsTrigger value="benchmarking">Portfolio Benchmarking</TabsTrigger>
-          <TabsTrigger value="tax">Tax Calculator</TabsTrigger>
-          <TabsTrigger value="local">Local AI</TabsTrigger>
+        <TabsList className="grid grid-cols-6 mb-6">
+          <TabsTrigger value="metrics">
+            <BarChart4 className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Market Metrics</span>
+            <span className="sm:hidden">Metrics</span>
+          </TabsTrigger>
+          <TabsTrigger value="benchmarking">
+            <Share2 className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Portfolio Benchmarking</span>
+            <span className="sm:hidden">Benchmarking</span>
+          </TabsTrigger>
+          <TabsTrigger value="tax">
+            <Tax className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Tax Calculator</span>
+            <span className="sm:hidden">Tax</span>
+          </TabsTrigger>
+          <TabsTrigger value="harvest">
+            <Tax className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Tax Harvesting</span>
+            <span className="sm:hidden">Harvest</span>
+          </TabsTrigger>
+          <TabsTrigger value="api">
+            <Database className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">API Management</span>
+            <span className="sm:hidden">APIs</span>
+          </TabsTrigger>
+          <TabsTrigger value="local">
+            <Settings className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Local AI</span>
+            <span className="sm:hidden">AI</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="metrics">
@@ -69,7 +101,7 @@ const DashboardTools = () => {
         </TabsContent>
         
         <TabsContent value="benchmarking">
-          <PortfolioBenchmarking 
+          <EnhancedPortfolioBenchmarking 
             portfolioPerformance={samplePortfolioData.performance}
             portfolioDates={samplePortfolioData.dates}
           />
@@ -77,6 +109,14 @@ const DashboardTools = () => {
         
         <TabsContent value="tax">
           <TaxCalculator trades={trades} />
+        </TabsContent>
+        
+        <TabsContent value="harvest">
+          <TaxHarvestingTool />
+        </TabsContent>
+        
+        <TabsContent value="api">
+          <ApiProviderManagement />
         </TabsContent>
         
         <TabsContent value="local">
@@ -96,100 +136,6 @@ const DashboardTools = () => {
           <LocalAiModels />
         </TabsContent>
       </Tabs>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>API Integration Guide</CardTitle>
-            <CardDescription>Connect to popular cryptocurrency data providers</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="border rounded-md p-3">
-                <div className="font-medium">CoinGecko API</div>
-                <div className="text-sm text-muted-foreground">
-                  Comprehensive cryptocurrency data with free tier
-                </div>
-                <div className="text-xs bg-muted p-2 rounded mt-2 font-mono">
-                  https://api.coingecko.com/api/v3/coins/markets
-                </div>
-              </div>
-              
-              <div className="border rounded-md p-3">
-                <div className="font-medium">CoinMarketCap API</div>
-                <div className="text-sm text-muted-foreground">
-                  Professional-grade data with limited free tier
-                </div>
-                <div className="text-xs bg-muted p-2 rounded mt-2 font-mono">
-                  https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest
-                </div>
-              </div>
-              
-              <div className="border rounded-md p-3">
-                <div className="font-medium">Messari API</div>
-                <div className="text-sm text-muted-foreground">
-                  Crypto research and market intelligence
-                </div>
-                <div className="text-xs bg-muted p-2 rounded mt-2 font-mono">
-                  https://data.messari.io/api/v1/assets
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Development Resources</CardTitle>
-            <CardDescription>Tools and documentation for developers</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-2">Project Documentation</h3>
-                <ul className="space-y-1 text-sm">
-                  <li className="text-primary hover:underline cursor-pointer">
-                    Developer Guide
-                  </li>
-                  <li className="text-primary hover:underline cursor-pointer">
-                    API Documentation
-                  </li>
-                  <li className="text-primary hover:underline cursor-pointer">
-                    Component Library
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">Technical Stack</h3>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 bg-muted rounded-md text-xs">React</span>
-                  <span className="px-2 py-1 bg-muted rounded-md text-xs">TypeScript</span>
-                  <span className="px-2 py-1 bg-muted rounded-md text-xs">Tailwind CSS</span>
-                  <span className="px-2 py-1 bg-muted rounded-md text-xs">Shadcn/UI</span>
-                  <span className="px-2 py-1 bg-muted rounded-md text-xs">Recharts</span>
-                  <span className="px-2 py-1 bg-muted rounded-md text-xs">React Query</span>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">External Resources</h3>
-                <ul className="space-y-1 text-sm">
-                  <li className="text-primary hover:underline cursor-pointer">
-                    GitHub Repository
-                  </li>
-                  <li className="text-primary hover:underline cursor-pointer">
-                    Bug Tracker
-                  </li>
-                  <li className="text-primary hover:underline cursor-pointer">
-                    Feature Requests
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

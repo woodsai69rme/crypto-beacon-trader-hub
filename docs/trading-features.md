@@ -24,6 +24,24 @@ The real-time trading system provides:
 3. Choose the specific real-time feature you want to monitor
 4. Set your preferences for update frequency and display options
 
+### API Integration System
+
+The platform supports multiple cryptocurrency data providers:
+
+- **Multiple Providers**: Connect to CoinGecko, CoinMarketCap, CryptoCompare and more
+- **Pro API Keys**: Utilize premium API tiers for enhanced data access
+- **Automatic Fallbacks**: System automatically switches to alternative providers if one fails
+- **API Key Management**: Securely store and manage your API keys
+- **Custom Endpoints**: Add custom providers with your own endpoints
+
+#### How to Configure API Providers
+
+1. Navigate to the Tools dashboard
+2. Select the "API Management" tab
+3. Enable or disable available providers
+4. Add your API keys for premium access
+5. Configure provider priority for fallbacks
+
 ### AlertsSystem
 
 The AlertsSystem provides real-time price and volume alerts for cryptocurrencies:
@@ -64,6 +82,9 @@ The portfolio tracking system provides:
 - Historical performance tracking
 - Trade execution and history
 - Multi-currency support (USD/AUD/EUR/GBP)
+- Multiple portfolio accounts
+- Custom portfolio naming and organization
+- Performance metrics and analytics
 
 ### Pattern Recognition
 
@@ -83,6 +104,27 @@ The correlation analysis tools enable:
 - Tracking correlation changes over time
 - Portfolio diversification scoring
 - Finding correlation-based trade opportunities
+- Visual correlation heatmaps
+
+### Portfolio Benchmarking
+
+Compare your portfolio performance against:
+
+- Major cryptocurrencies (Bitcoin, Ethereum)
+- Traditional market indices (S&P 500, NASDAQ)
+- Commodities (Gold, Silver)
+- Custom benchmarks
+- Risk-adjusted metrics (Sharpe ratio, Sortino ratio)
+
+### Tax Tools
+
+Comprehensive tax tools for cryptocurrency traders:
+
+- **Tax Calculation**: Calculate capital gains and losses
+- **Tax Loss Harvesting**: Find opportunities to offset gains
+- **Wash Sale Detection**: Avoid disallowed losses
+- **Multiple Accounting Methods**: FIFO, LIFO, HIFO, and more
+- **Export Reports**: Generate tax forms and reports
 
 ## Error Handling
 
@@ -100,6 +142,7 @@ The application implements comprehensive error handling:
 - Portfolio data persists between sessions
 - AI model configurations are saved locally
 - Real-time data caching for performance
+- Data export and backup options
 
 ## Multi-Currency Support
 
@@ -107,6 +150,17 @@ The application implements comprehensive error handling:
 - Real-time currency conversion
 - Configurable default currency in settings
 - Currency-specific price displays
+
+## Bot Trading Features
+
+- **Automated Trading Strategies**: Configure and deploy AI-powered trading bots
+- **Backtesting Engine**: Test strategies against historical data
+- **Strategy Optimization**: Fine-tune parameters for optimal performance
+- **Bot Performance Monitoring**: Track real-time bot performance metrics
+- **Custom Strategy Builder**: Create and modify trading strategies
+- **Risk Management Tools**: Set stop-loss and take-profit parameters
+- **Multi-Coin Bot Support**: Create bots for different cryptocurrencies
+- **Trading Signal Generation**: Receive buy/sell signals from bots
 
 ## Best Practices
 
@@ -117,3 +171,7 @@ The application implements comprehensive error handling:
 5. Use the backtesting features before deploying trading strategies
 6. Monitor real-time performance metrics to evaluate strategy effectiveness
 7. Use correlation analysis to build a diversified portfolio
+8. Take advantage of tax loss harvesting opportunities
+9. Configure API fallbacks to ensure continuous data availability
+10. Export your data regularly for backup purposes
+
