@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -28,10 +27,10 @@ import {
   Plus, 
   Check, 
   X, 
-  Link, 
-  LinkOff, 
-  ExternalLink, 
-  RefreshCw, 
+  Link,
+  Link2Off,
+  ExternalLink,
+  RefreshCw,
   AlertTriangle,
   KeyRound,
   ShieldCheck,
@@ -246,7 +245,7 @@ const ExchangeIntegration: React.FC = () => {
                               >
                                 {isConnected ? (
                                   <>
-                                    <LinkOff className="h-4 w-4 mr-1" />
+                                    <Link2Off className="h-4 w-4 mr-1" />
                                     Disconnect
                                   </>
                                 ) : (

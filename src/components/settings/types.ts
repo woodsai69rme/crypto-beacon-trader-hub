@@ -1,4 +1,3 @@
-
 export interface SettingsFormValues {
   email?: string;
   username?: string;

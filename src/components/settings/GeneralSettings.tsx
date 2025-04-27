@@ -1,8 +1,8 @@
+
 import React from "react";
+import { UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useForm } from "react-hook-form";
-import { useFormContext } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
 const GeneralSettings = ({ form }: { form: UseFormReturn<SettingsFormValues> }) => {

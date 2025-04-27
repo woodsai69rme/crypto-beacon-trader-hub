@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { Trade } from "./trading/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TradingForm from "./trading/TradingForm";
 import TradingHoldings from "./trading/TradingHoldings";
