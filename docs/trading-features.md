@@ -63,7 +63,7 @@ The portfolio tracking system provides:
 - Real-time portfolio valuation
 - Historical performance tracking
 - Trade execution and history
-- Multi-currency support (USD/AUD)
+- Multi-currency support (USD/AUD/EUR/GBP)
 
 ### Pattern Recognition
 
@@ -73,6 +73,7 @@ Our pattern recognition system:
 - Identifies support and resistance levels
 - Calculates trend strength indicators
 - Estimates reversal probabilities
+- Provides AI-powered pattern analysis
 
 ### Correlation Analysis
 
@@ -91,18 +92,21 @@ The application implements comprehensive error handling:
 - Consistent error notifications
 - Error logging for debugging
 - Recovery options for common errors
+- Automatic reconnection for websockets
 
 ## Data Storage
 
 - All settings and alerts are stored in browser localStorage
 - Portfolio data persists between sessions
 - AI model configurations are saved locally
+- Real-time data caching for performance
 
 ## Multi-Currency Support
 
-- Support for USD and AUD as base currencies
+- Support for USD, AUD, EUR, GBP as base currencies
 - Real-time currency conversion
 - Configurable default currency in settings
+- Currency-specific price displays
 
 ## Best Practices
 
@@ -111,3 +115,5 @@ The application implements comprehensive error handling:
 3. Start with small trading amounts when using AI trading features
 4. Regularly review and clean up outdated alerts
 5. Use the backtesting features before deploying trading strategies
+6. Monitor real-time performance metrics to evaluate strategy effectiveness
+7. Use correlation analysis to build a diversified portfolio

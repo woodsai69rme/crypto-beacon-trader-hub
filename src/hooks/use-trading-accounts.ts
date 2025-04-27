@@ -1,78 +1,110 @@
 
-import { useState, useEffect } from 'react';
-import { useLocalStorage } from './use-local-storage';
-import { TradingAccount, Trade } from '@/types/trading';
-import { toast } from '@/components/ui/use-toast';
+import { useState, useEffect } from "react";
+import { useLocalStorage } from "./use-local-storage";
+import type { Trade, TradingAccount } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
 
-export const useTradingAccounts = () => {
-  const [accounts, setAccounts] = useLocalStorage<TradingAccount[]>("tradingAccounts", []);
-  const [activeAccountId, setActiveAccountId] = useLocalStorage<string>("activeAccountId", "");
-
-  useEffect(() => {
-    if (accounts.length === 0) {
-      // Create default account if none exists
-      createAccount("Default Account", 10000);
+export function useTradingAccounts() {
+  const [accounts, setAccounts] = useLocalStorage<TradingAccount[]>("trading-accounts", [
+    {
+      id: "default",
+      name: "Main Account",
+      balance: 10000,
+      initialBalance: 10000,
+      currency: "USD", // Adding the required currency property
+      trades: [],
+      createdAt: new Date().toISOString()
     }
-  }, []);
+  ]);
 
-  const createAccount = (name: string, initialBalance: number) => {
+  // Add a new account
+  const addAccount = (name: string, initialBalance: number, currency: string = "USD") => {
     const newAccount: TradingAccount = {
-      id: Date.now().toString(),
+      id: `account-${Date.now()}`,
       name,
       balance: initialBalance,
       initialBalance,
+      currency,
       trades: [],
       createdAt: new Date().toISOString()
     };
     
     setAccounts([...accounts, newAccount]);
+    
     toast({
       title: "Account Created",
-      description: `Successfully created trading account: ${name}`
+      description: `Successfully created ${name} with ${initialBalance} ${currency}`,
     });
     
-    if (!activeAccountId) {
-      setActiveAccountId(newAccount.id);
-    }
+    return newAccount;
   };
 
-  const deleteAccount = (id: string) => {
-    setAccounts(accounts.filter(account => account.id !== id));
-    if (activeAccountId === id) {
-      setActiveAccountId(accounts[0]?.id || "");
+  // Execute a trade on a specific account
+  const executeAccountTrade = (accountId: string, trade: Omit<Trade, "id" | "timestamp">) => {
+    const accountIndex = accounts.findIndex(acc => acc.id === accountId);
+    if (accountIndex === -1) return false;
+    
+    const account = accounts[accountIndex];
+    const newTrade: Trade = {
+      id: `trade-${Date.now()}`,
+      ...trade,
+      timestamp: new Date().toISOString()
+    };
+    
+    let updatedBalance = account.balance;
+    if (trade.type === 'buy') {
+      updatedBalance -= trade.totalValue;
+    } else {
+      updatedBalance += trade.totalValue;
     }
+    
+    const updatedAccounts = [...accounts];
+    updatedAccounts[accountIndex] = {
+      ...account,
+      balance: updatedBalance,
+      trades: [newTrade, ...account.trades]
+    };
+    
+    setAccounts(updatedAccounts);
+    return true;
+  };
+
+  // Delete an account
+  const deleteAccount = (accountId: string) => {
+    const filtered = accounts.filter(acc => acc.id !== accountId);
+    setAccounts(filtered);
+    
     toast({
       title: "Account Deleted",
-      description: "Trading account has been removed"
+      description: "The trading account has been deleted.",
     });
   };
 
-  const addTradeToAccount = (accountId: string, trade: Trade) => {
-    setAccounts(accounts.map(account => {
-      if (account.id === accountId) {
-        const newBalance = trade.type === 'buy' 
-          ? account.balance - trade.totalValue
-          : account.balance + trade.totalValue;
-          
-        return {
-          ...account,
-          balance: newBalance,
-          trades: [trade, ...account.trades]
-        };
-      }
-      return account;
-    }));
+  // Reset all accounts to initial state
+  const resetAccounts = () => {
+    const defaultAccount: TradingAccount = {
+      id: "default",
+      name: "Main Account",
+      balance: 10000,
+      initialBalance: 10000,
+      currency: "USD",
+      trades: [],
+      createdAt: new Date().toISOString()
+    };
+    
+    setAccounts([defaultAccount]);
+    
+    toast({
+      title: "Accounts Reset",
+      description: "All trading accounts have been reset to default.",
+    });
   };
-
-  const getActiveAccount = () => accounts.find(account => account.id === activeAccountId);
 
   return {
     accounts,
-    activeAccountId,
-    setActiveAccountId,
-    createAccount,
+    addAccount,
+    executeAccountTrade,
     deleteAccount,
-    addTradeToAccount,
-    getActiveAccount
+    resetAccounts
   };
-};
+}

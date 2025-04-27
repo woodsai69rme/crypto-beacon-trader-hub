@@ -1,14 +1,13 @@
 
 import '@testing-library/jest-dom';
 
-// These type assertions tell TypeScript that jest globals match the expected types
+// Global type declarations for Jest
 declare global {
-  // Properly match jest types
-  const jest: typeof import('@jest/globals').jest;
-  const describe: jest.Describe;
-  const beforeEach: typeof import('@jest/globals').beforeEach;
-  const it: jest.It;
-  const expect: typeof import('@jest/globals').expect;
+  var jest: any;
+  var describe: any;
+  var beforeEach: any;
+  var it: any;
+  var expect: any;
 }
 
 export {};
