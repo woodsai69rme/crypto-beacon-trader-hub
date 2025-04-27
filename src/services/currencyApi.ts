@@ -1,6 +1,6 @@
 
 import axios from "axios";
-import type { CurrencyConversion } from "@/types/trading";
+import type { CurrencyConversion, CoinOption } from "@/types/trading";
 
 // Function to fetch current exchange rates
 export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
@@ -22,9 +22,6 @@ export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
       };
     }
     
-    console.log("API response:", response.data);
-    
-    // Fallback if API response doesn't have the expected structure
     console.error("Invalid response format from currency API, using fallback rates");
     return getDefaultRates();
   } catch (error) {
@@ -34,7 +31,7 @@ export async function fetchCurrencyRates(): Promise<CurrencyConversion> {
 }
 
 // Helper function to update coin prices with currency values
-export function updateWithCurrencyPrices(coins: any[], rates: CurrencyConversion): any[] {
+export function updateWithCurrencyRates(coins: CoinOption[], rates: CurrencyConversion): CoinOption[] {
   return coins.map(coin => ({
     ...coin,
     priceAUD: coin.price * rates.USD_AUD,
@@ -46,8 +43,8 @@ export function updateWithCurrencyPrices(coins: any[], rates: CurrencyConversion
 // Function to get default rates when API fails
 function getDefaultRates(): CurrencyConversion {
   return {
-    USD_AUD: 1.45, // Default fallback rate
-    AUD_USD: 0.69, // Default fallback rate
+    USD_AUD: 1.45,
+    AUD_USD: 0.69,
     USD_EUR: 0.92,
     EUR_USD: 1.09,
     USD_GBP: 0.79,

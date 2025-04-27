@@ -1,6 +1,6 @@
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { updateWithAUDPrices } from "@/services/currencyApi";
+import { updateWithCurrencyRates } from "@/services/currencyApi";
 import { toast } from "@/components/ui/use-toast";
 import type { Trade, CoinOption } from "@/types/trading";
 import { useState, useEffect } from "react";
@@ -32,7 +32,7 @@ export const useTradingPortfolio = () => {
       initialCoins.map(coin => coin.id),
       (updatedPrices) => {
         if (conversionRates.USD_AUD > 0) {
-          setAvailableCoins(updateWithAUDPrices(updatedPrices, conversionRates.USD_AUD));
+          setAvailableCoins(updateWithCurrencyRates(updatedPrices, conversionRates));
         } else {
           setAvailableCoins(updatedPrices);
         }
