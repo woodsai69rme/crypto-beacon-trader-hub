@@ -1,222 +1,244 @@
 
 import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertOctagon, Trash2, Plus, AlertCircle } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { Bell, BellPlus, BellRing, Trash2, Settings, Filter } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 
-interface RealTimeAlert {
+interface PriceAlert {
   id: string;
-  type: 'price' | 'volume' | 'technical' | 'news';
-  asset: string;
-  condition: string;
-  threshold: number;
-  createdAt: string;
-  triggered?: boolean;
-  triggeredAt?: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  price: number;
+  condition: "above" | "below";
+  createdAt: Date;
+  triggered: boolean;
 }
 
-const RealTimeAlerts = () => {
-  const [alerts, setAlerts] = useState<RealTimeAlert[]>([
-    {
-      id: "alert-1",
-      type: "price",
-      asset: "BTC",
-      condition: "above",
-      threshold: 95000,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "alert-2",
-      type: "price",
-      asset: "ETH",
-      condition: "below",
-      threshold: 3000,
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "alert-3",
-      type: "volume",
-      asset: "SOL",
-      condition: "above",
-      threshold: 1000000000,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+const RealTimeAlerts: React.FC = () => {
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [newAlertCoin, setNewAlertCoin] = useState<string>("bitcoin");
+  const [newAlertPrice, setNewAlertPrice] = useState<string>("");
+  const [newAlertCondition, setNewAlertCondition] = useState<"above" | "below">("above");
   
-  const [activeAlerts, setActiveAlerts] = useState<boolean>(true);
-  const [filteredAlerts, setFilteredAlerts] = useState<RealTimeAlert[]>([]);
+  // Available coins
+  const availableCoins = [
+    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", currentPrice: 61245.32 },
+    { id: "ethereum", name: "Ethereum", symbol: "ETH", currentPrice: 3010.45 },
+    { id: "solana", name: "Solana", symbol: "SOL", currentPrice: 142.87 },
+    { id: "cardano", name: "Cardano", symbol: "ADA", currentPrice: 0.45 },
+    { id: "ripple", name: "XRP", symbol: "XRP", currentPrice: 0.57 },
+    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", currentPrice: 0.14 },
+  ];
   
-  // Effect to filter alerts
+  // Create a new alert
+  const createAlert = () => {
+    const selectedCoin = availableCoins.find(coin => coin.id === newAlertCoin);
+    if (!selectedCoin) return;
+    
+    const price = parseFloat(newAlertPrice);
+    if (isNaN(price) || price <= 0) {
+      toast({
+        title: "Invalid Price",
+        description: "Please enter a valid price",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newAlert: PriceAlert = {
+      id: `alert-${Date.now()}`,
+      coinId: selectedCoin.id,
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol,
+      price,
+      condition: newAlertCondition,
+      createdAt: new Date(),
+      triggered: false
+    };
+    
+    setAlerts(prev => [...prev, newAlert]);
+    setNewAlertPrice("");
+    
+    toast({
+      title: "Alert Created",
+      description: `Alert for ${selectedCoin.symbol} ${newAlertCondition} $${price} created`,
+    });
+  };
+  
+  // Delete an alert
+  const deleteAlert = (id: string) => {
+    setAlerts(prev => prev.filter(alert => alert.id !== id));
+  };
+  
+  // Simulate price checking for alerts
   useEffect(() => {
-    setFilteredAlerts(activeAlerts 
-      ? alerts.filter(alert => !alert.triggered) 
-      : alerts.filter(alert => alert.triggered));
-  }, [alerts, activeAlerts]);
-  
-  // Simulate alert triggering (for demo purposes)
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (Math.random() > 0.7 && alerts.some(a => !a.triggered)) {
-        const alertsToUpdate = [...alerts];
-        const untriggeredAlerts = alertsToUpdate.filter(a => !a.triggered);
+    const checkAlertsInterval = setInterval(() => {
+      setAlerts(prev => {
+        const updatedAlerts = [...prev];
+        let alertTriggered = false;
         
-        if (untriggeredAlerts.length > 0) {
-          const randomIndex = Math.floor(Math.random() * untriggeredAlerts.length);
-          const alertToTrigger = untriggeredAlerts[randomIndex];
+        for (let i = 0; i < updatedAlerts.length; i++) {
+          if (updatedAlerts[i].triggered) continue;
           
-          // Find this alert in the original array
-          const originalIndex = alertsToUpdate.findIndex(a => a.id === alertToTrigger.id);
+          const alert = updatedAlerts[i];
+          const coin = availableCoins.find(c => c.id === alert.coinId);
           
-          if (originalIndex !== -1) {
-            alertsToUpdate[originalIndex] = {
-              ...alertToTrigger,
-              triggered: true,
-              triggeredAt: new Date().toISOString()
-            };
+          if (coin) {
+            // Simulate price fluctuations
+            const currentPrice = coin.currentPrice * (0.98 + Math.random() * 0.04);
             
-            setAlerts(alertsToUpdate);
-            
-            toast({
-              title: `${alertToTrigger.asset} Alert Triggered!`,
-              description: `${alertToTrigger.asset} price is ${alertToTrigger.condition} $${alertToTrigger.threshold.toLocaleString()}`,
-              variant: "default",
-            });
+            // Check if alert condition is met
+            const isTriggered = 
+              (alert.condition === "above" && currentPrice > alert.price) ||
+              (alert.condition === "below" && currentPrice < alert.price);
+              
+            if (isTriggered) {
+              updatedAlerts[i] = {
+                ...alert,
+                triggered: true
+              };
+              
+              alertTriggered = true;
+              
+              // Show toast notification
+              toast({
+                title: "Price Alert Triggered",
+                description: `${alert.coinSymbol} price is now ${alert.condition} $${alert.price}`,
+                variant: "destructive"
+              });
+            }
           }
         }
-      }
-    }, 30000); // Check every 30 seconds
+        
+        return alertTriggered ? updatedAlerts : prev;
+      });
+    }, 10000); // Check every 10 seconds
     
-    return () => clearInterval(intervalId);
-  }, [alerts]);
-  
-  const handleRemoveAlert = (id: string) => {
-    setAlerts(alerts.filter(alert => alert.id !== id));
-    toast({
-      title: "Alert Removed",
-      description: "The alert has been removed successfully",
-      variant: "default",
-    });
-  };
-  
-  const handleCreateAlert = () => {
-    toast({
-      title: "Create Alert",
-      description: "This would open an alert creation dialog",
-      variant: "default",
-    });
-  };
-  
-  const getAlertBadgeColor = (type: string) => {
-    switch(type) {
-      case 'price': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'volume': return 'bg-purple-50 text-purple-700 border-purple-200'; 
-      case 'technical': return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'news': return 'bg-green-50 text-green-700 border-green-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
+    return () => clearInterval(checkAlertsInterval);
+  }, []);
   
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
+    <Card>
+      <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2">
-            <BellRing className="h-5 w-5" />
-            Real-Time Alerts
+            <AlertOctagon className="h-5 w-5" />
+            Price Alerts
           </CardTitle>
-          <Button size="sm" variant="outline" onClick={handleCreateAlert}>
-            <BellPlus className="h-4 w-4 mr-1" />
-            New Alert
-          </Button>
         </div>
         <CardDescription>
-          Get notified when market conditions match your criteria
+          Get notified when prices reach your target
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Switch 
-              checked={activeAlerts} 
-              onCheckedChange={setActiveAlerts} 
-              id="alerts-switch"
-            />
-            <label htmlFor="alerts-switch" className="text-sm font-medium cursor-pointer">
-              {activeAlerts ? "Active Alerts" : "Triggered Alerts"}
-            </label>
+        <div className="space-y-4">
+          {/* Create new alert form */}
+          <div className="bg-muted/40 p-3 rounded-lg border">
+            <h3 className="text-sm font-medium mb-2">Create New Alert</h3>
+            <div className="grid grid-cols-12 gap-2">
+              <Select 
+                value={newAlertCoin}
+                onValueChange={setNewAlertCoin}
+                className="col-span-4"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select coin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCoins.map(coin => (
+                    <SelectItem key={coin.id} value={coin.id}>
+                      {coin.symbol}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={newAlertCondition}
+                onValueChange={(value) => setNewAlertCondition(value as "above" | "below")}
+                className="col-span-3"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="above">Above</SelectItem>
+                  <SelectItem value="below">Below</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Input 
+                type="number"
+                placeholder="Price"
+                value={newAlertPrice}
+                onChange={(e) => setNewAlertPrice(e.target.value)}
+                className="col-span-3"
+              />
+              
+              <Button 
+                onClick={createAlert}
+                className="col-span-2"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           
-          <Button variant="ghost" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {filteredAlerts.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <Bell className="h-12 w-12 mx-auto opacity-20 mb-3" />
-            <p>{activeAlerts 
-              ? "No active alerts. Create one to get started." 
-              : "No triggered alerts yet."}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {filteredAlerts.map((alert) => (
-              <div 
-                key={alert.id} 
-                className="bg-muted/40 p-3 rounded-md border flex justify-between items-start"
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge className={getAlertBadgeColor(alert.type)}>
-                      {alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}
-                    </Badge>
-                    <span className="font-medium">{alert.asset}</span>
-                  </div>
-                  
-                  <div className="text-sm">
-                    {alert.condition === 'above' ? 'Above' : 'Below'} ${alert.threshold.toLocaleString()}
-                  </div>
-                  
-                  {alert.triggered ? (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Triggered: {new Date(alert.triggeredAt!).toLocaleString()}
+          {/* List of active alerts */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Active Alerts</h3>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {alerts.length > 0 ? (
+                alerts.map((alert) => (
+                  <div 
+                    key={alert.id}
+                    className={`p-3 rounded-lg border flex justify-between items-center ${
+                      alert.triggered ? "bg-amber-500/10 border-amber-500/30" : "bg-muted/40"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center">
+                        <span className="font-medium">{alert.coinSymbol}</span>
+                        <span className="mx-1 text-muted-foreground">{alert.condition}</span>
+                        <span className="font-medium">${alert.price.toFixed(2)}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Created {new Date(alert.createdAt).toLocaleTimeString()}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Created: {new Date(alert.createdAt).toLocaleString()}
+                    
+                    <div className="flex items-center gap-2">
+                      {alert.triggered && (
+                        <Badge variant="outline" className="text-amber-500 border-amber-500/30">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Triggered
+                        </Badge>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => deleteAlert(alert.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
                     </div>
-                  )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                  No active alerts. Create one above.
                 </div>
-                
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8 mt-1"
-                  onClick={() => handleRemoveAlert(alert.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className="pt-2 border-t flex justify-between">
-        <div className="text-sm text-muted-foreground">
-          {alerts.filter(a => !a.triggered).length} active, {alerts.filter(a => a.triggered).length} triggered
         </div>
-        <Button variant="ghost" size="sm">
-          <Settings className="h-4 w-4 mr-1" />
-          Settings
-        </Button>
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 };

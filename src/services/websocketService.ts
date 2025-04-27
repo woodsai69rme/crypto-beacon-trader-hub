@@ -1,329 +1,587 @@
+
 import { toast } from "@/components/ui/use-toast";
-import { CoinOption } from "@/types/trading";
 
-// WebSocket connection states
-export enum WebSocketState {
-  CONNECTING = 'connecting',
-  OPEN = 'open',
-  CLOSED = 'closed',
-  ERROR = 'error'
+type WebSocketListener = (data: any) => void;
+
+interface WebSocketSubscription {
+  id: string;
+  topic: string;
+  listener: WebSocketListener;
 }
 
-// WebSocket payload types
-export type WebSocketMessage = {
-  type: string;
-  data: any;
+interface ExchangeWebsocketDetails {
+  name: string;
+  url: string;
+  connected: boolean;
+  socket: WebSocket | null;
+  subscriptions: WebSocketSubscription[];
+  reconnectAttempts: number;
+  maxReconnectAttempts: number;
+  reconnectDelay: number;
+  lastPingTime: number;
 }
 
-// WebSocket connection handler
-export class WebSocketHandler {
-  private ws: WebSocket | null = null;
-  private url: string;
-  private listeners: Map<string, ((data: any) => void)[]> = new Map();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectInterval = 3000;
-  private reconnectTimeoutId: NodeJS.Timeout | null = null;
-  private state: WebSocketState = WebSocketState.CLOSED;
-  private pingInterval: NodeJS.Timeout | null = null;
-  private subscriptions: Map<string, any> = new Map();
-
-  constructor(url: string) {
-    this.url = url;
+class WebSocketService {
+  private exchanges: Map<string, ExchangeWebsocketDetails> = new Map();
+  private pingInterval: number | null = null;
+  
+  constructor() {
+    // Initialize with supported exchanges
+    this.exchanges.set('binance', {
+      name: 'Binance',
+      url: 'wss://stream.binance.com:9443/ws',
+      connected: false,
+      socket: null,
+      subscriptions: [],
+      reconnectAttempts: 0,
+      maxReconnectAttempts: 5,
+      reconnectDelay: 3000, // 3 seconds
+      lastPingTime: Date.now()
+    });
+    
+    this.exchanges.set('coinbase', {
+      name: 'Coinbase',
+      url: 'wss://ws-feed.pro.coinbase.com',
+      connected: false,
+      socket: null,
+      subscriptions: [],
+      reconnectAttempts: 0,
+      maxReconnectAttempts: 5,
+      reconnectDelay: 3000,
+      lastPingTime: Date.now()
+    });
+    
+    this.exchanges.set('kraken', {
+      name: 'Kraken',
+      url: 'wss://ws.kraken.com',
+      connected: false,
+      socket: null,
+      subscriptions: [],
+      reconnectAttempts: 0,
+      maxReconnectAttempts: 5,
+      reconnectDelay: 3000,
+      lastPingTime: Date.now()
+    });
   }
-
-  // Get current connection state
-  public getState(): WebSocketState {
-    return this.state;
-  }
-
-  // Connect to WebSocket server
-  public connect(): Promise<void> {
+  
+  /**
+   * Connect to an exchange websocket
+   * @param exchangeId The exchange identifier
+   * @returns Promise that resolves when connection is established or fails
+   */
+  public connect(exchangeId: string): Promise<boolean> {
+    const exchange = this.exchanges.get(exchangeId);
+    if (!exchange) {
+      return Promise.reject(new Error(`Exchange ${exchangeId} not found`));
+    }
+    
+    if (exchange.connected && exchange.socket) {
+      return Promise.resolve(true);
+    }
+    
     return new Promise((resolve, reject) => {
-      if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
-        resolve();
-        return;
-      }
-
       try {
-        this.state = WebSocketState.CONNECTING;
-        this.ws = new WebSocket(this.url);
-
-        // Connection opened
-        this.ws.onopen = () => {
-          this.state = WebSocketState.OPEN;
-          this.reconnectAttempts = 0;
-          console.log('WebSocket connection established');
+        const socket = new WebSocket(exchange.url);
+        
+        socket.onopen = () => {
+          exchange.connected = true;
+          exchange.socket = socket;
+          exchange.reconnectAttempts = 0;
+          exchange.lastPingTime = Date.now();
           
-          // Re-subscribe to all previous subscriptions
-          this.subscriptions.forEach((params, key) => {
-            this.sendSubscription(key, params);
+          console.log(`Connected to ${exchange.name} WebSocket`);
+          
+          // Start ping interval if not already started
+          if (!this.pingInterval) {
+            this.startPingInterval();
+          }
+          
+          // Subscribe to all existing subscriptions
+          for (const sub of exchange.subscriptions) {
+            this.sendSubscription(exchangeId, sub);
+          }
+          
+          toast({
+            title: "WebSocket Connected",
+            description: `Successfully connected to ${exchange.name} WebSocket`,
           });
           
-          // Start ping interval to keep connection alive
-          this.startPingInterval();
-          
-          resolve();
+          resolve(true);
         };
-
-        // Connection error
-        this.ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          this.state = WebSocketState.ERROR;
+        
+        socket.onclose = (event) => {
+          exchange.connected = false;
+          exchange.socket = null;
+          
+          console.log(`Disconnected from ${exchange.name} WebSocket: ${event.code} ${event.reason}`);
+          
+          // Attempt reconnection if not closed cleanly
+          if (event.code !== 1000) {
+            this.attemptReconnect(exchangeId);
+          }
+          
+          resolve(false);
+        };
+        
+        socket.onerror = (error) => {
+          console.error(`WebSocket error for ${exchange.name}:`, error);
+          
+          exchange.connected = false;
+          
+          toast({
+            title: "WebSocket Error",
+            description: `Error connecting to ${exchange.name} WebSocket`,
+            variant: "destructive"
+          });
+          
           reject(error);
         };
-
-        // Connection closed
-        this.ws.onclose = (event) => {
-          this.state = WebSocketState.CLOSED;
-          console.log('WebSocket connection closed:', event.code, event.reason);
-          this.stopPingInterval();
-          
-          // Attempt to reconnect if not closed explicitly
-          if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectTimeoutId = setTimeout(() => {
-              this.reconnectAttempts++;
-              console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-              this.connect().catch(() => {
-                console.log('Reconnection failed');
-              });
-            }, this.reconnectInterval);
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Connection failed",
-              description: "Unable to connect to real-time data service. Please try again later."
-            });
-          }
-        };
-
-        // Listen for messages
-        this.ws.onmessage = (event) => {
+        
+        socket.onmessage = (event) => {
           try {
-            const message = JSON.parse(event.data);
-            this.handleMessage(message);
-          } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            const data = JSON.parse(event.data);
+            this.handleMessage(exchangeId, data);
+          } catch (e) {
+            console.error(`Failed to parse WebSocket message:`, e);
           }
         };
       } catch (error) {
-        this.state = WebSocketState.ERROR;
-        console.error('Error creating WebSocket connection:', error);
+        console.error(`Failed to create WebSocket for ${exchange.name}:`, error);
         reject(error);
       }
     });
   }
-
-  // Close WebSocket connection
-  public disconnect(): void {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+  
+  /**
+   * Subscribe to a specific topic on an exchange
+   * @param exchangeId The exchange identifier
+   * @param topic The topic to subscribe to (e.g. ticker, trades)
+   * @param symbol The trading pair symbol (e.g. BTC/USD)
+   * @param listener Callback function for received data
+   * @returns Subscription ID for use in unsubscribing
+   */
+  public subscribe(
+    exchangeId: string,
+    topic: string,
+    symbol: string,
+    listener: WebSocketListener
+  ): string {
+    const exchange = this.exchanges.get(exchangeId);
+    if (!exchange) {
+      throw new Error(`Exchange ${exchangeId} not found`);
     }
     
-    if (this.reconnectTimeoutId) {
-      clearTimeout(this.reconnectTimeoutId);
-      this.reconnectTimeoutId = null;
-    }
+    // Create subscription
+    const subscriptionId = `${exchangeId}-${topic}-${symbol}-${Date.now()}`;
+    const subscription: WebSocketSubscription = {
+      id: subscriptionId,
+      topic: this.formatTopicForExchange(exchangeId, topic, symbol),
+      listener
+    };
     
-    this.stopPingInterval();
-    this.state = WebSocketState.CLOSED;
-    this.subscriptions.clear();
-  }
-
-  // Send a message to the server
-  public send(message: any): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
+    // Add to subscriptions list
+    exchange.subscriptions.push(subscription);
+    
+    // If connected, send subscription request
+    if (exchange.connected && exchange.socket) {
+      this.sendSubscription(exchangeId, subscription);
     } else {
-      console.warn('WebSocket is not connected. Cannot send message.');
+      // Not connected, attempt to connect
+      this.connect(exchangeId).catch(error => {
+        console.error(`Failed to connect to ${exchange.name} WebSocket:`, error);
+      });
+    }
+    
+    return subscriptionId;
+  }
+  
+  /**
+   * Unsubscribe from a topic
+   * @param subscriptionId The ID returned from subscribe()
+   */
+  public unsubscribe(subscriptionId: string): void {
+    for (const [exchangeId, exchange] of this.exchanges.entries()) {
+      const index = exchange.subscriptions.findIndex(sub => sub.id === subscriptionId);
+      
+      if (index !== -1) {
+        const subscription = exchange.subscriptions[index];
+        
+        // Remove from array
+        exchange.subscriptions.splice(index, 1);
+        
+        // If connected, send unsubscribe message
+        if (exchange.connected && exchange.socket) {
+          this.sendUnsubscription(exchangeId, subscription);
+        }
+        
+        break;
+      }
     }
   }
-
-  // Add a listener for a specific message type
-  public on(type: string, callback: (data: any) => void): void {
-    if (!this.listeners.has(type)) {
-      this.listeners.set(type, []);
+  
+  /**
+   * Disconnect from all or specific exchange WebSocket
+   * @param exchangeId Optional exchange to disconnect from. If not specified, disconnects from all.
+   */
+  public disconnect(exchangeId?: string): void {
+    if (exchangeId) {
+      const exchange = this.exchanges.get(exchangeId);
+      if (exchange && exchange.connected && exchange.socket) {
+        exchange.socket.close(1000, "Disconnected by user");
+        exchange.connected = false;
+        exchange.socket = null;
+        console.log(`Disconnected from ${exchange.name} WebSocket`);
+      }
+    } else {
+      // Disconnect from all
+      for (const [id, exchange] of this.exchanges.entries()) {
+        if (exchange.connected && exchange.socket) {
+          exchange.socket.close(1000, "Disconnected by user");
+          exchange.connected = false;
+          exchange.socket = null;
+          console.log(`Disconnected from ${exchange.name} WebSocket`);
+        }
+      }
+      
+      // Clear ping interval
+      if (this.pingInterval) {
+        window.clearInterval(this.pingInterval);
+        this.pingInterval = null;
+      }
     }
-    this.listeners.get(type)?.push(callback);
   }
-
-  // Remove a listener
-  public off(type: string, callback: (data: any) => void): void {
-    if (this.listeners.has(type)) {
-      const callbacks = this.listeners.get(type) || [];
-      this.listeners.set(
-        type,
-        callbacks.filter(cb => cb !== callback)
-      );
+  
+  /**
+   * Check if connected to an exchange
+   * @param exchangeId The exchange identifier
+   * @returns True if connected
+   */
+  public isConnected(exchangeId: string): boolean {
+    const exchange = this.exchanges.get(exchangeId);
+    return exchange ? exchange.connected : false;
+  }
+  
+  /**
+   * Get list of supported exchanges
+   * @returns Array of exchange IDs
+   */
+  public getSupportedExchanges(): string[] {
+    return Array.from(this.exchanges.keys());
+  }
+  
+  /**
+   * Format a topic for a specific exchange
+   * Different exchanges have different subscription formats
+   */
+  private formatTopicForExchange(exchangeId: string, topic: string, symbol: string): string {
+    // Format symbol to exchange-specific format
+    let formattedSymbol = symbol.toLowerCase().replace('/', '');
+    
+    switch (exchangeId) {
+      case 'binance':
+        // Binance uses lowercase symbols without slashes
+        return `${formattedSymbol}@${topic}`;
+        
+      case 'coinbase':
+        // Coinbase uses uppercase symbols with dashes
+        formattedSymbol = symbol.replace('/', '-');
+        return `${topic}:${formattedSymbol}`;
+        
+      case 'kraken':
+        // Kraken uses the pair name directly in most cases
+        return `${topic}:${symbol}`;
+        
+      default:
+        return `${topic}_${formattedSymbol}`;
     }
   }
-
-  // Handle incoming messages
-  private handleMessage(message: WebSocketMessage): void {
-    // Check for pong response
-    if (message.type === 'pong') {
+  
+  /**
+   * Send subscription request to exchange
+   */
+  private sendSubscription(exchangeId: string, subscription: WebSocketSubscription): void {
+    const exchange = this.exchanges.get(exchangeId);
+    if (!exchange || !exchange.socket) return;
+    
+    let message: any;
+    
+    switch (exchangeId) {
+      case 'binance':
+        message = {
+          method: 'SUBSCRIBE',
+          params: [subscription.topic],
+          id: Date.now()
+        };
+        break;
+        
+      case 'coinbase':
+        message = {
+          type: 'subscribe',
+          channels: [subscription.topic]
+        };
+        break;
+        
+      case 'kraken':
+        message = {
+          name: 'subscribe',
+          reqid: Date.now(),
+          subscription: {
+            name: subscription.topic.split(':')[0]
+          },
+          pair: [subscription.topic.split(':')[1]]
+        };
+        break;
+        
+      default:
+        message = {
+          action: 'subscribe',
+          topic: subscription.topic
+        };
+    }
+    
+    try {
+      exchange.socket.send(JSON.stringify(message));
+    } catch (error) {
+      console.error(`Failed to send subscription to ${exchange.name}:`, error);
+    }
+  }
+  
+  /**
+   * Send unsubscription request to exchange
+   */
+  private sendUnsubscription(exchangeId: string, subscription: WebSocketSubscription): void {
+    const exchange = this.exchanges.get(exchangeId);
+    if (!exchange || !exchange.socket) return;
+    
+    let message: any;
+    
+    switch (exchangeId) {
+      case 'binance':
+        message = {
+          method: 'UNSUBSCRIBE',
+          params: [subscription.topic],
+          id: Date.now()
+        };
+        break;
+        
+      case 'coinbase':
+        message = {
+          type: 'unsubscribe',
+          channels: [subscription.topic]
+        };
+        break;
+        
+      case 'kraken':
+        message = {
+          name: 'unsubscribe',
+          reqid: Date.now(),
+          subscription: {
+            name: subscription.topic.split(':')[0]
+          },
+          pair: [subscription.topic.split(':')[1]]
+        };
+        break;
+        
+      default:
+        message = {
+          action: 'unsubscribe',
+          topic: subscription.topic
+        };
+    }
+    
+    try {
+      exchange.socket.send(JSON.stringify(message));
+    } catch (error) {
+      console.error(`Failed to send unsubscription to ${exchange.name}:`, error);
+    }
+  }
+  
+  /**
+   * Handle incoming WebSocket message
+   */
+  private handleMessage(exchangeId: string, data: any): void {
+    const exchange = this.exchanges.get(exchangeId);
+    if (!exchange) return;
+    
+    // Update last ping time
+    exchange.lastPingTime = Date.now();
+    
+    // Handle different exchange message formats
+    let topic: string | null = null;
+    let messageData: any = null;
+    
+    switch (exchangeId) {
+      case 'binance':
+        // Binance stream name is in the "stream" field
+        if (data.stream) {
+          topic = data.stream;
+          messageData = data.data;
+        }
+        break;
+        
+      case 'coinbase':
+        // Coinbase has "type" field
+        if (data.type === 'ticker') {
+          topic = `ticker:${data.product_id}`;
+          messageData = data;
+        }
+        break;
+        
+      case 'kraken':
+        // Kraken messages can be complex
+        if (Array.isArray(data) && data.length >= 2) {
+          const channelName = data[data.length - 2];
+          const pair = data[data.length - 1];
+          topic = `${channelName}:${pair}`;
+          messageData = data[1];
+        }
+        break;
+        
+      default:
+        // Generic format
+        topic = data.topic || data.channel || null;
+        messageData = data.data || data;
+    }
+    
+    // If we identified the topic, notify all matching subscribers
+    if (topic) {
+      for (const subscription of exchange.subscriptions) {
+        if (subscription.topic === topic || topic.startsWith(subscription.topic)) {
+          // Deliver to listener
+          try {
+            subscription.listener(messageData);
+          } catch (error) {
+            console.error(`Error in WebSocket listener:`, error);
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Try to reconnect to a WebSocket
+   */
+  private attemptReconnect(exchangeId: string): void {
+    const exchange = this.exchanges.get(exchangeId);
+    if (!exchange) return;
+    
+    if (exchange.reconnectAttempts >= exchange.maxReconnectAttempts) {
+      console.log(`Maximum reconnect attempts (${exchange.maxReconnectAttempts}) reached for ${exchange.name}`);
+      
+      toast({
+        title: "WebSocket Disconnected",
+        description: `Could not reconnect to ${exchange.name} after ${exchange.maxReconnectAttempts} attempts`,
+        variant: "destructive"
+      });
+      
       return;
     }
     
-    // Handle regular messages
-    const callbacks = this.listeners.get(message.type) || [];
-    callbacks.forEach(callback => {
-      try {
-        callback(message.data);
-      } catch (error) {
-        console.error('Error in WebSocket callback:', error);
-      }
-    });
+    exchange.reconnectAttempts++;
+    const delay = exchange.reconnectDelay * exchange.reconnectAttempts;
     
-    // Also dispatch to "all" listeners
-    const allCallbacks = this.listeners.get('all') || [];
-    allCallbacks.forEach(callback => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('Error in WebSocket "all" callback:', error);
-      }
-    });
-  }
-
-  // Start ping interval to keep connection alive
-  private startPingInterval(): void {
-    this.stopPingInterval();
-    this.pingInterval = setInterval(() => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.send({ type: 'ping', data: { timestamp: Date.now() } });
-      }
-    }, 30000); // Send ping every 30 seconds
-  }
-
-  // Stop ping interval
-  private stopPingInterval(): void {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
-  }
-  
-  // Subscribe to crypto price updates
-  public subscribeToPrices(symbols: string[]): void {
-    if (symbols.length === 0) return;
+    console.log(`Attempting to reconnect to ${exchange.name} in ${delay}ms (attempt ${exchange.reconnectAttempts})`);
     
-    const key = 'price-updates';
-    const params = { symbols };
-    this.subscriptions.set(key, params);
-    
-    this.sendSubscription(key, params);
-  }
-  
-  // Subscribe to order book updates
-  public subscribeToOrderBook(symbol: string, depth: number = 10): void {
-    if (!symbol) return;
-    
-    const key = `orderbook-${symbol}`;
-    const params = { symbol, depth };
-    this.subscriptions.set(key, params);
-    
-    this.sendSubscription(key, params);
-  }
-  
-  // Send subscription message
-  private sendSubscription(type: string, params: any): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.send({
-        type: 'subscribe',
-        channel: type,
-        params
+    setTimeout(() => {
+      this.connect(exchangeId).catch(error => {
+        console.error(`Reconnect attempt failed for ${exchange.name}:`, error);
       });
+    }, delay);
+  }
+  
+  /**
+   * Start ping interval to monitor WebSocket connections
+   */
+  private startPingInterval(): void {
+    if (this.pingInterval) {
+      window.clearInterval(this.pingInterval);
     }
-  }
-}
-
-// Create and export a singleton instance for crypto price updates
-export const cryptoWebSocket = new WebSocketHandler('wss://stream.binance.com:9443/ws');
-
-// Simulated real-time price updates (since we're not implementing actual exchange connections)
-export function startSimulatedPriceUpdates(
-  initialPrices: CoinOption[],
-  onPriceUpdate: (prices: CoinOption[]) => void
-): () => void {
-  // Create a copy of the initial prices
-  let prices = [...initialPrices];
-  
-  // Update prices every second with small random changes
-  const intervalId = setInterval(() => {
-    prices = prices.map(coin => {
-      // Generate a random percentage change between -2% and 2%
-      const changePercent = (Math.random() * 4 - 2) / 100;
-      const newPrice = coin.price * (1 + changePercent);
-      const newPriceAUD = coin.priceAUD ? coin.priceAUD * (1 + changePercent) : undefined;
-      
-      return {
-        ...coin,
-        price: newPrice,
-        priceAUD: newPriceAUD
-      };
-    });
     
-    // Notify listeners of the updated prices
-    onPriceUpdate(prices);
-  }, 3000); // Update every 3 seconds
-  
-  // Return cleanup function
-  return () => clearInterval(intervalId);
+    this.pingInterval = window.setInterval(() => {
+      const now = Date.now();
+      
+      // Check each exchange connection
+      for (const [exchangeId, exchange] of this.exchanges.entries()) {
+        if (exchange.connected && exchange.socket) {
+          // Check if we haven't received any message in a while
+          const sinceLastPing = now - exchange.lastPingTime;
+          
+          // If more than 60 seconds, send ping or reconnect
+          if (sinceLastPing > 60000) {
+            try {
+              // Try to send ping if supported by exchange
+              switch (exchangeId) {
+                case 'binance':
+                  exchange.socket.send(JSON.stringify({ method: 'ping' }));
+                  break;
+                  
+                case 'coinbase':
+                  // Coinbase doesn't have a specific ping format
+                  // Just check if the socket is still open
+                  if (exchange.socket.readyState !== WebSocket.OPEN) {
+                    throw new Error('Socket not open');
+                  }
+                  break;
+                  
+                case 'kraken':
+                  exchange.socket.send(JSON.stringify({ name: 'ping' }));
+                  break;
+                  
+                default:
+                  exchange.socket.send('ping');
+              }
+              
+              // Update ping time
+              exchange.lastPingTime = now;
+            } catch (e) {
+              console.error(`Failed to ping ${exchange.name}, reconnecting:`, e);
+              
+              // Force reconnect
+              exchange.socket.close();
+              exchange.connected = false;
+              exchange.socket = null;
+              
+              this.attemptReconnect(exchangeId);
+            }
+          }
+        }
+      }
+    }, 30000); // Check every 30 seconds
+  }
 }
 
-// Create simulated order book data
-export function generateSimulatedOrderBook(symbol: string, centerPrice: number, depth: number = 10) {
-  const asks = [];
-  const bids = [];
+// Export a singleton instance
+export const webSocketService = new WebSocketService();
+
+/**
+ * Hook-friendly wrapper function to subscribe to websocket data
+ * @param exchangeId Exchange ID
+ * @param topic Topic to subscribe to
+ * @param symbol Trading pair
+ * @param onData Data callback function
+ * @returns Function to unsubscribe
+ */
+export function useWebSocketSubscription(
+  exchangeId: string,
+  topic: string,
+  symbol: string,
+  onData: WebSocketListener
+): () => void {
+  let subscriptionId: string | null = null;
   
-  // Generate asks (sell orders) slightly above the center price
-  for (let i = 0; i < depth; i++) {
-    const price = centerPrice * (1 + (i + 1) * 0.001); // Each ask is 0.1% higher
-    const volume = Math.random() * 2 + 0.1; // Random volume between 0.1 and 2.1
-    asks.push([price, volume]);
+  try {
+    // Subscribe and get subscription ID
+    subscriptionId = webSocketService.subscribe(exchangeId, topic, symbol, onData);
+  } catch (error) {
+    console.error(`Failed to subscribe to ${topic} for ${symbol} on ${exchangeId}:`, error);
   }
   
-  // Generate bids (buy orders) slightly below the center price
-  for (let i = 0; i < depth; i++) {
-    const price = centerPrice * (1 - (i + 1) * 0.001); // Each bid is 0.1% lower
-    const volume = Math.random() * 2 + 0.1; // Random volume between 0.1 and 2.1
-    bids.push([price, volume]);
-  }
-  
-  // Sort asks ascending and bids descending by price
-  asks.sort((a, b) => a[0] - b[0]);
-  bids.sort((a, b) => b[0] - a[0]);
-  
-  return {
-    symbol,
-    timestamp: Date.now(),
-    asks,
-    bids
+  // Return unsubscribe function
+  return () => {
+    if (subscriptionId) {
+      webSocketService.unsubscribe(subscriptionId);
+    }
   };
 }
 
-// Start simulated order book updates
-export function startSimulatedOrderBookUpdates(
-  symbol: string,
-  initialPrice: number,
-  onOrderBookUpdate: (orderBook: any) => void
-): () => void {
-  // Generate initial order book
-  let orderBook = generateSimulatedOrderBook(symbol, initialPrice);
-  onOrderBookUpdate(orderBook);
-  
-  // Update order book every 2 seconds with small changes
-  const intervalId = setInterval(() => {
-    // Slightly adjust the center price
-    const centerPrice = initialPrice * (1 + (Math.random() * 0.04 - 0.02)); // ±2% from initial
-    
-    // Generate new order book
-    orderBook = generateSimulatedOrderBook(symbol, centerPrice);
-    onOrderBookUpdate(orderBook);
-  }, 2000);
-  
-  // Return cleanup function
-  return () => clearInterval(intervalId);
-}
+export default webSocketService;

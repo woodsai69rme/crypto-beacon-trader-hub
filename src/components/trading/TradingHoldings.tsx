@@ -1,12 +1,9 @@
 
-import React, { useState } from "react";
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart4, Coins } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SupportedCurrency } from "./TradingStats";
-import { CoinOption } from "./types";
-import TradingHoldingsTable from "./TradingHoldingsTable";
-import PortfolioHistoryChart from "./PortfolioHistoryChart";
+import { CoinOption } from "@/types/trading";
 
 interface TradingHoldingsProps {
   availableCoins: CoinOption[];
@@ -14,104 +11,102 @@ interface TradingHoldingsProps {
   onReset: () => void;
   formatCurrency: (value: number) => string;
   activeCurrency: SupportedCurrency;
-  conversionRate: number;
+  conversionRate?: number;
 }
 
-// Generate mock history data for demo purposes
-const generateMockHistoryData = () => {
-  const baseDate = new Date();
-  const data = [];
-  let invested = 10000;
-  let value = 10000;
-  
-  // Generate last 30 days
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date(baseDate);
-    date.setDate(date.getDate() - i);
-    
-    // Random daily change between -3% and +4%
-    const dailyChange = (Math.random() * 7) - 3;
-    value = value * (1 + (dailyChange / 100));
-    
-    // Occasional investments
-    if (i % 5 === 0 && i > 0) {
-      const investment = Math.floor(Math.random() * 500) + 200;
-      invested += investment;
-      value += investment;
-    }
-    
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: Math.round(value * 100) / 100,
-      invested: Math.round(invested * 100) / 100
-    });
-  }
-  
-  return data;
-}
-
-const TradingHoldings: React.FC<TradingHoldingsProps> = ({ 
-  availableCoins, 
-  getOwnedCoinAmount, 
-  onReset, 
+const TradingHoldings: React.FC<TradingHoldingsProps> = ({
+  availableCoins,
+  getOwnedCoinAmount,
+  onReset,
   formatCurrency,
   activeCurrency,
-  conversionRate 
-}: TradingHoldingsProps) => {
-  const [activeTab, setActiveTab] = useState<string>("holdings");
+  conversionRate = 1
+}) => {
+  // Get coins that the user owns
+  const ownedCoins = availableCoins.filter(
+    coin => getOwnedCoinAmount(coin.id) > 0
+  );
   
-  const hasHoldings = availableCoins.some(coin => getOwnedCoinAmount(coin.id) > 0);
-
-  // Generate mock portfolio history data
-  const portfolioHistoryData = generateMockHistoryData();
+  // Calculate the total value of all holdings
+  const calculateTotalValue = () => {
+    return ownedCoins.reduce((total, coin) => {
+      let price;
+      switch(activeCurrency) {
+        case 'AUD':
+          price = coin.priceAUD || coin.price * conversionRate;
+          break;
+        case 'EUR':
+          price = coin.priceEUR || coin.price * 0.92; // Default EUR conversion if specific price not available
+          break;
+        case 'GBP':
+          price = coin.priceGBP || coin.price * 0.8; // Default GBP conversion if specific price not available
+          break;
+        default:
+          price = coin.price;
+      }
+      
+      return total + (getOwnedCoinAmount(coin.id) * price);
+    }, 0);
+  };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-medium">Your Portfolio</h3>
-        <Button variant="outline" size="sm" onClick={onReset}>
-          Reset
-        </Button>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="holdings" className="gap-2">
-            <Coins className="h-4 w-4" />
-            <span>Holdings</span>
-          </TabsTrigger>
-          <TabsTrigger value="chart" className="gap-2">
-            <BarChart4 className="h-4 w-4" />
-            <span>Chart</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="holdings">
-          <TradingHoldingsTable
-            availableCoins={availableCoins}
-            getOwnedCoinAmount={getOwnedCoinAmount}
-            formatCurrency={formatCurrency}
-            activeCurrency={activeCurrency}
-            conversionRate={conversionRate}
-          />
-        </TabsContent>
-        
-        <TabsContent value="chart">
-          {hasHoldings ? (
-            <PortfolioHistoryChart 
-              currency={activeCurrency}
-              isCompact 
-              data={portfolioHistoryData} 
-            />
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No portfolio history to display.</p>
-              <p className="text-sm">Start trading to see your performance charts.</p>
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl">My Holdings</CardTitle>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={onReset}
+            className="h-8 px-3"
+          >
+            Reset
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {ownedCoins.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground">
+            You don't own any coins yet
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {ownedCoins.map(coin => {
+                const amount = getOwnedCoinAmount(coin.id);
+                const coinPrice = activeCurrency === 'AUD' && coin.priceAUD 
+                  ? coin.priceAUD
+                  : activeCurrency === 'EUR' && coin.priceEUR
+                    ? coin.priceEUR
+                    : activeCurrency === 'GBP' && coin.priceGBP
+                      ? coin.priceGBP
+                      : coin.price;
+                      
+                const value = amount * coinPrice;
+                
+                return (
+                  <div key={coin.id} className="bg-muted/50 p-4 rounded-md">
+                    <div className="flex justify-between mb-1">
+                      <div className="font-medium">{coin.name}</div>
+                      <div className="font-medium">{formatCurrency(value)}</div>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <div>{amount} {coin.symbol}</div>
+                      <div>{formatCurrency(coinPrice)} / {coin.symbol}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
+            
+            <div className="flex justify-between mt-6 pt-4 border-t">
+              <div className="font-medium">Total Value:</div>
+              <div className="font-bold">{formatCurrency(calculateTotalValue())}</div>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

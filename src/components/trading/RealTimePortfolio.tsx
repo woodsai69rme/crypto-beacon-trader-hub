@@ -1,297 +1,223 @@
 
 import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown, RefreshCw, TrendingUp, TrendingDown, Clock, Filter } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { toast } from "@/components/ui/use-toast";
-import { startSimulatedPriceUpdates } from "@/services/websocketService";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { Wallet } from "lucide-react";
+import { startPriceMonitoring } from "@/services/priceMonitoringService";
+import { useTradingAccounts } from "@/hooks/use-trading-accounts";
+import { CoinOption } from "@/types/trading";
 
-interface PortfolioAsset {
-  id: string;
+interface PieChartData {
   name: string;
   symbol: string;
-  amount: number;
-  price: number;
-  priceAUD?: number;
   value: number;
-  allocation: number;
-  change24h: number;
-  lastUpdated: string;
+  color: string;
 }
 
-const RealTimePortfolio = () => {
-  const { activeCurrency, formatValue } = useCurrencyConverter();
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [totalValue, setTotalValue] = useState<number>(25640.87);
-  const [dayChange, setDayChange] = useState<number>(512.42);
-  const [dayChangePercent, setDayChangePercent] = useState<number>(2.04);
+// Predefined colors for the pie chart
+const CHART_COLORS = [
+  "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF",
+  "#FF9F40", "#8AC926", "#1982C4", "#6A4C93", "#F72585"
+];
+
+const RealTimePortfolio: React.FC = () => {
+  const { getActiveAccount } = useTradingAccounts();
+  const [pieData, setPieData] = useState<PieChartData[]>([]);
+  const [totalValue, setTotalValue] = useState<number>(0);
+  const [coins, setCoins] = useState<CoinOption[]>([]);
   
-  const [assets, setAssets] = useState<PortfolioAsset[]>([
-    {
-      id: "bitcoin",
-      name: "Bitcoin",
-      symbol: "BTC",
-      amount: 0.125,
-      price: 94638.61,
-      priceAUD: 144595.05,
-      value: 11829.83,
-      allocation: 46.14,
-      change24h: 2.73,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "ethereum",
-      name: "Ethereum",
-      symbol: "ETH",
-      amount: 2.5,
-      price: 3052.74,
-      priceAUD: 4661.44,
-      value: 7631.85,
-      allocation: 29.76,
-      change24h: -0.68,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "solana",
-      name: "Solana",
-      symbol: "SOL",
-      amount: 25,
-      price: 152.87,
-      priceAUD: 233.56,
-      value: 3821.75,
-      allocation: 14.9,
-      change24h: 4.23,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "cardano",
-      name: "Cardano",
-      symbol: "ADA",
-      amount: 5000,
-      price: 0.45,
-      priceAUD: 0.69,
-      value: 2250,
-      allocation: 8.78,
-      change24h: -1.35,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "polkadot",
-      name: "Polkadot",
-      symbol: "DOT",
-      amount: 42.5,
-      price: 6.45,
-      priceAUD: 9.85,
-      value: 274.13,
-      allocation: 1.07,
-      change24h: 0.91,
-      lastUpdated: new Date().toISOString(),
-    },
-  ]);
-
-  // Effect to start the simulated price updates
+  // Initial coins data
+  const initialCoins: CoinOption[] = [
+    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
+    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
+    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
+    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45 },
+    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57 },
+    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14 },
+  ];
+  
+  // Set up real-time price monitoring
   useEffect(() => {
-    if (!autoRefresh) return;
-
-    const initialPrices = assets.map(asset => ({
-      id: asset.id,
-      name: asset.name,
-      symbol: asset.symbol,
-      price: asset.price,
-      priceAUD: asset.priceAUD
-    }));
-
-    const stopSimulation = startSimulatedPriceUpdates(initialPrices, (updatedPrices) => {
-      // Update assets with new prices
-      const updatedAssets = assets.map(asset => {
-        const updatedPriceInfo = updatedPrices.find(p => p.id === asset.id);
-        if (updatedPriceInfo) {
-          const newPrice = updatedPriceInfo.price;
-          const newPriceAUD = updatedPriceInfo.priceAUD;
-          const newValue = asset.amount * newPrice;
-          const priceChange = ((newPrice - asset.price) / asset.price) * 100;
-          
-          return {
-            ...asset,
-            price: newPrice,
-            priceAUD: newPriceAUD,
-            value: newValue,
-            change24h: asset.change24h + (Math.random() * 0.4 - 0.2), // Slightly adjust the 24h change for realism
-            lastUpdated: new Date().toISOString()
-          };
-        }
-        return asset;
-      });
-
-      // Calculate new total value and allocations
-      const newTotalValue = updatedAssets.reduce((sum, asset) => sum + asset.value, 0);
-      const assetsWithUpdatedAllocations = updatedAssets.map(asset => ({
-        ...asset,
-        allocation: (asset.value / newTotalValue) * 100
-      }));
-
-      // Update state
-      setAssets(assetsWithUpdatedAllocations);
-      setTotalValue(newTotalValue);
-      setLastUpdated(new Date());
-      
-      // Calculate day change based on updated assets (simplified for demo)
-      const newDayChange = assetsWithUpdatedAllocations.reduce(
-        (sum, asset) => sum + (asset.value * asset.change24h / 100),
-        0
-      );
-      setDayChange(newDayChange);
-      setDayChangePercent((newDayChange / newTotalValue) * 100);
-    });
-
-    return () => {
-      stopSimulation();
-    };
-  }, [autoRefresh, assets]);
-
-  const handleManualRefresh = () => {
-    setIsRefreshing(true);
+    setCoins(initialCoins);
     
-    // Simulate a manual refresh with slight delay
-    setTimeout(() => {
-      const updatedAssets = assets.map(asset => {
-        // Randomly adjust prices slightly for demo
-        const priceChange = (Math.random() * 2 - 1) / 100; // -1% to +1%
-        const newPrice = asset.price * (1 + priceChange);
-        const newValue = asset.amount * newPrice;
-        
-        return {
-          ...asset,
-          price: newPrice,
-          priceAUD: newPrice * 1.53, // Simplified conversion
-          value: newValue,
-          lastUpdated: new Date().toISOString()
-        };
+    const stopMonitoring = startPriceMonitoring(
+      initialCoins.map(coin => coin.id),
+      (updatedCoins) => {
+        setCoins(updatedCoins);
+      },
+      10000 // Update every 10 seconds
+    );
+    
+    return () => stopMonitoring();
+  }, []);
+  
+  // Calculate holdings and update pie chart data
+  useEffect(() => {
+    const activeAccount = getActiveAccount();
+    if (!activeAccount || coins.length === 0) return;
+    
+    // Group holdings by coin
+    const holdings: Record<string, number> = {};
+    
+    activeAccount.trades.forEach(trade => {
+      if (!holdings[trade.coinId]) {
+        holdings[trade.coinId] = 0;
+      }
+      
+      holdings[trade.coinId] += trade.type === 'buy' ? trade.amount : -trade.amount;
+    });
+    
+    // Calculate value of each holding
+    const chartData: PieChartData[] = [];
+    let portfolioTotal = activeAccount.balance; // Start with cash balance
+    let colorIndex = 0;
+    
+    // Add cash to chart data
+    if (activeAccount.balance > 0) {
+      chartData.push({
+        name: "Cash",
+        symbol: "USD",
+        value: activeAccount.balance,
+        color: "#22c55e" // Green color for cash
+      });
+    }
+    
+    // Add coin holdings to chart data
+    Object.entries(holdings).forEach(([coinId, amount]) => {
+      if (amount <= 0) return; // Skip zero or negative holdings
+      
+      const coin = coins.find(c => c.id === coinId);
+      if (!coin) return;
+      
+      const value = amount * coin.price;
+      portfolioTotal += value;
+      
+      chartData.push({
+        name: coin.name,
+        symbol: coin.symbol,
+        value,
+        color: CHART_COLORS[colorIndex % CHART_COLORS.length]
       });
       
-      // Recalculate total value and allocations
-      const newTotalValue = updatedAssets.reduce((sum, asset) => sum + asset.value, 0);
-      const assetsWithUpdatedAllocations = updatedAssets.map(asset => ({
-        ...asset,
-        allocation: (asset.value / newTotalValue) * 100
-      }));
-      
-      setAssets(assetsWithUpdatedAllocations);
-      setTotalValue(newTotalValue);
-      setLastUpdated(new Date());
-      setIsRefreshing(false);
-      
-      toast({
-        title: "Portfolio Refreshed",
-        description: "Latest market prices have been applied to your portfolio",
-        variant: "default",
-      });
-    }, 1000);
+      colorIndex++;
+    });
+    
+    // Sort by value (descending)
+    chartData.sort((a, b) => b.value - a.value);
+    
+    setPieData(chartData);
+    setTotalValue(portfolioTotal);
+  }, [coins, getActiveAccount]);
+  
+  // Format currency for display
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   };
-
-  return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Real-Time Portfolio
-            </CardTitle>
-            <CardDescription>
-              Live updates of your cryptocurrency holdings
-            </CardDescription>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleManualRefresh}
-            disabled={isRefreshing || autoRefresh}
-          >
-            <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+  
+  // Format percentage for display
+  const formatPercentage = (value: number, total: number): string => {
+    return `${((value / total) * 100).toFixed(1)}%`;
+  };
+  
+  // Custom tooltip for the pie chart
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-background p-3 rounded-md border shadow-md">
+          <p className="font-medium">{data.name} ({data.symbol})</p>
+          <p className="text-sm">{formatCurrency(data.value)}</p>
+          <p className="text-sm text-muted-foreground">{formatPercentage(data.value, totalValue)}</p>
         </div>
+      );
+    }
+    return null;
+  };
+  
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            Portfolio Allocation
+          </CardTitle>
+          <Badge variant="outline" className="animate-pulse">LIVE</Badge>
+        </div>
+        <CardDescription>
+          Current portfolio value: {formatCurrency(totalValue)}
+        </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <div className="grid grid-cols-2 gap-y-4 gap-x-6 mb-6">
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Portfolio Value</div>
-            <div className="text-2xl font-bold">{formatValue(totalValue)}</div>
-          </div>
-          
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">24h Change</div>
-            <div className={`flex items-center text-lg font-medium ${dayChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {dayChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-              {formatValue(Math.abs(dayChange))} ({dayChangePercent >= 0 ? '+' : ''}{dayChangePercent.toFixed(2)}%)
+        <div className="h-[250px]">
+          {pieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={2}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, value }) => `${name} (${formatPercentage(value, totalValue)})`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <p className="text-muted-foreground">No portfolio data available</p>
             </div>
-          </div>
+          )}
         </div>
         
-        <div className="mb-6">
-          {assets.map((asset) => (
-            <div key={asset.id} className="mb-4">
-              <div className="flex justify-between mb-1">
-                <div className="flex items-center">
-                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2">
-                    {asset.symbol.charAt(0)}
-                  </div>
-                  <span className="font-medium">{asset.name}</span>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">
-                    {formatValue(asset.value)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {asset.amount} {asset.symbol}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center mb-1.5">
-                <Progress value={asset.allocation} className="h-1.5" />
-                <span className="text-xs text-muted-foreground ml-2 w-10 text-right">
-                  {asset.allocation.toFixed(1)}%
-                </span>
-              </div>
-              
-              <div className="flex justify-between text-xs">
-                <div className="text-muted-foreground">
-                  {formatValue(activeCurrency === 'AUD' && asset.priceAUD ? asset.priceAUD : asset.price)} per {asset.symbol}
-                </div>
-                <div className={asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'}>
-                  {asset.change24h >= 0 ? '+' : ''}{asset.change24h.toFixed(2)}%
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="mt-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2">Asset</th>
+                <th className="text-right py-2">Value</th>
+                <th className="text-right py-2">Allocation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pieData.map((asset, index) => (
+                <tr key={`asset-${index}`} className="border-b">
+                  <td className="py-2 flex items-center">
+                    <span 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: asset.color }} 
+                    />
+                    {asset.name}
+                  </td>
+                  <td className="text-right py-2">
+                    {formatCurrency(asset.value)}
+                  </td>
+                  <td className="text-right py-2">
+                    {formatPercentage(asset.value, totalValue)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </CardContent>
-      
-      <CardFooter className="pt-2 border-t flex justify-between">
-        <div className="flex items-center gap-2">
-          <Switch 
-            checked={autoRefresh}
-            onCheckedChange={setAutoRefresh}
-            id="auto-refresh"
-          />
-          <label htmlFor="auto-refresh" className="text-sm font-medium cursor-pointer">
-            Live Updates
-          </label>
-        </div>
-        
-        <div className="flex items-center text-xs text-muted-foreground">
-          <Clock className="h-3 w-3 mr-1" />
-          Last updated: {lastUpdated.toLocaleTimeString()}
-        </div>
-      </CardFooter>
     </Card>
   );
 };

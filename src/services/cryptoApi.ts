@@ -1,18 +1,38 @@
-import { toast } from "@/components/ui/use-toast";
-import { updateWithAUDPrices } from "./currencyApi";
+
+import axios from 'axios';
+import { updateWithCurrencyRates } from './currencyApi';
 
 export interface CryptoData {
   id: string;
-  name: string;
   symbol: string;
+  name: string;
+  image: string;
   current_price: number;
   market_cap: number;
   market_cap_rank: number;
-  price_change_percentage_24h: number;
-  image: string;
-  ath: number;
+  fully_diluted_valuation: number | null;
   total_volume: number;
+  high_24h: number;
+  low_24h: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  market_cap_change_24h: number;
+  market_cap_change_percentage_24h: number;
   circulating_supply: number;
+  total_supply: number | null;
+  max_supply: number | null;
+  ath: number;
+  ath_change_percentage: number;
+  ath_date: string;
+  atl: number;
+  atl_change_percentage: number;
+  atl_date: string;
+  roi: {
+    times: number;
+    currency: string;
+    percentage: number;
+  } | null;
+  last_updated: string;
   priceAUD?: number;
 }
 
@@ -22,222 +42,118 @@ export interface CryptoChartData {
   total_volumes: [number, number][];
 }
 
-const API_BASE_URL = "https://api.coingecko.com/api/v3";
-
-export const fetchTopCoins = async (limit: number = 20): Promise<CryptoData[]> => {
+// Fetch cryptocurrency data from CoinGecko API
+export const fetchCryptoData = async (
+  limit: number = 10
+): Promise<CryptoData[]> => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`
+    const response = await axios.get(
+      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&locale=en`
     );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch cryptocurrency data");
-    }
-    
-    const data = await response.json();
-    
-    // Get AUD conversion rate
-    const conversionResponse = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=AUD");
-    let audRate = 1.45; // Default fallback rate
-    
-    if (conversionResponse.ok) {
-      const rateData = await conversionResponse.json();
-      audRate = rateData.rates.AUD || audRate;
-    }
-    
-    // Add AUD prices to the coin data
-    const coinsWithAUD = data.map((coin: any) => ({
-      ...coin,
-      priceAUD: coin.current_price * audRate
-    }));
-    
-    return coinsWithAUD;
+    return response.data;
   } catch (error) {
-    toast({
-      title: "Error",
-      description: "Failed to fetch cryptocurrency data. Using mock data instead.",
-      variant: "destructive",
-    });
-    console.error("API Error:", error);
-    // Return mock data as fallback
+    console.error('Error fetching data:', error);
     return getMockCryptoData(limit);
   }
 };
 
-export const fetchCoinData = async (coinId: string): Promise<CryptoData | null> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false`
-    );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch coin data");
-    }
-    
-    const data = await response.json();
-    
-    // Get AUD conversion rate
-    const conversionResponse = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=AUD");
-    let audRate = 1.45; // Default fallback rate
-    
-    if (conversionResponse.ok) {
-      const rateData = await conversionResponse.json();
-      audRate = rateData.rates.AUD || audRate;
-    }
-    
-    // Transform to match our interface
-    return {
-      id: data.id,
-      name: data.name,
-      symbol: data.symbol.toUpperCase(),
-      current_price: data.market_data.current_price.usd,
-      market_cap: data.market_data.market_cap.usd,
-      market_cap_rank: data.market_cap_rank,
-      price_change_percentage_24h: data.market_data.price_change_percentage_24h,
-      image: data.image.small,
-      ath: data.market_data.ath.usd,
-      total_volume: data.market_data.total_volume.usd,
-      circulating_supply: data.market_data.circulating_supply,
-      priceAUD: data.market_data.current_price.usd * audRate
-    };
-  } catch (error) {
-    toast({
-      title: "Error",
-      description: `Failed to fetch data for ${coinId}`,
-      variant: "destructive",
-    });
-    console.error("API Error:", error);
-    return null;
-  }
-};
-
-export const searchCoins = async (query: string): Promise<CryptoData[]> => {
-  if (!query || query.length < 2) return [];
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}/search?query=${query}`);
-    
-    if (!response.ok) {
-      throw new Error("Search failed");
-    }
-    
-    const data = await response.json();
-    
-    // Return the first 10 coins from the search results
-    return data.coins.slice(0, 10).map((coin: any) => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol.toUpperCase(),
-      market_cap_rank: coin.market_cap_rank || 9999,
-      image: coin.large,
-      // The search endpoint doesn't return these values, so we set defaults
-      current_price: 0,
-      market_cap: 0,
-      price_change_percentage_24h: 0,
-      ath: 0,
-      total_volume: 0,
-      circulating_supply: 0
-    }));
-  } catch (error) {
-    console.error("Search Error:", error);
-    return [];
-  }
-};
-
-export const fetchCoinHistory = async (
-  coinId: string, 
+// Fetch historical price data for a specific coin
+export const fetchCryptoHistory = async (
+  coinId: string,
   days: number = 7
 ): Promise<CryptoChartData | null> => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
+    const response = await axios.get(
+      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
     );
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch coin history");
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    toast({
-      title: "Error",
-      description: `Failed to fetch history for ${coinId}`,
-      variant: "destructive",
-    });
-    console.error("API Error:", error);
+    console.error('Error fetching history:', error);
     return null;
   }
 };
 
-// Mock data to use as fallback if API fails
-export const getMockCryptoData = (limit: number): CryptoData[] => {
+// Generate mock data for when the API fails
+export const getMockCryptoData = (count: number = 10): CryptoData[] => {
   const mockCoins = [
-    {
-      id: "bitcoin",
-      name: "Bitcoin",
-      symbol: "BTC",
-      current_price: 29341.52,
-      market_cap: 574832781945,
-      market_cap_rank: 1,
-      price_change_percentage_24h: 2.5,
-      image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
-      ath: 69000,
-      total_volume: 18500000000,
-      circulating_supply: 19500000
-    },
-    {
-      id: "ethereum",
-      name: "Ethereum",
-      symbol: "ETH",
-      current_price: 1823.43,
-      market_cap: 219234567890,
-      market_cap_rank: 2,
-      price_change_percentage_24h: 1.2,
-      image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
-      ath: 4878,
-      total_volume: 9700000000,
-      circulating_supply: 120200000
-    },
-    {
-      id: "solana",
-      name: "Solana",
-      symbol: "SOL",
-      current_price: 98.65,
-      market_cap: 42800000000,
-      market_cap_rank: 5,
-      price_change_percentage_24h: -0.8,
-      image: "https://assets.coingecko.com/coins/images/4128/small/solana.png",
-      ath: 260,
-      total_volume: 2100000000,
-      circulating_supply: 429700000
-    },
-    {
-      id: "cardano",
-      name: "Cardano",
-      symbol: "ADA",
-      current_price: 0.38,
-      market_cap: 13100000000,
-      market_cap_rank: 9,
-      price_change_percentage_24h: -1.2,
-      image: "https://assets.coingecko.com/coins/images/975/small/cardano.png",
-      ath: 3.10,
-      total_volume: 500000000,
-      circulating_supply: 35400000000
-    },
-    {
-      id: "ripple",
-      name: "XRP",
-      symbol: "XRP",
-      current_price: 0.54,
-      market_cap: 29200000000,
-      market_cap_rank: 6,
-      price_change_percentage_24h: 0.6,
-      image: "https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png",
-      ath: 3.40,
-      total_volume: 1300000000,
-      circulating_supply: 53200000000
-    }
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', price: 61245.32 },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'eth', price: 3010.45 },
+    { id: 'tether', name: 'Tether', symbol: 'usdt', price: 1.00 },
+    { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 541.87 },
+    { id: 'solana', name: 'Solana', symbol: 'sol', price: 142.87 },
+    { id: 'xrp', name: 'XRP', symbol: 'xrp', price: 0.57 },
+    { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.45 },
+    { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.14 },
+    { id: 'polkadot', name: 'Polkadot', symbol: 'dot', price: 6.33 },
+    { id: 'matic-network', name: 'Polygon', symbol: 'matic', price: 0.59 },
   ];
+
+  return mockCoins.slice(0, count).map((coin, index) => {
+    const mockPrice = coin.price;
+    const mockVolume = mockPrice * (1000000 + Math.random() * 10000000);
+    const mockMarketCap = mockPrice * (10000000 + Math.random() * 100000000);
+    const changePercent = (Math.random() * 10) - 5; // -5% to +5%
+    
+    return {
+      id: coin.id,
+      name: coin.name,
+      symbol: coin.symbol.toUpperCase(),
+      image: `https://via.placeholder.com/30/2196f3/FFFFFF?text=${coin.symbol.toUpperCase()}`,
+      current_price: mockPrice,
+      market_cap: mockMarketCap,
+      market_cap_rank: index + 1,
+      fully_diluted_valuation: mockMarketCap * 1.2,
+      total_volume: mockVolume,
+      high_24h: mockPrice * (1 + Math.random() * 0.05),
+      low_24h: mockPrice * (1 - Math.random() * 0.05),
+      price_change_24h: mockPrice * (changePercent / 100),
+      price_change_percentage_24h: changePercent,
+      market_cap_change_24h: mockMarketCap * (changePercent / 100),
+      market_cap_change_percentage_24h: changePercent,
+      circulating_supply: 10000000 + Math.random() * 90000000,
+      total_supply: 20000000 + Math.random() * 80000000,
+      max_supply: index % 3 === 0 ? null : 100000000,
+      ath: mockPrice * (1 + Math.random() * 0.5),
+      ath_change_percentage: -10 - Math.random() * 20,
+      ath_date: '2021-11-10T14:24:11.849Z',
+      atl: mockPrice * (0.1 + Math.random() * 0.2),
+      atl_change_percentage: 1000 + Math.random() * 5000,
+      atl_date: '2015-10-20T00:00:00.000Z',
+      roi: index % 2 === 0 ? {
+        times: 10 + Math.random() * 90,
+        currency: 'usd',
+        percentage: 1000 + Math.random() * 9000
+      } : null,
+      last_updated: new Date().toISOString()
+    };
+  });
+};
+
+// Generate mock historical data for testing
+export const getMockHistoricalData = (days: number = 7): CryptoChartData => {
+  const now = Date.now();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const startPrice = 10000 + Math.random() * 50000;
+  const prices: [number, number][] = [];
+  const marketCaps: [number, number][] = [];
+  const volumes: [number, number][] = [];
   
-  return mockCoins.slice(0, limit);
+  // Generate data points for each day
+  for (let i = days; i >= 0; i--) {
+    const timestamp = now - (i * oneDayMs);
+    const randomFactor = 0.98 + Math.random() * 0.04; // 0.98 to 1.02
+    const price = i === days ? startPrice : prices[prices.length - 1][1] * randomFactor;
+    const marketCap = price * (20000000 + Math.random() * 1000000);
+    const volume = price * (500000 + Math.random() * 500000);
+    
+    prices.push([timestamp, price]);
+    marketCaps.push([timestamp, marketCap]);
+    volumes.push([timestamp, volume]);
+  }
+  
+  return {
+    prices,
+    market_caps: marketCaps,
+    total_volumes: volumes
+  };
 };
