@@ -3,11 +3,12 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import ApiCache from '@/services/api/cacheService';
 
 describe('ApiCache', () => {
-  let cache: ApiCache;
+  let cache: typeof ApiCache;
   const TTL = 1000; // 1 second
 
   beforeEach(() => {
-    cache = new ApiCache();
+    cache = ApiCache;
+    cache.clear(); // Reset cache between tests
   });
 
   it('should store and retrieve items', () => {

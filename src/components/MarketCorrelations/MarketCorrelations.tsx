@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { CryptoData, fetchTopCoins } from "@/services/cryptoApi";
+import { CryptoData } from "@/services/cryptoApi";
+import { fetchTopCoins } from "@/services/cryptoApi";
 import { CorrelationHeatmap } from "./CorrelationHeatmap";
 import { CorrelationAnalysis } from "./CorrelationAnalysis";
 import { CorrelationExplainer } from "./CorrelationExplainer";
@@ -34,7 +35,7 @@ const MarketCorrelations = () => {
   const fetchCoinsAndCorrelations = async () => {
     setIsLoading(true);
     try {
-      const coinsData = await fetchTopCoins(10);
+      const coinsData = await fetchTopCoins(10) as unknown as CryptoData[];
       setCoins(coinsData);
       
       // Generate correlation data

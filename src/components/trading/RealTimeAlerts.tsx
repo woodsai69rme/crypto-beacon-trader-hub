@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -5,22 +6,46 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CoinOption } from "@/types/trading";
+import { fetchTopCoins } from "@/services/cryptoApi";
+import { toast } from "@/components/ui/use-toast";
 
 interface RealTimeAlertsProps {
-  availableCoins: CoinOption[];
+  availableCoins?: CoinOption[];
 }
 
-const RealTimeAlerts: React.FC<RealTimeAlertsProps> = ({ availableCoins }) => {
+const RealTimeAlerts: React.FC<RealTimeAlertsProps> = ({ availableCoins = [] }) => {
   const [selectedCoin, setSelectedCoin] = useState<string | undefined>(undefined);
   const [alertCondition, setAlertCondition] = useState<"above" | "below">("above");
   const [priceTarget, setPriceTarget] = useState<string>("");
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [coins, setCoins] = useState<CoinOption[]>(availableCoins);
+  const [isLoading, setIsLoading] = useState(availableCoins.length === 0);
+
+  useEffect(() => {
+    if (availableCoins.length === 0) {
+      fetchTopCoins(20)
+        .then(coinsData => {
+          setCoins(coinsData);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error("Failed to load coins:", error);
+          setIsLoading(false);
+        });
+    } else {
+      setCoins(availableCoins);
+    }
+  }, [availableCoins]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!selectedCoin || !priceTarget) {
-      alert("Please select a coin and enter a price target.");
+      toast({
+        title: "Missing information",
+        description: "Please select a coin and enter a price target.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -34,6 +59,11 @@ const RealTimeAlerts: React.FC<RealTimeAlertsProps> = ({ availableCoins }) => {
     setAlerts([...alerts, newAlert]);
     setSelectedCoin(undefined);
     setPriceTarget("");
+    
+    toast({
+      title: "Alert set",
+      description: `You'll be notified when ${coins.find(c => c.id === selectedCoin)?.symbol} reaches the target price.`
+    });
   };
 
   return (
@@ -50,7 +80,7 @@ const RealTimeAlerts: React.FC<RealTimeAlertsProps> = ({ availableCoins }) => {
             <ul>
               {alerts.map((alert, index) => (
                 <li key={index} className="mb-2">
-                  Alert: {alert.coin} will trigger when price is {alert.condition} {alert.price}
+                  Alert: {coins.find(c => c.id === alert.coin)?.symbol || alert.coin} will trigger when price is {alert.condition} ${alert.price}
                   <span className="text-xs text-muted-foreground ml-2">({alert.timestamp})</span>
                 </li>
               ))}
@@ -61,18 +91,22 @@ const RealTimeAlerts: React.FC<RealTimeAlertsProps> = ({ availableCoins }) => {
           <div className="grid gap-4">
             <div>
               <Label>Asset</Label>
-              <Select value={selectedCoin} onValueChange={setSelectedCoin}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a coin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCoins.map((coin) => (
-                    <SelectItem key={coin.id} value={coin.id}>
-                      {coin.name} ({coin.symbol})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+              ) : (
+                <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a coin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {coins.map((coin) => (
+                      <SelectItem key={coin.id} value={coin.id}>
+                        {coin.name} ({coin.symbol})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div>

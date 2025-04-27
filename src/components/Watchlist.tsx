@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Star, Trash, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { fetchTopCoins, CryptoData } from "../services/cryptoApi";
+import { fetchTopCoins } from "../services/cryptoApi";
+import { CryptoData } from "../services/cryptoApi";
 
 interface WatchlistItem extends CryptoData {
   isInWatchlist: boolean;
@@ -37,7 +38,7 @@ const Watchlist = () => {
   const loadCoins = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchTopCoins(20);
+      const data = await fetchTopCoins(20) as unknown as CryptoData[];
       
       // Mark coins in watchlist
       const coinsWithWatchlist = data.map(coin => ({
@@ -126,7 +127,7 @@ const Watchlist = () => {
               </thead>
               <tbody>
                 {displayedCoins.map((coin) => {
-                  const isPriceUp = coin.price_change_percentage_24h >= 0;
+                  const isPriceUp = (coin.price_change_percentage_24h ?? 0) >= 0;
                   
                   return (
                     <tr key={coin.id} className="border-b border-border hover:bg-crypto-dark-hover">
@@ -152,7 +153,7 @@ const Watchlist = () => {
                           ) : (
                             <ArrowDown className="mr-1 h-3 w-3" />
                           )}
-                          {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
+                          {Math.abs(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
                         </div>
                       </td>
                       <td>${(coin.market_cap / 1000000000).toFixed(2)}B</td>

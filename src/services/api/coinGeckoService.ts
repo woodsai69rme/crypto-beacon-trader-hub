@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 import apiCache from "./cacheService";
 import { CryptoData, CryptoChartData } from "../cryptoApi";
@@ -90,7 +91,7 @@ export async function fetchCoinsFromCoinGecko(limit: number = 20): Promise<Crypt
   return makeRequest<CryptoData[]>('/coins/markets', {
     vs_currency: 'usd',
     order: 'market_cap_desc',
-    per_page: limit.toString(),
+    per_page: limit,
     page: '1',
     sparkline: 'false',
     locale: 'en'
@@ -122,7 +123,7 @@ export async function searchCoinsFromCoinGecko(query: string): Promise<CryptoDat
     vs_currency: 'usd',
     ids: coinIds,
     order: 'market_cap_desc',
-    sparkline: false,
+    sparkline: 'false',
     locale: 'en'
   });
   

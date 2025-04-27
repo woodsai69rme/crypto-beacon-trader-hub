@@ -1,3 +1,4 @@
+
 import { SupportedCurrency } from "../components/trading/TradingStats";
 
 export type CoinOption = {
@@ -104,4 +105,11 @@ export interface AITradingStrategy {
   isCustom?: boolean;
   createdAt?: string;
   lastModified?: string;
+}
+
+// Add CryptoChartData export for type compatibility
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
 }

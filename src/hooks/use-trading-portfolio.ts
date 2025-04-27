@@ -1,3 +1,4 @@
+
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { updateWithCurrencyRates } from "@/services/currencyApi";
@@ -7,12 +8,12 @@ import { useState, useEffect } from "react";
 import { startPriceMonitoring } from "@/services/priceMonitoringService";
 
 const initialCoins: CoinOption[] = [
-  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
-  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
-  { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
-  { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45 },
-  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57 },
-  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14 },
+  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, marketCap: 1180000000000, volume: 28000000000 },
+  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, marketCap: 360000000000, volume: 15000000000 },
+  { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, marketCap: 62000000000, volume: 3800000000 },
+  { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, marketCap: 16000000000, volume: 420000000 },
+  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, marketCap: 31000000000, volume: 1800000000 },
+  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, marketCap: 19000000000, volume: 980000000 },
 ];
 
 export const useTradingPortfolio = () => {
@@ -32,7 +33,15 @@ export const useTradingPortfolio = () => {
       initialCoins.map(coin => coin.id),
       (updatedPrices) => {
         if (conversionRates.USD_AUD > 0) {
-          setAvailableCoins(updateWithCurrencyRates(updatedPrices, conversionRates));
+          setAvailableCoins(updateWithCurrencyRates(updatedPrices, {
+            USD_AUD: conversionRates.USD_AUD,
+            AUD_USD: conversionRates.AUD_USD,
+            USD_EUR: conversionRates.USD_EUR,
+            EUR_USD: conversionRates.EUR_USD,
+            USD_GBP: conversionRates.USD_GBP,
+            GBP_USD: conversionRates.GBP_USD,
+            lastUpdated: conversionRates.lastUpdated
+          }));
         } else {
           setAvailableCoins(updatedPrices);
         }

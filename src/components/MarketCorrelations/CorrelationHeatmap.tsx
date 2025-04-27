@@ -1,79 +1,81 @@
 
-import React from 'react';
-import { CryptoData } from '@/services/cryptoApi';
-import { getCorrelationColor } from './utils';
+import React from "react";
+import { CryptoData } from "@/services/cryptoApi";
 
-interface CorrelationHeatmapProps {
-  coins: CryptoData[];
-  correlations: {
-    [key: string]: {
-      [key: string]: number;
-    };
+interface Correlation {
+  [key: string]: {
+    [key: string]: number;
   };
 }
 
-export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
-  coins,
-  correlations
-}) => {
-  const availableCoins = coins.slice(0, 10);
+interface CorrelationHeatmapProps {
+  coins: CryptoData[];
+  correlations: Correlation;
+}
+
+export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({ coins, correlations }) => {
+  // Function to get color based on correlation value
+  const getCorrelationColor = (value: number): string => {
+    if (value === 1) return "bg-green-500";
+    if (value >= 0.8) return "bg-green-400";
+    if (value >= 0.6) return "bg-green-300";
+    if (value >= 0.4) return "bg-green-200";
+    if (value >= 0.2) return "bg-green-100";
+    if (value >= 0) return "bg-gray-100";
+    if (value >= -0.2) return "bg-red-100";
+    if (value >= -0.4) return "bg-red-200";
+    if (value >= -0.6) return "bg-red-300";
+    if (value >= -0.8) return "bg-red-400";
+    return "bg-red-500";
+  };
+  
+  const coinSymbols = coins.map(coin => coin.symbol);
   
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <div className="min-w-[600px]">
-          <div className="grid grid-cols-[100px_1fr] gap-1">
-            <div className=""></div>
-            <div className="grid grid-cols-10">
-              {availableCoins.map((coin) => (
-                <div key={`header-${coin.id}`} className="h-10 flex items-center justify-center">
-                  <div className="transform -rotate-45 text-xs font-medium text-white">{coin.symbol}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {availableCoins.map((coin1) => (
-            <div key={`row-${coin1.id}`} className="grid grid-cols-[100px_1fr] gap-1">
-              <div className="h-10 flex items-center">
-                <div className="text-xs font-medium text-white">{coin1.symbol}</div>
-              </div>
-              <div className="grid grid-cols-10">
-                {availableCoins.map((coin2) => {
-                  const correlation = correlations[coin1.id]?.[coin2.id] || 0;
-                  return (
-                    <div 
-                      key={`${coin1.id}-${coin2.id}`} 
-                      className="h-10 flex items-center justify-center"
-                      style={{ backgroundColor: getCorrelationColor(correlation) }}
-                      title={`${coin1.symbol} vs ${coin2.symbol}: ${correlation}`}
-                    >
-                      <span className="text-xs font-medium text-white drop-shadow-md">
-                        {correlation.toFixed(2)}
-                      </span>
+    <div className="overflow-x-auto">
+      <table className="min-w-full border-collapse">
+        <thead>
+          <tr>
+            <th className="p-2 border"></th>
+            {coinSymbols.map((symbol) => (
+              <th key={symbol} className="p-2 text-xs font-medium border">
+                {symbol}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {coinSymbols.map((rowSymbol, rowIndex) => (
+            <tr key={rowSymbol}>
+              <th className="p-2 text-xs font-medium border">
+                {rowSymbol}
+              </th>
+              {coinSymbols.map((colSymbol, colIndex) => {
+                const coin1 = coins[rowIndex];
+                const coin2 = coins[colIndex];
+                
+                // If we don't have correlation data yet, show a neutral cell
+                const correlationValue = 
+                  correlations[coin1?.id] && 
+                  correlations[coin1.id][coin2?.id] !== undefined
+                    ? correlations[coin1.id][coin2.id]
+                    : (rowIndex === colIndex ? 1 : 0); // Default to 1 on diagonal
+                
+                return (
+                  <td 
+                    key={`${rowSymbol}-${colSymbol}`} 
+                    className={`p-0 border text-center ${getCorrelationColor(correlationValue)}`}
+                  >
+                    <div className="p-3 text-xs">
+                      {correlationValue.toFixed(2)}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  </td>
+                );
+              })}
+            </tr>
           ))}
-        </div>
-      </div>
-      
-      <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm text-white">
-        <div className="flex items-center">
-          <div className="w-4 h-4 mr-2" style={{ backgroundColor: "rgba(220, 53, 69, 0.8)" }}></div>
-          <span>Negative correlation</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-4 h-4 mr-2 bg-gray-500"></div>
-          <span>No correlation</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-4 h-4 mr-2" style={{ backgroundColor: "rgba(0, 128, 0, 0.8)" }}></div>
-          <span>Positive correlation</span>
-        </div>
-      </div>
+        </tbody>
+      </table>
     </div>
   );
 };
