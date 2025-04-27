@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues, AlertFrequencyOption } from "./types";
+import { SettingsFormValues } from "./types";
 
 interface NotificationSettingsProps {
   form: UseFormReturn<SettingsFormValues>;
@@ -22,13 +22,13 @@ const NotificationSettings = ({ form }: NotificationSettingsProps) => {
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="notifications"
+        name="notifications.email"
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <FormLabel className="text-base">Push Notifications</FormLabel>
+              <FormLabel className="text-base">Email Notifications</FormLabel>
               <FormDescription>
-                Receive alerts for price changes and important events
+                Receive important updates via email
               </FormDescription>
             </div>
             <FormControl>
@@ -43,13 +43,13 @@ const NotificationSettings = ({ form }: NotificationSettingsProps) => {
       
       <FormField
         control={form.control}
-        name="alertVolume"
+        name="dashboardCustomization.alertVolume"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Alert Volume</FormLabel>
             <FormControl>
               <Slider
-                defaultValue={[field.value]}
+                defaultValue={[field.value || 50]}
                 min={0}
                 max={100}
                 step={1}
@@ -57,7 +57,7 @@ const NotificationSettings = ({ form }: NotificationSettingsProps) => {
               />
             </FormControl>
             <FormDescription className="text-right">
-              {field.value}%
+              {field.value || 50}%
             </FormDescription>
           </FormItem>
         )}
@@ -65,7 +65,7 @@ const NotificationSettings = ({ form }: NotificationSettingsProps) => {
       
       <FormField
         control={form.control}
-        name="alertFrequency"
+        name="dashboardCustomization.alertFrequency"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Alert Frequency</FormLabel>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TradingForm from "./trading/TradingForm";
@@ -93,16 +92,19 @@ const FakeTrading = () => {
     if (!activeAccount) return;
     
     const selectedCurrency = activeCurrency as SupportedCurrency;
+    const selectedCoin = availableCoins.find(c => c.id === coinId);
     
-    const trade = {
+    if (!selectedCoin) return;
+    
+    const trade: Trade = {
       id: Date.now().toString(),
       coinId,
-      coinName: availableCoins.find(c => c.id === coinId)?.name || "",
-      coinSymbol: availableCoins.find(c => c.id === coinId)?.symbol || "",
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol,
       type,
       amount,
-      price: availableCoins.find(c => c.id === coinId)?.price || 0,
-      totalValue: amount * (availableCoins.find(c => c.id === coinId)?.price || 0),
+      price: selectedCoin.price,
+      totalValue: amount * selectedCoin.price,
       timestamp: new Date().toISOString(),
       currency: selectedCurrency
     };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   FormField,
@@ -14,13 +13,30 @@ import { Label } from "@/components/ui/label";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
-interface AppearanceSettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const AppearanceSettings = ({ form }: AppearanceSettingsProps) => {
+const AppearanceSettings = ({ form }: { form: UseFormReturn<SettingsFormValues> }) => {
   return (
     <div className="space-y-4">
+      <FormField
+        control={form.control}
+        name="appearance.compactMode"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">Compact Mode</FormLabel>
+              <FormDescription>
+                Use a more compact layout throughout the app
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="darkMode"

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   FormField,
@@ -14,13 +13,51 @@ import { Download, FileText, Trash2, Shield } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
-interface DataPrivacySettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const DataPrivacySettings = ({ form }: DataPrivacySettingsProps) => {
+const DataPrivacySettings = ({ form }: { form: UseFormReturn<SettingsFormValues> }) => {
   return (
     <div className="space-y-4">
+      <FormField
+        control={form.control}
+        name="dataPrivacy.shareAnalytics"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">Share Analytics</FormLabel>
+              <FormDescription>
+                Allow anonymous usage data collection
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="dataPrivacy.storeHistory"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">Store History</FormLabel>
+              <FormDescription>
+                Keep your trading history and analysis data locally
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="exportFormat"
@@ -40,48 +77,6 @@ const DataPrivacySettings = ({ form }: DataPrivacySettingsProps) => {
                 <SelectItem value="excel">Excel</SelectItem>
               </SelectContent>
             </Select>
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="dataPrivacy.shareAnalytics"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <FormLabel className="text-base">Share Analytics</FormLabel>
-              <FormDescription>
-                Allow us to collect anonymous usage data to improve the platform
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="dataPrivacy.storeHistory"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <FormLabel className="text-base">Store History</FormLabel>
-              <FormDescription>
-                Keep your trading history and analysis data locally
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
           </FormItem>
         )}
       />

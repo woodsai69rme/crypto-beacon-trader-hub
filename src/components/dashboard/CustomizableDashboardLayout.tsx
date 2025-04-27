@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,7 +40,6 @@ interface DashboardWidget {
   settings?: Record<string, any>;
 }
 
-// Initial layouts
 const defaultLayouts: DashboardLayout[] = [
   {
     id: "default",
@@ -259,7 +257,6 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
   
   const activeLayout = layouts.find(layout => layout.isActive) || layouts[0];
   
-  // When active layout changes, notify parent
   useEffect(() => {
     if (activeLayout && onLayoutChange) {
       onLayoutChange(activeLayout);
@@ -285,7 +282,6 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
     
     if (!layoutToDelete) return;
     
-    // Don't allow deleting the default layout
     if (layoutToDelete.isDefault) {
       toast({
         title: "Cannot Delete Default Layout",
@@ -295,7 +291,6 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
       return;
     }
     
-    // If deleting the active layout, switch to default
     if (layoutToDelete.isActive) {
       const defaultLayout = layouts.find(l => l.isDefault);
       if (defaultLayout) {
@@ -331,7 +326,6 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
       isDefault: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // Clone widgets and grid config from the base layout
       widgets: JSON.parse(JSON.stringify(baseLayout.widgets)),
       gridConfig: { ...baseLayout.gridConfig }
     };

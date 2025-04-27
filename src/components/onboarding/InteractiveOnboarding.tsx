@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -338,28 +337,20 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
   ];
 
   useEffect(() => {
-    // If onboarding is completed and we're showing tooltips,
-    // set a timer to show each tooltip in sequence
     if (preferences.completed && !isOpen) {
       const showTooltipsSequentially = async () => {
-        // Wait for DOM to be fully loaded
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         for (const tooltip of tooltips) {
-          // Check if element exists in the DOM
           const element = document.querySelector(tooltip.selector);
           if (!element) continue;
           
-          // Show tooltip
           setTooltipOpen(tooltip);
           
-          // Wait for user to dismiss or timeout
           await new Promise(resolve => setTimeout(resolve, 5000));
           
-          // Close tooltip
           setTooltipOpen(null);
           
-          // Wait before showing next tooltip
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       };
@@ -407,7 +398,6 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
   const isLastStep = currentStepIndex === steps.length - 1;
   const isFirstStep = currentStepIndex === 0;
 
-  // Component for tooltips that appear on the main UI after onboarding
   const Tooltip: React.FC<{ tooltip: OnboardingTooltip }> = ({ tooltip }) => {
     const element = document.querySelector(tooltip.selector);
     if (!element) return null;
@@ -415,7 +405,6 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
     const rect = element.getBoundingClientRect();
     const Icon = tooltip.icon;
     
-    // Position tooltip based on specified position
     let style: React.CSSProperties = {
       position: 'fixed',
       zIndex: 9999,
@@ -491,7 +480,6 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => {
-        // Only allow closing if onboarding is completed
         if (preferences.completed) {
           setIsOpen(open);
         }
@@ -518,7 +506,7 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
               </Button>
             )}
             
-            <div className="flex-1"></div> {/* Spacer */}
+            <div className="flex-1"></div>
             
             {isLastStep ? (
               <Button onClick={handleComplete}>
@@ -535,10 +523,8 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Tooltips */}
       {tooltipOpen && <Tooltip tooltip={tooltipOpen} />}
       
-      {/* If onboarding is already complete, show a button to relaunch it */}
       {preferences.completed && !isOpen && (
         <Button
           variant="outline"
@@ -554,7 +540,6 @@ const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({
   );
 };
 
-// Helper Badge component for the complete step
 const Badge = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${className}`}>

@@ -1,17 +1,37 @@
-
 import React from "react";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
-const GeneralSettings = () => {
-  const form = useFormContext<SettingsFormValues>();
-  
+const GeneralSettings = ({ form }: { form: UseFormReturn<SettingsFormValues> }) => {
   return (
     <div className="space-y-5">
+      <FormField
+        control={form.control}
+        name="dashboardCustomization.defaultCurrency"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Default Currency</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="USD">USD ($)</SelectItem>
+                <SelectItem value="EUR">EUR (€)</SelectItem>
+                <SelectItem value="GBP">GBP (£)</SelectItem>
+                <SelectItem value="AUD">AUD (A$)</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="language"
@@ -65,33 +85,6 @@ const GeneralSettings = () => {
                 <SelectItem value="Europe/Paris">Paris, Berlin</SelectItem>
                 <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
                 <SelectItem value="Australia/Sydney">Sydney</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="dashboardCustomization.defaultCurrency"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Default Currency</FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a currency" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="AUD">AUD (A$)</SelectItem>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="GBP">GBP (£)</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

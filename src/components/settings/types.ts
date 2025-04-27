@@ -37,6 +37,17 @@ export interface SettingsFormValues {
     showPriceAlerts?: boolean;
     defaultTradingPair?: string;
   };
+  dashboardCustomization?: {
+    defaultCurrency: string;
+    defaultTimeframe: string;
+    alertVolume: number;
+    alertFrequency: string;
+  };
+  dataPrivacy?: {
+    shareAnalytics: boolean;
+    storeHistory: boolean;
+  };
+  exportFormat?: string;
 }
 
 export interface SettingsTabsProps {
@@ -48,3 +59,5 @@ export interface SettingsFooterProps {
   isSaving: boolean;
   onReset: () => void;
 }
+
+export type AlertFrequencyOption = 'high' | 'medium' | 'low' | 'none';
