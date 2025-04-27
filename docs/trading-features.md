@@ -7,6 +7,23 @@ The trading system provides a comprehensive platform for cryptocurrency trading,
 
 ## Key Components
 
+### Real-Time Trading
+
+The real-time trading system provides:
+
+- **Live Price Updates**: View cryptocurrency prices updating in real-time
+- **Order Book Visualization**: See market depth and liquidity
+- **Trade Notifications**: Receive notifications for executed trades
+- **Portfolio Tracking**: Monitor your portfolio value in real-time
+- **Strategy Performance**: Track the performance of trading strategies
+
+#### How to Use Real-Time Features
+
+1. Navigate to the Trading dashboard
+2. Select the "Real-Time" tab
+3. Choose the specific real-time feature you want to monitor
+4. Set your preferences for update frequency and display options
+
 ### AlertsSystem
 
 The AlertsSystem provides real-time price and volume alerts for cryptocurrencies:
@@ -48,6 +65,24 @@ The portfolio tracking system provides:
 - Trade execution and history
 - Multi-currency support (USD/AUD)
 
+### Pattern Recognition
+
+Our pattern recognition system:
+
+- Automatically detects chart patterns
+- Identifies support and resistance levels
+- Calculates trend strength indicators
+- Estimates reversal probabilities
+
+### Correlation Analysis
+
+The correlation analysis tools enable:
+
+- Multi-asset correlation matrices
+- Tracking correlation changes over time
+- Portfolio diversification scoring
+- Finding correlation-based trade opportunities
+
 ## Error Handling
 
 The application implements comprehensive error handling:
@@ -63,10 +98,16 @@ The application implements comprehensive error handling:
 - Portfolio data persists between sessions
 - AI model configurations are saved locally
 
+## Multi-Currency Support
+
+- Support for USD and AUD as base currencies
+- Real-time currency conversion
+- Configurable default currency in settings
+
 ## Best Practices
 
 1. Set reasonable alert thresholds to avoid excessive notifications
-2. Test MCP server connections before initiating trading
+2. Test strategies in the paper trading environment before using real funds
 3. Start with small trading amounts when using AI trading features
 4. Regularly review and clean up outdated alerts
 5. Use the backtesting features before deploying trading strategies

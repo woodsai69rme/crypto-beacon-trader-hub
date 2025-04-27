@@ -84,6 +84,7 @@ const GeneralSettings = ({ form }: GeneralSettingsProps) => {
               </FormControl>
               <SelectContent>
                 <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
                 <SelectItem value="EUR">Euro (EUR)</SelectItem>
                 <SelectItem value="GBP">British Pound (GBP)</SelectItem>
                 <SelectItem value="JPY">Japanese Yen (JPY)</SelectItem>
