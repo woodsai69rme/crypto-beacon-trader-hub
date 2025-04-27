@@ -1,108 +1,93 @@
-import React from "react";
+
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowRight } from "lucide-react";
-import { LocalModel } from "./types";
-import { validateFormFields } from "@/utils/formValidation";
-import { handleError } from "@/utils/errorHandling";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface AddModelFormProps {
-  newModel: Omit<LocalModel, "id" | "isConnected">;
-  onModelChange: (model: Omit<LocalModel, "id" | "isConnected">) => void;
+  newModel: {
+    name: string;
+    endpoint: string;
+    type: string;
+  };
+  onModelChange: (model: any) => void;
   onSubmit: () => void;
 }
 
-const AddModelForm: React.FC<AddModelFormProps> = ({
-  newModel,
-  onModelChange,
-  onSubmit
-}) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const isValid = validateFormFields(newModel, ["name", "endpoint", "type"]);
-      
-      if (!isValid) {
-        return;
-      }
-
-      if (!newModel.endpoint.startsWith("http://") && !newModel.endpoint.startsWith("https://")) {
-        handleError("Endpoint must start with http:// or https://", "warning", "Model Form");
-        return;
-      }
-
-      onSubmit();
-    } catch (error) {
-      handleError(error, "error", "Model Form");
-    }
-  };
-
+const AddModelForm: React.FC<AddModelFormProps> = ({ newModel, onModelChange, onSubmit }) => {
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Model Name</Label>
-        <Input 
-          id="name" 
-          required
-          placeholder="My Price Prediction Model" 
-          value={newModel.name}
-          onChange={(e) => onModelChange({ ...newModel, name: e.target.value })}
-        />
+    <div className="space-y-4">
+      <div className="text-sm mb-4">
+        Configure a connection to your locally running AI model
       </div>
       
-      <div className="grid gap-2">
-        <Label htmlFor="endpoint">Local Endpoint URL</Label>
-        <Input 
-          id="endpoint" 
-          required
-          placeholder="http://localhost:8000" 
-          value={newModel.endpoint}
-          onChange={(e) => onModelChange({ ...newModel, endpoint: e.target.value })}
-        />
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="type">Model Type</Label>
-        <select
-          id="type"
-          required
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          value={newModel.type}
-          onChange={(e) => onModelChange({ ...newModel, type: e.target.value as LocalModel["type"] })}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <FormLabel>Model Name</FormLabel>
+          <Input
+            placeholder="My Trading Model"
+            value={newModel.name}
+            onChange={(e) => onModelChange({ ...newModel, name: e.target.value })}
+          />
+          <FormDescription>
+            A descriptive name for your AI model
+          </FormDescription>
+        </div>
+        
+        <div className="space-y-2">
+          <FormLabel>API Endpoint</FormLabel>
+          <Input
+            placeholder="http://localhost:8000"
+            value={newModel.endpoint}
+            onChange={(e) => onModelChange({ ...newModel, endpoint: e.target.value })}
+          />
+          <FormDescription>
+            The local address where your model's API is running
+          </FormDescription>
+        </div>
+        
+        <div className="space-y-2">
+          <FormLabel>Model Type</FormLabel>
+          <Select
+            value={newModel.type}
+            onValueChange={(value) => onModelChange({ ...newModel, type: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select model type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="prediction">Price Prediction</SelectItem>
+              <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
+              <SelectItem value="trading">Trading Strategy</SelectItem>
+              <SelectItem value="analysis">Market Analysis</SelectItem>
+            </SelectContent>
+          </Select>
+          <FormDescription>
+            The primary function of your AI model
+          </FormDescription>
+        </div>
+        
+        <Button 
+          className="w-full mt-6" 
+          onClick={onSubmit}
+          disabled={!newModel.name || !newModel.endpoint}
         >
-          <option value="">Select a type</option>
-          <option value="prediction">Price Prediction</option>
-          <option value="sentiment">Sentiment Analysis</option>
-          <option value="trading">Trading Strategy</option>
-          <option value="analysis">Market Analysis</option>
-        </select>
-      </div>
-      
-      <Button type="submit" className="w-full">
-        Add Local Model
-      </Button>
-      
-      <div className="border-t pt-4 mt-4">
-        <h4 className="font-medium mb-2">How to Set Up Local Models</h4>
-        <p className="text-sm text-muted-foreground mb-4">
-          To use local AI models, run a compatible inference server on your machine and enter its endpoint above.
-          Common server types include:
-        </p>
-        <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-5 mb-4">
-          <li>HuggingFace Transformers API</li>
-          <li>ONNX Runtime Web Server</li>
-          <li>TensorFlow Serving</li>
-          <li>PyTorch Model Server</li>
-          <li>LangChain local servers</li>
-        </ul>
-        <Button variant="outline" className="w-full flex justify-between">
-          <span>View Local Model Setup Guide</span>
-          <ArrowRight className="h-4 w-4" />
+          Add AI Model
         </Button>
       </div>
-    </form>
+      
+      <div className="bg-muted/50 p-4 rounded-md text-sm mt-6">
+        <p className="font-medium mb-2">Setting up local AI trading models</p>
+        <ul className="space-y-1 list-disc ml-5 text-muted-foreground">
+          <li>Models must expose REST APIs for inference</li>
+          <li>Ensure CORS is enabled on your local server</li>
+          <li>For PyTorch models, use TorchServe or Flask</li>
+          <li>For TensorFlow models, use TF Serving or Flask</li>
+          <li>Models should accept JSON inputs and return JSON outputs</li>
+        </ul>
+      </div>
+    </div>
   );
 };
 

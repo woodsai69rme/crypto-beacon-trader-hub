@@ -1,10 +1,12 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, AlertCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LocalModel } from "@/types/trading";
+import { AlertCircle, ArrowLeft, Bot, Cpu, LineChart } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import type { LocalModel, TradingStrategy } from "./types";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 
 interface ModelGenerationTabProps {
   selectedModel: LocalModel | null;
@@ -12,139 +14,154 @@ interface ModelGenerationTabProps {
   onGenerate: () => void;
 }
 
-export const ModelGenerationTab = ({
-  selectedModel,
-  onBack,
-  onGenerate,
-}: ModelGenerationTabProps) => {
+export const ModelGenerationTab = ({ selectedModel, onBack, onGenerate }: ModelGenerationTabProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [_, setGeneratedStrategies] = useLocalStorage<TradingStrategy[]>(
-    "localGeneratedStrategies",
-    []
+  const [promptText, setPromptText] = useState<string>(
+    "Create a mean reversion strategy that uses Bollinger Bands and RSI to identify overbought and oversold conditions."
   );
-
-  const generateStrategy = async () => {
+  const [timeframe, setTimeframe] = useState<string>("1h");
+  const [riskLevel, setRiskLevel] = useState<string>("medium");
+  
+  const handleGenerateStrategy = async () => {
     if (!selectedModel) {
       toast({
-        title: "No model selected",
-        description: "Please select a local model first",
-        variant: "destructive",
+        title: "No Model Selected",
+        description: "Please connect to a model first",
+        variant: "destructive"
       });
       return;
     }
-
-    setIsGenerating(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-
-      const newStrategy: TradingStrategy = {
-        id: `local-strategy-${Date.now()}`,
-        name: `Local ${selectedModel.name} Strategy`,
-        description: `A trading strategy generated using your local ${selectedModel.name} model`,
-        type: "ai-predictive",
-        riskLevel: "medium",
-        timeframe: "1h",
-        indicators: [
-          "LSTM Network",
-          "Local Model Prediction",
-          "Volume Profile",
-          "Support/Resistance AI",
-        ],
-        parameters: {
-          confidenceThreshold: 72,
-          predictionHorizon: "8-candles",
-          ensembleModels: 3,
-          stopLoss: 3.0,
-          takeProfit: 6.0,
-          dynamicPositionSizing: true,
-          localInference: true,
-          localModelId: selectedModel.id,
-        },
-      };
-
-      setGeneratedStrategies((prev) => [newStrategy, ...prev]);
-      onGenerate();
-
+    
+    if (!promptText.trim()) {
       toast({
-        title: "Strategy generated",
-        description: "A new trading strategy has been created using your local model",
+        title: "Empty Prompt",
+        description: "Please enter a strategy prompt",
+        variant: "destructive"
       });
+      return;
+    }
+    
+    setIsGenerating(true);
+    
+    try {
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      toast({
+        title: "Strategy Generated",
+        description: "Your custom AI trading strategy has been successfully created"
+      });
+      
+      onGenerate();
     } catch (error) {
       toast({
-        title: "Generation failed",
-        description: "Failed to generate a strategy with your local model",
-        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate strategy. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
-
-  if (!selectedModel) {
-    return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-2" />
-        <div className="font-medium text-lg mb-1">No Local Model Selected</div>
-        <div className="text-muted-foreground mb-4">
-          Please connect to a local model first before generating strategies
-        </div>
-        <Button onClick={onBack}>Select a Local Model</Button>
-      </div>
-    );
-  }
-
+  
   return (
     <div className="space-y-4">
-      <div className="p-4 border rounded-lg">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="h-2 w-2 rounded-full bg-green-500"></div>
-          <div className="font-medium">Connected to: {selectedModel.name}</div>
-        </div>
-        <div className="text-sm text-muted-foreground mb-3">
-          Endpoint: {selectedModel.endpoint}
-        </div>
-        <p className="text-sm mb-4">
-          Generate a new trading strategy using your local {selectedModel.type} model.
-          This will create a strategy that you can backtest and deploy.
-        </p>
-        <Button
-          onClick={generateStrategy}
-          disabled={isGenerating}
-          className="w-full"
-        >
-          {isGenerating ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Generating Strategy...
-            </>
-          ) : (
-            "Generate Trading Strategy"
-          )}
-        </Button>
-      </div>
-
-      <div className="border-t pt-4">
-        <h4 className="font-medium mb-2">Strategy Generation Parameters</h4>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Model Type</span>
-            <span className="font-medium">{selectedModel.type}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Default Timeframe</span>
-            <span className="font-medium">1 Hour</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Risk Profile</span>
-            <span className="font-medium">Medium (Configurable)</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Strategy Type</span>
-            <span className="font-medium">AI Predictive</span>
+      {!selectedModel ? (
+        <div className="bg-muted/50 p-4 rounded-md flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium">No Model Connected</p>
+            <p className="text-muted-foreground mt-1">
+              Please go back and connect to a local model first.
+            </p>
+            <Button variant="outline" size="sm" className="mt-2" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Connect
+            </Button>
           </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">Generate AI Trading Strategy</div>
+            <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+              <Cpu className="h-3 w-3" />
+              <span>{selectedModel.name}</span>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <div className="text-sm font-medium mb-1">Strategy Prompt</div>
+              <Textarea 
+                placeholder="Describe the trading strategy you want to generate..." 
+                className="min-h-32"
+                value={promptText}
+                onChange={(e) => setPromptText(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm font-medium mb-1">Timeframe</div>
+                <Select value={timeframe} onValueChange={setTimeframe}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1m">1 Minute</SelectItem>
+                    <SelectItem value="5m">5 Minutes</SelectItem>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <div className="text-sm font-medium mb-1">Risk Level</div>
+                <Select value={riskLevel} onValueChange={setRiskLevel}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low Risk</SelectItem>
+                    <SelectItem value="medium">Medium Risk</SelectItem>
+                    <SelectItem value="high">High Risk</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="pt-2 flex justify-between">
+              <Button variant="outline" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              
+              <Button 
+                onClick={handleGenerateStrategy}
+                disabled={isGenerating || !promptText.trim()}
+              >
+                <LineChart className="h-4 w-4 mr-2" />
+                {isGenerating ? "Generating..." : "Generate Strategy"}
+              </Button>
+            </div>
+          </div>
+          
+          <div className="bg-muted/50 p-4 rounded-md flex items-start gap-3 mt-4">
+            <Bot className="h-5 w-5 text-blue-500 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium">Strategy Generation Tips</p>
+              <p className="text-muted-foreground mt-1">
+                Be specific about indicators, entry/exit conditions, and risk management rules.
+                The AI will generate executable code based on your description.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
