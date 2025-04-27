@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { CoinOption } from "@/types/trading";
-import { startPriceMonitoring, getCurrentPrice } from "@/services/priceMonitoring";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { startPriceMonitoring } from '@/services/priceMonitoring';
+
+interface PricePoint {
+  time: string;
+  price: number;
+}
 
 interface RealTimePriceChartProps {
   coinId: string;
@@ -9,210 +15,130 @@ interface RealTimePriceChartProps {
   updateInterval?: number;
 }
 
-interface PriceDataPoint {
-  time: string;
-  price: number;
-  timestamp: number;
-}
-
-const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
-  coinId,
+const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({ 
+  coinId, 
   availableCoins,
   updateInterval = 5000
 }) => {
-  const [priceData, setPriceData] = useState<PriceDataPoint[]>([]);
-  const [latestPrice, setLatestPrice] = useState<number | null>(null);
-  const [priceChangePercent, setPriceChangePercent] = useState<number>(0);
-  const monitoringRef = useRef<(() => void) | null>(null);
+  const [priceData, setPriceData] = useState<PricePoint[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   
-  // Initialize price data
   useEffect(() => {
-    const initialPrice = availableCoins.find(c => c.id === coinId)?.price || getCurrentPrice(coinId);
-    setLatestPrice(initialPrice);
+    const selectedCoin = availableCoins.find(c => c.id === coinId);
+    if (!selectedCoin) return;
     
-    // Create some historical data points for the chart
+    const initialData: PricePoint[] = [];
     const now = Date.now();
-    const mockData: PriceDataPoint[] = [];
     
-    // Generate data points for the last hour (one point every 5 minutes)
-    for (let i = 12; i >= 0; i--) {
-      const time = now - (i * 5 * 60 * 1000);
-      const variation = (Math.random() * 0.1) - 0.05; // -5% to +5%
-      const mockPrice = initialPrice * (1 + variation);
-      
-      mockData.push({
-        time: new Date(time).toLocaleTimeString(),
-        price: mockPrice,
-        timestamp: time
+    for (let i = 19; i >= 0; i--) {
+      const time = new Date(now - (i * updateInterval));
+      const noise = selectedCoin.price * 0.001 * (Math.random() * 20 - 10);
+      initialData.push({
+        time: time.toLocaleTimeString(),
+        price: selectedCoin.price + noise
       });
     }
     
-    setPriceData(mockData);
-    
-    // Calculate initial price change
-    if (mockData.length >= 2) {
-      const firstPrice = mockData[0].price;
-      const lastPrice = mockData[mockData.length - 1].price;
-      const changePercent = ((lastPrice - firstPrice) / firstPrice) * 100;
-      setPriceChangePercent(changePercent);
-    }
-  }, [coinId, availableCoins]);
+    setPriceData(initialData);
+  }, [coinId]);
   
-  // Update real-time data
   useEffect(() => {
-    // Clean up previous monitoring
-    if (monitoringRef.current) {
-      monitoringRef.current();
-      monitoringRef.current = null;
-    }
+    if (!coinId) return;
     
-    // Start new monitoring for this coin
-    monitoringRef.current = startPriceMonitoring(
+    const stopMonitoring = startPriceMonitoring(
       [coinId],
       (updatedCoins) => {
         const updatedCoin = updatedCoins.find(c => c.id === coinId);
-        if (!updatedCoin) return;
-        
-        const newPrice = updatedCoin.price;
-        setLatestPrice(newPrice);
-        
-        // Add new data point
-        setPriceData(prevData => {
-          // Keep only the most recent 100 data points (about 8 hours at 5 min intervals)
-          const newData = [...prevData, {
-            time: new Date().toLocaleTimeString(),
-            price: newPrice,
-            timestamp: Date.now()
-          }];
+        if (updatedCoin) {
+          const now = new Date();
           
-          if (newData.length > 100) {
-            newData.shift();
-          }
+          setPriceData(prevData => {
+            const newData = [...prevData, { time: now.toLocaleTimeString(), price: updatedCoin.price }];
+            if (newData.length > 60) {
+              return newData.slice(-60);
+            }
+            return newData;
+          });
           
-          // Calculate new price change percentage
-          if (newData.length >= 2) {
-            const firstPrice = newData[0].price;
-            const changePercent = ((newPrice - firstPrice) / firstPrice) * 100;
-            setPriceChangePercent(changePercent);
-          }
-          
-          return newData;
-        });
+          setLastUpdate(now);
+        }
       },
       updateInterval
     );
     
-    // Cleanup
-    return () => {
-      if (monitoringRef.current) {
-        monitoringRef.current();
-      }
-    };
+    return () => stopMonitoring();
   }, [coinId, updateInterval]);
   
-  // Calculate visible domain for the chart
-  const calculateDomain = () => {
-    if (!priceData.length) return [0, 100];
-    
-    const prices = priceData.map(d => d.price);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    
-    // Add some padding to the min/max
-    const padding = (max - min) * 0.1;
-    return [min - padding, max + padding];
-  };
-  
-  const calculateGradientColor = () => {
-    return priceChangePercent >= 0 ? 
-      ["#10B981", "#ECFDF5"] : // Green gradient for positive
-      ["#EF4444", "#FEF2F2"]; // Red gradient for negative
-  };
-  
-  const renderCustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border rounded p-2 shadow-lg">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-sm font-medium">${payload[0].value.toFixed(2)}</p>
-        </div>
-      );
+  const formatPrice = (price: number) => {
+    if (price >= 1000) {
+      return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else if (price >= 1) {
+      return `$${price.toFixed(2)}`;
+    } else {
+      return `$${price.toFixed(4)}`;
     }
-    return null;
   };
-
+  
+  const selectedCoin = availableCoins.find(c => c.id === coinId);
+  const priceChangePercent = selectedCoin?.changePercent || 0;
+  const isPriceUp = priceChangePercent >= 0;
+  
   return (
     <div className="space-y-4">
-      {latestPrice && (
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="text-3xl font-bold">${latestPrice.toFixed(2)}</div>
-            <div className={`text-sm ${priceChangePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {priceChangePercent >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
-              <span className="text-xs text-muted-foreground ml-1">since chart start</span>
-            </div>
+      <div className="flex justify-between">
+        <div>
+          <div className="text-2xl font-bold">
+            {formatPrice(selectedCoin?.price || 0)}
           </div>
-          <div className="text-right">
-            <div className="text-sm font-medium">
-              {availableCoins.find(c => c.id === coinId)?.name}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Last updated: {new Date().toLocaleTimeString()}
-            </div>
+          <div className={`text-sm ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
+            {isPriceUp ? '+' : ''}{priceChangePercent.toFixed(2)}%
           </div>
         </div>
-      )}
+        <div className="text-right">
+          <div className="text-sm text-muted-foreground">Last update</div>
+          <div className="text-sm font-medium">{lastUpdate.toLocaleTimeString()}</div>
+        </div>
+      </div>
       
-      <div className="h-[400px]">
+      <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={priceData}
-            margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
           >
-            <defs>
-              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={calculateGradientColor()[0]} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={calculateGradientColor()[1]} stopOpacity={0.2}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis 
               dataKey="time" 
-              tick={{ fontSize: 12 }}
-              stroke="#94a3b8"
-              tickLine={false}
-              axisLine={false}
-              minTickGap={30}
+              tick={{ fontSize: 10 }}
+              tickFormatter={(value) => {
+                return value;
+              }}
+              minTickGap={50}
             />
             <YAxis 
-              domain={calculateDomain()}
-              tick={{ fontSize: 12 }}
-              stroke="#94a3b8"
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `$${value.toFixed(0)}`}
-              orientation="right"
+              domain={['auto', 'auto']} 
+              tick={{ fontSize: 10 }}
+              tickFormatter={(value) => formatPrice(value)}
+              width={80}
             />
-            <Tooltip content={renderCustomTooltip} />
+            <Tooltip 
+              formatter={(value: number) => [formatPrice(value), 'Price']} 
+              labelFormatter={(label) => `Time: ${label}`}
+            />
             <Line 
               type="monotone" 
               dataKey="price" 
-              stroke={calculateGradientColor()[0]}
-              strokeWidth={2}
+              stroke="hsl(var(--primary))" 
               dot={false}
-              activeDot={{ r: 6 }}
-              fillOpacity={1}
-              fill="url(#colorPrice)"
+              strokeWidth={2}
+              animationDuration={300}
             />
-            {latestPrice && (
-              <ReferenceLine 
-                y={latestPrice} 
-                stroke={calculateGradientColor()[0]}
-                strokeDasharray="3 3"
-              />
-            )}
           </LineChart>
         </ResponsiveContainer>
+      </div>
+      
+      <div className="text-sm text-muted-foreground text-center">
+        Real-time price chart for {selectedCoin?.name} ({selectedCoin?.symbol})
       </div>
     </div>
   );
