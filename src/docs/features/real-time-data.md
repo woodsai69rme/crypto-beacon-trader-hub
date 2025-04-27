@@ -17,6 +17,8 @@ Continuously updated cryptocurrency prices from multiple sources.
 - 24-hour high/low tracking
 - Multiple currency display options (USD, EUR, AUD, GBP)
 - Customizable watchlists
+- Visual price movement indicators
+- Volume tracking and analysis
 
 ### Real-Time Charts
 
@@ -24,8 +26,10 @@ Interactive price charts that update automatically with new data.
 
 **Features**:
 - Candlestick and line chart options
-- Multiple timeframe selection (1m, 5m, 15m, 1h, 4h, 1d, 1w)
+- Multiple timeframe selection (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w)
 - Dynamic technical indicators that recalculate with each update
+- Moving averages (5-period and 20-period)
+- Comparative volume analysis
 - Drawing tools for technical analysis
 - Price alerts directly from charts
 
@@ -40,6 +44,44 @@ Comprehensive market dashboard with key metrics updated in real-time.
 - Top gainers and losers
 - New all-time highs/lows
 - Market breadth indicators
+- Sector performance metrics
+
+## API Usage Monitoring
+
+### Real-Time API Usage Tracking
+
+Monitor your API consumption across different services in real-time.
+
+**Features**:
+- Visual rate limit indicators
+- Usage history tracking
+- Customizable update intervals (15s, 30s, 60s)
+- Time-to-reset countdown timers
+- Usage optimization suggestions
+- Automatic alerts for approaching rate limits
+
+### Rate Limit Management
+
+Tools to help optimize API usage and avoid rate limiting.
+
+**Features**:
+- Service-by-service usage breakdown
+- Endpoint-specific monitoring
+- Historical usage patterns
+- Optimization recommendations
+- Automatic throttling controls
+
+### Multi-Exchange Support
+
+Monitor API usage across multiple cryptocurrency exchanges.
+
+**Supported Exchanges**:
+- Binance
+- Coinbase
+- Kraken
+- CoinGecko
+- CryptoCompare
+- Messari
 
 ## Trading Integration
 
@@ -123,6 +165,7 @@ Direct WebSocket connections to exchanges for minimal latency.
 - Connection health monitoring
 - Automatic reconnection
 - Multiple subscription management
+- Fallback mechanisms
 
 ### Custom Alerts
 
@@ -135,6 +178,7 @@ Create customized alerts based on real-time data conditions.
 - Volatility alerts
 - Pattern completion alerts
 - News sentiment alerts
+- API usage alerts
 
 ### Data Export
 
@@ -146,6 +190,18 @@ Export real-time data for external analysis.
 - WebHook integrations
 - API access
 - Scheduled reports
+
+## Performance Optimization
+
+Our platform employs various strategies to maximize performance while maintaining real-time data quality:
+
+- **Intelligent Caching**: Automatic caching of non-critical data to reduce API calls
+- **Prioritized Updates**: Critical data (e.g., prices for actively traded assets) receive update priority
+- **WebSocket Preference**: Using WebSockets over REST API calls when possible
+- **Connection Health Monitoring**: Automatic detection and recovery from connection issues
+- **Rate Limit Awareness**: Intelligent throttling to avoid hitting exchange rate limits
+- **Bandwidth Optimization**: Compressed data transmission to reduce network overhead
+- **Client-Side Processing**: Leveraging client-side computation for derived metrics
 
 ## Data Sources
 

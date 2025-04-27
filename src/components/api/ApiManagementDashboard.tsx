@@ -7,14 +7,16 @@ import ApiUsageMetrics from "./ApiUsageMetrics";
 import ApiStatusIndicator from "./ApiStatusIndicator";
 import ApiRateLimits from "./ApiRateLimits";
 import ApiProviderSettings from "./ApiProviderSettings";
+import RealTimeApiUsage from "./RealTimeApiUsage";
 import { toast } from "@/components/ui/use-toast";
 import { CoinOption } from "@/types/trading";
 import { startPriceMonitoring } from "@/services/priceMonitoring";
 
 const ApiManagementDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("keys");
+  const [activeTab, setActiveTab] = useState<string>("realtime");
   const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
   const [coinPrices, setCoinPrices] = useState<CoinOption[]>([]);
+  const [selectedApiService, setSelectedApiService] = useState<string>("coingecko");
   
   // Start price monitoring when component mounts
   useEffect(() => {
@@ -45,6 +47,14 @@ const ApiManagementDashboard: React.FC = () => {
     }
   }, [isMonitoring]);
 
+  const handleApiServiceSelect = (service: string) => {
+    setSelectedApiService(service);
+    toast({
+      title: `${service.charAt(0).toUpperCase() + service.slice(1)} API Selected`,
+      description: "Detailed API usage metrics loaded for this service"
+    });
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -56,13 +66,21 @@ const ApiManagementDashboard: React.FC = () => {
       
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 mb-6">
+          <TabsList className="grid grid-cols-6 mb-6">
+            <TabsTrigger value="realtime">Real-time</TabsTrigger>
             <TabsTrigger value="keys">API Keys</TabsTrigger>
             <TabsTrigger value="usage">Usage</TabsTrigger>
             <TabsTrigger value="status">Status</TabsTrigger>
             <TabsTrigger value="limits">Rate Limits</TabsTrigger>
             <TabsTrigger value="providers">Providers</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="realtime">
+            <RealTimeApiUsage 
+              selectedService={selectedApiService} 
+              onServiceSelect={handleApiServiceSelect} 
+            />
+          </TabsContent>
           
           <TabsContent value="keys">
             <ApiKeyManager />

@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 const ApiRateLimits = () => {
   const exchangeLimits = [
@@ -35,8 +35,8 @@ const ApiRateLimits = () => {
 
   return (
     <div className="space-y-6">
-      <Alert variant="warning" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
+      <Alert variant="destructive" className="mb-4">
+        <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
           Kraken API rate limits are at maximum capacity. Consider reducing request frequency.
         </AlertDescription>
