@@ -1,6 +1,7 @@
 
 import { Trade, TradingAccount } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
+import { SupportedCurrency } from "@/components/trading/TradingStats";
 
 interface PortfolioRecommendation {
   suggestedTrades: Trade[];
@@ -38,7 +39,7 @@ export async function analyzePortfolio(account: TradingAccount): Promise<Portfol
         price: 100 + Math.random() * 1000,
         totalValue: 0,
         timestamp,
-        currency: "USD",
+        currency: "USD" as SupportedCurrency,
         botGenerated: true,
         tags: ['portfolio-rebalance']
       });

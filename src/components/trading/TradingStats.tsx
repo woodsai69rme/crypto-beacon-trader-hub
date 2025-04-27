@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Card } from "@/components/ui/card";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
 export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
@@ -9,49 +8,43 @@ interface TradingStatsProps {
   balance: number;
   portfolioValue: number;
   performance: number;
-  currency: SupportedCurrency;
   formatValue: (value: number) => string;
+  currency: SupportedCurrency;
 }
 
-const TradingStats: React.FC<TradingStatsProps> = ({
-  balance,
-  portfolioValue,
+const TradingStats: React.FC<TradingStatsProps> = ({ 
+  balance, 
+  portfolioValue, 
   performance,
   formatValue,
   currency
 }) => {
-  const isPositivePerformance = performance > 0;
-  const perfAbsolute = Math.abs(performance);
+  // Performance is positive when > 0, negative when < 0
+  const isPositive = performance >= 0;
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-      <Card className="p-4 flex flex-col">
-        <span className="text-sm text-muted-foreground mb-1">Account Balance</span>
-        <span className="text-2xl font-bold">{formatValue(balance)}</span>
-      </Card>
+    <div className="grid grid-cols-3 gap-4 mb-6 mt-4">
+      <div className="bg-muted/60 p-4 rounded-lg">
+        <div className="text-sm text-muted-foreground mb-1">Balance</div>
+        <div className="text-lg font-medium">{formatValue(balance)}</div>
+      </div>
       
-      <Card className="p-4 flex flex-col">
-        <span className="text-sm text-muted-foreground mb-1">Portfolio Value</span>
-        <span className="text-2xl font-bold">{formatValue(portfolioValue)}</span>
-      </Card>
+      <div className="bg-muted/60 p-4 rounded-lg">
+        <div className="text-sm text-muted-foreground mb-1">Portfolio Value</div>
+        <div className="text-lg font-medium">{formatValue(portfolioValue)}</div>
+      </div>
       
-      <Card className="p-4 flex flex-col">
-        <span className="text-sm text-muted-foreground mb-1">Performance</span>
-        <div className="flex items-center">
-          {isPositivePerformance ? (
-            <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+      <div className={`p-4 rounded-lg ${isPositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+        <div className="text-sm text-muted-foreground mb-1">Performance</div>
+        <div className={`text-lg font-medium flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+          {isPositive ? (
+            <ArrowUp className="mr-1 h-4 w-4" />
           ) : (
-            <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
+            <ArrowDown className="mr-1 h-4 w-4" />
           )}
-          <span 
-            className={`text-2xl font-bold ${
-              isPositivePerformance ? 'text-green-500' : 'text-red-500'
-            }`}
-          >
-            {perfAbsolute.toFixed(2)}%
-          </span>
+          {performance.toFixed(2)}%
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

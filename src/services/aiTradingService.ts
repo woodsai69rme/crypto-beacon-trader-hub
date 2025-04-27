@@ -16,13 +16,16 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
     name: 'AI Trend Following',
     description: 'Uses machine learning to identify and follow market trends',
     type: 'trend-following',
-    risk: 'medium',
-    backtestResults: {
-      winRate: 0.68,
-      profitFactor: 1.85,
-      sharpeRatio: 1.42,
-      drawdown: 15,
-      returns: 45
+    timeframe: '1d',
+    parameters: {
+      riskLevel: 'medium',
+      backtestResults: {
+        winRate: 0.68,
+        profitFactor: 1.85,
+        sharpeRatio: 1.42,
+        drawdown: 15,
+        returns: 45
+      }
     }
   },
   {
@@ -30,27 +33,34 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
     name: 'AI Mean Reversion',
     description: 'Identifies overbought and oversold conditions using AI',
     type: 'mean-reversion',
-    risk: 'medium',
-    backtestResults: {
-      winRate: 0.72,
-      profitFactor: 1.95,
-      sharpeRatio: 1.65,
-      drawdown: 12,
-      returns: 52
+    timeframe: '4h',
+    parameters: {
+      riskLevel: 'medium',
+      backtestResults: {
+        winRate: 0.72,
+        profitFactor: 1.95,
+        sharpeRatio: 1.65,
+        drawdown: 12,
+        returns: 52
+      }
     }
   },
   {
     id: 'sentiment-analysis',
     name: 'AI Sentiment Trading',
     description: 'Analyzes market sentiment using NLP',
-    type: 'sentiment',
-    risk: 'high',
-    backtestResults: {
-      winRate: 0.65,
-      profitFactor: 2.1,
-      sharpeRatio: 1.38,
-      drawdown: 22,
-      returns: 75
+    type: 'custom',
+    timeframe: '1d',
+    parameters: {
+      strategyType: 'sentiment',
+      riskLevel: 'high',
+      backtestResults: {
+        winRate: 0.65,
+        profitFactor: 2.1,
+        sharpeRatio: 1.38,
+        drawdown: 22,
+        returns: 75
+      }
     }
   }
 ];
@@ -65,13 +75,14 @@ export async function analyzeMarketConditions(
   
   const random = Math.random();
   const confidence = 0.5 + (Math.random() * 0.4); // 50-90% confidence
+  const riskLevel = strategy.parameters.riskLevel as 'low' | 'medium' | 'high';
   
   return {
     recommendation: random > 0.6 ? 'buy' : random > 0.3 ? 'hold' : 'sell',
     confidence,
     reasoning: `Analysis based on ${strategy.type} strategy shows favorable conditions`,
     suggestedAmount: Math.random() * 0.5, // 0-0.5 units
-    riskLevel: strategy.risk
+    riskLevel
   };
 }
 

@@ -1,4 +1,3 @@
-
 import { SupportedCurrency } from "../components/trading/TradingStats";
 
 export interface Trade {
@@ -97,11 +96,21 @@ export interface Widget {
 }
 
 // AI Trading Strategy types
+export type AIStrategyType = 
+  | "trend-following" 
+  | "mean-reversion" 
+  | "momentum" 
+  | "breakout" 
+  | "sentiment" 
+  | "machine-learning"
+  | "custom"
+  | "multi-timeframe";
+
 export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'momentum' | 'mean-reversion' | 'trend-following' | 'custom';
+  type: string;
   timeframe: string;
   parameters: Record<string, any>;
 }

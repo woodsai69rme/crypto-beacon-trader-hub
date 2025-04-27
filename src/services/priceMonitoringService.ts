@@ -1,143 +1,104 @@
 
-import { toast } from "@/components/ui/use-toast";
 import type { CoinOption } from "@/types/trading";
-import { fetchCurrencyRates } from "./currencyApi";
 
-// Free API endpoints
-const COINGECKO_API = "https://api.coingecko.com/api/v3";
-const CRYPTOCOMPARE_API = "https://min-api.cryptocompare.com/data";
+type UpdateCallback = (updatedPrices: CoinOption[]) => void;
 
-export async function fetchLatestPrices(coinIds: string[]): Promise<CoinOption[]> {
-  try {
-    // Try CoinGecko first with multiple currencies
-    const response = await fetch(
-      `${COINGECKO_API}/simple/price?ids=${coinIds.join(",")}&vs_currencies=usd,aud,eur,gbp`
-    );
-    
-    if (!response.ok) {
-      throw new Error("CoinGecko API failed");
-    }
-    
-    const data = await response.json();
-    return Object.entries(data).map(([id, priceData]: [string, any]) => ({
-      id,
-      price: priceData.usd,
-      priceAUD: priceData.aud,
-      priceEUR: priceData.eur,
-      priceGBP: priceData.gbp,
-      name: id.charAt(0).toUpperCase() + id.slice(1),
-      symbol: id.toUpperCase().slice(0, 4),
-    }));
-  } catch (error) {
-    console.error("CoinGecko API error:", error);
-    
-    // Fallback to CryptoCompare with multi-currency conversion
-    try {
-      const symbols = coinIds.map(id => id.toUpperCase()).join(",");
-      const response = await fetch(
-        `${CRYPTOCOMPARE_API}/pricemulti?fsyms=${symbols}&tsyms=USD,AUD,EUR,GBP`
-      );
-      
-      if (!response.ok) {
-        throw new Error("CryptoCompare API failed");
-      }
-      
-      const data = await response.json();
-      return Object.entries(data).map(([symbol, priceData]: [string, any]) => ({
-        id: symbol.toLowerCase(),
-        price: priceData.USD,
-        priceAUD: priceData.AUD,
-        priceEUR: priceData.EUR,
-        priceGBP: priceData.GBP,
-        name: symbol,
-        symbol,
-      }));
-    } catch (secondError) {
-      console.error("CryptoCompare API error:", secondError);
-      toast({
-        title: "Price Update Failed",
-        description: "Using fallback prices. Will retry soon.",
-        variant: "destructive",
-      });
-      
-      // Get currency rates for conversion
-      const rates = await fetchCurrencyRates();
-      
-      // Return default mock prices as final fallback (with multi-currency prices)
-      return [
-        { 
-          id: "bitcoin", 
-          name: "Bitcoin", 
-          symbol: "BTC", 
-          price: 61245.32, 
-          priceAUD: 61245.32 * rates.USD_AUD,
-          priceEUR: 61245.32 * rates.USD_EUR,
-          priceGBP: 61245.32 * rates.USD_GBP
-        },
-        { 
-          id: "ethereum", 
-          name: "Ethereum", 
-          symbol: "ETH", 
-          price: 3010.45, 
-          priceAUD: 3010.45 * rates.USD_AUD,
-          priceEUR: 3010.45 * rates.USD_EUR,
-          priceGBP: 3010.45 * rates.USD_GBP
-        },
-        { 
-          id: "solana", 
-          name: "Solana", 
-          symbol: "SOL", 
-          price: 142.87,
-          priceAUD: 142.87 * rates.USD_AUD,
-          priceEUR: 142.87 * rates.USD_EUR,
-          priceGBP: 142.87 * rates.USD_GBP
-        },
-        { 
-          id: "cardano", 
-          name: "Cardano", 
-          symbol: "ADA", 
-          price: 0.45,
-          priceAUD: 0.45 * rates.USD_AUD,
-          priceEUR: 0.45 * rates.USD_EUR,
-          priceGBP: 0.45 * rates.USD_GBP
-        },
-        { 
-          id: "ripple", 
-          name: "XRP", 
-          symbol: "XRP", 
-          price: 0.57,
-          priceAUD: 0.57 * rates.USD_AUD,
-          priceEUR: 0.57 * rates.USD_EUR,
-          priceGBP: 0.57 * rates.USD_GBP
-        },
-        { 
-          id: "dogecoin", 
-          name: "Dogecoin", 
-          symbol: "DOGE", 
-          price: 0.14,
-          priceAUD: 0.14 * rates.USD_AUD,
-          priceEUR: 0.14 * rates.USD_EUR,
-          priceGBP: 0.14 * rates.USD_GBP
-        },
-      ];
-    }
-  }
-}
+// Cache to store the latest prices
+let latestPrices: Record<string, CoinOption> = {};
 
+// Default price variations in percentage (for simulating real-time changes)
+const DEFAULT_PRICE_VARIATIONS: Record<string, number> = {
+  bitcoin: 0.5,  // 0.5% variation
+  ethereum: 0.7, // 0.7% variation
+  solana: 1.2,   // 1.2% variation
+  cardano: 1.0,  // 1.0% variation
+  ripple: 0.8,   // 0.8% variation
+  dogecoin: 1.5, // 1.5% variation
+};
+
+/**
+ * Function to simulate price updates for specified coins
+ * @param coinIds List of coin IDs to monitor
+ * @param callback Function to call with updated prices
+ * @param interval How often to update prices in milliseconds
+ * @returns Function to stop monitoring
+ */
 export function startPriceMonitoring(
   coinIds: string[],
-  onPriceUpdate: (prices: CoinOption[]) => void,
-  interval: number = 60000 // Default 1 minute
+  callback: UpdateCallback,
+  interval: number = 10000
 ): () => void {
-  // Initial fetch
-  fetchLatestPrices(coinIds).then(onPriceUpdate);
+  // Initialize our prices if empty
+  if (Object.keys(latestPrices).length === 0) {
+    initializeDefaultPrices();
+  }
+
+  // Function to update prices with random variations
+  const updatePrices = () => {
+    const updatedCoins: CoinOption[] = [];
+
+    coinIds.forEach(coinId => {
+      if (latestPrices[coinId]) {
+        const coin = { ...latestPrices[coinId] };
+        const variation = DEFAULT_PRICE_VARIATIONS[coinId] || 0.5;
+        
+        // Random price change between -variation% and +variation%
+        const changePercent = (Math.random() * variation * 2) - variation;
+        const newPrice = coin.price * (1 + changePercent / 100);
+        
+        // Update the coin price
+        coin.price = parseFloat(newPrice.toFixed(2));
+        
+        // Update cached price
+        latestPrices[coinId] = coin;
+        updatedCoins.push(coin);
+      }
+    });
+
+    // Call the callback with updated prices
+    if (updatedCoins.length > 0) {
+      callback(updatedCoins);
+    }
+  };
+
+  // Start interval for price updates
+  const intervalId = window.setInterval(updatePrices, interval);
   
-  // Set up interval
-  const intervalId = setInterval(async () => {
-    const prices = await fetchLatestPrices(coinIds);
-    onPriceUpdate(prices);
-  }, interval);
-  
-  // Return cleanup function
-  return () => clearInterval(intervalId);
+  // Return function to stop monitoring
+  return () => {
+    window.clearInterval(intervalId);
+  };
+}
+
+// Initialize default prices for common cryptocurrencies
+function initializeDefaultPrices() {
+  const defaultCoins: CoinOption[] = [
+    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
+    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
+    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
+    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45 },
+    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57 },
+    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14 },
+  ];
+
+  defaultCoins.forEach(coin => {
+    latestPrices[coin.id] = coin;
+  });
+}
+
+/**
+ * Get the current price for a specific coin
+ * @param coinId ID of the coin
+ * @returns The coin data or undefined if not found
+ */
+export function getCoinPrice(coinId: string): CoinOption | undefined {
+  return latestPrices[coinId];
+}
+
+/**
+ * Get all currently cached coin prices
+ * @returns Array of all cached coin prices
+ */
+export function getAllCoinPrices(): CoinOption[] {
+  return Object.values(latestPrices);
 }
