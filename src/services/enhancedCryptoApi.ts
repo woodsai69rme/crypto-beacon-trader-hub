@@ -1,7 +1,7 @@
-
 import { toast } from "@/components/ui/use-toast";
-import { getMockCryptoData, CryptoData, CryptoChartData } from "./cryptoApi";
+import { getMockCryptoData } from "./cryptoApi";
 import apiCache from "./api/cacheService";
+import { CryptoData, CryptoChartData } from "@/types/trading";
 import { 
   fetchCoinsFromCoinGecko, 
   fetchCoinHistoryFromCoinGecko,
@@ -164,7 +164,7 @@ export const fetchTechnicalIndicators = async (
 export { getMockCryptoData } from "./cryptoApi";
 
 // Export types
-export type { CryptoData, CryptoChartData } from "./cryptoApi";
+export type { CryptoData, CryptoChartData } from "@/types/trading";
 
 // Clear cache function for manual refreshes
 export const clearApiCache = () => {

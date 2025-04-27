@@ -1,7 +1,6 @@
-
 import { toast } from "@/components/ui/use-toast";
 import apiCache from "./cacheService";
-import { CryptoData, CryptoChartData } from "../cryptoApi";
+import { CryptoData, CryptoChartData } from "@/types/trading";
 
 // API endpoints
 const BASE_URL = "https://min-api.cryptocompare.com/data";

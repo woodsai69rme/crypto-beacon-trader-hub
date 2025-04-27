@@ -1,6 +1,5 @@
-
 import React from "react";
-import { CryptoData } from "@/services/cryptoApi";
+import { CryptoData } from "@/types/trading";
 
 interface Correlation {
   [key: string]: {

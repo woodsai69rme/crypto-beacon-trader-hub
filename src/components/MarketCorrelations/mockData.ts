@@ -1,5 +1,4 @@
-
-import { CryptoData } from "@/services/cryptoApi";
+import { CryptoData } from "@/types/trading";
 
 export const generateMockCorrelations = (
   coins: CryptoData[],

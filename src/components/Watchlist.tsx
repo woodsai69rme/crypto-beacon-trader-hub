@@ -4,7 +4,7 @@ import { Star, Trash, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { fetchTopCoins } from "../services/cryptoApi";
-import { CryptoData } from "../services/cryptoApi";
+import { CryptoData } from "@/types/trading";
 
 interface WatchlistItem extends CryptoData {
   isInWatchlist: boolean;

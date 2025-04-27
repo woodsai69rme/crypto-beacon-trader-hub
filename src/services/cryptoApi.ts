@@ -1,6 +1,6 @@
 
-import { CoinOption, CryptoData, CryptoChartData } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
+import { CoinOption, CryptoData, CryptoChartData } from "@/types/trading";
 
 // Define the CryptoData type that is used by multiple components
 export interface ExtendedCryptoData {
@@ -34,6 +34,9 @@ export interface ExtendedCryptoData {
   priceEUR?: number;
   priceGBP?: number;
 }
+
+// Export the types from trading.d.ts again to ensure all imports work
+export type { CryptoData, CryptoChartData } from "@/types/trading";
 
 // Export the correct function names that components are trying to use
 export const fetchCoinHistory = async (coinId: string, days: number = 7): Promise<CryptoChartData> => {

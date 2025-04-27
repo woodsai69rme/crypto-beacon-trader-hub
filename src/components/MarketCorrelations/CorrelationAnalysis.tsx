@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CryptoData } from "@/services/cryptoApi";
+import { CryptoData } from "@/types/trading";
 
 interface CorrelationAnalysisProps {
   coins: CryptoData[];
@@ -41,7 +40,6 @@ export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
     return "text-red-600";
   };
   
-  // Calculate correlations between selected coins
   const selectedCorrelations = selectedCoins.length >= 2 ? (
     <div className="mt-4 space-y-3">
       <h3 className="font-medium">Selected Coin Correlations</h3>

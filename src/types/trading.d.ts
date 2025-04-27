@@ -2,23 +2,29 @@ import { SupportedCurrency } from "../components/trading/TradingStats";
 
 export type CoinOption = {
   id: string;
-  symbol: string;
   name: string;
+  symbol: string;
   price: number;
+  priceAUD?: number;
+  priceEUR?: number; 
+  priceGBP?: number;
+  volume24h?: number;
+  marketCap?: number;
+  change24h?: number;
+  exchange?: string;
+  lastUpdated?: string;
   priceChange?: number;
   changePercent?: number;
-  marketCap: number;
   volume?: number;
   image?: string;
-  priceAUD?: number;
-  priceEUR?: number;
-  priceGBP?: number;
   current_price?: number;
   market_cap?: number;
   market_cap_rank?: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
 };
 
-export type CryptoData = {
+export interface CryptoData {
   id: string;
   symbol: string;
   name: string;
@@ -35,9 +41,15 @@ export type CryptoData = {
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
-};
+}
 
-export type Trade = {
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
+}
+
+export interface Trade {
   id: string;
   coinId: string;
   coinName: string;
@@ -48,9 +60,16 @@ export type Trade = {
   totalValue: number;
   timestamp: string;
   currency: SupportedCurrency;
+  botGenerated?: boolean;
+  fee?: number;
+  feeAsset?: string;
+  exchange?: string;
+  notes?: string;
+  tags?: string[];
+  strategyId?: string;
   currentValue?: number;
   profitLoss?: number;
-};
+}
 
 export interface TradingAccount {
   id: string;
@@ -126,10 +145,4 @@ export interface AITradingStrategy {
   isCustom?: boolean;
   createdAt?: string;
   lastModified?: string;
-}
-
-export interface CryptoChartData {
-  prices: [number, number][];
-  market_caps: [number, number][];
-  total_volumes: [number, number][];
 }
