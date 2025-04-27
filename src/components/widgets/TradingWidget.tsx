@@ -1,86 +1,227 @@
 
-import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { useTradingPortfolio } from "@/hooks/use-trading-portfolio";
-import TradingForm from "@/components/trading/TradingForm";
-import CurrencySelector from "@/components/trading/CurrencySelector";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
+import { useTradingAccounts } from '@/hooks/use-trading-accounts';
+import { useCurrencyConverter } from '@/hooks/use-currency-converter';
+import { ArrowRightLeft, TrendingUp, BadgeDollarSign } from 'lucide-react';
+
+// Define supported currency type
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 interface TradingWidgetProps {
-  isCompact?: boolean;
+  onSuccess?: () => void;
+  className?: string;
 }
 
-const TradingWidget = ({ isCompact = false }: TradingWidgetProps) => {
-  const {
-    balance,
-    availableCoins,
-    activeCurrency,
-    setActiveCurrency,
-    conversionRates,
-    getOwnedCoinAmount,
-    calculatePortfolioValue,
-    calculatePerformance,
-    formatValue,
-    handleExecuteTrade
-  } = useTradingPortfolio();
-
-  const portfolioValue = calculatePortfolioValue();
-  const performance = calculatePerformance();
-  const isPositive = performance >= 0;
-
+const TradingWidget = ({ onSuccess, className }: TradingWidgetProps) => {
+  const { activeAccountId, executeAccountTrade, getActiveAccount } = useTradingAccounts();
+  const { formatValue, activeCurrency, setActiveCurrency } = useCurrencyConverter();
+  
+  const [coinId, setCoinId] = useState('bitcoin');
+  const [amount, setAmount] = useState('0.01');
+  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+  
+  const activeAccount = getActiveAccount();
+  
+  const coins = [
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 61245.32 },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3010.45 },
+    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 142.87 },
+    { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 0.45 },
+  ];
+  
+  const selectedCoin = coins.find(coin => coin.id === coinId);
+  
+  const handleExecuteTrade = () => {
+    if (!activeAccountId || !selectedCoin) return;
+    
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      toast({
+        title: 'Invalid amount',
+        description: 'Please enter a valid positive amount',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const currentActiveCurrency = activeCurrency as SupportedCurrency;
+    
+    const trade = {
+      coinId: selectedCoin.id,
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol,
+      amount: parsedAmount,
+      price: selectedCoin.price,
+      type: tradeType,
+      totalValue: parsedAmount * selectedCoin.price,
+      currency: currentActiveCurrency
+    };
+    
+    const success = executeAccountTrade(activeAccountId, trade);
+    
+    if (success) {
+      toast({
+        title: 'Trade Executed',
+        description: `Successfully ${tradeType === 'buy' ? 'bought' : 'sold'} ${parsedAmount} ${selectedCoin.symbol}`,
+      });
+      
+      setAmount('0.01');
+      
+      if (onSuccess) onSuccess();
+    }
+  };
+  
+  if (!activeAccount) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Quick Trading</CardTitle>
+          <CardDescription>No active account selected</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            Please select or create a trading account to use this widget
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  const totalPrice = selectedCoin ? parseFloat(amount) * selectedCoin.price : 0;
+  const canAfford = tradeType === 'buy' ? activeAccount.balance >= totalPrice : true;
+  
   return (
-    <Card className="h-full overflow-hidden">
-      <CardHeader className={`pb-2 ${isCompact ? 'pb-1' : ''}`}>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Quick Trading</CardTitle>
-          <CurrencySelector activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} />
-        </div>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <ArrowRightLeft className="h-5 w-5 mr-2" />
+          Quick Trading
+        </CardTitle>
+        <CardDescription>Execute trades from your dashboard</CardDescription>
       </CardHeader>
       
-      <CardContent className={isCompact ? 'pt-2' : ''}>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-sm text-muted-foreground">Portfolio Value</div>
-              <div className="text-2xl font-bold">{formatValue(portfolioValue)}</div>
-            </div>
-            
-            <div className="text-right">
-              <div className="text-sm text-muted-foreground">Performance</div>
-              <div className={`flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                <ArrowUpDown className="h-4 w-4 mr-1" />
-                <span className="text-lg font-medium">{isPositive ? '+' : ''}{performance.toFixed(2)}%</span>
-              </div>
-            </div>
+      <CardContent className="space-y-4">
+        <div className="flex justify-between">
+          <div className="space-y-1">
+            <Label className="text-xs">Account</Label>
+            <p className="text-sm font-medium">{activeAccount.name}</p>
           </div>
-          
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-sm text-muted-foreground">Available Balance</div>
-              <div className="font-medium">{formatValue(balance)}</div>
-            </div>
+          <div className="space-y-1 text-right">
+            <Label className="text-xs">Balance</Label>
+            <p className="text-sm font-medium">
+              {formatValue(activeAccount.balance, activeCurrency as SupportedCurrency)}
+            </p>
           </div>
         </div>
         
-        {!isCompact && (
-          <TradingForm
-            balance={balance}
-            availableCoins={availableCoins}
-            onExecuteTrade={handleExecuteTrade}
-            getOwnedCoinAmount={getOwnedCoinAmount}
-            activeCurrency={activeCurrency}
-            onCurrencyChange={setActiveCurrency}
-            conversionRate={conversionRates.USD_AUD}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            variant={tradeType === 'buy' ? 'default' : 'outline'}
+            onClick={() => setTradeType('buy')}
+            className="w-full"
+          >
+            Buy
+          </Button>
+          <Button
+            variant={tradeType === 'sell' ? 'default' : 'outline'}
+            onClick={() => setTradeType('sell')}
+            className="w-full"
+          >
+            Sell
+          </Button>
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor="coin">Asset</Label>
+          <Select value={coinId} onValueChange={setCoinId}>
+            <SelectTrigger id="coin">
+              <SelectValue placeholder="Select asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {coins.map(coin => (
+                <SelectItem key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {selectedCoin && (
+          <div className="bg-muted p-3 rounded-md flex justify-between items-center">
+            <div className="flex items-center">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              <span>{selectedCoin.symbol}</span>
+            </div>
+            <div className="font-mono">
+              {formatValue(selectedCoin.price, activeCurrency as SupportedCurrency)}
+            </div>
+          </div>
         )}
         
-        {isCompact && (
-          <Button className="w-full mt-2" variant="outline" onClick={() => window.location.href = "/#trading"}>
-            Go to Trading
-          </Button>
+        <div className="space-y-1">
+          <Label htmlFor="amount">Amount</Label>
+          <div className="relative">
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              step="0.0001"
+              min="0"
+            />
+            {selectedCoin && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                {selectedCoin.symbol}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor="currency">Currency</Label>
+          <Select 
+            value={activeCurrency} 
+            onValueChange={(value) => setActiveCurrency(value as SupportedCurrency)}
+          >
+            <SelectTrigger id="currency">
+              <SelectValue placeholder="Select currency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="AUD">AUD</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {selectedCoin && (
+          <div className="bg-muted/50 p-3 rounded-md">
+            <div className="flex justify-between text-sm">
+              <span>Total</span>
+              <span className="font-medium">
+                {formatValue(totalPrice, activeCurrency as SupportedCurrency)}
+              </span>
+            </div>
+          </div>
         )}
       </CardContent>
+      
+      <CardFooter>
+        <Button 
+          onClick={handleExecuteTrade}
+          className="w-full"
+          disabled={!selectedCoin || parseFloat(amount) <= 0 || (tradeType === 'buy' && !canAfford)}
+        >
+          <BadgeDollarSign className="h-4 w-4 mr-2" />
+          {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol || 'Asset'}
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

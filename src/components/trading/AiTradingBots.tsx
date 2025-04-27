@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,7 @@ import RealTimeStrategyPerformance from "./RealTimeStrategyPerformance";
 import AiBotTrading from "./AiBotTrading";
 import AIStrategyLibrary from "./AIStrategyLibrary";
 import PatternRecognition from "./PatternRecognition";
+import { AITradingStrategy } from "@/types/trading";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");

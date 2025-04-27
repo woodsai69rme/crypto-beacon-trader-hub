@@ -1,15 +1,18 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CurrencyConversion } from '@/types/trading';
 
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
 interface CurrencyContextType {
-  baseCurrency: string;
-  activeCurrency: string;
-  setBaseCurrency: (currency: string) => void;
-  setActiveCurrency: (currency: string) => void;
+  baseCurrency: SupportedCurrency;
+  activeCurrency: SupportedCurrency;
+  setBaseCurrency: (currency: SupportedCurrency) => void;
+  setActiveCurrency: (currency: SupportedCurrency) => void;
   conversionRates: CurrencyConversion;
-  formatCurrency: (amount: number, currency?: string) => string;
-  convertCurrency: (amount: number, fromCurrency: string, toCurrency: string) => number;
-  convertAndFormat: (amount: number, fromCurrency: string, toCurrency: string) => string;
+  formatCurrency: (amount: number, currency?: SupportedCurrency) => string;
+  convertCurrency: (amount: number, fromCurrency: SupportedCurrency, toCurrency: SupportedCurrency) => number;
+  convertAndFormat: (amount: number, fromCurrency: SupportedCurrency, toCurrency: SupportedCurrency) => string;
 }
 
 const defaultConversionRates: CurrencyConversion = {
@@ -36,8 +39,8 @@ const CurrencyContext = createContext<CurrencyContextType>({
 export const useCurrencyContext = () => useContext(CurrencyContext);
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [baseCurrency, setBaseCurrency] = useState<string>('USD');
-  const [activeCurrency, setActiveCurrency] = useState<string>('USD');
+  const [baseCurrency, setBaseCurrency] = useState<SupportedCurrency>('USD');
+  const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>('USD');
   const [conversionRates, setConversionRates] = useState<CurrencyConversion>(defaultConversionRates);
   
   useEffect(() => {
@@ -56,7 +59,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => clearInterval(interval);
   }, []);
   
-  const formatCurrency = (amount: number, currency?: string): string => {
+  const formatCurrency = (amount: number, currency?: SupportedCurrency): string => {
     const currencyToUse = currency || activeCurrency || baseCurrency;
     
     return new Intl.NumberFormat('en-US', {
@@ -67,7 +70,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }).format(amount);
   };
   
-  const convertCurrency = (amount: number, fromCurrency: string, toCurrency: string): number => {
+  const convertCurrency = (amount: number, fromCurrency: SupportedCurrency, toCurrency: SupportedCurrency): number => {
     if (fromCurrency === toCurrency) return amount;
     
     let inUSD = amount;
@@ -87,7 +90,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return inUSD;
   };
 
-  const convertAndFormat = (amount: number, fromCurrency: string, toCurrency: string): string => {
+  const convertAndFormat = (amount: number, fromCurrency: SupportedCurrency, toCurrency: SupportedCurrency): string => {
     const convertedAmount = convertCurrency(amount, fromCurrency, toCurrency);
     return formatCurrency(convertedAmount, toCurrency);
   };

@@ -10,6 +10,9 @@ import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
 
+// Type definition for SupportedCurrency
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
 const FakeTrading = () => {
   const {
     accounts,
@@ -31,12 +34,12 @@ const FakeTrading = () => {
   } = useCurrencyConverter();
 
   const availableCoins = [
-    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
-    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
-    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
-    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45 },
-    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57 },
-    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14 },
+    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, priceAUD: 90747.07 },
+    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, priceAUD: 4455.47 },
+    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, priceAUD: 211.45 },
+    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, priceAUD: 0.67 },
+    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, priceAUD: 0.84 },
+    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, priceAUD: 0.21 },
   ];
 
   const getOwnedCoinAmount = (coinId: string) => {
@@ -91,6 +94,8 @@ const FakeTrading = () => {
   const handleExecuteTrade = (type: 'buy' | 'sell', coinId: string, amount: number) => {
     if (!activeAccount) return;
     
+    const selectedCurrency = activeCurrency as SupportedCurrency;
+    
     const trade = {
       id: Date.now().toString(),
       coinId,
@@ -101,7 +106,7 @@ const FakeTrading = () => {
       price: availableCoins.find(c => c.id === coinId)?.price || 0,
       totalValue: amount * (availableCoins.find(c => c.id === coinId)?.price || 0),
       timestamp: new Date().toISOString(),
-      currency: activeCurrency
+      currency: selectedCurrency
     };
     
     addTradeToAccount(activeAccount.id, trade);
@@ -130,7 +135,7 @@ const FakeTrading = () => {
               portfolioValue={calculatePortfolioValue()}
               performance={calculatePerformance()}
               formatValue={formatValue}
-              currency={activeCurrency}
+              currency={activeCurrency as SupportedCurrency}
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -139,8 +144,8 @@ const FakeTrading = () => {
                 availableCoins={availableCoins}
                 onExecuteTrade={handleExecuteTrade}
                 getOwnedCoinAmount={getOwnedCoinAmount}
-                activeCurrency={activeCurrency}
-                onCurrencyChange={setActiveCurrency}
+                activeCurrency={activeCurrency as SupportedCurrency}
+                onCurrencyChange={setActiveCurrency as (currency: SupportedCurrency) => void}
                 conversionRate={conversionRates.USD_AUD}
               />
               
@@ -149,7 +154,7 @@ const FakeTrading = () => {
                 getOwnedCoinAmount={getOwnedCoinAmount}
                 onReset={() => deleteAccount(activeAccount.id)}
                 formatCurrency={formatValue}
-                activeCurrency={activeCurrency}
+                activeCurrency={activeCurrency as SupportedCurrency}
                 conversionRate={conversionRates.USD_AUD}
               />
             </div>
@@ -158,7 +163,7 @@ const FakeTrading = () => {
               <TradeHistory
                 trades={activeAccount.trades}
                 formatCurrency={formatValue}
-                activeCurrency={activeCurrency}
+                activeCurrency={activeCurrency as SupportedCurrency}
               />
             </div>
           </>

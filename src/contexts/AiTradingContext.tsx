@@ -6,6 +6,21 @@ import { useTradingAccounts } from '@/hooks/use-trading-accounts';
 import type { AITradingStrategy, Trade } from '@/types/trading';
 import { sampleStrategies } from '@/utils/aiTradingStrategies';
 
+interface BotConnection {
+  botId: string;
+  accountId: string;
+}
+
+interface TradeParams {
+  botId: string;
+  strategyId: string;
+  accountId: string;
+  coinId: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+}
+
 interface AiTradingContextType {
   activeStrategies: AITradingStrategy[];
   pendingStrategies: AITradingStrategy[];
@@ -25,6 +40,16 @@ interface AiTradingContextType {
   setApiKey: (key: string) => void;
   serversHistory: string[];
   clearHistory: () => void;
+  // Add missing properties that were referenced in errors
+  executeAiTrade: (tradeParams: TradeParams) => boolean;
+  getConnectedAccount: (botId: string) => string | undefined;
+  isProcessing: boolean;
+  connectBotToAccount: (botId: string, accountId: string) => void;
+  disconnectBot: (botId: string) => void;
+  activeBots: Record<string, {
+    lastTrade?: string;
+    status: 'connected' | 'disconnected';
+  }>;
 }
 
 const AiTradingContext = createContext<AiTradingContextType>({
@@ -46,6 +71,12 @@ const AiTradingContext = createContext<AiTradingContextType>({
   setApiKey: () => {},
   serversHistory: [],
   clearHistory: () => {},
+  executeAiTrade: () => false,
+  getConnectedAccount: () => undefined,
+  isProcessing: false,
+  connectBotToAccount: () => {},
+  disconnectBot: () => {},
+  activeBots: {},
 });
 
 export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -58,6 +89,9 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [serverUrl, setServerUrl] = useLocalStorage('ai-server-url', 'http://localhost:8000');
   const [apiKey, setApiKey] = useLocalStorage('ai-api-key', '');
   const [serversHistory, setServersHistory] = useLocalStorage<string[]>('ai-servers-history', []);
+  const [botConnections, setBotConnections] = useLocalStorage<BotConnection[]>('ai-bot-connections', []);
+  const [activeBots, setActiveBots] = useLocalStorage<Record<string, { lastTrade?: string; status: 'connected' | 'disconnected' }>>('ai-active-bots', {});
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const { executeAccountTrade, activeAccountId } = useTradingAccounts();
 
@@ -170,6 +204,94 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return success;
   };
 
+  // New functions to satisfy TypeScript requirements
+  const connectBotToAccount = (botId: string, accountId: string) => {
+    setBotConnections(prevConnections => {
+      // Remove any existing connections for this bot
+      const filteredConnections = prevConnections.filter(conn => conn.botId !== botId);
+      return [...filteredConnections, { botId, accountId }];
+    });
+    
+    setActiveBots(prev => ({
+      ...prev,
+      [botId]: {
+        ...prev[botId],
+        status: 'connected'
+      }
+    }));
+    
+    toast({
+      title: "Bot Connected",
+      description: "The trading bot has been connected to the account."
+    });
+  };
+
+  const disconnectBot = (botId: string) => {
+    setBotConnections(prevConnections => 
+      prevConnections.filter(conn => conn.botId !== botId)
+    );
+    
+    setActiveBots(prev => ({
+      ...prev,
+      [botId]: {
+        ...prev[botId],
+        status: 'disconnected'
+      }
+    }));
+    
+    toast({
+      title: "Bot Disconnected",
+      description: "The trading bot has been disconnected from the account."
+    });
+  };
+
+  const getConnectedAccount = (botId: string) => {
+    const connection = botConnections.find(conn => conn.botId === botId);
+    return connection?.accountId;
+  };
+
+  const executeAiTrade = (tradeParams: TradeParams) => {
+    setIsProcessing(true);
+    
+    try {
+      const { botId, accountId, coinId, type, amount, price } = tradeParams;
+      
+      const trade: Omit<Trade, 'id' | 'timestamp'> = {
+        coinId,
+        coinName: coinId.charAt(0).toUpperCase() + coinId.slice(1), // Capitalize first letter
+        coinSymbol: coinId.substring(0, 3).toUpperCase(), // First 3 letters as symbol
+        type,
+        amount,
+        price,
+        totalValue: amount * price,
+        currency: 'USD',
+        botGenerated: true,
+        strategyId: tradeParams.strategyId
+      };
+      
+      const success = executeAccountTrade(accountId, trade);
+      
+      if (success) {
+        // Update bot's last trade time
+        setActiveBots(prev => ({
+          ...prev,
+          [botId]: {
+            ...prev[botId],
+            lastTrade: new Date().toISOString(),
+            status: 'connected'
+          }
+        }));
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Failed to execute AI trade:', error);
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const clearHistory = () => {
     setServersHistory([]);
     
@@ -199,6 +321,12 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setApiKey,
       serversHistory,
       clearHistory,
+      executeAiTrade,
+      getConnectedAccount,
+      isProcessing,
+      connectBotToAccount,
+      disconnectBot,
+      activeBots
     }}>
       {children}
     </AiTradingContext.Provider>

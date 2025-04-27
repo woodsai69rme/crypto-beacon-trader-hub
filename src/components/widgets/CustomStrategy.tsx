@@ -1,481 +1,422 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, CardHeader, CardTitle, CardDescription, CardContent 
-} from '@/components/ui/card';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from '@/components/ui/select';
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  availableTimeframes, 
-  sampleStrategies 
-} from '@/utils/aiTradingStrategies';
-import { 
-  AITradingStrategy,
-  TimeframeOption,
-  TechnicalIndicator,
-  StrategyParameter
-} from '@/types/trading';
+import { useAiTrading } from '@/contexts/AiTradingContext';
+import { toast } from '@/components/ui/use-toast';
+import { availableTimeframes } from '@/utils/aiTradingStrategies'; 
+import { AITradingStrategy } from '@/types/trading';
 
-// Placeholder component - in a real implementation, you would connect this to backtesting functionality
+interface ParameterConfig {
+  name: string;
+  type: 'number' | 'boolean' | 'string' | 'select';
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+  defaultValue: any;
+}
+
 const CustomStrategy = () => {
-  const [strategy, setStrategy] = useState<AITradingStrategy>({
-    id: `strategy-${Date.now()}`,
-    name: 'Custom Strategy',
-    description: 'My custom trading strategy',
-    tags: ['custom'],
-    timeframes: ['1h'],
-    indicators: [],
-    parameters: [],
-    riskLevel: 'medium'
-  });
-
-  const [selectedIndicators, setSelectedIndicators] = useState<TechnicalIndicator[]>([]);
-  const [selectedTimeframes, setSelectedTimeframes] = useState<string[]>(['1h']);
-  const [activeTab, setActiveTab] = useState('general');
-  const [template, setTemplate] = useState<string | null>(null);
+  const { addStrategy } = useAiTrading();
   
-  // Initialize from template if selected
-  useEffect(() => {
-    if (template) {
-      const templateStrategy = sampleStrategies.find(s => s.id === template);
-      if (templateStrategy) {
-        setStrategy({
-          ...templateStrategy,
-          id: `strategy-${Date.now()}`,
-          name: `Custom ${templateStrategy.name}`,
-        });
-        setSelectedIndicators([...templateStrategy.indicators]);
-        setSelectedTimeframes([...(templateStrategy.timeframes as string[])]);
-      }
-    }
-  }, [template]);
-
-  const handleStrategyChange = (field: keyof AITradingStrategy, value: any) => {
-    setStrategy(prev => ({ ...prev, [field]: value }));
+  const [name, setName] = useState<string>('My Custom Strategy');
+  const [description, setDescription] = useState<string>('A custom trading strategy');
+  const [timeframe, setTimeframe] = useState<string>('1h');
+  const [isAdvancedMode, setIsAdvancedMode] = useState<boolean>(false);
+  const [riskLevel, setRiskLevel] = useState<string>('medium');
+  const [tags, setTags] = useState<string[]>(['custom']);
+  const [parameters, setParameters] = useState<Record<string, any>>({
+    entryThreshold: 0.02,
+    exitThreshold: 0.015,
+    stopLoss: 0.05,
+    takeProfitMultiple: 2,
+    useTrailingStop: true,
+    maxTradeSize: 0.1,
+    maxTradesPerDay: 5
+  });
+  
+  const [newParameterName, setNewParameterName] = useState<string>('');
+  const [newParameterType, setNewParameterType] = useState<'number' | 'boolean' | 'string' | 'select'>('number');
+  const [newParameterDefaultValue, setNewParameterDefaultValue] = useState<any>('');
+  
+  const parameterConfigs: Record<string, ParameterConfig> = {
+    entryThreshold: { name: 'Entry Threshold', type: 'number', min: 0, max: 0.1, step: 0.001, defaultValue: 0.02 },
+    exitThreshold: { name: 'Exit Threshold', type: 'number', min: 0, max: 0.1, step: 0.001, defaultValue: 0.015 },
+    stopLoss: { name: 'Stop Loss', type: 'number', min: 0.01, max: 0.20, step: 0.01, defaultValue: 0.05 },
+    takeProfitMultiple: { name: 'Take Profit Multiple', type: 'number', min: 1, max: 5, step: 0.1, defaultValue: 2 },
+    useTrailingStop: { name: 'Use Trailing Stop', type: 'boolean', defaultValue: true },
+    maxTradeSize: { name: 'Max Trade Size', type: 'number', min: 0.01, max: 1, step: 0.01, defaultValue: 0.1 },
+    maxTradesPerDay: { name: 'Max Trades Per Day', type: 'number', min: 1, max: 20, step: 1, defaultValue: 5 }
   };
-
+  
   const handleAddParameter = () => {
-    const newParam: StrategyParameter = {
-      id: `param-${Date.now()}`,
-      name: 'newParameter',
-      label: 'New Parameter',
-      description: 'Description of the parameter',
-      type: 'number',
-      value: 0,
-      min: 0,
-      max: 100,
-      step: 1
+    if (!newParameterName || newParameterName.trim() === '') {
+      toast({
+        title: "Invalid Parameter",
+        description: "Parameter name cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (parameters.hasOwnProperty(newParameterName)) {
+      toast({
+        title: "Duplicate Parameter",
+        description: `Parameter "${newParameterName}" already exists`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setParameters({
+      ...parameters,
+      [newParameterName]: newParameterDefaultValue
+    });
+    
+    setNewParameterName('');
+    setNewParameterType('number');
+    setNewParameterDefaultValue('');
+    
+    toast({
+      title: "Parameter Added",
+      description: `Added parameter "${newParameterName}"`
+    });
+  };
+  
+  const handleRemoveParameter = (paramName: string) => {
+    const updatedParameters = { ...parameters };
+    delete updatedParameters[paramName];
+    setParameters(updatedParameters);
+    
+    toast({
+      title: "Parameter Removed",
+      description: `Removed parameter "${paramName}"`
+    });
+  };
+  
+  const handleParameterChange = (paramName: string, value: any) => {
+    setParameters({
+      ...parameters,
+      [paramName]: value
+    });
+  };
+  
+  const renderParameterInput = (paramName: string, value: any) => {
+    // For default parameters, use the config; for custom ones, infer type
+    const paramConfig = parameterConfigs[paramName] || {
+      name: paramName,
+      type: typeof value === 'boolean' ? 'boolean' : typeof value === 'number' ? 'number' : 'string',
+      defaultValue: value
     };
-
-    setStrategy(prev => ({
-      ...prev,
-      parameters: [...prev.parameters, newParam]
-    }));
-  };
-
-  const handleParameterChange = (index: number, field: keyof StrategyParameter, value: any) => {
-    setStrategy(prev => {
-      const updatedParams = [...prev.parameters];
-      updatedParams[index] = { ...updatedParams[index], [field]: value };
-      return { ...prev, parameters: updatedParams };
-    });
-  };
-
-  const handleRemoveParameter = (index: number) => {
-    setStrategy(prev => {
-      const updatedParams = prev.parameters.filter((_, i) => i !== index);
-      return { ...prev, parameters: updatedParams };
-    });
-  };
-
-  const handleSaveStrategy = () => {
-    console.log('Saving strategy:', {
-      ...strategy,
-      indicators: selectedIndicators,
-      timeframes: selectedTimeframes
-    });
-    // In a real application, you would save this to your state management or API
-  };
-
-  // All available indicators
-  const availableIndicators: TechnicalIndicator[] = [
-    {
-      name: 'Moving Average',
-      period: 20,
-      key: 'ma',
-      category: 'Trend',
-      description: 'Simple moving average'
-    },
-    {
-      name: 'RSI',
-      period: 14,
-      key: 'rsi',
-      category: 'Momentum',
-      description: 'Relative Strength Index'
-    },
-    {
-      name: 'MACD',
-      period: 26,
-      params: { fast: 12, slow: 26, signal: 9 },
-      key: 'macd',
-      category: 'Momentum',
-      description: 'Moving Average Convergence Divergence'
-    },
-    {
-      name: 'Bollinger Bands',
-      period: 20,
-      key: 'bollinger',
-      category: 'Volatility',
-      description: 'Price volatility bands'
-    },
-    {
-      name: 'Stochastic Oscillator',
-      period: 14,
-      key: 'stochastic',
-      category: 'Momentum',
-      description: 'Stochastic momentum indicator'
-    }
-  ];
-
-  const isIndicatorSelected = (indicator: TechnicalIndicator) => {
-    return selectedIndicators.some(i => i.key === indicator.key);
-  };
-
-  const toggleIndicator = (indicator: TechnicalIndicator) => {
-    if (isIndicatorSelected(indicator)) {
-      setSelectedIndicators(prev => prev.filter(i => i.key !== indicator.key));
-    } else {
-      setSelectedIndicators(prev => [...prev, indicator]);
+    
+    switch (paramConfig.type) {
+      case 'number':
+        return (
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label>{paramConfig.name || paramName}</Label>
+              <Input 
+                type="number"
+                value={value}
+                onChange={(e) => handleParameterChange(paramName, Number(e.target.value))}
+                className="w-24"
+                min={paramConfig.min}
+                max={paramConfig.max}
+                step={paramConfig.step}
+              />
+            </div>
+            {paramConfig.min !== undefined && paramConfig.max !== undefined && (
+              <Slider 
+                value={[value]} 
+                min={paramConfig.min} 
+                max={paramConfig.max} 
+                step={paramConfig.step || 0.01}
+                onValueChange={(vals) => handleParameterChange(paramName, vals[0])}
+              />
+            )}
+          </div>
+        );
+      
+      case 'boolean':
+        return (
+          <div className="flex items-center justify-between space-x-2">
+            <Label>{paramConfig.name || paramName}</Label>
+            <Switch 
+              checked={value} 
+              onCheckedChange={(checked) => handleParameterChange(paramName, checked)} 
+            />
+          </div>
+        );
+        
+      case 'select':
+        return (
+          <div className="space-y-2">
+            <Label>{paramConfig.name || paramName}</Label>
+            <Select 
+              value={value} 
+              onValueChange={(val) => handleParameterChange(paramName, val)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select option" />
+              </SelectTrigger>
+              <SelectContent>
+                {paramConfig.options?.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="space-y-2">
+            <Label>{paramConfig.name || paramName}</Label>
+            <Input 
+              value={value}
+              onChange={(e) => handleParameterChange(paramName, e.target.value)}
+            />
+          </div>
+        );
     }
   };
-
-  const isTimeframeSelected = (timeframe: TimeframeOption) => {
-    return selectedTimeframes.includes(timeframe.value);
+  
+  const handleCreateStrategy = () => {
+    const strategy: AITradingStrategy = {
+      id: `custom-${Date.now()}`,
+      name,
+      description,
+      type: 'custom',
+      timeframe,
+      parameters
+    };
+    
+    addStrategy(strategy);
+    
+    toast({
+      title: "Strategy Created",
+      description: `"${name}" has been added to your strategies`
+    });
   };
-
-  const toggleTimeframe = (timeframe: TimeframeOption) => {
-    if (isTimeframeSelected(timeframe)) {
-      setSelectedTimeframes(prev => prev.filter(t => t !== timeframe.value));
-    } else {
-      setSelectedTimeframes(prev => [...prev, timeframe.value]);
-    }
-  };
-
+  
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Create Custom Strategy</CardTitle>
-        <CardDescription>
-          Design your own trading strategy by defining indicators, timeframes and parameters
-        </CardDescription>
-
-        <div className="mt-2">
-          <Label>Start from Template</Label>
-          <Select
-            value={template || ''}
-            onValueChange={value => value ? setTemplate(value) : setTemplate(null)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a template or start from scratch" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Start from scratch</SelectItem>
-              {sampleStrategies.map(s => (
-                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <CardDescription>Define your own trading strategy parameters</CardDescription>
       </CardHeader>
-
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="rules">Rules & Indicators</TabsTrigger>
-            <TabsTrigger value="parameters">Parameters</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="general">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="strategy-name">Strategy Name</Label>
-                <Input
-                  id="strategy-name"
-                  value={strategy.name}
-                  onChange={(e) => handleStrategyChange('name', e.target.value)}
-                  placeholder="Enter strategy name"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="strategy-desc">Description</Label>
-                <Input
-                  id="strategy-desc"
-                  value={strategy.description}
-                  onChange={(e) => handleStrategyChange('description', e.target.value)}
-                  placeholder="Describe your strategy"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="risk-level">Risk Level</Label>
-                <Select
-                  value={strategy.riskLevel}
-                  onValueChange={(value) => handleStrategyChange('riskLevel', value)}
-                >
-                  <SelectTrigger id="risk-level">
-                    <SelectValue placeholder="Select risk level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low Risk</SelectItem>
-                    <SelectItem value="medium">Medium Risk</SelectItem>
-                    <SelectItem value="high">High Risk</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Tags</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {['trend', 'momentum', 'reversal', 'breakout', 'scalping', 'swing', 'position', 'mean-reversion'].map(tag => (
-                    <div key={tag} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`tag-${tag}`}
-                        checked={strategy.tags?.includes(tag)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            handleStrategyChange('tags', [...(strategy.tags || []), tag]);
-                          } else {
-                            handleStrategyChange('tags', strategy.tags?.filter(t => t !== tag) || []);
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={`tag-${tag}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {tag.charAt(0).toUpperCase() + tag.slice(1)}
-                      </label>
-                    </div>
+      
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="strategy-name">Strategy Name</Label>
+              <Input 
+                id="strategy-name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                placeholder="My Custom Strategy"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="strategy-description">Description</Label>
+              <Textarea 
+                id="strategy-description" 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe your strategy..."
+                className="h-24"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="strategy-timeframe">Timeframe</Label>
+              <Select value={timeframe} onValueChange={setTimeframe}>
+                <SelectTrigger id="strategy-timeframe">
+                  <SelectValue placeholder="Select timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTimeframes.map((tf) => (
+                    <SelectItem key={tf.value} value={tf.value}>
+                      {tf.label} - {tf.description}
+                    </SelectItem>
                   ))}
-                </div>
-              </div>
-
-              <div>
-                <Label>Timeframes</Label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {availableTimeframes.map((timeframe) => (
-                    <div key={timeframe.value} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`timeframe-${timeframe.value}`}
-                        checked={isTimeframeSelected(timeframe)}
-                        onCheckedChange={() => toggleTimeframe(timeframe)}
-                      />
-                      <label
-                        htmlFor={`timeframe-${timeframe.value}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {timeframe.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="risk-level">Risk Level</Label>
+              <Select value={riskLevel} onValueChange={setRiskLevel}>
+                <SelectTrigger id="risk-level">
+                  <SelectValue placeholder="Select risk level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low Risk</SelectItem>
+                  <SelectItem value="medium">Medium Risk</SelectItem>
+                  <SelectItem value="high">High Risk</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Strategy Tags</Label>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <div key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded-md text-sm flex items-center">
+                    {tag}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-4 w-4 p-0 ml-1" 
+                      onClick={() => setTags(tags.filter(t => t !== tag))}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                <Input 
+                  className="w-32"
+                  placeholder="Add tag..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value) {
+                      e.preventDefault();
+                      if (!tags.includes(e.currentTarget.value)) {
+                        setTags([...tags, e.currentTarget.value]);
+                        e.currentTarget.value = '';
+                      }
+                    }
+                  }}
+                />
               </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="rules">
-            <div className="space-y-4">
-              <div>
-                <Label>Technical Indicators</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                  {availableIndicators.map((indicator) => (
-                    <div key={indicator.key} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`indicator-${indicator.key}`}
-                        checked={isIndicatorSelected(indicator)}
-                        onCheckedChange={() => toggleIndicator(indicator)}
-                      />
-                      <label
-                        htmlFor={`indicator-${indicator.key}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {indicator.name} ({indicator.period})
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label>Selected Indicators</Label>
-                <div className="space-y-3 mt-2">
-                  {selectedIndicators.length > 0 ? (
-                    selectedIndicators.map((indicator, index) => (
-                      <div key={index} className="p-3 border rounded-md">
-                        <div className="font-medium">{indicator.name}</div>
-                        <div className="text-sm text-gray-500 mt-1">Period: {indicator.period}</div>
-                        {indicator.description && (
-                          <div className="text-sm mt-1">{indicator.description}</div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center p-4 text-gray-500">
-                      No indicators selected yet
-                    </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="advanced-mode"
+                checked={isAdvancedMode}
+                onCheckedChange={setIsAdvancedMode}
+              />
+              <Label htmlFor="advanced-mode">Advanced Mode</Label>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Strategy Parameters</h3>
+            
+            <div className="space-y-4 mb-8">
+              {Object.entries(parameters).map(([paramName, value]) => (
+                <div key={paramName} className="border-b pb-4 mb-2">
+                  {renderParameterInput(paramName, value)}
+                  
+                  {isAdvancedMode && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-destructive hover:text-destructive/90 mt-2"
+                      onClick={() => handleRemoveParameter(paramName)}
+                    >
+                      Remove Parameter
+                    </Button>
                   )}
                 </div>
-              </div>
+              ))}
             </div>
-          </TabsContent>
-
-          <TabsContent value="parameters">
-            <div className="space-y-4">
-              <div className="flex justify-end">
-                <Button onClick={handleAddParameter} size="sm">
-                  Add Parameter
-                </Button>
+            
+            {isAdvancedMode && (
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-medium mb-2">Add New Parameter</h4>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Parameter Name"
+                      value={newParameterName}
+                      onChange={(e) => setNewParameterName(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Select value={newParameterType} onValueChange={(v) => setNewParameterType(v as any)}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="string">String</SelectItem>
+                        <SelectItem value="select">Select</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    {newParameterType === 'number' && (
+                      <Input 
+                        type="number"
+                        placeholder="Default Value"
+                        value={newParameterDefaultValue}
+                        onChange={(e) => setNewParameterDefaultValue(Number(e.target.value))}
+                      />
+                    )}
+                    
+                    {newParameterType === 'boolean' && (
+                      <Select 
+                        value={newParameterDefaultValue ? 'true' : 'false'}
+                        onValueChange={(v) => setNewParameterDefaultValue(v === 'true')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Default Value" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">True</SelectItem>
+                          <SelectItem value="false">False</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {newParameterType === 'string' && (
+                      <Input 
+                        placeholder="Default Value"
+                        value={newParameterDefaultValue}
+                        onChange={(e) => setNewParameterDefaultValue(e.target.value)}
+                      />
+                    )}
+                    
+                    {newParameterType === 'select' && (
+                      <Textarea 
+                        placeholder="Option 1, Option 2, Option 3"
+                        value={newParameterDefaultValue}
+                        onChange={(e) => setNewParameterDefaultValue(e.target.value)}
+                        className="h-24"
+                      />
+                    )}
+                  </div>
+                  
+                  <Button 
+                    onClick={handleAddParameter}
+                    className="w-full"
+                  >
+                    Add Parameter
+                  </Button>
+                </div>
               </div>
-
-              {strategy.parameters && strategy.parameters.length > 0 ? (
-                <div className="space-y-6">
-                  {strategy.parameters.map((param, index) => (
-                    <div key={param.id} className="p-4 border rounded-md space-y-3">
-                      <div className="flex justify-between">
-                        <h3 className="font-medium">{param.label || param.name}</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveParameter(index)}
-                          className="h-8 w-8 p-0"
-                        >
-                          ✕
-                        </Button>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor={`param-name-${index}`}>Name</Label>
-                          <Input
-                            id={`param-name-${index}`}
-                            value={param.name}
-                            onChange={(e) => handleParameterChange(index, 'name', e.target.value)}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`param-label-${index}`}>Label</Label>
-                          <Input
-                            id={`param-label-${index}`}
-                            value={param.label || ''}
-                            onChange={(e) => handleParameterChange(index, 'label', e.target.value)}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`param-type-${index}`}>Type</Label>
-                          <Select
-                            value={param.type}
-                            onValueChange={(value) => handleParameterChange(index, 'type', value)}
-                          >
-                            <SelectTrigger id={`param-type-${index}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="number">Number</SelectItem>
-                              <SelectItem value="boolean">Boolean</SelectItem>
-                              <SelectItem value="string">String</SelectItem>
-                              <SelectItem value="select">Select</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`param-value-${index}`}>Default Value</Label>
-                          <Input
-                            id={`param-value-${index}`}
-                            value={param.value.toString()}
-                            onChange={(e) => {
-                              const value = param.type === 'number' 
-                                ? parseFloat(e.target.value) || 0 
-                                : e.target.value;
-                              handleParameterChange(index, 'value', value);
-                            }}
-                            type={param.type === 'number' ? 'number' : 'text'}
-                          />
-                        </div>
-
-                        <div className="col-span-2">
-                          <Label htmlFor={`param-desc-${index}`}>Description</Label>
-                          <Input
-                            id={`param-desc-${index}`}
-                            value={param.description}
-                            onChange={(e) => handleParameterChange(index, 'description', e.target.value)}
-                          />
-                        </div>
-
-                        {param.type === 'number' && (
-                          <>
-                            <div>
-                              <Label htmlFor={`param-min-${index}`}>Min Value</Label>
-                              <Input
-                                id={`param-min-${index}`}
-                                value={param.min || 0}
-                                onChange={(e) => handleParameterChange(index, 'min', parseFloat(e.target.value) || 0)}
-                                type="number"
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor={`param-max-${index}`}>Max Value</Label>
-                              <Input
-                                id={`param-max-${index}`}
-                                value={param.max || 0}
-                                onChange={(e) => handleParameterChange(index, 'max', parseFloat(e.target.value) || 0)}
-                                type="number"
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor={`param-step-${index}`}>Step</Label>
-                              <Input
-                                id={`param-step-${index}`}
-                                value={param.step || 1}
-                                onChange={(e) => handleParameterChange(index, 'step', parseFloat(e.target.value) || 1)}
-                                type="number"
-                              />
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-6 text-gray-500 border rounded-md">
-                  No parameters defined yet. Click "Add Parameter" to create one.
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex justify-end mt-6">
-          <Button variant="outline" className="mr-2">
-            Cancel
-          </Button>
-          <Button onClick={handleSaveStrategy}>
-            Save Strategy
-          </Button>
+            )}
+          </div>
         </div>
       </CardContent>
+      
+      <CardFooter className="flex justify-between border-t pt-4">
+        <Button variant="outline">Reset</Button>
+        <Button onClick={handleCreateStrategy}>Create Strategy</Button>
+      </CardFooter>
     </Card>
   );
 };

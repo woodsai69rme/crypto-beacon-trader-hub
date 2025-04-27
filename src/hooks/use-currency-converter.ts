@@ -1,6 +1,9 @@
 
 import { useCurrency } from './use-currency';
 
+// Type definition for SupportedCurrency
+type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
 export function useCurrencyConverter() {
   const { 
     baseCurrency, 
@@ -12,11 +15,11 @@ export function useCurrencyConverter() {
     convertAndFormat 
   } = useCurrency();
 
-  const formatValue = (value: number, currency?: string): string => {
+  const formatValue = (value: number, currency?: SupportedCurrency): string => {
     return formatCurrency(value, currency || activeCurrency || baseCurrency);
   };
 
-  const convertValue = (value: number, fromCurrency: string, toCurrency?: string): number => {
+  const convertValue = (value: number, fromCurrency: SupportedCurrency, toCurrency?: SupportedCurrency): number => {
     return convertCurrency(value, fromCurrency, toCurrency || activeCurrency || baseCurrency);
   };
 
