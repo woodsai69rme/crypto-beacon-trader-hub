@@ -1,3 +1,4 @@
+
 export interface SettingsFormValues {
   email?: string;
   username?: string;
@@ -55,8 +56,10 @@ export interface SettingsTabsProps {
 }
 
 export interface SettingsFooterProps {
-  isSaving: boolean;
-  onReset: () => void;
+  isSaving?: boolean;
+  onReset?: () => void;
+  onCancel?: () => void;
+  isSubmitting?: boolean;
 }
 
 export type AlertFrequencyOption = 'high' | 'medium' | 'low' | 'none';
