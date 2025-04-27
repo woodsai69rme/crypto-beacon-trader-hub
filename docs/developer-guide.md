@@ -57,8 +57,19 @@ src/
 ### AI-Powered Features
 
 - **AiTradingBots**: Automated trading with smart strategies
+- **AIStrategyLibrary**: Comprehensive collection of AI trading strategies
 - **AiMarketAnalysis**: AI-powered market insights
 - **MarketCorrelations**: Asset correlation analysis
+- **PatternRecognition**: ML-based chart pattern detection
+- **PriceForecasting**: AI-powered price prediction models
+
+### Real-time Features
+
+- **RealTimePrices**: Live updating price data via websockets
+- **RealTimeAlerts**: Instant notification system for price triggers
+- **RealTimePortfolio**: Live portfolio value tracking and updates
+- **TradeNotifications**: Real-time trade execution notifications
+- **OrderBookVisualizer**: Live market depth visualization
 
 ## API Integration
 
@@ -91,6 +102,27 @@ const { data: coins, isLoading, error } = useEnhancedApi(
     retries: 2
   }
 );
+```
+
+### Websocket Integration
+
+The application uses websockets for real-time data:
+
+```typescript
+// Example websocket connection
+const stopWebsocket = startSimulatedPriceUpdates(
+  initialCoins,
+  (updatedPrices) => {
+    // Process real-time price updates
+    setCoins(updatedPrices);
+  },
+  5000 // Update interval in milliseconds
+);
+
+// Clean up on unmount
+return () => {
+  stopWebsocket();
+};
 ```
 
 ## Component Development Guidelines
@@ -172,15 +204,38 @@ const { activeCurrency, setActiveCurrency, formatValue } = useCurrencyConverter(
 const formattedPrice = formatValue(product.price);
 ```
 
-### useTheme
+### useTradingPortfolio
 
-Manages theme settings:
+Manages portfolio data and trading functionality:
 
 ```typescript
-const { theme, setTheme, resolvedTheme } = useTheme();
+const {
+  trades,
+  balance,
+  availableCoins,
+  handleExecuteTrade,
+  calculatePortfolioValue
+} = useTradingPortfolio();
 
-// Change theme
-setTheme("dark");
+// Execute a trade
+handleExecuteTrade('buy', 'bitcoin', 0.1);
+```
+
+### useAiTrading
+
+Manages AI trading bot connections and executions:
+
+```typescript
+const {
+  executeAiTrade,
+  connectBotToAccount,
+  disconnectBot,
+  getConnectedAccount,
+  activeBots
+} = useAiTrading();
+
+// Connect an AI bot to a trading account
+connectBotToAccount('mean-reversion-bot', 'account-123');
 ```
 
 ## Technical Indicators
@@ -193,6 +248,54 @@ The application implements several technical indicators:
 4. **Moving Averages**: Multiple timeframe moving averages
 
 Each indicator has its own chart component for optimized rendering and focused updates.
+
+## AI Trading Features
+
+The platform includes advanced AI trading capabilities:
+
+1. **Strategy Library**: Collection of pre-built AI trading strategies
+   - Mean reversion strategies
+   - Trend following models
+   - Volatility-based systems
+   - Multi-factor approaches
+
+2. **Pattern Recognition**: Machine learning detection of chart patterns
+   - Classical chart patterns (head & shoulders, flags, etc.)
+   - Support and resistance levels
+   - Trend strength indicators
+   - Reversal signals
+
+3. **Real-time Portfolio Analytics**:
+   - Position monitoring
+   - Performance tracking
+   - Risk assessment
+   - Trade notifications
+
+## Real-time Features
+
+The application implements real-time data updates through:
+
+1. **Websocket Connections**: For live price data
+2. **Polling Mechanisms**: For less time-sensitive data
+3. **Event-based Updates**: For user interactions
+4. **Push Notifications**: For alerts and important events
+
+Implementation examples:
+
+```typescript
+// Real-time price updates
+useEffect(() => {
+  const stopMonitoring = startPriceMonitoring(
+    coinIds,
+    (updatedPrices) => {
+      setCoins(updatedPrices);
+    },
+    5000 // Update every 5 seconds
+  );
+
+  return () => stopMonitoring();
+}, [coinIds]);
+```
 
 ## Performance Optimization
 
@@ -299,3 +402,17 @@ When adding new features to the dashboard:
 - Define explicit TypeScript interfaces
 - Avoid `any` type when possible
 - Use discriminated unions for complex states
+
+### AI Strategy Development
+
+- Follow consistent structure for all strategies
+- Include comprehensive metadata (timeframes, risk levels, etc.)
+- Implement proper backtesting capabilities
+- Document performance characteristics
+
+### Real-time Data Handling
+
+- Implement debounce for frequent updates
+- Use proper cleanup for websocket connections
+- Handle reconnection scenarios
+- Provide fallback mechanisms for disconnections

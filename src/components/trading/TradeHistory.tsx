@@ -11,13 +11,17 @@ interface TradeHistoryProps {
   title?: string;
   description?: string;
   limit?: number;
+  formatCurrency?: (value: number) => string;
+  activeCurrency?: string;
 }
 
 const TradeHistory: React.FC<TradeHistoryProps> = ({ 
   trades, 
   title = "Trade History", 
   description = "Recent trading activity",
-  limit = 10
+  limit = 10,
+  formatCurrency = (value: number) => `$${value.toLocaleString()}`,
+  activeCurrency = "USD"
 }) => {
   // Sort by most recent and limit
   const sortedTrades = [...trades]
@@ -70,10 +74,10 @@ const TradeHistory: React.FC<TradeHistoryProps> = ({
                     {trade.amount.toFixed(6)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    ${trade.price.toLocaleString()}
+                    {formatCurrency(trade.price)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    ${trade.totalValue.toLocaleString()}
+                    {formatCurrency(trade.totalValue)}
                   </TableCell>
                   <TableCell className="text-right text-xs text-muted-foreground">
                     {new Date(trade.timestamp).toLocaleString()}

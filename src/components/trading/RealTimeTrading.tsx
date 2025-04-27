@@ -15,7 +15,9 @@ import MarketAlerts from "./MarketAlerts";
 import RealTimeAlerts from "./RealTimeAlerts";
 import RealTimePortfolio from "./RealTimePortfolio";
 import RealTimeStrategyPerformance from "./RealTimeStrategyPerformance";
-import { Activity, BarChart4, Bell, Wallet, Zap } from "lucide-react";
+import CorrelationAnalysisToolkit from "./CorrelationAnalysisToolkit";
+import PatternRecognition from "./PatternRecognition";
+import { Activity, BarChart4, Bell, Wallet, Zap, ArrowUpDown } from "lucide-react";
 
 const RealTimeTrading = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -42,12 +44,14 @@ const RealTimeTrading = () => {
       
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 mb-6">
+          <TabsList className="grid grid-cols-7 mb-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="market">Market Depth</TabsTrigger>
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="strategies">Strategies</TabsTrigger>
+            <TabsTrigger value="correlation">Correlation</TabsTrigger>
+            <TabsTrigger value="patterns">Patterns</TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard">
@@ -136,6 +140,14 @@ const RealTimeTrading = () => {
           
           <TabsContent value="strategies">
             <RealTimeStrategyPerformance />
+          </TabsContent>
+          
+          <TabsContent value="correlation">
+            <CorrelationAnalysisToolkit />
+          </TabsContent>
+          
+          <TabsContent value="patterns">
+            <PatternRecognition />
           </TabsContent>
         </Tabs>
       </CardContent>

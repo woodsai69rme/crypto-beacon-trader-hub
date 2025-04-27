@@ -13,6 +13,8 @@ import MultiCoinChart from "../charts/MultiCoinChart";
 import RealTimeTrading from "./RealTimeTrading";
 import RealTimeStrategyPerformance from "./RealTimeStrategyPerformance";
 import AiBotTrading from "./AiBotTrading";
+import AIStrategyLibrary from "./AIStrategyLibrary";
+import PatternRecognition from "./PatternRecognition";
 
 const AiTradingBots = () => {
   const [activeTab, setActiveTab] = useState<string>("strategies");
@@ -35,8 +37,10 @@ const AiTradingBots = () => {
         
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-9 mb-6">
+            <TabsList className="grid grid-cols-11 mb-6">
               <TabsTrigger value="strategies">Strategies</TabsTrigger>
+              <TabsTrigger value="library">AI Library</TabsTrigger>
+              <TabsTrigger value="patterns">Patterns</TabsTrigger>
               <TabsTrigger value="backtest">Backtest</TabsTrigger>
               <TabsTrigger value="optimize">Optimize</TabsTrigger>
               <TabsTrigger value="charts">Charts</TabsTrigger>
@@ -77,6 +81,14 @@ const AiTradingBots = () => {
                   )}
                 </div>
               </div>
+            </TabsContent>
+            
+            <TabsContent value="library">
+              <AIStrategyLibrary />
+            </TabsContent>
+            
+            <TabsContent value="patterns">
+              <PatternRecognition />
             </TabsContent>
             
             <TabsContent value="backtest">
