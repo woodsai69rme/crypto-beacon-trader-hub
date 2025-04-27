@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 import { CoinOption, CryptoData, CryptoChartData } from "@/types/trading";
 

@@ -1,3 +1,4 @@
+
 import { CryptoData } from "@/types/trading";
 
 export const generateMockCorrelations = (

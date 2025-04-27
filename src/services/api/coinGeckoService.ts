@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 import apiCache from "./cacheService";
 import { CryptoData, CryptoChartData } from "@/types/trading";

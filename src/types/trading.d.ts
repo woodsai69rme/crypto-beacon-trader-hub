@@ -1,28 +1,5 @@
-import { SupportedCurrency } from "../components/trading/TradingStats";
 
-export type CoinOption = {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceAUD?: number;
-  priceEUR?: number; 
-  priceGBP?: number;
-  volume24h?: number;
-  marketCap?: number;
-  change24h?: number;
-  exchange?: string;
-  lastUpdated?: string;
-  priceChange?: number;
-  changePercent?: number;
-  volume?: number;
-  image?: string;
-  current_price?: number;
-  market_cap?: number;
-  market_cap_rank?: number;
-  price_change_24h?: number;
-  price_change_percentage_24h?: number;
-};
+import { SupportedCurrency } from "../components/trading/TradingStats";
 
 export interface CryptoData {
   id: string;
@@ -48,6 +25,30 @@ export interface CryptoChartData {
   market_caps: [number, number][];
   total_volumes: [number, number][];
 }
+
+export type CoinOption = {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceAUD?: number;
+  priceEUR?: number; 
+  priceGBP?: number;
+  volume24h?: number;
+  marketCap?: number;
+  change24h?: number;
+  exchange?: string;
+  lastUpdated?: string;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  image?: string;
+  current_price?: number;
+  market_cap?: number;
+  market_cap_rank?: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+};
 
 export interface Trade {
   id: string;
@@ -145,4 +146,156 @@ export interface AITradingStrategy {
   isCustom?: boolean;
   createdAt?: string;
   lastModified?: string;
+}
+
+// Additional types from trading.ts file
+export interface CurrencyConversion {
+  USD_AUD: number;
+  AUD_USD: number;
+  USD_EUR?: number;
+  EUR_USD?: number;
+  USD_GBP?: number;
+  GBP_USD?: number;
+  lastUpdated: string;
+}
+
+export interface BacktestTrade {
+  id: string;
+  timestamp: string;
+  type: 'buy' | 'sell';
+  price: number;
+  amount: number;
+  total: number;
+  profit?: number;
+  profitPercentage?: number;
+  date?: string;
+  value?: number;
+  profitLoss?: number;
+}
+
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  profit: number;
+  profitPercentage: number;
+  maxDrawdown: number;
+  winRate: number;
+  trades: BacktestTrade[];
+  sharpeRatio?: number;
+  profitFactor?: number;
+  averageProfit?: number;
+  averageLoss?: number;
+  initialCapital?: number;
+  finalCapital?: number;
+  totalReturn?: number;
+  totalTrades?: number;
+  winningTrades?: number;
+  losingTrades?: number;
+  sortinoRatio?: number;
+}
+
+export interface OptimizationResult {
+  strategyId: string;
+  parameterValues: Record<string, any>;
+  parameters?: StrategyParameter[];
+  performance: {
+    profit: number;
+    profitPercentage: number;
+    maxDrawdown: number;
+    winRate: number;
+    sharpeRatio?: number;
+    profitFactor?: number;
+    totalReturn?: number;
+  };
+  improvement: number;
+}
+
+export interface TaxHarvestingOptions {
+  year: number;
+  minLossThreshold: number;
+  washSalePeriod: number;
+  includeFees: boolean;
+  maximizeLoss: boolean;
+}
+
+export interface TaxLotMatchingMethod {
+  id: string;
+  name: string;
+  description: string;
+  type: 'FIFO' | 'LIFO' | 'HIFO' | 'LOFO' | 'avgCost' | 'specificID';
+}
+
+export interface TaxHarvestingOpportunity {
+  coinId: string;
+  coinSymbol: string;
+  currentPrice: number;
+  averageCost: number;
+  quantity: number;
+  potentialLoss: number;
+  recommendedAction: 'sell' | 'hold';
+  reasoning: string;
+  washSaleWarning: boolean;
+}
+
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  symbol?: string;
+  type: 'crypto' | 'index' | 'stock' | 'custom';
+  data: {
+    date: string;
+    value: number;
+    performance: number;
+  }[];
+  color: string;
+}
+
+export interface StrategyParameter {
+  id: string;
+  name: string;
+  description: string;
+  type: 'number' | 'boolean' | 'string' | 'select';
+  value: any;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+  label?: string;
+}
+
+export interface TechnicalIndicator {
+  name: string;
+  period: number;
+  params?: Record<string, any>;
+  key?: string;
+  category?: string;
+  description?: string;
+}
+
+export type ExtendedTradingTimeframe =
+  | '1m' | '3m' | '5m' | '15m' | '30m' 
+  | '1h' | '2h' | '4h' | '6h' | '8h' | '12h'
+  | '1d' | '3d' | '1w' | '2w' | '1M' | '3M' | '6M' | '1y';
+
+export interface TimeframeOption {
+  value: ExtendedTradingTimeframe;
+  label: string;
+  description: string;
+  minutes?: number;
+}
+
+export type TradingTimeframe = ExtendedTradingTimeframe | TimeframeOption;
+
+export interface AiTradingContextType {
+  executeAiTrade: (botId: string, tradeDetails: any) => Promise<void>;
+  getConnectedAccount: (botId: string) => string | undefined;
+  isProcessing: boolean;
+  connectBotToAccount: (botId: string, accountId: string) => void;
+  disconnectBot: (botId: string) => void;
+  activeBots: Record<string, {
+    lastTrade?: string;
+    status: 'connected' | 'disconnected';
+  }>;
 }
