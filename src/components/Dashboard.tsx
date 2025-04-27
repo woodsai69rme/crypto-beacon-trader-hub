@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
+import CollapsibleCard from "./CollapsibleCard";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardTabList from "./dashboard/DashboardTabList";
 import DashboardOverview from "./dashboard/DashboardOverview";
@@ -113,27 +114,63 @@ const Dashboard = () => {
         <div className={isLoading ? "animate-pulse" : ""}>
           <Tabs value={activeTab}>
             <TabsContent value="overview">
-              <DashboardOverview />
+              <CollapsibleCard
+                title="Overview"
+                description="Your trading activity at a glance"
+                className="mb-6"
+              >
+                <DashboardOverview />
+              </CollapsibleCard>
             </TabsContent>
             
             <TabsContent value="portfolio">
-              <DashboardPortfolio />
+              <CollapsibleCard
+                title="Portfolio"
+                description="View and manage your investments"
+                className="mb-6"
+              >
+                <DashboardPortfolio />
+              </CollapsibleCard>
             </TabsContent>
             
             <TabsContent value="watchlist">
-              <DashboardWatchlist />
+              <CollapsibleCard
+                title="Watchlist"
+                description="Cryptocurrencies you're monitoring"
+                className="mb-6"
+              >
+                <DashboardWatchlist />
+              </CollapsibleCard>
             </TabsContent>
             
             <TabsContent value="trading">
-              <DashboardTrading />
+              <CollapsibleCard
+                title="Trading"
+                description="Execute trades and view history"
+                className="mb-6"
+              >
+                <DashboardTrading />
+              </CollapsibleCard>
             </TabsContent>
             
             <TabsContent value="analysis">
-              <DashboardAnalysis />
+              <CollapsibleCard
+                title="Analysis"
+                description="Market analysis and insights"
+                className="mb-6"
+              >
+                <DashboardAnalysis />
+              </CollapsibleCard>
             </TabsContent>
             
             <TabsContent value="tools">
-              <DashboardTools />
+              <CollapsibleCard
+                title="Tools"
+                description="Trading tools and utilities"
+                className="mb-6"
+              >
+                <DashboardTools />
+              </CollapsibleCard>
             </TabsContent>
           </Tabs>
         </div>

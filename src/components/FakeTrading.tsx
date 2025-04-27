@@ -5,12 +5,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import TradingForm from "./trading/TradingForm";
 import TradingHoldings from "./trading/TradingHoldings";
 import TradeHistory from "./trading/TradeHistory";
-import TradingStats from "./trading/TradingStats";
+import TradingStats, { SupportedCurrency } from "./trading/TradingStats";
 import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
-import { SupportedCurrency } from "./trading/TradingStats";
 
 const FakeTrading = () => {
   const {

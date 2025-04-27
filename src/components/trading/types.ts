@@ -24,3 +24,11 @@ export interface LocalModel {
   isConnected: boolean;
   lastUsed?: string;
 }
+
+export type CoinOption = {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceAUD?: number;
+};

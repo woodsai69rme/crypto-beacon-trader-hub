@@ -56,7 +56,7 @@ const useFormField = () => {
   // Only call getFieldState if we have a formContext and fieldContext name
   const fieldState = formContext && fieldContext.name 
     ? formContext.getFieldState(fieldContext.name, formContext.formState)
-    : {};
+    : { error: undefined };  // Include error property with default value
 
   return {
     id,
@@ -64,6 +64,7 @@ const useFormField = () => {
     formItemId: id ? `${id}-form-item` : undefined,
     formDescriptionId: id ? `${id}-form-item-description` : undefined,
     formMessageId: id ? `${id}-form-item-message` : undefined,
+    error: fieldState.error, // Explicitly add the error property
     ...fieldState,
   }
 }
