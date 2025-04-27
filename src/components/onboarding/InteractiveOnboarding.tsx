@@ -1,6 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 
-const InteractiveOnboarding = () => {
+interface InteractiveOnboardingProps {
+  onComplete?: (preferences: any) => void;
+}
+
+const InteractiveOnboarding: React.FC<InteractiveOnboardingProps> = ({ onComplete }) => {
   const [step, setStep] = useState(0);
   const [completed, setCompleted] = useState(false);
 
@@ -43,6 +48,12 @@ const InteractiveOnboarding = () => {
 
   const handleComplete = () => {
     setCompleted(true);
+    const preferences = { darkMode: true, defaultTab: 'overview' };
+    
+    if (onComplete) {
+      onComplete(preferences);
+    }
+    
     alert('Onboarding completed! Enjoy using Crypto Dashboard.');
   };
   
