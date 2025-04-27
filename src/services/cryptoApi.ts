@@ -1,8 +1,9 @@
+
 import { CoinOption, CryptoData, CryptoChartData } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
 // Define the CryptoData type that is used by multiple components
-export interface CryptoData {
+export interface ExtendedCryptoData {
   id: string;
   symbol: string;
   name: string;
@@ -32,13 +33,6 @@ export interface CryptoData {
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
-}
-
-// Define the CryptoChartData type
-export interface CryptoChartData {
-  prices: [number, number][];
-  market_caps: [number, number][];
-  total_volumes: [number, number][];
 }
 
 // Export the correct function names that components are trying to use
@@ -127,5 +121,9 @@ export const getMockCryptoData = (limit: number = 20): CryptoData[] => {
     market_cap_rank: index + 1,
     price_change_24h: index % 2 === 0 ? coin.price * 0.05 : -coin.price * 0.03,
     price_change_percentage_24h: index % 2 === 0 ? 5 : -3,
+    marketCap: coin.price * 1000000 * (20 - index),
+    priceChange: index % 2 === 0 ? coin.price * 0.05 : -coin.price * 0.03,
+    changePercent: index % 2 === 0 ? 5 : -3,
+    price: coin.price
   }));
 };

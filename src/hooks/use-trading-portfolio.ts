@@ -1,3 +1,4 @@
+
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { updateWithCurrencyRates } from "@/services/currencyApi";
@@ -14,15 +15,68 @@ const initialCoins: CoinOption[] = [
     price: 61245.32, 
     marketCap: 1180000000000, 
     volume: 28000000000,
+    priceChange: 1200,
+    changePercent: 2.3,
     current_price: 61245.32,
     market_cap: 1180000000000,
-    market_cap_rank: 1
+    market_cap_rank: 1,
+    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
   },
-  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, marketCap: 360000000000, volume: 15000000000 },
-  { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, marketCap: 62000000000, volume: 3800000000 },
-  { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, marketCap: 16000000000, volume: 420000000 },
-  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, marketCap: 31000000000, volume: 1800000000 },
-  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, marketCap: 19000000000, volume: 980000000 },
+  { 
+    id: "ethereum", 
+    name: "Ethereum", 
+    symbol: "ETH", 
+    price: 3010.45, 
+    marketCap: 360000000000, 
+    volume: 15000000000,
+    priceChange: -120,
+    changePercent: -1.5,
+    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png"
+  },
+  { 
+    id: "solana", 
+    name: "Solana", 
+    symbol: "SOL", 
+    price: 142.87, 
+    marketCap: 62000000000, 
+    volume: 3800000000,
+    priceChange: 8.2,
+    changePercent: 6.1,
+    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png"
+  },
+  { 
+    id: "cardano", 
+    name: "Cardano", 
+    symbol: "ADA", 
+    price: 0.45, 
+    marketCap: 16000000000, 
+    volume: 420000000,
+    priceChange: 0.01,
+    changePercent: 2.2,
+    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png"
+  },
+  { 
+    id: "ripple", 
+    name: "XRP", 
+    symbol: "XRP", 
+    price: 0.57, 
+    marketCap: 31000000000, 
+    volume: 1800000000,
+    priceChange: -0.03,
+    changePercent: -4.9,
+    image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png"
+  },
+  { 
+    id: "dogecoin", 
+    name: "Dogecoin", 
+    symbol: "DOGE", 
+    price: 0.14, 
+    marketCap: 19000000000, 
+    volume: 980000000,
+    priceChange: 0.006,
+    changePercent: 4.5,
+    image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png"
+  },
 ];
 
 export const useTradingPortfolio = () => {

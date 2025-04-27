@@ -1,114 +1,117 @@
 
+/**
+ * Simple in-memory cache service for API responses
+ */
 interface CacheItem<T> {
-  data: T;
-  expiry: number;
+  value: T;
+  timestamp: number;
+  expiry: number; // Expiry time in milliseconds
 }
 
 class ApiCache {
-  private cache: Map<string, CacheItem<any>> = new Map();
-  private maxSize: number = 100; // Maximum number of items to store
+  private cache: Record<string, CacheItem<any>> = {};
+  private maxItems: number = 100;
   
   /**
    * Get an item from the cache
    * @param key Cache key
-   * @returns The cached value or undefined if not found or expired
+   * @returns Cached value or undefined if not found or expired
    */
   public get<T>(key: string): T | undefined {
-    const item = this.cache.get(key);
+    const item = this.cache[key];
     
-    // Return undefined if item doesn't exist or has expired
+    // If item doesn't exist or has expired
     if (!item || Date.now() > item.expiry) {
       if (item) {
-        // Clean up expired items
-        this.cache.delete(key);
+        // Clean up expired item
+        delete this.cache[key];
       }
       return undefined;
     }
     
-    return item.data as T;
+    return item.value;
   }
   
   /**
    * Set an item in the cache
    * @param key Cache key
-   * @param data Data to cache
+   * @param value Value to cache
    * @param ttl Time to live in milliseconds
    */
-  public set<T>(key: string, data: T, ttl: number): void {
-    // Ensure we don't exceed the max cache size
-    if (this.cache.size >= this.maxSize) {
-      this.evictOldest();
+  public set<T>(key: string, value: T, ttl: number = 60000): void {
+    // Clean up if cache is full
+    if (Object.keys(this.cache).length >= this.maxItems) {
+      this.cleanup();
     }
     
-    this.cache.set(key, {
-      data,
+    this.cache[key] = {
+      value,
+      timestamp: Date.now(),
       expiry: Date.now() + ttl
-    });
+    };
   }
   
   /**
-   * Delete an item from the cache
+   * Remove an item from the cache
    * @param key Cache key
    */
-  public delete(key: string): void {
-    this.cache.delete(key);
+  public remove(key: string): void {
+    delete this.cache[key];
   }
   
   /**
    * Clear all items from the cache
    */
   public clear(): void {
-    this.cache.clear();
+    this.cache = {};
   }
   
   /**
-   * Check if the cache contains a non-expired key
+   * Check if a key exists in the cache and is not expired
    * @param key Cache key
-   * @returns True if the key exists and is not expired
+   * @returns True if key exists and is not expired
    */
   public has(key: string): boolean {
-    const item = this.cache.get(key);
-    if (!item || Date.now() > item.expiry) {
-      return false;
+    const item = this.cache[key];
+    return !!item && Date.now() <= item.expiry;
+  }
+  
+  /**
+   * Cleanup the cache by removing expired items and oldest items if needed
+   * @param forceCleanup Force cleanup even if cache is not full
+   */
+  private cleanup(forceCleanup: boolean = false): void {
+    const now = Date.now();
+    const keys = Object.keys(this.cache);
+    
+    // No need to clean if cache is not full and not forced
+    if (keys.length < this.maxItems && !forceCleanup) {
+      return;
     }
-    return true;
-  }
-  
-  /**
-   * Get the number of items in the cache
-   * @returns Number of cached items
-   */
-  public size(): number {
-    return this.cache.size;
-  }
-  
-  /**
-   * Evict the oldest item from the cache
-   */
-  private evictOldest(): void {
-    // Get the first key (oldest by insertion order in Map)
-    const oldestKey = this.cache.keys().next().value;
-    if (oldestKey) {
-      this.cache.delete(oldestKey);
-    }
-  }
-  
-  /**
-   * Clean expired items from the cache
-   */
-  public cleanExpired(): void {
-    for (const [key, item] of this.cache.entries()) {
-      if (Date.now() > item.expiry) {
-        this.cache.delete(key);
+    
+    // First remove expired items
+    keys.forEach(key => {
+      if (now > this.cache[key].expiry) {
+        delete this.cache[key];
       }
+    });
+    
+    // If still too many items, remove oldest
+    if (Object.keys(this.cache).length >= this.maxItems) {
+      // Sort by timestamp (oldest first)
+      const sortedKeys = keys.sort((a, b) => 
+        this.cache[a].timestamp - this.cache[b].timestamp
+      );
+      
+      // Remove oldest items to get to 75% of max capacity
+      const removeCount = Math.floor(this.maxItems * 0.25);
+      sortedKeys.slice(0, removeCount).forEach(key => {
+        delete this.cache[key];
+      });
     }
   }
 }
 
-// Create a singleton instance
+// Export a singleton instance
 const apiCache = new ApiCache();
-
-// Set up regular cleanup of expired items
-setInterval(() => apiCache.cleanExpired(), 60000); // Clean every minute
-
 export default apiCache;

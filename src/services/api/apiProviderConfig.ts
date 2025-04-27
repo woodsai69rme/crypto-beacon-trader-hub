@@ -1,141 +1,147 @@
 
-import type { ApiProvider } from "@/types/trading";
+import { ApiProvider } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
-// Default API providers
-export const defaultApiProviders: ApiProvider[] = [
+// Define initial API providers
+const initialProviders: ApiProvider[] = [
   {
-    id: "coingecko-free",
-    name: "CoinGecko (Free)",
+    id: "coingecko",
+    name: "CoinGecko",
     baseUrl: "https://api.coingecko.com/api/v3",
-    authMethod: "none",
-    requiresAuth: false,
-    endpoints: {
-      marketData: "/coins/markets",
-      coinData: "/coins",
-      marketChart: "/coins/{id}/market_chart",
-      search: "/search",
-      trending: "/search/trending",
-    },
-    enabled: true,
-    priority: 2
-  },
-  {
-    id: "coingecko-pro",
-    name: "CoinGecko Pro",
-    baseUrl: "https://pro-api.coingecko.com/api/v3",
-    apiKeyName: "x_cg_pro_api_key",
     authMethod: "header",
-    requiresAuth: true,
+    apiKeyName: "x-cg-pro-api-key",
+    requiresAuth: false,
+    enabled: true,
+    priority: 1,
     endpoints: {
       marketData: "/coins/markets",
-      coinData: "/coins",
+      coinData: "/coins/{id}",
       marketChart: "/coins/{id}/market_chart",
       search: "/search",
       trending: "/search/trending",
-    },
-    enabled: false,
-    priority: 1
+      global: "/global"
+    }
   },
   {
     id: "coinmarketcap",
     name: "CoinMarketCap",
     baseUrl: "https://pro-api.coinmarketcap.com/v1",
-    apiKeyName: "X-CMC_PRO_API_KEY",
     authMethod: "header",
+    apiKeyName: "X-CMC_PRO_API_KEY",
     requiresAuth: true,
+    enabled: false,
+    priority: 2,
     endpoints: {
       marketData: "/cryptocurrency/listings/latest",
-      coinData: "/cryptocurrency/info",
-      marketChart: "/cryptocurrency/quotes/historical",
-    },
-    enabled: false,
-    priority: 1
+      coinData: "/cryptocurrency/quotes/latest",
+      global: "/global-metrics/quotes/latest",
+      marketChart: "/cryptocurrency/quotes/historical"
+    }
   },
   {
     id: "cryptocompare",
     name: "CryptoCompare",
     baseUrl: "https://min-api.cryptocompare.com/data",
-    apiKeyName: "authorization",
-    defaultHeaders: {
-      "authorization": "Apikey {key}"
-    },
     authMethod: "header",
-    requiresAuth: true,
+    apiKeyName: "authorization",
+    requiresAuth: false,
+    enabled: true,
+    priority: 3,
     endpoints: {
       marketData: "/top/mktcapfull",
-      coinData: "/coin/generalinfo",
-      priceMulti: "/pricemulti",
-      historicalData: "/v2/histoday",
+      coinData: "/pricemultifull",
+      marketChart: "/v2/histoday",
+      global: "/pricemulti"
     },
-    enabled: true,
-    priority: 3
+    defaultHeaders: {
+      "authorization": "Apikey {key}"
+    }
+  },
+  {
+    id: "messari",
+    name: "Messari",
+    baseUrl: "https://data.messari.io/api/v1",
+    authMethod: "header",
+    apiKeyName: "x-messari-api-key",
+    requiresAuth: false,
+    enabled: false,
+    priority: 4,
+    endpoints: {
+      marketData: "/assets",
+      coinData: "/assets/{id}/metrics",
+      marketChart: "/assets/{id}/metrics/{metric}/time-series",
+      global: "/markets"
+    }
   }
 ];
 
+// Load providers from local storage or use the initial list
+const loadProviders = (): ApiProvider[] => {
+  try {
+    const stored = localStorage.getItem('api-providers');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Error loading API providers:', error);
+  }
+  return initialProviders;
+};
+
+// Save providers to local storage
+const saveProviders = (providers: ApiProvider[]): void => {
+  try {
+    localStorage.setItem('api-providers', JSON.stringify(providers));
+  } catch (error) {
+    console.error('Error saving API providers:', error);
+  }
+};
+
 class ApiProviderManager {
-  private providers: ApiProvider[] = [];
-  private storageKey = "api-providers";
-  
+  private providers: ApiProvider[];
+
   constructor() {
-    this.loadProviders();
+    this.providers = loadProviders();
   }
-  
-  private loadProviders(): void {
-    try {
-      const storedProviders = localStorage.getItem(this.storageKey);
-      if (storedProviders) {
-        this.providers = JSON.parse(storedProviders);
-      } else {
-        this.providers = [...defaultApiProviders];
-        this.saveProviders();
-      }
-    } catch (error) {
-      console.error("Failed to load API providers:", error);
-      this.providers = [...defaultApiProviders];
-    }
-  }
-  
-  private saveProviders(): void {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.providers));
-    } catch (error) {
-      console.error("Failed to save API providers:", error);
-    }
-  }
-  
+
+  // Get all providers
   public getAllProviders(): ApiProvider[] {
     return [...this.providers];
   }
-  
+
+  // Get enabled providers
   public getEnabledProviders(): ApiProvider[] {
-    return this.providers.filter(p => p.enabled);
+    return this.providers.filter(provider => provider.enabled)
+      .sort((a, b) => a.priority - b.priority);
   }
-  
+
+  // Get provider by id
   public getProviderById(id: string): ApiProvider | undefined {
-    return this.providers.find(p => p.id === id);
+    return this.providers.find(provider => provider.id === id);
   }
-  
+
+  // Get provider with highest priority
   public getPriorityProvider(): ApiProvider | undefined {
-    return [...this.providers]
-      .filter(p => p.enabled)
-      .sort((a, b) => a.priority - b.priority)[0];
+    const enabledProviders = this.getEnabledProviders();
+    return enabledProviders.length > 0 ? enabledProviders[0] : undefined;
   }
-  
+
+  // Add new provider
   public addProvider(provider: ApiProvider): void {
-    if (this.providers.some(p => p.id === provider.id)) {
+    if (this.getProviderById(provider.id)) {
       throw new Error(`Provider with ID '${provider.id}' already exists`);
     }
     
     this.providers.push(provider);
-    this.saveProviders();
+    saveProviders(this.providers);
     
     toast({
       title: "API Provider Added",
-      description: `Successfully added ${provider.name}`,
+      description: `${provider.name} has been added to your providers`
     });
   }
-  
+
+  // Update provider
   public updateProvider(id: string, updates: Partial<ApiProvider>): void {
     const index = this.providers.findIndex(p => p.id === id);
     if (index === -1) {
@@ -147,66 +153,72 @@ class ApiProviderManager {
       ...updates
     };
     
-    this.saveProviders();
+    saveProviders(this.providers);
     
     toast({
       title: "API Provider Updated",
-      description: `Successfully updated ${this.providers[index].name}`,
+      description: `${this.providers[index].name} has been updated`
     });
   }
-  
+
+  // Delete provider
+  public deleteProvider(id: string): void {
+    const index = this.providers.findIndex(p => p.id === id);
+    if (index === -1) {
+      throw new Error(`Provider with ID '${id}' not found`);
+    }
+    
+    const name = this.providers[index].name;
+    this.providers.splice(index, 1);
+    saveProviders(this.providers);
+    
+    toast({
+      title: "API Provider Removed",
+      description: `${name} has been removed from your providers`
+    });
+  }
+
+  // Set API key for provider
   public setProviderApiKey(id: string, apiKey: string): void {
     const provider = this.getProviderById(id);
     if (!provider) {
       throw new Error(`Provider with ID '${id}' not found`);
     }
     
-    this.updateProvider(id, { apiKey });
+    provider.apiKey = apiKey;
+    saveProviders(this.providers);
     
     toast({
       title: "API Key Updated",
-      description: `Successfully updated API key for ${provider.name}`,
+      description: `API key for ${provider.name} has been updated`
     });
   }
-  
+
+  // Toggle provider enabled status
   public toggleProviderEnabled(id: string): void {
     const provider = this.getProviderById(id);
     if (!provider) {
       throw new Error(`Provider with ID '${id}' not found`);
     }
     
-    this.updateProvider(id, { enabled: !provider.enabled });
+    provider.enabled = !provider.enabled;
+    saveProviders(this.providers);
+    
+    toast({
+      title: provider.enabled ? "Provider Enabled" : "Provider Disabled",
+      description: `${provider.name} is now ${provider.enabled ? 'enabled' : 'disabled'}`
+    });
   }
-  
-  public removeProvider(id: string): void {
-    // Don't allow removing default providers, just disable them
-    const isDefaultProvider = defaultApiProviders.some(p => p.id === id);
+
+  // Reset to default providers
+  public resetToDefaults(): void {
+    this.providers = [...initialProviders];
+    saveProviders(this.providers);
     
-    if (isDefaultProvider) {
-      const index = this.providers.findIndex(p => p.id === id);
-      if (index !== -1) {
-        this.providers[index].enabled = false;
-        this.saveProviders();
-        
-        toast({
-          title: "API Provider Disabled",
-          description: "Default providers cannot be removed, but it has been disabled.",
-        });
-      }
-      return;
-    }
-    
-    const initialLength = this.providers.length;
-    this.providers = this.providers.filter(p => p.id !== id);
-    
-    if (this.providers.length !== initialLength) {
-      this.saveProviders();
-      
-      toast({
-        title: "API Provider Removed",
-        description: "Successfully removed the API provider.",
-      });
-    }
+    toast({
+      title: "API Providers Reset",
+      description: "All API providers have been reset to default settings"
+    });
   }
 }
 

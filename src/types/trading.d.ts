@@ -8,7 +8,7 @@ export type CoinOption = {
   priceChange?: number;
   changePercent?: number;
   marketCap: number;
-  volume: number;
+  volume?: number;
   image?: string;
   priceAUD?: number;
   priceEUR?: number;
@@ -16,6 +16,25 @@ export type CoinOption = {
   current_price?: number;
   market_cap?: number;
   market_cap_rank?: number;
+};
+
+export type CryptoData = {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  market_cap: number;
+  market_cap_rank: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+  image?: string;
+  priceChange?: number;
+  changePercent?: number;
+  marketCap?: number;
+  volume?: number;
+  priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
 };
 
 export type Trade = {
@@ -114,15 +133,3 @@ export interface CryptoChartData {
   market_caps: [number, number][];
   total_volumes: [number, number][];
 }
-
-export type CryptoData = {
-  id: string;
-  symbol: string;
-  name: string;
-  current_price: number;
-  market_cap: number;
-  market_cap_rank: number;
-  price_change_24h?: number;
-  price_change_percentage_24h?: number;
-  image?: string;
-};

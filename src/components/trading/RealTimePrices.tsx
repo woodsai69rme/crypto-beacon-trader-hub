@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronUp, ChevronDown, Activity, ArrowUpDown } from "lucide-react";
-import { startPriceMonitoring } from "@/services/priceMonitoringService";
+import { startPriceMonitoring } from "@/services/priceMonitoring";
 import { CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
@@ -57,7 +58,7 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
     });
     
     return () => stopMonitoring();
-  }, []);
+  }, [initialCoins]);
   
   const toggleSortDirection = () => {
     setSortDirection(sortDirection === "asc" ? "desc" : "asc");

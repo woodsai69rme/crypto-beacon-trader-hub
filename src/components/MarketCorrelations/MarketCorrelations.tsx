@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { generateMockCorrelations } from "./mockData";
 import { CorrelationHeatmap } from "./CorrelationHeatmap";
 import { fetchTopCoins } from "@/services/cryptoApi";
-import { CryptoData, CoinOption } from "@/types/trading";
+import { CoinOption, CryptoData } from "@/types/trading";
 
 const convertToCryptoData = (coins: CoinOption[]): CryptoData[] => {
   return coins.map(coin => ({
@@ -14,7 +15,11 @@ const convertToCryptoData = (coins: CoinOption[]): CryptoData[] => {
     market_cap_rank: 0,
     price_change_24h: coin.priceChange,
     price_change_percentage_24h: coin.changePercent,
-    image: coin.image
+    image: coin.image,
+    priceChange: coin.priceChange,
+    changePercent: coin.changePercent,
+    marketCap: coin.marketCap,
+    volume: coin.volume
   }));
 };
 
@@ -27,6 +32,7 @@ const MarketCorrelations = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoading(true);
         const topCoins = await fetchTopCoins(10);
         const cryptoData = convertToCryptoData(topCoins);
         setCoins(cryptoData);
