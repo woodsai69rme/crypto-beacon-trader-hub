@@ -1,5 +1,6 @@
 
-import { SupportedCurrency } from "../components/trading/TradingStats";
+// Define types for the trading system
+export type SupportedCurrency = "USD" | "AUD" | "EUR" | "GBP";
 
 export interface CryptoData {
   id: string;
@@ -15,9 +16,7 @@ export interface CryptoData {
   changePercent?: number;
   marketCap?: number;
   volume?: number;
-  priceAUD?: number;
-  priceEUR?: number;
-  priceGBP?: number;
+  price?: number;
 }
 
 export interface CryptoChartData {
@@ -26,29 +25,44 @@ export interface CryptoChartData {
   total_volumes: [number, number][];
 }
 
-export type CoinOption = {
+export interface CoinOption {
   id: string;
   name: string;
   symbol: string;
   price: number;
   priceAUD?: number;
-  priceEUR?: number; 
+  priceEUR?: number;
   priceGBP?: number;
-  volume24h?: number;
-  marketCap?: number;
-  change24h?: number;
-  exchange?: string;
-  lastUpdated?: string;
   priceChange?: number;
   changePercent?: number;
-  volume?: number;
   image?: string;
-  current_price?: number;
+  marketCap?: number;
+  volume?: number;
   market_cap?: number;
   market_cap_rank?: number;
-  price_change_24h?: number;
-  price_change_percentage_24h?: number;
-};
+  current_price?: number;
+}
+
+export type WatchlistItem = CryptoData;
+
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  timeframe: string;
+  parameters: Record<string, any>;
+}
+
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  initialBalance: number;
+  trades: Trade[];
+  createdAt: string;
+  apiKeys?: ApiKeyInfo[];
+}
 
 export interface Trade {
   id: string;
@@ -62,101 +76,22 @@ export interface Trade {
   timestamp: string;
   currency: SupportedCurrency;
   botGenerated?: boolean;
-  fee?: number;
-  feeAsset?: string;
-  exchange?: string;
-  notes?: string;
-  tags?: string[];
   strategyId?: string;
-  currentValue?: number;
-  profitLoss?: number;
 }
 
-export interface TradingAccount {
-  id: string;
-  name: string;
-  balance: number;
+export interface BacktestResult {
+  strategy: AITradingStrategy;
+  startDate: string;
+  endDate: string;
   initialBalance: number;
-  currency: string;
-  trades: Trade[];
-  createdAt: string;
-  lastModified: string;
-  allowBots?: boolean;
-}
-
-export type WidgetType = 
-  | "trading"
-  | "aiTrading"
-  | "multiExchange"
-  | "aiAnalysis"
-  | "education"
-  | "community"
-  | "custom";
-
-export type WidgetSize = "small" | "medium" | "large" | "full";
-
-export interface Widget {
-  id: string;
-  title: string;
-  type: WidgetType;
-  size: WidgetSize;
-  position: number;
-  customContent?: string;
-}
-
-export interface ApiProvider {
-  id: string;
-  name: string;
-  baseUrl: string;
-  apiKeyName?: string;
-  authMethod: "header" | "query" | "none";
-  requiresAuth: boolean;
-  apiKey?: string;
-  defaultHeaders?: Record<string, string>;
-  endpoints: Record<string, string>;
-  enabled: boolean;
-  priority: number;
-}
-
-export type AIStrategyType = 
-  | "trend-following" 
-  | "mean-reversion" 
-  | "momentum" 
-  | "breakout" 
-  | "sentiment" 
-  | "machine-learning"
-  | "custom"
-  | "multi-timeframe";
-
-export interface AITradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: AIStrategyType;
-  risk: "low" | "medium" | "high";
-  backtestResults?: {
-    winRate: number;
-    profitFactor: number;
-    sharpeRatio: number;
-    drawdown: number;
-    returns: number;
-  };
-  parameters?: Record<string, any>;
-  isActive?: boolean;
-  isCustom?: boolean;
-  createdAt?: string;
-  lastModified?: string;
-}
-
-// Additional types from trading.ts file
-export interface CurrencyConversion {
-  USD_AUD: number;
-  AUD_USD: number;
-  USD_EUR?: number;
-  EUR_USD?: number;
-  USD_GBP?: number;
-  GBP_USD?: number;
-  lastUpdated: string;
+  finalBalance: number;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number;
+  profitFactor: number;
+  maxDrawdown: number;
+  trades: BacktestTrade[];
 }
 
 export interface BacktestTrade {
@@ -165,91 +100,20 @@ export interface BacktestTrade {
   type: 'buy' | 'sell';
   price: number;
   amount: number;
-  total: number;
   profit?: number;
   profitPercentage?: number;
-  date?: string;
-  value?: number;
-  profitLoss?: number;
-}
-
-export interface BacktestResult {
-  startDate: string;
-  endDate: string;
-  initialBalance: number;
-  finalBalance: number;
-  profit: number;
-  profitPercentage: number;
-  maxDrawdown: number;
-  winRate: number;
-  trades: BacktestTrade[];
-  sharpeRatio?: number;
-  profitFactor?: number;
-  averageProfit?: number;
-  averageLoss?: number;
-  initialCapital?: number;
-  finalCapital?: number;
-  totalReturn?: number;
-  totalTrades?: number;
-  winningTrades?: number;
-  losingTrades?: number;
-  sortinoRatio?: number;
 }
 
 export interface OptimizationResult {
   strategyId: string;
-  parameterValues: Record<string, any>;
-  parameters?: StrategyParameter[];
+  parameters: Record<string, any>;
   performance: {
-    profit: number;
-    profitPercentage: number;
-    maxDrawdown: number;
     winRate: number;
-    sharpeRatio?: number;
-    profitFactor?: number;
-    totalReturn?: number;
+    profitFactor: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+    returns: number;
   };
-  improvement: number;
-}
-
-export interface TaxHarvestingOptions {
-  year: number;
-  minLossThreshold: number;
-  washSalePeriod: number;
-  includeFees: boolean;
-  maximizeLoss: boolean;
-}
-
-export interface TaxLotMatchingMethod {
-  id: string;
-  name: string;
-  description: string;
-  type: 'FIFO' | 'LIFO' | 'HIFO' | 'LOFO' | 'avgCost' | 'specificID';
-}
-
-export interface TaxHarvestingOpportunity {
-  coinId: string;
-  coinSymbol: string;
-  currentPrice: number;
-  averageCost: number;
-  quantity: number;
-  potentialLoss: number;
-  recommendedAction: 'sell' | 'hold';
-  reasoning: string;
-  washSaleWarning: boolean;
-}
-
-export interface PortfolioBenchmark {
-  id: string;
-  name: string;
-  symbol?: string;
-  type: 'crypto' | 'index' | 'stock' | 'custom';
-  data: {
-    date: string;
-    value: number;
-    performance: number;
-  }[];
-  color: string;
 }
 
 export interface StrategyParameter {
@@ -262,40 +126,25 @@ export interface StrategyParameter {
   max?: number;
   step?: number;
   options?: string[];
-  label?: string;
 }
 
-export interface TechnicalIndicator {
+export interface ApiKeyInfo {
+  id: string;
   name: string;
-  period: number;
-  params?: Record<string, any>;
-  key?: string;
-  category?: string;
-  description?: string;
+  exchange: string;
+  key: string;
+  secret: string;
+  createdAt: string;
+  lastUsed?: string;
+  permissions?: string[];
+  isActive: boolean;
 }
 
-export type ExtendedTradingTimeframe =
-  | '1m' | '3m' | '5m' | '15m' | '30m' 
-  | '1h' | '2h' | '4h' | '6h' | '8h' | '12h'
-  | '1d' | '3d' | '1w' | '2w' | '1M' | '3M' | '6M' | '1y';
-
-export interface TimeframeOption {
-  value: ExtendedTradingTimeframe;
-  label: string;
-  description: string;
-  minutes?: number;
-}
-
-export type TradingTimeframe = ExtendedTradingTimeframe | TimeframeOption;
-
-export interface AiTradingContextType {
-  executeAiTrade: (botId: string, tradeDetails: any) => Promise<void>;
-  getConnectedAccount: (botId: string) => string | undefined;
-  isProcessing: boolean;
-  connectBotToAccount: (botId: string, accountId: string) => void;
-  disconnectBot: (botId: string) => void;
-  activeBots: Record<string, {
-    lastTrade?: string;
-    status: 'connected' | 'disconnected';
-  }>;
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
 }

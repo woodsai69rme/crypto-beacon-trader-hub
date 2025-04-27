@@ -1,114 +1,86 @@
 
-/**
- * Simple in-memory cache service for API responses
- */
-interface CacheItem<T> {
-  value: T;
-  timestamp: number;
-  expiry: number; // Expiry time in milliseconds
+// Simple cache service for API responses
+
+interface CacheEntry<T> {
+  data: T;
+  expiresAt: number;
 }
 
 class ApiCache {
-  private cache: Record<string, CacheItem<any>> = {};
-  private maxItems: number = 100;
+  private cache: Map<string, CacheEntry<any>> = new Map();
   
   /**
-   * Get an item from the cache
+   * Get a value from the cache
    * @param key Cache key
-   * @returns Cached value or undefined if not found or expired
+   * @returns The cached value or null if not found or expired
    */
-  public get<T>(key: string): T | undefined {
-    const item = this.cache[key];
+  get<T>(key: string): T | null {
+    const entry = this.cache.get(key);
     
-    // If item doesn't exist or has expired
-    if (!item || Date.now() > item.expiry) {
-      if (item) {
-        // Clean up expired item
-        delete this.cache[key];
-      }
-      return undefined;
+    if (!entry) {
+      return null;
     }
     
-    return item.value;
+    // Check if expired
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.data;
   }
   
   /**
-   * Set an item in the cache
+   * Set a value in the cache
    * @param key Cache key
    * @param value Value to cache
    * @param ttl Time to live in milliseconds
    */
-  public set<T>(key: string, value: T, ttl: number = 60000): void {
-    // Clean up if cache is full
-    if (Object.keys(this.cache).length >= this.maxItems) {
-      this.cleanup();
-    }
-    
-    this.cache[key] = {
-      value,
-      timestamp: Date.now(),
-      expiry: Date.now() + ttl
-    };
+  set<T>(key: string, value: T, ttl: number): void {
+    const expiresAt = Date.now() + ttl;
+    this.cache.set(key, { data: value, expiresAt });
   }
   
   /**
-   * Remove an item from the cache
+   * Clear all entries from the cache
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+  
+  /**
+   * Delete a specific entry from the cache
    * @param key Cache key
    */
-  public remove(key: string): void {
-    delete this.cache[key];
+  delete(key: string): boolean {
+    return this.cache.delete(key);
   }
   
   /**
-   * Clear all items from the cache
+   * Get the number of entries in the cache
    */
-  public clear(): void {
-    this.cache = {};
+  get size(): number {
+    return this.cache.size;
   }
   
   /**
    * Check if a key exists in the cache and is not expired
    * @param key Cache key
-   * @returns True if key exists and is not expired
    */
-  public has(key: string): boolean {
-    const item = this.cache[key];
-    return !!item && Date.now() <= item.expiry;
-  }
-  
-  /**
-   * Cleanup the cache by removing expired items and oldest items if needed
-   * @param forceCleanup Force cleanup even if cache is not full
-   */
-  private cleanup(forceCleanup: boolean = false): void {
-    const now = Date.now();
-    const keys = Object.keys(this.cache);
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
     
-    // No need to clean if cache is not full and not forced
-    if (keys.length < this.maxItems && !forceCleanup) {
-      return;
+    if (!entry) {
+      return false;
     }
     
-    // First remove expired items
-    keys.forEach(key => {
-      if (now > this.cache[key].expiry) {
-        delete this.cache[key];
-      }
-    });
-    
-    // If still too many items, remove oldest
-    if (Object.keys(this.cache).length >= this.maxItems) {
-      // Sort by timestamp (oldest first)
-      const sortedKeys = keys.sort((a, b) => 
-        this.cache[a].timestamp - this.cache[b].timestamp
-      );
-      
-      // Remove oldest items to get to 75% of max capacity
-      const removeCount = Math.floor(this.maxItems * 0.25);
-      sortedKeys.slice(0, removeCount).forEach(key => {
-        delete this.cache[key];
-      });
+    // Check if expired
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return false;
     }
+    
+    return true;
   }
 }
 

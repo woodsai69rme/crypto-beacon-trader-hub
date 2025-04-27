@@ -2,8 +2,9 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyManagement from "../ApiKeyManagement";
-import FakeTrading from "../FakeTrading";
+import EnhancedFakeTrading from "../trading/EnhancedFakeTrading";
 import AiTradingBots from "../trading/AiTradingBots";
+import AiTradingDashboard from "../trading/AiTradingDashboard";
 import AiTradingMcp from "../trading/AiTradingMcp"; 
 import TradingEducation from "../trading/TradingEducation";
 import MultiExchangeTrading from "../trading/MultiExchangeTrading";
@@ -22,13 +23,13 @@ const DashboardTrading = () => {
     <div className="grid grid-cols-1 gap-6">
       <Tabs defaultValue="trade" className="w-full">
         <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-8'} mb-6`}>
-          <TabsTrigger value="trade">Basic Trading</TabsTrigger>
+          <TabsTrigger value="trade">Trading</TabsTrigger>
+          <TabsTrigger value="ai-dashboard">AI Dashboard</TabsTrigger>
           <TabsTrigger value="ai-bots">AI Bots</TabsTrigger>
           <TabsTrigger value="mcp">MCP Trading</TabsTrigger>
-          <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>
+          {!isMobile && <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>}
           {!isMobile && <TabsTrigger value="analysis">Analysis</TabsTrigger>}
           {!isMobile && <TabsTrigger value="social">Social</TabsTrigger>}
-          {!isMobile && <TabsTrigger value="education">Education</TabsTrigger>}
           {!isMobile && <TabsTrigger value="api-keys">API Keys</TabsTrigger>}
           {isMobile && <TabsTrigger value="more">More</TabsTrigger>}
         </TabsList>
@@ -36,12 +37,16 @@ const DashboardTrading = () => {
         <TabsContent value="trade" className="animate-fade-in">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <FakeTrading />
+              <EnhancedFakeTrading />
             </div>
             <div className="lg:col-span-1">
               <AlertsSystem />
             </div>
           </div>
+        </TabsContent>
+        
+        <TabsContent value="ai-dashboard" className="animate-fade-in">
+          <AiTradingDashboard />
         </TabsContent>
         
         <TabsContent value="ai-bots" className="animate-fade-in">
@@ -67,10 +72,6 @@ const DashboardTrading = () => {
           <SocialTradingFeatures />
         </TabsContent>
         
-        <TabsContent value="education" className="animate-fade-in">
-          <TradingEducation />
-        </TabsContent>
-        
         <TabsContent value="api-keys" className="animate-fade-in">
           <Card>
             <CardContent className="pt-6">
@@ -81,13 +82,17 @@ const DashboardTrading = () => {
         
         {isMobile && (
           <TabsContent value="more" className="animate-fade-in">
-            <Tabs defaultValue="analysis">
+            <Tabs defaultValue="multi-exchange">
               <TabsList className="grid grid-cols-4 mb-6">
+                <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>
                 <TabsTrigger value="analysis">Analysis</TabsTrigger>
                 <TabsTrigger value="social">Social</TabsTrigger>
-                <TabsTrigger value="education">Education</TabsTrigger>
                 <TabsTrigger value="api-keys">API Keys</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="multi-exchange">
+                <ExchangeIntegration />
+              </TabsContent>
               
               <TabsContent value="analysis">
                 <AiMarketAnalysis />
@@ -95,10 +100,6 @@ const DashboardTrading = () => {
               
               <TabsContent value="social">
                 <SocialTradingFeatures />
-              </TabsContent>
-              
-              <TabsContent value="education">
-                <TradingEducation />
               </TabsContent>
               
               <TabsContent value="api-keys">
