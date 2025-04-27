@@ -1,12 +1,18 @@
-
 import { SupportedCurrency } from "../components/trading/TradingStats";
 
 export type CoinOption = {
   id: string;
-  name: string;
   symbol: string;
+  name: string;
   price: number;
+  priceChange?: number;
+  changePercent?: number;
+  marketCap: number;
+  volume: number;
+  image?: string;
   priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
 };
 
 export type Trade = {
