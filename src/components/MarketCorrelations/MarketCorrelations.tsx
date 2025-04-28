@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/utils/formatters";
-import { CryptoData } from "@/types/trading";
+import { CryptoData, CoinOption } from "@/types/trading";
 import { fetchTopCoins } from "@/services/cryptoApi";
 import CorrelationHeatmap from "./CorrelationHeatmap";
 import CorrelationAnalysis from "./CorrelationAnalysis";
@@ -36,16 +36,16 @@ const MarketCorrelations = () => {
         id: coin.id,
         symbol: coin.symbol,
         name: coin.name,
-        image: coin.image,
-        current_price: coin.price, // Map price to current_price as required by CryptoData
-        market_cap: coin.marketCap || 0,
-        market_cap_rank: coin.rank || 0,
+        image: coin.image || "",
+        current_price: coin.price || coin.current_price || 0,
+        market_cap: coin.marketCap || coin.market_cap || 0,
+        market_cap_rank: coin.rank || coin.market_cap_rank || 0,
         fully_diluted_valuation: null,
         total_volume: coin.volume || 0,
         high_24h: null,
         low_24h: null,
         price_change_24h: coin.priceChange || 0,
-        price_change_percentage_24h: coin.changePercent || 0,
+        price_change_percentage_24h: coin.changePercent || coin.price_change_percentage_24h || 0,
         market_cap_change_24h: 0,
         market_cap_change_percentage_24h: 0,
         circulating_supply: 0,
@@ -100,7 +100,7 @@ const MarketCorrelations = () => {
           <CardTitle>Market Correlations</CardTitle>
           <div className="flex gap-2">
             <Button 
-              variant={timeRange === '7d' ? 'default' : 'outline'} a
+              variant={timeRange === '7d' ? 'default' : 'outline'} 
               size="sm" 
               onClick={() => setTimeRange('7d')}
             >

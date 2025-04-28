@@ -1,165 +1,140 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { LocalModel } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
-import { Server, Check, X, LinkIcon, Unlink, ArrowRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Brain, CheckCircle, Link, LinkOff } from "lucide-react";
+import { LocalModel } from "./types";
 
-interface ModelConnectionTabProps {
+export interface ModelConnectionTabProps {
   models: LocalModel[];
-  onConnect: (modelId: string) => void;
+  onConnect: (model: LocalModel) => void;
   onDisconnect: (modelId: string) => void;
-  onUpdateEndpoint: (modelId: string, newEndpoint: string) => void;
 }
 
-const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({
-  models,
-  onConnect,
-  onDisconnect,
-  onUpdateEndpoint
+export const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({ 
+  models, 
+  onConnect, 
+  onDisconnect 
 }) => {
-  const [editingModelId, setEditingModelId] = useState<string | null>(null);
-  const [newEndpoint, setNewEndpoint] = useState<string>('');
-
-  const handleEditStart = (model: LocalModel) => {
-    setEditingModelId(model.id);
-    setNewEndpoint(model.endpoint);
+  const [newModelUrl, setNewModelUrl] = useState("");
+  const [newModelName, setNewModelName] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+  
+  const handleConnect = (model: LocalModel) => {
+    onConnect(model);
   };
-
-  const handleUpdateEndpoint = () => {
-    if (!editingModelId) return;
-    
-    onUpdateEndpoint(editingModelId, newEndpoint);
-    setEditingModelId(null);
-    
-    toast({
-      title: "Endpoint Updated",
-      description: "The model endpoint has been updated successfully."
-    });
-  };
-
-  const handleConnect = (modelId: string) => {
-    onConnect(modelId);
-    
-    toast({
-      title: "Model Connected",
-      description: "Successfully connected to the AI model endpoint."
-    });
-  };
-
+  
   const handleDisconnect = (modelId: string) => {
     onDisconnect(modelId);
+  };
+  
+  const handleAddNewModel = () => {
+    if (!newModelUrl || !newModelName) return;
+    setIsConnecting(true);
     
-    toast({
-      title: "Model Disconnected",
-      description: "The AI model has been disconnected."
-    });
+    // Simulate connection delay
+    setTimeout(() => {
+      const newModel: LocalModel = {
+        id: `model-${Date.now()}`,
+        name: newModelName,
+        description: `Custom model at ${newModelUrl}`,
+        endpoint: newModelUrl,
+        type: "prediction",
+        isConnected: false
+      };
+      
+      onConnect(newModel);
+      setNewModelUrl("");
+      setNewModelName("");
+      setIsConnecting(false);
+    }, 1500);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-muted/40 rounded-lg p-4 mb-4">
-        <h3 className="text-md font-medium mb-2">Connect Local AI Models</h3>
-        <p className="text-sm text-muted-foreground">
-          Link your locally running AI models for trading analysis, prediction, and automation.
-          Make sure your model server is running and accessible at the specified endpoint.
-        </p>
-      </div>
-      
-      <div className="grid gap-4">
-        {models.map((model) => (
-          <Card key={model.id} className="overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Server className="h-5 w-5 text-primary" />
-                  <h3 className="font-medium">{model.name}</h3>
-                  <Badge variant={model.isConnected ? "default" : "outline"}>
-                    {model.isConnected ? "Connected" : "Disconnected"}
-                  </Badge>
-                </div>
-                <Badge variant="outline">{model.type}</Badge>
-              </div>
-              
-              <div className="mt-2">
-                {editingModelId === model.id ? (
-                  <div className="flex gap-2">
-                    <Input 
-                      value={newEndpoint}
-                      onChange={(e) => setNewEndpoint(e.target.value)}
-                      placeholder="http://localhost:5000/predict"
-                      className="flex-1"
-                    />
-                    <Button size="sm" onClick={handleUpdateEndpoint}>
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => setEditingModelId(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="font-mono text-muted-foreground">
-                      {model.endpoint}
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleEditStart(model)}
-                      className="h-8 px-2"
-                    >
-                      Edit
-                    </Button>
-                  </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {models.map(model => (
+          <Card key={model.id} className="p-4 relative overflow-hidden">
+            <div className="flex items-center mb-2">
+              <Brain className="h-4 w-4 mr-2" />
+              <h3 className="font-medium">{model.name}</h3>
+              {model.isConnected && (
+                <span className="ml-2 text-green-600 text-xs flex items-center">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Connected
+                </span>
+              )}
+            </div>
+            
+            <p className="text-xs text-muted-foreground mb-2">
+              {model.description}
+            </p>
+            
+            <div className="text-xs text-muted-foreground mb-3 truncate">
+              Endpoint: {model.endpoint}
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="text-xs">
+                {model.lastUsed && (
+                  <span className="text-muted-foreground">
+                    Last used: {new Date(model.lastUsed).toLocaleString()}
+                  </span>
                 )}
               </div>
-            </CardContent>
-            
-            <CardFooter className="bg-muted/20 p-3">
-              {model.isConnected ? (
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleDisconnect(model.id)}
-                  className="w-full"
-                >
-                  <Unlink className="h-4 w-4 mr-2" />
-                  Disconnect
-                </Button>
-              ) : (
-                <Button 
-                  onClick={() => handleConnect(model.id)}
-                  className="w-full"
-                >
-                  <LinkIcon className="h-4 w-4 mr-2" />
-                  Connect
-                </Button>
-              )}
-            </CardFooter>
+              
+              <div>
+                {model.isConnected ? (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDisconnect(model.id)}
+                    className="text-xs h-8"
+                  >
+                    <LinkOff className="h-3 w-3 mr-1" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm"
+                    onClick={() => handleConnect(model)}
+                    className="text-xs h-8"
+                  >
+                    <Link className="h-3 w-3 mr-1" />
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </div>
           </Card>
         ))}
       </div>
       
-      <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
-        <div className="text-sm">
-          <span className="font-medium">Need help?</span> Follow our 
-          <Button variant="link" className="px-1 h-auto">
-            Local Model Setup Guide
-          </Button>
+      <div className="border-t pt-6 mt-6">
+        <h3 className="text-sm font-medium mb-4">Add New Model</h3>
+        <div className="flex flex-col gap-4">
+          <Input
+            placeholder="Model Name"
+            value={newModelName}
+            onChange={(e) => setNewModelName(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Input
+              placeholder="Model Endpoint (e.g., http://localhost:8000/predict)"
+              value={newModelUrl}
+              onChange={(e) => setNewModelUrl(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleAddNewModel} 
+              disabled={!newModelUrl || !newModelName || isConnecting}
+            >
+              {isConnecting ? "Connecting..." : "Add & Connect"}
+            </Button>
+          </div>
         </div>
-        <Button variant="ghost" size="sm">
-          Add Custom Model
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
       </div>
     </div>
   );
 };
-
-export default ModelConnectionTab;

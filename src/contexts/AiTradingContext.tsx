@@ -1,40 +1,34 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { executeAITrade } from '@/services/aiTradingService';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { useTradingAccounts } from '@/hooks/use-trading-accounts';
-import { AITradingStrategy, AiTradingContextType } from '@/types/trading';
-import { AVAILABLE_STRATEGIES } from '@/services/aiTradingService';
-import { SupportedCurrency } from '@/components/trading/TradingStats';
+import { AiTradingContextType, AITradingStrategy } from '@/types/trading';
 
-interface AiTradingProviderProps {
-  children: React.ReactNode;
-}
-
-// Create context with default values
+// Create the context with default values
 const AiTradingContext = createContext<AiTradingContextType>({
   executeAiTrade: () => false,
   getConnectedAccount: () => undefined,
   isProcessing: false,
   connectBotToAccount: () => {},
   disconnectBot: () => {},
-  activeBots: {}
+  activeBots: {},
 });
 
-export const useAiTrading = () => useContext(AiTradingContext);
+interface AiTradingProviderProps {
+  children: ReactNode;
+}
 
 export const AiTradingProvider: React.FC<AiTradingProviderProps> = ({ children }) => {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [botConnections, setBotConnections] = useState<Record<string, string>>({});
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [connectedBots, setConnectedBots] = useState<Record<string, string>>({});
+  const [strategies, setStrategies] = useState<AITradingStrategy[]>([]);
   const [activeBots, setActiveBots] = useState<Record<string, {
     lastTrade?: string;
     status: 'connected' | 'disconnected';
   }>>({});
   
-  const { accounts, addTradeToAccount } = useTradingAccounts();
-  
+  // Connect a bot to a trading account
   const connectBotToAccount = (botId: string, accountId: string) => {
-    setBotConnections(prev => ({
+    setConnectedBots(prev => ({
       ...prev,
       [botId]: accountId
     }));
@@ -42,14 +36,20 @@ export const AiTradingProvider: React.FC<AiTradingProviderProps> = ({ children }
     setActiveBots(prev => ({
       ...prev,
       [botId]: {
-        ...(prev[botId] || {}),
-        status: 'connected'
+        status: 'connected',
+        lastTrade: undefined
       }
     }));
+    
+    toast({
+      title: "Bot Connected",
+      description: `The trading bot has been connected to account ${accountId}`
+    });
   };
   
+  // Disconnect a bot
   const disconnectBot = (botId: string) => {
-    setBotConnections(prev => {
+    setConnectedBots(prev => {
       const newConnections = { ...prev };
       delete newConnections[botId];
       return newConnections;
@@ -58,16 +58,23 @@ export const AiTradingProvider: React.FC<AiTradingProviderProps> = ({ children }
     setActiveBots(prev => ({
       ...prev,
       [botId]: {
-        ...(prev[botId] || {}),
-        status: 'disconnected'
+        status: 'disconnected',
+        lastTrade: prev[botId]?.lastTrade
       }
     }));
+    
+    toast({
+      title: "Bot Disconnected",
+      description: "The trading bot has been disconnected from the account"
+    });
   };
   
-  const getConnectedAccount = (botId: string): string | undefined => {
-    return botConnections[botId];
+  // Get the account connected to a bot
+  const getConnectedAccount = (botId: string) => {
+    return connectedBots[botId];
   };
   
+  // Execute an AI trade
   const executeAiTrade = (params: {
     botId: string;
     strategyId: string;
@@ -76,106 +83,64 @@ export const AiTradingProvider: React.FC<AiTradingProviderProps> = ({ children }
     type: 'buy' | 'sell';
     amount: number;
     price: number;
-  }): boolean => {
-    try {
-      setIsProcessing(true);
+  }) => {
+    setIsProcessing(true);
+    
+    // Simulate API call to execute trade
+    setTimeout(() => {
+      setIsProcessing(false);
       
-      const { botId, strategyId, accountId, coinId, type, amount, price } = params;
-      const account = accounts.find(acc => acc.id === accountId);
-      
-      if (!account) {
-        toast({
-          title: "Trade Error",
-          description: "Account not found",
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      if (type === 'buy' && account.balance < amount * price) {
-        toast({
-          title: "Insufficient Balance",
-          description: "Cannot execute buy trade due to insufficient funds",
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      const strategy = AVAILABLE_STRATEGIES.find(s => s.id === strategyId);
-      if (!strategy) {
-        toast({
-          title: "Trade Error",
-          description: "Strategy not found",
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      const coinData = {
-        id: coinId,
-        name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
-        symbol: coinId.substring(0, 3).toUpperCase(),
-        price: price
-      };
-      
-      // Execute the trade
-      const trade = {
-        id: `ai-trade-${Date.now()}`,
-        coinId: coinData.id,
-        coinName: coinData.name,
-        coinSymbol: coinData.symbol,
-        type,
-        amount,
-        price: coinData.price,
-        totalValue: amount * coinData.price,
-        timestamp: new Date().toISOString(),
-        currency: "USD" as SupportedCurrency,
-        botGenerated: true,
-        strategyId
-      };
-      
-      addTradeToAccount(accountId, trade);
-      
-      // Update bot status
+      // Update bot's last trade timestamp
       setActiveBots(prev => ({
         ...prev,
-        [botId]: {
-          ...prev[botId],
-          lastTrade: `${type} ${amount} ${coinData.symbol} at $${coinData.price}`
+        [params.botId]: {
+          ...prev[params.botId],
+          lastTrade: new Date().toISOString()
         }
       }));
       
       toast({
-        title: "AI Trade Executed",
-        description: `${type.toUpperCase()} ${amount} ${coinData.symbol} at $${coinData.price}`,
+        title: `AI ${params.type.toUpperCase()} Order Executed`,
+        description: `${params.amount} of ${params.coinId} at $${params.price}`
       });
-      
-      return true;
-    } catch (error) {
-      console.error("Error executing AI trade:", error);
-      toast({
-        title: "Trade Error",
-        description: "Failed to execute AI trade",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsProcessing(false);
-    }
+    }, 1000);
+    
+    return true;
   };
   
+  // Add a new trading strategy
+  const addStrategy = (strategy: AITradingStrategy) => {
+    setStrategies(prev => [...prev, strategy]);
+    
+    toast({
+      title: "Strategy Added",
+      description: `${strategy.name} has been added to your strategies`
+    });
+  };
+
+  // Provide the context value
+  const contextValue: AiTradingContextType = {
+    executeAiTrade,
+    getConnectedAccount,
+    isProcessing,
+    connectBotToAccount,
+    disconnectBot,
+    activeBots,
+    addStrategy
+  };
+
   return (
-    <AiTradingContext.Provider value={{
-      executeAiTrade,
-      getConnectedAccount,
-      isProcessing,
-      connectBotToAccount,
-      disconnectBot,
-      activeBots
-    }}>
+    <AiTradingContext.Provider value={contextValue}>
       {children}
     </AiTradingContext.Provider>
   );
 };
 
-export default AiTradingProvider;
+// Custom hook to use the context
+export const useAiTrading = () => {
+  const context = useContext(AiTradingContext);
+  if (context === undefined) {
+    throw new Error('useAiTrading must be used within an AiTradingProvider');
+  }
+  return context;
+};

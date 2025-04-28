@@ -1,425 +1,514 @@
 
-import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ApiProvider } from "@/types/trading";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Check, X, ArrowUpDown } from "lucide-react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ApiProvider, ApiEndpoint, ApiParameter } from '@/types/trading';
+import { ApiStatusIndicator } from './ApiStatusIndicator';
+import { toast } from '@/components/ui/use-toast';
 
-const ApiProviderSettings = () => {
-  const [providers, setProviders] = useState<ApiProvider[]>([
-    {
-      id: "coingecko",
-      name: "CoinGecko",
-      baseUrl: "https://api.coingecko.com/api/v3",
-      apiKeyName: "x_cg_api_key",
-      authMethod: "header",
-      requiresAuth: true,
-      enabled: true,
-      priority: 1,
-      rateLimit: 50,
-      endpoints: {
-        coins: "/coins/markets",
-        coin: "/coins/{id}",
-        history: "/coins/{id}/market_chart"
-      }
-    },
-    {
-      id: "cryptocompare",
-      name: "CryptoCompare",
-      baseUrl: "https://min-api.cryptocompare.com/data",
-      apiKeyName: "authorization",
-      authMethod: "header",
-      requiresAuth: true,
-      enabled: true,
-      priority: 2,
-      rateLimit: 100,
-      endpoints: {
-        price: "/price",
-        histoday: "/histoday",
-        histohour: "/histohour"
-      }
-    },
-    {
-      id: "messari",
-      name: "Messari",
-      baseUrl: "https://data.messari.io/api/v1",
-      apiKeyName: "x-messari-api-key",
-      authMethod: "header",
-      requiresAuth: true,
-      enabled: false,
-      priority: 3,
-      rateLimit: 20,
-      endpoints: {
-        assets: "/assets",
-        asset: "/assets/{id}",
-        metrics: "/assets/{id}/metrics"
-      }
-    }
-  ]);
+interface ApiProviderSettingsProps {
+  provider: ApiProvider;
+  onSave: (provider: ApiProvider) => void;
+  onTest: (provider: ApiProvider) => Promise<boolean>;
+  onDelete: (providerId: string) => void;
+}
 
-  const [editingProvider, setEditingProvider] = useState<ApiProvider | null>(null);
+export const ApiProviderSettings: React.FC<ApiProviderSettingsProps> = ({ 
+  provider,
+  onSave,
+  onTest,
+  onDelete
+}) => {
+  const [editedProvider, setEditedProvider] = useState<ApiProvider>({ ...provider });
+  const [activeTab, setActiveTab] = useState('general');
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<boolean | null>(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  const toggleProviderEnabled = (id: string) => {
-    setProviders(
-      providers.map(provider =>
-        provider.id === id ? { ...provider, enabled: !provider.enabled } : provider
-      )
-    );
+  const handleChange = (field: keyof ApiProvider, value: any) => {
+    setEditedProvider(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEndpointChange = (index: number, field: keyof ApiEndpoint, value: any) => {
+    if (!editedProvider.endpoints) return;
     
+    const updatedEndpoints = [...editedProvider.endpoints];
+    updatedEndpoints[index] = {
+      ...updatedEndpoints[index],
+      [field]: value
+    };
+    
+    setEditedProvider(prev => ({
+      ...prev,
+      endpoints: updatedEndpoints
+    }));
+  };
+
+  const handleEndpointParameterChange = (
+    endpointIndex: number, 
+    paramType: 'params' | 'headers' | 'body',
+    paramIndex: number,
+    field: keyof ApiParameter,
+    value: any
+  ) => {
+    if (!editedProvider.endpoints) return;
+    
+    const updatedEndpoints = [...editedProvider.endpoints];
+    const params = updatedEndpoints[endpointIndex][paramType];
+    
+    if (!params) return;
+    
+    const updatedParams = [...params] as ApiParameter[];
+    updatedParams[paramIndex] = {
+      ...updatedParams[paramIndex],
+      [field]: value
+    };
+    
+    updatedEndpoints[endpointIndex] = {
+      ...updatedEndpoints[endpointIndex],
+      [paramType]: updatedParams
+    };
+    
+    setEditedProvider(prev => ({
+      ...prev,
+      endpoints: updatedEndpoints
+    }));
+  };
+
+  const handleAddEndpoint = () => {
+    const newEndpoint: ApiEndpoint = {
+      id: `endpoint-${Date.now()}`,
+      path: '/new-endpoint',
+      method: 'GET',
+      description: 'New endpoint',
+      requiresAuth: true,
+      params: [],
+      headers: [],
+      body: []
+    };
+    
+    setEditedProvider(prev => ({
+      ...prev,
+      endpoints: [...(prev.endpoints || []), newEndpoint]
+    }));
+  };
+
+  const handleAddParameter = (endpointIndex: number, paramType: 'params' | 'headers' | 'body') => {
+    if (!editedProvider.endpoints) return;
+    
+    const updatedEndpoints = [...editedProvider.endpoints];
+    const params = updatedEndpoints[endpointIndex][paramType] || [];
+    
+    const newParam: ApiParameter = {
+      name: 'new-param',
+      type: 'string',
+      required: false,
+      description: 'New parameter'
+    };
+    
+    updatedEndpoints[endpointIndex] = {
+      ...updatedEndpoints[endpointIndex],
+      [paramType]: [...params, newParam]
+    };
+    
+    setEditedProvider(prev => ({
+      ...prev,
+      endpoints: updatedEndpoints
+    }));
+  };
+
+  const handleDeleteEndpoint = (index: number) => {
+    if (!editedProvider.endpoints) return;
+    
+    const updatedEndpoints = [...editedProvider.endpoints];
+    updatedEndpoints.splice(index, 1);
+    
+    setEditedProvider(prev => ({
+      ...prev,
+      endpoints: updatedEndpoints
+    }));
+  };
+
+  const handleDeleteParameter = (
+    endpointIndex: number,
+    paramType: 'params' | 'headers' | 'body',
+    paramIndex: number
+  ) => {
+    if (!editedProvider.endpoints) return;
+    
+    const updatedEndpoints = [...editedProvider.endpoints];
+    const params = updatedEndpoints[endpointIndex][paramType];
+    
+    if (!params) return;
+    
+    const updatedParams = [...params];
+    updatedParams.splice(paramIndex, 1);
+    
+    updatedEndpoints[endpointIndex] = {
+      ...updatedEndpoints[endpointIndex],
+      [paramType]: updatedParams
+    };
+    
+    setEditedProvider(prev => ({
+      ...prev,
+      endpoints: updatedEndpoints
+    }));
+  };
+
+  const handleSave = () => {
+    onSave(editedProvider);
     toast({
-      title: "Provider Updated",
-      description: `${providers.find(p => p.id === id)?.name} is now ${providers.find(p => p.id === id)?.enabled ? 'disabled' : 'enabled'}`
+      title: 'API Provider Saved',
+      description: `${editedProvider.name} settings have been updated.`
     });
   };
 
-  const handleSaveProvider = () => {
-    if (!editingProvider) return;
+  const handleTest = async () => {
+    setIsTesting(true);
+    setTestResult(null);
     
-    setProviders(
-      providers.map(provider =>
-        provider.id === editingProvider.id ? editingProvider : provider
-      )
-    );
-    
-    setEditingProvider(null);
-    
-    toast({
-      title: "Provider Settings Saved",
-      description: `${editingProvider.name} settings have been updated`
-    });
-  };
-
-  const changePriority = (id: string, direction: 'up' | 'down') => {
-    const currentIndex = providers.findIndex(p => p.id === id);
-    if (
-      (direction === 'up' && currentIndex === 0) ||
-      (direction === 'down' && currentIndex === providers.length - 1)
-    ) {
-      return;
+    try {
+      const result = await onTest(editedProvider);
+      setTestResult(result);
+      
+      if (result) {
+        toast({
+          title: 'Connection Test Successful',
+          description: `Successfully connected to ${editedProvider.name} API.`
+        });
+      } else {
+        toast({
+          title: 'Connection Test Failed',
+          description: `Failed to connect to ${editedProvider.name} API.`,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      setTestResult(false);
+      toast({
+        title: 'Connection Test Error',
+        description: `Error testing connection: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsTesting(false);
     }
-
-    const newProviders = [...providers];
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    
-    // Swap priorities
-    const currentPriority = newProviders[currentIndex].priority;
-    newProviders[currentIndex].priority = newProviders[targetIndex].priority;
-    newProviders[targetIndex].priority = currentPriority;
-    
-    // Sort by priority
-    newProviders.sort((a, b) => a.priority - b.priority);
-    
-    setProviders(newProviders);
   };
-  
+
+  const handleDelete = () => {
+    if (showConfirmDelete) {
+      onDelete(provider.id);
+      toast({
+        title: 'API Provider Deleted',
+        description: `${provider.name} has been removed.`
+      });
+    } else {
+      setShowConfirmDelete(true);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">API Providers Configuration</h3>
-      </div>
-      
-      <div className="rounded-md border">
-        <div className="bg-muted/50 p-2 grid grid-cols-5 font-medium text-sm">
-          <div className="col-span-2">Provider</div>
-          <div>Status</div>
-          <div>Priority</div>
-          <div className="text-right">Actions</div>
-        </div>
-        
-        {providers.map((provider) => (
-          <div key={provider.id} className="grid grid-cols-5 p-2 border-t items-center">
-            <div className="col-span-2">
-              <div className="font-medium">{provider.name}</div>
-              <div className="text-xs text-muted-foreground">{provider.baseUrl}</div>
-            </div>
-            <div>
-              <Switch
-                checked={provider.enabled}
-                onCheckedChange={() => toggleProviderEnabled(provider.id)}
-                className="data-[state=checked]:bg-green-500"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => changePriority(provider.id, 'up')}
-                disabled={provider.priority === 1}
-              >
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-              <span>{provider.priority}</span>
-            </div>
-            <div className="text-right">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditingProvider(provider)}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Configure
-              </Button>
-            </div>
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>{provider.name}</CardTitle>
+            <CardDescription>{provider.description || 'API Provider Configuration'}</CardDescription>
           </div>
-        ))}
-      </div>
+          <ApiStatusIndicator enabled={provider.enabled || false} />
+        </div>
+      </CardHeader>
       
-      {editingProvider && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Edit {editingProvider.name} Settings</CardTitle>
-            <CardDescription>Configure API connection parameters</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="general">
-              <TabsList className="grid grid-cols-3 mb-4">
-                <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="authentication">Authentication</TabsTrigger>
-                <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
-              </TabsList>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="authentication">Authentication</TabsTrigger>
+            <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
+            <TabsTrigger value="rate-limits">Rate Limits</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="general">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Provider Name</label>
+                <Input
+                  value={editedProvider.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                />
+              </div>
               
-              <TabsContent value="general" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Provider Name</Label>
-                  <Input
-                    id="name"
-                    value={editingProvider.name}
-                    onChange={(e) => 
-                      setEditingProvider({...editingProvider, name: e.target.value})
-                    }
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="baseUrl">Base URL</Label>
-                  <Input
-                    id="baseUrl"
-                    value={editingProvider.baseUrl}
-                    onChange={(e) => 
-                      setEditingProvider({...editingProvider, baseUrl: e.target.value})
-                    }
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Input
-                    id="priority"
-                    type="number"
-                    min={1}
-                    value={editingProvider.priority}
-                    onChange={(e) => 
-                      setEditingProvider({
-                        ...editingProvider, 
-                        priority: parseInt(e.target.value) || 1
-                      })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Lower numbers have higher priority
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="rateLimit">Rate Limit (calls/minute)</Label>
-                  <Input
-                    id="rateLimit"
-                    type="number"
-                    min={1}
-                    value={editingProvider.rateLimit}
-                    onChange={(e) => 
-                      setEditingProvider({
-                        ...editingProvider, 
-                        rateLimit: parseInt(e.target.value) || 1
-                      })
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between pt-2">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="enabled">Enabled</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Enable or disable this provider
-                    </p>
-                  </div>
-                  <Switch
-                    id="enabled"
-                    checked={editingProvider.enabled}
-                    onCheckedChange={(checked) =>
-                      setEditingProvider({...editingProvider, enabled: checked})
-                    }
-                  />
-                </div>
-              </TabsContent>
+              <div>
+                <label className="block text-sm font-medium mb-1">Base URL</label>
+                <Input
+                  value={editedProvider.baseUrl}
+                  onChange={(e) => handleChange('baseUrl', e.target.value)}
+                />
+              </div>
               
-              <TabsContent value="authentication" className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Requires Authentication</Label>
-                    <p className="text-xs text-muted-foreground">
-                      This API requires an API key
-                    </p>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <Input
+                  value={editedProvider.description || ''}
+                  onChange={(e) => handleChange('description', e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">API Version</label>
+                <Input
+                  value={editedProvider.version || ''}
+                  onChange={(e) => handleChange('version', e.target.value)}
+                />
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="enabled"
+                  checked={editedProvider.enabled || false}
+                  onChange={(e) => handleChange('enabled', e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="enabled" className="text-sm">Enable API Provider</label>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="authentication">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Authentication Method</label>
+                <select
+                  value={editedProvider.authMethod || 'none'}
+                  onChange={(e) => handleChange('authMethod', e.target.value)}
+                  className="w-full border rounded p-2"
+                >
+                  <option value="none">None</option>
+                  <option value="header">Header</option>
+                  <option value="query">Query Parameter</option>
+                </select>
+              </div>
+              
+              {editedProvider.authMethod && editedProvider.authMethod !== 'none' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">API Key Name</label>
+                    <Input
+                      value={editedProvider.apiKeyName || ''}
+                      onChange={(e) => handleChange('apiKeyName', e.target.value)}
+                      placeholder={editedProvider.authMethod === 'header' ? 'X-API-Key' : 'api_key'}
+                    />
                   </div>
-                  <Switch
-                    checked={editingProvider.requiresAuth}
-                    onCheckedChange={(checked) =>
-                      setEditingProvider({...editingProvider, requiresAuth: checked})
-                    }
-                  />
-                </div>
-                
-                {editingProvider.requiresAuth && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="apiKeyName">API Key Parameter Name</Label>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">API Key</label>
+                    <Input
+                      type="password"
+                      value={editedProvider.apiKey || ''}
+                      onChange={(e) => handleChange('apiKey', e.target.value)}
+                      placeholder="Enter your API key"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">API Secret (if required)</label>
+                    <Input
+                      type="password"
+                      value={editedProvider.apiSecret || ''}
+                      onChange={(e) => handleChange('apiSecret', e.target.value)}
+                      placeholder="Enter your API secret"
+                    />
+                  </div>
+                </>
+              )}
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requiresAuth"
+                  checked={editedProvider.requiresAuth || false}
+                  onChange={(e) => handleChange('requiresAuth', e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="requiresAuth" className="text-sm">API Requires Authentication</label>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="endpoints">
+            <div className="space-y-6">
+              {editedProvider.endpoints?.map((endpoint, index) => (
+                <div key={endpoint.id} className="border p-4 rounded">
+                  <div className="flex justify-between mb-4">
+                    <h3 className="font-medium">{endpoint.path}</h3>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => handleDeleteEndpoint(index)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Path</label>
                       <Input
-                        id="apiKeyName"
-                        value={editingProvider.apiKeyName}
-                        onChange={(e) => 
-                          setEditingProvider({...editingProvider, apiKeyName: e.target.value})
-                        }
+                        value={endpoint.path}
+                        onChange={(e) => handleEndpointChange(index, 'path', e.target.value)}
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label>Authentication Method</Label>
-                      <div className="flex gap-4 pt-1">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id="auth-header"
-                            checked={editingProvider.authMethod === "header"}
-                            onChange={() =>
-                              setEditingProvider({...editingProvider, authMethod: "header"})
-                            }
-                          />
-                          <Label htmlFor="auth-header">Header</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id="auth-query"
-                            checked={editingProvider.authMethod === "query"}
-                            onChange={() =>
-                              setEditingProvider({...editingProvider, authMethod: "query"})
-                            }
-                          />
-                          <Label htmlFor="auth-query">Query Parameter</Label>
-                        </div>
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Method</label>
+                      <select
+                        value={endpoint.method}
+                        onChange={(e) => handleEndpointChange(index, 'method', e.target.value as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH')}
+                        className="w-full border rounded p-2"
+                      >
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                      </select>
                     </div>
-                  </>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="endpoints" className="space-y-4">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Configure endpoint paths for this provider
-                </p>
-                
-                {Object.entries(editingProvider.endpoints).map(([key, value]) => (
-                  <div key={key} className="space-y-2">
-                    <Label htmlFor={`endpoint-${key}`}>{key}</Label>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Description</label>
                     <Input
-                      id={`endpoint-${key}`}
-                      value={value}
-                      onChange={(e) => {
-                        const updatedEndpoints = {
-                          ...editingProvider.endpoints,
-                          [key]: e.target.value
-                        };
-                        setEditingProvider({
-                          ...editingProvider,
-                          endpoints: updatedEndpoints
-                        });
-                      }}
+                      value={endpoint.description || ''}
+                      onChange={(e) => handleEndpointChange(index, 'description', e.target.value)}
                     />
                   </div>
-                ))}
-              </TabsContent>
-            </Tabs>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setEditingProvider(null)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveProvider}>
-                Save Changes
-              </Button>
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center mb-4">
+                      <h4 className="font-medium">Query Parameters</h4>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="ml-auto"
+                        onClick={() => handleAddParameter(index, 'params')}
+                      >
+                        Add Parameter
+                      </Button>
+                    </div>
+                    
+                    {endpoint.params?.map((param, paramIndex) => (
+                      <div key={`param-${paramIndex}`} className="grid grid-cols-3 gap-2 mb-2">
+                        <Input
+                          value={param.name}
+                          onChange={(e) => handleEndpointParameterChange(index, 'params', paramIndex, 'name', e.target.value)}
+                          placeholder="Name"
+                        />
+                        <select
+                          value={param.type}
+                          onChange={(e) => handleEndpointParameterChange(index, 'params', paramIndex, 'type', e.target.value as 'string' | 'number' | 'boolean' | 'array' | 'object')}
+                          className="border rounded p-2"
+                        >
+                          <option value="string">String</option>
+                          <option value="number">Number</option>
+                          <option value="boolean">Boolean</option>
+                          <option value="array">Array</option>
+                          <option value="object">Object</option>
+                        </select>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteParameter(index, 'params', paramIndex)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    
+                    {(!endpoint.params || endpoint.params.length === 0) && (
+                      <div className="text-sm text-muted-foreground">No parameters defined</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              <Button onClick={handleAddEndpoint}>Add Endpoint</Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Failover Configuration</CardTitle>
-          <CardDescription>Configure how the system handles API failures</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Automatic Failover</Label>
-                <p className="text-xs text-muted-foreground">
-                  Automatically switch to next provider on failure
+          </TabsContent>
+          
+          <TabsContent value="rate-limits">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Rate Limit Per Minute</label>
+                <Input
+                  type="number"
+                  value={editedProvider.rateLimitPerMinute?.toString() || ''}
+                  onChange={(e) => handleChange('rateLimitPerMinute', parseInt(e.target.value || '0'))}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Rate Limit Per Day</label>
+                <Input
+                  type="number"
+                  value={editedProvider.rateLimitPerDay?.toString() || ''}
+                  onChange={(e) => handleChange('rateLimitPerDay', parseInt(e.target.value || '0'))}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Rate Limit Per Month</label>
+                <Input
+                  type="number"
+                  value={editedProvider.rateLimitPerMonth?.toString() || ''}
+                  onChange={(e) => handleChange('rateLimitPerMonth', parseInt(e.target.value || '0'))}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Priority</label>
+                <Input
+                  type="number"
+                  value={editedProvider.priority?.toString() || ''}
+                  onChange={(e) => handleChange('priority', parseInt(e.target.value || '0'))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Higher priority providers will be used first when multiple providers offer the same endpoint
                 </p>
               </div>
-              <Switch defaultChecked />
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Retry Failed Requests</Label>
-                <p className="text-xs text-muted-foreground">
-                  Retry failed requests before failover
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Cache Fallback</Label>
-                <p className="text-xs text-muted-foreground">
-                  Use cached data when all providers fail
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="retry-attempts">Retry Attempts</Label>
-              <Input
-                id="retry-attempts"
-                type="number"
-                min={0}
-                max={5}
-                defaultValue={3}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="retry-delay">Retry Delay (ms)</Label>
-              <Input
-                id="retry-delay"
-                type="number"
-                min={100}
-                step={100}
-                defaultValue={1000}
-              />
-            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button onClick={handleSave}>Save Changes</Button>
+          <Button variant="outline" onClick={handleTest} disabled={isTesting}>
+            {isTesting ? 'Testing...' : 'Test Connection'}
+          </Button>
+          <Button 
+            variant={showConfirmDelete ? "destructive" : "outline"} 
+            onClick={handleDelete}
+            className="ml-auto"
+          >
+            {showConfirmDelete ? 'Confirm Delete' : 'Delete Provider'}
+          </Button>
+        </div>
+        
+        {testResult !== null && (
+          <div className={`mt-4 p-2 rounded ${testResult ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            {testResult 
+              ? `Successfully connected to ${editedProvider.name} API` 
+              : `Failed to connect to ${editedProvider.name} API`
+            }
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

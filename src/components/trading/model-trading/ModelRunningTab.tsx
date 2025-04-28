@@ -1,126 +1,155 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  ArrowRight, 
-  ArrowUp, 
-  ArrowDown, 
-  AlertCircle, 
-  CheckCircle2,
-  Brain,
-  ChartLine
-} from 'lucide-react';
-import { LocalModel, ModelPredictionResult } from '@/types/trading';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
+import { Brain, Play, StopCircle } from "lucide-react";
+import { ModelRunningTabProps } from "./ModelRunningTabProps";
+import { Spinner } from "@/components/ui/spinner";
 
-interface ModelRunningTabProps {
-  model: LocalModel;
-  onStop: () => void;
-  onAnalyze: () => void;
-}
-
-const ModelRunningTab: React.FC<ModelRunningTabProps> = ({ model, onStop, onAnalyze }) => {
-  const [lastPrediction, setLastPrediction] = useState<ModelPredictionResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+export const ModelRunningTab: React.FC<ModelRunningTabProps> = ({ model, onDisconnect }) => {
+  const [isRunning, setIsRunning] = useState(false);
+  const [symbol, setSymbol] = useState("BTC");
+  const [timeframe, setTimeframe] = useState("1d");
+  const [result, setResult] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<number | null>(null);
   
-  const simulatePrediction = async () => {
-    setIsLoading(true);
+  const runModel = () => {
+    setIsRunning(true);
+    setResult(null);
+    setConfidence(null);
     
-    // Simulate an API call to the local model
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Generate a random prediction result
-    const randomDirection = ['up', 'down', 'sideways'][Math.floor(Math.random() * 3)];
-    const randomProbability = Math.random();
-    const randomConfidence = Math.random() * 100;
-    
-    const prediction: ModelPredictionResult = {
-      timestamp: new Date().toISOString(),
-      direction: randomDirection,
-      probability: randomProbability,
-      confidence: randomConfidence,
-      timeframe: '15m'
-    };
-    
-    setLastPrediction(prediction);
-    setIsLoading(false);
+    // Simulate API call to the model endpoint
+    setTimeout(() => {
+      const predictions = ["bullish", "bearish", "neutral"];
+      const randomPrediction = predictions[Math.floor(Math.random() * 3)];
+      const randomConfidence = Math.round(Math.random() * 85 + 15); // 15-100%
+      
+      setResult(randomPrediction);
+      setConfidence(randomConfidence);
+      setIsRunning(false);
+      
+      toast({
+        title: "Model Prediction Complete",
+        description: `${symbol} ${timeframe} prediction: ${randomPrediction.toUpperCase()} (${randomConfidence}% confidence)`
+      });
+    }, 2500);
   };
   
+  const getResultClass = () => {
+    if (!result) return "";
+    if (result === "bullish") return "text-green-500";
+    if (result === "bearish") return "text-red-500";
+    return "text-yellow-500";
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5" />
-          Model Running: {model.name}
-        </CardTitle>
-        <CardDescription>
-          Real-time predictions and analysis from your local AI model
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <Alert>
-          <CheckCircle2 className="h-4 w-4" />
-          <AlertDescription>
-            Model is actively running and generating predictions.
-          </AlertDescription>
-        </Alert>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <Brain className="h-5 w-5 mr-2" />
+              {model.name}
+            </CardTitle>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {model.description || "Connected to your local AI model"}
+          </p>
+        </CardHeader>
         
-        <div className="space-y-2">
-          <div className="text-sm font-medium">Last Prediction</div>
-          {lastPrediction ? (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  Timestamp: {new Date(lastPrediction.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span>Direction:</span>
-                <Badge variant="secondary">
-                  {lastPrediction.direction.toUpperCase()}
-                  {lastPrediction.direction === 'up' && <ArrowUp className="h-4 w-4 ml-1" />}
-                  {lastPrediction.direction === 'down' && <ArrowDown className="h-4 w-4 ml-1" />}
-                  {lastPrediction.direction === 'sideways' && <ArrowRight className="h-4 w-4 ml-1" />}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span>Probability:</span>
-                <Badge variant="outline">{lastPrediction.probability.toFixed(2)}</Badge>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span>Confidence:</span>
-                <Badge variant="outline">{lastPrediction.confidence.toFixed(0)}%</Badge>
-              </div>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Symbol</label>
+              <Select value={symbol} onValueChange={setSymbol}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select symbol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                  <SelectItem value="SOL">Solana (SOL)</SelectItem>
+                  <SelectItem value="ADA">Cardano (ADA)</SelectItem>
+                  <SelectItem value="XRP">Ripple (XRP)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          ) : (
-            <div className="text-muted-foreground">No predictions yet.</div>
-          )}
-        </div>
-        
-        <div className="flex justify-between">
-          <Button onClick={simulatePrediction} disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Get Prediction'}
-          </Button>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Timeframe</label>
+              <Select value={timeframe} onValueChange={setTimeframe}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15m">15 Minutes</SelectItem>
+                  <SelectItem value="1h">1 Hour</SelectItem>
+                  <SelectItem value="4h">4 Hours</SelectItem>
+                  <SelectItem value="1d">1 Day</SelectItem>
+                  <SelectItem value="1w">1 Week</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          <Button variant="secondary" onClick={onAnalyze}>
-            <ChartLine className="h-4 w-4 mr-2" />
-            Analyze Model
+          <div className="space-y-4">
+            <Button 
+              className="w-full"
+              onClick={runModel}
+              disabled={isRunning}
+            >
+              {isRunning ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Running Model...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Run Prediction
+                </>
+              )}
+            </Button>
+            
+            {(result || isRunning) && (
+              <div className="p-4 border rounded-md">
+                <div className="text-sm font-medium mb-2">Model Output:</div>
+                {isRunning ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Spinner size="md" />
+                    <span className="ml-2">Processing...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold mb-1 capitalize">
+                      <span className={getResultClass()}>{result}</span>
+                    </div>
+                    {confidence !== null && (
+                      <div className="text-sm text-muted-foreground">
+                        Confidence: {confidence}%
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </CardContent>
+        
+        <CardFooter className="border-t pt-4">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => onDisconnect(model.id)}
+          >
+            <StopCircle className="h-4 w-4 mr-2" />
+            Disconnect Model
           </Button>
-        </div>
-      </CardContent>
-      
-      <CardContent className="border-t">
-        <Button variant="destructive" onClick={onStop} className="w-full">
-          Stop Model
-        </Button>
-      </CardContent>
-    </Card>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
-
-export default ModelRunningTab;

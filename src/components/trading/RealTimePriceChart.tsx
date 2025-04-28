@@ -104,7 +104,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
           <div>
             <h3 className="text-lg font-medium">{selectedCoin.name} ({selectedCoin.symbol})</h3>
             <div className="flex items-center">
-              <span className="text-xl font-bold">${selectedCoin.price.toFixed(2)}</span>
+              <span className="text-xl font-bold">${selectedCoin.price?.toFixed(2)}</span>
               <div className={`ml-3 flex items-center ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
                 {isPriceUp ? <ArrowUp className="h-4 w-4 mr-1" /> : <ArrowDown className="h-4 w-4 mr-1" />}
                 <span className="text-sm">{Math.abs(priceChangePercent).toFixed(2)}%</span>

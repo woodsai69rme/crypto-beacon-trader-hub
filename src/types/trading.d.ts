@@ -60,6 +60,7 @@ export interface CoinOption {
   current_price?: number;
   market_cap?: number;
   market_cap_rank?: number;
+  price_change_percentage_24h?: number;
 }
 
 // Type for watchlist items
@@ -94,6 +95,53 @@ export interface ApiUsageStats {
   endpoint?: string;
 }
 
+// Type for API provider
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description?: string;
+  logo?: string;
+  documentation?: string;
+  version?: string;
+  authMethod?: 'header' | 'query' | 'none';
+  apiKeyName?: string;
+  requiresAuth?: boolean;
+  enabled?: boolean;
+  priority?: number;
+  rateLimitPerMinute?: number;
+  rateLimitPerDay?: number;
+  rateLimitPerMonth?: number;
+  defaultHeaders?: Record<string, string>;
+  defaultParams?: Record<string, string>;
+  endpoints?: ApiEndpoint[];
+  apiKey?: string;
+  apiSecret?: string;
+}
+
+// Type for API endpoint
+export interface ApiEndpoint {
+  id: string;
+  path: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  description?: string;
+  requiresAuth?: boolean;
+  params?: ApiParameter[];
+  headers?: ApiParameter[];
+  body?: ApiParameter[];
+  rateLimited?: boolean;
+  cacheDuration?: number; // in seconds
+}
+
+// Type for API parameter
+export interface ApiParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  description?: string;
+  defaultValue?: any;
+}
+
 // Type for real-time price updates
 export interface PriceUpdate {
   coinId: string;
@@ -115,47 +163,6 @@ export interface ApiRateLimit {
 export interface ExchangeRateLimit {
   exchange: string;
   limits: ApiRateLimit[];
-}
-
-// Type for trading signals in social features
-export interface TradingSignal {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatar?: string;
-  coinId: string;
-  coinSymbol: string;
-  type: 'buy' | 'sell';
-  entryPrice: number;
-  targetPrice: number;
-  stopLoss: number;
-  timeframe: string;
-  confidence: 'low' | 'medium' | 'high';
-  reasoning: string;
-  timestamp: string;
-  likes: number;
-  comments: number;
-}
-
-// Type for strategy shares in social features
-export interface StrategyShare {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatar?: string;
-  strategyName: string;
-  strategyType: string;
-  description: string;
-  performance: {
-    winRate: number;
-    profitFactor: number;
-    totalTrades: number;
-    averageReturn: number;
-  };
-  tags: string[];
-  likes: number;
-  downloads: number;
-  timestamp: string;
 }
 
 // Trade type
@@ -181,6 +188,7 @@ export interface Trade {
   profitLoss?: number;
 }
 
+// Trading Account
 export interface TradingAccount {
   id: string;
   name: string;
@@ -202,6 +210,7 @@ export interface TradingAccount {
   }[];
 }
 
+// BacktestTrade
 export interface BacktestTrade {
   id: string;
   timestamp: string;
@@ -216,9 +225,11 @@ export interface BacktestTrade {
   profitLoss?: number;
 }
 
+// Widget size and type
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
 export type WidgetType = 'trading' | 'aiTrading' | 'multiExchange' | 'education' | 'community' | 'aiAnalysis' | 'custom';
 
+// Widget
 export interface Widget {
   id: string;
   title: string;
@@ -228,6 +239,7 @@ export interface Widget {
   position?: number;
 }
 
+// AI Strategy Type
 export type AIStrategyType = 
   | "trend-following" 
   | "mean-reversion" 
@@ -238,6 +250,7 @@ export type AIStrategyType =
   | "custom"
   | "multi-timeframe";
 
+// AI Trading Strategy
 export interface AITradingStrategy {
   id: string;
   name: string;
@@ -247,6 +260,7 @@ export interface AITradingStrategy {
   parameters: Record<string, any>;
 }
 
+// Strategy Parameter
 export interface StrategyParameter {
   id: string;
   name: string;
@@ -260,6 +274,7 @@ export interface StrategyParameter {
   label?: string;
 }
 
+// Technical Indicator
 export interface TechnicalIndicator {
   name: string;
   period: number;
@@ -269,11 +284,13 @@ export interface TechnicalIndicator {
   description?: string;
 }
 
+// Extended Trading Timeframe
 export type ExtendedTradingTimeframe =
   | '1m' | '3m' | '5m' | '15m' | '30m' 
   | '1h' | '2h' | '4h' | '6h' | '8h' | '12h'
   | '1d' | '3d' | '1w' | '2w' | '1M' | '3M' | '6M' | '1y';
 
+// Timeframe Option
 export interface TimeframeOption {
   value: ExtendedTradingTimeframe;
   label: string;
@@ -281,8 +298,10 @@ export interface TimeframeOption {
   minutes?: number;
 }
 
+// Trading Timeframe
 export type TradingTimeframe = ExtendedTradingTimeframe | TimeframeOption;
 
+// Backtest Result
 export interface BacktestResult {
   startDate: string;
   endDate: string;
@@ -306,6 +325,7 @@ export interface BacktestResult {
   sortinoRatio?: number;
 }
 
+// Optimization Result
 export interface OptimizationResult {
   strategyId: string;
   parameterValues: Record<string, any>;
@@ -322,6 +342,7 @@ export interface OptimizationResult {
   improvement: number;
 }
 
+// Currency Conversion
 export interface CurrencyConversion {
   USD_AUD: number;
   AUD_USD: number;
@@ -332,6 +353,7 @@ export interface CurrencyConversion {
   lastUpdated: string;
 }
 
+// AI Trading Context Type
 export interface AiTradingContextType {
   executeAiTrade: (params: {
     botId: string;
@@ -353,7 +375,7 @@ export interface AiTradingContextType {
   addStrategy?: (strategy: AITradingStrategy) => void;
 }
 
-// New interfaces for advanced trading features
+// Fibonacci Levels
 export interface FibonacciLevels {
   coin: string;
   timeframe: string;
@@ -365,6 +387,7 @@ export interface FibonacciLevels {
   lastCalculated: string;
 }
 
+// Liquidity Heatmap
 export interface LiquidityHeatmap {
   coin: string;
   timeframe: string;
@@ -381,6 +404,7 @@ export interface LiquidityHeatmap {
   lastUpdated: string;
 }
 
+// Trade Prediction
 export interface TradePrediction {
   coin: string;
   timeframe: string;
@@ -431,10 +455,22 @@ export interface HyblockMarketData {
 export interface LocalModel {
   id: string;
   name: string;
-  endpoint: string;
-  type: "prediction" | "sentiment" | "trading" | "analysis";
-  isConnected: boolean;
+  description: string;
+  endpoint?: string;
+  type: string;
+  isConnected?: boolean;
   lastUsed?: string;
+  parameters: Record<string, any>;
+  performance: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+  status: 'active' | 'inactive' | 'training';
+  creator: string;
+  fileSize?: number;
+  version?: string;
 }
 
 // TradingViewChart Config
@@ -484,4 +520,127 @@ export interface QuantitativeAnalysis {
     probability: number;
     targetPrice?: number;
   };
+}
+
+// Portfolio Benchmark type
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  symbol: string;
+  performance: {
+    day: number;
+    week: number;
+    month: number;
+    threeMonth: number;
+    year: number;
+    ytd: number;
+  };
+  lastUpdated: string;
+  description?: string;
+  type: 'index' | 'etf' | 'stock' | 'crypto' | 'custom';
+}
+
+// ATO Tax related types
+export interface ATOTaxRate {
+  lowerBound: number;
+  upperBound: number | null;
+  baseAmount: number;
+  rate: number;
+  taxableYear: string;
+}
+
+export interface ATOTaxCalculation {
+  id: string;
+  financialYear: string;
+  totalIncome: number;
+  totalDeductions: number;
+  taxableIncome: number;
+  taxPayable: number;
+  medicareLevyPayable: number;
+  taxOffsets: number;
+  netTaxPayable: number;
+  effectiveTaxRate: number;
+  trades: Trade[];
+  timestamp: string;
+  notes?: string;
+}
+
+// Trading Signal and Strategy Share types
+export interface TradingSignal {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  coinId: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  entryPrice: number;
+  targetPrice: number;
+  stopLoss: number;
+  timeframe: string;
+  confidence: 'low' | 'medium' | 'high';
+  reasoning: string;
+  timestamp: string;
+  likes: number;
+  comments: number;
+}
+
+export interface StrategyShare {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  strategyName: string;
+  strategyType: string;
+  description: string;
+  performance: {
+    winRate: number;
+    profitFactor: number;
+    totalTrades: number;
+    averageReturn: number;
+  };
+  tags: string[];
+  likes: number;
+  downloads: number;
+  timestamp: string;
+}
+
+// Props types for components
+export interface QuantitativeAnalysisProps {
+  symbol: string;
+  timeframe: string;
+  timestamp: string;
+  buyProbability: number;
+  sellProbability: number;
+  holdProbability: number;
+  expectedValue: number;
+  riskRewardRatio: number;
+  confidenceScore: number;
+  signals: Array<{
+    indicator: string;
+    value: number;
+    signal: 'buy' | 'sell' | 'neutral';
+    strength: number;
+    timeframe: string;
+  }>;
+  shortTerm: {
+    direction: 'up' | 'down' | 'sideways';
+    probability: number;
+    targetPrice?: number;
+  };
+  mediumTerm: {
+    direction: 'up' | 'down' | 'sideways';
+    probability: number;
+    targetPrice?: number;
+  };
+  longTerm: {
+    direction: 'up' | 'down' | 'sideways';
+    probability: number;
+    targetPrice?: number;
+  };
+}
+
+export interface CryptoSearchProps {
+  coins: CoinOption[] | CryptoData[];
+  onSelect: (coin: CoinOption | CryptoData) => void;
 }
