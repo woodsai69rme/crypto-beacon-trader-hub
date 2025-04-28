@@ -1,36 +1,38 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
+import { Spinner } from '@/components/ui/spinner';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { AiTradingProvider } from '@/contexts/AiTradingContext';
-import { queryClient } from '@/services/api';
-import Index from './pages/Index';
-import NotFound from './pages/NotFound';
-import './App.css';
 
-const App = () => {
+// Create a client
+const queryClient = new QueryClient();
+
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" defaultColorScheme="default" storageKey="crypto-app-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="trading-platform-theme">
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CurrencyProvider>
             <AiTradingProvider>
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
-              </BrowserRouter>
+              <Router>
+                <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><Spinner size="lg" /></div>}>
+                  <Routes>
+                    <Route path="/" element={<div>Loading...</div>} />
+                  </Routes>
+                </Suspense>
+              </Router>
+              <Toaster />
             </AiTradingProvider>
           </CurrencyProvider>
         </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
-};
+}
 
 export default App;

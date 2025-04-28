@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LocalModel } from '@/types/trading';
-import { toast } from '@/components/ui/use-toast';
+import { Badge } from "@/components/ui/badge";
+import { LocalModel } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
+import { Server, Check, X, LinkIcon, Unlink, ArrowRight } from "lucide-react";
 
 interface ModelConnectionTabProps {
   models: LocalModel[];
@@ -12,88 +15,149 @@ interface ModelConnectionTabProps {
   onUpdateEndpoint: (modelId: string, newEndpoint: string) => void;
 }
 
-const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({ models, onConnect, onDisconnect, onUpdateEndpoint }) => {
+const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({
+  models,
+  onConnect,
+  onDisconnect,
+  onUpdateEndpoint
+}) => {
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
-  const [newEndpoint, setNewEndpoint] = useState<string>("");
+  const [newEndpoint, setNewEndpoint] = useState<string>('');
+
+  const handleEditStart = (model: LocalModel) => {
+    setEditingModelId(model.id);
+    setNewEndpoint(model.endpoint);
+  };
+
+  const handleUpdateEndpoint = () => {
+    if (!editingModelId) return;
+    
+    onUpdateEndpoint(editingModelId, newEndpoint);
+    setEditingModelId(null);
+    
+    toast({
+      title: "Endpoint Updated",
+      description: "The model endpoint has been updated successfully."
+    });
+  };
 
   const handleConnect = (modelId: string) => {
     onConnect(modelId);
+    
+    toast({
+      title: "Model Connected",
+      description: "Successfully connected to the AI model endpoint."
+    });
   };
 
   const handleDisconnect = (modelId: string) => {
     onDisconnect(modelId);
-  };
-
-  const handleEditEndpoint = (modelId: string) => {
-    setEditingModelId(modelId);
-    const model = models.find(m => m.id === modelId);
-    setNewEndpoint(model?.endpoint || "");
-  };
-
-  const handleSaveEndpoint = (modelId: string) => {
-    onUpdateEndpoint(modelId, newEndpoint);
-    setEditingModelId(null);
+    
     toast({
-      title: "Endpoint Updated",
-      description: "Model endpoint has been updated"
+      title: "Model Disconnected",
+      description: "The AI model has been disconnected."
     });
   };
 
   return (
     <div className="space-y-4">
-      {models.length > 0 ? (
-        models.map((model) => (
-          <div key={model.id} className="border rounded-md p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-medium">{model.name}</h3>
-                <p className="text-sm text-muted-foreground">Type: {model.type}</p>
+      <div className="bg-muted/40 rounded-lg p-4 mb-4">
+        <h3 className="text-md font-medium mb-2">Connect Local AI Models</h3>
+        <p className="text-sm text-muted-foreground">
+          Link your locally running AI models for trading analysis, prediction, and automation.
+          Make sure your model server is running and accessible at the specified endpoint.
+        </p>
+      </div>
+      
+      <div className="grid gap-4">
+        {models.map((model) => (
+          <Card key={model.id} className="overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-primary" />
+                  <h3 className="font-medium">{model.name}</h3>
+                  <Badge variant={model.isConnected ? "default" : "outline"}>
+                    {model.isConnected ? "Connected" : "Disconnected"}
+                  </Badge>
+                </div>
+                <Badge variant="outline">{model.type}</Badge>
               </div>
-              <div>
-                {model.isConnected ? (
-                  <Button variant="destructive" size="sm" onClick={() => handleDisconnect(model.id)}>
-                    Disconnect
-                  </Button>
+              
+              <div className="mt-2">
+                {editingModelId === model.id ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      value={newEndpoint}
+                      onChange={(e) => setNewEndpoint(e.target.value)}
+                      placeholder="http://localhost:5000/predict"
+                      className="flex-1"
+                    />
+                    <Button size="sm" onClick={handleUpdateEndpoint}>
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setEditingModelId(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ) : (
-                  <Button size="sm" onClick={() => handleConnect(model.id)}>
-                    Connect
-                  </Button>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="font-mono text-muted-foreground">
+                      {model.endpoint}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleEditStart(model)}
+                      className="h-8 px-2"
+                    >
+                      Edit
+                    </Button>
+                  </div>
                 )}
               </div>
-            </div>
-
-            <div className="mt-2">
-              {editingModelId === model.id ? (
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="text"
-                    value={newEndpoint}
-                    onChange={(e) => setNewEndpoint(e.target.value)}
-                    placeholder="Enter new endpoint"
-                  />
-                  <Button size="sm" onClick={() => handleSaveEndpoint(model.id)}>
-                    Save
-                  </Button>
-                </div>
+            </CardContent>
+            
+            <CardFooter className="bg-muted/20 p-3">
+              {model.isConnected ? (
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleDisconnect(model.id)}
+                  className="w-full"
+                >
+                  <Unlink className="h-4 w-4 mr-2" />
+                  Disconnect
+                </Button>
               ) : (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <Label>Endpoint:</Label>
-                    <p className="text-sm text-muted-foreground">{model.endpoint}</p>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => handleEditEndpoint(model.id)}>
-                    Edit Endpoint
-                  </Button>
-                </div>
+                <Button 
+                  onClick={() => handleConnect(model.id)}
+                  className="w-full"
+                >
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Connect
+                </Button>
               )}
-            </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center p-6 text-muted-foreground">
-          No local models available. Please generate a model first.
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
+        <div className="text-sm">
+          <span className="font-medium">Need help?</span> Follow our 
+          <Button variant="link" className="px-1 h-auto">
+            Local Model Setup Guide
+          </Button>
         </div>
-      )}
+        <Button variant="ghost" size="sm">
+          Add Custom Model
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };

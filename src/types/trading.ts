@@ -1,5 +1,163 @@
-import { SupportedCurrency } from "../components/trading/TradingStats";
 
+// Define cryptocurrency data types
+export interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  image?: string;
+  current_price: number;
+  market_cap: number;
+  market_cap_rank: number;
+  fully_diluted_valuation?: number | null;
+  total_volume?: number;
+  high_24h?: number | null;
+  low_24h?: number | null;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+  market_cap_change_24h?: number;
+  market_cap_change_percentage_24h?: number;
+  circulating_supply?: number;
+  total_supply?: number | null;
+  max_supply?: number | null;
+  ath?: number | null;
+  ath_change_percentage?: number | null;
+  ath_date?: string | null;
+  atl?: number | null;
+  atl_change_percentage?: number | null;
+  atl_date?: string | null;
+  roi?: any | null;
+  last_updated?: string;
+}
+
+// Type for chart data
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
+}
+
+// Type for supported currencies
+export type SupportedCurrency = "USD" | "EUR" | "GBP" | "AUD";
+
+// Type for coin options in dropdowns and selections
+export interface CoinOption {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
+  // Additional fields needed across the application
+  image?: string;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
+  volume24h?: number;
+  change24h?: number;
+  market_cap?: number;
+  market_cap_rank?: number;
+  rank?: number;
+}
+
+// Type for watchlist items
+export interface WatchlistItem {
+  id: string;
+  name: string;
+  symbol: string;
+  image?: string;
+  current_price: number;
+  price_change_percentage_24h?: number;
+  market_cap?: number;
+  market_cap_rank?: number;
+  addedAt?: string;
+  notes?: string;
+}
+
+// Type for API key information
+export interface ApiKeyInfo {
+  service: string;
+  key: string;
+  isActive: boolean;
+  lastTested?: string;
+  testResult?: 'success' | 'failed';
+}
+
+// Type for API usage statistics
+export interface ApiUsageStats {
+  service: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime?: string;
+  endpoint?: string;
+}
+
+// Type for real-time price updates
+export interface PriceUpdate {
+  coinId: string;
+  price: number;
+  timestamp: number;
+}
+
+// Type for API rate limits
+export interface ApiRateLimit {
+  name: string;
+  current: number;
+  max: number;
+  unit: string;
+  interval: string;
+  warning?: boolean;
+}
+
+// Type for API exchange rate limit groups
+export interface ExchangeRateLimit {
+  exchange: string;
+  limits: ApiRateLimit[];
+}
+
+// Type for trading signals in social features
+export interface TradingSignal {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  coinId: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  entryPrice: number;
+  targetPrice: number;
+  stopLoss: number;
+  timeframe: string;
+  confidence: 'low' | 'medium' | 'high';
+  reasoning: string;
+  timestamp: string;
+  likes: number;
+  comments: number;
+}
+
+// Type for strategy shares in social features
+export interface StrategyShare {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  strategyName: string;
+  strategyType: string;
+  description: string;
+  performance: {
+    winRate: number;
+    profitFactor: number;
+    totalTrades: number;
+    averageReturn: number;
+  };
+  tags: string[];
+  likes: number;
+  downloads: number;
+  timestamp: string;
+}
+
+// Trade type
 export interface Trade {
   id: string;
   coinId: string;
@@ -20,31 +178,6 @@ export interface Trade {
   strategyId?: string;
   currentValue?: number;
   profitLoss?: number;
-}
-
-export interface CoinOption {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceAUD?: number;
-  priceEUR?: number;
-  priceGBP?: number;
-  volume24h?: number;
-  marketCap?: number;
-  change24h?: number;
-  exchange?: string;
-  lastUpdated?: string;
-}
-
-export interface CurrencyConversion {
-  USD_AUD: number;
-  AUD_USD: number;
-  USD_EUR?: number;
-  EUR_USD?: number;
-  USD_GBP?: number;
-  GBP_USD?: number;
-  lastUpdated: string;
 }
 
 export interface TradingAccount {
@@ -77,12 +210,11 @@ export interface BacktestTrade {
   total: number;
   profit?: number;
   profitPercentage?: number;
-  date?: string; // For display purposes
-  value?: number; // Current value
-  profitLoss?: number; // For tracking P&L
+  date?: string;
+  value?: number;
+  profitLoss?: number;
 }
 
-// Widget types
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
 export type WidgetType = 'trading' | 'aiTrading' | 'multiExchange' | 'education' | 'community' | 'aiAnalysis' | 'custom';
 
@@ -92,10 +224,9 @@ export interface Widget {
   type: WidgetType;
   size: WidgetSize;
   customContent?: string;
-  position?: number; // Added position field for ordering widgets
+  position?: number;
 }
 
-// AI Trading Strategy types
 export type AIStrategyType = 
   | "trend-following" 
   | "mean-reversion" 
@@ -125,16 +256,16 @@ export interface StrategyParameter {
   max?: number;
   step?: number;
   options?: string[];
-  label?: string; // Display label
+  label?: string;
 }
 
 export interface TechnicalIndicator {
   name: string;
   period: number;
   params?: Record<string, any>;
-  key?: string; // Unique identifier
-  category?: string; // Category for grouping
-  description?: string; // Description of the indicator
+  key?: string;
+  category?: string;
+  description?: string;
 }
 
 export type ExtendedTradingTimeframe =
@@ -190,90 +321,26 @@ export interface OptimizationResult {
   improvement: number;
 }
 
-export interface TaxHarvestingOptions {
-  year: number;
-  minLossThreshold: number;
-  washSalePeriod: number; // Days
-  includeFees: boolean;
-  maximizeLoss: boolean;
-}
-
-export interface TaxLotMatchingMethod {
-  id: string;
-  name: string;
-  description: string;
-  type: 'FIFO' | 'LIFO' | 'HIFO' | 'LOFO' | 'avgCost' | 'specificID';
-}
-
-export interface TaxHarvestingOpportunity {
-  coinId: string;
-  coinSymbol: string;
-  currentPrice: number;
-  averageCost: number;
-  quantity: number;
-  potentialLoss: number;
-  recommendedAction: 'sell' | 'hold';
-  reasoning: string;
-  washSaleWarning: boolean;
-}
-
-export interface PortfolioBenchmark {
-  id: string;
-  name: string;
-  symbol?: string;
-  type: 'crypto' | 'index' | 'stock' | 'custom';
-  data: {
-    date: string;
-    value: number;
-    performance: number; // Percentage
-  }[];
-  color: string;
-}
-
-export interface ApiProvider {
-  id: string;
-  name: string;
-  baseUrl: string;
-  apiKey?: string;
-  apiKeyName?: string;
-  authMethod: 'header' | 'query' | 'none';
-  defaultHeaders?: Record<string, string>;
-  rateLimit?: number; // Requests per minute
-  requiresAuth: boolean;
-  endpoints: {
-    [key: string]: string;
-  };
-  enabled: boolean;
-  priority: number; // Lower number = higher priority
-}
-
-// Australian Tax Office specific interfaces
-export interface ATOTaxCalculation {
-  financialYear: string; // Format: "2023-2024"
-  assessableIncome: number;
-  capitalGains: number;
-  shortTermGains: number; // Less than 12 months
-  longTermGains: number; // More than 12 months
-  CGTDiscount?: number; // Capital Gains Tax Discount (usually 50% for individuals)
-  deductions: number;
-  taxableIncome: number;
-  taxPayable: number;
-  medicareLevyPayable: number;
-  taxWithheld?: number;
-  taxRefundOrOwed: number; // Positive = refund, negative = owing
-  currency: string;
-}
-
-export interface ATOTaxRate {
-  minIncome: number;
-  maxIncome: number | null;
-  baseAmount: number;
-  marginRate: number; // Percentage
-  year: string; // Financial year e.g., "2023-2024"
+export interface CurrencyConversion {
+  USD_AUD: number;
+  AUD_USD: number;
+  USD_EUR?: number;
+  EUR_USD?: number;
+  USD_GBP?: number;
+  GBP_USD?: number;
+  lastUpdated: string;
 }
 
 export interface AiTradingContextType {
-  executeAiTrade: (botId: string, tradeDetails: any) => Promise<void>;
+  executeAiTrade: (params: {
+    botId: string;
+    strategyId: string;
+    accountId: string;
+    coinId: string;
+    type: 'buy' | 'sell';
+    amount: number;
+    price: number;
+  }) => boolean;
   getConnectedAccount: (botId: string) => string | undefined;
   isProcessing: boolean;
   connectBotToAccount: (botId: string, accountId: string) => void;
@@ -282,4 +349,103 @@ export interface AiTradingContextType {
     lastTrade?: string;
     status: 'connected' | 'disconnected';
   }>;
+  addStrategy?: (strategy: AITradingStrategy) => void;
+}
+
+// New interfaces for advanced trading features
+export interface FibonacciLevels {
+  coin: string;
+  timeframe: string;
+  levels: {
+    extension: number;
+    price: number;
+    significance: 'weak' | 'medium' | 'strong';
+  }[];
+  lastCalculated: string;
+}
+
+export interface LiquidityHeatmap {
+  coin: string;
+  timeframe: string;
+  buyLevels: {
+    price: number;
+    volume: number;
+    strength: number;
+  }[];
+  sellLevels: {
+    price: number;
+    volume: number;
+    strength: number;
+  }[];
+  lastUpdated: string;
+}
+
+export interface TradePrediction {
+  coin: string;
+  timeframe: string;
+  direction: 'up' | 'down' | 'sideways';
+  confidence: number;
+  targetPrice: number;
+  stopLoss: number;
+  probability: number;
+  indicators: {
+    name: string;
+    value: number;
+    signal: 'buy' | 'sell' | 'neutral';
+  }[];
+  timestamp: string;
+}
+
+// Hyblock API specific types
+export interface HyblockOrderBookData {
+  exchange: string;
+  symbol: string;
+  bids: [number, number][];
+  asks: [number, number][];
+  timestamp: number;
+}
+
+export interface HyblockLiquidityZone {
+  price: number;
+  volume: number;
+  type: 'buy' | 'sell';
+  strength: number;
+  exchange?: string;
+  significance: 'low' | 'medium' | 'high';
+}
+
+// Local model types
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: string;
+  isConnected: boolean;
+  status?: 'idle' | 'training' | 'running' | 'error';
+  lastUpdated?: string;
+  performance?: {
+    accuracy: number;
+    precision: number;
+    recall: number;
+    f1Score: number;
+  };
+}
+
+export interface ModelTrainingParameters {
+  epochs: number;
+  batchSize: number;
+  learningRate: number;
+  optimizer: string;
+  lossFunction: string;
+  validationSplit: number;
+  shuffleData: boolean;
+}
+
+export interface ModelPredictionResult {
+  timestamp: string;
+  direction: 'up' | 'down' | 'sideways';
+  probability: number;
+  targetPrice?: number;
+  confidence: number;
+  timeframe: string;
 }

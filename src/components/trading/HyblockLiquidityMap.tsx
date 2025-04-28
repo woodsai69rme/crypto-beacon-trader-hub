@@ -1,200 +1,423 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  ReferenceLine,
+  LabelList
+} from 'recharts';
 import { Badge } from '@/components/ui/badge';
-import { HyblockMarketData } from '@/types/trading';
-import { LineChart, ChevronRight, Layers, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useTheme } from '@/contexts/ThemeContext';
+import { RefreshCcw, TrendingUp, TrendingDown } from 'lucide-react';
+import { HyblockLiquidityZone } from '@/types/trading';
+import { toast } from '@/components/ui/use-toast';
 
-// Mock data for Hyblock Liquidity Map
-const mockLiquidityData: HyblockMarketData[] = [
-  {
-    symbol: "BTCUSD",
-    liquidityZones: [
-      { price: 91500, volume: 124500000, type: 'sell', strength: 0.9, exchanges: ['Binance', 'OKX', 'Bybit'] },
-      { price: 90800, volume: 98600000, type: 'sell', strength: 0.75, exchanges: ['Binance', 'OKX'] },
-      { price: 89500, volume: 156000000, type: 'sell', strength: 0.85, exchanges: ['Binance', 'OKX', 'Coinbase'] },
-      { price: 87500, volume: 245800000, type: 'buy', strength: 0.7, exchanges: ['Binance'] },
-      { price: 86200, volume: 378500000, type: 'buy', strength: 0.95, exchanges: ['Binance', 'OKX', 'Bybit', 'Coinbase'] },
-      { price: 85000, volume: 287400000, type: 'buy', strength: 0.88, exchanges: ['Binance', 'Bybit'] },
-    ],
-    largeOrders: [
-      { price: 91500, size: 45000000, side: 'sell', exchange: 'Binance', timestamp: Date.now() - 1000 * 60 * 15 },
-      { price: 86200, size: 78000000, side: 'buy', exchange: 'Coinbase', timestamp: Date.now() - 1000 * 60 * 8 },
-      { price: 90800, size: 32500000, side: 'sell', exchange: 'OKX', timestamp: Date.now() - 1000 * 60 * 5 },
-    ],
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    symbol: "ETHUSD",
-    liquidityZones: [
-      { price: 3450, volume: 45800000, type: 'sell', strength: 0.8, exchanges: ['Binance', 'OKX'] },
-      { price: 3380, volume: 32600000, type: 'sell', strength: 0.65, exchanges: ['Binance'] },
-      { price: 3250, volume: 54900000, type: 'sell', strength: 0.75, exchanges: ['Binance', 'OKX', 'Coinbase'] },
-      { price: 3100, volume: 78500000, type: 'buy', strength: 0.85, exchanges: ['Binance', 'OKX'] },
-      { price: 3050, volume: 105800000, type: 'buy', strength: 0.92, exchanges: ['Binance', 'OKX', 'Bybit'] },
-      { price: 2950, volume: 89700000, type: 'buy', strength: 0.78, exchanges: ['Binance', 'Coinbase'] },
-    ],
-    largeOrders: [
-      { price: 3450, size: 12500000, side: 'sell', exchange: 'Binance', timestamp: Date.now() - 1000 * 60 * 22 },
-      { price: 3050, size: 28900000, side: 'buy', exchange: 'OKX', timestamp: Date.now() - 1000 * 60 * 12 },
-    ],
-    lastUpdated: new Date().toISOString(),
-  }
+interface PriceLevel {
+  price: number;
+  buyVolume: number;
+  sellVolume: number;
+  netVolume: number;
+  significance: 'low' | 'medium' | 'high';
+}
+
+interface HeatmapData {
+  exchangeName: string;
+  timestamp: number;
+  baseCurrency: string;
+  quoteCurrency: string;
+  currentPrice: number;
+  priceLevels: PriceLevel[];
+}
+
+const AVAILABLE_COINS = [
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', currentPrice: 61245.32 },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', currentPrice: 3010.45 },
+  { id: 'solana', name: 'Solana', symbol: 'SOL', currentPrice: 142.87 },
+  { id: 'cardano', name: 'Cardano', symbol: 'ADA', currentPrice: 0.45 },
 ];
 
+const EXCHANGES = [
+  'All Exchanges',
+  'Binance',
+  'Coinbase',
+  'FTX',
+  'Kraken',
+  'Huobi'
+];
+
+// Generate mock heatmap data
+const generateMockHeatmapData = (basePrice: number) => {
+  const priceLevels: PriceLevel[] = [];
+  
+  // Create price levels above and below the current price
+  for (let i = -20; i <= 20; i++) {
+    if (i === 0) continue; // Skip current price
+    
+    const price = basePrice * (1 + i * 0.01);
+    const isRoundNumber = Math.abs(price % 1000) < 10 || Math.abs(price % 500) < 5;
+    const isMajorLevel = Math.abs(i) % 5 === 0;
+    
+    // Generate larger volumes at key psychological levels
+    const volumeMultiplier = isRoundNumber ? 5 : isMajorLevel ? 3 : 1;
+    
+    // More sell volume above, more buy volume below
+    const buyVolume = i < 0 
+      ? Math.random() * 300 * volumeMultiplier + 50
+      : Math.random() * 50;
+      
+    const sellVolume = i > 0 
+      ? Math.random() * 300 * volumeMultiplier + 50
+      : Math.random() * 50;
+      
+    const significance: 'low' | 'medium' | 'high' = 
+      volumeMultiplier === 5 ? 'high' : 
+      volumeMultiplier === 3 ? 'medium' : 'low';
+    
+    priceLevels.push({
+      price,
+      buyVolume,
+      sellVolume,
+      netVolume: buyVolume - sellVolume,
+      significance
+    });
+  }
+  
+  // Add current price reference
+  priceLevels.push({
+    price: basePrice,
+    buyVolume: 0,
+    sellVolume: 0,
+    netVolume: 0,
+    significance: 'high'
+  });
+  
+  // Sort by price
+  priceLevels.sort((a, b) => a.price - b.price);
+  
+  return {
+    exchangeName: 'Hyblock Aggregated',
+    timestamp: Date.now(),
+    baseCurrency: 'BTC',
+    quoteCurrency: 'USD',
+    currentPrice: basePrice,
+    priceLevels
+  };
+};
+
+// Format large numbers with k/m suffixes
+const formatVolume = (value: number) => {
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}m`;
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+  return value.toFixed(0);
+};
+
 const HyblockLiquidityMap: React.FC = () => {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTCUSD");
+  const { theme } = useTheme();
+  const [selectedCoin, setSelectedCoin] = useState(AVAILABLE_COINS[0].id);
+  const [selectedExchange, setSelectedExchange] = useState(EXCHANGES[0]);
+  const [heatmapData, setHeatmapData] = useState<HeatmapData | null>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   
-  const currentData = mockLiquidityData.find(data => data.symbol === selectedSymbol);
+  const selectedCoinData = AVAILABLE_COINS.find(coin => coin.id === selectedCoin);
   
-  const getLiquidityZoneColor = (type: 'buy' | 'sell', strength: number) => {
-    if (type === 'buy') {
-      if (strength > 0.8) return 'bg-green-600/20 border-green-600 text-green-600';
-      if (strength > 0.6) return 'bg-green-500/20 border-green-500 text-green-500';
-      return 'bg-green-400/20 border-green-400 text-green-400';
-    } else {
-      if (strength > 0.8) return 'bg-red-600/20 border-red-600 text-red-600';
-      if (strength > 0.6) return 'bg-red-500/20 border-red-500 text-red-500';
-      return 'bg-red-400/20 border-red-400 text-red-400';
-    }
+  // Format tooltip value
+  const formatPrice = (value: number) => {
+    return `$${value.toFixed(2)}`;
   };
   
-  const formatVolume = (volume: number) => {
-    if (volume >= 1000000000) return `$${(volume / 1000000000).toFixed(1)}B`;
-    if (volume >= 1000000) return `$${(volume / 1000000).toFixed(1)}M`;
-    if (volume >= 1000) return `$${(volume / 1000).toFixed(1)}K`;
-    return `$${volume}`;
+  const sortedChartData = chartData.sort((a, b) => a.price - b.price);
+  
+  const fetchLiquidityData = () => {
+    if (!selectedCoinData) return;
+    
+    setLoading(true);
+    
+    // In a real implementation, this would be an API call to Hyblock
+    setTimeout(() => {
+      const mockData = generateMockHeatmapData(selectedCoinData.currentPrice);
+      setHeatmapData(mockData);
+      
+      // Transform data for the chart
+      const chartDataArray = mockData.priceLevels.map(level => ({
+        price: level.price,
+        buyVolume: level.buyVolume,
+        sellVolume: -level.sellVolume, // Negative for visualization
+        netVolume: level.netVolume,
+        formattedPrice: `$${level.price.toFixed(0)}`,
+        significance: level.significance,
+        isCurrentPrice: Math.abs(level.price - mockData.currentPrice) < 0.01
+      }));
+      
+      setChartData(chartDataArray);
+      setLastUpdated(new Date().toLocaleTimeString());
+      setLoading(false);
+      
+      toast({
+        title: "Liquidity Data Updated",
+        description: `Latest ${selectedCoinData.symbol} liquidity data loaded from Hyblock`,
+      });
+    }, 800);
   };
+  
+  // Fetch data on component mount and selection change
+  useEffect(() => {
+    fetchLiquidityData();
+  }, [selectedCoin, selectedExchange]);
+  
+  // Find significant liquidity walls
+  const buyWalls = chartData
+    .filter(d => d.buyVolume > 200)
+    .sort((a, b) => b.buyVolume - a.buyVolume)
+    .slice(0, 3);
+    
+  const sellWalls = chartData
+    .filter(d => d.sellVolume < -200)
+    .sort((a, b) => a.sellVolume - b.sellVolume)
+    .slice(0, 3);
+  
+  // Analyze the market maker liquidity targets
+  const currentPrice = heatmapData?.currentPrice || 0;
+  const biggestBuyWall = buyWalls.length > 0 ? buyWalls[0] : null;
+  const biggestSellWall = sellWalls.length > 0 ? sellWalls[0] : null;
+  
+  // Determine if price is likely to move up or down based on liquidity
+  const totalBuyVolume = chartData.reduce((sum, d) => sum + d.buyVolume, 0);
+  const totalSellVolume = chartData.reduce((sum, d) => sum + Math.abs(d.sellVolume), 0);
+  const netSentiment = totalBuyVolume > totalSellVolume ? 'bullish' : 'bearish';
   
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="flex items-center">
-              <Layers className="mr-2 h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
               Hyblock Liquidity Map
+              <Badge variant="outline" className="ml-2 text-xs">PREMIUM</Badge>
             </CardTitle>
             <CardDescription>
-              Real-time visualization of market liquidity zones and whale orders
+              Market maker liquidity and order book visualization
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
+          <div className="flex flex-wrap gap-2">
+            <Select value={selectedCoin} onValueChange={setSelectedCoin}>
               <SelectTrigger className="w-36">
-                <SelectValue placeholder="Select asset" />
+                <SelectValue placeholder="Select coin" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BTCUSD">BTC/USD</SelectItem>
-                <SelectItem value="ETHUSD">ETH/USD</SelectItem>
+                {AVAILABLE_COINS.map(coin => (
+                  <SelectItem key={coin.id} value={coin.id}>
+                    {coin.name} ({coin.symbol})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             
-            <Button variant="outline" size="sm">
-              <LineChart className="h-4 w-4 mr-1" /> Compare
+            <Select value={selectedExchange} onValueChange={setSelectedExchange}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Exchange" />
+              </SelectTrigger>
+              <SelectContent>
+                {EXCHANGES.map(exchange => (
+                  <SelectItem key={exchange} value={exchange}>
+                    {exchange}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={fetchLiquidityData}
+              disabled={loading}
+            >
+              <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 mt-2">
-          <Badge variant="outline">Last updated: {new Date(currentData?.lastUpdated || Date.now()).toLocaleTimeString()}</Badge>
-          <Badge variant="secondary" className="bg-green-500/10 text-green-500">Buy Zones: {currentData?.liquidityZones.filter(zone => zone.type === 'buy').length || 0}</Badge>
-          <Badge variant="secondary" className="bg-red-500/10 text-red-500">Sell Zones: {currentData?.liquidityZones.filter(zone => zone.type === 'sell').length || 0}</Badge>
-        </div>
+        {lastUpdated && (
+          <div className="text-xs text-muted-foreground mt-1">
+            Last updated: {lastUpdated}
+          </div>
+        )}
       </CardHeader>
       
       <CardContent>
-        <div className="relative mb-6">
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-muted"></div>
-          
-          <div className="relative flex flex-col h-[300px] justify-center">
-            {/* Current price indicator */}
-            <div className="absolute left-0 w-full py-1 border-y border-muted-foreground/30 flex justify-between">
-              <Badge className="bg-blue-500/10 text-blue-500 ml-1">Current Price</Badge>
-              <span className="font-medium text-sm mr-2">
-                {selectedSymbol === "BTCUSD" ? "$87,950" : "$3,195"}
-              </span>
-            </div>
-            
-            {/* Liquidity zones */}
-            {currentData?.liquidityZones
-              .sort((a, b) => b.price - a.price)
-              .map((zone, index) => {
-                const position = zone.type === 'sell' ? 
-                  `top: ${20 + (index * 15)}%` : 
-                  `bottom: ${20 + ((currentData.liquidityZones.filter(z => z.type === 'buy').indexOf(zone)) * 15)}%`;
-                
-                const width = `${Math.min(100, Math.max(40, (zone.volume / 1000000)))}%`;
-                const zoneColor = getLiquidityZoneColor(zone.type, zone.strength);
-                
-                return (
-                  <div 
-                    key={`${zone.price}-${index}`}
-                    className={`absolute left-0 ${zone.type === 'buy' ? 'flex-row-reverse' : 'flex'} flex items-center w-full`}
-                    style={{ [zone.type === 'sell' ? 'top' : 'bottom']: `${(index % 5) * 15 + 15}%` }}
-                  >
-                    <div className={`flex-1 ${zone.type === 'sell' ? 'text-right' : 'text-left'} px-2`}>
-                      <div className="font-medium">${zone.price.toLocaleString()}</div>
-                      <div className="text-xs text-muted-foreground">{formatVolume(zone.volume)}</div>
-                    </div>
-                    
-                    <div 
-                      className={`h-8 border rounded-md flex items-center justify-center relative ${zoneColor}`}
-                      style={{ width }}
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                        {zone.type === 'buy' ? 'BUY' : 'SELL'} ZONE
-                      </div>
-                      {zone.strength > 0.85 && (
-                        <AlertTriangle className="absolute right-2 h-3 w-3" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+        <div className="h-[400px] w-full mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={sortedChartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              barGap={0}
+              barCategoryGap={1}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} horizontal vertical={false} />
+              <XAxis 
+                dataKey="formattedPrice" 
+                tick={{ fontSize: 10 }}
+                interval={Math.floor(sortedChartData.length / 8)}
+              />
+              <YAxis 
+                tickFormatter={formatVolume}
+                tick={{ fontSize: 10 }}
+              />
+              <Tooltip
+                formatter={(value: number, name: string) => [
+                  Math.abs(value).toFixed(2),
+                  name === 'buyVolume' ? 'Buy Volume' : 'Sell Volume'
+                ]}
+                labelFormatter={(label) => `Price: ${label}`}
+              />
+              
+              {/* Current price reference line */}
+              {heatmapData && (
+                <ReferenceLine
+                  x={`$${heatmapData.currentPrice.toFixed(0)}`}
+                  stroke="#FFD700"
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                  label={{
+                    value: `Current $${heatmapData.currentPrice.toFixed(0)}`,
+                    position: 'insideTopLeft',
+                    fill: '#FFD700',
+                    fontSize: 12
+                  }}
+                />
+              )}
+              
+              <Bar 
+                dataKey="buyVolume" 
+                fill="#4CAF50" 
+                radius={[0, 0, 0, 0]}
+                minPointSize={2}
+              />
+              <Bar 
+                dataKey="sellVolume" 
+                fill="#F44336" 
+                radius={[0, 0, 0, 0]}
+                minPointSize={2}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
         
         <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-medium">Large Orders (Whales)</h3>
-          
-          <div className="space-y-2">
-            {currentData?.largeOrders.map((order, index) => (
-              <div key={index} className="flex justify-between items-center p-3 border rounded-md">
-                <div>
-                  <div className="font-medium">
-                    <span className={order.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                      {order.side.toUpperCase()}
-                    </span>
-                    {' '}${order.price.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatVolume(order.size)} on {order.exchange}
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {new Date(order.timestamp).toLocaleTimeString()}
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border rounded-md p-4 bg-card/50">
+              <h3 className="text-sm font-medium mb-2 flex items-center">
+                <TrendingUp className="mr-1 h-4 w-4 text-green-500" />
+                Buy Liquidity Zones
+              </h3>
+              {buyWalls.length > 0 ? (
+                <ul className="space-y-2">
+                  {buyWalls.map((wall, index) => (
+                    <li key={index} className="flex justify-between items-center text-sm">
+                      <span className="flex items-center">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            wall.significance === 'high' 
+                              ? 'bg-green-500/20 text-green-500 mr-2' 
+                              : 'bg-green-500/10 text-green-400 mr-2'
+                          }
+                        >
+                          {wall.significance === 'high' ? 'Strong' : wall.significance === 'medium' ? 'Medium' : 'Weak'}
+                        </Badge>
+                        ${wall.price.toFixed(0)}
+                      </span>
+                      <span className="text-green-500 font-medium">{formatVolume(wall.buyVolume)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm text-muted-foreground">No significant buy walls detected</div>
+              )}
+            </div>
+            
+            <div className="border rounded-md p-4 bg-card/50">
+              <h3 className="text-sm font-medium mb-2 flex items-center">
+                <TrendingDown className="mr-1 h-4 w-4 text-red-500" />
+                Sell Liquidity Zones
+              </h3>
+              {sellWalls.length > 0 ? (
+                <ul className="space-y-2">
+                  {sellWalls.map((wall, index) => (
+                    <li key={index} className="flex justify-between items-center text-sm">
+                      <span className="flex items-center">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            wall.significance === 'high' 
+                              ? 'bg-red-500/20 text-red-500 mr-2' 
+                              : 'bg-red-500/10 text-red-400 mr-2'
+                          }
+                        >
+                          {wall.significance === 'high' ? 'Strong' : wall.significance === 'medium' ? 'Medium' : 'Weak'}
+                        </Badge>
+                        ${wall.price.toFixed(0)}
+                      </span>
+                      <span className="text-red-500 font-medium">{formatVolume(Math.abs(wall.sellVolume))}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm text-muted-foreground">No significant sell walls detected</div>
+              )}
+            </div>
           </div>
           
-          <div className="bg-muted/30 p-3 rounded-md mt-4">
-            <h4 className="font-medium mb-1">Market Analysis</h4>
-            <div className="text-sm space-y-2">
-              <p className="flex items-start">
-                <ChevronRight className="h-4 w-4 mr-1 shrink-0 mt-0.5" />
-                <span>Strong buy wall detected at ${selectedSymbol === "BTCUSD" ? "86,200" : "3,050"} with high volume support</span>
+          <div className="bg-muted/20 rounded-md p-4">
+            <h3 className="text-sm font-medium mb-2">Market Maker Analysis</h3>
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-medium">Liquidity sentiment:</span>{' '}
+                <Badge variant={netSentiment === 'bullish' ? 'default' : 'destructive'}>
+                  {netSentiment === 'bullish' ? 'Bullish' : 'Bearish'}
+                </Badge>
               </p>
-              <p className="flex items-start">
-                <ChevronRight className="h-4 w-4 mr-1 shrink-0 mt-0.5" />
-                <span>Multiple exchange participation indicates institutional interest</span>
-              </p>
-              <p className="flex items-start">
-                <ChevronRight className="h-4 w-4 mr-1 shrink-0 mt-0.5" />
-                <span>Market likely to test ${selectedSymbol === "BTCUSD" ? "91,500" : "3,450"} resistance before potential breakout</span>
+              
+              {biggestBuyWall && (
+                <p>
+                  <span className="font-medium">Strongest support:</span>{' '}
+                  ${biggestBuyWall.price.toFixed(0)} (Volume: {formatVolume(biggestBuyWall.buyVolume)})
+                </p>
+              )}
+              
+              {biggestSellWall && (
+                <p>
+                  <span className="font-medium">Strongest resistance:</span>{' '}
+                  ${biggestSellWall.price.toFixed(0)} (Volume: {formatVolume(Math.abs(biggestSellWall.sellVolume))})
+                </p>
+              )}
+              
+              <p>
+                <span className="font-medium">Market maker target:</span>{' '}
+                {biggestBuyWall && biggestSellWall ? (
+                  <>
+                    {Math.abs(currentPrice - biggestBuyWall.price) < Math.abs(currentPrice - biggestSellWall.price) ? (
+                      <span className="text-red-500">
+                        Likely aiming to collect liquidity at ${biggestBuyWall.price.toFixed(0)} (support)
+                      </span>
+                    ) : (
+                      <span className="text-green-500">
+                        Likely aiming to collect liquidity at ${biggestSellWall.price.toFixed(0)} (resistance)
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">Insufficient data to determine</span>
+                )}
               </p>
             </div>
           </div>

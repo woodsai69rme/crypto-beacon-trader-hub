@@ -1,178 +1,78 @@
 
-import { CoinOption } from '@/types/trading';
+import { CoinOption } from "@/types/trading";
 
-// Mock initial coin data
-const mockCoins: Record<string, CoinOption> = {
-  'bitcoin': { 
-    id: 'bitcoin', 
-    name: 'Bitcoin', 
-    symbol: 'BTC', 
-    price: 61245.32,
-    priceChange: 1200,
-    changePercent: 2.3,
-    volume: 28000000000,
-    marketCap: 1180000000000
-  },
-  'ethereum': { 
-    id: 'ethereum', 
-    name: 'Ethereum', 
-    symbol: 'ETH', 
-    price: 3010.45,
-    priceChange: -120,
-    changePercent: -1.5,
-    volume: 15000000000,
-    marketCap: 360000000000
-  },
-  'solana': { 
-    id: 'solana', 
-    name: 'Solana', 
-    symbol: 'SOL', 
-    price: 121.33,
-    priceChange: 3.56,
-    changePercent: 3.1,
-    volume: 5200000000,
-    marketCap: 90000000000
-  },
-  'cardano': { 
-    id: 'cardano', 
-    name: 'Cardano', 
-    symbol: 'ADA', 
-    price: 0.45,
-    priceChange: -0.02,
-    changePercent: -2.6,
-    volume: 890000000,
-    marketCap: 24000000000
-  },
-  'ripple': { 
-    id: 'ripple', 
-    name: 'XRP', 
-    symbol: 'XRP', 
-    price: 0.61,
-    priceChange: 0.01,
-    changePercent: 1.8,
-    volume: 2400000000,
-    marketCap: 32000000000
-  },
-  'dogecoin': { 
-    id: 'dogecoin', 
-    name: 'Dogecoin', 
-    symbol: 'DOGE', 
-    price: 0.138,
-    priceChange: -0.004,
-    changePercent: -2.1,
-    volume: 1900000000,
-    marketCap: 18000000000
-  }
+// Mock data for price updates
+const mockPriceChanges: Record<string, number[]> = {
+  'bitcoin': [61245.32, 61300.45, 61289.18, 61350.22, 61400.78, 61380.15, 61420.50, 61450.30],
+  'ethereum': [3010.45, 3015.22, 3008.75, 3020.18, 3025.40, 3018.65, 3030.20, 3035.55],
+  'solana': [142.87, 143.25, 142.50, 143.75, 144.30, 143.80, 144.50, 145.20],
+  'cardano': [0.45, 0.452, 0.449, 0.454, 0.458, 0.455, 0.46, 0.462],
+  'ripple': [0.57, 0.572, 0.568, 0.575, 0.578, 0.573, 0.58, 0.582],
+  'dogecoin': [0.14, 0.141, 0.139, 0.142, 0.143, 0.141, 0.144, 0.145],
 };
 
 /**
- * Generate a random price change with weighted probability to create realistic movements
- * Most changes will be small, some will be medium, few will be large
- */
-const generatePriceChange = (basePrice: number): number => {
-  const rand = Math.random();
-  let changePercentage: number;
-  
-  if (rand < 0.8) {
-    // 80% chance of small change (0.1% - 0.5%)
-    changePercentage = (Math.random() * 0.4 + 0.1) / 100;
-  } else if (rand < 0.95) {
-    // 15% chance of medium change (0.5% - 1.5%)
-    changePercentage = (Math.random() * 1.0 + 0.5) / 100;
-  } else {
-    // 5% chance of larger change (1.5% - 3%)
-    changePercentage = (Math.random() * 1.5 + 1.5) / 100;
-  }
-  
-  // 50% chance of negative change
-  if (Math.random() < 0.5) {
-    changePercentage = -changePercentage;
-  }
-  
-  return basePrice * changePercentage;
-};
-
-/**
- * Start monitoring prices for given coin IDs
+ * Simulates real-time price monitoring with randomly generated price updates
  * @param coinIds Array of coin IDs to monitor
- * @param onUpdate Callback function when prices are updated
- * @param interval Interval in milliseconds between updates
- * @returns Function to stop monitoring
+ * @param onPriceUpdate Callback function to handle price updates
+ * @param updateInterval Interval in milliseconds between updates
+ * @returns A function to stop the monitoring
  */
-export const startPriceMonitoring = (
+export function startPriceMonitoring(
   coinIds: string[],
-  onUpdate: (updatedCoins: CoinOption[]) => void,
-  interval: number = 10000
-): (() => void) => {
-  // Initialize coins from mockCoins or with defaults if not found
-  const monitoredCoins: Record<string, CoinOption> = {};
-  coinIds.forEach(id => {
-    monitoredCoins[id] = mockCoins[id] || {
-      id,
-      name: id.charAt(0).toUpperCase() + id.slice(1),
-      symbol: id.substring(0, 3).toUpperCase(),
-      price: 100 + Math.random() * 900,
-      priceChange: 0,
-      changePercent: 0,
-      volume: Math.random() * 1000000000,
-      marketCap: Math.random() * 10000000000
-    };
+  onPriceUpdate: (updatedCoins: CoinOption[]) => void,
+  updateInterval: number = 5000
+): () => void {
+  let intervalId: number;
+  const updateCounts: Record<string, number> = {};
+  
+  // Initialize update counts
+  coinIds.forEach(coinId => {
+    updateCounts[coinId] = 0;
   });
-
-  // Function to update prices
+  
+  // Simulate price updates
   const updatePrices = () => {
-    const updatedCoins: CoinOption[] = [];
-    
-    Object.entries(monitoredCoins).forEach(([id, coin]) => {
-      const priceChange = generatePriceChange(coin.price);
-      const newPrice = coin.price + priceChange;
-      const newChangePercent = ((newPrice - coin.price) / coin.price) * 100;
+    const updatedCoins = coinIds.map(coinId => {
+      const count = updateCounts[coinId]++;
       
-      // Update volume with small random change
-      const volumeChange = coin.volume * (Math.random() * 0.1 - 0.05);
-      const newVolume = Math.max(0, coin.volume + volumeChange);
+      // Get base price from mock data or generate random if not available
+      const basePrice = mockPriceChanges[coinId] 
+        ? mockPriceChanges[coinId][count % mockPriceChanges[coinId].length]
+        : 100 + Math.random() * 1000;
       
-      // Update market cap based on new price
-      const newMarketCap = (newPrice / coin.price) * coin.marketCap;
+      // Generate a random change (-1% to +1%)
+      const changePercent = (Math.random() * 2 - 1) * 1;
+      const newPrice = basePrice * (1 + changePercent / 100);
       
+      // Create updated coin object
       const updatedCoin: CoinOption = {
-        ...coin,
+        id: coinId,
+        name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+        symbol: coinId.substring(0, 3).toUpperCase(),
         price: newPrice,
-        priceChange,
-        changePercent: newChangePercent,
-        volume: newVolume,
-        marketCap: newMarketCap
+        priceChange: newPrice - basePrice,
+        changePercent: changePercent,
+        volume: Math.random() * 5000000 + 1000000,
+        marketCap: newPrice * (Math.random() * 100000 + 10000),
+        image: `https://assets.coingecko.com/coins/images/1/large/${coinId}.png`,
       };
       
-      monitoredCoins[id] = updatedCoin;
-      updatedCoins.push(updatedCoin);
+      return updatedCoin;
     });
     
-    onUpdate(updatedCoins);
+    // Call the callback with updated prices
+    onPriceUpdate(updatedCoins);
   };
-
-  // Start the interval
-  const intervalId = window.setInterval(updatePrices, interval);
   
-  // Return function to stop monitoring
+  // Initial update
+  updatePrices();
+  
+  // Set up interval for subsequent updates
+  intervalId = window.setInterval(updatePrices, updateInterval);
+  
+  // Return a function to stop monitoring
   return () => {
     window.clearInterval(intervalId);
   };
-};
-
-/**
- * Get coin data for a specific coin ID
- * @param coinId Coin ID
- * @returns CoinOption or undefined if not found
- */
-export const getCoinData = (coinId: string): CoinOption | undefined => {
-  return mockCoins[coinId];
-};
-
-/**
- * Get all available coins
- * @returns Array of CoinOption
- */
-export const getAllCoins = (): CoinOption[] => {
-  return Object.values(mockCoins);
-};
+}

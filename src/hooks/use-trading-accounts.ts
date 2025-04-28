@@ -1,6 +1,7 @@
 
-import { useState, useEffect } from 'react';
-import { TradingAccount } from '@/types/trading';
+import { useState, useEffect, useMemo } from 'react';
+import { TradingAccount, Trade } from '@/types/trading';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useTradingAccounts = () => {
   const [accounts, setAccounts] = useState<TradingAccount[]>([
@@ -47,9 +48,23 @@ export const useTradingAccounts = () => {
       allowBots: true
     }
   ]);
+
+  const [activeAccountId, setActiveAccountId] = useState<string>("acc-1");
   
   const addAccount = (account: TradingAccount) => {
     setAccounts(prev => [...prev, account]);
+  };
+  
+  const createAccount = (accountData: Omit<TradingAccount, 'id' | 'trades' | 'createdAt' | 'lastModified'>) => {
+    const newAccount: TradingAccount = {
+      ...accountData,
+      id: `acc-${uuidv4().substring(0, 8)}`,
+      trades: [],
+      createdAt: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
+    };
+    setAccounts(prev => [...prev, newAccount]);
+    return newAccount.id;
   };
   
   const updateAccount = (id: string, updates: Partial<TradingAccount>) => {
@@ -60,26 +75,42 @@ export const useTradingAccounts = () => {
   
   const deleteAccount = (id: string) => {
     setAccounts(prev => prev.filter(acc => acc.id !== id));
+    if (activeAccountId === id) {
+      setActiveAccountId(accounts.find(acc => acc.id !== id)?.id || "");
+    }
   };
   
-  const addTradeToAccount = (accountId: string, trade: any) => {
+  const addTradeToAccount = (accountId: string, trade: Trade) => {
     setAccounts(prev => prev.map(acc => {
       if (acc.id === accountId) {
+        const updatedBalance = trade.type === 'buy' 
+          ? acc.balance - trade.totalValue 
+          : acc.balance + trade.totalValue;
+        
         return {
           ...acc,
           trades: [...acc.trades, trade],
+          balance: updatedBalance,
           lastModified: new Date().toISOString()
         };
       }
       return acc;
     }));
   };
+
+  const getActiveAccount = (): TradingAccount | undefined => {
+    return accounts.find(account => account.id === activeAccountId);
+  };
   
   return {
     accounts,
+    activeAccountId,
+    setActiveAccountId,
     addAccount,
+    createAccount,
     updateAccount,
     deleteAccount,
-    addTradeToAccount
+    addTradeToAccount,
+    getActiveAccount
   };
 };

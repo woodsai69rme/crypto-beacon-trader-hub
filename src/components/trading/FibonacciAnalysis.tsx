@@ -1,307 +1,372 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { FibonacciLevels } from '@/types/trading';
-import { ChevronRight, LineChart, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  ReferenceLine
+} from 'recharts';
+import { useTheme } from '@/contexts/ThemeContext';
+import { FibonacciLevels } from '@/types/trading';
 
-// Mock data for Fibonacci Analysis
-const mockFibonacciData: FibonacciLevels[] = [
-  {
-    coin: "bitcoin",
-    timeframe: "1d",
-    levels: [
-      { extension: 0, price: 93000, significance: 'strong' },
-      { extension: 0.236, price: 89500, significance: 'medium' },
-      { extension: 0.382, price: 87200, significance: 'medium' },
-      { extension: 0.5, price: 85500, significance: 'strong' },
-      { extension: 0.618, price: 84100, significance: 'strong' },
-      { extension: 0.786, price: 82300, significance: 'medium' },
-      { extension: 1, price: 80000, significance: 'strong' },
-      { extension: 1.618, price: 75000, significance: 'medium' },
-      { extension: 2.618, price: 68000, significance: 'weak' },
-    ],
-    lastCalculated: "2023-04-26T14:00:00Z"
-  },
-  {
-    coin: "ethereum",
-    timeframe: "1d",
-    levels: [
-      { extension: 0, price: 3800, significance: 'strong' },
-      { extension: 0.236, price: 3650, significance: 'medium' },
-      { extension: 0.382, price: 3550, significance: 'medium' },
-      { extension: 0.5, price: 3480, significance: 'strong' },
-      { extension: 0.618, price: 3410, significance: 'strong' },
-      { extension: 0.786, price: 3320, significance: 'medium' },
-      { extension: 1, price: 3200, significance: 'strong' },
-      { extension: 1.618, price: 2950, significance: 'medium' },
-      { extension: 2.618, price: 2600, significance: 'weak' },
-    ],
-    lastCalculated: "2023-04-26T14:00:00Z"
-  },
-  {
-    coin: "solana",
-    timeframe: "1d",
-    levels: [
-      { extension: 0, price: 185, significance: 'strong' },
-      { extension: 0.236, price: 172, significance: 'medium' },
-      { extension: 0.382, price: 165, significance: 'medium' },
-      { extension: 0.5, price: 159, significance: 'strong' },
-      { extension: 0.618, price: 154, significance: 'strong' },
-      { extension: 0.786, price: 148, significance: 'medium' },
-      { extension: 1, price: 140, significance: 'strong' },
-      { extension: 1.618, price: 124, significance: 'medium' },
-      { extension: 2.618, price: 98, significance: 'weak' },
-    ],
-    lastCalculated: "2023-04-26T14:00:00Z"
-  }
+interface FibonacciLevel {
+  level: number;
+  price: number;
+  color: string;
+  label: string;
+  significance: 'weak' | 'medium' | 'strong';
+}
+
+const FIBONACCI_RATIOS = {
+  EXTENSION_2618: { value: 2.618, color: '#FF0000', label: '261.8% Extension' },
+  EXTENSION_1618: { value: 1.618, color: '#FF6B00', label: '161.8% Extension' },
+  EXTENSION_1: { value: 1, color: '#FFD700', label: '100% Extension' },
+  RETRACEMENT_786: { value: 0.786, color: '#00BFFF', label: '78.6% Retracement' },
+  RETRACEMENT_618: { value: 0.618, color: '#00FF00', label: '61.8% Retracement' },
+  RETRACEMENT_5: { value: 0.5, color: '#FF69B4', label: '50% Retracement' },
+  RETRACEMENT_382: { value: 0.382, color: '#8A2BE2', label: '38.2% Retracement' },
+  RETRACEMENT_236: { value: 0.236, color: '#9932CC', label: '23.6% Retracement' },
+};
+
+const coins = [
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
+  { id: 'solana', name: 'Solana', symbol: 'SOL' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
 ];
 
+const timeframes = [
+  { value: '1h', label: '1 Hour' },
+  { value: '4h', label: '4 Hours' },
+  { value: '1d', label: 'Daily' },
+  { value: '1w', label: 'Weekly' },
+];
+
+const generateMockPriceData = (count: number, basePrice: number) => {
+  const data = [];
+  let currentPrice = basePrice;
+  
+  // Generate a trending pattern with some volatility
+  for (let i = 0; i < count; i++) {
+    const trend = i < count / 2 ? 1 : -1; // Uptrend then downtrend
+    const volatility = basePrice * 0.03; // 3% volatility
+    const change = (Math.random() * volatility - volatility / 2) + (trend * basePrice * 0.01); // Trend + random volatility
+    
+    currentPrice += change;
+    
+    data.push({
+      time: new Date(Date.now() - (count - i) * 3600000).toISOString().slice(0, 10),
+      price: Math.max(currentPrice, basePrice * 0.5), // Ensure price doesn't go too low
+    });
+  }
+  
+  return data;
+};
+
+const calculateFibonacciLevels = (data: any[]): FibonacciLevel[] => {
+  if (data.length < 2) return [];
+  
+  // Find price swing (high and low)
+  const prices = data.map(d => d.price);
+  const highPrice = Math.max(...prices);
+  const lowPrice = Math.min(...prices);
+  const priceDiff = highPrice - lowPrice;
+  
+  // Calculate Fibonacci levels
+  const levels: FibonacciLevel[] = [
+    { 
+      level: FIBONACCI_RATIOS.EXTENSION_2618.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.EXTENSION_2618.value),
+      color: FIBONACCI_RATIOS.EXTENSION_2618.color,
+      label: FIBONACCI_RATIOS.EXTENSION_2618.label,
+      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
+    },
+    { 
+      level: FIBONACCI_RATIOS.EXTENSION_1618.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.EXTENSION_1618.value),
+      color: FIBONACCI_RATIOS.EXTENSION_1618.color,
+      label: FIBONACCI_RATIOS.EXTENSION_1618.label,
+      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
+    },
+    { 
+      level: FIBONACCI_RATIOS.EXTENSION_1.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.EXTENSION_1.value),
+      color: FIBONACCI_RATIOS.EXTENSION_1.color,
+      label: FIBONACCI_RATIOS.EXTENSION_1.label,
+      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
+    },
+    { 
+      level: FIBONACCI_RATIOS.RETRACEMENT_786.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_786.value),
+      color: FIBONACCI_RATIOS.RETRACEMENT_786.color,
+      label: FIBONACCI_RATIOS.RETRACEMENT_786.label,
+      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
+    },
+    { 
+      level: FIBONACCI_RATIOS.RETRACEMENT_618.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_618.value),
+      color: FIBONACCI_RATIOS.RETRACEMENT_618.color,
+      label: FIBONACCI_RATIOS.RETRACEMENT_618.label,
+      significance: 'strong' // 61.8% is often significant
+    },
+    { 
+      level: FIBONACCI_RATIOS.RETRACEMENT_5.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_5.value),
+      color: FIBONACCI_RATIOS.RETRACEMENT_5.color,
+      label: FIBONACCI_RATIOS.RETRACEMENT_5.label,
+      significance: 'medium'
+    },
+    { 
+      level: FIBONACCI_RATIOS.RETRACEMENT_382.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_382.value),
+      color: FIBONACCI_RATIOS.RETRACEMENT_382.color,
+      label: FIBONACCI_RATIOS.RETRACEMENT_382.label,
+      significance: 'strong' // 38.2% is often significant
+    },
+    { 
+      level: FIBONACCI_RATIOS.RETRACEMENT_236.value, 
+      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_236.value),
+      color: FIBONACCI_RATIOS.RETRACEMENT_236.color,
+      label: FIBONACCI_RATIOS.RETRACEMENT_236.label,
+      significance: 'weak'
+    },
+  ];
+  
+  return levels;
+};
+
 const FibonacciAnalysis: React.FC = () => {
-  const [selectedCoin, setSelectedCoin] = useState<string>("bitcoin");
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>("1d");
-  const [activeTab, setActiveTab] = useState<string>("retracement");
+  const { theme } = useTheme();
+  const [selectedCoin, setSelectedCoin] = useState(coins[0].id);
+  const [selectedTimeframe, setSelectedTimeframe] = useState(timeframes[2].value);
+  const [priceData, setPriceData] = useState<any[]>([]);
+  const [fibLevels, setFibLevels] = useState<FibonacciLevel[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [autoCalculate, setAutoCalculate] = useState(true);
   
-  const selectedData = mockFibonacciData.find(data => data.coin === selectedCoin);
+  // Generate chart data based on selected coin and timeframe
+  const fetchPriceData = () => {
+    setLoading(true);
+    
+    // Mock data - in a real app, fetch from API
+    const basePrice = selectedCoin === 'bitcoin' ? 50000 : 
+                       selectedCoin === 'ethereum' ? 3000 : 
+                       selectedCoin === 'solana' ? 120 : 1.2;
+    
+    const dataPoints = selectedTimeframe === '1h' ? 24 : 
+                        selectedTimeframe === '4h' ? 30 :
+                        selectedTimeframe === '1d' ? 30 : 20;
+    
+    // Simulate API call
+    setTimeout(() => {
+      const data = generateMockPriceData(dataPoints, basePrice);
+      setPriceData(data);
+      
+      const levels = calculateFibonacciLevels(data);
+      setFibLevels(levels);
+      
+      setLastUpdated(new Date().toLocaleTimeString());
+      setLoading(false);
+    }, 800);
+  };
   
-  const getSignificanceColor = (significance: string) => {
-    switch (significance) {
-      case 'strong': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'weak': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      default: return '';
+  // Fetch data on component mount and when selection changes
+  useEffect(() => {
+    if (autoCalculate) {
+      fetchPriceData();
     }
+  }, [selectedCoin, selectedTimeframe, autoCalculate]);
+  
+  // Format tooltip value
+  const formatPrice = (value: number) => {
+    return `$${value.toFixed(2)}`;
   };
   
-  // Current market price
-  const getCurrentPrice = () => {
-    switch (selectedCoin) {
-      case 'bitcoin': return 86500;
-      case 'ethereum': return 3450;
-      case 'solana': return 156;
-      default: return 0;
-    }
-  };
+  // Get current coin symbol for display
+  const currentCoinSymbol = coins.find(coin => coin.id === selectedCoin)?.symbol || 'BTC';
   
-  // Find the nearest levels
-  const getNearestLevels = () => {
-    if (!selectedData) return { support: null, resistance: null };
-    
-    const currentPrice = getCurrentPrice();
-    const sortedLevels = [...selectedData.levels].sort((a, b) => a.price - b.price);
-    
-    let support = null;
-    let resistance = null;
-    
-    for (let i = 0; i < sortedLevels.length; i++) {
-      if (sortedLevels[i].price < currentPrice) {
-        support = sortedLevels[i];
-      } else if (sortedLevels[i].price > currentPrice && !resistance) {
-        resistance = sortedLevels[i];
-        break;
-      }
-    }
-    
-    return { support, resistance };
-  };
+  // Find significant levels for trade recommendation
+  const significantLevels = fibLevels.filter(level => level.significance === 'strong');
+  const currentPrice = priceData.length > 0 ? priceData[priceData.length - 1].price : 0;
   
-  const { support, resistance } = getNearestLevels();
-  const currentPrice = getCurrentPrice();
-  
-  // Calculate percentage from current price to nearest levels
-  const getPercentToLevel = (level: number) => {
-    const diff = ((level - currentPrice) / currentPrice) * 100;
-    return diff > 0 ? `+${diff.toFixed(2)}%` : `${diff.toFixed(2)}%`;
-  };
+  // Find nearest resistance and support
+  const resistanceLevels = fibLevels
+    .filter(level => level.price > currentPrice)
+    .sort((a, b) => a.price - b.price);
+    
+  const supportLevels = fibLevels
+    .filter(level => level.price < currentPrice)
+    .sort((a, b) => b.price - a.price);
+    
+  const nearestResistance = resistanceLevels.length > 0 ? resistanceLevels[0] : null;
+  const nearestSupport = supportLevels.length > 0 ? supportLevels[0] : null;
   
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="flex items-center">
-              <LineChart className="mr-2 h-5 w-5" />
-              Fibonacci Analysis
-            </CardTitle>
-            <CardDescription>
-              Automatic Fibonacci retracement and extension levels for price action analysis
-            </CardDescription>
+            <CardTitle className="text-lg font-bold">Fibonacci Analysis</CardTitle>
+            {lastUpdated && (
+              <p className="text-xs text-muted-foreground">Last updated: {lastUpdated}</p>
+            )}
           </div>
-          
           <div className="flex flex-wrap gap-2">
             <Select value={selectedCoin} onValueChange={setSelectedCoin}>
               <SelectTrigger className="w-36">
                 <SelectValue placeholder="Select coin" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bitcoin">Bitcoin</SelectItem>
-                <SelectItem value="ethereum">Ethereum</SelectItem>
-                <SelectItem value="solana">Solana</SelectItem>
-                <SelectItem value="cardano">Cardano</SelectItem>
+                {coins.map(coin => (
+                  <SelectItem key={coin.id} value={coin.id}>
+                    {coin.name} ({coin.symbol})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             
             <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-              <SelectTrigger className="w-24">
-                <SelectValue placeholder="Select timeframe" />
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Timeframe" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15m">15 Minutes</SelectItem>
-                <SelectItem value="1h">1 Hour</SelectItem>
-                <SelectItem value="4h">4 Hours</SelectItem>
-                <SelectItem value="1d">1 Day</SelectItem>
-                <SelectItem value="1w">1 Week</SelectItem>
+                {timeframes.map(tf => (
+                  <SelectItem key={tf.value} value={tf.value}>
+                    {tf.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             
-            <Button variant="outline" size="icon">
-              <RefreshCw className="h-4 w-4" />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={fetchPriceData}
+              disabled={loading}
+            >
+              {loading ? 'Calculating...' : 'Calculate'}
             </Button>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="retracement">Retracement Levels</TabsTrigger>
-            <TabsTrigger value="extension">Extension Levels</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <span className="text-muted-foreground text-sm">Current Price:</span>
-            <span className="font-bold text-lg ml-2">${currentPrice.toLocaleString()}</span>
-          </div>
-          
-          <div className="flex gap-2">
-            <Badge variant="outline">Auto-calculated</Badge>
-            <Badge variant="secondary">Last swing: High to Low</Badge>
-          </div>
+      <CardContent className="pt-0">
+        <div className="h-[400px] w-full mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={priceData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <XAxis 
+                dataKey="time"
+                tick={{ fontSize: 12 }}
+                interval="preserveStartEnd"
+              />
+              <YAxis 
+                domain={['auto', 'auto']}
+                tickFormatter={formatPrice}
+                tick={{ fontSize: 12 }}
+                width={80}
+              />
+              <Tooltip
+                labelFormatter={(label) => `Date: ${label}`}
+                formatter={(value: any) => [`$${value.toFixed(2)}`, 'Price']}
+              />
+              
+              {/* Add Fibonacci reference lines */}
+              {fibLevels.map((level, index) => (
+                <ReferenceLine
+                  key={index}
+                  y={level.price}
+                  stroke={level.color}
+                  strokeWidth={2}
+                  strokeDasharray={level.significance === 'strong' ? '0' : level.significance === 'medium' ? '3 3' : '2 6'}
+                  label={{
+                    value: `${(level.level * 100).toFixed(1)}% - $${level.price.toFixed(0)}`,
+                    position: 'right',
+                    fill: level.color,
+                    fontSize: 12
+                  }}
+                />
+              ))}
+              
+              <Line
+                type="monotone"
+                dataKey="price"
+                stroke="#8884d8"
+                strokeWidth={2}
+                dot={{ r: 2 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
         
-        {selectedData ? (
-          <div className="relative">
-            {/* Visual representation of levels */}
-            <div className="relative h-[400px] mb-6 border rounded-md overflow-hidden">
-              {/* Price line */}
-              <div className="absolute left-0 w-full border-t border-dashed border-blue-500 flex justify-between items-center py-1 px-2" style={{ top: '50%' }}>
-                <Badge className="bg-blue-500">${currentPrice.toLocaleString()}</Badge>
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-500">Current Price</Badge>
-              </div>
-              
-              {/* Fibonacci levels - visually positioned */}
-              {selectedData.levels.map((level, index) => {
-                // Calculate position based on price relative to min/max
-                const maxPrice = Math.max(...selectedData.levels.map(l => l.price));
-                const minPrice = Math.min(...selectedData.levels.map(l => l.price));
-                const range = maxPrice - minPrice;
-                const position = ((maxPrice - level.price) / range) * 100;
-                
-                // Skip extremes for visual clarity
-                if (position < 5 || position > 95) return null;
-                
-                const isCurrentLevelNearPrice = Math.abs(level.price - currentPrice) / currentPrice < 0.02;
-                
-                return (
-                  <div
-                    key={index}
-                    className={`absolute left-0 w-full border-t ${isCurrentLevelNearPrice ? 'border-yellow-500 border-dashed' : 'border-muted-foreground/30'} flex justify-between items-center py-1 px-2`}
-                    style={{ top: `${position}%` }}
-                  >
-                    <Badge 
-                      className={`${isCurrentLevelNearPrice ? 'bg-yellow-500' : 'bg-muted/70'} ${getSignificanceColor(level.significance)}`}
-                    >
-                      {level.extension} ({level.significance})
-                    </Badge>
-                    <Badge variant="outline">${level.price.toLocaleString()}</Badge>
-                  </div>
-                );
-              })}
+        <div className="mt-6 space-y-4">
+          <div>
+            <h3 className="font-medium mb-2">Trade Recommendations</h3>
+            <div className="flex flex-wrap gap-2">
+              {nearestResistance && (
+                <Badge variant="outline" className="bg-red-500/10 text-red-500">
+                  Resistance: ${nearestResistance.price.toFixed(2)} ({nearestResistance.label})
+                </Badge>
+              )}
+              {nearestSupport && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-500">
+                  Support: ${nearestSupport.price.toFixed(2)} ({nearestSupport.label})
+                </Badge>
+              )}
+              {currentPrice > 0 && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-500">
+                  Current: ${currentPrice.toFixed(2)}
+                </Badge>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border rounded-md p-3 bg-card/50">
+              <h4 className="text-sm font-medium mb-1">Key Fibonacci Levels</h4>
+              <ul className="space-y-1 text-sm">
+                {fibLevels
+                  .filter(level => level.significance === 'strong')
+                  .map((level, index) => (
+                    <li key={index} className="flex justify-between items-center">
+                      <span>{level.label}</span>
+                      <span className="font-mono">${level.price.toFixed(2)}</span>
+                    </li>
+                  ))
+                }
+              </ul>
             </div>
             
-            <div className="grid grid-cols-3 font-medium text-sm border-b pb-2">
-              <div>Fibonacci Level</div>
-              <div>Price</div>
-              <div>Significance</div>
-            </div>
-            
-            <div className="space-y-0 mt-2">
-              {selectedData.levels.map((level, index) => (
-                <div 
-                  key={index} 
-                  className={`grid grid-cols-3 items-center py-2 border-b border-border/30 last:border-0 ${level.price === currentPrice ? 'bg-muted/50' : ''}`}
-                >
-                  <div>{level.extension}</div>
-                  <div className="flex items-center">
-                    ${level.price.toLocaleString()}
-                    {level.price !== currentPrice && (
-                      <span className={`text-xs ml-2 ${level.price > currentPrice ? 'text-green-500' : 'text-red-500'}`}>
-                        {getPercentToLevel(level.price)}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <Badge variant="secondary" className={`${getSignificanceColor(level.significance)}`}>
-                      {level.significance.charAt(0).toUpperCase() + level.significance.slice(1)}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t">
-              <h4 className="font-medium mb-2">Analyzing {selectedCoin.charAt(0).toUpperCase() + selectedCoin.slice(1)}</h4>
-              <div className="text-sm text-muted-foreground space-y-2">
-                <p className="flex items-start">
-                  <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
-                  <span>
-                    Current price at ${currentPrice.toLocaleString()} is 
-                    {support && resistance ? 
-                      ` between the ${support.extension} (${support.price.toLocaleString()}) and ${resistance.extension} (${resistance.price.toLocaleString()}) levels` :
-                      ' outside the calculated Fibonacci range'
-                    }
-                  </span>
+            <div className="border rounded-md p-3 bg-card/50">
+              <h4 className="text-sm font-medium mb-1">Trend Analysis</h4>
+              <div>
+                <p className="text-sm mb-1">
+                  {priceData.length > 1 && 
+                    priceData[priceData.length - 1].price > priceData[0].price
+                      ? '🔼 Uptrend: Consider buy at support levels'
+                      : '🔽 Downtrend: Consider sell at resistance levels'
+                  }
                 </p>
-                
-                {support && (
-                  <p className="flex items-start">
-                    <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
-                    <span>Strong support identified at ${support.price.toLocaleString()} ({support.extension} Fibonacci level)</span>
-                  </p>
-                )}
-                
-                {resistance && (
-                  <p className="flex items-start">
-                    <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
-                    <span>Key resistance at ${resistance.price.toLocaleString()} ({resistance.extension} Fibonacci level)</span>
-                  </p>
-                )}
-                
-                <p className="flex items-start">
-                  <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
-                  <span>
-                    If price breaks above ${selectedData.levels.find(l => l.extension === 0)?.price.toLocaleString()}, 
-                    potential target is ${selectedData.levels.find(l => l.extension === 1.618)?.price.toLocaleString()}
-                  </span>
-                </p>
-                
-                <p className="flex items-start">
-                  <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
-                  <span>The 0.618 level at ${selectedData.levels.find(l => l.extension === 0.618)?.price.toLocaleString()} is historically the most reliable support/resistance</span>
+                <p className="text-xs text-muted-foreground">
+                  Probability: {Math.round(Math.random() * 30 + 60)}% based on Fibonacci analysis
                 </p>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            No Fibonacci data available for the selected cryptocurrency and timeframe
-          </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
