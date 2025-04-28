@@ -15,18 +15,18 @@ export interface RealTimePriceChartProps {
 }
 
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({ 
-  coins, 
+  coins = [], 
   selectedCoinId, 
   onSelectCoin, 
   updateInterval = 3000,
   coinId,
-  availableCoins,
+  availableCoins = [],
 }) => {
   // Use either selectedCoinId or coinId, with selectedCoinId taking precedence
-  const activeCoinId = selectedCoinId || coinId || (coins && coins.length > 0 ? coins[0].id : "bitcoin");
+  const activeCoinId = selectedCoinId || coinId || (coins.length > 0 ? coins[0].id : "bitcoin");
   
   // Use either coins or availableCoins, with coins taking precedence
-  const activeCoinList = coins || availableCoins || [];
+  const activeCoinList = coins.length > 0 ? coins : availableCoins;
   
   const [priceData, setPriceData] = useState<{ time: string; price: number }[]>([]);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
@@ -64,6 +64,8 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
       setIsUpdating(true);
       
       setPriceData(prevData => {
+        if (!prevData || prevData.length === 0) return prevData;
+        
         // Get the latest price
         const newPrice = selectedCoin.price * (1 + (Math.random() * 0.02 - 0.01)); // +/- 1%
         const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -90,7 +92,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   // Calculate price change from first to last data point
   const priceChange = priceData.length > 1 ? 
     priceData[priceData.length - 1].price - priceData[0].price : 0;
-  const priceChangePercent = priceData.length > 1 ?
+  const priceChangePercent = priceData.length > 1 && priceData[0].price ?
     (priceChange / priceData[0].price) * 100 : 0;
     
   const isPriceUp = priceChange >= 0;
@@ -131,11 +133,13 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
                 formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
                 labelFormatter={(label) => `Time: ${label}`}
               />
-              <ReferenceLine
-                y={priceData[0].price}
-                stroke="#888"
-                strokeDasharray="3 3"
-              />
+              {priceData.length > 0 && (
+                <ReferenceLine
+                  y={priceData[0].price}
+                  stroke="#888"
+                  strokeDasharray="3 3"
+                />
+              )}
               <Line
                 type="monotone"
                 dataKey="price"

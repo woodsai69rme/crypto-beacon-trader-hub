@@ -1,4 +1,6 @@
 
+import { LocalModel } from '@/types/trading';
+
 export interface TradingStrategy {
   id: string;
   name: string;
@@ -12,5 +14,5 @@ export interface TradingStrategy {
   };
 }
 
-// Re-export LocalModel as a type to fix the isolatedModules error
-export type { LocalModel } from '@/types/trading';
+// Re-export LocalModel as a type
+export type { LocalModel };

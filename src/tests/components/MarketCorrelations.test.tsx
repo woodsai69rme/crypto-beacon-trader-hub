@@ -1,3 +1,4 @@
+
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import MarketCorrelations from '@/components/MarketCorrelations/MarketCorrelations';
@@ -28,6 +29,11 @@ vi.mock('@/services/cryptoApi', () => ({
       image: "https://example.com/eth.png",
     }
   ] as CoinOption[])
+}));
+
+// Mock the toast component
+vi.mock('@/components/ui/use-toast', () => ({
+  toast: vi.fn(),
 }));
 
 describe('MarketCorrelations', () => {

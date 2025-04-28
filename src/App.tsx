@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,6 +16,10 @@ const Index = lazy(() => import('./pages/Index'));
 const queryClient = new QueryClient();
 
 function App() {
+  useEffect(() => {
+    console.log("App component mounted - initializing application");
+  }, []);
+
   return (
     <ThemeProvider defaultTheme="dark" storageKey="trading-platform-theme">
       <QueryClientProvider client={queryClient}>
