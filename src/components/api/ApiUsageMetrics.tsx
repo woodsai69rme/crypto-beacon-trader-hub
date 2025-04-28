@@ -1,18 +1,15 @@
 
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Info } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ChartContainer, Chart, Line } from "recharts";
+import { Bell, RefreshCw, AlertTriangle } from "lucide-react";
 import { ApiUsageStats, CoinOption } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 interface ApiUsageMetricsProps {
   apiUsage: ApiUsageStats[];
@@ -20,212 +17,303 @@ interface ApiUsageMetricsProps {
 }
 
 const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ apiUsage, onRefresh }) => {
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [selectedService, setSelectedService] = useState<string>(apiUsage[0]?.service || "");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showMoreInfo, setShowMoreInfo] = useState<string | null>(null);
   
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    onRefresh();
+    await onRefresh();
+    setIsRefreshing(false);
     
-    // Simulate refresh delay
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1500);
+    toast({
+      title: "API metrics refreshed",
+      description: "API usage data has been updated"
+    });
   };
   
-  const getProgressColor = (current: number, max: number) => {
-    const percent = (current / max) * 100;
-    if (percent > 90) return "destructive";
-    if (percent > 75) return "warning";
-    return "default";
+  const getResetTimeFormatted = (resetTime?: string) => {
+    if (!resetTime) return "Unknown";
+    return formatDistanceToNow(new Date(resetTime), { addSuffix: true });
   };
   
-  const selectedServiceData = apiUsage.find(item => item.service === selectedService);
-  const usagePercent = selectedServiceData 
-    ? (selectedServiceData.currentUsage / selectedServiceData.maxUsage) * 100
-    : 0;
-    
-  // Sample coin data for visualization
-  const sampleCoins: CoinOption[] = [
+  // Mock data for the usage trend chart
+  const mockUsageTrendData = [
     {
-      id: "bitcoin",
-      name: "Bitcoin",
-      symbol: "BTC",
-      price: 92500.32,
-      priceChange: 1200.45,
-      changePercent: 1.3,
-      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-      volume: 28000000000
+      name: "CoinGecko",
+      data: [10, 15, 18, 25, 28, 32, 40, 45],
+      limit: 100,
+      color: "#10b981" // green
     },
     {
+      name: "Binance",
+      data: [30, 45, 60, 75, 90, 105, 110, 120],
+      limit: 1200,
+      color: "#f59e0b" // amber
+    }
+  ];
+  
+  // Mock history data for timeline view
+  const mockUsageHistory = [
+    {
+      service: "CoinGecko",
+      endpoint: "/coins/markets",
+      timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+      usage: 1,
+      success: true
+    },
+    {
+      service: "Binance",
+      endpoint: "/api/v3/ticker",
+      timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+      usage: 1,
+      success: true
+    },
+    {
+      service: "CoinGecko",
+      endpoint: "/coins/bitcoin/market_chart",
+      timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+      usage: 1,
+      success: true
+    },
+    {
+      service: "CoinGecko",
+      endpoint: "/coins/ethereum/market_chart",
+      timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+      usage: 1,
+      success: false
+    }
+  ];
+  
+  // Sample data for affected coin prices
+  const affectedCoins: CoinOption[] = [
+    { 
+      id: "bitcoin",
+      name: "Bitcoin", 
+      symbol: "BTC", 
+      price: 56000,
+      priceChange: 1200,
+      changePercent: 2.2,
+      volume: 40000000000
+    },
+    { 
       id: "ethereum",
-      name: "Ethereum",
-      symbol: "ETH",
-      price: 3200.45,
-      priceChange: -120.32,
-      changePercent: -2.1,
-      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      name: "Ethereum", 
+      symbol: "ETH", 
+      price: 2900,
+      priceChange: -50,
+      changePercent: -1.7,
       volume: 15000000000
     }
   ];
   
+  const getUsageColor = (current: number, max: number) => {
+    const percentage = (current / max) * 100;
+    if (percentage < 50) return "bg-green-600";
+    if (percentage < 80) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+  
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="space-y-1">
-          <h3 className="font-medium text-lg">API Usage Metrics</h3>
-          <p className="text-sm text-muted-foreground">
-            Monitor your API usage across different providers
-          </p>
-        </div>
-        <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
+        <h2 className="text-2xl font-semibold">API Usage Metrics</h2>
+        <Button 
+          onClick={handleRefresh} 
+          size="sm" 
+          disabled={isRefreshing}
+        >
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-          {isRefreshing ? "Refreshing..." : "Refresh"}
+          Refresh
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">API Rate Limits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Select API Service</label>
-                <Select 
-                  value={selectedService} 
-                  onValueChange={setSelectedService}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select API service" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {apiUsage.map(item => (
-                      <SelectItem key={item.service} value={item.service}>
-                        {item.service}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <Tabs defaultValue="current">
+        <TabsList className="grid grid-cols-4">
+          <TabsTrigger value="current">Current Usage</TabsTrigger>
+          <TabsTrigger value="trend">Usage Trend</TabsTrigger>
+          <TabsTrigger value="history">API Calls</TabsTrigger>
+          <TabsTrigger value="impact">Market Impact</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="current">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current API Usage</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {apiUsage.map((api) => {
+                  const usagePercentage = (api.currentUsage / api.maxUsage) * 100;
+                  const isNearLimit = usagePercentage > 80;
+                  
+                  return (
+                    <div key={api.service} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">
+                          {api.service}
+                          {isNearLimit && (
+                            <AlertTriangle className="h-4 w-4 inline-block ml-2 text-yellow-500" />
+                          )}
+                        </div>
+                        <div className="text-sm">
+                          {api.currentUsage} / {api.maxUsage} calls
+                          <span className="text-xs text-muted-foreground ml-2">
+                            Reset: {getResetTimeFormatted(api.resetTime)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <Progress 
+                        value={usagePercentage} 
+                        className={`h-2 ${usagePercentage > 80 ? 'bg-red-200' : 'bg-muted'}`}
+                      />
+                      
+                      {api.endpoint && (
+                        <div className="text-xs text-muted-foreground">
+                          Last endpoint: {api.endpoint}
+                        </div>
+                      )}
+                      
+                      {isNearLimit && (
+                        <div className="text-xs text-yellow-500 flex gap-1 items-center">
+                          <AlertTriangle className="h-3 w-3" />
+                          <span>
+                            {api.service} API is near its limit. Consider slowing down requests.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="trend">
+          <Card>
+            <CardHeader>
+              <CardTitle>Usage Trend (Last 24h)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 w-full">
+                {/* Basic chart example - in a real app, use a real charting library */}
+                <div className="h-full w-full flex items-end justify-around">
+                  {mockUsageTrendData.map((service, index) => (
+                    <div key={service.name} className="w-full h-full relative flex flex-col justify-end">
+                      <div className="text-sm font-medium mb-2">{service.name}</div>
+                      <div className="flex h-[70%] items-end space-x-2 mb-6">
+                        {service.data.map((value, i) => {
+                          const height = (value / service.limit) * 100;
+                          const isHighUsage = value / service.limit > 0.8;
+                          
+                          return (
+                            <div
+                              key={i}
+                              style={{ height: `${height}%`, backgroundColor: isHighUsage ? "#ef4444" : service.color }}
+                              className="w-full rounded-t-sm relative group"
+                            >
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-background text-xs px-1 py-0.5 rounded border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                {value} / {service.limit} ({Math.round(value / service.limit * 100)}%)
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="absolute bottom-0 w-full border-t flex justify-between text-xs text-muted-foreground">
+                        <span>-24h</span>
+                        <span>Now</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               
-              {selectedServiceData && (
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm">
-                      <span>Usage</span>
-                      <span>
-                        {selectedServiceData.currentUsage} / {selectedServiceData.maxUsage} requests
-                      </span>
-                    </div>
-                    <Progress 
-                      value={usagePercent} 
-                      className="h-2 mt-1"
-                      variant={getProgressColor(selectedServiceData.currentUsage, selectedServiceData.maxUsage)}
-                    />
-                  </div>
-                  
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <div>Endpoint: {selectedServiceData.endpoint || "All endpoints"}</div>
-                    {selectedServiceData.resetTime && (
-                      <div>
-                        Reset: {new Date(selectedServiceData.resetTime).toLocaleTimeString()}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="pt-2">
-                    <div className="flex items-start gap-2 p-2 text-xs rounded bg-muted">
-                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                      <div>
-                        {selectedServiceData.service === "CoinGecko" ? (
-                          <span>
-                            CoinGecko API has a rate limit of 10-50 requests per minute for free tier.
-                            Consider upgrading to Pro plan for higher limits.
-                          </span>
-                        ) : selectedServiceData.service === "Binance" ? (
-                          <span>
-                            Binance API has weight-based rate limits that vary by endpoint.
-                            Current weight usage is moderate.
-                          </span>
-                        ) : (
-                          <span>
-                            Monitor your API usage to avoid hitting rate limits which could
-                            disrupt data updates and trading signals.
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">API Service Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {apiUsage.map(item => (
-                <div key={item.service} className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{item.service}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {item.endpoint || "All endpoints"}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={(item.currentUsage / item.maxUsage > 0.9) ? "destructive" : "outline"}
-                      className="rounded-full px-2"
-                    >
-                      {(item.currentUsage / item.maxUsage > 0.9) 
-                        ? "High Usage" 
-                        : (item.currentUsage / item.maxUsage > 0.7)
-                          ? "Moderate"
-                          : "Healthy"
-                      }
-                    </Badge>
-                    <div className="w-16 h-2">
-                      <Progress 
-                        value={(item.currentUsage / item.maxUsage) * 100} 
-                        className="h-2"
-                        variant={getProgressColor(item.currentUsage, item.maxUsage)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="border rounded-md mt-6">
-              <div className="bg-muted/50 p-2 text-sm font-medium">
-                Recent API Responses
+              <div className="mt-6 text-sm text-muted-foreground">
+                <h4 className="font-medium text-foreground mb-2">Recommendations</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Implement rate limiting for the CoinGecko API</li>
+                  <li>Consider using local caching for frequently accessed data</li>
+                  <li>Schedule non-critical API calls during off-peak hours</li>
+                </ul>
               </div>
-              <div className="p-2 space-y-2">
-                {sampleCoins.map(coin => (
-                  <div key={coin.id} className="flex justify-between items-center p-2 border-b last:border-0">
-                    <div className="flex items-center gap-2">
-                      <div className="font-medium">{coin.name}</div>
-                      <div className="text-xs text-muted-foreground">{coin.symbol}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">${coin.price.toFixed(2)}</div>
-                      <div className={`text-xs ${coin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {coin.changePercent >= 0 ? '+' : ''}{coin.changePercent.toFixed(2)}%
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="history">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent API Calls</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {mockUsageHistory.map((entry, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium">{entry.service}</div>
+                      <div className="text-sm text-muted-foreground">{entry.endpoint}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(entry.timestamp).toLocaleTimeString()}
                       </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <Badge variant={entry.success ? "outline" : "destructive"}>
+                        {entry.success ? "Success" : "Failed"}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        +{entry.usage} call
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="impact">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Data Impact</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-sm mb-4">
+                  When API rate limits are reached, market data for these assets may be affected:
+                </div>
+                
+                {affectedCoins.map((coin) => (
+                  <div key={coin.id} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div className="flex items-center">
+                      <div className="font-medium">{coin.name}</div>
+                      <div className="text-xs ml-2 bg-muted px-2 py-0.5 rounded">
+                        {coin.symbol}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">${coin.price.toLocaleString()}</div>
+                      <div className={`text-sm ${coin.changePercent > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {coin.changePercent > 0 ? '+' : ''}{coin.changePercent.toFixed(2)}%
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="bg-muted/50 p-3 rounded-lg text-sm mt-6">
+                  <h4 className="font-medium mb-2">Mitigation Strategies</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Use websocket connections for real-time data where possible</li>
+                    <li>Implement smart caching strategies for price data</li>
+                    <li>Reduce polling frequency during periods of low activity</li>
+                    <li>Consider premium API tiers for critical trading functionality</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

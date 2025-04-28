@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from "@/contexts/ThemeContext";
 import FibonacciAnalysis from "./FibonacciAnalysis";
 import HyblockLiquidityMap from "./HyblockLiquidityMap";
 import TradingViewChart from "./TradingViewChart";
@@ -14,6 +15,7 @@ interface AdvancedTradingProps {
 
 const AdvancedTrading: React.FC<AdvancedTradingProps> = ({ className }) => {
   const isMobile = useIsMobile();
+  const { theme } = useTheme();
   
   return (
     <Card className={className}>
@@ -42,7 +44,14 @@ const AdvancedTrading: React.FC<AdvancedTradingProps> = ({ className }) => {
           </TabsContent>
           
           <TabsContent value="tradingview">
-            <TradingViewChart />
+            <TradingViewChart 
+              symbol="BTCUSD" 
+              interval="240" 
+              theme={theme === "dark" ? "dark" : "light"}
+              style="candles"
+              studies={["RSI@tv-basicstudies", "MACD@tv-basicstudies", "MASimple@tv-basicstudies"]}
+              height={550}
+            />
           </TabsContent>
           
           <TabsContent value="quantitative">

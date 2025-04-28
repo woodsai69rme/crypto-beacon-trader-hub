@@ -1,233 +1,173 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, TrendingDown, Clock, ArrowUpDown } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface AiTradingBotMetricsProps {
   botId: string;
   isRunning: boolean;
 }
 
-const AiTradingBotMetrics = ({ botId, isRunning }: AiTradingBotMetricsProps) => {
-  const [metrics, setMetrics] = useState({
-    cpuUsage: 15,
-    memoryUsage: 23,
-    apiCalls: 45,
-    confidence: 72,
-    accuracy: 68,
-    latency: 240, // ms
-    predictionsPerSecond: 4.2,
-    analysisComplexity: 67,
-    tradingPerformance: [
-      { day: 'Mon', return: 1.2 },
-      { day: 'Tue', return: -0.8 },
-      { day: 'Wed', return: 2.1 },
-      { day: 'Thu', return: 0.4 },
-      { day: 'Fri', return: -0.5 },
-      { day: 'Sat', return: 1.3 },
-      { day: 'Sun', return: 0.7 },
-    ],
-    predictionAccuracy: [
-      { category: 'Price', correct: 67, incorrect: 33 },
-      { category: 'Trend', correct: 72, incorrect: 28 },
-      { category: 'Volume', correct: 58, incorrect: 42 },
-      { category: 'Pattern', correct: 76, incorrect: 24 },
-    ]
+const AiTradingBotMetrics: React.FC<AiTradingBotMetricsProps> = ({ botId, isRunning }) => {
+  const { theme } = useTheme();
+  const [currentMetrics] = useState({
+    profitLoss: 2.8,
+    winRate: 0.68,
+    tradesExecuted: 25,
+    volumeTraded: 128500,
+    averageTradeDuration: "4h 12m",
+    profitFactor: 1.85,
+    lastTrade: {
+      type: "buy",
+      pair: "BTC/USD",
+      price: 86500,
+      timestamp: new Date(Date.now() - 1000 * 60 * 15)
+    }
   });
-  
-  useEffect(() => {
-    if (!isRunning) return;
-    
-    const interval = setInterval(() => {
-      setMetrics(prev => ({
-        ...prev,
-        cpuUsage: Math.min(100, prev.cpuUsage + (Math.random() * 6) - 3),
-        memoryUsage: Math.min(100, prev.memoryUsage + (Math.random() * 4) - 2),
-        apiCalls: prev.apiCalls + Math.floor(Math.random() * 3),
-        confidence: Math.min(100, Math.max(0, prev.confidence + (Math.random() * 8) - 4)),
-        latency: Math.max(100, prev.latency + (Math.random() * 40) - 20),
-        predictionsPerSecond: Math.max(0.5, prev.predictionsPerSecond + (Math.random() * 0.4) - 0.2),
-        analysisComplexity: Math.min(100, Math.max(10, prev.analysisComplexity + (Math.random() * 10) - 5)),
-        tradingPerformance: prev.tradingPerformance.map(day => ({
-          ...day,
-          return: day.return + (Math.random() * 0.4) - 0.2
-        })),
-        predictionAccuracy: prev.predictionAccuracy.map(category => {
-          const shift = Math.floor(Math.random() * 4) - 2;
-          return {
-            ...category,
-            correct: Math.min(100, Math.max(0, category.correct + shift)),
-            incorrect: Math.min(100, Math.max(0, category.incorrect - shift)),
-          };
-        })
-      }));
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, [isRunning]);
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Resource Usage */}
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="text-sm font-medium mb-4">Resource Usage</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span>CPU Usage</span>
-                  <span>{Math.round(metrics.cpuUsage)}%</span>
-                </div>
-                <Progress value={metrics.cpuUsage} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span>Memory Usage</span>
-                  <span>{Math.round(metrics.memoryUsage)}%</span>
-                </div>
-                <Progress value={metrics.memoryUsage} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span>API Calls</span>
-                  <span>{metrics.apiCalls} calls</span>
-                </div>
-                <Progress value={(metrics.apiCalls / 100) * 100} className="h-2" />
-              </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">Trading Metrics</CardTitle>
+          <Badge variant={isRunning ? "default" : "outline"}>
+            {isRunning ? "Active" : "Inactive"}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Profit/Loss</div>
+            <div className={`text-xl font-bold ${currentMetrics.profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              {currentMetrics.profitLoss > 0 ? '+' : ''}{currentMetrics.profitLoss}%
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Win Rate</div>
+            <div className="text-xl font-bold">
+              {(currentMetrics.winRate * 100).toFixed(0)}%
+            </div>
+          </div>
+          
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Trades</div>
+            <div className="text-xl font-bold">
+              {currentMetrics.tradesExecuted}
+            </div>
+          </div>
+          
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Volume</div>
+            <div className="text-xl font-bold">
+              ${currentMetrics.volumeTraded.toLocaleString()}
+            </div>
+          </div>
+          
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Avg Duration</div>
+            <div className="text-xl font-bold flex items-center">
+              <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+              {currentMetrics.averageTradeDuration}
+            </div>
+          </div>
+          
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Profit Factor</div>
+            <div className="text-xl font-bold">
+              {currentMetrics.profitFactor}
+            </div>
+          </div>
+        </div>
         
-        {/* AI Performance */}
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="text-sm font-medium mb-4">AI Performance</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span>Confidence</span>
-                  <span>{Math.round(metrics.confidence)}%</span>
+        <div className="mt-4">
+          <div className="text-sm font-medium mb-2">Recent Activity</div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center p-2 border rounded-md">
+              <div className="flex items-center">
+                {currentMetrics.lastTrade.type === 'buy' ? (
+                  <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 mr-2 text-red-500" />
+                )}
+                <div>
+                  <div className="font-medium">
+                    {currentMetrics.lastTrade.type.toUpperCase()} {currentMetrics.lastTrade.pair}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {currentMetrics.lastTrade.timestamp.toLocaleTimeString()}
+                  </div>
                 </div>
-                <Progress value={metrics.confidence} className="h-2" />
               </div>
-              
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span>Latency</span>
-                  <span>{Math.round(metrics.latency)} ms</span>
+              <div className="text-right">
+                <div className="font-medium">
+                  ${currentMetrics.lastTrade.price.toLocaleString()}
                 </div>
-                <Progress value={(metrics.latency / 500) * 100} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span>Analysis Complexity</span>
-                  <span>{Math.round(metrics.analysisComplexity)}%</span>
-                </div>
-                <Progress value={metrics.analysisComplexity} className="h-2" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Trading Performance Chart */}
-      <Card>
-        <CardContent className="p-4">
-          <h3 className="text-sm font-medium mb-4">Trading Performance</h3>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={metrics.tradingPerformance}>
-                <defs>
-                  <linearGradient id="colorReturn" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3F83F8" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3F83F8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                <XAxis 
-                  dataKey="day" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10 }}
-                  domain={[-3, 3]}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${Number(value).toFixed(2)}%`, 'Return']}
-                  labelFormatter={(label) => `Day: ${label}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="return" 
-                  stroke="#3F83F8" 
-                  fillOpacity={1} 
-                  fill="url(#colorReturn)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Prediction Accuracy */}
-      <Card>
-        <CardContent className="p-4">
-          <h3 className="text-sm font-medium mb-4">Prediction Accuracy</h3>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={metrics.predictionAccuracy} 
-                margin={{ top: 0, right: 0, left: -15, bottom: 0 }}
-                stackOffset="expand"
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.2} />
-                <XAxis 
-                  type="number" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10 }}
-                  domain={[0, 100]}
-                  unit="%"
-                />
-                <YAxis 
-                  type="category"
-                  dataKey="category" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10 }}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${value}%`, '']}
-                />
-                <Bar dataKey="correct" stackId="a" fill="#10B981" />
-                <Bar dataKey="incorrect" stackId="a" fill="#EF4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center gap-6 mt-4">
-            <div className="flex items-center gap-2 text-xs">
-              <div className="h-3 w-3 rounded-full bg-[#10B981]"></div>
-              <span>Correct</span>
+            
+            <div className="flex justify-between items-center p-2 border rounded-md">
+              <div className="flex items-center">
+                <ArrowUpDown className="h-4 w-4 mr-2 text-blue-500" />
+                <div>
+                  <div className="font-medium">Signal Change</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(Date.now() - 1000 * 60 * 25).toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Badge variant="outline">MACD Crossover</Badge>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <div className="h-3 w-3 rounded-full bg-[#EF4444]"></div>
-              <span>Incorrect</span>
+            
+            <div className="flex justify-between items-center p-2 border rounded-md">
+              <div className="flex items-center">
+                <TrendingDown className="h-4 w-4 mr-2 text-red-500" />
+                <div>
+                  <div className="font-medium">SELL ETH/USD</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(Date.now() - 1000 * 60 * 45).toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">$3,450</div>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        
+        <div className="mt-6">
+          <div className="text-sm font-medium mb-2">Performance Chart</div>
+          
+          {/* Simple mock performance chart */}
+          <div className="h-40 border rounded-md p-2 relative">
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              {isRunning ? (
+                <div className="h-full w-full">
+                  <svg viewBox="0 0 100 20" className="w-full h-full">
+                    <path 
+                      d="M0,10 L5,12 L10,8 L15,14 L20,10 L25,12 L30,7 L35,9 L40,6 L45,8 L50,4 L55,9 L60,2 L65,7 L70,4 L75,10 L80,2 L85,6 L90,1 L95,4 L100,2" 
+                      fill="none" 
+                      stroke={theme === "dark" ? "#10b981" : "#059669"} 
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </div>
+              ) : (
+                "Bot is currently inactive. Start to see performance."
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
