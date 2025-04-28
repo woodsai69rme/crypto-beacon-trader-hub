@@ -5,6 +5,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useTradingAccounts } from '@/hooks/use-trading-accounts';
 import { AITradingStrategy, AiTradingContextType } from '@/types/trading';
 import { AVAILABLE_STRATEGIES } from '@/services/aiTradingService';
+import { SupportedCurrency } from '@/components/trading/TradingStats';
 
 interface AiTradingProviderProps {
   children: React.ReactNode;
@@ -128,7 +129,7 @@ export const AiTradingProvider: React.FC<AiTradingProviderProps> = ({ children }
         price: coinData.price,
         totalValue: amount * coinData.price,
         timestamp: new Date().toISOString(),
-        currency: "USD",
+        currency: "USD" as SupportedCurrency,
         botGenerated: true,
         strategyId
       };

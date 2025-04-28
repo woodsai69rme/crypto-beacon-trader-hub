@@ -9,6 +9,9 @@ import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AiTradingProvider } from '@/contexts/AiTradingContext';
 
+// Lazy load pages
+const Index = lazy(() => import('./pages/Index'));
+
 // Create a client
 const queryClient = new QueryClient();
 
@@ -22,7 +25,7 @@ function App() {
               <Router>
                 <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><Spinner size="lg" /></div>}>
                   <Routes>
-                    <Route path="/" element={<div>Loading...</div>} />
+                    <Route path="/" element={<Index />} />
                   </Routes>
                 </Suspense>
               </Router>

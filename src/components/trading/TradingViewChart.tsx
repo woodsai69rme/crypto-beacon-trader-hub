@@ -89,7 +89,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       popup_height: '600',
       hide_volume: false,
       withdateranges: true,
-      allow_symbol_change: true,
       details: true,
       hotlist: true,
       calendar: true,
