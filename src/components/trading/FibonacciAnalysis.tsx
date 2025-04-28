@@ -1,128 +1,76 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, ReferenceLine, Tooltip, CartesianGrid } from "recharts";
-import { RefreshCw } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { FibonacciLevels } from "@/types/trading";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { FibonacciLevels } from '@/types/trading';
+import { ChevronRight } from 'lucide-react';
 
-interface FibonacciAnalysisProps {
-  className?: string;
-}
+const mockFibonacciData: FibonacciLevels[] = [
+  {
+    coin: "bitcoin",
+    timeframe: "1d",
+    levels: [
+      { extension: 0, price: 93000, significance: 'strong' },
+      { extension: 0.236, price: 89500, significance: 'medium' },
+      { extension: 0.382, price: 87200, significance: 'medium' },
+      { extension: 0.5, price: 85500, significance: 'strong' },
+      { extension: 0.618, price: 84100, significance: 'strong' },
+      { extension: 0.786, price: 82300, significance: 'medium' },
+      { extension: 1, price: 80000, significance: 'strong' },
+      { extension: 1.618, price: 75000, significance: 'medium' },
+      { extension: 2.618, price: 68000, significance: 'weak' },
+    ],
+    lastCalculated: "2023-04-26T14:00:00Z"
+  },
+  {
+    coin: "ethereum",
+    timeframe: "1d",
+    levels: [
+      { extension: 0, price: 3800, significance: 'strong' },
+      { extension: 0.236, price: 3650, significance: 'medium' },
+      { extension: 0.382, price: 3550, significance: 'medium' },
+      { extension: 0.5, price: 3480, significance: 'strong' },
+      { extension: 0.618, price: 3410, significance: 'strong' },
+      { extension: 0.786, price: 3320, significance: 'medium' },
+      { extension: 1, price: 3200, significance: 'strong' },
+      { extension: 1.618, price: 2950, significance: 'medium' },
+      { extension: 2.618, price: 2600, significance: 'weak' },
+    ],
+    lastCalculated: "2023-04-26T14:00:00Z"
+  }
+];
 
-// Fibonacci levels
-const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618, 2.618];
-
-const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({ className }) => {
-  const [coin, setCoin] = useState<string>("bitcoin");
-  const [timeframe, setTimeframe] = useState<string>("1d");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [fibLevels, setFibLevels] = useState<FibonacciLevels | null>(null);
-
-  useEffect(() => {
-    generateFibonacciLevels();
-  }, [coin, timeframe]);
-
-  const generateFibonacciLevels = async () => {
-    setLoading(true);
-    
-    try {
-      // Generate mock price data for demo
-      const mockPriceData = generateMockPriceData(coin, 30);
-      setChartData(mockPriceData);
-      
-      // Find swing high and low for Fibonacci calculation
-      const prices = mockPriceData.map(point => point.price);
-      const highPrice = Math.max(...prices);
-      const lowPrice = Math.min(...prices);
-      const priceDiff = highPrice - lowPrice;
-      
-      // Calculate Fibonacci levels
-      const levels = FIB_LEVELS.map(level => ({
-        extension: level,
-        price: lowPrice + (priceDiff * level),
-        significance: getSignificance(level)
-      }));
-      
-      setFibLevels({
-        coin,
-        timeframe,
-        levels,
-        lastCalculated: new Date().toISOString()
-      });
-      
-      toast({
-        title: "Fibonacci Analysis Updated",
-        description: `${coin.toUpperCase()} levels calculated for ${timeframe} timeframe`
-      });
-    } catch (error) {
-      console.error("Error generating Fibonacci levels:", error);
-      toast({
-        title: "Analysis Error",
-        description: "Failed to generate Fibonacci levels",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+const FibonacciAnalysis: React.FC = () => {
+  const [selectedCoin, setSelectedCoin] = useState<string>("bitcoin");
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>("1d");
   
-  const getSignificance = (level: number): 'weak' | 'medium' | 'strong' => {
-    // Key Fibonacci levels are considered stronger
-    if ([0, 0.382, 0.618, 1, 1.618].includes(level)) {
-      return 'strong';
-    } else if ([0.236, 0.5, 0.786, 2.618].includes(level)) {
-      return 'medium';
-    } else {
-      return 'weak';
-    }
-  };
+  const selectedData = mockFibonacciData.find(data => data.coin === selectedCoin);
   
-  const generateMockPriceData = (coinId: string, days: number) => {
-    const data = [];
-    let basePrice = coinId === 'bitcoin' ? 50000 : coinId === 'ethereum' ? 3000 : 100;
-    const volatility = coinId === 'bitcoin' ? 0.05 : coinId === 'ethereum' ? 0.07 : 0.09;
-    
-    for (let i = 0; i < days; i++) {
-      const change = (Math.random() - 0.5) * 2 * volatility * basePrice;
-      basePrice += change;
-      data.push({
-        date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        price: parseFloat(basePrice.toFixed(2))
-      });
-    }
-    
-    return data;
-  };
-  
-  const getLevelColor = (significance: 'weak' | 'medium' | 'strong') => {
+  const getSignificanceColor = (significance: string) => {
     switch (significance) {
-      case 'strong': return '#FF4560';
-      case 'medium': return '#FEB019';
-      case 'weak': return '#00E396';
-      default: return '#00E396';
+      case 'strong': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'weak': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      default: return '';
     }
-  };
-  
-  const handleRefresh = () => {
-    generateFibonacciLevels();
   };
   
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <div>
-            <CardTitle>Fibonacci Analysis</CardTitle>
-            <CardDescription>Auto-calculated extension and retracement levels</CardDescription>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={coin} onValueChange={setCoin}>
-              <SelectTrigger className="w-[120px]">
+        <CardTitle>Fibonacci Analysis</CardTitle>
+        <CardDescription>
+          Automatic Fibonacci retracement and extension levels for price action analysis
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="w-48">
+            <label className="text-sm font-medium mb-1 block">Cryptocurrency</label>
+            <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+              <SelectTrigger>
                 <SelectValue placeholder="Select coin" />
               </SelectTrigger>
               <SelectContent>
@@ -132,95 +80,70 @@ const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({ className }) => {
                 <SelectItem value="cardano">Cardano</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Timeframe" />
+          </div>
+          
+          <div className="w-48">
+            <label className="text-sm font-medium mb-1 block">Timeframe</label>
+            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="15m">15 Minutes</SelectItem>
                 <SelectItem value="1h">1 Hour</SelectItem>
                 <SelectItem value="4h">4 Hours</SelectItem>
                 <SelectItem value="1d">1 Day</SelectItem>
                 <SelectItem value="1w">1 Week</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={loading}
-              className={loading ? "animate-spin" : ""}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
           </div>
         </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-              <XAxis 
-                dataKey="date" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 10 }}
-                tickFormatter={(value) => value.substring(5)}
-              />
-              <YAxis 
-                domain={['auto', 'auto']} 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 10 }} 
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
-              />
-              <Tooltip 
-                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Price']}
-                labelFormatter={(label) => `Date: ${label}`}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="price" 
-                stroke="#3F83F8" 
-                strokeWidth={2} 
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
-              
-              {fibLevels && fibLevels.levels.map((level, idx) => (
-                <ReferenceLine 
-                  key={idx} 
-                  y={level.price} 
-                  stroke={getLevelColor(level.significance)} 
-                  strokeWidth={level.significance === 'strong' ? 1.5 : 1}
-                  strokeDasharray={level.significance === 'weak' ? "3 3" : undefined}
-                  label={{
-                    value: `${level.extension} - $${level.price.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
-                    fill: getLevelColor(level.significance),
-                    fontSize: 10,
-                    position: 'right'
-                  }}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
         
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {fibLevels && fibLevels.levels.map((level, idx) => (
-            <div 
-              key={idx} 
-              className="border rounded-md p-2 text-center"
-              style={{ borderColor: getLevelColor(level.significance), borderWidth: level.significance === 'strong' ? 2 : 1 }}
-            >
-              <div className="text-xs font-medium">Level {level.extension}</div>
-              <div className="text-sm">${level.price.toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
+        {selectedData ? (
+          <div>
+            <div className="grid grid-cols-3 font-medium text-sm border-b pb-2">
+              <div>Fibonacci Level</div>
+              <div>Price</div>
+              <div>Significance</div>
             </div>
-          ))}
-        </div>
+            
+            <div className="space-y-2 mt-2">
+              {selectedData.levels.map((level, index) => (
+                <div key={index} className="grid grid-cols-3 items-center py-2 border-b border-border/30 last:border-0">
+                  <div>{level.extension}</div>
+                  <div>${level.price.toLocaleString()}</div>
+                  <div>
+                    <Badge variant="secondary" className={`${getSignificanceColor(level.significance)}`}>
+                      {level.significance.charAt(0).toUpperCase() + level.significance.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t">
+              <h4 className="font-medium mb-2">Analyzing {selectedCoin.charAt(0).toUpperCase() + selectedCoin.slice(1)}</h4>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p className="flex items-start">
+                  <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
+                  <span>Strong support identified at ${selectedData.levels.find(l => l.extension === 0.618)?.price.toLocaleString()} (0.618 Fibonacci level)</span>
+                </p>
+                <p className="flex items-start">
+                  <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
+                  <span>Key resistance at ${selectedData.levels.find(l => l.extension === 0.382)?.price.toLocaleString()} (0.382 Fibonacci level)</span>
+                </p>
+                <p className="flex items-start">
+                  <ChevronRight className="h-4 w-4 mr-1 mt-0.5 shrink-0" />
+                  <span>If price breaks above ${selectedData.levels.find(l => l.extension === 0)?.price.toLocaleString()}, potential target is ${selectedData.levels.find(l => l.extension === 1.618)?.price.toLocaleString()}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            No Fibonacci data available for the selected cryptocurrency and timeframe
+          </div>
+        )}
       </CardContent>
     </Card>
   );

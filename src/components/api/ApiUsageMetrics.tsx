@@ -1,12 +1,18 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ApiUsageStats, CoinOption } from '@/types/trading';
-import { BarChart, RefreshCw } from 'lucide-react';
+import { RefreshCw, Info } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ApiUsageStats, CoinOption } from "@/types/trading";
 
 interface ApiUsageMetricsProps {
   apiUsage: ApiUsageStats[];
@@ -14,191 +20,211 @@ interface ApiUsageMetricsProps {
 }
 
 const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ apiUsage, onRefresh }) => {
-  const [timeRange, setTimeRange] = useState<string>("daily");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-
-  const sampleCoinData: CoinOption[] = [
-    { 
-      id: "bitcoin", 
-      name: "Bitcoin", 
-      symbol: "BTC", 
-      price: 61245.32,
-      priceChange: 1200,
-      changePercent: 2.3,
-      marketCap: 1180000000000
-    },
-    { 
-      id: "ethereum", 
-      name: "Ethereum", 
-      symbol: "ETH", 
-      price: 3010.45,
-      priceChange: -120,
-      changePercent: -1.5,
-      marketCap: 360000000000
-    }
-  ];
+  const [selectedService, setSelectedService] = useState<string>(apiUsage[0]?.service || "");
   
   const handleRefresh = () => {
     setIsRefreshing(true);
+    onRefresh();
     
-    // Simulate API call delay
+    // Simulate refresh delay
     setTimeout(() => {
-      onRefresh();
       setIsRefreshing(false);
-    }, 1000);
+    }, 1500);
   };
   
-  const getUsagePercentage = (current: number, max: number): number => {
-    return Math.min((current / max) * 100, 100);
+  const getProgressColor = (current: number, max: number) => {
+    const percent = (current / max) * 100;
+    if (percent > 90) return "destructive";
+    if (percent > 75) return "warning";
+    return "default";
   };
   
-  const getTimeUntilReset = (resetTime: string): string => {
-    const resetDate = new Date(resetTime);
-    const now = new Date();
+  const selectedServiceData = apiUsage.find(item => item.service === selectedService);
+  const usagePercent = selectedServiceData 
+    ? (selectedServiceData.currentUsage / selectedServiceData.maxUsage) * 100
+    : 0;
     
-    // Calculate difference in hours
-    const diffMs = resetDate.getTime() - now.getTime();
-    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (diffHrs <= 0 && diffMins <= 0) {
-      return "Resetting soon";
+  // Sample coin data for visualization
+  const sampleCoins: CoinOption[] = [
+    {
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      price: 92500.32,
+      priceChange: 1200.45,
+      changePercent: 1.3,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      volume: 28000000000
+    },
+    {
+      id: "ethereum",
+      name: "Ethereum",
+      symbol: "ETH",
+      price: 3200.45,
+      priceChange: -120.32,
+      changePercent: -2.1,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      volume: 15000000000
     }
-    
-    return `${diffHrs}h ${diffMins}m`;
-  };
+  ];
   
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-lg font-medium mb-1">API Usage Metrics</h2>
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <h3 className="font-medium text-lg">API Usage Metrics</h3>
           <p className="text-sm text-muted-foreground">
-            Monitor your API calls and limits across different services
+            Monitor your API usage across different providers
           </p>
         </div>
-        
-        <div className="flex gap-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Select range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="hourly">Last Hour</SelectItem>
-              <SelectItem value="daily">Last 24 Hours</SelectItem>
-              <SelectItem value="weekly">This Week</SelectItem>
-              <SelectItem value="monthly">This Month</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button 
-            variant="outline" 
-            size="icon"
-            disabled={isRefreshing}
-            onClick={handleRefresh}
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
+        <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+          {isRefreshing ? "Refreshing..." : "Refresh"}
+        </Button>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {apiUsage.map(usage => (
-          <Card key={usage.service}>
-            <CardContent className="pt-6">
-              <div className="mb-4 flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium mb-1">{usage.service}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {usage.endpoint || "All endpoints"}
-                  </p>
-                </div>
-                <Badge 
-                  variant={usage.currentUsage > usage.maxUsage * 0.8 ? "destructive" : "outline"}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">API Rate Limits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select API Service</label>
+                <Select 
+                  value={selectedService} 
+                  onValueChange={setSelectedService}
                 >
-                  {getUsagePercentage(usage.currentUsage, usage.maxUsage).toFixed(0)}% Used
-                </Badge>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select API service" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {apiUsage.map(item => (
+                      <SelectItem key={item.service} value={item.service}>
+                        {item.service}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
-              <Progress 
-                value={getUsagePercentage(usage.currentUsage, usage.maxUsage)} 
-                className="h-2"
-              />
-              
-              <div className="mt-2 grid grid-cols-2 text-xs text-muted-foreground">
-                <div>
-                  <span className="font-medium">{usage.currentUsage}</span> / {usage.maxUsage} calls
-                </div>
-                {usage.resetTime && (
-                  <div className="text-right">
-                    Resets in: <span className="font-medium">{getTimeUntilReset(usage.resetTime)}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        
-        {/* Sample usage chart */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-medium mb-4">Usage Over Time</h3>
-              <div className="h-72 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <BarChart className="h-10 w-10" />
-                  <p>API usage charts would be displayed here</p>
-                  <p className="text-sm">Time-series data of API calls by service</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Sample impact on market data */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-medium mb-4">Market Data Freshness</h3>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground mb-2">
-                  The freshness of your market data depends on your API call frequency:
-                </p>
-                
-                <div className="border rounded-md overflow-hidden">
-                  <div className="grid grid-cols-4 bg-muted/50 p-2 text-xs font-medium">
-                    <div>Asset</div>
-                    <div>Price</div>
-                    <div className="text-right">24h Change</div>
-                    <div className="text-right">Last Updated</div>
+              {selectedServiceData && (
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm">
+                      <span>Usage</span>
+                      <span>
+                        {selectedServiceData.currentUsage} / {selectedServiceData.maxUsage} requests
+                      </span>
+                    </div>
+                    <Progress 
+                      value={usagePercent} 
+                      className="h-2 mt-1"
+                      variant={getProgressColor(selectedServiceData.currentUsage, selectedServiceData.maxUsage)}
+                    />
                   </div>
                   
-                  <div className="divide-y">
-                    {sampleCoinData.map(coin => {
-                      const isPositive = (coin.priceChange || 0) >= 0;
-                      return (
-                        <div key={coin.id} className="grid grid-cols-4 p-2 text-sm">
-                          <div>{coin.name}</div>
-                          <div>${coin.price.toLocaleString()}</div>
-                          <div className={`text-right ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                            {isPositive ? '+' : ''}{coin.changePercent?.toFixed(2)}%
-                          </div>
-                          <div className="text-right text-xs text-muted-foreground">
-                            {coin.changePercent && coin.changePercent > 0 ? '2 mins ago' : '5 mins ago'}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <div>Endpoint: {selectedServiceData.endpoint || "All endpoints"}</div>
+                    {selectedServiceData.resetTime && (
+                      <div>
+                        Reset: {new Date(selectedServiceData.resetTime).toLocaleTimeString()}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="pt-2">
+                    <div className="flex items-start gap-2 p-2 text-xs rounded bg-muted">
+                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <div>
+                        {selectedServiceData.service === "CoinGecko" ? (
+                          <span>
+                            CoinGecko API has a rate limit of 10-50 requests per minute for free tier.
+                            Consider upgrading to Pro plan for higher limits.
+                          </span>
+                        ) : selectedServiceData.service === "Binance" ? (
+                          <span>
+                            Binance API has weight-based rate limits that vary by endpoint.
+                            Current weight usage is moderate.
+                          </span>
+                        ) : (
+                          <span>
+                            Monitor your API usage to avoid hitting rate limits which could
+                            disrupt data updates and trading signals.
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                <p className="text-xs text-muted-foreground">
-                  💡 Pro tip: Balance your API call frequency to stay within limits while keeping data fresh.
-                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">API Service Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {apiUsage.map(item => (
+                <div key={item.service} className="flex justify-between items-center">
+                  <div>
+                    <div className="font-medium">{item.service}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {item.endpoint || "All endpoints"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={(item.currentUsage / item.maxUsage > 0.9) ? "destructive" : "outline"}
+                      className="rounded-full px-2"
+                    >
+                      {(item.currentUsage / item.maxUsage > 0.9) 
+                        ? "High Usage" 
+                        : (item.currentUsage / item.maxUsage > 0.7)
+                          ? "Moderate"
+                          : "Healthy"
+                      }
+                    </Badge>
+                    <div className="w-16 h-2">
+                      <Progress 
+                        value={(item.currentUsage / item.maxUsage) * 100} 
+                        className="h-2"
+                        variant={getProgressColor(item.currentUsage, item.maxUsage)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="border rounded-md mt-6">
+              <div className="bg-muted/50 p-2 text-sm font-medium">
+                Recent API Responses
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="p-2 space-y-2">
+                {sampleCoins.map(coin => (
+                  <div key={coin.id} className="flex justify-between items-center p-2 border-b last:border-0">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium">{coin.name}</div>
+                      <div className="text-xs text-muted-foreground">{coin.symbol}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">${coin.price.toFixed(2)}</div>
+                      <div className={`text-xs ${coin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {coin.changePercent >= 0 ? '+' : ''}{coin.changePercent.toFixed(2)}%
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

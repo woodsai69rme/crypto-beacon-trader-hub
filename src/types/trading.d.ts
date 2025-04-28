@@ -424,36 +424,10 @@ export interface HyblockMarketData {
     exchange: string;
     timestamp: number;
   }[];
-  heatmapData: {
-    priceRanges: [number, number][];
-    volumeIntensity: number[];
-  };
+  lastUpdated: string;
 }
 
-// TradingView integration types
-export interface TradingViewChartConfig {
-  symbol: string;
-  interval: string;
-  theme: 'light' | 'dark';
-  studies: string[];
-  width: number;
-  height: number;
-}
-
-export interface QuantitativeAnalysis {
-  coin: string;
-  timeframe: string;
-  winProbability: number;
-  riskRewardRatio: number;
-  optimalEntryPrice: number;
-  optimalExitPrice: number;
-  stopLossRecommendation: number;
-  confidenceScore: number;
-  supportingFactors: string[];
-  timestamp: string;
-}
-
-// Local AI Models
+// LocalModel Interface
 export interface LocalModel {
   id: string;
   name: string;
@@ -463,129 +437,51 @@ export interface LocalModel {
   lastUsed?: string;
 }
 
-// Trading strategy definition
-export interface TradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: "ai-predictive" | "traditional" | "hybrid";
-  riskLevel: "low" | "medium" | "high";
-  timeframe: string;
-  indicators: string[];
-  parameters: {
-    [key: string]: any;
-  };
-}
-
-// Market correlation analysis types
-export interface CorrelationData {
-  id: string;
-  name: string;
+// TradingViewChart Config
+export interface TradingViewChartConfig {
   symbol: string;
-  correlations: {
-    coinId: string;
-    value: number;
-  }[];
+  interval: string;
+  timezone?: string;
+  theme?: 'light' | 'dark';
+  style?: 'candles' | 'bars' | 'line' | 'area';
+  studies?: string[];
+  width?: string | number;
+  height?: string | number;
+  containerId?: string;
 }
 
-// API Usage Metrics Props
-export interface ApiUsageMetricsProps {
-  apiUsage: ApiUsageStats[];
-  onRefresh: () => void;
-}
-
-// MCP (Model Computation Platform) Server Types
-export interface McpServer {
+// Quantitative Analysis
+export interface QuantitativeAnalysis {
   id: string;
-  name: string;
-  host: string;
-  port: number;
-  status: "online" | "offline" | "connecting";
-  models: McpModel[];
-  lastConnected?: string;
-  connectionInfo?: {
-    latency: number;
-    version: string;
-    capabilities: string[];
-  };
-}
-
-export interface McpModel {
-  id: string;
-  name: string;
-  type: "prediction" | "classification" | "regression" | "reinforcement";
-  status: "training" | "ready" | "error";
-  accuracy?: number;
-  lastTrained?: string;
-  parameters: {
-    [key: string]: any;
-  };
-  metrics?: {
-    accuracy: number;
-    precision: number;
-    recall: number;
-    f1Score: number;
-    profitFactor: number;
-  };
-}
-
-// Model training interfaces
-export interface ModelTrainingConfig {
-  datasetType: "historical" | "real-time" | "hybrid";
+  symbol: string;
   timeframe: string;
-  startDate: string;
-  endDate: string;
-  features: string[];
-  targetVariable: string;
-  splitRatio: number;
-  modelType: "lstm" | "gru" | "transformer" | "cnn" | "random-forest";
-  hyperparameters: {
-    [key: string]: any;
-  };
-  validationMethod: "cross-validation" | "train-test-split";
-  optimizationMetric: "accuracy" | "f1" | "profit-factor" | "sharpe-ratio";
-}
-
-export interface ModelTrainingResult {
-  modelId: string;
-  status: "success" | "error";
-  trainingTime: number;
-  epochs: number;
-  metrics: {
-    trainingLoss: number[];
-    validationLoss: number[];
-    accuracy: number;
-    precision: number;
-    recall: number;
-    f1Score: number;
-    profitFactor: number;
-  };
-  bestEpoch: number;
-  hyperparameters: {
-    [key: string]: any;
-  };
   timestamp: string;
-}
-
-// Model inference interfaces
-export interface ModelInferenceRequest {
-  modelId: string;
-  data: {
-    [key: string]: any;
-  };
-  options?: {
-    confidenceThreshold?: number;
-    batchSize?: number;
-  };
-}
-
-export interface ModelInferenceResponse {
-  modelId: string;
-  predictions: {
-    output: any;
-    confidence: number;
-    timestamp: string;
+  buyProbability: number;
+  sellProbability: number;
+  holdProbability: number;
+  expectedValue: number;
+  riskRewardRatio: number;
+  confidenceScore: number;
+  signals: {
+    indicator: string;
+    value: number;
+    signal: 'buy' | 'sell' | 'neutral';
+    strength: number;
+    timeframe: string;
   }[];
-  processingTime: number;
-  status: "success" | "error";
+  shortTerm: {
+    direction: 'up' | 'down' | 'sideways';
+    probability: number;
+    targetPrice?: number;
+  };
+  mediumTerm: {
+    direction: 'up' | 'down' | 'sideways';
+    probability: number;
+    targetPrice?: number;
+  };
+  longTerm: {
+    direction: 'up' | 'down' | 'sideways';
+    probability: number;
+    targetPrice?: number;
+  };
 }

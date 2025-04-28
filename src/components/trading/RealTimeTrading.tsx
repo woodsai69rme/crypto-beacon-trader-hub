@@ -115,7 +115,7 @@ const RealTimeTrading: React.FC = () => {
           
           <TabsContent value="prices">
             <RealTimePrices 
-              marketData={marketData} 
+              initialCoins={marketData}
               onSelectCoin={(coinId) => setSelectedCoinId(coinId)}
               selectedCoinId={selectedCoinId}
             />
@@ -123,7 +123,7 @@ const RealTimeTrading: React.FC = () => {
           
           <TabsContent value="chart">
             <RealTimePriceChart 
-              marketData={marketData} 
+              coins={marketData} 
               selectedCoinId={selectedCoinId}
               onSelectCoin={(coinId) => setSelectedCoinId(coinId)}
             />

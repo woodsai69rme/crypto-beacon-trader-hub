@@ -1,279 +1,207 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, Cell } from "recharts";
-import { RefreshCw, ExternalLink } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { HyblockMarketData } from "@/types/trading";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HyblockMarketData } from '@/types/trading';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
-interface HyblockLiquidityMapProps {
-  className?: string;
-}
+const mockHyblockData: HyblockMarketData[] = [
+  {
+    symbol: "BTC-USD",
+    liquidityZones: [
+      { price: 91500, volume: 120000000, type: 'sell', strength: 0.8, exchanges: ['Binance', 'Coinbase', 'Kraken'] },
+      { price: 90200, volume: 95000000, type: 'sell', strength: 0.7, exchanges: ['Binance', 'Coinbase'] },
+      { price: 88700, volume: 78000000, type: 'buy', strength: 0.6, exchanges: ['Binance', 'OKX'] },
+      { price: 87300, volume: 110000000, type: 'buy', strength: 0.85, exchanges: ['Binance', 'Coinbase', 'Kraken', 'OKX'] },
+      { price: 85000, volume: 180000000, type: 'buy', strength: 0.9, exchanges: ['Binance', 'Coinbase', 'Kraken', 'Bybit'] },
+    ],
+    largeOrders: [
+      { price: 91500, size: 25000000, side: 'sell', exchange: 'Binance', timestamp: 1650984000000 },
+      { price: 87200, size: 18000000, side: 'buy', exchange: 'Coinbase', timestamp: 1650987600000 },
+      { price: 85100, size: 35000000, side: 'buy', exchange: 'OKX', timestamp: 1650991200000 },
+    ],
+    lastUpdated: "2023-04-26T15:00:00Z"
+  },
+  {
+    symbol: "ETH-USD",
+    liquidityZones: [
+      { price: 3750, volume: 45000000, type: 'sell', strength: 0.75, exchanges: ['Binance', 'Coinbase'] },
+      { price: 3650, volume: 32000000, type: 'sell', strength: 0.6, exchanges: ['Binance'] },
+      { price: 3500, volume: 28000000, type: 'buy', strength: 0.65, exchanges: ['Binance', 'Kraken'] },
+      { price: 3350, volume: 42000000, type: 'buy', strength: 0.8, exchanges: ['Binance', 'Coinbase', 'OKX'] },
+      { price: 3200, volume: 65000000, type: 'buy', strength: 0.9, exchanges: ['Binance', 'Coinbase', 'Kraken', 'Bybit'] },
+    ],
+    largeOrders: [
+      { price: 3740, size: 9000000, side: 'sell', exchange: 'Binance', timestamp: 1650984000000 },
+      { price: 3510, size: 7500000, side: 'buy', exchange: 'Coinbase', timestamp: 1650987600000 },
+      { price: 3200, size: 12000000, side: 'buy', exchange: 'OKX', timestamp: 1650991200000 },
+    ],
+    lastUpdated: "2023-04-26T15:00:00Z"
+  }
+];
 
-const HyblockLiquidityMap: React.FC<HyblockLiquidityMapProps> = ({ className }) => {
-  const [symbol, setSymbol] = useState<string>("BTCUSD");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [marketData, setMarketData] = useState<HyblockMarketData | null>(null);
+const HyblockLiquidityMap: React.FC = () => {
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTC-USD");
+  const [viewMode, setViewMode] = useState<string>("heatmap");
   
-  useEffect(() => {
-    fetchLiquidityData();
-  }, [symbol]);
+  const selectedData = mockHyblockData.find(data => data.symbol === selectedSymbol);
   
-  const fetchLiquidityData = async () => {
-    setLoading(true);
-    
-    try {
-      // In a real implementation, this would fetch from Hyblock API
-      // Using mock data for demonstration
-      const mockData = generateMockHyblockData(symbol);
-      setMarketData(mockData);
-      
-      toast({
-        title: "Liquidity Data Updated",
-        description: `${symbol} liquidity map refreshed`
-      });
-    } catch (error) {
-      console.error("Error fetching liquidity data:", error);
-      toast({
-        title: "API Error",
-        description: "Failed to fetch Hyblock liquidity data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const getStrengthOpacity = (strength: number) => {
+    return Math.max(0.3, strength);
   };
   
-  const generateMockHyblockData = (symbol: string): HyblockMarketData => {
-    const basePrice = symbol.startsWith("BTC") ? 60000 : 
-                     symbol.startsWith("ETH") ? 3000 : 
-                     symbol.startsWith("SOL") ? 150 : 100;
-    
-    // Generate liquidity zones
-    const liquidityZones = [];
-    for (let i = 0; i < 15; i++) {
-      const isBuy = Math.random() > 0.5;
-      const priceDeviation = (Math.random() * 0.1) * basePrice * (isBuy ? -1 : 1);
-      const volume = Math.random() * 50 + 10;
-      const strength = Math.random() * 0.9 + 0.1;
-      
-      liquidityZones.push({
-        price: basePrice + priceDeviation,
-        volume,
-        type: isBuy ? 'buy' : 'sell',
-        strength,
-        exchanges: ['Binance', 'Coinbase', 'Kraken'].filter(() => Math.random() > 0.5)
-      });
-    }
-    
-    // Generate large orders
-    const largeOrders = [];
-    for (let i = 0; i < 5; i++) {
-      const side = Math.random() > 0.5 ? 'buy' : 'sell';
-      const priceDeviation = (Math.random() * 0.05) * basePrice * (side === 'buy' ? -1 : 1);
-      
-      largeOrders.push({
-        price: basePrice + priceDeviation,
-        size: Math.random() * 100 + 50,
-        side,
-        exchange: ['Binance', 'Coinbase', 'Kraken'][Math.floor(Math.random() * 3)],
-        timestamp: Date.now() - Math.floor(Math.random() * 3600000)
-      });
-    }
-    
-    // Generate heatmap data
-    const priceRanges = [];
-    const volumeIntensity = [];
-    const rangeStep = basePrice * 0.01;
-    
-    for (let i = 0; i < 10; i++) {
-      const rangeStart = basePrice - (5 * rangeStep) + (i * rangeStep);
-      priceRanges.push([rangeStart, rangeStart + rangeStep]);
-      volumeIntensity.push(Math.random());
-    }
-    
-    return {
-      symbol,
-      liquidityZones,
-      largeOrders,
-      heatmapData: {
-        priceRanges,
-        volumeIntensity
-      }
-    };
-  };
-  
-  const formatScatterData = () => {
-    if (!marketData) return [];
-    
-    return marketData.liquidityZones.map(zone => ({
-      price: zone.price,
-      volume: zone.volume,
-      type: zone.type,
-      strength: zone.strength,
-      size: zone.volume * 2 // For visual sizing in the chart
-    }));
-  };
-  
-  const getZoneColor = (type: 'buy' | 'sell', strength: number) => {
-    if (type === 'buy') {
-      const intensity = Math.floor(strength * 255);
-      return `rgba(0, ${intensity}, 0, ${0.3 + (strength * 0.7)})`;
+  const formatVolume = (volume: number) => {
+    if (volume >= 1000000000) {
+      return `$${(volume / 1000000000).toFixed(1)}B`;
+    } else if (volume >= 1000000) {
+      return `$${(volume / 1000000).toFixed(1)}M`;
+    } else if (volume >= 1000) {
+      return `$${(volume / 1000).toFixed(1)}K`;
     } else {
-      const intensity = Math.floor(strength * 255);
-      return `rgba(${intensity}, 0, 0, ${0.3 + (strength * 0.7)})`;
+      return `$${volume.toFixed(0)}`;
     }
   };
-  
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-  
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-popover border border-border p-3 rounded shadow-md">
-          <p className="font-medium mb-1">{data.type === 'buy' ? 'Buy Zone' : 'Sell Zone'}</p>
-          <p className="text-sm">Price: {formatCurrency(data.price)}</p>
-          <p className="text-sm">Volume: {data.volume.toFixed(2)}</p>
-          <p className="text-sm">Strength: {(data.strength * 100).toFixed(1)}%</p>
-        </div>
-      );
-    }
-    
-    return null;
-  };
-  
-  const handleRefresh = () => {
-    fetchLiquidityData();
-  };
-  
-  const openHyblockWebsite = () => {
-    window.open('https://hyblock.co/liquiditymap', '_blank');
-  };
-  
+
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <div>
-            <CardTitle className="flex items-center">
-              Hyblock Liquidity Map
-              <Button variant="link" className="p-0 h-auto ml-1" onClick={openHyblockWebsite}>
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-            <CardDescription>Visualization of market liquidity zones</CardDescription>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={symbol} onValueChange={setSymbol}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Select pair" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="BTCUSD">BTC/USD</SelectItem>
-                <SelectItem value="ETHUSD">ETH/USD</SelectItem>
-                <SelectItem value="SOLUSD">SOL/USD</SelectItem>
-                <SelectItem value="ADAUSD">ADA/USD</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={loading}
-              className={loading ? "animate-spin" : ""}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <CardTitle>Hyblock Liquidity Map</CardTitle>
+        <CardDescription>
+          Visualize market depth and liquidity zones across major exchanges
+        </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-              <XAxis 
-                type="number" 
-                dataKey="price" 
-                name="Price" 
-                domain={['auto', 'auto']}
-                tickFormatter={(value) => formatCurrency(value)}
-                label={{ value: 'Price', position: 'insideBottom', offset: -10 }}
-              />
-              <YAxis 
-                type="number" 
-                dataKey="volume" 
-                name="Volume" 
-                label={{ value: 'Volume', angle: -90, position: 'insideLeft' }}
-              />
-              <ZAxis type="number" dataKey="size" range={[50, 500]} />
-              <Tooltip content={<CustomTooltip />} />
-              <Scatter name="Liquidity Zones" data={formatScatterData()}>
-                {formatScatterData().map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={getZoneColor(entry.type, entry.strength)}
-                  />
-                ))}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="w-48">
+            <label className="text-sm font-medium mb-1 block">Symbol</label>
+            <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select pair" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BTC-USD">BTC/USD</SelectItem>
+                <SelectItem value="ETH-USD">ETH/USD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="w-48">
+            <label className="text-sm font-medium mb-1 block">View</label>
+            <Tabs value={viewMode} onValueChange={setViewMode} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                <TabsTrigger value="largeOrders">Large Orders</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
         
-        <div className="mt-4">
-          <div className="text-sm font-medium mb-2">Large Orders</div>
-          <div className="border rounded-md overflow-hidden">
-            <div className="bg-muted/50 p-2 text-xs font-medium grid grid-cols-4">
-              <div>Type</div>
-              <div>Price</div>
-              <div>Size</div>
-              <div>Exchange</div>
-            </div>
-            <div className="max-h-[150px] overflow-y-auto">
-              {marketData?.largeOrders.map((order, idx) => (
-                <div 
-                  key={idx} 
-                  className="p-2 border-t grid grid-cols-4 text-xs"
-                >
-                  <div className={order.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                    {order.side.toUpperCase()}
-                  </div>
-                  <div>{formatCurrency(order.price)}</div>
-                  <div>{order.size.toFixed(2)}</div>
-                  <div>{order.exchange}</div>
+        {selectedData ? (
+          <div>
+            <TabsContent value="heatmap" className="mt-0">
+              <div className="space-y-4">
+                {selectedData.liquidityZones
+                  .sort((a, b) => b.price - a.price)
+                  .map((zone, index) => (
+                    <div 
+                      key={index}
+                      className={`p-3 rounded-md flex items-center justify-between ${
+                        zone.type === 'sell' 
+                          ? `bg-red-500/10 border border-red-500/20` 
+                          : `bg-green-500/10 border border-green-500/20`
+                      }`}
+                      style={{
+                        opacity: getStrengthOpacity(zone.strength)
+                      }}
+                    >
+                      <div className="flex items-center">
+                        {zone.type === 'sell' ? (
+                          <TrendingDown className="h-4 w-4 text-red-500 mr-2" />
+                        ) : (
+                          <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
+                        )}
+                        
+                        <div>
+                          <div className="font-medium">${zone.price.toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {zone.exchanges.join(', ')}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="font-medium">{formatVolume(zone.volume)}</div>
+                        <div className="text-xs">
+                          Strength: {(zone.strength * 100).toFixed(0)}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="largeOrders" className="mt-0">
+              <div>
+                <div className="grid grid-cols-5 font-medium text-sm border-b pb-2">
+                  <div className="col-span-2">Price</div>
+                  <div>Side</div>
+                  <div>Size</div>
+                  <div>Exchange</div>
                 </div>
-              ))}
+                
+                <div className="space-y-2 mt-2">
+                  {selectedData.largeOrders.map((order, index) => (
+                    <div key={index} className="grid grid-cols-5 py-3 border-b border-border/30 last:border-0">
+                      <div className="col-span-2 font-medium">${order.price.toLocaleString()}</div>
+                      <div>
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          order.side === 'buy' 
+                            ? 'bg-green-500/10 text-green-500' 
+                            : 'bg-red-500/10 text-red-500'
+                        }`}>
+                          {order.side.toUpperCase()}
+                        </span>
+                      </div>
+                      <div>{formatVolume(order.size)}</div>
+                      <div>{order.exchange}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <div className="mt-6 pt-4 border-t">
+              <h4 className="font-medium mb-2">Liquidity Analysis</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>
+                  • Major support level at ${selectedData.liquidityZones.filter(z => z.type === 'buy')
+                    .reduce((prev, current) => (prev.volume > current.volume) ? prev : current).price.toLocaleString()}
+                </p>
+                <p>
+                  • Key resistance at ${selectedData.liquidityZones.filter(z => z.type === 'sell')
+                    .reduce((prev, current) => (prev.volume > current.volume) ? prev : current).price.toLocaleString()}
+                </p>
+                <p>
+                  • {selectedData.liquidityZones.filter(z => z.type === 'buy').length > 
+                    selectedData.liquidityZones.filter(z => z.type === 'sell').length ? 
+                    'Buy liquidity dominates the market' : 'Sell liquidity dominates the market'
+                  }
+                </p>
+                <p>
+                  • Total buy volume: {formatVolume(selectedData.liquidityZones
+                    .filter(z => z.type === 'buy')
+                    .reduce((sum, z) => sum + z.volume, 0))}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="mt-4 flex justify-between items-center">
-          <div className="flex gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-green-500 opacity-60"></div>
-              <span className="text-xs">Buy Zones</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-red-500 opacity-60"></div>
-              <span className="text-xs">Sell Zones</span>
-            </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            No liquidity data available for the selected symbol
           </div>
-          <div className="text-xs text-muted-foreground">
-            Size represents volume
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

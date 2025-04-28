@@ -1,183 +1,91 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useEffect, useRef } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TradingViewChartConfig } from '@/types/trading';
-import { Loader2, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-const TradingViewChart: React.FC = () => {
-  const [symbol, setSymbol] = useState<string>("BTCUSD");
-  const [interval, setInterval] = useState<string>("D"); // D for daily
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  const chartConfig: TradingViewChartConfig = {
-    symbol: symbol,
-    interval: interval,
-    theme: theme,
-    studies: ["RSI", "MACD", "MA"],
-    width: 0, // Will be set dynamically
-    height: 500
-  };
+interface TradingViewChartProps {
+  symbol: string;
+  interval?: string;
+  theme?: 'light' | 'dark';
+  height?: string;
+  width?: string;
+  style?: 'candles' | 'bars' | 'line' | 'area';
+  containerId?: string;
+}
+
+const TradingViewChart: React.FC<TradingViewChartProps> = ({
+  symbol,
+  interval = '240', // 4h default
+  theme = 'dark',
+  height = '550',
+  width = '100%',
+  style = 'candles',
+  containerId = 'tradingview_chart'
+}) => {
+  const chartRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    const loadTradingViewWidget = () => {
-      setIsLoading(true);
-      
-      if (!containerRef.current) return;
-      
-      // Clear previous chart if any
-      containerRef.current.innerHTML = '';
-      
-      // Set chart width based on container width
-      chartConfig.width = containerRef.current.clientWidth;
-      
-      // Create the script element for TradingView widget
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = () => {
-        // Check if TradingView is loaded
-        if (typeof window.TradingView !== 'undefined') {
-          new window.TradingView.widget({
-            autosize: true,
-            symbol: `${chartConfig.symbol}`,
-            interval: chartConfig.interval,
-            timezone: "Etc/UTC",
-            theme: chartConfig.theme,
-            style: "1",
-            locale: "en",
-            toolbar_bg: "#f1f3f6",
-            enable_publishing: false,
-            allow_symbol_change: true,
-            container_id: 'tradingview-widget-container',
-            studies: chartConfig.studies,
-          });
-          setIsLoading(false);
-        } else {
-          console.error("TradingView library not loaded correctly");
-          setIsLoading(false);
-        }
-      };
-      
-      script.onerror = () => {
-        console.error("Failed to load TradingView widget");
-        setIsLoading(false);
-      };
-      
-      document.head.appendChild(script);
-      
-      return () => {
-        if (script.parentNode) {
-          document.head.removeChild(script);
-        }
-      };
-    };
-    
-    loadTradingViewWidget();
-    
-    // Cleanup on unmount
-    return () => {
-      const tradingViewScript = document.querySelector('script[src="https://s3.tradingview.com/tv.js"]');
-      if (tradingViewScript && tradingViewScript.parentNode) {
-        tradingViewScript.parentNode.removeChild(tradingViewScript);
+    // Create script element for TradingView widget
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.async = true;
+    script.onload = () => {
+      if (typeof window.TradingView !== 'undefined') {
+        new window.TradingView.widget({
+          symbol: symbol,
+          interval: interval,
+          timezone: "Etc/UTC",
+          theme: theme,
+          style: style,
+          locale: "en",
+          toolbar_bg: theme === 'dark' ? '#1E1E1E' : '#F5F5F5',
+          enable_publishing: false,
+          hide_side_toolbar: false,
+          allow_symbol_change: true,
+          save_image: false,
+          container_id: containerId,
+          width: width,
+          height: height,
+          studies: [
+            "RSI@tv-basicstudies",
+            "MACD@tv-basicstudies",
+            "MASimple@tv-basicstudies"
+          ],
+          show_popup_button: true,
+          popup_width: '1000',
+          popup_height: '600',
+        });
       }
     };
-  }, [symbol, interval, theme]);
-  
-  const handleSymbolChange = (value: string) => {
-    setSymbol(value);
-  };
-  
-  const handleIntervalChange = (value: string) => {
-    setInterval(value);
-  };
-  
-  const handleThemeChange = (value: "light" | "dark") => {
-    setTheme(value);
-  };
-  
-  const openTradingViewSite = () => {
-    window.open('https://www.tradingview.com', '_blank');
-  };
-  
+    
+    document.head.appendChild(script);
+    
+    return () => {
+      // Cleanup
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, [symbol, interval, theme, style, height, width, containerId]);
+
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="flex items-center">
-              TradingView Chart
-              <Button variant="link" className="p-0 h-auto ml-1" onClick={openTradingViewSite}>
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-            <CardDescription>Professional-grade charting platform</CardDescription>
-          </div>
-          
-          <div className="flex gap-2">
-            <Select value={symbol} onValueChange={handleSymbolChange}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Symbol" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="BTCUSD">BTC/USD</SelectItem>
-                <SelectItem value="ETHUSD">ETH/USD</SelectItem>
-                <SelectItem value="SOLUSD">SOL/USD</SelectItem>
-                <SelectItem value="ADAUSD">ADA/USD</SelectItem>
-                <SelectItem value="DOTUSD">DOT/USD</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={interval} onValueChange={handleIntervalChange}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Interval" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 Minute</SelectItem>
-                <SelectItem value="5">5 Minutes</SelectItem>
-                <SelectItem value="15">15 Minutes</SelectItem>
-                <SelectItem value="60">1 Hour</SelectItem>
-                <SelectItem value="240">4 Hours</SelectItem>
-                <SelectItem value="D">1 Day</SelectItem>
-                <SelectItem value="W">1 Week</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={theme} onValueChange={handleThemeChange as (value: string) => void}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>TradingView Chart</CardTitle>
+        <CardDescription>
+          Interactive chart with technical analysis tools powered by TradingView
+        </CardDescription>
       </CardHeader>
-      
-      <CardContent>
-        <div ref={containerRef} className="w-full h-[500px] relative">
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-          <div id="tradingview-widget-container" className="w-full h-full"></div>
-        </div>
-        
-        <div className="mt-4 text-xs text-muted-foreground text-center">
-          Powered by TradingView. Click the chart to explore more features. Change symbols and timeframes using the dropdowns above.
+      <CardContent className="p-0">
+        <div className="w-full overflow-hidden rounded-md border">
+          <div id={containerId} ref={chartRef} />
         </div>
       </CardContent>
     </Card>
   );
 };
 
-// Add this interface to make TypeScript happy
+// Add window.TradingView to avoid TS errors
 declare global {
   interface Window {
     TradingView: any;

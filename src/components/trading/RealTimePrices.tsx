@@ -10,9 +10,11 @@ import { toast } from "@/components/ui/use-toast";
 
 interface RealTimePricesProps {
   initialCoins: CoinOption[];
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
 }
 
-const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
+const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins, selectedCoinId, onSelectCoin }) => {
   const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
   const [sortBy, setSortBy] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -170,7 +172,12 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({ initialCoins }) => {
                     key={coin.id}
                     className={`grid grid-cols-4 p-2 border-t ${
                       recent ? "bg-green-500/5" : ""
-                    } transition-colors`}
+                    } transition-colors ${
+                      selectedCoinId === coin.id ? "bg-muted" : ""
+                    } ${
+                      onSelectCoin ? "cursor-pointer hover:bg-muted/50" : ""
+                    }`}
+                    onClick={() => onSelectCoin?.(coin.id)}
                   >
                     <div>{coin.name}</div>
                     <div>{coin.symbol}</div>

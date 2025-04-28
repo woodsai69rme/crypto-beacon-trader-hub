@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LocalModel } from '@/types/trading';
-import { TradingStrategy } from './types';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from '@/components/ui/use-toast';
 
 interface ModelGenerationTabProps {
@@ -16,183 +15,103 @@ interface ModelGenerationTabProps {
 }
 
 const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({ selectedModel, onBack, onGenerate }) => {
-  const [strategy, setStrategy] = useState<TradingStrategy>({
-    id: `strategy-${Date.now()}`,
-    name: "",
-    description: "",
-    type: "ai-predictive",
-    riskLevel: "medium",
-    timeframe: "1h",
-    indicators: [],
-    parameters: {}
-  });
-
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
-
-  const updateStrategy = (field: string, value: any) => {
-    setStrategy(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleGenerate = () => {
+  const [timeframe, setTimeframe] = useState<string>("1d");
+  const [dataRange, setDataRange] = useState<string>("30");
+  const [indicators, setIndicators] = useState<string[]>(["RSI", "MACD"]);
+  const [strategyPrompt, setStrategyPrompt] = useState<string>("Generate a trading strategy using RSI and MACD indicators for Bitcoin with moderate risk level.");
+  
+  const handleGenerateStrategy = () => {
     if (!selectedModel) {
       toast({
-        title: "No Model Selected",
-        description: "Please connect a local model first",
+        title: "No model selected",
+        description: "Please select a model first",
         variant: "destructive"
       });
       return;
     }
-
-    if (!strategy.name) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide a name for your strategy",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Simulate strategy generation
-    setIsGenerating(true);
-    setGenerationProgress(0);
-
-    const interval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsGenerating(false);
-          toast({
-            title: "Strategy Generated",
-            description: "Your AI trading strategy has been successfully generated"
-          });
-          onGenerate();
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 150);
+    
+    toast({
+      title: "Strategy Generated",
+      description: `Created a new strategy with ${selectedModel.name} for ${dataRange} days timeframe.`
+    });
+    
+    onGenerate();
   };
 
   if (!selectedModel) {
     return (
       <div className="text-center p-8">
-        <h3 className="text-lg font-medium mb-2">No Model Connected</h3>
-        <p className="text-muted-foreground mb-4">Connect a local AI model to generate trading strategies</p>
-        <Button onClick={onBack}>Back to Model Connection</Button>
+        <p className="text-muted-foreground">No model is currently connected.</p>
+        <p className="text-sm text-muted-foreground mt-2">Please connect a model first.</p>
+        <Button variant="outline" className="mt-4" onClick={onBack}>
+          Go Back
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground mb-1">Connected Model</p>
-        <p className="font-medium">{selectedModel.name}</p>
+      <div>
+        <h3 className="text-lg font-medium">Generate Trading Strategy</h3>
+        <p className="text-sm text-muted-foreground">
+          Configure parameters for {selectedModel.name} to generate a trading strategy
+        </p>
       </div>
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">Strategy Name</label>
-            <Input 
-              id="name" 
-              value={strategy.name} 
-              onChange={(e) => updateStrategy('name', e.target.value)}
-              placeholder="Enter strategy name" 
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="timeframe" className="text-sm font-medium">Timeframe</label>
-            <Select value={strategy.timeframe} onValueChange={(value) => updateStrategy('timeframe', value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5m">5 Minutes</SelectItem>
-                <SelectItem value="15m">15 Minutes</SelectItem>
-                <SelectItem value="1h">1 Hour</SelectItem>
-                <SelectItem value="4h">4 Hours</SelectItem>
-                <SelectItem value="1d">1 Day</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label htmlFor="type" className="text-sm font-medium">Strategy Type</label>
-            <Select value={strategy.type} onValueChange={(value) => updateStrategy('type', value as "ai-predictive" | "traditional" | "hybrid")}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ai-predictive">AI Predictive</SelectItem>
-                <SelectItem value="traditional">Traditional</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="riskLevel" className="text-sm font-medium">Risk Level</label>
-            <Select value={strategy.riskLevel} onValueChange={(value) => updateStrategy('riskLevel', value as "low" | "medium" | "high")}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low Risk</SelectItem>
-                <SelectItem value="medium">Medium Risk</SelectItem>
-                <SelectItem value="high">High Risk</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label htmlFor="description" className="text-sm font-medium">Description</label>
-          <Textarea 
-            id="description" 
-            value={strategy.description} 
-            onChange={(e) => updateStrategy('description', e.target.value)}
-            placeholder="Describe your trading strategy" 
-            rows={3}
-          />
+          <Label htmlFor="timeframe">Timeframe</Label>
+          <Select value={timeframe} onValueChange={setTimeframe}>
+            <SelectTrigger id="timeframe">
+              <SelectValue placeholder="Select timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5m">5 Minutes</SelectItem>
+              <SelectItem value="15m">15 Minutes</SelectItem>
+              <SelectItem value="1h">1 Hour</SelectItem>
+              <SelectItem value="4h">4 Hours</SelectItem>
+              <SelectItem value="1d">1 Day</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-
-        {isGenerating ? (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-2">
-                <div className="text-center mb-2">
-                  <p className="font-medium">Generating AI Trading Strategy</p>
-                  <p className="text-sm text-muted-foreground">
-                    {generationProgress < 30 ? "Analyzing market patterns..." : 
-                     generationProgress < 60 ? "Optimizing trading parameters..." : 
-                     generationProgress < 90 ? "Finalizing strategy rules..." :
-                     "Completing strategy generation..."}
-                  </p>
-                </div>
-                <div className="w-full bg-secondary h-2 rounded-full">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${generationProgress}%` }}
-                  ></div>
-                </div>
-                <div className="text-right text-sm text-muted-foreground">
-                  {generationProgress}%
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onBack}>Back</Button>
-            <Button onClick={handleGenerate}>Generate Strategy</Button>
-          </div>
-        )}
+        
+        <div className="space-y-2">
+          <Label htmlFor="dataRange">Data Range (days)</Label>
+          <Select value={dataRange} onValueChange={setDataRange}>
+            <SelectTrigger id="dataRange">
+              <SelectValue placeholder="Select data range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 Days</SelectItem>
+              <SelectItem value="14">14 Days</SelectItem>
+              <SelectItem value="30">30 Days</SelectItem>
+              <SelectItem value="90">90 Days</SelectItem>
+              <SelectItem value="180">180 Days</SelectItem>
+              <SelectItem value="365">365 Days</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="strategyPrompt">Strategy Prompt</Label>
+        <Textarea
+          id="strategyPrompt"
+          placeholder="Describe your trading strategy requirements..."
+          value={strategyPrompt}
+          onChange={(e) => setStrategyPrompt(e.target.value)}
+          className="h-24"
+        />
+      </div>
+      
+      <div className="pt-2 flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          Back
+        </Button>
+        <Button onClick={handleGenerateStrategy}>
+          Generate Strategy
+        </Button>
       </div>
     </div>
   );

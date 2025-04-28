@@ -1,86 +1,88 @@
 
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import FibonacciAnalysis from './FibonacciAnalysis';
-import HyblockLiquidityMap from './HyblockLiquidityMap';
-import TradingViewChart from './TradingViewChart';
-import QuantitativeAnalysis from './QuantitativeAnalysis';
-import MarketSentimentAnalysis from './MarketSentimentAnalysis';
-import RealTimeApiUsage from '../api/RealTimeApiUsage';
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from "@/contexts/ThemeContext";
+import FibonacciAnalysis from "./FibonacciAnalysis";
+import TradingViewChart from "./TradingViewChart";
+import HyblockLiquidityMap from "./HyblockLiquidityMap";
+import QuantitativeAnalysis from "./QuantitativeAnalysis";
+import ApiUsageMetrics from "../api/ApiUsageMetrics";
+import RealTimeApiUsage from "../api/RealTimeApiUsage";
 
 const AiMarketAnalysis = () => {
-  const isMobile = useIsMobile();
-
+  const { theme } = useTheme();
+  const [activeTab, setActiveTab] = useState<string>("fibonacci");
+  const [selectedService, setSelectedService] = useState<string>("CoinGecko");
+  
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>AI Market Analysis</CardTitle>
         <CardDescription>
           Advanced market analysis tools powered by artificial intelligence
         </CardDescription>
       </CardHeader>
-
+      
       <CardContent>
-        <Tabs defaultValue="tradingview">
-          <TabsList className={`grid ${isMobile ? 'grid-cols-3 mb-3' : 'grid-cols-6 mb-6'}`}>
-            <TabsTrigger value="tradingview">TradingView</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-6 mb-6">
             <TabsTrigger value="fibonacci">Fibonacci</TabsTrigger>
-            <TabsTrigger value="hyblock">Hyblock</TabsTrigger>
-            {!isMobile && <TabsTrigger value="sentiment">Sentiment</TabsTrigger>}
-            {!isMobile && <TabsTrigger value="quantitative">Probability</TabsTrigger>}
-            {!isMobile && <TabsTrigger value="api">API Monitor</TabsTrigger>}
-            {isMobile && <TabsTrigger value="more">More</TabsTrigger>}
+            <TabsTrigger value="liquidity">Liquidity Map</TabsTrigger>
+            <TabsTrigger value="tradingview">TradingView</TabsTrigger>
+            <TabsTrigger value="quantitative">Quantitative</TabsTrigger>
+            <TabsTrigger value="metrics">API Metrics</TabsTrigger>
+            <TabsTrigger value="realtime">Real-Time API</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="tradingview">
-            <TradingViewChart />
-          </TabsContent>
-
+          
           <TabsContent value="fibonacci">
             <FibonacciAnalysis />
           </TabsContent>
-
-          <TabsContent value="hyblock">
+          
+          <TabsContent value="liquidity">
             <HyblockLiquidityMap />
           </TabsContent>
-
-          <TabsContent value="sentiment">
-            <MarketSentimentAnalysis />
+          
+          <TabsContent value="tradingview">
+            <TradingViewChart
+              symbol="BTCUSD"
+              interval="240"
+              theme={theme === "dark" ? "dark" : "light"}
+            />
           </TabsContent>
-
+          
           <TabsContent value="quantitative">
             <QuantitativeAnalysis />
           </TabsContent>
-
-          <TabsContent value="api">
-            <RealTimeApiUsage />
+          
+          <TabsContent value="metrics">
+            <ApiUsageMetrics 
+              apiUsage={[
+                {
+                  service: "CoinGecko",
+                  currentUsage: 45,
+                  maxUsage: 100,
+                  resetTime: "2023-04-27T00:00:00Z",
+                  endpoint: "/coins/markets"
+                },
+                {
+                  service: "Binance",
+                  currentUsage: 120,
+                  maxUsage: 1200,
+                  resetTime: "2023-04-26T12:00:00Z",
+                  endpoint: "/api/v3/ticker"
+                }
+              ]} 
+              onRefresh={() => console.log("Refreshing API usage metrics")}
+            />
           </TabsContent>
-
-          {isMobile && (
-            <TabsContent value="more">
-              <Tabs defaultValue="sentiment">
-                <TabsList className="grid grid-cols-3 mb-6">
-                  <TabsTrigger value="sentiment">Sentiment</TabsTrigger>
-                  <TabsTrigger value="quantitative">Probability</TabsTrigger>
-                  <TabsTrigger value="api">API Usage</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="sentiment">
-                  <MarketSentimentAnalysis />
-                </TabsContent>
-
-                <TabsContent value="quantitative">
-                  <QuantitativeAnalysis />
-                </TabsContent>
-
-                <TabsContent value="api">
-                  <RealTimeApiUsage />
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-          )}
+          
+          <TabsContent value="realtime">
+            <RealTimeApiUsage 
+              selectedService={selectedService} 
+              onServiceSelect={(service) => setSelectedService(service)} 
+            />
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
