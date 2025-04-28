@@ -1,11 +1,10 @@
-
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChartContainer, Chart, Line } from "recharts";
+import { Progress } from "@/components/ui/progress";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ApiUsageStats } from '@/types/trading';
+import { ArrowUpRight } from 'lucide-react';
 import { Bell, RefreshCw, AlertTriangle } from "lucide-react";
 import { ApiUsageStats, CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";

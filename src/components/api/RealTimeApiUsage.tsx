@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -155,7 +154,7 @@ const RealTimeApiUsage: React.FC<RealTimeApiUsageProps> = ({ selectedService, on
                 <span className="text-sm">API Usage</span>
                 <span className="text-sm">{selectedStat.currentUsage} / {selectedStat.maxUsage} requests</span>
               </div>
-              <Progress value={usagePercent} className="h-2" variant={getUsageSeverity(usagePercent)} />
+              <Progress value={usagePercent} className="h-2" />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Resets: {new Date(selectedStat.resetTime).toLocaleTimeString()}</span>
                 <span>{usagePercent.toFixed(1)}%</span>

@@ -1,132 +1,94 @@
+import React, { useState, useEffect } from 'react';
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search } from 'lucide-react';
+import { CryptoData, CoinOption } from '@/types/trading';
 
-import { useState, useEffect, useRef } from "react";
-import { Search, X } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { searchCoins, CryptoData } from "../services/cryptoApi";
+interface CryptoSearchProps {
+  coins: CoinOption[];
+  onSelect: (coin: CryptoData) => void;
+}
 
-const CryptoSearch = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<CryptoData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+const CryptoSearch: React.FC<CryptoSearchProps> = ({ coins, onSelect }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
 
-  // Handle outside clicks to close dropdown
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
+    // Convert CoinOption[] to CryptoData[]
+    setCryptoData(coins.map(coin => ({
+      id: coin.id,
+      symbol: coin.symbol,
+      name: coin.name,
+      image: coin.image,
+      current_price: coin.price,
+      market_cap: coin.marketCap || 0,
+      market_cap_rank: coin.rank || 0,
+      // Add other required fields with defaults
+      fully_diluted_valuation: null,
+      total_volume: coin.volume || 0,
+      high_24h: null,
+      low_24h: null,
+      price_change_24h: coin.priceChange || 0,
+      price_change_percentage_24h: coin.changePercent || 0,
+      market_cap_change_24h: 0,
+      market_cap_change_percentage_24h: 0,
+      circulating_supply: 0,
+      total_supply: null,
+      max_supply: null,
+      ath: null,
+      ath_change_percentage: null,
+      ath_date: null,
+      atl: null,
+      atl_change_percentage: null,
+      atl_date: null,
+      roi: null,
+      last_updated: new Date().toISOString()
+    })));
+  }, [coins]);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Handle search when user types
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (searchTerm.length >= 2) {
-        setIsLoading(true);
-        try {
-          const results = await searchCoins(searchTerm);
-          setSearchResults(results);
-          setIsOpen(results.length > 0);
-        } catch (error) {
-          console.error("Search failed:", error);
-          toast({
-            title: "Search Error",
-            description: "Failed to search for cryptocurrencies",
-            variant: "destructive",
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setSearchResults([]);
-        setIsOpen(false);
-      }
-    }, 500); // Debounce by 500ms
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const handleCoinClick = (coin: CryptoData) => {
-    // In a full implementation, this would navigate to a coin detail page
-    toast({
-      title: `Selected ${coin.name}`,
-      description: `You selected ${coin.name} (${coin.symbol})`,
-    });
-    setIsOpen(false);
-    setSearchTerm("");
-  };
+  const filteredCoins = cryptoData.filter(coin =>
+    coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="relative w-full max-w-md" ref={searchRef}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-        <input
-          type="text"
-          className="h-10 w-full rounded-md border border-input bg-crypto-dark-card pl-10 pr-10 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="Search cryptocurrencies..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => searchResults.length > 0 && setIsOpen(true)}
-        />
-        {searchTerm && (
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setSearchResults([]);
-              setIsOpen(false);
-            }}
-            className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-
-      {isOpen && (
-        <div className="absolute z-50 mt-2 w-full rounded-md border border-border bg-crypto-dark-card p-2 shadow-lg">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-4">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-            </div>
-          ) : (
-            <ul className="max-h-60 overflow-auto">
-              {searchResults.map((coin) => (
-                <li key={coin.id}>
-                  <button
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-secondary"
-                    onClick={() => handleCoinClick(coin)}
-                  >
-                    {coin.image && (
-                      <img
-                        src={coin.image}
-                        alt={coin.name}
-                        className="h-6 w-6 rounded-full"
-                      />
-                    )}
-                    <div>
-                      <div className="font-medium">{coin.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {coin.symbol}
-                        {coin.market_cap_rank && (
-                          <span className="ml-2">Rank: #{coin.market_cap_rank}</span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Search Cryptocurrencies</CardTitle>
+        <CardDescription>Find and select a cryptocurrency</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8"
+          />
         </div>
-      )}
-    </div>
+        <ScrollArea className="h-[300px] mt-4">
+          {filteredCoins.map((coin) => (
+            <div
+              key={coin.id}
+              className="flex items-center justify-between p-2 hover:bg-secondary cursor-pointer rounded-md"
+              onClick={() => onSelect(coin)}
+            >
+              <div className="flex items-center space-x-2">
+                {coin.image && <img src={coin.image} alt={coin.name} className="h-6 w-6 rounded-full" />}
+                <div>
+                  <p className="text-sm font-medium">{coin.name}</p>
+                  <p className="text-xs text-muted-foreground">{coin.symbol}</p>
+                </div>
+              </div>
+              <p className="text-sm font-medium">${coin.current_price.toFixed(2)}</p>
+            </div>
+          ))}
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 };
 

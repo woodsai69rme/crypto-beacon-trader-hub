@@ -1,4 +1,3 @@
-
 // Define cryptocurrency data types
 export interface CryptoData {
   id: string;
@@ -448,4 +447,56 @@ export interface ModelPredictionResult {
   targetPrice?: number;
   confidence: number;
   timeframe: string;
+}
+
+// Add missing type definitions
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  apiKey?: string;
+  isActive: boolean;
+  rateLimit?: number;
+  endpoints: {
+    [key: string]: string;
+  };
+  headers?: {
+    [key: string]: string;
+  };
+  documentation?: string;
+  description?: string;
+}
+
+export interface ATOTaxCalculation {
+  financialYear: string;
+  totalGain: number;
+  totalLoss: number;
+  netPosition: number;
+  taxOwed: number;
+  taxRate: number;
+  trades: Trade[];
+}
+
+export interface ATOTaxRate {
+  incomeRange: [number, number | null];
+  baseAmount: number;
+  rate: number;
+  threshold?: number;
+}
+
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  symbol: string;
+  returns: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    yearly: number;
+  };
+  historicalData: {
+    date: string;
+    value: number;
+  }[];
+  color: string;
 }

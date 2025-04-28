@@ -70,7 +70,34 @@ const MarketCorrelations = () => {
     setIsLoading(true);
     try {
       const coinsData = await fetchTopCoins(10);
-      setCoins(coinsData);
+      setCoins(coinsData.map(coin => ({
+        id: coin.id,
+        symbol: coin.symbol,
+        name: coin.name,
+        image: coin.image,
+        current_price: coin.price,
+        market_cap: coin.marketCap || 0,
+        market_cap_rank: coin.rank || 0,
+        fully_diluted_valuation: null,
+        total_volume: coin.volume || 0,
+        high_24h: null,
+        low_24h: null,
+        price_change_24h: coin.priceChange || 0,
+        price_change_percentage_24h: coin.changePercent || 0,
+        market_cap_change_24h: 0,
+        market_cap_change_percentage_24h: 0,
+        circulating_supply: 0,
+        total_supply: null,
+        max_supply: null,
+        ath: null,
+        ath_change_percentage: null,
+        ath_date: null,
+        atl: null,
+        atl_change_percentage: null,
+        atl_date: null,
+        roi: null,
+        last_updated: new Date().toISOString()
+      })));
       
       // Generate mock correlation data (in a real app, this would come from API)
       generateMockCorrelations(coinsData);
