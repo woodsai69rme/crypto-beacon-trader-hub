@@ -1,12 +1,5 @@
 
-export interface LocalModel {
-  id: string;
-  name: string;
-  endpoint: string;
-  type: "prediction" | "sentiment" | "trading" | "analysis";
-  isConnected: boolean;
-  lastUsed?: string;
-}
+import { LocalModel } from '@/types/trading';
 
 export interface TradingStrategy {
   id: string;
@@ -20,3 +13,6 @@ export interface TradingStrategy {
     [key: string]: any;
   };
 }
+
+// Re-export LocalModel for backward compatibility
+export { LocalModel };

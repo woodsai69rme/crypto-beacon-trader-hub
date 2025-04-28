@@ -158,16 +158,7 @@ export interface StrategyShare {
   timestamp: string;
 }
 
-// Additional imports from src/components/trading/types.ts
-export interface LocalModel {
-  id: string;
-  name: string;
-  endpoint: string;
-  type: "prediction" | "sentiment" | "trading" | "analysis";
-  isConnected: boolean;
-  lastUsed?: string;
-}
-
+// Trade type
 export interface Trade {
   id: string;
   coinId: string;
@@ -460,4 +451,14 @@ export interface QuantitativeAnalysis {
   confidenceScore: number;
   supportingFactors: string[];
   timestamp: string;
+}
+
+// Local AI Models
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
 }

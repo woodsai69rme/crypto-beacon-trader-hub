@@ -1,196 +1,309 @@
 
-import { useState, useEffect } from "react";
-import { Star, Trash, ArrowUp, ArrowDown } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { fetchTopCoins } from "../services/cryptoApi";
-import { CryptoData } from "@/types/trading";
-
-interface WatchlistItem extends CryptoData {
-  isInWatchlist: boolean;
-}
+import { ChevronUp, ChevronDown, Star, Trash, Plus, Search } from "lucide-react";
+import { WatchlistItem, CryptoData } from '@/types/trading';
 
 const Watchlist = () => {
-  const [coins, setCoins] = useState<WatchlistItem[]>([]);
-  const [watchlist, setWatchlist] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showOnlyWatchlist, setShowOnlyWatchlist] = useState(false);
+  const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<CryptoData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Load watchlist from localStorage
+  // Load watchlist from localStorage on component mount
   useEffect(() => {
-    const savedWatchlist = localStorage.getItem("cryptoWatchlist");
+    const savedWatchlist = localStorage.getItem('cryptoWatchlist');
     if (savedWatchlist) {
-      try {
-        setWatchlist(JSON.parse(savedWatchlist));
-      } catch (error) {
-        console.error("Failed to load watchlist:", error);
-      }
+      setWatchlist(JSON.parse(savedWatchlist));
+    } else {
+      // Initialize with default coins if no watchlist exists
+      const defaultWatchlist: WatchlistItem[] = [
+        {
+          id: "bitcoin",
+          name: "Bitcoin",
+          symbol: "BTC",
+          image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+          current_price: 61245.32,
+          price_change_percentage_24h: 2.3,
+          market_cap: 1180000000000,
+          market_cap_rank: 1,
+          addedAt: new Date().toISOString()
+        },
+        {
+          id: "ethereum",
+          name: "Ethereum",
+          symbol: "ETH",
+          image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+          current_price: 3010.45,
+          price_change_percentage_24h: -1.5,
+          market_cap: 360000000000,
+          market_cap_rank: 2,
+          addedAt: new Date().toISOString()
+        }
+      ];
+      setWatchlist(defaultWatchlist);
+      localStorage.setItem('cryptoWatchlist', JSON.stringify(defaultWatchlist));
     }
-    
-    loadCoins();
   }, []);
-  
-  // Save watchlist to localStorage when it changes
+
+  // Save watchlist to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("cryptoWatchlist", JSON.stringify(watchlist));
+    if (watchlist.length > 0) {
+      localStorage.setItem('cryptoWatchlist', JSON.stringify(watchlist));
+    }
   }, [watchlist]);
   
-  const loadCoins = async () => {
+  // Handle search for coins
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    
     setIsLoading(true);
-    try {
-      const data = await fetchTopCoins(20) as unknown as CryptoData[];
+    
+    // In a real app, this would be an API call to CoinGecko or similar
+    // For demo purposes, we'll use mock data
+    setTimeout(() => {
+      const mockResults: CryptoData[] = [
+        {
+          id: "solana",
+          symbol: "sol",
+          name: "Solana",
+          image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+          current_price: 142.87,
+          market_cap: 62000000000,
+          market_cap_rank: 5,
+          price_change_percentage_24h: 6.1
+        },
+        {
+          id: "cardano",
+          symbol: "ada",
+          name: "Cardano",
+          image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+          current_price: 0.45,
+          market_cap: 16000000000,
+          market_cap_rank: 9,
+          price_change_percentage_24h: 2.2
+        }
+      ];
       
-      // Mark coins in watchlist
-      const coinsWithWatchlist = data.map(coin => ({
-        ...coin,
-        isInWatchlist: watchlist.includes(coin.id)
-      }));
-      
-      setCoins(coinsWithWatchlist);
-    } catch (error) {
-      console.error("Failed to load coins:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load cryptocurrency data",
-        variant: "destructive",
-      });
-    } finally {
+      setSearchResults(mockResults.filter(coin => 
+        coin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        coin.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+      ));
       setIsLoading(false);
-    }
+    }, 500);
   };
   
-  const toggleWatchlist = (coinId: string) => {
-    if (watchlist.includes(coinId)) {
-      setWatchlist(watchlist.filter(id => id !== coinId));
-      setCoins(coins.map(coin => 
-        coin.id === coinId ? { ...coin, isInWatchlist: false } : coin
-      ));
+  // Add coin to watchlist
+  const addToWatchlist = (coin: CryptoData) => {
+    if (watchlist.some(item => item.id === coin.id)) {
       toast({
-        title: "Removed",
-        description: "Coin removed from your watchlist",
+        title: "Already in Watchlist",
+        description: `${coin.name} is already in your watchlist`,
+        variant: "destructive"
       });
-    } else {
-      setWatchlist([...watchlist, coinId]);
-      setCoins(coins.map(coin => 
-        coin.id === coinId ? { ...coin, isInWatchlist: true } : coin
-      ));
-      toast({
-        title: "Added",
-        description: "Coin added to your watchlist",
-      });
+      return;
     }
+    
+    const newItem: WatchlistItem = {
+      id: coin.id,
+      name: coin.name,
+      symbol: coin.symbol,
+      image: coin.image,
+      current_price: coin.current_price,
+      price_change_percentage_24h: coin.price_change_percentage_24h,
+      market_cap: coin.market_cap,
+      market_cap_rank: coin.market_cap_rank,
+      addedAt: new Date().toISOString()
+    };
+    
+    setWatchlist([...watchlist, newItem]);
+    setSearchResults([]);
+    setSearchQuery('');
+    
+    toast({
+      title: "Added to Watchlist",
+      description: `${coin.name} has been added to your watchlist`
+    });
   };
   
-  const displayedCoins = showOnlyWatchlist 
-    ? coins.filter(coin => watchlist.includes(coin.id))
-    : coins;
+  // Remove coin from watchlist
+  const removeFromWatchlist = (coinId: string) => {
+    const coinToRemove = watchlist.find(coin => coin.id === coinId);
+    if (!coinToRemove) return;
+    
+    setWatchlist(watchlist.filter(coin => coin.id !== coinId));
+    
+    toast({
+      title: "Removed from Watchlist",
+      description: `${coinToRemove.name} has been removed from your watchlist`
+    });
+  };
   
+  // Format market cap with abbreviation
+  const formatMarketCap = (marketCap: number): string => {
+    if (marketCap >= 1e12) return `$${(marketCap / 1e12).toFixed(2)}T`;
+    if (marketCap >= 1e9) return `$${(marketCap / 1e9).toFixed(2)}B`;
+    if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(2)}M`;
+    return `$${marketCap.toLocaleString()}`;
+  };
+
   return (
-    <div className="crypto-card">
-      <div className="crypto-card-header">
-        <h2 className="text-lg font-bold">Watchlist</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowOnlyWatchlist(!showOnlyWatchlist)}
-        >
-          {showOnlyWatchlist ? "Show All" : "Show Watchlist"}
-        </Button>
-      </div>
-      
-      {isLoading ? (
-        <div className="flex items-center justify-center py-10">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          {displayedCoins.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <p>{showOnlyWatchlist ? "Your watchlist is empty." : "No coins available."}</p>
-              <p className="mt-1 text-sm">
-                {showOnlyWatchlist 
-                  ? "Add coins to your watchlist to track them here." 
-                  : "Please try again later."}
-              </p>
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center">
+              <Star className="h-4 w-4 mr-2 text-yellow-500" />
+              Watchlist
+            </CardTitle>
+            <CardDescription>
+              Track your favorite cryptocurrencies
+            </CardDescription>
+          </div>
+          
+          <div className="flex">
+            <div className="relative">
+              <Input
+                placeholder="Search coins..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-36 sm:w-48"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0"
+                onClick={handleSearch}
+                disabled={isLoading}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="border-b border-border text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="pb-2 pl-2">#</th>
-                  <th className="pb-2">Name</th>
-                  <th className="pb-2">Price</th>
-                  <th className="pb-2">24h %</th>
-                  <th className="pb-2">Market Cap</th>
-                  <th className="pb-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedCoins.map((coin) => {
-                  const isPriceUp = (coin.price_change_percentage_24h ?? 0) >= 0;
-                  
-                  return (
-                    <tr key={coin.id} className="border-b border-border hover:bg-crypto-dark-hover">
-                      <td className="py-3 pl-2">{coin.market_cap_rank}</td>
-                      <td>
-                        <div className="flex items-center">
-                          {coin.image ? (
-                            <img src={coin.image} alt={coin.name} className="mr-2 h-6 w-6 rounded-full" />
-                          ) : (
-                            <div className="mr-2 h-6 w-6 rounded-full bg-secondary"></div>
-                          )}
-                          <div>
-                            <div className="font-medium">{coin.name}</div>
-                            <div className="text-xs text-muted-foreground">{coin.symbol}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>${coin.current_price.toLocaleString()}</td>
-                      <td className={isPriceUp ? "text-crypto-green" : "text-crypto-red"}>
-                        <div className="flex items-center">
-                          {isPriceUp ? (
-                            <ArrowUp className="mr-1 h-3 w-3" />
-                          ) : (
-                            <ArrowDown className="mr-1 h-3 w-3" />
-                          )}
-                          {Math.abs(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
-                        </div>
-                      </td>
-                      <td>${(coin.market_cap / 1000000000).toFixed(2)}B</td>
-                      <td>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-8 w-8 ${
-                            coin.isInWatchlist 
-                              ? "text-primary hover:text-destructive" 
-                              : "text-muted-foreground hover:text-primary"
-                          }`}
-                          onClick={() => toggleWatchlist(coin.id)}
-                        >
-                          <Star className="h-4 w-4" fill={coin.isInWatchlist ? "currentColor" : "none"} />
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+          </div>
         </div>
-      )}
+      </CardHeader>
       
-      <div className="mt-4 text-center">
-        <Button 
-          variant="outline"
-          size="sm"
-          className="text-primary hover:text-primary hover:bg-crypto-dark-hover"
-          onClick={loadCoins}
-        >
-          Refresh Data
-        </Button>
-      </div>
-    </div>
+      <CardContent>
+        {/* Search Results */}
+        {searchResults.length > 0 && (
+          <div className="mb-4 border rounded-md p-2">
+            <div className="text-sm font-medium mb-2">Search Results</div>
+            <div className="space-y-2">
+              {searchResults.map((coin) => (
+                <div key={coin.id} className="flex justify-between items-center p-2 hover:bg-muted/50 rounded-md">
+                  <div className="flex items-center">
+                    {coin.image && (
+                      <img
+                        src={coin.image}
+                        alt={coin.name}
+                        className="h-6 w-6 mr-2"
+                      />
+                    )}
+                    <div>
+                      <div className="font-medium">{coin.name}</div>
+                      <div className="text-xs text-muted-foreground">{coin.symbol.toUpperCase()}</div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addToWatchlist(coin)}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Watchlist Table */}
+        <div className="rounded-md border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left p-2">#</th>
+                <th className="text-left p-2">Coin</th>
+                <th className="text-right p-2">Price</th>
+                <th className="text-right p-2">24h</th>
+                <th className="text-right p-2 hidden md:table-cell">Market Cap</th>
+                <th className="text-right p-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {watchlist.length > 0 ? (
+                watchlist.map((coin) => (
+                  <tr key={coin.id} className="border-t hover:bg-muted/30">
+                    <td className="p-2">
+                      {coin.market_cap_rank ? (
+                        <Badge variant="outline">{coin.market_cap_rank}</Badge>
+                      ) : (
+                        <Badge variant="outline">-</Badge>
+                      )}
+                    </td>
+                    <td className="p-2">
+                      <div className="flex items-center">
+                        {coin.image && (
+                          <img
+                            src={coin.image}
+                            alt={coin.name}
+                            className="h-6 w-6 mr-2"
+                          />
+                        )}
+                        <div>
+                          <div className="font-medium">{coin.name}</div>
+                          <div className="text-xs text-muted-foreground">{coin.symbol}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-2 text-right">
+                      ${coin.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
+                    </td>
+                    <td className="p-2 text-right">
+                      {coin.price_change_percentage_24h !== undefined && (
+                        <span className={`flex items-center justify-end ${coin.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {coin.price_change_percentage_24h >= 0 ? (
+                            <ChevronUp className="h-3 w-3 mr-1" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3 mr-1" />
+                          )}
+                          {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-2 text-right hidden md:table-cell">
+                      {coin.market_cap && formatMarketCap(coin.market_cap)}
+                    </td>
+                    <td className="p-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-100"
+                        onClick={() => removeFromWatchlist(coin.id)}
+                      >
+                        <Trash className="h-3 w-3" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-muted-foreground">
+                    No coins in your watchlist yet. Use the search to add some!
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

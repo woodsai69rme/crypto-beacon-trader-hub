@@ -1,879 +1,454 @@
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { Badge } from "@/components/ui/badge";
+import { StrategyShare, TradingSignal } from '@/types/trading';
 import { toast } from "@/components/ui/use-toast";
-import { Share2, MessageSquare, Users, Star, Trophy, TrendingUp, ArrowRight, ThumbsUp, Copy, MessagesSquare } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Search, 
+  Users, 
+  TrendingUp, 
+  ChevronUp, 
+  ChevronDown, 
+  MessageSquare, 
+  Share2, 
+  ThumbsUp, 
+  Download 
+} from "lucide-react";
 
-interface StrategyShare {
-  id: string;
-  userId: string;
-  username: string;
-  strategyId: string;
-  strategyName: string;
-  description: string;
-  timeframe: string;
-  likes: number;
-  comments: number;
-  performance: number;
-  type: string;
-  timestamp: string;
-  tags: string[];
-}
-
-interface TradingSignal {
-  id: string;
-  userId: string;
-  username: string;
-  coin: string;
-  action: 'buy' | 'sell';
-  price: number;
-  targetPrice: number;
-  stopLoss: number;
-  confidence: number;
-  timestamp: string;
-  timeframe: string;
-  expiresIn: string;
-  likes: number;
-  source: 'trader' | 'ai';
-}
-
-interface Comment {
-  id: string;
-  userId: string;
-  username: string;
-  content: string;
-  timestamp: string;
-  likes: number;
-  parentId?: string;
-}
-
-const mockUsers = [
-  { id: 'user1', username: 'CryptoSage', verified: true, following: 245, followers: 1240, performance: 32.5 },
-  { id: 'user2', username: 'TradeNinja', verified: true, following: 78, followers: 890, performance: 28.7 },
-  { id: 'user3', username: 'BlockchainWhiz', verified: false, following: 112, followers: 573, performance: 15.3 },
-  { id: 'user4', username: 'SatoshiFan', verified: false, following: 325, followers: 289, performance: 8.2 },
-  { id: 'user5', username: 'CoinCollector', verified: true, following: 67, followers: 1450, performance: 42.8 },
+// Mock data for strategy shares
+const mockStrategyShares: StrategyShare[] = [
+  {
+    id: "1",
+    userId: "user1",
+    username: "CryptoMaster",
+    userAvatar: "https://github.com/shadcn.png",
+    strategyName: "BTC Breakout Strategy",
+    strategyType: "breakout",
+    description: "This strategy detects and trades Bitcoin breakouts with high accuracy.",
+    performance: {
+      winRate: 0.68,
+      profitFactor: 1.85,
+      totalTrades: 125,
+      averageReturn: 2.4
+    },
+    tags: ["Bitcoin", "Breakout", "Technical"],
+    likes: 45,
+    downloads: 23,
+    timestamp: "2025-04-25T10:30:00Z"
+  },
+  {
+    id: "2",
+    userId: "user2",
+    username: "AlgoTrader",
+    userAvatar: "https://api.dicebear.com/7.x/bottts/svg",
+    strategyName: "ETH-BTC Correlation Arbitrage",
+    strategyType: "arbitrage",
+    description: "Exploits correlation divergence between ETH and BTC for reliable profits.",
+    performance: {
+      winRate: 0.72,
+      profitFactor: 1.95,
+      totalTrades: 98,
+      averageReturn: 1.8
+    },
+    tags: ["Ethereum", "Bitcoin", "Arbitrage", "Correlation"],
+    likes: 38,
+    downloads: 17,
+    timestamp: "2025-04-24T14:15:00Z"
+  },
+  {
+    id: "3",
+    userId: "user3",
+    username: "TechAnalyst",
+    userAvatar: "https://api.dicebear.com/7.x/initials/svg?seed=TA",
+    strategyName: "Multi-Timeframe SOL Strategy",
+    strategyType: "multi-timeframe",
+    description: "Combines signals from multiple timeframes for Solana trading.",
+    performance: {
+      winRate: 0.65,
+      profitFactor: 2.1,
+      totalTrades: 75,
+      averageReturn: 3.2
+    },
+    tags: ["Solana", "Multi-Timeframe", "Technical"],
+    likes: 22,
+    downloads: 9,
+    timestamp: "2025-04-22T09:45:00Z"
+  }
 ];
 
-const SocialTradingFeatures = () => {
-  const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<string>("strategies");
-  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
-  const [selectedSignal, setSelectedSignal] = useState<string | null>(null);
-  const [shareDescription, setShareDescription] = useState<string>("");
-  const [strategyShares, setStrategyShares] = useLocalStorage<StrategyShare[]>("strategyShares", [
-    {
-      id: "share1",
-      userId: "user1",
-      username: "CryptoSage",
-      strategyId: "momentum-ai-1",
-      strategyName: "AI Momentum Alpha",
-      description: "This strategy has been working great for me in the current market conditions. 32% return in the last month!",
-      timeframe: "1h",
-      likes: 42,
-      comments: 12,
-      performance: 32.4,
-      type: "momentum",
-      timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
-      tags: ["momentum", "ai", "machine-learning"]
-    },
-    {
-      id: "share2",
-      userId: "user2",
-      username: "TradeNinja",
-      strategyId: "mean-reversion-ai-1",
-      strategyName: "Smart Mean Reversion",
-      description: "Solid low-risk strategy that performs well in sideways markets. I've modified the parameters a bit from the original.",
-      timeframe: "4h",
-      likes: 28,
-      comments: 8,
-      performance: 17.5,
-      type: "mean-reversion",
-      timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),
-      tags: ["mean-reversion", "low-risk", "modified"]
-    }
-  ]);
+// Mock data for trading signals
+const mockTradingSignals: TradingSignal[] = [
+  {
+    id: "1",
+    userId: "user1",
+    username: "CryptoMaster",
+    userAvatar: "https://github.com/shadcn.png",
+    coinId: "bitcoin",
+    coinSymbol: "BTC",
+    type: "buy",
+    entryPrice: 59750,
+    targetPrice: 65000,
+    stopLoss: 57500,
+    timeframe: "4h",
+    confidence: "high",
+    reasoning: "BTC breaking out of a 3-week consolidation with increasing volume.",
+    timestamp: "2025-04-28T08:20:00Z",
+    likes: 18,
+    comments: 3
+  },
+  {
+    id: "2",
+    userId: "user2",
+    username: "AlgoTrader",
+    userAvatar: "https://api.dicebear.com/7.x/bottts/svg",
+    coinId: "ethereum",
+    coinSymbol: "ETH",
+    type: "sell",
+    entryPrice: 3050,
+    targetPrice: 2850,
+    stopLoss: 3150,
+    timeframe: "1d",
+    confidence: "medium",
+    reasoning: "ETH showing bearish divergence on daily RSI with decreasing volume.",
+    timestamp: "2025-04-27T16:45:00Z",
+    likes: 12,
+    comments: 5
+  },
+  {
+    id: "3",
+    userId: "user3",
+    username: "TechAnalyst",
+    userAvatar: "https://api.dicebear.com/7.x/initials/svg?seed=TA",
+    coinId: "solana",
+    coinSymbol: "SOL",
+    type: "buy",
+    entryPrice: 140.5,
+    targetPrice: 155,
+    stopLoss: 135,
+    timeframe: "1h",
+    confidence: "high",
+    reasoning: "SOL just completed an inverse head and shoulders pattern.",
+    timestamp: "2025-04-28T07:30:00Z",
+    likes: 24,
+    comments: 7
+  }
+];
+
+const SocialTradingFeatures: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("signals");
+  const [strategyShares, setStrategyShares] = useState<StrategyShare[]>([]);
+  const [tradingSignals, setTradingSignals] = useState<TradingSignal[]>([]);
   
-  const [tradingSignals, setTradingSignals] = useLocalStorage<TradingSignal[]>("tradingSignals", [
-    {
-      id: "signal1",
-      userId: "user1",
-      username: "CryptoSage",
-      coin: "BTC",
-      action: "buy",
-      price: 51200,
-      targetPrice: 54000,
-      stopLoss: 49800,
-      confidence: 85,
-      timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
-      timeframe: "4h",
-      expiresIn: "24h",
-      likes: 38,
-      source: "trader"
-    },
-    {
-      id: "signal2",
-      userId: "user5",
-      username: "CoinCollector",
-      coin: "ETH",
-      action: "sell",
-      price: 2950,
-      targetPrice: 2800,
-      stopLoss: 3050,
-      confidence: 75,
-      timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-      timeframe: "1h",
-      expiresIn: "12h",
-      likes: 25,
-      source: "ai"
-    },
-    {
-      id: "signal3",
-      userId: "user3",
-      username: "BlockchainWhiz",
-      coin: "SOL",
-      action: "buy",
-      price: 125.50,
-      targetPrice: 140,
-      stopLoss: 120,
-      confidence: 68,
-      timestamp: new Date(Date.now() - 3600000 * 8).toISOString(),
-      timeframe: "1d",
-      expiresIn: "72h",
-      likes: 12,
-      source: "trader"
-    }
-  ]);
-
-  const [comments, setComments] = useLocalStorage<Comment[]>("strategyComments", [
-    {
-      id: "comment1",
-      userId: "user3",
-      username: "BlockchainWhiz",
-      content: "I've been using this strategy with a slight modification to the RSI parameters. 28% return so far!",
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      likes: 8
-    },
-    {
-      id: "comment2",
-      userId: "user4",
-      username: "SatoshiFan",
-      content: "What timeframe works best for this in your experience?",
-      timestamp: new Date(Date.now() - 86400000 * 0.8).toISOString(),
-      likes: 2
-    },
-    {
-      id: "comment3",
-      userId: "user1",
-      username: "CryptoSage",
-      content: "I find the 1H timeframe to be most effective for this strategy, especially during market volatility.",
-      timestamp: new Date(Date.now() - 86400000 * 0.7).toISOString(),
-      likes: 5,
-      parentId: "comment2"
-    }
-  ]);
+  // Initialize with mock data
+  useEffect(() => {
+    // Simulate API fetch
+    setTimeout(() => {
+      setStrategyShares(mockStrategyShares);
+      setTradingSignals(mockTradingSignals);
+    }, 500);
+  }, []);
   
-  const [newComment, setNewComment] = useState<string>("");
-
-  const handleShareStrategy = (strategyId: string, strategyName: string) => {
-    if (!shareDescription.trim()) {
-      toast({
-        title: "Description Required",
-        description: "Please add a description before sharing your strategy.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const newShare: StrategyShare = {
-      id: `share${Date.now()}`,
-      userId: "currentUser", // Would come from auth context in a real app
-      username: "You",
-      strategyId,
-      strategyName,
-      description: shareDescription,
-      timeframe: "1h", // This would be dynamic in a real app
-      likes: 0,
-      comments: 0,
-      performance: Math.random() * 20 + 10, // Just for demo
-      type: "custom",
-      timestamp: new Date().toISOString(),
-      tags: ["custom", "shared"]
-    };
-    
-    setStrategyShares([newShare, ...strategyShares]);
-    setShareDescription("");
-    
-    toast({
-      title: "Strategy Shared",
-      description: "Your strategy has been shared with the community."
-    });
-  };
-
-  const handleLikeStrategy = (shareId: string) => {
-    setStrategyShares(shares => 
-      shares.map(share => 
-        share.id === shareId 
-          ? { ...share, likes: share.likes + 1 } 
-          : share
-      )
+  // Filter trading signals based on search query
+  const filteredSignals = tradingSignals.filter(signal => {
+    const lowerQuery = searchQuery.toLowerCase();
+    return (
+      signal.username.toLowerCase().includes(lowerQuery) ||
+      signal.coinSymbol.toLowerCase().includes(lowerQuery) ||
+      signal.reasoning.toLowerCase().includes(lowerQuery)
     );
-  };
-
+  });
+  
+  // Filter strategy shares based on search query
+  const filteredShares = strategyShares.filter(share => {
+    const lowerQuery = searchQuery.toLowerCase();
+    return (
+      share.username.toLowerCase().includes(lowerQuery) ||
+      share.strategyName.toLowerCase().includes(lowerQuery) ||
+      share.description.toLowerCase().includes(lowerQuery) ||
+      share.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    );
+  });
+  
   const handleLikeSignal = (signalId: string) => {
-    setTradingSignals(signals => 
-      signals.map(signal => 
+    setTradingSignals(prevSignals => 
+      prevSignals.map(signal => 
         signal.id === signalId 
-          ? { ...signal, likes: signal.likes + 1 } 
+          ? { ...signal, likes: signal.likes + 1 }
           : signal
       )
     );
+    
+    toast({
+      title: "Signal Liked",
+      description: "You've liked this trading signal"
+    });
   };
-
-  const handleAddComment = (shareId: string) => {
-    if (!newComment.trim()) return;
-    
-    const newCommentObj: Comment = {
-      id: `comment${Date.now()}`,
-      userId: "currentUser", // Would come from auth context in a real app
-      username: "You",
-      content: newComment,
-      timestamp: new Date().toISOString(),
-      likes: 0
-    };
-    
-    setComments([...comments, newCommentObj]);
-    
-    // Update comment count on the share
-    setStrategyShares(shares => 
-      shares.map(share => 
-        share.id === shareId 
-          ? { ...share, comments: share.comments + 1 } 
+  
+  const handleLikeStrategy = (strategyId: string) => {
+    setStrategyShares(prevShares => 
+      prevShares.map(share => 
+        share.id === strategyId 
+          ? { ...share, likes: share.likes + 1 }
           : share
       )
     );
     
-    setNewComment("");
-    
     toast({
-      title: "Comment Added",
-      description: "Your comment has been posted successfully."
+      title: "Strategy Liked",
+      description: "You've liked this trading strategy"
     });
   };
-
-  const formatTimeAgo = (timestamp: string) => {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const seconds = Math.floor((now.getTime() - time.getTime()) / 1000);
+  
+  const handleDownloadStrategy = (strategyId: string) => {
+    setStrategyShares(prevShares => 
+      prevShares.map(share => 
+        share.id === strategyId 
+          ? { ...share, downloads: share.downloads + 1 }
+          : share
+      )
+    );
     
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  };
-
-  const handleCopyStrategy = (shareId: string) => {
-    const share = strategyShares.find(s => s.id === shareId);
-    if (share) {
-      toast({
-        title: "Strategy Copied",
-        description: `${share.strategyName} has been copied to your strategies.`
-      });
-    }
+    toast({
+      title: "Strategy Downloaded",
+      description: "Trading strategy has been added to your library"
+    });
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Social Trading
-        </CardTitle>
-        <CardDescription>
-          Share strategies, signals and insights with the trading community
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Social Trading
+            </CardTitle>
+            <CardDescription>
+              Connect with traders, share strategies, and follow signals
+            </CardDescription>
+          </div>
+          
+          <div className="relative w-full sm:w-auto">
+            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search signals, strategies..."
+              className="pl-8 w-full sm:w-[250px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="strategies">
-              <Star className="mr-1 h-4 w-4" />
-              <span className={isMobile ? "hidden" : "inline"}>Strategies</span>
-            </TabsTrigger>
+          <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="signals">
-              <TrendingUp className="mr-1 h-4 w-4" />
-              <span className={isMobile ? "hidden" : "inline"}>Signals</span>
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Trading Signals
             </TabsTrigger>
-            <TabsTrigger value="traders">
-              <Trophy className="mr-1 h-4 w-4" />
-              <span className={isMobile ? "hidden" : "inline"}>Top Traders</span>
+            <TabsTrigger value="strategies">
+              <Share2 className="h-4 w-4 mr-2" />
+              Shared Strategies
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="strategies" className="space-y-4">
-            {selectedStrategy ? (
-              <div className="space-y-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setSelectedStrategy(null)}
-                  className="mb-2"
-                >
-                  <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
-                  Back to Strategies
-                </Button>
-                
-                {strategyShares
-                  .filter(share => share.id === selectedStrategy)
-                  .map(share => (
-                    <div key={share.id} className="space-y-4">
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center">
-                              <Avatar className="h-10 w-10 mr-3">
-                                <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center">
-                                  {share.username.charAt(0)}
-                                </div>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{share.username}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {formatTimeAgo(share.timestamp)}
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              <Badge className="capitalize">{share.type}</Badge>
-                            </div>
+          <TabsContent value="signals" className="space-y-6">
+            {filteredSignals.length > 0 ? (
+              filteredSignals.map((signal) => (
+                <Card key={signal.id} className="overflow-hidden">
+                  <div className="flex items-start p-4 gap-4">
+                    <Avatar>
+                      <AvatarImage src={signal.userAvatar} />
+                      <AvatarFallback>{signal.username.substring(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1">
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="font-medium">{signal.username}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(signal.timestamp).toLocaleString()}
                           </div>
-                          
-                          <div className="mb-4">
-                            <h3 className="text-lg font-semibold mb-1">{share.strategyName}</h3>
-                            <p className="text-muted-foreground">{share.description}</p>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {share.tags.map((tag) => (
-                              <Badge key={tag} variant="outline">
-                                #{tag}
-                              </Badge>
-                            ))}
-                          </div>
-                          
-                          <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-                            <div className="bg-muted p-2 rounded">
-                              <div className="text-xs text-muted-foreground">Performance</div>
-                              <div className="text-green-500 font-semibold">+{share.performance}%</div>
-                            </div>
-                            <div className="bg-muted p-2 rounded">
-                              <div className="text-xs text-muted-foreground">Timeframe</div>
-                              <div>{share.timeframe}</div>
-                            </div>
-                            <div className="bg-muted p-2 rounded">
-                              <div className="text-xs text-muted-foreground">Engagement</div>
-                              <div>{share.likes} likes</div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex justify-between">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleLikeStrategy(share.id)}
-                            >
-                              <ThumbsUp className="mr-1 h-4 w-4" />
-                              Like
-                            </Button>
-                            <Button 
-                              size="sm"
-                              onClick={() => handleCopyStrategy(share.id)}
-                            >
-                              <Copy className="mr-1 h-4 w-4" />
-                              Copy Strategy
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <div className="space-y-4">
-                        <h3 className="font-medium">Comments ({share.comments})</h3>
-                        
-                        <div className="space-y-3">
-                          {comments.map((comment) => (
-                            <div
-                              key={comment.id}
-                              className={`bg-muted/50 p-3 rounded-lg ${
-                                comment.parentId ? "ml-6 border-l-2 border-primary" : ""
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center">
-                                  <Avatar className="h-6 w-6 mr-2">
-                                    <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center text-xs">
-                                      {comment.username.charAt(0)}
-                                    </div>
-                                  </Avatar>
-                                  <span className="font-medium text-sm">{comment.username}</span>
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatTimeAgo(comment.timestamp)}
-                                </span>
-                              </div>
-                              <p className="text-sm">{comment.content}</p>
-                              <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                                <ThumbsUp className="h-3 w-3 mr-1" />
-                                {comment.likes}
-                              </div>
-                            </div>
-                          ))}
                         </div>
                         
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                          />
-                          <Button onClick={() => handleAddComment(share.id)}>Post</Button>
+                        <Badge variant={signal.type === 'buy' ? 'default' : 'destructive'}>
+                          {signal.type === 'buy' ? 'BUY' : 'SELL'} {signal.coinSymbol}
+                        </Badge>
+                      </div>
+                      
+                      <div className="mt-2">
+                        <div className="text-sm">{signal.reasoning}</div>
+                        
+                        <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                          <div className="bg-muted rounded p-1.5">
+                            <div className="text-muted-foreground">Entry</div>
+                            <div className="font-medium">${signal.entryPrice.toLocaleString()}</div>
+                          </div>
+                          <div className="bg-muted rounded p-1.5">
+                            <div className="text-muted-foreground">Target</div>
+                            <div className="font-medium">${signal.targetPrice.toLocaleString()}</div>
+                          </div>
+                          <div className="bg-muted rounded p-1.5">
+                            <div className="text-muted-foreground">Stop Loss</div>
+                            <div className="font-medium">${signal.stopLoss.toLocaleString()}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 flex items-center gap-4">
+                          <div className="flex items-center text-xs">
+                            <Badge variant="outline" className="mr-1">
+                              {signal.timeframe}
+                            </Badge>
+                            <span className="text-muted-foreground">timeframe</span>
+                          </div>
+                          
+                          <Badge variant={
+                            signal.confidence === 'high' ? 'default' : 
+                            signal.confidence === 'medium' ? 'secondary' : 
+                            'outline'
+                          }>
+                            {signal.confidence} confidence
+                          </Badge>
+                          
+                          <div className="ml-auto flex items-center gap-3">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8" 
+                              onClick={() => handleLikeSignal(signal.id)}
+                            >
+                              <ThumbsUp className="h-4 w-4" />
+                              <span className="ml-1 text-xs">{signal.likes}</span>
+                            </Button>
+                            
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MessageSquare className="h-4 w-4" />
+                              <span className="ml-1 text-xs">{signal.comments}</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <>
-                <div className="mb-6">
-                  <h3 className="font-medium mb-2">Share Your Strategy</h3>
-                  <div className="space-y-3">
-                    <Select defaultValue="custom">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a strategy to share" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="custom">My Custom Strategy</SelectItem>
-                        <SelectItem value="momentum-ai-1">AI Momentum Alpha</SelectItem>
-                        <SelectItem value="mean-reversion-ai-1">Smart Mean Reversion</SelectItem>
-                        <SelectItem value="breakout-ai-1">Neural Breakout Detector</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <Textarea
-                      placeholder="Share details about your strategy and results..."
-                      value={shareDescription}
-                      onChange={(e) => setShareDescription(e.target.value)}
-                    />
-                    
-                    <div className="flex justify-end">
-                      <Button onClick={() => handleShareStrategy("custom", "My Custom Strategy")}>
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share Strategy
-                      </Button>
                     </div>
                   </div>
-                </div>
-                
-                <h3 className="font-medium mb-2">Community Strategies</h3>
-                <div className="space-y-4">
-                  {strategyShares.map((share) => (
-                    <Card key={share.id} className="overflow-hidden">
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-2">
-                              <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center">
-                                {share.username.charAt(0)}
-                              </div>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{share.username}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {formatTimeAgo(share.timestamp)}
-                              </div>
-                            </div>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No trading signals found matching your search.
+              </div>
+            )}
+            
+            <div className="text-center mt-4">
+              <Button variant="outline">
+                Load More Signals
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="strategies" className="space-y-6">
+            {filteredShares.length > 0 ? (
+              filteredShares.map((share) => (
+                <Card key={share.id} className="overflow-hidden">
+                  <div className="flex items-start p-4 gap-4">
+                    <Avatar>
+                      <AvatarImage src={share.userAvatar} />
+                      <AvatarFallback>{share.username.substring(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1">
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="font-medium">{share.username}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(share.timestamp).toLocaleString()}
                           </div>
-                          <Badge className="capitalize">{share.type}</Badge>
                         </div>
                         
-                        <div className="mb-2">
-                          <h4 className="font-semibold">{share.strategyName}</h4>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {share.description}
-                          </p>
-                        </div>
+                        <Badge variant="outline">
+                          {share.strategyType}
+                        </Badge>
+                      </div>
+                      
+                      <div className="mt-2">
+                        <div className="font-medium">{share.strategyName}</div>
+                        <div className="text-sm mt-1">{share.description}</div>
                         
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {share.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              #{tag}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {share.tags.map((tag, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {tag}
                             </Badge>
                           ))}
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-2 mb-3 text-center text-sm">
-                          <div className="bg-muted p-1 rounded">
-                            <span className="text-green-500">+{share.performance}%</span>
+                        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                          <div className="bg-muted rounded p-2">
+                            <div className="text-muted-foreground">Win Rate</div>
+                            <div className="font-medium">{(share.performance.winRate * 100).toFixed(1)}%</div>
                           </div>
-                          <div className="bg-muted p-1 rounded">{share.timeframe}</div>
-                          <div className="bg-muted p-1 rounded">
-                            <ThumbsUp className="inline h-3 w-3 mr-1" />
-                            {share.likes}
+                          <div className="bg-muted rounded p-2">
+                            <div className="text-muted-foreground">Profit Factor</div>
+                            <div className="font-medium">{share.performance.profitFactor.toFixed(2)}</div>
                           </div>
-                        </div>
-                        
-                        <div className="flex justify-between">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleLikeStrategy(share.id)}
-                            className="text-xs"
-                          >
-                            <ThumbsUp className="h-3 w-3 mr-1" />
-                            Like
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setSelectedStrategy(share.id)}
-                            className="text-xs"
-                          >
-                            <MessageSquare className="h-3 w-3 mr-1" />
-                            Comments ({share.comments})
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleCopyStrategy(share.id)}
-                            className="text-xs"
-                          >
-                            <Copy className="h-3 w-3 mr-1" />
-                            Copy
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="signals" className="space-y-4">
-            {selectedSignal ? (
-              <div className="space-y-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setSelectedSignal(null)}
-                  className="mb-2"
-                >
-                  <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
-                  Back to Signals
-                </Button>
-                
-                {tradingSignals
-                  .filter(signal => signal.id === selectedSignal)
-                  .map(signal => (
-                    <Card key={signal.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            <Avatar className="h-10 w-10 mr-3">
-                              <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center">
-                                {signal.username.charAt(0)}
-                              </div>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{signal.username}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {formatTimeAgo(signal.timestamp)}
-                              </div>
-                            </div>
+                          <div className="bg-muted rounded p-2">
+                            <div className="text-muted-foreground">Total Trades</div>
+                            <div className="font-medium">{share.performance.totalTrades}</div>
                           </div>
-                          <Badge variant={signal.source === 'ai' ? "secondary" : "default"}>
-                            {signal.source === 'ai' ? 'AI Generated' : 'Trader Signal'}
-                          </Badge>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold">{signal.coin}</h3>
-                            <Badge className={signal.action === 'buy' ? 'bg-green-500' : 'bg-red-500'}>
-                              {signal.action.toUpperCase()}
-                            </Badge>
-                          </div>
-                          
-                          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Entry Price</div>
-                              <div className="font-semibold">${signal.price.toLocaleString()}</div>
-                            </div>
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Target Price</div>
-                              <div className="font-semibold text-green-500">${signal.targetPrice.toLocaleString()}</div>
-                            </div>
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Stop Loss</div>
-                              <div className="font-semibold text-red-500">${signal.stopLoss.toLocaleString()}</div>
-                            </div>
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Confidence</div>
-                              <div className="font-semibold">{signal.confidence}%</div>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-4 grid grid-cols-3 gap-4">
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Timeframe</div>
-                              <div className="font-semibold">{signal.timeframe}</div>
-                            </div>
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Expires In</div>
-                              <div className="font-semibold">{signal.expiresIn}</div>
-                            </div>
-                            <div className="bg-muted p-3 rounded">
-                              <div className="text-xs text-muted-foreground">Potential</div>
-                              <div className="font-semibold text-green-500">
-                                {(Math.abs(signal.targetPrice - signal.price) / signal.price * 100).toFixed(1)}%
-                              </div>
-                            </div>
+                          <div className="bg-muted rounded p-2">
+                            <div className="text-muted-foreground">Avg Return</div>
+                            <div className="font-medium">{share.performance.averageReturn.toFixed(1)}%</div>
                           </div>
                         </div>
                         
-                        <div className="flex justify-between">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleLikeSignal(signal.id)}
-                          >
-                            <ThumbsUp className="mr-1 h-4 w-4" />
-                            Like ({signal.likes})
-                          </Button>
-                          <Button>
-                            <Copy className="mr-1 h-4 w-4" />
-                            Copy Signal
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Discussion</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="bg-muted/50 p-3 rounded-lg">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center">
-                            <Avatar className="h-6 w-6 mr-2">
-                              <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center text-xs">
-                                T
-                              </div>
-                            </Avatar>
-                            <span className="font-medium text-sm">TradeNinja</span>
+                        <div className="mt-3 flex items-center">
+                          <div className="ml-auto flex items-center gap-3">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleLikeStrategy(share.id)}
+                            >
+                              <ThumbsUp className="h-4 w-4" />
+                              <span className="ml-1 text-xs">{share.likes}</span>
+                            </Button>
+                            
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleDownloadStrategy(share.id)}
+                            >
+                              <Download className="h-4 w-4" />
+                              <span className="ml-1 text-xs">{share.downloads}</span>
+                            </Button>
                           </div>
-                          <span className="text-xs text-muted-foreground">2h ago</span>
                         </div>
-                        <p className="text-sm">Great signal! I'm also watching this level closely.</p>
-                      </div>
-                      
-                      <div className="bg-muted/50 p-3 rounded-lg">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center">
-                            <Avatar className="h-6 w-6 mr-2">
-                              <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center text-xs">
-                                C
-                              </div>
-                            </Avatar>
-                            <span className="font-medium text-sm">CryptoSage</span>
-                          </div>
-                          <span className="text-xs text-muted-foreground">1h ago</span>
-                        </div>
-                        <p className="text-sm">I'd set the stop loss a bit tighter, but overall solid analysis.</p>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2 mt-4">
-                      <Input placeholder="Add your thoughts..." />
-                      <Button>Send</Button>
-                    </div>
-                  </CardContent>
+                  </div>
                 </Card>
-              </div>
+              ))
             ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {tradingSignals.map((signal) => (
-                    <Card key={signal.id} className="overflow-hidden h-full">
-                      <div className="p-4 h-full flex flex-col">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-2">
-                              <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center">
-                                {signal.username.charAt(0)}
-                              </div>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{signal.username}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {formatTimeAgo(signal.timestamp)}
-                              </div>
-                            </div>
-                          </div>
-                          <Badge variant={signal.action === 'buy' ? 'default' : 'destructive'} className="uppercase">
-                            {signal.action}
-                          </Badge>
-                        </div>
-                        
-                        <div className="my-3">
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-lg">{signal.coin}</h4>
-                            <Badge variant="outline">{signal.timeframe}</Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2 my-3 text-center text-sm">
-                            <div className="bg-muted p-2 rounded">
-                              <div className="text-xs text-muted-foreground">Entry</div>
-                              <div>${signal.price.toLocaleString()}</div>
-                            </div>
-                            <div className="bg-muted p-2 rounded">
-                              <div className="text-xs text-muted-foreground">Target</div>
-                              <div className="text-green-500">${signal.targetPrice.toLocaleString()}</div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-muted p-2 rounded text-center mb-3">
-                            <div className="text-xs text-muted-foreground">Confidence</div>
-                            <div className="bg-primary/10 h-2 rounded-full mt-1 overflow-hidden">
-                              <div 
-                                className="bg-primary h-full rounded-full" 
-                                style={{ width: `${signal.confidence}%` }}
-                              ></div>
-                            </div>
-                            <div className="text-xs mt-1">{signal.confidence}%</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-between mt-auto">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleLikeSignal(signal.id)}
-                            className="text-xs"
-                          >
-                            <ThumbsUp className="h-3 w-3 mr-1" />
-                            {signal.likes}
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => setSelectedSignal(signal.id)}
-                          >
-                            View Details
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-                
-                <div className="flex justify-center mt-4">
-                  <Button variant="outline">
-                    Load More Signals
-                  </Button>
-                </div>
-              </>
+              <div className="text-center py-8 text-muted-foreground">
+                No strategies found matching your search.
+              </div>
             )}
-          </TabsContent>
-          
-          <TabsContent value="traders" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {mockUsers.map((user) => (
-                <Card key={user.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <Avatar className="h-12 w-12 mr-3">
-                          <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center">
-                            {user.username.charAt(0)}
-                          </div>
-                        </Avatar>
-                        <div>
-                          <div className="flex items-center">
-                            <span className="font-medium">{user.username}</span>
-                            {user.verified && (
-                              <svg
-                                className="ml-1 h-4 w-4 text-blue-500"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                              </svg>
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {user.followers} followers
-                          </div>
-                        </div>
-                      </div>
-                      {user.performance > 0 && (
-                        <Badge className="bg-green-500">
-                          +{user.performance}%
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 mb-4 text-center">
-                      <div className="border rounded p-3">
-                        <div className="text-2xl font-semibold">{user.following}</div>
-                        <div className="text-xs text-muted-foreground">Following</div>
-                      </div>
-                      <div className="border rounded p-3">
-                        <div className="text-2xl font-semibold">{user.followers}</div>
-                        <div className="text-xs text-muted-foreground">Followers</div>
-                      </div>
-                    </div>
-                    
-                    <Button className="w-full">
-                      Follow
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
             
-            <div className="flex justify-center mt-4">
+            <div className="text-center mt-4">
               <Button variant="outline">
-                Discover More Traders
+                Load More Strategies
               </Button>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
-      
-      <CardFooter className="flex justify-between border-t pt-6">
-        <Button variant="outline" size="sm">
-          <MessagesSquare className="mr-2 h-4 w-4" />
-          Trading Lounge
-        </Button>
-        <Button size="sm">
-          <Share2 className="mr-2 h-4 w-4" />
-          Share Your Portfolio
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

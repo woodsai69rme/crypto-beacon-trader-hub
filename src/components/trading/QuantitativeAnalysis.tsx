@@ -3,11 +3,11 @@ import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowUpRight, ArrowDownRight, CircleX, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { QuantitativeAnalysis as QuantAnalysisType } from '@/types/trading';
+import { RefreshCw, TrendingUp, BarChart4, LineChart } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { QuantitativeAnalysis as QuantAnalysisType } from "@/types/trading";
 
 interface QuantitativeAnalysisProps {
   className?: string;
@@ -18,115 +18,72 @@ const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ className }
   const [timeframe, setTimeframe] = useState<string>("1d");
   const [loading, setLoading] = useState<boolean>(false);
   const [analysis, setAnalysis] = useState<QuantAnalysisType | null>(null);
-  
+
   useEffect(() => {
     generateAnalysis();
   }, [coin, timeframe]);
-  
+
   const generateAnalysis = async () => {
     setLoading(true);
     
     try {
-      // In a real implementation, this would fetch from an API
-      // Using mock data for demonstration
-      setTimeout(() => {
-        const mockAnalysis = generateMockAnalysis(coin, timeframe);
-        setAnalysis(mockAnalysis);
-        
-        toast({
-          title: "Quantitative Analysis Updated",
-          description: `${coin.toUpperCase()} analysis for ${timeframe} timeframe`
-        });
-        setLoading(false);
-      }, 1500);
+      // In a real application, this would be an API call
+      // For demonstration, we'll generate mock data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const mockAnalysis: QuantAnalysisType = {
+        coin,
+        timeframe,
+        winProbability: Math.random() * 0.4 + 0.3, // 30-70% win probability
+        riskRewardRatio: Math.random() * 2 + 1, // 1-3 risk-reward
+        optimalEntryPrice: getRandomPrice(coin),
+        optimalExitPrice: getRandomPrice(coin) * 1.05,
+        stopLossRecommendation: getRandomPrice(coin) * 0.95,
+        confidenceScore: Math.random() * 0.6 + 0.2, // 20-80% confidence
+        supportingFactors: [
+          "Volume profile shows support at this level",
+          "Price action shows consolidation pattern",
+          "Market sentiment analysis indicates bullish momentum",
+          "Historical volatility is below average"
+        ],
+        timestamp: new Date().toISOString()
+      };
+      
+      setAnalysis(mockAnalysis);
+      
+      toast({
+        title: "Analysis Complete",
+        description: `Quantitative analysis for ${coin.toUpperCase()} completed`
+      });
     } catch (error) {
-      console.error("Error generating analysis:", error);
+      console.error("Error generating quantitative analysis:", error);
       toast({
         title: "Analysis Error",
         description: "Failed to generate quantitative analysis",
         variant: "destructive"
       });
+    } finally {
       setLoading(false);
     }
   };
   
-  const generateMockAnalysis = (coin: string, timeframe: string): QuantAnalysisType => {
-    // Generate mock analysis with realistic values based on the coin and timeframe
-    const winProbability = Math.random() * 30 + 50; // 50-80%
-    const riskRewardRatio = Math.random() * 2 + 1; // 1-3
-    
-    const basePrice = coin === 'bitcoin' ? 60000 : 
-                     coin === 'ethereum' ? 3000 : 
-                     coin === 'solana' ? 150 : 100;
-    
-    const priceMovementPercent = Math.random() * 5 + 1; // 1-6%
-    const direction = Math.random() > 0.5 ? 1 : -1;
-    const optimalEntryPrice = basePrice * (1 - (0.01 * direction));
-    const optimalExitPrice = basePrice * (1 + (priceMovementPercent/100 * direction));
-    const stopLossRecommendation = basePrice * (1 - (priceMovementPercent/100 * direction * 2));
-    
-    const supportingFactors = [
-      "Volume profile analysis",
-      "Order book imbalance",
-      "Historical support/resistance",
-      "Momentum indicators alignment",
-      "Market sentiment analysis",
-      "On-chain metrics",
-      "Fibonacci retracement levels",
-      "Moving average convergence"
-    ];
-    
-    // Select a random subset of factors
-    const shuffled = [...supportingFactors].sort(() => 0.5 - Math.random());
-    const selectedFactors = shuffled.slice(0, Math.floor(Math.random() * 4) + 3);
-    
-    return {
-      coin,
-      timeframe,
-      winProbability,
-      riskRewardRatio,
-      optimalEntryPrice,
-      optimalExitPrice,
-      stopLossRecommendation,
-      confidenceScore: Math.random() * 40 + 60, // 60-100%
-      supportingFactors: selectedFactors,
-      timestamp: new Date().toISOString()
-    };
+  const getRandomPrice = (coinId: string): number => {
+    switch (coinId) {
+      case 'bitcoin':
+        return Math.random() * 2000 + 60000; // $60,000 - $62,000
+      case 'ethereum':
+        return Math.random() * 200 + 2900; // $2,900 - $3,100
+      case 'solana':
+        return Math.random() * 20 + 140; // $140 - $160
+      default:
+        return Math.random() * 100 + 50; // $50 - $150
+    }
   };
   
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-  
-  const getDirectionIcon = () => {
-    if (!analysis) return null;
-    return analysis.optimalExitPrice > analysis.optimalEntryPrice ? (
-      <ArrowUpRight className="h-5 w-5 text-green-500" />
-    ) : (
-      <ArrowDownRight className="h-5 w-5 text-red-500" />
-    );
-  };
-  
-  const getDirectionColor = () => {
-    if (!analysis) return "text-muted-foreground";
-    return analysis.optimalExitPrice > analysis.optimalEntryPrice ? "text-green-500" : "text-red-500";
-  };
-  
-  const getWinProbabilityColor = (probability: number) => {
-    if (probability > 70) return "bg-green-500";
-    if (probability > 60) return "bg-amber-500";
-    return "bg-red-500";
-  };
-  
-  const getConfidenceColor = (score: number) => {
-    if (score > 80) return "bg-green-500";
-    if (score > 70) return "bg-amber-500";
-    return "bg-red-500";
+  const getConfidenceColor = (confidence: number): string => {
+    if (confidence >= 0.7) return "text-green-500";
+    if (confidence >= 0.4) return "text-yellow-500";
+    return "text-red-500";
   };
   
   const handleRefresh = () => {
@@ -138,8 +95,11 @@ const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ className }
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <CardTitle>Trade Probability Analysis</CardTitle>
-            <CardDescription>Quantitative prediction of trade outcomes</CardDescription>
+            <CardTitle className="flex items-center">
+              <BarChart4 className="h-5 w-5 mr-2" />
+              Quantitative Analysis
+            </CardTitle>
+            <CardDescription>AI-powered mathematical trading probability analysis</CardDescription>
           </div>
           
           <div className="flex items-center gap-2">
@@ -181,95 +141,126 @@ const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ className }
       </CardHeader>
       
       <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <div className="text-sm text-muted-foreground">Analyzing market conditions...</div>
-            </div>
-          </div>
-        ) : analysis ? (
+        {analysis ? (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Win Probability</div>
-                <div className="flex items-center gap-2 font-semibold text-2xl">
-                  {analysis.winProbability.toFixed(1)}%
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Win Probability</span>
+                    <span className="text-sm font-medium">
+                      {Math.round(analysis.winProbability * 100)}%
+                    </span>
+                  </div>
+                  <Progress value={analysis.winProbability * 100} />
                 </div>
-                <div className="text-sm mt-1">
-                  Risk : Reward
-                  <Badge variant="outline" className="ml-2 font-mono">
-                    1 : {analysis.riskRewardRatio.toFixed(2)}
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Risk/Reward Ratio</span>
+                    <span className="text-sm font-medium">
+                      1:{analysis.riskRewardRatio.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden relative">
+                    <div 
+                      className="h-full bg-primary absolute left-0 top-0"
+                      style={{ width: `${Math.min(100, analysis.riskRewardRatio / 3 * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Confidence Score</span>
+                    <span className={`text-sm font-medium ${getConfidenceColor(analysis.confidenceScore)}`}>
+                      {Math.round(analysis.confidenceScore * 100)}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={analysis.confidenceScore * 100}
+                    className={
+                      analysis.confidenceScore >= 0.7 ? "bg-green-100" :
+                      analysis.confidenceScore >= 0.4 ? "bg-yellow-100" :
+                      "bg-red-100"
+                    }
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="bg-muted/30 p-4 rounded-md border">
+                  <div className="text-sm font-medium mb-2">Price Recommendations</div>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-primary/10 p-2 rounded text-center">
+                      <div className="text-xs text-muted-foreground">Entry</div>
+                      <div className="font-medium">${analysis.optimalEntryPrice.toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
+                    </div>
+                    <div className="bg-green-500/10 p-2 rounded text-center">
+                      <div className="text-xs text-muted-foreground">Target</div>
+                      <div className="font-medium text-green-600">${analysis.optimalExitPrice.toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
+                    </div>
+                    <div className="bg-red-500/10 p-2 rounded text-center">
+                      <div className="text-xs text-muted-foreground">Stop Loss</div>
+                      <div className="font-medium text-red-600">${analysis.stopLossRecommendation.toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium mb-2">Optimal Direction</div>
+                  <Badge 
+                    variant={analysis.optimalExitPrice > analysis.optimalEntryPrice ? "default" : "destructive"}
+                    className="flex items-center w-fit"
+                  >
+                    {analysis.optimalExitPrice > analysis.optimalEntryPrice ? (
+                      <>
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        BULLISH
+                      </>
+                    ) : (
+                      <>
+                        <TrendingUp className="h-3 w-3 mr-1 rotate-180" />
+                        BEARISH
+                      </>
+                    )}
                   </Badge>
                 </div>
-              </div>
-              
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <div className="text-sm text-muted-foreground">Direction</div>
-                  {getDirectionIcon()}
-                </div>
-                <div className={`font-semibold text-2xl ${getDirectionColor()}`}>
-                  {analysis.optimalExitPrice > analysis.optimalEntryPrice ? "LONG" : "SHORT"}
-                </div>
-                <div className="text-sm mt-1">
-                  Confidence
-                  <Badge className="ml-2" variant="outline">{analysis.confidenceScore.toFixed(1)}%</Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Win Probability</div>
-                  <Progress value={analysis.winProbability} className={getWinProbabilityColor(analysis.winProbability)} />
-                </div>
                 
                 <div>
-                  <div className="text-sm text-muted-foreground mb-1">Confidence Score</div>
-                  <Progress value={analysis.confidenceScore} className={getConfidenceColor(analysis.confidenceScore)} />
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="p-3 rounded-md border">
-                  <div className="text-sm text-muted-foreground mb-1">Optimal Entry</div>
-                  <div className="font-semibold">{formatCurrency(analysis.optimalEntryPrice)}</div>
-                </div>
-                
-                <div className="p-3 rounded-md border">
-                  <div className="text-sm text-muted-foreground mb-1">Optimal Exit</div>
-                  <div className="font-semibold">{formatCurrency(analysis.optimalExitPrice)}</div>
-                </div>
-                
-                <div className="p-3 rounded-md border">
-                  <div className="text-sm text-muted-foreground mb-1">Stop Loss</div>
-                  <div className="font-semibold">{formatCurrency(analysis.stopLossRecommendation)}</div>
+                  <div className="text-sm font-medium mb-2">Analysis Time</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(analysis.timestamp).toLocaleString()}
+                  </div>
                 </div>
               </div>
             </div>
             
             <div>
               <div className="text-sm font-medium mb-2">Supporting Factors</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {analysis.supportingFactors.map((factor, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-sm">
-                    <div className="h-2 w-2 rounded-full bg-primary"></div>
-                    <span>{factor}</span>
-                  </div>
+              <ul className="list-disc pl-5 space-y-1">
+                {analysis.supportingFactors.map((factor, index) => (
+                  <li key={index} className="text-sm">{factor}</li>
                 ))}
-              </div>
+              </ul>
+            </div>
+            
+            <div className="bg-muted/30 p-4 rounded-md border text-center text-sm">
+              <div className="font-medium mb-1">Mathematical Probability Assessment</div>
+              <p className="text-muted-foreground">
+                This analysis uses quantitative methods to calculate trading probabilities based on historical data, 
+                volatility patterns, and statistical models. Past performance does not guarantee future results.
+              </p>
             </div>
           </div>
         ) : (
-          <div className="flex justify-center items-center p-8">
-            <div className="text-center">
-              <CircleX className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <div className="text-muted-foreground">No analysis available</div>
-              <Button variant="outline" className="mt-4" onClick={handleRefresh}>
-                Generate Analysis
-              </Button>
+          <div className="flex items-center justify-center h-[300px]">
+            <div className="flex flex-col items-center">
+              <LineChart className="h-8 w-8 text-muted-foreground animate-pulse" />
+              <p className="mt-2 text-sm text-muted-foreground">
+                {loading ? "Generating analysis..." : "Select parameters and click refresh to generate analysis"}
+              </p>
             </div>
           </div>
         )}

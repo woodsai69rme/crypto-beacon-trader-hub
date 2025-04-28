@@ -1,7 +1,6 @@
-
-import React from "react";
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { LocalModel } from "@/types/trading";
+import { LocalModel } from '@/types/trading';
 import { AlertTriangle, CheckCircle, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";

@@ -1,73 +1,84 @@
-# Welcome to your Lovable project
 
-## Project info
+# Advanced Cryptocurrency Trading Platform
 
-**URL**: https://lovable.dev/projects/0290231d-28bf-4ef5-b089-43f4ef520736
+A comprehensive cryptocurrency trading platform with AI-powered trading tools, advanced market analysis, portfolio management, and multi-exchange integration.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### Trading Features
+- **Enhanced Fake Trading**: Practice crypto trading with real-time price updates
+- **Real-Time Trading**: Live market data and portfolio updates
+- **Multi-Exchange Trading**: Connect and manage multiple exchange accounts
+- **AI Trading Bots**: Automated trading with customizable strategies
+- **Social Trading**: Share and follow trading strategies from other users
 
-**Use Lovable**
+### Analysis Tools
+- **Fibonacci Analysis**: Auto-calculated extension and retracement levels
+- **Hyblock Liquidity Map**: Visualization of market liquidity zones
+- **TradingView Chart Integration**: Professional charting platform
+- **Quantitative Analysis**: AI-powered probability analysis for trades
+- **Real-Time Market Correlations**: Asset correlation matrices
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0290231d-28bf-4ef5-b089-43f4ef520736) and start prompting.
+### Portfolio Management
+- **Multi-account Management**: Track multiple trading accounts
+- **Performance Metrics**: Detailed portfolio performance analysis
+- **Tax Calculations**: Built-in tax reporting tools
+- **Trading History**: Comprehensive trade history and analysis
 
-Changes made via Lovable will be committed automatically to this repo.
+### Advanced Features
+- **Local AI Model Integration**: Connect to local machine learning models
+- **Multi-Timeframe Strategy**: Analyze markets across different timeframes
+- **API Management**: Comprehensive API key and usage management
+- **Real-time Alerts**: Price and market condition notifications
 
-**Use your preferred IDE**
+## Technical Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend**: React with TypeScript
+- **State Management**: React Context API
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Charting**: Recharts with TradingView integration
+- **Data Fetching**: Tanstack Query
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## API Integrations
 
-Follow these steps:
+- **CoinGecko**: Market data and coin information
+- **CryptoCompare**: Real-time and historical price data
+- **TradingView**: Charting and technical analysis
+- **Hyblock**: Advanced market analysis
+- **Wintermute**: Algorithmic trading data
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Getting Started
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Prerequisites
+- Node.js 16+ and npm/yarn
+- Modern browser (Chrome, Firefox, Edge, Safari)
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Installation
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd crypto-trading-platform
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Start the development server:
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-**Use GitHub Codespaces**
+## Documentation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+For comprehensive documentation, please refer to the [DOCUMENTATION.md](./DOCUMENTATION.md) file.
 
-## What technologies are used for this project?
+## License
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/0290231d-28bf-4ef5-b089-43f4ef520736) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License - see the LICENSE file for details.

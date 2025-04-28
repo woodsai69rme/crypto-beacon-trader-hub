@@ -1,12 +1,11 @@
-
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LocalModel } from "@/types/trading";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { LocalModel } from '@/types/trading';
+import { toast } from '@/components/ui/use-toast';
 import { AlertCircle, ArrowLeft, Bot, Cpu, LineChart } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
 
 interface ModelGenerationTabProps {
   selectedModel: LocalModel | null;
