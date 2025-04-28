@@ -57,13 +57,13 @@ export interface CoinOption {
   rank?: number;
   volume24h?: number;
   change24h?: number;
+  current_price?: number;
+  market_cap?: number;
+  market_cap_rank?: number;
 }
 
 // Type for watchlist items
-export interface WatchlistItem extends CryptoData {
-  // Additional watchlist-specific fields can be added here
-  addedAt?: string;
-  notes?: string;
+export interface WatchlistItem {
   id: string;
   name: string;
   symbol: string;
@@ -72,6 +72,8 @@ export interface WatchlistItem extends CryptoData {
   price_change_percentage_24h?: number;
   market_cap?: number;
   market_cap_rank?: number;
+  addedAt?: string;
+  notes?: string;
 }
 
 // Type for API key information
@@ -113,6 +115,47 @@ export interface ApiRateLimit {
 export interface ExchangeRateLimit {
   exchange: string;
   limits: ApiRateLimit[];
+}
+
+// Type for trading signals in social features
+export interface TradingSignal {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  coinId: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  entryPrice: number;
+  targetPrice: number;
+  stopLoss: number;
+  timeframe: string;
+  confidence: 'low' | 'medium' | 'high';
+  reasoning: string;
+  timestamp: string;
+  likes: number;
+  comments: number;
+}
+
+// Type for strategy shares in social features
+export interface StrategyShare {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  strategyName: string;
+  strategyType: string;
+  description: string;
+  performance: {
+    winRate: number;
+    profitFactor: number;
+    totalTrades: number;
+    averageReturn: number;
+  };
+  tags: string[];
+  likes: number;
+  downloads: number;
+  timestamp: string;
 }
 
 // Additional imports from src/components/trading/types.ts
@@ -316,4 +359,105 @@ export interface AiTradingContextType {
     lastTrade?: string;
     status: 'connected' | 'disconnected';
   }>;
+  addStrategy?: (strategy: AITradingStrategy) => void;
+}
+
+// New interfaces for advanced trading features
+export interface FibonacciLevels {
+  coin: string;
+  timeframe: string;
+  levels: {
+    extension: number;
+    price: number;
+    significance: 'weak' | 'medium' | 'strong';
+  }[];
+  lastCalculated: string;
+}
+
+export interface LiquidityHeatmap {
+  coin: string;
+  timeframe: string;
+  buyLevels: {
+    price: number;
+    volume: number;
+    strength: number;
+  }[];
+  sellLevels: {
+    price: number;
+    volume: number;
+    strength: number;
+  }[];
+  lastUpdated: string;
+}
+
+export interface TradePrediction {
+  coin: string;
+  timeframe: string;
+  direction: 'up' | 'down' | 'sideways';
+  confidence: number;
+  targetPrice: number;
+  stopLoss: number;
+  probability: number;
+  indicators: {
+    name: string;
+    value: number;
+    signal: 'buy' | 'sell' | 'neutral';
+  }[];
+  timestamp: string;
+}
+
+// Hyblock API specific types
+export interface HyblockOrderBookData {
+  exchange: string;
+  symbol: string;
+  bids: [number, number][];
+  asks: [number, number][];
+  timestamp: number;
+}
+
+export interface HyblockLiquidityZone {
+  price: number;
+  volume: number;
+  type: 'buy' | 'sell';
+  strength: number;
+  exchanges: string[];
+}
+
+export interface HyblockMarketData {
+  symbol: string;
+  liquidityZones: HyblockLiquidityZone[];
+  largeOrders: {
+    price: number;
+    size: number;
+    side: 'buy' | 'sell';
+    exchange: string;
+    timestamp: number;
+  }[];
+  heatmapData: {
+    priceRanges: [number, number][];
+    volumeIntensity: number[];
+  };
+}
+
+// TradingView integration types
+export interface TradingViewChartConfig {
+  symbol: string;
+  interval: string;
+  theme: 'light' | 'dark';
+  studies: string[];
+  width: number;
+  height: number;
+}
+
+export interface QuantitativeAnalysis {
+  coin: string;
+  timeframe: string;
+  winProbability: number;
+  riskRewardRatio: number;
+  optimalEntryPrice: number;
+  optimalExitPrice: number;
+  stopLossRecommendation: number;
+  confidenceScore: number;
+  supportingFactors: string[];
+  timestamp: string;
 }

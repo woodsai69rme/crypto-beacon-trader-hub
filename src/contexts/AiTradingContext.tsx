@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
-import { AiTradingContextType, Trade } from '@/types/trading';
+import { AiTradingContextType, AITradingStrategy, Trade } from '@/types/trading';
 import { AVAILABLE_STRATEGIES } from '@/services/aiTradingService';
 
 const AiTradingContext = createContext<AiTradingContextType | undefined>(undefined);
@@ -12,6 +12,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [botAccountConnections, setBotAccountConnections] = useState<Record<string, string>>({});
   const [activeBots, setActiveBots] = useState<Record<string, { lastTrade?: string; status: 'connected' | 'disconnected' }>>({});
+  const [strategies, setStrategies] = useState<AITradingStrategy[]>(AVAILABLE_STRATEGIES);
 
   const connectBotToAccount = (botId: string, accountId: string) => {
     setBotAccountConnections(prev => ({
@@ -66,7 +67,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const { botId, strategyId, accountId, coinId, type, amount, price } = params;
       
       // Find strategy details
-      const strategy = AVAILABLE_STRATEGIES.find(s => s.id === strategyId);
+      const strategy = strategies.find(s => s.id === strategyId);
       if (!strategy) {
         throw new Error(`Strategy ${strategyId} not found`);
       }
@@ -100,6 +101,11 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }));
 
+      toast({
+        title: "AI Trade Executed",
+        description: `${type.toUpperCase()} ${amount} ${trade.coinSymbol} at $${price.toLocaleString()}`
+      });
+
       return true;
     } catch (error) {
       console.error("Error executing AI trade:", error);
@@ -114,13 +120,22 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const addStrategy = (strategy: AITradingStrategy) => {
+    setStrategies(prev => [...prev, strategy]);
+    toast({
+      title: "Strategy Added",
+      description: `${strategy.name} has been added to your strategies`
+    });
+  };
+
   const value: AiTradingContextType = {
     executeAiTrade,
     getConnectedAccount,
     isProcessing,
     connectBotToAccount,
     disconnectBot,
-    activeBots
+    activeBots,
+    addStrategy
   };
 
   return (

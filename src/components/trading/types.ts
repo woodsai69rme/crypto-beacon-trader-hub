@@ -33,4 +33,10 @@ export type CoinOption = {
   priceAUD?: number;
   priceEUR?: number; 
   priceGBP?: number;
+  image?: string;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
+  rank?: number;
 };
