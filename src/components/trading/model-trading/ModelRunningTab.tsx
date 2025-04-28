@@ -1,15 +1,25 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { LocalModel } from '@/types/trading';
 import { toast } from '@/components/ui/use-toast';
 
 interface ModelRunningTabProps {
-  model: LocalModel;
+  model: LocalModel | null;
   onDisconnect: (modelId: string) => void;
 }
 
 const ModelRunningTab: React.FC<ModelRunningTabProps> = ({ model, onDisconnect }) => {
   const [isRunning, setIsRunning] = useState(false);
+
+  if (!model) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">No model is currently connected.</p>
+        <p className="text-sm text-muted-foreground mt-2">Please connect a model first.</p>
+      </div>
+    );
+  }
 
   const handleStart = () => {
     setIsRunning(true);

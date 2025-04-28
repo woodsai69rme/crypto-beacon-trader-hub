@@ -1,159 +1,212 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiUsageStats } from '@/types/trading';
-import { CircleAlert, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { Activity, AlertTriangle } from 'lucide-react';
 
 interface RealTimeApiUsageProps {
-  selectedService?: string;
-  onServiceSelect?: (service: string) => void;
+  selectedService: string;
+  onServiceSelect: (service: string) => void;
 }
 
-const RealTimeApiUsage: React.FC<RealTimeApiUsageProps> = ({ 
-  selectedService, 
-  onServiceSelect 
-}) => {
-  const [apiStats, setApiStats] = useState<ApiUsageStats[]>([
-    {
-      service: "CoinGecko",
-      currentUsage: 42,
-      maxUsage: 50,
-      resetTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      endpoint: "/coins/markets"
-    },
-    {
-      service: "CoinGecko",
-      currentUsage: 15,
-      maxUsage: 30,
-      resetTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      endpoint: "/coins/{id}"
-    },
-    {
-      service: "TradingView",
-      currentUsage: 85,
-      maxUsage: 100,
-      resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      endpoint: "/chart"
-    },
-    {
-      service: "CryptoCompare",
-      currentUsage: 9500,
-      maxUsage: 10000,
-      resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      endpoint: "/price/multi"
-    }
-  ]);
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const refreshUsage = () => {
-    setIsLoading(true);
+const RealTimeApiUsage: React.FC<RealTimeApiUsageProps> = ({ selectedService, onServiceSelect }) => {
+  const [apiUsageStats, setApiUsageStats] = useState<ApiUsageStats[]>([]);
+  const [recentCalls, setRecentCalls] = useState<{
+    endpoint: string;
+    timestamp: number;
+    responseTime: number;
+    success: boolean;
+  }[]>([]);
+  
+  // Simulate real-time API monitoring
+  useEffect(() => {
+    // Initial data
+    setApiUsageStats([
+      {
+        service: "CoinGecko",
+        currentUsage: 45,
+        maxUsage: 100,
+        resetTime: "2023-04-27T00:00:00Z",
+        endpoint: "/coins/markets"
+      },
+      {
+        service: "Binance",
+        currentUsage: 120,
+        maxUsage: 1200,
+        resetTime: "2023-04-26T12:00:00Z",
+        endpoint: "/api/v3/ticker"
+      }
+    ]);
     
-    // Simulate API call to refresh usage data
-    setTimeout(() => {
-      // Randomly update the usage stats
-      setApiStats(prev => prev.map(stat => ({
-        ...stat,
-        currentUsage: Math.min(stat.maxUsage, Math.floor(Math.random() * stat.maxUsage))
-      })));
+    // Random call generator
+    const interval = setInterval(() => {
+      const endpoints = [
+        "/api/v3/ticker", 
+        "/api/v3/depth", 
+        "/api/v3/trades", 
+        "/coins/markets",
+        "/coins/bitcoin/market_chart"
+      ];
+      const randomEndpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+      const responseTime = Math.floor(Math.random() * 500 + 50);
+      const success = Math.random() > 0.1;
       
-      setIsLoading(false);
-      
-      toast({
-        title: "API Usage Refreshed",
-        description: "Real-time API usage statistics have been updated"
+      setRecentCalls(prev => {
+        const newCalls = [
+          {
+            endpoint: randomEndpoint,
+            timestamp: Date.now(),
+            responseTime,
+            success
+          },
+          ...prev.slice(0, 9) // Keep only last 10
+        ];
+        return newCalls;
       });
-    }, 1000);
-  };
-
-  // Filter by selected service if provided
-  const filteredStats = selectedService
-    ? apiStats.filter(stat => stat.service === selectedService)
-    : apiStats;
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Real-Time API Usage</CardTitle>
-            <CardDescription>Monitor your API rate limits and usage</CardDescription>
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={refreshUsage}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
-      </CardHeader>
       
-      <CardContent>
-        <div className="space-y-4">
-          {filteredStats.map((stat, index) => {
-            const usagePercent = (stat.currentUsage / stat.maxUsage) * 100;
-            const timeToReset = new Date(stat.resetTime || "").getTime() - Date.now();
-            const hoursToReset = Math.floor(timeToReset / (1000 * 60 * 60));
-            const minutesToReset = Math.floor((timeToReset % (1000 * 60 * 60)) / (1000 * 60));
-            
-            return (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-medium">{stat.service}</span>
-                    <span className="text-sm text-muted-foreground ml-2">{stat.endpoint}</span>
-                  </div>
-                  
-                  {usagePercent > 80 && (
-                    <Badge variant="destructive" className="flex items-center">
-                      <CircleAlert className="h-3 w-3 mr-1" />
-                      Critical
-                    </Badge>
-                  )}
-                  
-                  {usagePercent > 60 && usagePercent <= 80 && (
-                    <Badge variant="warning" className="bg-yellow-500 text-white">Warning</Badge>
-                  )}
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span>{stat.currentUsage} of {stat.maxUsage} requests</span>
-                    <span>Resets in {hoursToReset}h {minutesToReset}m</span>
-                  </div>
-                  
-                  <Progress
-                    value={usagePercent}
-                    className={`${
-                      usagePercent > 80 ? 'bg-red-200' : 
-                      usagePercent > 60 ? 'bg-yellow-200' : 
-                      'bg-muted'
-                    }`}
-                  />
-                  
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{Math.round(usagePercent)}% Used</span>
-                    <span>{Math.round(100 - usagePercent)}% Available</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          
-          {filteredStats.length === 0 && (
-            <div className="text-center p-6 text-muted-foreground">
-              No API usage data available for this service
-            </div>
-          )}
+      // Randomly increment usage stats
+      if (Math.random() > 0.5) {
+        setApiUsageStats(prev => 
+          prev.map(stat => ({
+            ...stat,
+            currentUsage: stat.currentUsage + (Math.random() > 0.7 ? 1 : 0)
+          }))
+        );
+      }
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  const getResponseTimeClass = (time: number) => {
+    if (time < 100) return "text-green-500";
+    if (time < 300) return "text-yellow-500";
+    return "text-red-500";
+  };
+  
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString();
+  };
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-medium mb-1">Real-Time API Monitoring</h2>
+          <p className="text-sm text-muted-foreground">
+            Monitor live API usage and performance metrics
+          </p>
         </div>
-      </CardContent>
-    </Card>
+        
+        <Select value={selectedService} onValueChange={onServiceSelect}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Service" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="CoinGecko">CoinGecko</SelectItem>
+            <SelectItem value="Binance">Binance</SelectItem>
+            <SelectItem value="All">All Services</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="mb-4 flex justify-between items-start">
+              <h3 className="font-medium">Current Rate</h3>
+              <Badge>Last Minute</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              <span className="text-2xl font-bold">{recentCalls.length}</span>
+              <span className="text-muted-foreground">requests/min</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="mb-4 flex justify-between items-start">
+              <h3 className="font-medium">Avg Response Time</h3>
+              <Badge>Last Minute</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              <span className="text-2xl font-bold">
+                {recentCalls.length > 0 
+                  ? Math.round(recentCalls.reduce((acc, call) => acc + call.responseTime, 0) / recentCalls.length)
+                  : 0}
+              </span>
+              <span className="text-muted-foreground">ms</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="mb-4 flex justify-between items-start">
+              <h3 className="font-medium">Error Rate</h3>
+              <Badge variant={recentCalls.some(call => !call.success) ? "destructive" : "outline"}>
+                Last Minute
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={`h-5 w-5 ${
+                recentCalls.some(call => !call.success) ? 'text-red-500' : 'text-green-500'
+              }`} />
+              <span className="text-2xl font-bold">
+                {recentCalls.length > 0 
+                  ? (recentCalls.filter(call => !call.success).length / recentCalls.length * 100).toFixed(1)
+                  : '0.0'}%
+              </span>
+              <span className="text-muted-foreground">error rate</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="font-medium mb-4">Live API Calls</h3>
+          
+          <div className="border rounded-md overflow-hidden">
+            <div className="grid grid-cols-4 bg-muted/50 p-2 text-xs font-medium">
+              <div>Endpoint</div>
+              <div>Time</div>
+              <div className="text-right">Response Time</div>
+              <div className="text-right">Status</div>
+            </div>
+            
+            <div className="divide-y max-h-[400px] overflow-auto">
+              {recentCalls.length > 0 ? (
+                recentCalls.map((call, index) => (
+                  <div key={index} className="grid grid-cols-4 p-2 text-sm animate-fade-in">
+                    <div className="text-xs truncate">{call.endpoint}</div>
+                    <div className="text-xs text-muted-foreground">{formatTimestamp(call.timestamp)}</div>
+                    <div className={`text-right ${getResponseTimeClass(call.responseTime)}`}>
+                      {call.responseTime} ms
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={call.success ? "outline" : "destructive"} className="text-xs">
+                        {call.success ? '200 OK' : '429 Error'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-muted-foreground">
+                  No API calls detected yet
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

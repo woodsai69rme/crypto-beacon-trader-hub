@@ -1,193 +1,205 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { CoinOption } from "@/types/trading";
-import { BarChart, LineChart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ApiUsageStats, CoinOption } from '@/types/trading';
+import { BarChart, RefreshCw } from 'lucide-react';
 
 interface ApiUsageMetricsProps {
-  coinPrices?: CoinOption[];
+  apiUsage: ApiUsageStats[];
+  onRefresh: () => void;
 }
 
-const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ coinPrices = [] }) => {
+const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ apiUsage, onRefresh }) => {
+  const [timeRange, setTimeRange] = useState<string>("daily");
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  const sampleCoinData: CoinOption[] = [
+    { 
+      id: "bitcoin", 
+      name: "Bitcoin", 
+      symbol: "BTC", 
+      price: 61245.32,
+      priceChange: 1200,
+      changePercent: 2.3,
+      marketCap: 1180000000000
+    },
+    { 
+      id: "ethereum", 
+      name: "Ethereum", 
+      symbol: "ETH", 
+      price: 3010.45,
+      priceChange: -120,
+      changePercent: -1.5,
+      marketCap: 360000000000
+    }
+  ];
+  
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      onRefresh();
+      setIsRefreshing(false);
+    }, 1000);
+  };
+  
+  const getUsagePercentage = (current: number, max: number): number => {
+    return Math.min((current / max) * 100, 100);
+  };
+  
+  const getTimeUntilReset = (resetTime: string): string => {
+    const resetDate = new Date(resetTime);
+    const now = new Date();
+    
+    // Calculate difference in hours
+    const diffMs = resetDate.getTime() - now.getTime();
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (diffHrs <= 0 && diffMins <= 0) {
+      return "Resetting soon";
+    }
+    
+    return `${diffHrs}h ${diffMins}m`;
+  };
+  
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">API Calls Today</CardTitle>
-            <CardDescription>Coinbase API Usage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,458 / 10,000</div>
-            <Progress value={14.58} className="mt-2" />
-            <div className="text-xs text-muted-foreground mt-1">14.58% of daily limit</div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-lg font-medium mb-1">API Usage Metrics</h2>
+          <p className="text-sm text-muted-foreground">
+            Monitor your API calls and limits across different services
+          </p>
+        </div>
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">API Calls Today</CardTitle>
-            <CardDescription>Binance API Usage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2,753 / 12,000</div>
-            <Progress value={22.94} className="mt-2" />
-            <div className="text-xs text-muted-foreground mt-1">22.94% of daily limit</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">API Calls Today</CardTitle>
-            <CardDescription>CoinGecko API Usage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">87 / 100</div>
-            <Progress value={87} className="mt-2" />
-            <div className="text-xs text-muted-foreground mt-1 text-amber-500">87% of daily limit</div>
-          </CardContent>
-        </Card>
+        <div className="flex gap-2">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Select range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hourly">Last Hour</SelectItem>
+              <SelectItem value="daily">Last 24 Hours</SelectItem>
+              <SelectItem value="weekly">This Week</SelectItem>
+              <SelectItem value="monthly">This Month</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button 
+            variant="outline" 
+            size="icon"
+            disabled={isRefreshing}
+            onClick={handleRefresh}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-sm font-medium">API Usage History</CardTitle>
-              <CardDescription>Last 7 days</CardDescription>
-            </div>
-            <LineChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] flex items-end gap-2">
-              {[45, 62, 78, 52, 93, 86, 78].map((value, i) => (
-                <div
-                  key={i}
-                  className="bg-primary/90 rounded-t w-full"
-                  style={{ height: `${value}%` }}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {apiUsage.map(usage => (
+          <Card key={usage.service}>
+            <CardContent className="pt-6">
+              <div className="mb-4 flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium mb-1">{usage.service}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {usage.endpoint || "All endpoints"}
+                  </p>
+                </div>
+                <Badge 
+                  variant={usage.currentUsage > usage.maxUsage * 0.8 ? "destructive" : "outline"}
                 >
-                  <div className="h-full w-full hover:bg-primary/100 transition-colors"></div>
+                  {getUsagePercentage(usage.currentUsage, usage.maxUsage).toFixed(0)}% Used
+                </Badge>
+              </div>
+              
+              <Progress 
+                value={getUsagePercentage(usage.currentUsage, usage.maxUsage)} 
+                className="h-2"
+              />
+              
+              <div className="mt-2 grid grid-cols-2 text-xs text-muted-foreground">
+                <div>
+                  <span className="font-medium">{usage.currentUsage}</span> / {usage.maxUsage} calls
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-              <div>Sun</div>
-            </div>
-          </CardContent>
-        </Card>
+                {usage.resetTime && (
+                  <div className="text-right">
+                    Resets in: <span className="font-medium">{getTimeUntilReset(usage.resetTime)}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-sm font-medium">API Distribution</CardTitle>
-              <CardDescription>By endpoint type</CardDescription>
-            </div>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <div>Market Data</div>
-                  <div>42%</div>
+        {/* Sample usage chart */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="font-medium mb-4">Usage Over Time</h3>
+              <div className="h-72 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <BarChart className="h-10 w-10" />
+                  <p>API usage charts would be displayed here</p>
+                  <p className="text-sm">Time-series data of API calls by service</p>
                 </div>
-                <Progress value={42} className="h-2" />
               </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <div>Price Updates</div>
-                  <div>28%</div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Sample impact on market data */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="font-medium mb-4">Market Data Freshness</h3>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  The freshness of your market data depends on your API call frequency:
+                </p>
+                
+                <div className="border rounded-md overflow-hidden">
+                  <div className="grid grid-cols-4 bg-muted/50 p-2 text-xs font-medium">
+                    <div>Asset</div>
+                    <div>Price</div>
+                    <div className="text-right">24h Change</div>
+                    <div className="text-right">Last Updated</div>
+                  </div>
+                  
+                  <div className="divide-y">
+                    {sampleCoinData.map(coin => {
+                      const isPositive = (coin.priceChange || 0) >= 0;
+                      return (
+                        <div key={coin.id} className="grid grid-cols-4 p-2 text-sm">
+                          <div>{coin.name}</div>
+                          <div>${coin.price.toLocaleString()}</div>
+                          <div className={`text-right ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                            {isPositive ? '+' : ''}{coin.changePercent?.toFixed(2)}%
+                          </div>
+                          <div className="text-right text-xs text-muted-foreground">
+                            {coin.changePercent && coin.changePercent > 0 ? '2 mins ago' : '5 mins ago'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <Progress value={28} className="h-2" />
+                
+                <p className="text-xs text-muted-foreground">
+                  💡 Pro tip: Balance your API call frequency to stay within limits while keeping data fresh.
+                </p>
               </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <div>Historical Data</div>
-                  <div>15%</div>
-                </div>
-                <Progress value={15} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <div>Trading Execution</div>
-                  <div>10%</div>
-                </div>
-                <Progress value={10} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <div>Account Data</div>
-                  <div>5%</div>
-                </div>
-                <Progress value={5} className="h-2" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-      
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Real-time Data Statistics</CardTitle>
-          <CardDescription>Data usage for cryptocurrency price updates</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <div className="text-sm text-muted-foreground">Active Connections</div>
-                <div className="text-2xl font-bold">3</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Monitored Coins</div>
-                <div className="text-2xl font-bold">{coinPrices?.length || 0}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Update Frequency</div>
-                <div className="text-2xl font-bold">5s</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Data Points Today</div>
-                <div className="text-2xl font-bold">53.2K</div>
-              </div>
-            </div>
-            
-            {coinPrices && coinPrices.length > 0 && (
-              <div className="border rounded-md mt-4">
-                <div className="grid grid-cols-4 bg-muted/50 p-2 text-sm font-medium">
-                  <div>Coin</div>
-                  <div className="text-right">Price</div>
-                  <div className="text-right">Change</div>
-                  <div className="text-right">Updates</div>
-                </div>
-                <div className="max-h-[250px] overflow-y-auto">
-                  {coinPrices.map((coin) => (
-                    <div key={coin.id} className="grid grid-cols-4 p-2 border-t">
-                      <div className="font-medium">{coin.symbol}</div>
-                      <div className="text-right">${coin.price.toFixed(2)}</div>
-                      <div className="text-right">
-                        {(coin.priceChange || 0) > 0 ? (
-                          <span className="text-green-500">+{(coin.changePercent || 0).toFixed(2)}%</span>
-                        ) : (
-                          <span className="text-red-500">{(coin.changePercent || 0).toFixed(2)}%</span>
-                        )}
-                      </div>
-                      <div className="text-right text-muted-foreground">{Math.floor(Math.random() * 100) + 50}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

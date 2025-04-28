@@ -1,25 +1,73 @@
 
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Server, AlertCircle } from "lucide-react";
-import { ModelConnectionTab } from "./model-trading/ModelConnectionTab";
-import { ModelGenerationTab } from "./model-trading/ModelGenerationTab";
-import { ModelRunningTab } from "./model-trading/ModelRunningTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import type { LocalModel } from "./types";
+import { AlertCircle } from "lucide-react";
+import ModelConnectionTab from "./model-trading/ModelConnectionTab";
+import ModelGenerationTab from "./model-trading/ModelGenerationTab";
+import ModelRunningTab from "./model-trading/ModelRunningTab";
+import { LocalModel } from "@/types/trading";
 
 const LocalModelTrading = () => {
   const [selectedModel, setSelectedModel] = useState<LocalModel | null>(null);
   const [activeTab, setActiveTab] = useState<string>("connect");
+  const [models, setModels] = useState<LocalModel[]>([
+    {
+      id: "model-1",
+      name: "LSTM Price Predictor",
+      endpoint: "http://localhost:5000/predict",
+      type: "prediction",
+      isConnected: false
+    },
+    {
+      id: "model-2",
+      name: "Sentiment Analyzer",
+      endpoint: "http://localhost:5000/sentiment",
+      type: "sentiment",
+      isConnected: false
+    }
+  ]);
+
+  const handleModelSelect = (model: LocalModel) => {
+    setSelectedModel(model);
+    setActiveTab("generate");
+  };
+
+  const handleModelUpdate = (modelId: string, newEndpoint: string) => {
+    const updatedModels = models.map(model => 
+      model.id === modelId ? { ...model, endpoint: newEndpoint } : model
+    );
+    setModels(updatedModels);
+  };
+
+  const handleModelConnect = (modelId: string) => {
+    const updatedModels = models.map(model => 
+      model.id === modelId ? { ...model, isConnected: true } : model
+    );
+    setModels(updatedModels);
+    
+    const connectedModel = updatedModels.find(model => model.id === modelId);
+    if (connectedModel) {
+      setSelectedModel(connectedModel);
+    }
+  };
+
+  const handleModelDisconnect = (modelId: string) => {
+    const updatedModels = models.map(model => 
+      model.id === modelId ? { ...model, isConnected: false } : model
+    );
+    setModels(updatedModels);
+    
+    if (selectedModel && selectedModel.id === modelId) {
+      setSelectedModel(null);
+    }
+  };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Server className="h-5 w-5" />
-          Local AI Trading
-        </CardTitle>
+        <CardTitle>Local AI Trading</CardTitle>
         <CardDescription>
           Utilize your own AI models running locally for private and customized trading strategies
         </CardDescription>
@@ -34,15 +82,17 @@ const LocalModelTrading = () => {
           </TabsList>
           
           <TabsContent value="connect">
-            <ModelConnectionTab onModelSelect={(model) => {
-              setSelectedModel(model);
-              setActiveTab("generate");
-            }} />
+            <ModelConnectionTab 
+              models={models}
+              onConnect={handleModelConnect}
+              onDisconnect={handleModelDisconnect}
+              onUpdateEndpoint={handleModelUpdate}
+            />
           </TabsContent>
           
           <TabsContent value="generate">
             <ModelGenerationTab 
-              selectedModel={selectedModel} 
+              selectedModel={selectedModel}
               onBack={() => setActiveTab("connect")}
               onGenerate={() => setActiveTab("run")}
             />
@@ -50,8 +100,11 @@ const LocalModelTrading = () => {
           
           <TabsContent value="run">
             <ModelRunningTab 
-              selectedModel={selectedModel}
-              onBack={() => setActiveTab("generate")}
+              model={selectedModel}
+              onDisconnect={(modelId) => {
+                handleModelDisconnect(modelId);
+                setActiveTab("connect");
+              }}
             />
           </TabsContent>
         </Tabs>

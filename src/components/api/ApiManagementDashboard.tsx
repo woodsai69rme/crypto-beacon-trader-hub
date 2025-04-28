@@ -7,13 +7,35 @@ import ApiUsageMetrics from './ApiUsageMetrics';
 import RealTimeApiUsage from './RealTimeApiUsage';
 import EndpointTester from './EndpointTester';
 import { Database, Key, BarChart4, Terminal } from 'lucide-react';
+import { ApiUsageStats } from '@/types/trading';
 
 const ApiManagementDashboard = () => {
   const [selectedService, setSelectedService] = useState<string>("CoinGecko");
+  const [apiUsage, setApiUsage] = useState<ApiUsageStats[]>([
+    {
+      service: "CoinGecko",
+      currentUsage: 45,
+      maxUsage: 100,
+      resetTime: "2023-04-27T00:00:00Z",
+      endpoint: "/coins/markets"
+    },
+    {
+      service: "Binance",
+      currentUsage: 120,
+      maxUsage: 1200,
+      resetTime: "2023-04-26T12:00:00Z",
+      endpoint: "/api/v3/ticker"
+    }
+  ]);
   
   // Handle service selection
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
+  };
+
+  const handleRefreshUsage = () => {
+    // In a real implementation, this would fetch updated API usage from the backend
+    console.log("Refreshing API usage metrics");
   };
   
   return (
@@ -51,15 +73,24 @@ const ApiManagementDashboard = () => {
           </TabsContent>
           
           <TabsContent value="usage">
-            <ApiUsageMetrics selectedService={selectedService} onServiceSelect={handleServiceSelect} />
+            <ApiUsageMetrics 
+              apiUsage={apiUsage} 
+              onRefresh={handleRefreshUsage}
+            />
           </TabsContent>
           
           <TabsContent value="realtime">
-            <RealTimeApiUsage selectedService={selectedService} onServiceSelect={handleServiceSelect} />
+            <RealTimeApiUsage 
+              selectedService={selectedService} 
+              onServiceSelect={handleServiceSelect} 
+            />
           </TabsContent>
           
           <TabsContent value="testing">
-            <EndpointTester selectedService={selectedService} onServiceSelect={handleServiceSelect} />
+            <EndpointTester 
+              selectedService={selectedService} 
+              onServiceSelect={handleServiceSelect} 
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
