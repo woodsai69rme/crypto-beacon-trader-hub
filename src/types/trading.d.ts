@@ -1,4 +1,6 @@
 
+// Updating the trading.d.ts file to include all missing interfaces and fix type errors
+
 export interface ApiProvider {
   id: string;
   name: string;
@@ -207,5 +209,10 @@ export interface LocalModel {
 
 export interface FibonacciAnalysisProps {
   priceData: any[];
+  symbol: string;
+}
+
+export interface HyblockLiquidityMapProps {
+  currentPrice: number;
   symbol: string;
 }
