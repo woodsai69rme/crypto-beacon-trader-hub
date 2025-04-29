@@ -76,7 +76,7 @@ const FakeTrading = () => {
       if (amount > 0) {
         const coin = availableCoins.find(c => c.id === coinId);
         if (coin) {
-          totalValue += coin.price! * amount;
+          totalValue += coin.price * amount;
         }
       }
     });
@@ -104,8 +104,8 @@ const FakeTrading = () => {
       coinSymbol: selectedCoin.symbol,
       type,
       amount,
-      price: selectedCoin.price!,
-      totalValue: amount * selectedCoin.price!,
+      price: selectedCoin.price,
+      totalValue: amount * selectedCoin.price,
       timestamp: new Date().toISOString(),
       currency: selectedCurrency
     };
@@ -114,13 +114,13 @@ const FakeTrading = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Fake Trading System</CardTitle>
-        <CardDescription>Practice trading without real money</CardDescription>
+    <Card className="w-full bg-card shadow-lg border border-border">
+      <CardHeader className="bg-card/50 border-b border-border">
+        <CardTitle className="text-foreground">Fake Trading System</CardTitle>
+        <CardDescription className="text-muted-foreground">Practice trading without real money</CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="p-6 space-y-6">
         <AccountManager 
           accounts={accounts}
           activeAccountId={activeAccountId}

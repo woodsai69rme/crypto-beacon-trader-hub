@@ -48,6 +48,6 @@ export type CoinOption = {
   volume?: number;
   marketCap?: number;
   rank?: number;
-  value?: string;
-  label?: string;
+  value: string;
+  label: string;
 };

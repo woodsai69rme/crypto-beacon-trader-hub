@@ -160,16 +160,16 @@ const EnhancedFakeTrading: React.FC = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="w-full bg-card shadow-lg border border-border">
+      <CardHeader className="bg-card/50 border-b border-border">
+        <CardTitle className="text-foreground flex items-center gap-2">
           <Activity className="h-5 w-5" />
           Enhanced Trading System
         </CardTitle>
-        <CardDescription>Practice trading with real-time price updates</CardDescription>
+        <CardDescription className="text-muted-foreground">Practice trading with real-time price updates</CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="p-6 space-y-6">
         <AccountManager 
           accounts={accounts}
           activeAccountId={activeAccountId}
@@ -195,7 +195,7 @@ const EnhancedFakeTrading: React.FC = () => {
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="trading" className="space-y-6">
+              <TabsContent value="trading" className="space-y-6 p-4 bg-card/50 rounded-lg border border-border mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <TradingForm
                     balance={activeAccount.balance}
@@ -218,11 +218,11 @@ const EnhancedFakeTrading: React.FC = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="chart">
+              <TabsContent value="chart" className="p-4 bg-card/50 rounded-lg border border-border mt-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
+                      <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <LineChart className="h-5 w-5" />
                         Real-Time Price Chart
                       </CardTitle>
@@ -251,7 +251,7 @@ const EnhancedFakeTrading: React.FC = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="history">
+              <TabsContent value="history" className="p-4 bg-card/50 rounded-lg border border-border mt-4">
                 <TradeHistory
                   trades={activeAccount.trades}
                   formatCurrency={formatValue}

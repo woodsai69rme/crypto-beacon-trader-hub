@@ -14,6 +14,10 @@ const AppearanceSettings = React.lazy(() => import("./settings/AppearanceSetting
 const SettingsTabs = React.lazy(() => import("./settings/SettingsTabs"));
 const SettingsFooter = React.lazy(() => import("./settings/SettingsFooter"));
 
+interface SettingsComponentProps {
+  form: ReturnType<typeof useForm<SettingsFormValues>>;
+}
+
 const UserSettings = () => {
   const [activeTab, setActiveTab] = useState<string>("general");
   const [isSaving, setIsSaving] = useState(false);
@@ -101,7 +105,7 @@ const UserSettings = () => {
       title="User Settings" 
       defaultCollapsed={true}
       collapseBelow="md"
-      className="w-full"
+      className="w-full bg-card shadow-lg border border-border"
     >
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
         <React.Suspense fallback={<div>Loading...</div>}>
@@ -112,19 +116,19 @@ const UserSettings = () => {
         
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="general" className="space-y-6">
-              <GeneralSettings form={form as any} />
+              <GeneralSettings form={form} />
             </TabsContent>
             
             <TabsContent value="notifications" className="space-y-6">
-              <NotificationSettings form={form as any} />
+              <NotificationSettings form={form} />
             </TabsContent>
             
             <TabsContent value="privacy" className="space-y-6">
-              <DataPrivacySettings form={form as any} />
+              <DataPrivacySettings form={form} />
             </TabsContent>
             
             <TabsContent value="appearance" className="space-y-6">
-              <AppearanceSettings form={form as any} />
+              <AppearanceSettings form={form} />
             </TabsContent>
           </Tabs>
           

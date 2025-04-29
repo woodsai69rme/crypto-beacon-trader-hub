@@ -117,7 +117,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Overview"
                 description="Your trading activity at a glance"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden"
+                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
               >
                 <DashboardOverview />
               </CollapsibleCard>
@@ -127,7 +127,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Portfolio"
                 description="View and manage your investments"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden"
+                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
               >
                 <DashboardPortfolio />
               </CollapsibleCard>
@@ -137,7 +137,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Watchlist"
                 description="Cryptocurrencies you're monitoring"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden"
+                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
               >
                 <DashboardWatchlist />
               </CollapsibleCard>
@@ -147,7 +147,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Trading"
                 description="Execute trades and view history"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden"
+                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
               >
                 <DashboardTrading />
               </CollapsibleCard>
@@ -157,7 +157,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Analysis"
                 description="Market analysis and insights"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden"
+                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
               >
                 <DashboardAnalysis />
               </CollapsibleCard>
@@ -167,7 +167,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Tools"
                 description="Trading tools and utilities"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden"
+                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
               >
                 <DashboardTools />
               </CollapsibleCard>

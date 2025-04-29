@@ -1,3 +1,4 @@
+
 export interface ApiProvider {
   id: string;
   name: string;
@@ -91,7 +92,7 @@ export interface CoinOption {
   id: string;
   name: string;
   symbol: string;
-  price?: number;
+  price: number;
   priceChange?: number;
   changePercent?: number;
   image?: string;
@@ -114,7 +115,7 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'low' | 'medium' | 'high' | string;
   timeframe: string;
   type?: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
   performance?: number;
@@ -159,3 +160,46 @@ export type TradingAccount = {
   currency: string;
   createdAt: string;
 };
+
+export interface FibonacciLevels {
+  level0: number; // 0%
+  level236: number; // 23.6%
+  level382: number; // 38.2%
+  level500: number; // 50.0%
+  level618: number; // 61.8%
+  level786: number; // 78.6%
+  level1000: number; // 100%
+  level1618: number; // 161.8%
+  level2618: number; // 261.8%
+  level4236: number; // 423.6%
+}
+
+export interface HyblockLiquidityZone {
+  id: string;
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  volumeProfile: number;
+  strength: 'weak' | 'medium' | 'strong';
+  type: 'support' | 'resistance' | 'neutral';
+  timeframe: string;
+  lastTested?: string;
+  breachCount?: number;
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
