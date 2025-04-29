@@ -329,7 +329,7 @@ const TaxCalculator: React.FC = () => {
                 <div className="flex items-center justify-between bg-muted/20 p-3 rounded-md h-full">
                   <div className="flex-1">
                     <div className="text-sm">Apply 50% CGT discount</div>
-                    <div className="text-xs text-muted-foreground">(for holdings > 1 year)</div>
+                    <div className="text-xs text-muted-foreground">(for holdings {`>`} 1 year)</div>
                   </div>
                   <Switch 
                     checked={applyDiscount} 
