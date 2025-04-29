@@ -5,331 +5,507 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, DollarSign, Percent, Target } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { AlertCircle, DollarSign, PercentIcon, TrendingDown, ShieldAlert, Calculator } from "lucide-react";
 
-const RiskCalculator: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("position");
-  
-  // Position Size Calculator
+const RiskCalculator = () => {
+  // Position sizing calculator
   const [accountSize, setAccountSize] = useState<number>(10000);
-  const [riskPercent, setRiskPercent] = useState<number>(2);
+  const [riskPercentage, setRiskPercentage] = useState<number>(1);
   const [entryPrice, setEntryPrice] = useState<number>(60000);
-  const [stopLoss, setStopLoss] = useState<number>(58000);
+  const [stopLossPrice, setStopLossPrice] = useState<number>(58500);
+  const [takeProfitPrice, setTakeProfitPrice] = useState<number>(63000);
   const [positionSize, setPositionSize] = useState<number>(0);
-  const [riskAmount, setRiskAmount] = useState<number>(0);
-  const [contracts, setContracts] = useState<number>(0);
-  
-  // Risk/Reward Calculator
-  const [takeProfit, setTakeProfit] = useState<number>(65000);
+  const [risk, setRisk] = useState<number>(0);
+  const [reward, setReward] = useState<number>(0);
   const [riskRewardRatio, setRiskRewardRatio] = useState<number>(0);
-  const [potentialProfit, setPotentialProfit] = useState<number>(0);
   
-  // Risk of Ruin Calculator
+  // Risk of ruin calculator
   const [winRate, setWinRate] = useState<number>(55);
-  const [riskReward, setRiskReward] = useState<number>(2);
-  const [trades, setTrades] = useState<number>(100);
+  const [riskPerTrade, setRiskPerTrade] = useState<number>(2);
+  const [rewardPerTrade, setRewardPerTrade] = useState<number>(3);
+  const [drawdownTarget, setDrawdownTarget] = useState<number>(25);
   const [ruinRisk, setRuinRisk] = useState<number>(0);
+  const [tradeFrequency, setTradeFrequency] = useState<number>(10);
+  const [model, setModel] = useState<string>("fixed");
+  const [useKelly, setUseKelly] = useState<boolean>(true);
   
-  // Effect for Position Size Calculator
+  // Calculate position size based on risk parameters
   useEffect(() => {
-    const risk = accountSize * (riskPercent / 100);
-    const priceDiff = Math.abs(entryPrice - stopLoss);
-    const riskPerUnit = priceDiff;
+    // Calculate risk amount in dollars
+    const dollarRisk = (accountSize * riskPercentage) / 100;
     
+    // Calculate position size
+    const stopLossDistance = Math.abs(entryPrice - stopLossPrice);
+    const riskPerUnit = stopLossDistance;
+    
+    // Avoid division by zero
     if (riskPerUnit > 0) {
-      const size = risk / riskPerUnit;
-      const contractSize = (size * entryPrice);
+      const calculatedPositionSize = dollarRisk / riskPerUnit;
+      setPositionSize(calculatedPositionSize);
       
-      setPositionSize(size);
-      setRiskAmount(risk);
-      setContracts(contractSize);
-    }
-  }, [accountSize, riskPercent, entryPrice, stopLoss]);
-  
-  // Effect for Risk/Reward Calculator
-  useEffect(() => {
-    const riskAmount = Math.abs(entryPrice - stopLoss);
-    const rewardAmount = Math.abs(takeProfit - entryPrice);
-    
-    if (riskAmount > 0) {
-      const ratio = rewardAmount / riskAmount;
-      const potentialProfitAmount = positionSize * rewardAmount;
+      // Calculate potential risk and reward
+      setRisk(calculatedPositionSize * stopLossDistance);
       
-      setRiskRewardRatio(ratio);
-      setPotentialProfit(potentialProfitAmount);
+      const takeProfitDistance = Math.abs(takeProfitPrice - entryPrice);
+      setReward(calculatedPositionSize * takeProfitDistance);
+    } else {
+      setPositionSize(0);
+      setRisk(0);
+      setReward(0);
     }
-  }, [entryPrice, stopLoss, takeProfit, positionSize]);
+  }, [accountSize, riskPercentage, entryPrice, stopLossPrice, takeProfitPrice]);
   
-  // Effect for Risk of Ruin Calculator
+  // Calculate risk/reward ratio
   useEffect(() => {
-    // Simple risk of ruin approximation (this is a simplified model)
-    const winRateDec = winRate / 100;
-    const lossRate = 1 - winRateDec;
+    if (risk > 0) {
+      setRiskRewardRatio(reward / risk);
+    } else {
+      setRiskRewardRatio(0);
+    }
+  }, [risk, reward]);
+  
+  // Calculate risk of ruin based on input parameters
+  useEffect(() => {
+    // Convert percentages to decimals
+    const p = winRate / 100; // Win probability
+    const q = 1 - p; // Loss probability
+    const f = riskPerTrade / 100; // Risk per trade as decimal
+    const g = rewardPerTrade / 100; // Reward per trade as decimal
     
-    // Kelly's formula adaptation for risk of ruin estimation
-    const edge = winRateDec - (lossRate / riskReward);
-    const ruinRiskEstimate = Math.exp(-2 * trades * Math.pow(edge, 2));
+    // Calculate risk of ruin
+    let ruin = 0;
     
-    setRuinRisk(Math.min(ruinRiskEstimate, 0.9999) * 100);
-  }, [winRate, riskReward, trades]);
+    if (model === "fixed") {
+      // Simple risk of ruin formula for fixed risk per trade
+      if (p <= 0.5) {
+        ruin = 1; // 100% chance of ruin if win rate <= 50%
+      } else if (p > 0.5) {
+        const ratio = q / p;
+        ruin = Math.pow(ratio, drawdownTarget / f);
+      }
+    } else {
+      // Kelly criterion-based calculation
+      // Simplified version - actual implementation would be more complex
+      const kellyFraction = p - (q / (g / f));
+      const edgePerTrade = (p * g) - (q * f);
+      
+      if (edgePerTrade <= 0) {
+        ruin = 1;
+      } else {
+        ruin = Math.exp(-2 * drawdownTarget * edgePerTrade / (f * f + g * g));
+      }
+    }
+    
+    // Ensure ruin is between 0 and 100%
+    ruin = Math.max(0, Math.min(1, ruin));
+    setRuinRisk(ruin * 100);
+  }, [winRate, riskPerTrade, rewardPerTrade, drawdownTarget, model]);
+  
+  // Calculate Kelly criterion optimal bet size
+  const calculateKelly = () => {
+    const winProb = winRate / 100;
+    const lossProb = 1 - winProb;
+    const payoffRatio = rewardPerTrade / riskPerTrade;
+    
+    const kellyPercentage = (winProb * payoffRatio - lossProb) / payoffRatio;
+    
+    // Kelly can be negative for negative expectancy systems
+    return Math.max(0, kellyPercentage * 100);
+  };
+  
+  // Get optimal bet size (Kelly or fixed)
+  const getOptimalBetSize = () => {
+    if (useKelly) {
+      const kellyPct = calculateKelly();
+      // Conservative Kelly (half Kelly is often recommended)
+      return (kellyPct / 2).toFixed(2);
+    }
+    return riskPerTrade.toFixed(2);
+  };
+  
+  // Calculate expected value per trade
+  const calculateEV = () => {
+    const winProb = winRate / 100;
+    const lossProb = 1 - winProb;
+    
+    return (winProb * rewardPerTrade) - (lossProb * riskPerTrade);
+  };
+  
+  // Calculate expected profit over time
+  const calculateExpectedProfit = () => {
+    const ev = calculateEV();
+    const tradesPerMonth = tradeFrequency * 4; // Assuming weekly trading frequency = trades per week
+    
+    // Monthly expected return as percentage of account
+    return (ev * tradesPerMonth) / 100;
+  };
   
   return (
     <Card className="shadow-lg border border-border">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
-          <div>
-            <CardTitle>Risk Calculator</CardTitle>
-            <CardDescription>Optimize your position size and risk management</CardDescription>
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5 text-primary" />
+          Risk Calculator
+        </CardTitle>
+        <CardDescription>
+          Calculate position sizes and analyze trading risk
+        </CardDescription>
       </CardHeader>
       
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="position">Position Size</TabsTrigger>
-            <TabsTrigger value="risk-reward">Risk/Reward</TabsTrigger>
+      <CardContent className="space-y-6">
+        <Tabs defaultValue="position">
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="position">Position Sizing</TabsTrigger>
             <TabsTrigger value="ruin">Risk of Ruin</TabsTrigger>
           </TabsList>
           
           <TabsContent value="position" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="account-size">Account Size</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="account-size"
-                    type="number"
-                    className="pl-9"
-                    value={accountSize}
-                    onChange={(e) => setAccountSize(parseFloat(e.target.value) || 0)}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="account-size">Account Size</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="account-size"
+                      type="number"
+                      className="pl-8"
+                      value={accountSize}
+                      onChange={e => setAccountSize(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="risk-percentage">Risk per Trade: {riskPercentage}%</Label>
+                  </div>
+                  <Slider
+                    id="risk-percentage"
+                    defaultValue={[riskPercentage]}
+                    min={0.1}
+                    max={5}
+                    step={0.1}
+                    onValueChange={value => setRiskPercentage(value[0])}
                   />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0.1%</span>
+                    <span>2.5%</span>
+                    <span>5%</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="entry-price">Entry Price</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="entry-price"
+                      type="number"
+                      className="pl-8"
+                      value={entryPrice}
+                      onChange={e => setEntryPrice(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="stop-loss">Stop Loss Price</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="stop-loss"
+                      type="number"
+                      className="pl-8"
+                      value={stopLossPrice}
+                      onChange={e => setStopLossPrice(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="take-profit">Take Profit Price</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="take-profit"
+                      type="number"
+                      className="pl-8"
+                      value={takeProfitPrice}
+                      onChange={e => setTakeProfitPrice(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="risk-percent">Risk Percentage ({riskPercent}%)</Label>
-                <Slider
-                  id="risk-percent"
-                  min={0.1}
-                  max={5}
-                  step={0.1}
-                  value={[riskPercent]}
-                  onValueChange={(value) => setRiskPercent(value[0])}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="entry-price">Entry Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="entry-price"
-                    type="number"
-                    className="pl-9"
-                    value={entryPrice}
-                    onChange={(e) => setEntryPrice(parseFloat(e.target.value) || 0)}
-                  />
+              <div className="space-y-4">
+                <div className="bg-muted/20 p-4 rounded-md">
+                  <h3 className="text-lg font-medium mb-4">Position Size Calculator</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Position Size</div>
+                      <div className="text-2xl font-bold">
+                        {positionSize.toFixed(6)} BTC
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        ${(positionSize * entryPrice).toFixed(2)}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <div>
+                        <div className="text-sm text-muted-foreground mb-1">Risk</div>
+                        <div className="text-lg font-bold text-red-500">
+                          ${risk.toFixed(2)}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="text-sm text-muted-foreground mb-1">Reward</div>
+                        <div className="text-lg font-bold text-green-500">
+                          ${reward.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Risk/Reward Ratio</div>
+                      <div className={`text-lg font-bold ${
+                        riskRewardRatio >= 2 
+                          ? 'text-green-500' 
+                          : riskRewardRatio >= 1 
+                          ? 'text-amber-500'
+                          : 'text-red-500'
+                      }`}>
+                        1 : {riskRewardRatio.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="stop-loss">Stop Loss Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="stop-loss"
-                    type="number"
-                    className="pl-9"
-                    value={stopLoss}
-                    onChange={(e) => setStopLoss(parseFloat(e.target.value) || 0)}
-                  />
+                
+                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-md">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-amber-500">Risk Management Guidelines</h4>
+                      <div className="space-y-2 mt-2 text-sm">
+                        <p>
+                          Most professional traders risk 1-2% of their account per trade. 
+                          Risk/reward ratio should ideally be at least 1:2.
+                        </p>
+                        <p>
+                          Your current risk is {((risk / accountSize) * 100).toFixed(2)}% of your account.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-muted/20 p-3 rounded-md">
-                <div className="text-xs text-muted-foreground mb-1">Amount at Risk</div>
-                <div className="text-lg font-bold">${riskAmount.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground mt-1">{riskPercent}% of your account</div>
-              </div>
-              
-              <div className="bg-muted/20 p-3 rounded-md">
-                <div className="text-xs text-muted-foreground mb-1">Position Size</div>
-                <div className="text-lg font-bold">{positionSize.toFixed(4)} BTC</div>
-                <div className="text-xs text-muted-foreground mt-1">Based on your risk parameters</div>
-              </div>
-              
-              <div className="bg-muted/20 p-3 rounded-md">
-                <div className="text-xs text-muted-foreground mb-1">Contract Value</div>
-                <div className="text-lg font-bold">${contracts.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground mt-1">USD value of your position</div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="risk-reward" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="entry-price-rr">Entry Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="entry-price-rr"
-                    type="number"
-                    className="pl-9"
-                    value={entryPrice}
-                    onChange={(e) => setEntryPrice(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="stop-loss-rr">Stop Loss Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="stop-loss-rr"
-                    type="number"
-                    className="pl-9"
-                    value={stopLoss}
-                    onChange={(e) => setStopLoss(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="take-profit">Take Profit Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="take-profit"
-                    type="number"
-                    className="pl-9"
-                    value={takeProfit}
-                    onChange={(e) => setTakeProfit(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-muted/20 p-3 rounded-md">
-                <div className="text-xs text-muted-foreground mb-1">Risk/Reward Ratio</div>
-                <div className="text-lg font-bold">1:{riskRewardRatio.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {riskRewardRatio >= 2 ? 
-                    "Good R/R ratio (above 1:2)" : 
-                    "Consider improving your R/R ratio"
-                  }
-                </div>
-              </div>
-              
-              <div className="bg-muted/20 p-3 rounded-md">
-                <div className="text-xs text-muted-foreground mb-1">Potential Profit</div>
-                <div className="text-lg font-bold">${potentialProfit.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground mt-1">Based on your take profit level</div>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-2 mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
-              <div className="shrink-0 text-blue-500 mt-0.5">
-                <AlertTriangle className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-sm font-medium text-blue-500">Trading Tip</div>
-                <div className="text-xs">Aim for a risk/reward ratio of at least 1:2 to remain profitable even with a win rate below 50%.</div>
               </div>
             </div>
           </TabsContent>
           
           <TabsContent value="ruin" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="win-rate">Win Rate ({winRate}%)</Label>
-                <Slider
-                  id="win-rate"
-                  min={30}
-                  max={90}
-                  step={1}
-                  value={[winRate]}
-                  onValueChange={(value) => setWinRate(value[0])}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="risk-reward-ratio">Risk/Reward Ratio (1:{riskReward})</Label>
-                <Slider
-                  id="risk-reward-ratio"
-                  min={0.5}
-                  max={5}
-                  step={0.1}
-                  value={[riskReward]}
-                  onValueChange={(value) => setRiskReward(value[0])}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trades">Number of Trades</Label>
-                <Input 
-                  id="trades"
-                  type="number"
-                  value={trades}
-                  onChange={(e) => setTrades(parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-border">
-              <div className="bg-muted/20 p-4 rounded-md">
-                <div className="text-xs text-muted-foreground mb-1">Probability of Ruin</div>
-                <div className="flex items-center gap-2">
-                  <div className="text-lg font-bold">{ruinRisk.toFixed(2)}%</div>
-                  <div className={`text-sm ${
-                    ruinRisk < 10 ? "text-green-500" :
-                    ruinRisk < 30 ? "text-yellow-500" :
-                    "text-red-500"
-                  }`}>
-                    {ruinRisk < 10 ? "(Low Risk)" :
-                     ruinRisk < 30 ? "(Medium Risk)" :
-                     "(High Risk)"}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="win-rate">Win Rate: {winRate}%</Label>
+                  </div>
+                  <Slider
+                    id="win-rate"
+                    defaultValue={[winRate]}
+                    min={10}
+                    max={90}
+                    step={1}
+                    onValueChange={value => setWinRate(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>10%</span>
+                    <span>50%</span>
+                    <span>90%</span>
                   </div>
                 </div>
                 
-                <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full ${
-                      ruinRisk < 10 ? "bg-green-500" :
-                      ruinRisk < 30 ? "bg-yellow-500" :
-                      "bg-red-500"
-                    }`} 
-                    style={{ width: `${ruinRisk}%` }}
-                  ></div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="risk-per-trade">Risk Per Trade: {riskPerTrade}%</Label>
+                  </div>
+                  <Slider
+                    id="risk-per-trade"
+                    defaultValue={[riskPerTrade]}
+                    min={0.5}
+                    max={10}
+                    step={0.5}
+                    onValueChange={value => setRiskPerTrade(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0.5%</span>
+                    <span>5%</span>
+                    <span>10%</span>
+                  </div>
                 </div>
                 
-                <div className="mt-4 text-xs">
-                  <div className="font-medium mb-1">Expected Value per Trade:</div>
-                  <div>
-                    {((winRate/100 * riskReward) - (1 - winRate/100)).toFixed(2)} units
-                    (
-                    {((winRate/100 * riskReward) - (1 - winRate/100) > 0) 
-                      ? "profitable long-term expectation" 
-                      : "unprofitable strategy"}
-                    )
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="reward-per-trade">Reward Per Trade: {rewardPerTrade}%</Label>
                   </div>
+                  <Slider
+                    id="reward-per-trade"
+                    defaultValue={[rewardPerTrade]}
+                    min={0.5}
+                    max={10}
+                    step={0.5}
+                    onValueChange={value => setRewardPerTrade(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0.5%</span>
+                    <span>5%</span>
+                    <span>10%</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="drawdown-target">Max Drawdown: {drawdownTarget}%</Label>
+                  </div>
+                  <Slider
+                    id="drawdown-target"
+                    defaultValue={[drawdownTarget]}
+                    min={5}
+                    max={50}
+                    step={5}
+                    onValueChange={value => setDrawdownTarget(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>5%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="model-type">Calculation Model</Label>
+                  <Select value={model} onValueChange={setModel}>
+                    <SelectTrigger id="model-type">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed">Fixed Fraction</SelectItem>
+                      <SelectItem value="kelly">Kelly Criterion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="trade-frequency">Weekly Trades: {tradeFrequency}</Label>
+                  <Slider
+                    id="trade-frequency"
+                    defaultValue={[tradeFrequency]}
+                    min={1}
+                    max={30}
+                    step={1}
+                    onValueChange={value => setTradeFrequency(value[0])}
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="use-kelly"
+                    checked={useKelly}
+                    onCheckedChange={setUseKelly}
+                  />
+                  <Label htmlFor="use-kelly">Use optimal bet size (Kelly)</Label>
                 </div>
               </div>
               
-              <div className="flex items-start gap-2 mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-md">
-                <div className="shrink-0 text-amber-500 mt-0.5">
-                  <AlertTriangle className="h-5 w-5" />
+              <div className="space-y-4">
+                <div className="bg-muted/20 p-4 rounded-md">
+                  <h3 className="text-lg font-medium mb-4">Risk of Ruin Analysis</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Risk of Ruin</div>
+                      <div className={`text-2xl font-bold ${
+                        ruinRisk > 50 
+                          ? 'text-red-500' 
+                          : ruinRisk > 20 
+                          ? 'text-amber-500'
+                          : 'text-green-500'
+                      }`}>
+                        {ruinRisk.toFixed(2)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Probability of {drawdownTarget}% drawdown
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <div className="text-sm text-muted-foreground mb-1">Expected Value per Trade</div>
+                      <div className={`text-lg font-bold ${
+                        calculateEV() > 0 
+                          ? 'text-green-500' 
+                          : 'text-red-500'
+                      }`}>
+                        {calculateEV().toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Expected Monthly Return</div>
+                      <div className={`text-lg font-bold ${
+                        calculateExpectedProfit() > 0 
+                          ? 'text-green-500' 
+                          : 'text-red-500'
+                      }`}>
+                        {calculateExpectedProfit().toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Optimal Risk Per Trade</div>
+                      <div className="text-lg font-bold">
+                        {getOptimalBetSize()}%
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-medium text-amber-500">Risk Management Note</div>
-                  <div className="text-xs">Never risk more than 1-2% of your trading capital on a single trade. Proper risk management is essential for long-term trading success.</div>
+                
+                <div className={`p-4 rounded-md border ${
+                  ruinRisk > 50 
+                    ? 'bg-red-500/10 border-red-500/20' 
+                    : ruinRisk > 20 
+                    ? 'bg-amber-500/10 border-amber-500/20'
+                    : 'bg-green-500/10 border-green-500/20'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <ShieldAlert className={`h-5 w-5 ${
+                      ruinRisk > 50 
+                        ? 'text-red-500' 
+                        : ruinRisk > 20 
+                        ? 'text-amber-500'
+                        : 'text-green-500'
+                    } mt-0.5`} />
+                    <div>
+                      <h4 className="font-medium">Risk Assessment</h4>
+                      <div className="space-y-2 mt-2 text-sm">
+                        {ruinRisk > 50 ? (
+                          <p>High risk of ruin. Consider reducing position sizes, improving win rate, or increasing risk/reward ratio.</p>
+                        ) : ruinRisk > 20 ? (
+                          <p>Moderate risk of ruin. System is viable but you may want to reduce position sizes for better long-term sustainability.</p>
+                        ) : (
+                          <p>Low risk of ruin. Your trading system appears statistically robust with current parameters.</p>
+                        )}
+                        
+                        <p>
+                          With a {winRate}% win rate and {rewardPerTrade}:{riskPerTrade} reward:risk ratio, 
+                          your optimal position size is {getOptimalBetSize()}% of your account.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,209 +1,209 @@
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, BarChart, PieChart, TrendingUp } from "lucide-react";
+import { ResponsiveLine } from "@nivo/line";
 import { EnhancedPortfolioBenchmarkingProps } from '@/types/trading';
 
-const benchmarkIndices = {
-  "BTC": {
-    color: "#F7931A",
-    data: [10, 12, 15, 14, 20, 18, 17, 22, 24, 23, 21, 25]
-  },
-  "ETH": {
-    color: "#62688F",
-    data: [5, 7, 6, 8, 10, 11, 15, 18, 16, 19, 17, 20]
-  },
-  "S&P500": {
-    color: "#0066CC",
-    data: [5, 5.2, 5.5, 5.7, 6, 6.1, 6.3, 6.2, 6.5, 6.8, 7, 7.2]
-  },
-  "Gold": {
-    color: "#FFD700",
-    data: [8, 8.2, 8.1, 8.3, 8.5, 8.4, 8.6, 8.7, 8.9, 9.0, 9.1, 9.2]
-  }
-};
-
 const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({ 
-  portfolioPerformance,
-  portfolioDates
+  portfolioPerformance, 
+  portfolioDates 
 }) => {
-  const [selectedBenchmarks, setSelectedBenchmarks] = useState<string[]>(["BTC", "S&P500"]);
-  const [timerange, setTimerange] = useState<string>("6m");
-
-  // If no portfolio data is provided, use sample data
-  const defaultPortfolioPerformance = [5, 8, 7, 10, 12, 15, 13, 18, 20, 19, 21, 22];
-  const defaultDates = [
-    "2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", "2023-06-01",
-    "2023-07-01", "2023-08-01", "2023-09-01", "2023-10-01", "2023-11-01", "2023-12-01"
-  ];
-
-  const performance = portfolioPerformance || defaultPortfolioPerformance;
-  const dates = portfolioDates || defaultDates;
-
-  // Generate chart data
-  const chartData = dates.map((date, index) => {
-    const dataPoint: any = { date };
-    dataPoint.Portfolio = performance[index];
-
-    // Add selected benchmarks
-    selectedBenchmarks.forEach(benchmark => {
-      dataPoint[benchmark] = benchmarkIndices[benchmark as keyof typeof benchmarkIndices].data[index];
-    });
-
-    return dataPoint;
+  // Create a default dataset if none is provided
+  const defaultDates = portfolioDates || Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (30 - i));
+    return date.toISOString().split('T')[0];
   });
-
-  // Filter chart data based on timerange
-  const filterChartDataByTimerange = (data: any[]) => {
-    switch (timerange) {
-      case "1m":
-        return data.slice(-1);
-      case "3m":
-        return data.slice(-3);
-      case "6m":
-        return data.slice(-6);
-      case "1y":
-        return data;
-      default:
-        return data;
-    }
+  
+  const defaultPerformance = portfolioPerformance || Array.from({ length: 30 }, (_, i) => {
+    return (Math.sin(i / 5) + 1) * 5 + i / 3;
+  });
+  
+  // Generate benchmark comparison data
+  const generateBenchmarkData = () => {
+    return [
+      {
+        id: "Your Portfolio",
+        color: "hsl(220, 70%, 50%)",
+        data: defaultDates.map((date, i) => ({
+          x: date,
+          y: defaultPerformance[i]
+        }))
+      },
+      {
+        id: "BTC",
+        color: "hsl(32, 70%, 50%)",
+        data: defaultDates.map((date, i) => ({
+          x: date,
+          y: defaultPerformance[i] * (1 + (Math.random() * 0.4 - 0.2))
+        }))
+      },
+      {
+        id: "S&P 500",
+        color: "hsl(120, 40%, 50%)",
+        data: defaultDates.map((date, i) => ({
+          x: date,
+          y: defaultPerformance[i] * 0.7 * (1 + (Math.random() * 0.2 - 0.1))
+        }))
+      }
+    ];
   };
 
-  const filteredChartData = filterChartDataByTimerange(chartData);
-
-  const toggleBenchmark = (benchmark: string) => {
-    if (selectedBenchmarks.includes(benchmark)) {
-      setSelectedBenchmarks(selectedBenchmarks.filter(b => b !== benchmark));
-    } else {
-      setSelectedBenchmarks([...selectedBenchmarks, benchmark]);
-    }
+  const benchmarkData = generateBenchmarkData();
+  
+  // Calculate performance metrics
+  const calculateMetrics = () => {
+    const lastIndex = defaultPerformance.length - 1;
+    const startValue = defaultPerformance[0];
+    const endValue = defaultPerformance[lastIndex];
+    
+    const totalReturn = ((endValue - startValue) / startValue) * 100;
+    const maxValue = Math.max(...defaultPerformance);
+    const maxDrawdown = ((maxValue - Math.min(...defaultPerformance)) / maxValue) * 100;
+    
+    // Calculate volatility (standard deviation)
+    const mean = defaultPerformance.reduce((acc, val) => acc + val, 0) / defaultPerformance.length;
+    const squaredDiffs = defaultPerformance.map(val => Math.pow(val - mean, 2));
+    const variance = squaredDiffs.reduce((acc, val) => acc + val, 0) / squaredDiffs.length;
+    const volatility = Math.sqrt(variance);
+    
+    // Calculate Sharpe ratio (approximation)
+    const riskFreeRate = 2; // 2% risk-free rate
+    const sharpeRatio = (totalReturn - riskFreeRate) / volatility;
+    
+    return {
+      totalReturn: totalReturn.toFixed(2),
+      volatility: volatility.toFixed(2),
+      maxDrawdown: maxDrawdown.toFixed(2),
+      sharpeRatio: sharpeRatio.toFixed(2)
+    };
   };
+  
+  const metrics = calculateMetrics();
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-lg">Performance Benchmarking</CardTitle>
-            <CardDescription>Compare your portfolio against market benchmarks</CardDescription>
-          </div>
-          <Select value={timerange} onValueChange={setTimerange}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Timerange" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1m">1 Month</SelectItem>
-              <SelectItem value="3m">3 Months</SelectItem>
-              <SelectItem value="6m">6 Months</SelectItem>
-              <SelectItem value="1y">1 Year</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <Card className="shadow-lg border border-border">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          Portfolio Benchmarking
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={filteredChartData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                  }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [`${value}%`, '']}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="Portfolio" 
-                  stroke="#8884d8" 
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-                {selectedBenchmarks.map(benchmark => (
-                  <Line 
-                    key={benchmark}
-                    type="monotone" 
-                    dataKey={benchmark}
-                    stroke={benchmarkIndices[benchmark as keyof typeof benchmarkIndices].color} 
-                    strokeWidth={2}
-                    dot={{ r: 2 }}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(benchmarkIndices).map(([name, { color }]) => (
-              <button
-                key={name}
-                className={`text-xs py-1 px-3 rounded-full border transition-colors ${
-                  selectedBenchmarks.includes(name) 
-                    ? 'bg-primary text-primary-foreground border-transparent' 
-                    : 'bg-transparent border-border text-muted-foreground hover:border-primary'
-                }`}
-                onClick={() => toggleBenchmark(name)}
-              >
-                <div className="flex items-center">
-                  <div 
-                    className="w-2 h-2 rounded-full mr-1.5" 
-                    style={{ backgroundColor: color }} 
-                  />
-                  {name}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-            <div className="p-3 bg-muted/30 rounded-lg">
-              <div className="text-xs text-muted-foreground">Current Return</div>
-              <div className="text-lg font-medium text-green-500">
-                +{performance[performance.length - 1]}%
-              </div>
-            </div>
-            <div className="p-3 bg-muted/30 rounded-lg">
-              <div className="text-xs text-muted-foreground">vs. BTC</div>
-              <div className={`text-lg font-medium ${
-                performance[performance.length - 1] >= benchmarkIndices.BTC.data[benchmarkIndices.BTC.data.length - 1] 
-                  ? 'text-green-500' : 'text-red-500'
-              }`}>
-                {(performance[performance.length - 1] - benchmarkIndices.BTC.data[benchmarkIndices.BTC.data.length - 1]).toFixed(2)}%
-              </div>
-            </div>
-            <div className="p-3 bg-muted/30 rounded-lg">
-              <div className="text-xs text-muted-foreground">vs. S&P500</div>
-              <div className={`text-lg font-medium ${
-                performance[performance.length - 1] >= benchmarkIndices["S&P500"].data[benchmarkIndices["S&P500"].data.length - 1] 
-                  ? 'text-green-500' : 'text-red-500'
-              }`}>
-                {(performance[performance.length - 1] - benchmarkIndices["S&P500"].data[benchmarkIndices["S&P500"].data.length - 1]).toFixed(2)}%
-              </div>
-            </div>
-            <div className="p-3 bg-muted/30 rounded-lg">
-              <div className="text-xs text-muted-foreground">Outperforming</div>
-              <div className="text-lg font-medium">
-                {Object.keys(benchmarkIndices).filter(
-                  key => performance[performance.length - 1] > benchmarkIndices[key as keyof typeof benchmarkIndices].data[benchmarkIndices[key as keyof typeof benchmarkIndices].data.length - 1]
-                ).length} / {Object.keys(benchmarkIndices).length}
-              </div>
+      
+      <CardContent className="pt-4">
+        <div className="h-72 w-full">
+          <ResponsiveLine
+            data={benchmarkData}
+            margin={{ top: 20, right: 110, bottom: 50, left: 60 }}
+            xScale={{ type: 'point' }}
+            yScale={{
+              type: 'linear',
+              min: 'auto',
+              max: 'auto'
+            }}
+            curve="monotoneX"
+            axisTop={null}
+            axisRight={null}
+            axisBottom={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: -45,
+              format: (value) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+              },
+              tickValues: defaultDates.filter((_, i) => i % 5 === 0)
+            }}
+            axisLeft={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: 0
+            }}
+            pointSize={2}
+            pointColor={{ theme: 'background' }}
+            pointBorderWidth={2}
+            pointBorderColor={{ from: 'serieColor' }}
+            pointLabelYOffset={-12}
+            useMesh={true}
+            legends={[
+              {
+                anchor: 'bottom-right',
+                direction: 'column',
+                justify: false,
+                translateX: 100,
+                translateY: 0,
+                itemsSpacing: 0,
+                itemDirection: 'left-to-right',
+                itemWidth: 80,
+                itemHeight: 20,
+                itemOpacity: 0.75,
+                symbolSize: 12,
+                symbolShape: 'circle',
+                symbolBorderColor: 'rgba(0, 0, 0, .5)'
+              }
+            ]}
+            theme={{
+              textColor: '#888',
+              fontSize: 11,
+              axis: {
+                domain: {
+                  line: {
+                    stroke: '#555'
+                  }
+                },
+                ticks: {
+                  line: {
+                    stroke: '#555'
+                  }
+                }
+              },
+              grid: {
+                line: {
+                  stroke: '#333',
+                  strokeWidth: 0.5
+                }
+              },
+              tooltip: {
+                container: {
+                  background: '#222',
+                  color: '#eee',
+                  boxShadow: '0 3px 9px rgba(0, 0, 0, 0.5)',
+                  borderRadius: '4px'
+                }
+              }
+            }}
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="bg-muted/20 p-3 rounded-md">
+            <div className="text-xs text-muted-foreground">Total Return</div>
+            <div className={`text-lg font-bold ${parseFloat(metrics.totalReturn) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              {parseFloat(metrics.totalReturn) >= 0 ? '+' : ''}{metrics.totalReturn}%
             </div>
           </div>
+          
+          <div className="bg-muted/20 p-3 rounded-md">
+            <div className="text-xs text-muted-foreground">Volatility</div>
+            <div className="text-lg font-bold">{metrics.volatility}</div>
+          </div>
+          
+          <div className="bg-muted/20 p-3 rounded-md">
+            <div className="text-xs text-muted-foreground">Max Drawdown</div>
+            <div className="text-lg font-bold text-amber-500">-{metrics.maxDrawdown}%</div>
+          </div>
+          
+          <div className="bg-muted/20 p-3 rounded-md">
+            <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
+            <div className={`text-lg font-bold ${parseFloat(metrics.sharpeRatio) >= 1 ? 'text-green-500' : parseFloat(metrics.sharpeRatio) > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+              {metrics.sharpeRatio}
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-xs text-muted-foreground mt-4">
+          Compare your portfolio performance against major indices and cryptocurrencies
         </div>
       </CardContent>
     </Card>

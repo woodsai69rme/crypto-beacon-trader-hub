@@ -1,144 +1,360 @@
 
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Calendar as CalendarIcon, Clock, ArrowLeft, ArrowRight, AlertCircle, TrendingUp, TrendingDown, Calendar as CalIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, addDays, subDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
 
-const TradingCalendar: React.FC = () => {
-  const currentDate = new Date();
-  const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
-  const currentYear = currentDate.getFullYear();
+const TradingCalendar = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<'month' | 'week'>('month');
+  const [eventFilter, setEventFilter] = useState('all');
   
-  // Mock data for trading events
+  // Example trading events
   const tradingEvents = [
-    { date: 3, type: "win", profit: 320 },
-    { date: 5, type: "loss", loss: 120 },
-    { date: 8, type: "win", profit: 450 },
-    { date: 12, type: "win", profit: 180 },
-    { date: 17, type: "loss", loss: 240 },
-    { date: 21, type: "win", profit: 510 },
-    { date: 25, type: "loss", loss: 90 },
-    { date: 28, type: "win", profit: 370 },
+    {
+      id: "event-1",
+      title: "FOMC Meeting",
+      date: new Date(2023, 3, 25), // April 25, 2023
+      type: "economic",
+      impact: "high",
+      description: "Federal Reserve interest rate decision and statement"
+    },
+    {
+      id: "event-2",
+      title: "BTC Quarterly Options Expiry",
+      date: new Date(2023, 3, 28), // April 28, 2023
+      type: "crypto",
+      impact: "medium",
+      description: "Bitcoin quarterly options contracts expire"
+    },
+    {
+      id: "event-3",
+      title: "US GDP Data",
+      date: new Date(2023, 3, 27), // April 27, 2023
+      type: "economic",
+      impact: "medium",
+      description: "Q1 2023 US GDP preliminary data release"
+    },
+    {
+      id: "event-4",
+      title: "ETH Shanghai Upgrade",
+      date: new Date(2023, 3, 12), // April 12, 2023
+      type: "crypto",
+      impact: "high",
+      description: "Ethereum network upgrade enabling staking withdrawals"
+    },
+    {
+      id: "event-5",
+      title: "US CPI Data",
+      date: new Date(2023, 3, 14), // April 14, 2023
+      type: "economic",
+      impact: "high",
+      description: "Consumer Price Index data - inflation metrics"
+    },
+    {
+      id: "event-6",
+      title: "Personal Trade: BTC Long",
+      date: new Date(2023, 3, 15), // April 15, 2023
+      type: "personal",
+      impact: "low",
+      description: "Entered BTC long position at $60,450",
+      result: "profit",
+      pnl: "+3.2%"
+    },
+    {
+      id: "event-7",
+      title: "Personal Trade: SOL Short",
+      date: new Date(2023, 3, 20), // April 20, 2023
+      type: "personal",
+      impact: "low",
+      description: "Entered SOL short position at $138",
+      result: "loss",
+      pnl: "-2.1%"
+    },
   ];
   
-  const getMonthDays = () => {
-    // Get number of days in current month
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    return new Date(year, month + 1, 0).getDate();
-  };
-  
-  const getFirstDayOfMonth = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    return new Date(year, month, 1).getDay();
-  };
-  
-  const renderDays = () => {
-    const totalDays = getMonthDays();
-    const firstDay = getFirstDayOfMonth();
-    const daysArray = [];
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      daysArray.push(
-        <div key={`empty-${i}`} className="h-14 border border-border/30 bg-muted/10 rounded-md"></div>
-      );
-    }
-    
-    // Add cells for each day of the month
-    for (let day = 1; day <= totalDays; day++) {
-      const event = tradingEvents.find(event => event.date === day);
+  // Generate calendar days
+  const generateCalendarDays = () => {
+    if (view === 'month') {
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
       
-      daysArray.push(
-        <div 
-          key={`day-${day}`} 
-          className={`h-14 border border-border/40 p-1 rounded-md relative hover:bg-muted/20 transition-colors ${
-            day === currentDate.getDate() ? "bg-primary/10 border-primary/30" : "bg-muted/5"
-          }`}
-        >
-          <div className="absolute top-1 left-1 text-xs">{day}</div>
-          
-          {event && (
-            <div 
-              className={`absolute bottom-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                event.type === "win" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
-              }`}
-            >
-              {event.type === "win" ? "W" : "L"}
-            </div>
-          )}
-          
-          {event && (
-            <div 
-              className={`text-xs absolute bottom-1 left-1 font-medium ${
-                event.type === "win" ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              {event.type === "win" ? `+$${event.profit}` : `-$${event.loss}`}
-            </div>
-          )}
-        </div>
-      );
+      return eachDayOfInterval({
+        start: monthStart,
+        end: monthEnd
+      });
+    } else {
+      // Week view
+      const startOfWeek = currentDate;
+      const endOfWeek = addDays(currentDate, 6);
+      
+      return eachDayOfInterval({
+        start: startOfWeek,
+        end: endOfWeek
+      });
     }
-    
-    return daysArray;
   };
+  
+  // Filter events for a specific day
+  const getEventsForDay = (day: Date) => {
+    return tradingEvents.filter(event => {
+      const sameDay = isSameDay(event.date, day);
+      
+      if (eventFilter === 'all') return sameDay;
+      return sameDay && event.type === eventFilter;
+    });
+  };
+  
+  // Navigate to previous period (month/week)
+  const navigatePrevious = () => {
+    if (view === 'month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+    } else {
+      setCurrentDate(subDays(currentDate, 7));
+    }
+  };
+  
+  // Navigate to next period (month/week)
+  const navigateNext = () => {
+    if (view === 'month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+    } else {
+      setCurrentDate(addDays(currentDate, 7));
+    }
+  };
+  
+  // Get impact badge style
+  const getImpactBadge = (impact: string) => {
+    switch (impact) {
+      case 'high':
+        return <Badge className="bg-red-500/20 text-red-500 hover:bg-red-500/30">High</Badge>;
+      case 'medium':
+        return <Badge className="bg-amber-500/20 text-amber-500 hover:bg-amber-500/30">Medium</Badge>;
+      case 'low':
+        return <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30">Low</Badge>;
+      default:
+        return null;
+    }
+  };
+  
+  // Get type icon
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'economic':
+        return <TrendingUp className="h-4 w-4 text-blue-400" />;
+      case 'crypto':
+        return <AlertCircle className="h-4 w-4 text-purple-400" />;
+      case 'personal':
+        return <CalendarIcon className="h-4 w-4 text-green-400" />;
+      default:
+        return null;
+    }
+  };
+  
+  const days = generateCalendarDays();
   
   return (
-    <Card className="border border-border shadow-lg">
-      <CardContent className="pt-6 space-y-4">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <CalendarIcon className="h-5 w-5 mr-2" />
-            <h2 className="text-xl font-bold">{currentMonth} {currentYear}</h2>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon">
-              <ChevronLeft className="h-4 w-4" />
+    <Card className="shadow-lg border border-border">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5 text-primary" />
+            Trading Calendar
+          </CardTitle>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className={view === 'month' ? 'bg-muted' : ''}
+              onClick={() => setView('month')}
+            >
+              Month
             </Button>
-            <Button variant="outline">Today</Button>
-            <Button variant="outline" size="icon">
-              <ChevronRight className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="sm"
+              className={view === 'week' ? 'bg-muted' : ''}
+              onClick={() => setView('week')}
+            >
+              Week
             </Button>
           </div>
         </div>
-
-        <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground mb-1">
-          <div>Sun</div>
-          <div>Mon</div>
-          <div>Tue</div>
-          <div>Wed</div>
-          <div>Thu</div>
-          <div>Fri</div>
-          <div>Sat</div>
-        </div>
-        
-        <div className="grid grid-cols-7 gap-1">
-          {renderDays()}
-        </div>
-        
-        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
-          <div className="flex gap-4">
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-              <span className="text-xs">Winning Trades: 5</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-              <span className="text-xs">Losing Trades: 3</span>
-            </div>
+      </CardHeader>
+      
+      <CardContent className="p-0">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={navigatePrevious}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-lg font-semibold">
+              {view === 'month' 
+                ? format(currentDate, 'MMMM yyyy')
+                : `Week of ${format(currentDate, 'MMM d')} - ${format(addDays(currentDate, 6), 'MMM d, yyyy')}`
+              }
+            </h2>
+            <Button variant="outline" size="icon" onClick={navigateNext}>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="text-xs text-muted-foreground">Win Rate: 62.5%</div>
+          
+          <Select value={eventFilter} onValueChange={setEventFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Filter events" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Events</SelectItem>
+              <SelectItem value="economic">Economic</SelectItem>
+              <SelectItem value="crypto">Crypto</SelectItem>
+              <SelectItem value="personal">Personal Trades</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
-        <div className="bg-muted/20 p-3 rounded-lg">
-          <div className="text-sm font-medium mb-1">Monthly Performance</div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-green-500">+$1,670.00</span>
-            <span className="text-xs text-muted-foreground">8 trading days</span>
+        {view === 'month' ? (
+          <div className="grid grid-cols-7 gap-px bg-muted p-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+              <div key={day} className="text-center py-2 text-xs font-medium text-muted-foreground">
+                {day}
+              </div>
+            ))}
+            
+            {/* Empty spaces for days before the first day of month */}
+            {Array.from({ length: days[0].getDay() }).map((_, index) => (
+              <div key={`empty-${index}`} className="p-2 bg-card border border-muted/10" />
+            ))}
+            
+            {days.map((day) => {
+              const events = getEventsForDay(day);
+              const isToday = isSameDay(day, new Date());
+              
+              return (
+                <div
+                  key={day.toString()}
+                  className={`p-2 ${
+                    isToday
+                      ? 'bg-primary/10 border border-primary/20'
+                      : 'bg-card border border-muted/10'
+                  }`}
+                >
+                  <div className="h-full flex flex-col">
+                    <div className={`text-xs font-semibold mb-1 ${isToday ? 'text-primary' : ''}`}>
+                      {format(day, 'd')}
+                    </div>
+                    
+                    <div className="flex-1">
+                      {events.length > 0 ? (
+                        <div className="space-y-1">
+                          {events.slice(0, 2).map((event) => (
+                            <div
+                              key={event.id}
+                              className={`text-[10px] px-1 py-0.5 rounded truncate ${
+                                event.impact === 'high'
+                                  ? 'bg-red-500/10 border-l-2 border-red-500'
+                                  : event.impact === 'medium'
+                                  ? 'bg-amber-500/10 border-l-2 border-amber-500'
+                                  : 'bg-muted/50 border-l-2 border-muted-foreground'
+                              }`}
+                              title={event.title}
+                            >
+                              {event.title}
+                            </div>
+                          ))}
+                          
+                          {events.length > 2 && (
+                            <div className="text-[10px] text-muted-foreground">
+                              +{events.length - 2} more
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        ) : (
+          // Week view
+          <div className="divide-y divide-border">
+            {days.map((day) => {
+              const events = getEventsForDay(day);
+              const isToday = isSameDay(day, new Date());
+              
+              return (
+                <div
+                  key={day.toString()}
+                  className={`p-4 ${isToday ? 'bg-primary/5' : ''}`}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div
+                      className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                        isToday ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                      }`}
+                    >
+                      {format(day, 'd')}
+                    </div>
+                    <div>
+                      <div className={`font-medium ${isToday ? 'text-primary' : ''}`}>
+                        {format(day, 'EEEE')}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {format(day, 'MMMM d, yyyy')}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pl-10">
+                    {events.length > 0 ? (
+                      events.map((event) => (
+                        <div
+                          key={event.id}
+                          className="flex items-start gap-3 p-2 rounded-md bg-muted/20 border-l-2 border-primary/50"
+                        >
+                          <div className="mt-0.5">{getTypeIcon(event.type)}</div>
+                          
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <div className="font-medium">{event.title}</div>
+                              {getImpactBadge(event.impact)}
+                            </div>
+                            
+                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                              <Clock className="h-3 w-3" />
+                              <span>All day</span>
+                            </div>
+                            
+                            <div className="text-sm mt-2">{event.description}</div>
+                            
+                            {event.type === 'personal' && (
+                              <div className={`text-xs mt-1 flex items-center ${
+                                event.result === 'profit' ? 'text-green-500' : 'text-red-500'
+                              }`}>
+                                {event.result === 'profit' ? (
+                                  <TrendingUp className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3 mr-1" />
+                                )}
+                                {event.pnl}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground p-2">No events</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

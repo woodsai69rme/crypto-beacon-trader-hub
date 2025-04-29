@@ -19,6 +19,8 @@ export interface ApiProvider {
   authMethod?: string;
   apiKeyName?: string;
   defaultHeaders?: Record<string, string>;
+  tier?: string;
+  rateLimit?: number;
 }
 
 export interface ApiEndpoint {
@@ -27,6 +29,8 @@ export interface ApiEndpoint {
   description: string;
   parameters?: ApiParameter[];
   isActive?: boolean;
+  authentication?: boolean;
+  rateLimit?: string;
 }
 
 export interface ApiParameter {
@@ -49,7 +53,9 @@ export interface ApiUsageStats {
   currentUsage: number;
   maxUsage: number;
   resetTime: string;
-  endpoint: string;
+  endpoint?: string;
+  costPerCall?: number;
+  remainingBalance?: number;
 }
 
 export interface Widget {
@@ -60,6 +66,7 @@ export interface Widget {
   size: WidgetSize;
   lastUpdated?: string;
   customContent?: string;
+  config?: any;
 }
 
 export type WidgetType = 
@@ -71,7 +78,15 @@ export type WidgetType =
   | "trading" 
   | "aiTrading" 
   | "aiAnalysis" 
-  | "custom";
+  | "custom"
+  | "trade-history"
+  | "market-overview"
+  | "performance-metrics"
+  | "portfolio"
+  | "chart"
+  | "multiExchange"
+  | "education"
+  | "community";
 
 export type WidgetSize = 
   | "small" 
@@ -152,6 +167,9 @@ export type Trade = {
   botGenerated?: boolean;
   strategyId?: string;
   tags?: string[];
+  result?: 'profit' | 'loss';
+  pnl?: string;
+  pnlPercent?: number;
 };
 
 export type TradingAccount = {
@@ -215,4 +233,163 @@ export interface FibonacciAnalysisProps {
 export interface HyblockLiquidityMapProps {
   currentPrice: number;
   symbol: string;
+}
+
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  symbol: string;
+  color: string;
+  type: 'index' | 'stock' | 'crypto' | 'custom';
+  performance: number[];
+  lastUpdated: string;
+  data: { date: string; value: number; performance: number }[];
+}
+
+export interface WatchlistItem {
+  id: string;
+  coinId: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChangePercentage24h: number;
+  addedAt: string;
+  alertSettings?: {
+    highPrice?: number;
+    lowPrice?: number;
+    percentageChangeThreshold?: number;
+    enabled: boolean;
+  };
+}
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  displayName?: string;
+  avatarUrl?: string;
+  roles: string[];
+  createdAt: string;
+  preferences: UserPreferences;
+}
+
+export interface UserPreferences {
+  theme: string;
+  marketView: string;
+  defaultCoin: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    priceAlerts: boolean;
+  };
+}
+
+export interface CryptoSearchProps {
+  onSearch: (query: string) => void;
+  recentSearches?: string[];
+}
+
+export interface DashboardHeaderProps {
+  user: User;
+  onSearch: (query: string) => void;
+  unreadNotifications: number;
+  portfolioValue: number;
+  dailyChange: number;
+  dailyChangePercent: number;
+}
+
+export interface ApiKeyInfo {
+  id: string;
+  name: string;
+  key: string;
+  service: string;
+  provider: string;
+  createdAt: string;
+  lastUsed?: string;
+  isValid: boolean;
+  isActive: boolean;
+  permissions: string[];
+}
+
+export interface ATOTaxRate {
+  year: number;
+  minIncome: number;
+  maxIncome: number | null;
+  baseAmount: number;
+  marginRate: number;
+}
+
+export interface ATOTaxCalculation {
+  year: number;
+  taxYear: string;
+  assessableIncome: number;
+  taxableIncome: number;
+  bracketInfo: ATOTaxRate;
+  taxPayable: number;
+  taxWithheld: number;
+  taxRefundOrOwed: number;
+  capitalGains: number;
+  CGTDiscount: number;
+  deductions: number;
+  effectiveTaxRate: number;
+  effectiveRate: number;
+  marginalRate: number;
+  takeHome: number;
+  medicareLevyPayable: number;
+  income: number;
+  breakdown: {
+    bracket: string;
+    amount: number;
+    tax: number;
+  }[];
+  financialYear?: string;
+}
+
+export type CryptoData = {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  market_cap: number;
+  market_cap_rank: number;
+  fully_diluted_valuation: number | null;
+  total_volume: number;
+  high_24h: number;
+  low_24h: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  market_cap_change_24h: number;
+  market_cap_change_percentage_24h: number;
+  circulating_supply: number;
+  total_supply: number | null;
+  max_supply: number | null;
+  ath: number;
+  ath_change_percentage: number;
+  ath_date: string;
+  atl: number;
+  atl_change_percentage: number;
+  atl_date: string;
+  roi: {
+    times: number;
+    currency: string;
+    percentage: number;
+  } | null;
+  last_updated: string;
+  price_change_percentage_1h_in_currency?: number;
+  price_change_percentage_24h_in_currency?: number;
+  price_change_percentage_7d_in_currency?: number;
+  // Add properties that other files are looking for
+  price?: number;
+  marketCap?: number;
+  rank?: number;
+  volume?: number;
+  priceChange?: number;
+  changePercent?: number;
+};
+
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
 }
