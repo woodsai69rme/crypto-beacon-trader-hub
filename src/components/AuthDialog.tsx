@@ -1,291 +1,261 @@
-import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/components/ui/use-toast';
-import { User } from '@/types/trading';
+
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLogin: (user: User) => void;
-  onSignup: (user: User) => void;
 }
 
-const AuthDialog = ({ open, onOpenChange, onLogin, onSignup }: AuthDialogProps) => {
-  const [activeTab, setActiveTab] = useState<string>('login');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [name, setName] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+const AuthDialog: React.FC<AuthDialogProps> = ({ open, onOpenChange }) => {
+  const [activeTab, setActiveTab] = useState<string>("login");
   
-  const handleLogin = async (e: React.FormEvent) => {
+  const [loginEmail, setLoginEmail] = useState<string>("");
+  const [loginPassword, setLoginPassword] = useState<string>("");
+  
+  const [registerName, setRegisterName] = useState<string>("");
+  const [registerEmail, setRegisterEmail] = useState<string>("");
+  const [registerPassword, setRegisterPassword] = useState<string>("");
+  const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState<string>("");
+  
+  const [notifications, setNotifications] = useState<boolean>(true);
+  const [darkMode, setDarkMode] = useState<boolean>(true);
+  const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
+  
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please enter both email and password",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Here you would authenticate with your backend
+    console.log("Login with:", { loginEmail, loginPassword });
     
-    setIsLoading(true);
+    // For demo purposes, we'll simulate success
+    toast({
+      title: "Logged in successfully",
+      description: "Welcome back to the crypto trading platform!",
+    });
     
-    try {
-      // In a real app, you'd call an authentication API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful login
-      const user: User = {
-        id: '1',
-        name: 'Demo User',
-        email: email,
-        preferences: {
-          theme: 'dark',
-          notifications: {
-            email: true,
-            push: true,
-            priceAlerts: true
-          },
-          marketAlerts: true,
-          currency: 'USD'
-        }
-      };
-      
-      onLogin(user);
-      onOpenChange(false);
-      
-      toast({
-        title: "Success",
-        description: "You have successfully logged in",
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to login. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Create mock user
+    const mockUser = {
+      id: "user-123",
+      name: "Demo User",
+      email: loginEmail,
+      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=Felix",
+      preferences: {
+        theme: darkMode ? "dark" : "light",
+        notifications: {
+          email: notifications,
+          push: notifications,
+          priceAlerts: notifications
+        },
+        currency: "USD"
+      }
+    };
+    
+    // Store in localStorage
+    localStorage.setItem("user", JSON.stringify(mockUser));
+    
+    onOpenChange(false);
   };
   
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !email || !password || !confirmPassword) {
+    // Validate password match
+    if (registerPassword !== registerPasswordConfirm) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
         variant: "destructive",
       });
       return;
     }
     
-    if (password !== confirmPassword) {
+    // Validate terms agreement
+    if (!agreeTerms) {
       toast({
-        title: "Error",
-        description: "Passwords do not match",
+        title: "Terms not accepted",
+        description: "Please agree to the terms and conditions to continue.",
         variant: "destructive",
       });
       return;
     }
     
-    setIsLoading(true);
+    // Here you would register with your backend
+    console.log("Register:", { registerName, registerEmail, registerPassword });
     
-    try {
-      // In a real app, you'd call an API to create a new user
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful signup
-      const user: User = {
-        id: '1',
-        name: name,
-        email: email,
-        preferences: {
-          theme: 'dark',
-          notifications: {
-            email: true,
-            push: true,
-            priceAlerts: false
-          },
-          marketAlerts: false,
-          currency: 'USD'
-        }
-      };
-      
-      onSignup(user);
-      onOpenChange(false);
-      
-      toast({
-        title: "Success",
-        description: "Your account has been created",
-      });
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // For demo purposes, we'll simulate success
+    toast({
+      title: "Account created successfully",
+      description: "Welcome to the crypto trading platform!",
+    });
+    
+    // Create mock user
+    const mockUser = {
+      id: "user-" + Math.random().toString(36).substring(2, 8),
+      name: registerName,
+      email: registerEmail,
+      avatar: `https://api.dicebear.com/6.x/avataaars/svg?seed=${registerName}`,
+      preferences: {
+        theme: darkMode ? "dark" : "light",
+        notifications: {
+          email: notifications,
+          push: notifications,
+          priceAlerts: notifications
+        },
+        currency: "USD"
+      }
+    };
+    
+    // Store in localStorage
+    localStorage.setItem("user", JSON.stringify(mockUser));
+    
+    onOpenChange(false);
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Account</DialogTitle>
+          <DialogTitle>Authentication</DialogTitle>
           <DialogDescription>
-            {activeTab === 'login' 
-              ? 'Sign in to your account' 
-              : 'Create a new account'}
+            Login or create an account to access all features.
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="login" className="space-y-4 py-2">
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
-                <Input 
-                  id="login-email"
-                  type="email" 
-                  placeholder="email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Button variant="link" size="sm" className="h-auto p-0">
-                    Forgot password?
-                  </Button>
+          <TabsContent value="login" className="py-4">
+            <form onSubmit={handleLogin}>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input 
+                    id="login-email" 
+                    placeholder="name@example.com" 
+                    type="email" 
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    required
+                  />
                 </div>
-                <Input 
-                  id="login-password"
-                  type="password" 
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              
-              <DialogFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                <div className="grid gap-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input 
+                    id="login-password" 
+                    type="password" 
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="login-remember"
+                    defaultChecked
+                  />
+                  <Label htmlFor="login-remember">Remember me</Label>
+                </div>
+                <Button type="submit" className="w-full">
+                  Login
                 </Button>
-              </DialogFooter>
+                <Button type="button" variant="outline" className="w-full">
+                  Forgot Password?
+                </Button>
+              </div>
             </form>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" type="button">
-                Google
-              </Button>
-              <Button variant="outline" type="button">
-                Apple
-              </Button>
-            </div>
           </TabsContent>
           
-          <TabsContent value="signup" className="space-y-4 py-2">
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-name">Name</Label>
-                <Input 
-                  id="signup-name"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <Input 
-                  id="signup-email"
-                  type="email" 
-                  placeholder="email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <Input 
-                  id="signup-password"
-                  type="password" 
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="signup-confirm-password">Confirm Password</Label>
-                <Input 
-                  id="signup-confirm-password"
-                  type="password" 
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-              
-              <DialogFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Creating account...' : 'Sign Up'}
+          <TabsContent value="register" className="py-4">
+            <form onSubmit={handleRegister}>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="register-name">Full Name</Label>
+                  <Input 
+                    id="register-name" 
+                    placeholder="John Doe" 
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input 
+                    id="register-email" 
+                    placeholder="name@example.com" 
+                    type="email" 
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="register-password">Password</Label>
+                  <Input 
+                    id="register-password" 
+                    type="password" 
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="register-password-confirm">Confirm Password</Label>
+                  <Input 
+                    id="register-password-confirm" 
+                    type="password" 
+                    value={registerPasswordConfirm}
+                    onChange={(e) => setRegisterPasswordConfirm(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="dark-mode"
+                    checked={darkMode}
+                    onCheckedChange={setDarkMode}
+                  />
+                  <Label htmlFor="dark-mode">Dark Mode</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="notifications"
+                    checked={notifications}
+                    onCheckedChange={setNotifications}
+                  />
+                  <Label htmlFor="notifications">Receive Notifications</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="terms"
+                    checked={agreeTerms}
+                    onCheckedChange={setAgreeTerms}
+                  />
+                  <Label htmlFor="terms">I agree to the Terms & Conditions</Label>
+                </div>
+                <Button type="submit" className="w-full">
+                  Create Account
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </TabsContent>
         </Tabs>
+        
+        <DialogFooter className="flex flex-col sm:flex-row sm:justify-between">
+          <p className="text-xs text-muted-foreground mt-2 sm:mt-0">
+            This is a demo application. No real credentials are stored.
+          </p>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

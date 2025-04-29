@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
@@ -15,14 +16,14 @@ const CustomizableDashboard = () => {
       id: "portfolio-widget",
       position: { x: 0, y: 0 },
       title: "Portfolio Overview",
-      type: "portfolio",
+      type: "portfolio-summary",
       size: "medium",
     },
     {
       id: "chart-widget",
       position: { x: 1, y: 0 },
       title: "Market Chart",
-      type: "chart",
+      type: "price-chart",
       size: "medium",
     },
     {
@@ -48,17 +49,18 @@ const CustomizableDashboard = () => {
     }
   ]);
   
-  const handleAddWidget = (type: WidgetType, title: string, size: WidgetSize) => {
+  const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
     // Find the next available position
     const maxY = Math.max(...widgets.map(w => w.position.y));
     
     const newWidget: Widget = {
-      id: `${type}-${Date.now()}`,
+      id: `${widget.type}-${Date.now()}`,
       position: { x: 0, y: maxY + 1 },
-      title,
-      type,
-      size,
+      title: widget.title,
+      type: widget.type,
+      size: widget.size,
       lastUpdated: new Date().toISOString(),
+      customContent: widget.customContent
     };
     
     setWidgets([...widgets, newWidget]);
@@ -66,7 +68,7 @@ const CustomizableDashboard = () => {
     
     toast({
       title: "Widget Added",
-      description: `${title} has been added to your dashboard`
+      description: `${widget.title} has been added to your dashboard`
     });
   };
   
@@ -132,9 +134,7 @@ const CustomizableDashboard = () => {
       <AddWidgetDialog 
         open={isAddingWidget} 
         onOpenChange={setIsAddingWidget} 
-        onAddWidget={(widget) => {
-          handleAddWidget(widget.type, widget.title, widget.size);
-        }}
+        onAddWidget={handleAddWidget}
       />
     </div>
   );

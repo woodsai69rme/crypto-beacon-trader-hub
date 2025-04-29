@@ -1,135 +1,144 @@
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, X } from "lucide-react";
-import { searchCryptos } from "@/services/enhancedCryptoApi";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { searchCoins } from "@/services/enhancedCryptoApi";
 import { CoinOption } from "@/types/trading";
 
-export interface CryptoSearchProps {
+interface CryptoSearchProps {
   onCoinSelect: (coin: CoinOption) => void;
   placeholder?: string;
   className?: string;
 }
 
-const CryptoSearch = ({ onCoinSelect, placeholder = "Search for a coin...", className = "" }: CryptoSearchProps) => {
-  const [query, setQuery] = useState("");
+const CryptoSearch: React.FC<CryptoSearchProps> = ({
+  onCoinSelect,
+  placeholder = "Search for coins...",
+  className
+}) => {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<CoinOption[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isResultsVisible, setIsResultsVisible] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Handle outside clicks to close dropdown
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
+  
+  // Search for coins when the search term changes
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsResultsVisible(false);
-      }
-    };
+    if (searchTerm.trim().length < 2) {
+      setResults([]);
+      return;
+    }
     
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Handle search
-  useEffect(() => {
-    const searchCoins = async () => {
-      if (query.trim().length < 2) {
-        setResults([]);
-        return;
-      }
-      
-      setIsSearching(true);
-      
+    // Clear the timeout if it exists
+    if (searchTimeoutRef.current !== null) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set a new timeout to prevent too many API calls
+    setIsLoading(true);
+    const timeout = window.setTimeout(async () => {
       try {
-        const searchResults = await searchCryptos(query);
-        const mappedResults: CoinOption[] = searchResults.map(coin => ({
-          value: coin.id,
-          label: `${coin.name} (${coin.symbol.toUpperCase()})`,
-          image: coin.image,
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol,
-          price: coin.current_price,
-          rank: coin.market_cap_rank
-        }));
-        
-        setResults(mappedResults);
-        setIsResultsVisible(true);
+        const searchResults = await searchCoins(searchTerm);
+        setResults(searchResults);
       } catch (error) {
-        console.error("Error searching coins:", error);
+        console.error("Error searching for coins:", error);
         setResults([]);
       } finally {
-        setIsSearching(false);
+        setIsLoading(false);
+      }
+    }, 300);
+    
+    searchTimeoutRef.current = timeout;
+    
+    // Cleanup the timeout when the component unmounts or the search term changes
+    return () => {
+      if (searchTimeoutRef.current !== null) {
+        clearTimeout(searchTimeoutRef.current);
       }
     };
-    
-    const delay = setTimeout(() => {
-      if (query) searchCoins();
-    }, 500);
-    
-    return () => clearTimeout(delay);
-  }, [query]);
-
-  const handleCoinSelect = (coin: CoinOption) => {
+  }, [searchTerm]);
+  
+  const handleSelect = (coin: CoinOption) => {
+    setSelectedCoin(coin);
+    setOpen(false);
     onCoinSelect(coin);
-    setQuery("");
-    setIsResultsVisible(false);
   };
-
-  const clearSearch = () => {
-    setQuery("");
-    setResults([]);
-    inputRef.current?.focus();
-  };
-
+  
   return (
-    <div ref={searchRef} className={`relative ${className}`}>
-      <div className="relative">
-        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onFocus={() => query.trim().length >= 2 && setIsResultsVisible(true)}
-          placeholder={placeholder}
-          className="pl-8 pr-8"
-        />
-        {query && (
-          <button
-            onClick={clearSearch}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-            aria-label="Clear search"
+    <div className={cn("w-full", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
           >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-      
-      {isResultsVisible && results.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full max-h-80 overflow-auto rounded-md bg-popover shadow-lg">
-          <ul className="py-1">
-            {results.map(coin => (
-              <li 
-                key={coin.value} 
-                onClick={() => handleCoinSelect(coin)}
-                className="px-2 py-2 flex items-center gap-2 cursor-pointer hover:bg-muted"
-              >
-                {coin.image && <img src={coin.image} alt={coin.label} className="w-6 h-6 rounded-full" />}
-                <span>{coin.label}</span>
-                {coin.rank && <span className="text-xs text-muted-foreground ml-auto">Rank #{coin.rank}</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      
-      {isResultsVisible && query && results.length === 0 && !isSearching && (
-        <div className="absolute z-50 mt-1 w-full p-2 rounded-md bg-popover shadow-lg text-center">
-          <p className="text-sm text-muted-foreground">No results found</p>
-        </div>
-      )}
+            {selectedCoin ? (
+              <div className="flex items-center">
+                {selectedCoin.image && (
+                  <img 
+                    src={selectedCoin.image} 
+                    alt={selectedCoin.label} 
+                    className="w-4 h-4 mr-2 rounded-full"
+                  />
+                )}
+                <span>{selectedCoin.label}</span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground flex items-center">
+                <Search className="mr-2 h-4 w-4" />
+                {placeholder}
+              </span>
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0" style={{ width: "var(--radix-popper-anchor-width)" }}>
+          <Command>
+            <CommandInput 
+              placeholder={placeholder}
+              value={searchTerm}
+              onValueChange={setSearchTerm}
+            />
+            <CommandList>
+              <CommandEmpty>
+                {isLoading ? 'Searching...' : 'No coins found.'}
+              </CommandEmpty>
+              {results.length > 0 && (
+                <CommandGroup heading="Cryptocurrencies">
+                  {results.map(coin => (
+                    <CommandItem
+                      key={coin.value}
+                      value={coin.value}
+                      onSelect={() => handleSelect(coin)}
+                    >
+                      <div className="flex items-center">
+                        {coin.image && (
+                          <img 
+                            src={coin.image} 
+                            alt={coin.label} 
+                            className="w-5 h-5 mr-3 rounded-full"
+                          />
+                        )}
+                        <span>{coin.label}</span>
+                      </div>
+                      {selectedCoin?.value === coin.value && (
+                        <Check className="ml-auto h-4 w-4 opacity-100" />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

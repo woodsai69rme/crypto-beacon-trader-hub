@@ -1,191 +1,321 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/components/ui/use-toast";
 import { ATOTaxRate, ATOTaxCalculation } from "@/types/trading";
 
+// ATO tax rates for resident individuals 2022-2023
+const taxRates2023: ATOTaxRate[] = [
+  { minIncome: 0, maxIncome: 18200, baseAmount: 0, marginRate: 0 },
+  { minIncome: 18201, maxIncome: 45000, baseAmount: 0, marginRate: 0.19 },
+  { minIncome: 45001, maxIncome: 120000, baseAmount: 5092, marginRate: 0.325 },
+  { minIncome: 120001, maxIncome: 180000, baseAmount: 29467, marginRate: 0.37 },
+  { minIncome: 180001, maxIncome: Number.POSITIVE_INFINITY, baseAmount: 51667, marginRate: 0.45 }
+];
+
 const ATOTaxCalculator: React.FC = () => {
-  const [taxRates, setTaxRates] = useState<ATOTaxRate[]>([
-    { year: 2023, minIncome: 0, maxIncome: 18200, baseAmount: 0, marginRate: 0 },
-    { year: 2023, minIncome: 18201, maxIncome: 45000, baseAmount: 0, marginRate: 0.19 },
-    { year: 2023, minIncome: 45001, maxIncome: 120000, baseAmount: 5092, marginRate: 0.325 },
-    { year: 2023, minIncome: 120001, maxIncome: 180000, baseAmount: 29467, marginRate: 0.37 },
-    { year: 2023, minIncome: 180001, maxIncome: null, baseAmount: 51667, marginRate: 0.45 }
-  ]);
+  const [income, setIncome] = useState<number>(85000);
+  const [deductions, setDeductions] = useState<number>(3000);
+  const [capitalGains, setCapitalGains] = useState<number>(5000);
+  const [cgtDiscount, setCgtDiscount] = useState<boolean>(true);
+  const [taxWithheld, setTaxWithheld] = useState<number>(20000);
+  const [taxYear, setTaxYear] = useState<string>("2022-2023");
+  const [calculation, setCalculation] = useState<ATOTaxCalculation | null>(null);
   
-  const [totalIncome, setTotalIncome] = useState<number>(0);
-  const [deductions, setDeductions] = useState<number>(0);
-  const [capitalGains, setCapitalGains] = useState<number>(0);
-  const [cgtDiscount, setCGTDiscount] = useState<number>(0);
-  const [taxWithheld, setTaxWithheld] = useState<number>(0);
-  const [medicareLevyRate, setMedicareLevyRate] = useState<number>(0.02);
+  // Calculate tax when inputs change
+  useEffect(() => {
+    calculateTax();
+  }, [income, deductions, capitalGains, cgtDiscount, taxWithheld, taxYear]);
   
   const calculateTax = () => {
-    const taxableIncome = totalIncome - deductions;
+    // Convert income, applying the CGT discount if applicable
+    const discountedCapitalGains = cgtDiscount ? capitalGains / 2 : capitalGains;
+    const assessableIncome = income + discountedCapitalGains - deductions;
     
-    // Find the applicable tax bracket
-    const applicableBracket = taxRates.find(bracket => {
-      return taxableIncome >= bracket.minIncome && (bracket.maxIncome === null || taxableIncome <= bracket.maxIncome);
-    });
-    
-    if (!applicableBracket) {
-      return null;
+    // Find tax bracket
+    const bracket = findTaxBracket(assessableIncome);
+    if (!bracket) {
+      toast({
+        title: "Error calculating tax",
+        description: "Could not determine tax bracket",
+        variant: "destructive"
+      });
+      return;
     }
     
     // Calculate tax payable
-    const calculatedTax = applicableBracket.baseAmount + ((taxableIncome - applicableBracket.minIncome) * applicableBracket.marginRate);
+    const baseAmount = bracket.baseAmount;
+    const marginalRate = bracket.marginRate;
+    const marginalAmount = assessableIncome - bracket.minIncome;
+    const marginalTax = marginalAmount * marginalRate;
+    const totalTax = baseAmount + marginalTax;
     
-    // Calculate Medicare Levy
-    const medicareLevy = taxableIncome * medicareLevyRate;
-    
-    // Calculate final tax amount
-    const finalTaxAmount = calculatedTax + medicareLevy - taxWithheld;
+    // Apply Medicare levy (simplified at 2%)
+    const medicareLevy = assessableIncome * 0.02;
     
     // Calculate effective tax rate
-    const effectiveTaxRate = (calculatedTax / totalIncome) * 100;
+    const effectiveRate = (totalTax / assessableIncome) * 100;
     
-    const result: ATOTaxCalculation = {
-      year: 2023,
-      financialYear: "2022-2023", // Using correct property name
-      assessableIncome: totalIncome,
-      taxableIncome: taxableIncome, // Using correct property
-      taxBracket: applicableBracket,
-      taxPayable: calculatedTax,
-      medicareLevyPayable: medicareLevy, // Using correct property
+    // Calculate refund or amount owing
+    const taxRefundOrOwed = taxWithheld - totalTax - medicareLevy;
+    
+    setCalculation({
+      financialYear: taxYear,
+      year: parseInt(taxYear.split("-")[0]),
+      assessableIncome: assessableIncome,
+      taxableIncome: assessableIncome,
+      taxBracket: bracket,
+      taxPayable: totalTax,
       taxWithheld: taxWithheld,
-      taxRefundOrOwed: finalTaxAmount,
+      taxRefundOrOwed: taxRefundOrOwed,
       capitalGains: capitalGains,
-      CGTDiscount: cgtDiscount,
+      CGTDiscount: cgtDiscount ? capitalGains / 2 : 0,
       deductions: deductions,
-      effectiveTaxRate: effectiveTaxRate
-    };
-    
-    return result;
+      effectiveTaxRate: effectiveRate,
+      taxBracket: "N/A",
+      effectiveRate: effectiveRate,
+      marginalRate: marginalRate * 100,
+      takeHome: assessableIncome - totalTax - medicareLevy,
+      medicareLevyPayable: medicareLevy,
+      income: income,
+      breakdown: [
+        {
+          bracket: `$0 - $18,200`,
+          amount: Math.min(18200, assessableIncome),
+          tax: 0
+        },
+        {
+          bracket: `$18,201 - $45,000`,
+          amount: Math.max(0, Math.min(45000, assessableIncome) - 18200),
+          tax: Math.max(0, Math.min(45000, assessableIncome) - 18200) * 0.19
+        },
+        {
+          bracket: `$45,001 - $120,000`,
+          amount: Math.max(0, Math.min(120000, assessableIncome) - 45000),
+          tax: Math.max(0, Math.min(120000, assessableIncome) - 45000) * 0.325
+        },
+        {
+          bracket: `$120,001 - $180,000`,
+          amount: Math.max(0, Math.min(180000, assessableIncome) - 120000),
+          tax: Math.max(0, Math.min(180000, assessableIncome) - 120000) * 0.37
+        },
+        {
+          bracket: `$180,001+`,
+          amount: Math.max(0, assessableIncome - 180000),
+          tax: Math.max(0, assessableIncome - 180000) * 0.45
+        }
+      ]
+    });
   };
   
-  const taxResult = calculateTax();
+  const findTaxBracket = (income: number): ATOTaxRate | undefined => {
+    return taxRates2023.find(bracket => 
+      income >= bracket.minIncome && income <= (bracket.maxIncome || Number.POSITIVE_INFINITY)
+    );
+  };
   
+  const formatCurrency = (amount: number): string => {
+    return amount.toLocaleString('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+  
+  const formatPercentage = (percentage: number): string => {
+    return percentage.toFixed(2) + '%';
+  };
+
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<number>>, value: string) => {
+    const numValue = value === '' ? 0 : Number(value.replace(/[^0-9.-]+/g, ''));
+    setter(numValue);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>ATO Tax Calculator</CardTitle>
-        <CardDescription>Estimate your Australian income tax obligations</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="total-income">Total Assessable Income ($)</Label>
-          <Input
-            type="number"
-            id="total-income"
-            placeholder="Enter total income"
-            value={totalIncome.toString()}
-            onChange={(e) => setTotalIncome(Number(e.target.value))}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="deductions">Total Deductions ($)</Label>
-          <Input
-            type="number"
-            id="deductions"
-            placeholder="Enter total deductions"
-            value={deductions.toString()}
-            onChange={(e) => setDeductions(Number(e.target.value))}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="capital-gains">Capital Gains ($)</Label>
-          <Input
-            type="number"
-            id="capital-gains"
-            placeholder="Enter capital gains"
-            value={capitalGains.toString()}
-            onChange={(e) => setCapitalGains(Number(e.target.value))}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="cgt-discount">CGT Discount ($)</Label>
-          <Input
-            type="number"
-            id="cgt-discount"
-            placeholder="Enter CGT discount"
-            value={cgtDiscount.toString()}
-            onChange={(e) => setCGTDiscount(Number(e.target.value))}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="tax-withheld">Tax Withheld ($)</Label>
-          <Input
-            type="number"
-            id="tax-withheld"
-            placeholder="Enter tax withheld"
-            value={taxWithheld.toString()}
-            onChange={(e) => setTaxWithheld(Number(e.target.value))}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="medicare-levy-rate">Medicare Levy Rate (%)</Label>
-          <Input
-            type="number"
-            id="medicare-levy-rate"
-            placeholder="Enter medicare levy rate"
-            value={(medicareLevyRate * 100).toString()}
-            onChange={(e) => setMedicareLevyRate(Number(e.target.value) / 100)}
-          />
-        </div>
-      </CardContent>
-      
-      {taxResult && (
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Tax Estimate</h3>
-          <div className="grid gap-2">
-            <div>
-              <Label>Financial Year</Label>
-              <p>{taxResult.financialYear}</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Australian Tax Calculator</CardTitle>
+          <CardDescription>
+            Calculate your estimated tax based on the Australian Taxation Office rates
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="income">Annual Income</Label>
+              <Input
+                id="income"
+                type="text"
+                value={income.toString()}
+                onChange={(e) => handleInputChange(setIncome, e.target.value)}
+              />
             </div>
-            <div>
-              <Label>Assessable Income</Label>
-              <p>${taxResult.assessableIncome.toFixed(2)}</p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tax-withheld">Tax Withheld</Label>
+              <Input
+                id="tax-withheld"
+                type="text"
+                value={taxWithheld.toString()}
+                onChange={(e) => handleInputChange(setTaxWithheld, e.target.value)}
+              />
             </div>
-            <div>
-              <Label>Taxable Income</Label>
-              <p>${taxResult.taxableIncome.toFixed(2)}</p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="deductions">Deductions</Label>
+              <Input
+                id="deductions"
+                type="text"
+                value={deductions.toString()}
+                onChange={(e) => handleInputChange(setDeductions, e.target.value)}
+              />
             </div>
-            <div>
-              <Label>Tax Payable</Label>
-              <p>${taxResult.taxPayable.toFixed(2)}</p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="capital-gains">Capital Gains</Label>
+              <Input
+                id="capital-gains"
+                type="text"
+                value={capitalGains.toString()}
+                onChange={(e) => handleInputChange(setCapitalGains, e.target.value)}
+              />
             </div>
-            <div>
-              <Label>Medicare Levy Payable</Label>
-              <p>${taxResult.medicareLevyPayable.toFixed(2)}</p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tax-year">Financial Year</Label>
+              <Select value={taxYear} onValueChange={setTaxYear}>
+                <SelectTrigger id="tax-year">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2022-2023">2022-2023</SelectItem>
+                  <SelectItem value="2023-2024">2023-2024</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <Label>Tax Withheld</Label>
-              <p>${taxResult.taxWithheld.toFixed(2)}</p>
-            </div>
-            <div>
-              <Label>Tax Refund / Owed</Label>
-              <p>${taxResult.taxRefundOrOwed.toFixed(2)}</p>
-            </div>
-            <div>
-              <Label>Effective Tax Rate</Label>
-              <p>{taxResult.effectiveTaxRate.toFixed(2)}%</p>
+            
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch
+                id="cgt-discount"
+                checked={cgtDiscount}
+                onCheckedChange={setCgtDiscount}
+              />
+              <Label htmlFor="cgt-discount">Apply 50% CGT discount (for assets held > 12 months)</Label>
             </div>
           </div>
+          
+          <Button className="w-full mt-4" onClick={calculateTax}>
+            Calculate Tax
+          </Button>
         </CardContent>
-      )}
+      </Card>
       
-      {!taxResult && totalIncome > 0 && (
-        <CardContent className="mt-4">
-          <p className="text-muted-foreground">Could not calculate tax estimate. Please check your inputs.</p>
-        </CardContent>
+      {calculation && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Tax Calculation Results</CardTitle>
+            <CardDescription>
+              {calculation.financialYear} Financial Year
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border rounded-md p-4">
+                <p className="text-sm text-muted-foreground">Assessable Income</p>
+                <p className="text-xl font-semibold">{formatCurrency(calculation.assessableIncome)}</p>
+              </div>
+              
+              <div className="border rounded-md p-4">
+                <p className="text-sm text-muted-foreground">Taxable Income</p>
+                <p className="text-xl font-semibold">{formatCurrency(calculation.taxableIncome)}</p>
+              </div>
+              
+              <div className="border rounded-md p-4">
+                <p className="text-sm text-muted-foreground">Tax Payable</p>
+                <p className="text-xl font-semibold">{formatCurrency(calculation.taxPayable)}</p>
+              </div>
+              
+              <div className="border rounded-md p-4">
+                <p className="text-sm text-muted-foreground">Medicare Levy</p>
+                <p className="text-xl font-semibold">{formatCurrency(calculation.medicareLevyPayable)}</p>
+              </div>
+              
+              <div className="border rounded-md p-4">
+                <p className="text-sm text-muted-foreground">Tax Withheld</p>
+                <p className="text-xl font-semibold">{formatCurrency(calculation.taxWithheld)}</p>
+              </div>
+              
+              <div className={`border rounded-md p-4 ${calculation.taxRefundOrOwed >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
+                <p className="text-sm text-muted-foreground">
+                  {calculation.taxRefundOrOwed >= 0 ? "Tax Refund" : "Tax Payable"}
+                </p>
+                <p className="text-xl font-semibold">
+                  {formatCurrency(Math.abs(calculation.taxRefundOrOwed))}
+                </p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2">Tax Summary</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>Effective Tax Rate:</div>
+                <div className="text-right">{formatPercentage(calculation.effectiveTaxRate)}</div>
+                
+                <div>Marginal Tax Rate:</div>
+                <div className="text-right">{formatPercentage(calculation.marginalRate)}</div>
+                
+                <div>Capital Gains (before discount):</div>
+                <div className="text-right">{formatCurrency(calculation.capitalGains)}</div>
+                
+                <div>CGT Discount Applied:</div>
+                <div className="text-right">{formatCurrency(calculation.CGTDiscount)}</div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2">Tax Breakdown by Bracket</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Income Bracket</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Tax</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {calculation.breakdown.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{item.bracket}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.tax)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell>Total</TableCell>
+                    <TableCell className="text-right">{formatCurrency(calculation.taxableIncome)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(calculation.taxPayable)}</TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </div>
+          </CardContent>
+          <CardFooter className="flex-col items-start text-xs text-muted-foreground">
+            <p>This is an estimate only. Please consult a tax professional for advice.</p>
+            <p>Tax rates are based on ATO resident individual rates for {calculation.financialYear}.</p>
+          </CardFooter>
+        </Card>
       )}
-    </Card>
+    </div>
   );
 };
 

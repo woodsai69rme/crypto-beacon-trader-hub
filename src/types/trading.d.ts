@@ -1,3 +1,4 @@
+
 export interface CryptoData {
   id: string;
   symbol: string;
@@ -85,9 +86,13 @@ export interface User {
   avatar?: string;
   preferences: {
     theme: string;
-    notifications: boolean;
-    marketAlerts: boolean;
+    notifications: {
+      email: boolean;
+      push: boolean;
+      priceAlerts: boolean;
+    };
     currency: string;
+    marketAlerts: boolean;
   };
 }
 
@@ -96,10 +101,39 @@ export interface ApiKeyInfo {
   provider: string;
   key: string;
   name: string;
-  created: string;
+  createdAt: string;
   lastUsed?: string;
   isActive: boolean;
+  isValid: boolean;
   rateLimit?: number;
+  service: string;
+  permissions: string[];
+}
+
+export interface ApiEndpoint {
+  path: string;
+  method: string;
+  description: string;
+  parameters?: Record<string, string>;
+  authentication?: boolean;
+  rateLimit?: string;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  description: string;
+  baseUrl: string;
+  apiKey?: string;
+  enabled: boolean;
+  endpoints: ApiEndpoint[];
+  rateLimit: number;
+  tier: string;
+  authMethod?: string;
+  apiKeyName?: string;
+  requiresAuth?: boolean;
+  priority?: number;
+  defaultHeaders?: Record<string, string>;
 }
 
 export interface ApiUsageStats {
@@ -172,6 +206,10 @@ export interface PortfolioBenchmark {
   name: string;
   data: number[] | Array<{ date: string; value: number; performance: number }>;
   color: string;
+  performance?: number[];
+  lastUpdated?: string;
+  symbol?: string;
+  type?: 'index' | 'stock' | 'crypto' | 'custom';
 }
 
 export interface PortfolioAllocation {
@@ -186,6 +224,7 @@ export interface ATOTaxRate {
   maxIncome: number;
   baseAmount: number;
   marginRate: number;
+  year?: number;
 }
 
 export interface ATOTaxCalculation {
@@ -200,15 +239,38 @@ export interface ATOTaxCalculation {
     amount: number;
     tax: number;
   }[];
+  financialYear?: string;
+  taxableIncome?: number;
+  medicareLevyPayable?: number;
+  year?: number;
+  assessableIncome?: number;
+  taxBracket?: ATOTaxRate;
+  taxWithheld?: number;
+  taxRefundOrOwed?: number;
+  capitalGains?: number;
+  CGTDiscount?: number;
+  deductions?: number;
+  effectiveTaxRate?: number;
 }
 
-export interface WidgetType {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  size: 'small' | 'medium' | 'large';
-}
+export type WidgetType = 
+  | 'price-chart' 
+  | 'portfolio-summary' 
+  | 'watchlist' 
+  | 'news' 
+  | 'trade-history'
+  | 'market-overview'
+  | 'performance-metrics'
+  | 'alerts'
+  | 'portfolio'
+  | 'chart'
+  | 'trading'
+  | 'aiTrading'
+  | 'multiExchange'
+  | 'education'
+  | 'community'
+  | 'aiAnalysis'
+  | 'custom';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
 
@@ -216,9 +278,10 @@ export interface Widget {
   id: string;
   position: { x: number; y: number };
   title: string;
-  type: string;
+  type: WidgetType;
   size: WidgetSize;
   lastUpdated?: string;
+  customContent?: string;
 }
 
 export interface CryptoSearchProps {
@@ -236,13 +299,13 @@ export interface DashboardHeaderProps {
 
 export interface WidgetGridProps {
   widgets: Widget[];
-  onRemove: (id: string) => void;
-  onUpdatePosition: (id: string, position: { x: number; y: number }) => void;
+  onRemove?: (id: string) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
 }
 
 export interface WidgetListProps {
   widgets: Widget[];
-  onRemove: (id: string) => void;
+  onRemove?: (id: string) => void;
 }
 
 export interface AddWidgetDialogProps {
@@ -250,3 +313,14 @@ export interface AddWidgetDialogProps {
   onOpenChange: (open: boolean) => void;
   onAddWidget: (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string; }) => void;
 }
+
+export type AITradingStrategy = {
+  id: string;
+  name: string;
+  description: string;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
+  timeframe: string;
+  parameters: any;
+  riskLevel?: string;
+  indicators?: string[];
+};

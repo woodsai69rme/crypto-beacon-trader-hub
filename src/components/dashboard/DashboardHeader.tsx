@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import ThemeSwitcher from "../settings/ThemeSwitcher";
 import CryptoSearch from "../CryptoSearch";
 import { CoinOption } from "@/types/trading";
-import { useNavigate } from "react-router-dom"; // Fix useRouter to useNavigate
+import { useNavigate } from "react-router-dom"; 
 import { toast } from "@/components/ui/use-toast";
 
 export interface DashboardHeaderProps {
@@ -22,6 +22,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onRefresh,
   isLoading = false
 }) => {
+  const navigate = useNavigate();
+  
   const handleCoinSelect = (coin: CoinOption) => {
     // In a real app, navigate to coin detail page
     // For now, just show a toast
