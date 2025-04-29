@@ -101,7 +101,7 @@ const EnhancedPortfolioBenchmarking = ({
               variant="outline"
               className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer ${
                 selectedBenchmarks.includes(benchmark) 
-                  ? `bg-opacity-20 bg-[${benchmarkColors[benchmark as keyof typeof benchmarkColors]}] text-[${benchmarkColors[benchmark as keyof typeof benchmarkColors]}]` 
+                  ? `bg-opacity-20 text-[${benchmarkColors[benchmark as keyof typeof benchmarkColors]}]` 
                   : "bg-muted text-muted-foreground"
               }`}
               onClick={() => toggleBenchmark(benchmark)}

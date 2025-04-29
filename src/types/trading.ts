@@ -120,6 +120,17 @@ export interface DashboardHeaderProps {
   dailyChangePercent: number;
 }
 
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
 export type AITradingStrategy = {
   id: string;
   name: string;
@@ -129,6 +140,17 @@ export type AITradingStrategy = {
   parameters: any;
   riskLevel?: string;
   indicators?: string[];
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    sharpeRatio?: number;
+    trades?: number;
+    profitLoss?: number;
+    drawdown?: number;
+    returns?: number;
+  };
+  creator?: string;
+  tags?: string[];
 };
 
 export interface ApiKeyInfo {

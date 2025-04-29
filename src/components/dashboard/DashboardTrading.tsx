@@ -14,6 +14,7 @@ import AlertsSystem from "../trading/AlertsSystem";
 import ExchangeIntegration from "../trading/ExchangeIntegration";
 import MultiTimeframeStrategy from "../trading/MultiTimeframeStrategy";
 import AdvancedTrading from "../trading/AdvancedTrading";
+import AiTradingDetailedDashboard from "../trading/AiTradingDetailedDashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -23,10 +24,11 @@ const DashboardTrading = () => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <Tabs defaultValue="trade" className="w-full">
-        <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-9'} mb-6`}>
+        <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-10'} mb-6`}>
           <TabsTrigger value="trade">Trading</TabsTrigger>
           <TabsTrigger value="ai-dashboard">AI Dashboard</TabsTrigger>
           <TabsTrigger value="ai-bots">AI Bots</TabsTrigger>
+          <TabsTrigger value="detailed-ai">Detailed AI</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
           <TabsTrigger value="mcp">MCP Trading</TabsTrigger>
           {!isMobile && <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>}
@@ -56,6 +58,10 @@ const DashboardTrading = () => {
             <AiTradingBots />
             <MultiTimeframeStrategy />
           </div>
+        </TabsContent>
+        
+        <TabsContent value="detailed-ai" className="animate-fade-in">
+          <AiTradingDetailedDashboard />
         </TabsContent>
         
         <TabsContent value="advanced" className="animate-fade-in">

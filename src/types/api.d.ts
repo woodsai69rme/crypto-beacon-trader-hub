@@ -1,4 +1,3 @@
-
 export interface ApiProvider {
   id: string;
   name: string;
@@ -20,9 +19,9 @@ export interface ApiProvider {
   endpoints?: ApiEndpoint[];
   apiKey?: string;
   apiSecret?: string;
-  website?: string; // Added missing property
-  docs?: string;   // Added missing property
-  authRequired?: boolean; // Added missing property
+  website?: string;
+  docs?: string;
+  authRequired?: boolean;
 }
 
 export interface ApiEndpoint {

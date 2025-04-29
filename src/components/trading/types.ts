@@ -38,7 +38,7 @@ export type CoinOption = {
   id: string;
   name: string;
   symbol: string;
-  price: number; // This is required in this component's implementation
+  price: number; // Required for this implementation
   priceAUD?: number;
   priceEUR?: number; 
   priceGBP?: number;
