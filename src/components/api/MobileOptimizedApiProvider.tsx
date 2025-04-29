@@ -106,33 +106,37 @@ const MobileOptimizedApiProvider: React.FC<MobileOptimizedApiProviderProps> = ({
               )}
 
               <div className="flex justify-between items-center pt-2 mt-2 border-t">
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-xs"
-                  asChild
-                >
-                  <a
-                    href={provider.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {provider.website && (
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-xs"
+                    asChild
                   >
-                    Visit Website <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
-                </Button>
+                    <a
+                      href={provider.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Visit Website <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  </Button>
+                )}
 
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-xs"
-                  asChild
-                >
-                  <a
-                    href={provider.docs}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {provider.docs && (
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-xs"
+                    asChild
                   >
-                    Docs <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
-                </Button>
+                    <a
+                      href={provider.docs}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Docs <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>

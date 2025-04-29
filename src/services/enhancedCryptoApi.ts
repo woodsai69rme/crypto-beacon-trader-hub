@@ -68,32 +68,37 @@ export const enhancedCryptoApi = {
   /**
    * Fetches historical price data for a coin
    */
-  getCoinHistory: async (coinId: string, days = 7) => {
+  getCoinHistory: async (coinId: string, days = 30, currency = "usd") => {
     return fetchWithCache(
-      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
+      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`
     );
   },
 
   /**
-   * Searches for coins, categories, and markets
+   * Searches for coins by name or symbol
    */
-  search: async (query: string) => {
-    return fetchWithCache(
-      `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query)}`
-    );
-  },
-
-  /**
-   * Gets trending coins
-   */
-  getTrending: async () => {
-    return fetchWithCache(`https://api.coingecko.com/api/v3/search/trending`);
-  },
-
-  /**
-   * Gets global market data
-   */
-  getGlobalData: async () => {
-    return fetchWithCache(`https://api.coingecko.com/api/v3/global`);
+  searchCoins: async (query: string): Promise<any[]> => {
+    try {
+      const data = await fetchWithCache(
+        `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query)}`
+      );
+      
+      // Transform the search results to match the CoinOption format
+      return data.coins?.map((coin: any) => ({
+        id: coin.id,
+        name: coin.name,
+        symbol: coin.symbol.toUpperCase(),
+        image: coin.large || coin.thumb,
+        price: 0, // Default value, would need additional API call to get actual price
+        value: coin.id,
+        label: `${coin.name} (${coin.symbol.toUpperCase()})`,
+        rank: coin.market_cap_rank || 9999
+      })).slice(0, 10) || [];
+    } catch (error) {
+      console.error("Error searching coins:", error);
+      return [];
+    }
   }
 };
+
+export const { searchCoins } = enhancedCryptoApi;

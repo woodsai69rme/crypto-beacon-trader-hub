@@ -1,108 +1,93 @@
 
-interface CachedItem<T> {
+interface CacheEntry<T> {
   data: T;
   expiry: number;
 }
 
 class ApiCache {
-  private cache: Map<string, CachedItem<any>> = new Map();
-  private defaultTTL: number = 5 * 60 * 1000; // 5 minutes default TTL
+  private cache: Map<string, CacheEntry<any>> = new Map();
 
-  constructor(defaultTTL?: number) {
-    if (defaultTTL) {
-      this.defaultTTL = defaultTTL;
-    }
-    
-    // Load any cached data from localStorage
-    this.loadFromStorage();
-    
-    // Set up periodic cleaning of expired items
-    setInterval(() => this.cleanExpired(), 60000); // Clean every minute
-  }
-
-  private loadFromStorage() {
-    try {
-      const savedCache = localStorage.getItem('api-cache');
-      if (savedCache) {
-        const parsed = JSON.parse(savedCache);
-        Object.keys(parsed).forEach(key => {
-          const item = parsed[key];
-          if (item.expiry > Date.now()) { // Only load non-expired items
-            this.cache.set(key, item);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error loading cache from storage:", error);
-      // If there's an error, clear the cache to prevent future issues
-      localStorage.removeItem('api-cache');
-    }
-  }
-
-  private saveToStorage() {
-    try {
-      const cacheObj: Record<string, CachedItem<any>> = {};
-      this.cache.forEach((value, key) => {
-        cacheObj[key] = value;
-      });
-      localStorage.setItem('api-cache', JSON.stringify(cacheObj));
-    } catch (error) {
-      console.error("Error saving cache to storage:", error);
-    }
-  }
-
-  private cleanExpired() {
-    const now = Date.now();
-    let changed = false;
-    
-    this.cache.forEach((value, key) => {
-      if (value.expiry < now) {
-        this.cache.delete(key);
-        changed = true;
-      }
-    });
-    
-    if (changed) {
-      this.saveToStorage();
-    }
-  }
-
+  /**
+   * Get a value from the cache
+   */
   get<T>(key: string): T | null {
-    const item = this.cache.get(key);
+    const entry = this.cache.get(key);
     
-    if (!item) {
+    if (!entry) {
       return null;
     }
     
-    if (item.expiry < Date.now()) {
+    // Check if the entry has expired
+    if (entry.expiry < Date.now()) {
       this.cache.delete(key);
-      this.saveToStorage();
       return null;
     }
     
-    return item.data;
+    return entry.data;
   }
 
-  set<T>(key: string, data: T, ttl: number = this.defaultTTL): void {
-    this.cache.set(key, {
-      data,
-      expiry: Date.now() + ttl
-    });
-    
-    this.saveToStorage();
+  /**
+   * Set a value in the cache with an expiry time
+   */
+  set<T>(key: string, data: T, ttl: number): void {
+    const expiry = Date.now() + ttl;
+    this.cache.set(key, { data, expiry });
   }
 
+  /**
+   * Remove a specific entry from the cache
+   */
   remove(key: string): void {
     this.cache.delete(key);
-    this.saveToStorage();
   }
 
+  /**
+   * Clear all entries from the cache
+   */
   clear(): void {
     this.cache.clear();
-    localStorage.removeItem('api-cache');
+  }
+
+  /**
+   * Check if the cache contains a key
+   */
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
+    
+    if (!entry) {
+      return false;
+    }
+    
+    // Check if the entry has expired
+    if (entry.expiry < Date.now()) {
+      this.cache.delete(key);
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Get the size of the cache
+   */
+  size(): number {
+    // Clean expired entries first
+    this.cleanExpired();
+    return this.cache.size;
+  }
+
+  /**
+   * Clean all expired entries
+   */
+  cleanExpired(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.expiry < now) {
+        this.cache.delete(key);
+      }
+    }
   }
 }
 
-// Create a single instance to use throughout the app
 const apiCache = new ApiCache();
 export default apiCache;

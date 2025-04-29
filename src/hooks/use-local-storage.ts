@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from 'react';
 
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
+export function useLocalStorage<T>(key: string, initialValue: T) {
   // State to store our value
   // Pass initial state function to useState so logic is only executed once
   const [storedValue, setStoredValue] = useState<T>(() => {
     if (typeof window === "undefined") {
       return initialValue;
     }
-    
+
     try {
       // Get from local storage by key
       const item = window.localStorage.getItem(key);
@@ -16,11 +16,11 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       // If error also return initialValue
-      console.error("Error reading from localStorage:", error);
+      console.log(error);
       return initialValue;
     }
   });
-  
+
   // Return a wrapped version of useState's setter function that ...
   // ... persists the new value to localStorage.
   const setValue = (value: T | ((val: T) => T)) => {
@@ -36,26 +36,24 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       }
     } catch (error) {
       // A more advanced implementation would handle the error case
-      console.error("Error writing to localStorage:", error);
+      console.log(error);
     }
   };
-  
-  // Listen for changes to this localStorage key in other tabs/windows
+
+  // Subscribe to changes in other tabs/windows
   useEffect(() => {
-    function handleStorageChange(e: StorageEvent) {
+    const handleStorageChange = (e: StorageEvent) => {
       if (e.key === key && e.newValue) {
         setStoredValue(JSON.parse(e.newValue));
       }
-    }
-    
-    // Add event listener
+    };
+
     window.addEventListener('storage', handleStorageChange);
     
-    // Remove event listener on cleanup
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [key]);
-  
-  return [storedValue, setValue];
+
+  return [storedValue, setValue] as const;
 }

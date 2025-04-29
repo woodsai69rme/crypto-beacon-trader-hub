@@ -6,7 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AddWidgetDialogProps, WidgetType, WidgetSize } from "@/types/trading";
+import { WidgetType, WidgetSize } from "@/types/trading";
+
+export interface AddWidgetDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddWidget: (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => void;
+}
 
 const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({
   open,

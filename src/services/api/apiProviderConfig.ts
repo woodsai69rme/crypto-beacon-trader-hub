@@ -1,210 +1,200 @@
 
-import { ApiProvider, ApiEndpoint } from "@/types/trading";
+import { ApiProvider } from "@/types/trading";
 
+// Default API providers
 const defaultProviders: ApiProvider[] = [
   {
     id: "coingecko",
     name: "CoinGecko",
     baseUrl: "https://api.coingecko.com/api/v3",
-    description: "Free cryptocurrency data API",
-    website: "https://coingecko.com",
+    description: "CoinGecko API provides cryptocurrency data such as prices, market data, and more.",
+    website: "https://www.coingecko.com",
     docs: "https://www.coingecko.com/api/documentation",
     authRequired: false,
+    apiKey: "",
     enabled: true,
     requiresAuth: false,
-    rateLimit: 50,
     endpoints: [
       {
         path: "/coins/markets",
         method: "GET",
-        description: "Get list of coins with market data",
+        description: "List all supported coins with price, market cap, volume, and market related data",
+        params: {
+          vs_currency: "usd",
+          order: "market_cap_desc",
+          per_page: "100",
+          page: "1",
+          sparkline: "false"
+        },
         requiresAuth: false
       },
       {
         path: "/coins/{id}",
         method: "GET",
         description: "Get current data for a coin",
+        params: {
+          id: "",
+          localization: "false",
+          tickers: "false",
+          market_data: "true",
+          community_data: "false",
+          developer_data: "false"
+        },
         requiresAuth: false
       },
       {
-        path: "/simple/price",
+        path: "/coins/{id}/market_chart",
         method: "GET",
-        description: "Get simple price data",
+        description: "Get historical market data for a coin",
+        params: {
+          id: "",
+          vs_currency: "usd",
+          days: "30"
+        },
         requiresAuth: false
       },
       {
         path: "/search",
         method: "GET",
-        description: "Search for coins, categories and markets",
-        requiresAuth: false
-      },
-      {
-        path: "/search/trending",
-        method: "GET",
-        description: "Get trending search coins",
+        description: "Search for coins, categories and markets listed on CoinGecko",
+        params: {
+          query: ""
+        },
         requiresAuth: false
       }
     ],
-    defaultHeaders: {}
-  },
-  {
-    id: "binance",
-    name: "Binance",
-    baseUrl: "https://api.binance.com",
-    description: "Binance cryptocurrency exchange API",
-    website: "https://binance.com",
-    docs: "https://binance-docs.github.io/apidocs/",
-    authRequired: true,
-    apiKey: "",
-    enabled: false,
-    requiresAuth: true,
-    apiKeyName: "X-MBX-APIKEY",
-    authMethod: "header",
-    priority: 5,
-    endpoints: [
-      {
-        path: "/api/v3/ticker/price",
-        method: "GET",
-        description: "Latest price for a symbol",
-        requiresAuth: false
-      },
-      {
-        path: "/api/v3/klines",
-        method: "GET",
-        description: "Kline/candlestick data",
-        requiresAuth: false
-      },
-      {
-        path: "/api/v3/depth",
-        method: "GET",
-        description: "Order book depth data",
-        requiresAuth: false
-      },
-      {
-        path: "/api/v3/trades",
-        method: "GET",
-        description: "Recent trades",
-        requiresAuth: false
-      },
-      {
-        path: "/api/v3/exchangeInfo",
-        method: "GET",
-        description: "Exchange information",
-        requiresAuth: false
-      }
-    ],
-    defaultHeaders: {}
+    defaultHeaders: {},
+    priority: 1,
+    tier: "free",
+    rateLimit: 10
   }
 ];
 
-// Simple in-memory store for API providers
-class ApiProviderManager {
-  private providers: ApiProvider[] = [];
-  
-  constructor() {
-    this.loadFromLocalStorage();
-    
-    // If no providers were loaded, use defaults
-    if (this.providers.length === 0) {
-      this.providers = [...defaultProviders];
-      this.saveToLocalStorage();
-    }
-  }
-  
-  private loadFromLocalStorage() {
-    try {
-      const savedProviders = localStorage.getItem('apiProviders');
-      if (savedProviders) {
-        this.providers = JSON.parse(savedProviders);
-      }
-    } catch (error) {
-      console.error("Error loading API providers from localStorage:", error);
-      this.providers = [...defaultProviders];
-    }
-  }
-  
-  private saveToLocalStorage() {
-    try {
-      localStorage.setItem('apiProviders', JSON.stringify(this.providers));
-    } catch (error) {
-      console.error("Error saving API providers to localStorage:", error);
-    }
-  }
-  
-  getAllProviders(): ApiProvider[] {
-    return [...this.providers];
-  }
-  
-  getProviderById(id: string): ApiProvider | undefined {
-    return this.providers.find(provider => provider.id === id);
-  }
-  
-  addProvider(provider: ApiProvider) {
-    if (!provider.id) {
-      throw new Error("Provider must have an ID");
-    }
-    
-    if (this.providers.some(p => p.id === provider.id)) {
-      throw new Error(`Provider with ID ${provider.id} already exists`);
-    }
-    
-    this.providers.push(provider);
-    this.saveToLocalStorage();
-  }
-  
-  updateProvider(id: string, updatedProvider: Partial<ApiProvider>) {
-    const index = this.providers.findIndex(provider => provider.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Provider with ID ${id} not found`);
-    }
-    
-    this.providers[index] = { ...this.providers[index], ...updatedProvider };
-    this.saveToLocalStorage();
-  }
-  
-  deleteProvider(id: string) {
-    // Don't allow deletion of core providers
-    if (id === "coingecko") {
-      throw new Error("Cannot delete core provider");
-    }
-    
-    const index = this.providers.findIndex(provider => provider.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Provider with ID ${id} not found`);
-    }
-    
-    this.providers.splice(index, 1);
-    this.saveToLocalStorage();
-  }
-  
-  toggleProviderEnabled(id: string) {
-    const index = this.providers.findIndex(provider => provider.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Provider with ID ${id} not found`);
-    }
-    
-    this.providers[index].enabled = !this.providers[index].enabled;
-    this.saveToLocalStorage();
-  }
-  
-  setProviderApiKey(id: string, apiKey: string) {
-    const index = this.providers.findIndex(provider => provider.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Provider with ID ${id} not found`);
-    }
-    
-    this.providers[index].apiKey = apiKey;
-    this.saveToLocalStorage();
-  }
-  
-  resetToDefaults() {
-    this.providers = [...defaultProviders];
-    this.saveToLocalStorage();
-  }
-}
+// Local storage keys
+const PROVIDERS_KEY = "api_providers";
 
-export const apiProviderManager = new ApiProviderManager();
+// Helper functions
+const getStoredProviders = (): ApiProvider[] => {
+  try {
+    const stored = localStorage.getItem(PROVIDERS_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error("Error loading stored API providers:", error);
+  }
+  return defaultProviders;
+};
+
+const saveProviders = (providers: ApiProvider[]): void => {
+  try {
+    localStorage.setItem(PROVIDERS_KEY, JSON.stringify(providers));
+  } catch (error) {
+    console.error("Error saving API providers:", error);
+  }
+};
+
+// API Provider Manager
+export const apiProviderManager = {
+  /**
+   * Get all providers
+   */
+  getAllProviders: (): ApiProvider[] => {
+    return getStoredProviders();
+  },
+
+  /**
+   * Get all enabled providers
+   */
+  getEnabledProviders: (): ApiProvider[] => {
+    return getStoredProviders().filter(p => p.enabled);
+  },
+
+  /**
+   * Get provider by ID
+   */
+  getProviderById: (id: string): ApiProvider | undefined => {
+    return getStoredProviders().find(p => p.id === id);
+  },
+
+  /**
+   * Get the highest priority enabled provider
+   */
+  getPriorityProvider: (): ApiProvider | undefined => {
+    const enabledProviders = apiProviderManager.getEnabledProviders();
+    if (enabledProviders.length === 0) return undefined;
+    
+    return enabledProviders.reduce((prev, current) => {
+      return (prev.priority || 999) < (current.priority || 999) ? prev : current;
+    });
+  },
+
+  /**
+   * Add a new provider
+   */
+  addProvider: (provider: ApiProvider): void => {
+    const providers = getStoredProviders();
+    providers.push(provider);
+    saveProviders(providers);
+  },
+
+  /**
+   * Update an existing provider
+   */
+  updateProvider: (id: string, updatedProvider: ApiProvider): void => {
+    const providers = getStoredProviders();
+    const index = providers.findIndex(p => p.id === id);
+    
+    if (index !== -1) {
+      providers[index] = { ...providers[index], ...updatedProvider };
+      saveProviders(providers);
+    }
+  },
+
+  /**
+   * Delete a provider
+   */
+  deleteProvider: (id: string): void => {
+    const providers = getStoredProviders();
+    const newProviders = providers.filter(p => p.id !== id);
+    saveProviders(newProviders);
+  },
+
+  /**
+   * Toggle a provider's enabled status
+   */
+  toggleProviderEnabled: (id: string): void => {
+    const providers = getStoredProviders();
+    const index = providers.findIndex(p => p.id === id);
+    
+    if (index !== -1) {
+      providers[index].enabled = !providers[index].enabled;
+      saveProviders(providers);
+    }
+  },
+
+  /**
+   * Set a provider's API key
+   */
+  setProviderApiKey: (id: string, apiKey: string): void => {
+    const providers = getStoredProviders();
+    const index = providers.findIndex(p => p.id === id);
+    
+    if (index !== -1) {
+      providers[index].apiKey = apiKey;
+      saveProviders(providers);
+    }
+  },
+
+  /**
+   * Reset all providers to defaults
+   */
+  resetToDefaults: (): void => {
+    saveProviders(defaultProviders);
+  }
+};
+
+// Initialize with defaults if no providers are stored
+if (!localStorage.getItem(PROVIDERS_KEY)) {
+  saveProviders(defaultProviders);
+}

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,7 @@ const ApiProviderManagement = () => {
     apiKeyName: "",
     authMethod: "",
     priority: 10,
-    endpoints: {} as Record<string, string>,
+    endpoints: [],
     defaultHeaders: {}
   });
 
@@ -48,7 +47,7 @@ const ApiProviderManagement = () => {
         apiKeyName: newProvider.apiKeyName || "",
         authMethod: newProvider.authMethod || "",
         priority: newProvider.priority || 10,
-        endpoints: newProvider.endpoints || {},
+        endpoints: newProvider.endpoints || [],
         defaultHeaders: newProvider.defaultHeaders || {}
       };
 
@@ -69,7 +68,7 @@ const ApiProviderManagement = () => {
         apiKeyName: "",
         authMethod: "",
         priority: 10,
-        endpoints: {} as Record<string, string>,
+        endpoints: [],
         defaultHeaders: {}
       });
     } catch (error) {

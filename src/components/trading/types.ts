@@ -1,5 +1,5 @@
 
-import { SupportedCurrency } from "./TradingStats";
+import { SupportedCurrency } from "@/types/trading";
 
 export type Trade = {
   id: string;
@@ -14,6 +14,8 @@ export type Trade = {
   currency: SupportedCurrency;
   currentValue?: number;
   profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
 };
 
 export interface LocalModel {
@@ -23,13 +25,20 @@ export interface LocalModel {
   type: "prediction" | "sentiment" | "trading" | "analysis";
   isConnected: boolean;
   lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
 }
 
 export type CoinOption = {
   id: string;
   name: string;
   symbol: string;
-  price: number;
+  price: number;  // Required property
   priceAUD?: number;
   priceEUR?: number; 
   priceGBP?: number;
@@ -39,4 +48,6 @@ export type CoinOption = {
   volume?: number;
   marketCap?: number;
   rank?: number;
+  value?: string;
+  label?: string;
 };

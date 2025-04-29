@@ -1,16 +1,15 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TradingForm from "./trading/TradingForm";
 import TradingHoldings from "./trading/TradingHoldings";
 import TradeHistory from "./trading/TradeHistory";
-import TradingStats, { SupportedCurrency } from "./trading/TradingStats";
+import TradingStats from "./trading/TradingStats";
 import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
-import { Trade } from "@/types/trading"; // Import from /types/trading.ts
-import { CoinOption } from "@/types/trading"; // Import from /types/trading.ts
+import { SupportedCurrency } from "@/types/trading";
+import { Trade, CoinOption } from "@/components/trading/types";
 
 const FakeTrading = () => {
   const {
@@ -108,10 +107,10 @@ const FakeTrading = () => {
       price: selectedCoin.price,
       totalValue: amount * selectedCoin.price,
       timestamp: new Date().toISOString(),
-      currency: selectedCurrency
+      currency: selectedCurrency as SupportedCurrency
     };
     
-    addTradeToAccount(activeAccount.id, trade);
+    addTradeToAccount(activeAccount.id, trade as any);
   };
 
   return (
@@ -163,7 +162,7 @@ const FakeTrading = () => {
             
             <div className="mt-6">
               <TradeHistory
-                trades={activeAccount.trades as Trade[]} // Add type cast here to fix the error
+                trades={activeAccount.trades as Trade[]}
                 formatCurrency={formatValue}
                 activeCurrency={activeCurrency as SupportedCurrency}
               />
