@@ -97,5 +97,34 @@ export interface CoinOption {
   image?: string;
   volume?: number;
   marketCap?: number;
-  value: string; // Make this required for consistency
+  value: string;
+  label?: string;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  timeframe: string;
+  performance?: number;
+  creator?: string;
+  tags?: string[];
+}
+
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
+export interface SupportedCurrency {
+  code: string;
+  name: string;
+  symbol: string;
 }

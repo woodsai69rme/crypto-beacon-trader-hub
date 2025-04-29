@@ -19,18 +19,18 @@ const PortfolioOptimizer: React.FC = () => {
   };
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Portfolio Optimizer</CardTitle>
-        <CardDescription>
+    <Card className="shadow-lg border border-border">
+      <CardHeader className="bg-card text-card-foreground">
+        <CardTitle className="text-xl font-bold">Portfolio Optimizer</CardTitle>
+        <CardDescription className="text-muted-foreground">
           Optimize your portfolio allocation based on modern portfolio theory
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Time Horizon</label>
           <Select value={timeHorizon} onValueChange={setTimeHorizon}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Select time horizon" />
             </SelectTrigger>
             <SelectContent>
@@ -52,6 +52,7 @@ const PortfolioOptimizer: React.FC = () => {
             step={1}
             value={riskTolerance}
             onValueChange={setRiskTolerance}
+            className="my-4"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Conservative</span>
@@ -59,26 +60,26 @@ const PortfolioOptimizer: React.FC = () => {
           </div>
         </div>
         
-        <Button className="w-full" onClick={handleOptimize} disabled={isOptimizing}>
+        <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleOptimize} disabled={isOptimizing}>
           {isOptimizing ? "Optimizing..." : "Optimize Portfolio"}
         </Button>
         
-        <div className="pt-6 border-t">
+        <div className="pt-6 border-t border-border">
           <h4 className="text-sm font-medium mb-4">Optimized Asset Allocation</h4>
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+            <div className="flex flex-col items-center justify-center bg-secondary/20 p-4 rounded-md text-center shadow-sm">
               <div className="text-3xl font-bold">60%</div>
               <div className="text-sm text-muted-foreground">BTC</div>
             </div>
-            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+            <div className="flex flex-col items-center justify-center bg-secondary/20 p-4 rounded-md text-center shadow-sm">
               <div className="text-3xl font-bold">25%</div>
               <div className="text-sm text-muted-foreground">ETH</div>
             </div>
-            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+            <div className="flex flex-col items-center justify-center bg-secondary/20 p-4 rounded-md text-center shadow-sm">
               <div className="text-3xl font-bold">10%</div>
               <div className="text-sm text-muted-foreground">SOL</div>
             </div>
-            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+            <div className="flex flex-col items-center justify-center bg-secondary/20 p-4 rounded-md text-center shadow-sm">
               <div className="text-3xl font-bold">5%</div>
               <div className="text-sm text-muted-foreground">USDC</div>
             </div>
