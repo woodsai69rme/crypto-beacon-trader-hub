@@ -2,119 +2,214 @@
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { toast } from "@/components/ui/use-toast";
-import { Server } from "lucide-react";
-import { LocalModel } from "./types";
-import ModelList from "./ModelList";
-import AddModelForm from "./AddModelForm";
+import { LocalModel } from "@/types/trading";
+import { ModelConnectionTab } from "./model-trading/ModelConnectionTab";
+import { ModelGenerationTab } from "./model-trading/ModelGenerationTab";
+import ModelRunningTab from "./model-trading/ModelRunningTab";
+import ModelList from "./model-trading/ModelList";
 
-interface LocalAiModelsProps {
-  onModelSelect?: (model: LocalModel) => void;
-}
-
-const LocalAiModels = ({ onModelSelect }: LocalAiModelsProps) => {
-  const [localModels, setLocalModels] = useLocalStorage<LocalModel[]>("localAiModels", []);
-  const [activeTab, setActiveTab] = useState<string>("models");
-  const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null);
-  const [newModel, setNewModel] = useState<Omit<LocalModel, "id" | "isConnected">>({
-    name: "",
-    endpoint: "http://localhost:8000",
-    type: "prediction"
-  });
-  
-  const addLocalModel = () => {
-    if (!newModel.name || !newModel.endpoint) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
+const LocalAiModels = () => {
+  // State to track all available models
+  const [models, setModels] = useState<LocalModel[]>([
+    {
+      id: "model-1",
+      name: "Bitcoin Price Predictor",
+      type: "prediction",
+      description: "Predicts BTC price movements using historical data and market sentiment",
+      endpoint: "http://localhost:8000/models/bitcoin-predictor",
+      isConnected: false,
+      performance: {
+        accuracy: 0.68,
+        returns: 12.4,
+        sharpeRatio: 1.8,
+        maxDrawdown: 15.2
+      },
+      status: "active",
+      creator: "AI Trading Team"
+    },
+    {
+      id: "model-2",
+      name: "Market Sentiment Analyzer",
+      type: "sentiment",
+      description: "Analyzes social media and news to determine market sentiment",
+      endpoint: "http://localhost:8000/models/sentiment-analyzer",
+      isConnected: false,
+      performance: {
+        accuracy: 0.72,
+        returns: 8.6,
+        sharpeRatio: 1.5,
+        maxDrawdown: 10.1
+      },
+      status: "active",
+      creator: "Data Science Group"
+    },
+    {
+      id: "model-3",
+      name: "Multi-Asset Trading Bot",
+      type: "trading",
+      description: "Executes trades across multiple assets using proprietary algorithms",
+      endpoint: "http://localhost:8000/models/trading-bot",
+      isConnected: false,
+      performance: {
+        accuracy: 0.65,
+        returns: 15.8,
+        sharpeRatio: 2.1,
+        maxDrawdown: 18.5
+      },
+      status: "active",
+      creator: "Quant Team"
     }
+  ]);
+  
+  // State to track which models are connected
+  const [connectedModels, setConnectedModels] = useState<LocalModel[]>([]);
+  const [testingModelId, setTestingModelId] = useState<string>("");
+  
+  // Connect a model
+  const handleConnectModel = (model: LocalModel) => {
+    // Update the model's connected status
+    const updatedModels = models.map(m => 
+      m.id === model.id ? { ...m, isConnected: true } : m
+    );
     
-    const model: LocalModel = {
-      ...newModel,
-      id: `model-${Date.now()}`,
-      isConnected: false
-    };
-    
-    setLocalModels([...localModels, model]);
-    setNewModel({
-      name: "",
-      endpoint: "http://localhost:8000",
-      type: "prediction"
-    });
+    // Add to connected models
+    setConnectedModels([...connectedModels, { ...model, isConnected: true }]);
+    setModels(updatedModels);
     
     toast({
-      title: "Model added",
-      description: "The local model has been added to your configuration",
+      title: "Model Connected",
+      description: `${model.name} is now connected and ready to use`,
     });
   };
   
-  const testConnection = async (model: LocalModel) => {
-    setIsTestingConnection(model.id);
+  // Disconnect a model
+  const handleDisconnectModel = (modelId: string) => {
+    // Update the model's connected status
+    const updatedModels = models.map(m => 
+      m.id === modelId ? { ...m, isConnected: false } : m
+    );
+    
+    // Remove from connected models
+    const updatedConnectedModels = connectedModels.filter(m => m.id !== modelId);
+    
+    setConnectedModels(updatedConnectedModels);
+    setModels(updatedModels);
+    
+    toast({
+      title: "Model Disconnected",
+      description: "The model has been disconnected",
+    });
+  };
+  
+  // Test connection to model
+  const handleTestConnection = async (model: LocalModel) => {
+    setTestingModelId(model.id);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate API call to test connection
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const updatedModels = localModels.map(m => 
-        m.id === model.id ? { ...m, isConnected: true, lastUsed: new Date().toISOString() } : m
+      // Update last used timestamp
+      const updatedModels = models.map(m => 
+        m.id === model.id ? { ...m, lastUsed: new Date().toISOString() } : m
       );
-      setLocalModels(updatedModels);
+      setModels(updatedModels);
       
-      toast({
-        title: "Connection successful",
-        description: `Successfully connected to ${model.name}`,
-      });
-      
-      if (onModelSelect) {
-        onModelSelect({ ...model, isConnected: true });
-      }
+      handleConnectModel(model);
     } catch (error) {
+      console.error("Connection test failed:", error);
       toast({
-        title: "Connection failed",
-        description: "Failed to connect to the local model. Please check your endpoint and try again.",
+        title: "Connection Failed",
+        description: "Could not connect to the model endpoint",
         variant: "destructive",
       });
     } finally {
-      setIsTestingConnection(null);
+      setTestingModelId("");
     }
+  };
+  
+  // Add a new model
+  const handleAddModel = (model: LocalModel) => {
+    setModels([...models, model]);
+    
+    toast({
+      title: "Model Added",
+      description: `${model.name} has been added to your local models`,
+    });
+  };
+  
+  // Remove a model
+  const handleRemoveModel = (modelId: string) => {
+    // If model is connected, disconnect it first
+    if (connectedModels.some(m => m.id === modelId)) {
+      handleDisconnectModel(modelId);
+    }
+    
+    // Remove the model from the list
+    setModels(models.filter(m => m.id !== modelId));
+    
+    toast({
+      title: "Model Removed",
+      description: "The model has been removed from your local models",
+    });
   };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Server className="h-5 w-5" /> 
-          Local AI Models
-        </CardTitle>
+        <CardTitle>Local AI Models</CardTitle>
         <CardDescription>
-          Connect to and utilize locally running AI models for enhanced privacy and performance
+          Connect to and manage your locally hosted AI models
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="models">Your Local Models</TabsTrigger>
-            <TabsTrigger value="add">Add New Model</TabsTrigger>
+        <Tabs defaultValue="connect">
+          <TabsList className="grid grid-cols-4 mb-6">
+            <TabsTrigger value="connect">Connect Model</TabsTrigger>
+            <TabsTrigger value="running">Running Models</TabsTrigger>
+            <TabsTrigger value="generate">Generate Model</TabsTrigger>
+            <TabsTrigger value="manage">Manage Models</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="models">
-            <ModelList
-              models={localModels}
-              isTestingConnection={isTestingConnection}
-              onTestConnection={testConnection}
-              onRemoveModel={(id) => setLocalModels(localModels.filter(m => m.id !== id))}
+          <TabsContent value="connect">
+            <ModelConnectionTab 
+              models={models.filter(m => !m.isConnected)} 
+              onConnect={handleConnectModel}
+              onDisconnect={handleDisconnectModel}
             />
           </TabsContent>
           
-          <TabsContent value="add">
-            <AddModelForm
-              newModel={newModel}
-              onModelChange={setNewModel}
-              onSubmit={addLocalModel}
+          <TabsContent value="running">
+            {connectedModels.length > 0 ? (
+              <div className="space-y-6">
+                {connectedModels.map(model => (
+                  <ModelRunningTab
+                    key={model.id}
+                    model={model}
+                    onDisconnect={handleDisconnectModel}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-10 border rounded-md bg-muted/50">
+                <h3 className="text-lg font-semibold mb-2">No Active Models</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  You don't have any AI models running. Connect to a model to start using it.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="generate">
+            <ModelGenerationTab onModelGenerated={handleAddModel} />
+          </TabsContent>
+          
+          <TabsContent value="manage">
+            <ModelList
+              models={models}
+              onRemoveModel={handleRemoveModel}
             />
           </TabsContent>
         </Tabs>

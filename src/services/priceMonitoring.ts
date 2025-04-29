@@ -1,78 +1,71 @@
 
-import { CoinOption } from "@/types/trading";
-
-// Mock data for price updates
-const mockPriceChanges: Record<string, number[]> = {
-  'bitcoin': [61245.32, 61300.45, 61289.18, 61350.22, 61400.78, 61380.15, 61420.50, 61450.30],
-  'ethereum': [3010.45, 3015.22, 3008.75, 3020.18, 3025.40, 3018.65, 3030.20, 3035.55],
-  'solana': [142.87, 143.25, 142.50, 143.75, 144.30, 143.80, 144.50, 145.20],
-  'cardano': [0.45, 0.452, 0.449, 0.454, 0.458, 0.455, 0.46, 0.462],
-  'ripple': [0.57, 0.572, 0.568, 0.575, 0.578, 0.573, 0.58, 0.582],
-  'dogecoin': [0.14, 0.141, 0.139, 0.142, 0.143, 0.141, 0.144, 0.145],
-};
+import { CoinOption } from '@/types/trading';
 
 /**
- * Simulates real-time price monitoring with randomly generated price updates
+ * Starts monitoring cryptocurrency prices with regular updates
  * @param coinIds Array of coin IDs to monitor
- * @param onPriceUpdate Callback function to handle price updates
- * @param updateInterval Interval in milliseconds between updates
- * @returns A function to stop the monitoring
+ * @param updateCallback Callback function to handle updated prices
+ * @param interval Update interval in milliseconds
+ * @returns Function to stop price monitoring
  */
-export function startPriceMonitoring(
+export const startPriceMonitoring = (
   coinIds: string[],
-  onPriceUpdate: (updatedCoins: CoinOption[]) => void,
-  updateInterval: number = 5000
-): () => void {
-  let intervalId: number;
-  const updateCounts: Record<string, number> = {};
+  updateCallback: (updatedCoins: CoinOption[]) => void,
+  interval: number = 5000
+): () => void => {
+  console.log(`Starting price monitoring for ${coinIds.length} coins`);
   
-  // Initialize update counts
-  coinIds.forEach(coinId => {
-    updateCounts[coinId] = 0;
-  });
+  // In a real application, this would connect to a websocket or API
+  // For demo purposes, we'll simulate price updates with random fluctuations
   
-  // Simulate price updates
-  const updatePrices = () => {
-    const updatedCoins = coinIds.map(coinId => {
-      const count = updateCounts[coinId]++;
+  // Set up interval to update prices periodically
+  const intervalId = setInterval(() => {
+    const updatedCoins: CoinOption[] = coinIds.map(coinId => {
+      // Generate a random price change between -1% and +1%
+      const priceChangePct = (Math.random() * 2 - 1) / 100;
       
-      // Get base price from mock data or generate random if not available
-      const basePrice = mockPriceChanges[coinId] 
-        ? mockPriceChanges[coinId][count % mockPriceChanges[coinId].length]
-        : 100 + Math.random() * 1000;
-      
-      // Generate a random change (-1% to +1%)
-      const changePercent = (Math.random() * 2 - 1) * 1;
-      const newPrice = basePrice * (1 + changePercent / 100);
-      
-      // Create updated coin object
-      const updatedCoin: CoinOption = {
+      // Return a simplified coin object with updated price
+      // In a real app, you would fetch the current price from an API
+      return {
         id: coinId,
         name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
         symbol: coinId.substring(0, 3).toUpperCase(),
-        price: newPrice,
-        priceChange: newPrice - basePrice,
-        changePercent: changePercent,
-        volume: Math.random() * 5000000 + 1000000,
-        marketCap: newPrice * (Math.random() * 100000 + 10000),
-        image: `https://assets.coingecko.com/coins/images/1/large/${coinId}.png`,
+        price: getBasePriceForCoin(coinId) * (1 + priceChangePct),
+        priceChange: getBasePriceForCoin(coinId) * priceChangePct,
+        changePercent: priceChangePct * 100
       };
-      
-      return updatedCoin;
     });
     
-    // Call the callback with updated prices
-    onPriceUpdate(updatedCoins);
-  };
+    // Call the update callback with the updated coins
+    updateCallback(updatedCoins);
+  }, interval);
   
-  // Initial update
-  updatePrices();
-  
-  // Set up interval for subsequent updates
-  intervalId = window.setInterval(updatePrices, updateInterval);
-  
-  // Return a function to stop monitoring
+  // Return a function to stop the price monitoring
   return () => {
-    window.clearInterval(intervalId);
+    clearInterval(intervalId);
+    console.log('Price monitoring stopped');
   };
-}
+};
+
+/**
+ * Helper function to get a base price for a coin based on its ID
+ * In a real application, this would be fetched from an API
+ */
+const getBasePriceForCoin = (coinId: string): number => {
+  const basePrices: Record<string, number> = {
+    bitcoin: 60000,
+    ethereum: 3000,
+    ripple: 0.6,
+    cardano: 0.45,
+    solana: 120,
+    dogecoin: 0.14,
+    polkadot: 6.5,
+    chainlink: 12,
+    litecoin: 70,
+    stellar: 0.12
+  };
+  
+  return basePrices[coinId.toLowerCase()] || 
+    // Default for unknown coins: random price between $0.1 and $100
+    Math.floor(Math.random() * 10000) / 100;
+};

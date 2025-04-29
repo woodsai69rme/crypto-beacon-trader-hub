@@ -1,184 +1,171 @@
 
-import { ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 /**
- * Combines multiple class names using clsx and tailwind-merge
- * This allows for conditional and dynamic Tailwind class names while
- * intelligently handling class conflicts.
+ * Combines class names with Tailwind CSS
  */
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
 /**
- * Formats a number as a currency string
- * @param value The number to format
- * @param currency The currency code (default: 'USD')
- * @param locale The locale to use for formatting (default: 'en-US')
- * @returns Formatted currency string
- */
-export function formatCurrency(
-  value: number,
-  currency: string = "USD",
-  locale: string = "en-US"
-): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-  }).format(value);
-}
-
-/**
- * Formats a date string or timestamp into a human-readable format
- * @param date The date to format
- * @param format The format to use (short, medium, long)
- * @returns Formatted date string
- */
-export function formatDate(
-  date: string | number | Date,
-  format: "short" | "medium" | "long" = "medium"
-): string {
-  const dateObj = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
-  
-  switch (format) {
-    case "short":
-      return dateObj.toLocaleDateString();
-    case "long":
-      return dateObj.toLocaleDateString(undefined, {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    case "medium":
-    default:
-      return dateObj.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-  }
-}
-
-/**
- * Truncates a string to a specified length and adds ellipsis
- * @param str The string to truncate
- * @param length The maximum length (default: 50)
- * @returns Truncated string
- */
-export function truncateString(str: string, length: number = 50): string {
-  if (!str) return "";
-  return str.length <= length ? str : `${str.substring(0, length)}...`;
-}
-
-/**
- * Debounces a function
- * @param fn The function to debounce
- * @param delay The delay in milliseconds (default: 300)
- * @returns Debounced function
+ * Creates a debounced function that delays invoking the provided function
+ * until after the specified wait time has elapsed since the last time it was invoked.
+ * 
+ * @param func The function to debounce
+ * @param wait The number of milliseconds to delay
+ * @returns The debounced function
  */
 export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number = 300
+  func: T,
+  wait: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout>;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   
-  return function(...args: Parameters<T>) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delay);
+  return function(...args: Parameters<T>): void {
+    const later = () => {
+      timeout = null;
+      func(...args);
+    };
+    
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(later, wait);
   };
 }
 
 /**
- * Generates a UUID
- * @returns UUID string
+ * Creates a throttled function that only invokes the provided function
+ * at most once per every specified wait period.
+ * 
+ * @param func The function to throttle
+ * @param limit The number of milliseconds to throttle
+ * @returns The throttled function
  */
-export function generateUUID(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+export function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+): (...args: Parameters<T>) => void {
+  let inThrottle = false;
+  
+  return function(...args: Parameters<T>): void {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => {
+        inThrottle = false;
+      }, limit);
+    }
+  };
+}
+
+/**
+ * Generates a random string of specified length
+ * 
+ * @param length Length of the random string
+ * @returns Random string
+ */
+export function generateRandomString(length: number = 8): string {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  
+  for (let i = 0; i < length; i++) {
+    result += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  
+  return result;
+}
+
+/**
+ * Truncates a string to a specified length and adds ellipsis if needed
+ * 
+ * @param str String to truncate
+ * @param maxLength Maximum length before truncation
+ * @returns Truncated string
+ */
+export function truncateString(str: string, maxLength: number = 30): string {
+  if (!str) return '';
+  if (str.length <= maxLength) return str;
+  
+  return `${str.slice(0, maxLength)}...`;
 }
 
 /**
  * Safely parses JSON, returning a default value if parsing fails
- * @param json The JSON string to parse
- * @param defaultValue The default value to return if parsing fails
+ * 
+ * @param jsonString The JSON string to parse
+ * @param defaultValue Default value to return if parsing fails
  * @returns Parsed object or default value
  */
-export function safeJsonParse<T>(json: string, defaultValue: T): T {
+export function safeJsonParse<T>(jsonString: string, defaultValue: T): T {
   try {
-    return JSON.parse(json) as T;
+    return JSON.parse(jsonString) as T;
   } catch (e) {
     return defaultValue;
   }
 }
 
 /**
- * Creates a reusable local storage hook with type safety
- * @param key The storage key
- * @param initialValue The initial value
- * @returns [storedValue, setValue]
+ * Groups an array of objects by a specified key
+ * 
+ * @param array Array to group
+ * @param key Key to group by
+ * @returns Object with grouped items
  */
-export function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = React.useState<T>(() => {
-    if (typeof window === "undefined") {
-      return initialValue;
+export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
+  return array.reduce((result, item) => {
+    const groupKey = String(item[key]);
+    if (!result[groupKey]) {
+      result[groupKey] = [];
     }
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
-    }
-  });
-
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      }
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
-    }
-  };
-
-  return [storedValue, setValue] as const;
+    result[groupKey].push(item);
+    return result;
+  }, {} as Record<string, T[]>);
 }
 
-/**
- * Calculates percentage change between two values
- * @param oldValue Starting value
- * @param newValue Ending value
- * @returns Percentage change
- */
-export function calculatePercentageChange(oldValue: number, newValue: number): number {
-  if (oldValue === 0) return 0;
-  return ((newValue - oldValue) / Math.abs(oldValue)) * 100;
-}
+// Import React properly instead of using UMD global to fix the error
+import React, { type ReactElement, type ReactNode } from 'react';
+
+export const isReactElement = (node: ReactNode): node is ReactElement => {
+  return React.isValidElement(node);
+};
 
 /**
- * Formats a large number with appropriate suffixes (K, M, B)
- * @param value The number to format
- * @param decimals Number of decimal places
- * @returns Formatted number string
+ * Checks if a value is undefined or null
+ * 
+ * @param value Value to check
+ * @returns True if value is undefined or null
  */
-export function formatLargeNumber(value: number, decimals: number = 2): string {
-  if (value === null || value === undefined) return "N/A";
+export const isNil = (value: unknown): value is null | undefined => {
+  return value === undefined || value === null;
+};
+
+/**
+ * Safely accesses a nested property in an object
+ * 
+ * @param obj Object to access
+ * @param path Path to the property, e.g. "user.profile.name"
+ * @param defaultValue Default value if property doesn't exist
+ * @returns Property value or default value
+ */
+export function getNestedValue<T = any>(
+  obj: Record<string, any> | null | undefined,
+  path: string,
+  defaultValue: T
+): T {
+  if (!obj) return defaultValue;
   
-  if (Math.abs(value) >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(decimals)}B`;
-  } else if (Math.abs(value) >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(decimals)}M`;
-  } else if (Math.abs(value) >= 1_000) {
-    return `${(value / 1_000).toFixed(decimals)}K`;
-  } else {
-    return value.toFixed(decimals);
+  const keys = path.split('.');
+  let result: any = obj;
+  
+  for (const key of keys) {
+    if (result === undefined || result === null) {
+      return defaultValue;
+    }
+    result = result[key];
   }
+  
+  return result === undefined || result === null ? defaultValue : result;
 }

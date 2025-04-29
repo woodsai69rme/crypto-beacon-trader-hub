@@ -144,4 +144,35 @@ The platform is fully responsive and can be accessed on mobile devices:
 - Use your mobile browser to access the platform URL
 - Consider adding the app to your home screen for quick access
 
+## Market Correlations
+
+Understand the relationships between different cryptocurrencies:
+
+1. Navigate to the "Correlations" tab
+2. View the correlation matrix showing relationships between assets
+3. Select specific coins for detailed correlation analysis
+4. Use insights for portfolio diversification and risk management
+
+**Correlation Features:**
+- Visual heatmap of correlations between top cryptocurrencies
+- Detailed analysis of selected coin pairs
+- Historical correlation data across different timeframes
+- Educational resources explaining correlation concepts
+
+## API Usage Monitoring
+
+Monitor your API usage to stay within rate limits:
+
+1. Go to the "API Management" tab
+2. View current usage across different services
+3. Track rate limit status
+4. Test API endpoints
+
+**API Management Features:**
+- Real-time API usage metrics
+- Rate limit warnings
+- Endpoint testing tools
+- API key management
+
 Thank you for choosing CryptoTrader. Happy trading!
+

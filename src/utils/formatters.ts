@@ -1,102 +1,124 @@
 
 /**
- * Format currency values consistently throughout the application
- * 
- * @param value - The number to format
- * @param currency - Currency code (default: USD)
- * @param options - Additional formatting options
+ * Format a number as currency
+ * @param value The number to format
+ * @param currency The currency code (default: USD)
+ * @param locale The locale to use for formatting (default: en-US)
  * @returns Formatted currency string
  */
 export const formatCurrency = (
-  value: number, 
-  currency = "USD", 
-  options?: Intl.NumberFormatOptions
+  value: number,
+  currency: string = 'USD',
+  locale: string = 'en-US'
 ): string => {
-  const defaultOptions: Intl.NumberFormatOptions = {
+  const formatter = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    ...options
-  };
+    maximumFractionDigits: 2
+  });
   
-  return new Intl.NumberFormat('en-US', defaultOptions).format(value);
+  return formatter.format(value);
 };
 
 /**
- * Format percentage values
- * 
- * @param value - Value to format as percentage
- * @param decimals - Number of decimal places
+ * Format a number as percentage
+ * @param value The number to format (0.1 = 10%)
+ * @param decimalPlaces Number of decimal places (default: 2)
  * @returns Formatted percentage string
  */
-export const formatPercentage = (value: number, decimals = 2): string => {
-  return new Intl.NumberFormat('en-US', {
+export const formatPercentage = (
+  value: number, 
+  decimalPlaces: number = 2
+): string => {
+  const formatter = new Intl.NumberFormat('en-US', {
     style: 'percent',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value / 100);
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces
+  });
+  
+  return formatter.format(value / 100);
 };
 
 /**
- * Format large numbers with appropriate abbreviations (K, M, B)
- * 
- * @param value - Number to format
- * @returns Formatted number with abbreviation
+ * Format a number with thousand separators
+ * @param value The number to format
+ * @param decimalPlaces Number of decimal places (default: 2)
+ * @returns Formatted number string
  */
-export const formatLargeNumber = (value: number): string => {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(2)}B`;
-  } else if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M`;
-  } else if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(2)}K`;
-  }
-  return value.toString();
+export const formatNumber = (
+  value: number, 
+  decimalPlaces: number = 2
+): string => {
+  const formatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces
+  });
+  
+  return formatter.format(value);
 };
 
 /**
- * Format date to locale string with customization options
- * 
- * @param date - Date to format
- * @param options - Date formatting options
+ * Format a market cap value to a readable format
+ * @param marketCap The market cap value
+ * @returns Formatted market cap string (e.g., $1.2B)
+ */
+export const formatMarketCap = (marketCap: number): string => {
+  if (marketCap >= 1_000_000_000) {
+    return `$${(marketCap / 1_000_000_000).toFixed(2)}B`;
+  } else if (marketCap >= 1_000_000) {
+    return `$${(marketCap / 1_000_000).toFixed(2)}M`;
+  } else if (marketCap >= 1_000) {
+    return `$${(marketCap / 1_000).toFixed(2)}K`;
+  }
+  
+  return `$${marketCap.toFixed(2)}`;
+};
+
+/**
+ * Format a date string to a readable format
+ * @param dateString ISO date string
+ * @param locale The locale to use for formatting (default: en-US)
  * @returns Formatted date string
  */
 export const formatDate = (
-  date: Date | string | number,
-  options?: Intl.DateTimeFormatOptions
+  dateString: string, 
+  locale: string = 'en-US'
 ): string => {
-  const dateObj = typeof date === 'object' ? date : new Date(date);
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    ...options
-  };
-  
-  return new Intl.DateTimeFormat('en-US', defaultOptions).format(dateObj);
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
 };
 
 /**
- * Convert between currencies
- * 
- * @param value - Value to convert
- * @param fromCurrency - Source currency
- * @param toCurrency - Target currency
- * @param exchangeRates - Exchange rate object
- * @returns Converted value
+ * Format a date with time
+ * @param dateString ISO date string
+ * @param locale The locale to use for formatting (default: en-US)
+ * @returns Formatted date and time string
  */
-export const convertCurrency = (
-  value: number,
-  fromCurrency: 'USD' | 'AUD',
-  toCurrency: 'USD' | 'AUD',
-  exchangeRates: { USD_AUD: number, AUD_USD: number }
-): number => {
-  if (fromCurrency === toCurrency) return value;
-  
-  if (fromCurrency === 'USD' && toCurrency === 'AUD') {
-    return value * exchangeRates.USD_AUD;
-  } else {
-    return value * exchangeRates.AUD_USD;
+export const formatDateTime = (
+  dateString: string, 
+  locale: string = 'en-US'
+): string => {
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  } catch (error) {
+    console.error('Error formatting date time:', error);
+    return dateString;
   }
 };

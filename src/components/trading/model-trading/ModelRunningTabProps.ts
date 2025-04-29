@@ -1,5 +1,5 @@
 
-import { LocalModel } from "./types";
+import { LocalModel } from "@/types/trading";
 
 export interface ModelRunningTabProps {
   model: LocalModel;

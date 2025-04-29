@@ -1,90 +1,103 @@
 
-import { AITradingStrategy, TimeframeOption } from '@/types/trading';
+import { AITradingStrategy } from "@/types/trading";
 
+// Predefined AI trading strategies
 export const predefinedStrategies: AITradingStrategy[] = [
   {
-    id: 'momentum-1',
-    name: 'Momentum Strategy',
-    description: 'Follows market momentum using multiple technical indicators',
-    type: 'momentum',
-    timeframe: '1h',
+    id: "strategy-1",
+    name: "AI Price Prediction",
+    description: "Uses machine learning to predict price movements and execute trades based on predicted direction",
+    type: "ai-predictive",
+    riskLevel: "medium",
+    timeframe: "4h",
+    indicators: ["RSI", "MACD", "Bollinger Bands"],
     parameters: {
-      rsiPeriod: 14,
-      macdFast: 12,
-      macdSlow: 26,
-      macdSignal: 9
+      confidenceThreshold: 0.7,
+      maxPositionSize: 5,
+      stopLossPercent: 2,
+      takeProfitPercent: 4
     }
   },
   {
-    id: 'mean-reversion-1',
-    name: 'Mean Reversion',
-    description: 'Identifies and trades price deviations from moving averages',
-    type: 'mean-reversion',
-    timeframe: '4h',
+    id: "strategy-2",
+    name: "Sentiment Analysis Trader",
+    description: "Analyzes news and social media sentiment to make trading decisions",
+    type: "hybrid",
+    riskLevel: "medium",
+    timeframe: "1d",
+    indicators: ["Sentiment Score", "Volume", "Price Action"],
+    parameters: {
+      sentimentThreshold: 0.65,
+      newsWeight: 0.6,
+      socialWeight: 0.4,
+      orderSize: 3
+    }
+  },
+  {
+    id: "strategy-3",
+    name: "Mean Reversion",
+    description: "Identifies when prices have deviated significantly from their historical mean and trades towards the mean",
+    type: "traditional",
+    riskLevel: "low",
+    timeframe: "1h",
+    indicators: ["Standard Deviation", "Bollinger Bands", "Keltner Channel"],
     parameters: {
       lookbackPeriod: 20,
-      standardDeviations: 2,
-      movingAveragePeriod: 50
+      entryDeviation: 2.0,
+      exitDeviation: 0.5,
+      tradeSize: 2
     }
   },
   {
-    id: 'trend-following-1',
-    name: 'Trend Following',
-    description: 'Follows established market trends using moving averages',
-    type: 'trend-following',
-    timeframe: '1d',
+    id: "strategy-4",
+    name: "Trend Following",
+    description: "Identifies and follows established market trends to capture larger price movements",
+    type: "hybrid",
+    riskLevel: "medium",
+    timeframe: "4h",
+    indicators: ["Moving Averages", "ADX", "Supertrend"],
     parameters: {
-      shortMaPeriod: 20,
-      longMaPeriod: 50,
-      trendStrengthThreshold: 0.02
+      fastPeriod: 9,
+      slowPeriod: 21,
+      adxThreshold: 25,
+      trailingStop: 3
+    }
+  },
+  {
+    id: "strategy-5",
+    name: "Breakout Detection",
+    description: "Identifies price breakouts from consolidation patterns and trades in the direction of the breakout",
+    type: "hybrid",
+    riskLevel: "high",
+    timeframe: "15m",
+    indicators: ["Donchian Channels", "Volume", "ATR"],
+    parameters: {
+      channelPeriod: 20,
+      volumeMultiplier: 1.5,
+      stopMultiplier: 2,
+      profitTarget: 3
+    }
+  },
+  {
+    id: "strategy-6",
+    name: "Multi-Factor AI",
+    description: "Combines multiple AI models to analyze technical patterns, sentiment, and on-chain metrics",
+    type: "ai-predictive",
+    riskLevel: "high",
+    timeframe: "1d",
+    indicators: ["Technical", "Sentiment", "On-chain", "Correlation"],
+    parameters: {
+      technicalWeight: 0.4,
+      sentimentWeight: 0.3,
+      onChainWeight: 0.3,
+      minConfidence: 0.75
     }
   }
 ];
 
-// Sample strategies with additional data for demo purposes
-export const sampleStrategies: AITradingStrategy[] = [
-  ...predefinedStrategies,
-  {
-    id: 'volatility-breakout-1',
-    name: 'Volatility Breakout',
-    description: 'Identifies and trades breakouts from low volatility periods',
-    type: 'custom',
-    timeframe: '2h',
-    parameters: {
-      volatilityPeriod: 14,
-      breakoutThreshold: 1.5,
-      profitTarget: 2.0,
-      stopLoss: 1.0
-    }
-  },
-  {
-    id: 'grid-trading-1',
-    name: 'Grid Trading',
-    description: 'Places buy and sell orders at preset intervals to profit from price oscillations',
-    type: 'custom',
-    timeframe: '15m',
-    parameters: {
-      upperLimit: 65000,
-      lowerLimit: 55000,
-      gridLevels: 10,
-      orderSize: 0.01
-    }
-  }
-];
-
-// Available timeframe options
-export const availableTimeframes: TimeframeOption[] = [
-  { value: '1m', label: '1 Minute', description: 'One minute candlesticks', minutes: 1 },
-  { value: '5m', label: '5 Minutes', description: 'Five minute candlesticks', minutes: 5 },
-  { value: '15m', label: '15 Minutes', description: 'Fifteen minute candlesticks', minutes: 15 },
-  { value: '30m', label: '30 Minutes', description: 'Thirty minute candlesticks', minutes: 30 },
-  { value: '1h', label: '1 Hour', description: 'One hour candlesticks', minutes: 60 },
-  { value: '2h', label: '2 Hours', description: 'Two hour candlesticks', minutes: 120 },
-  { value: '4h', label: '4 Hours', description: 'Four hour candlesticks', minutes: 240 },
-  { value: '6h', label: '6 Hours', description: 'Six hour candlesticks', minutes: 360 },
-  { value: '8h', label: '8 Hours', description: 'Eight hour candlesticks', minutes: 480 },
-  { value: '12h', label: '12 Hours', description: 'Twelve hour candlesticks', minutes: 720 },
-  { value: '1d', label: '1 Day', description: 'One day candlesticks', minutes: 1440 },
-  { value: '3d', label: '3 Days', description: 'Three day candlesticks', minutes: 4320 },
-  { value: '1w', label: '1 Week', description: 'One week candlesticks', minutes: 10080 },
-];
+// Function to get a strategy by ID
+export const getStrategyById = (
+  strategyId: string
+): AITradingStrategy | undefined => {
+  return predefinedStrategies.find(strategy => strategy.id === strategyId);
+};
