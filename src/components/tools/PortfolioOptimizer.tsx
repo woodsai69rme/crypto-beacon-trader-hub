@@ -1,119 +1,86 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sliders } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
-const PortfolioOptimizer = () => {
+const PortfolioOptimizer: React.FC = () => {
+  const [riskTolerance, setRiskTolerance] = useState<number[]>([50]);
+  const [timeHorizon, setTimeHorizon] = useState<string>("medium");
+  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
+  
+  const handleOptimize = () => {
+    setIsOptimizing(true);
+    // Simulate optimization process
+    setTimeout(() => {
+      setIsOptimizing(false);
+    }, 2500);
+  };
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>Portfolio Optimizer</CardTitle>
         <CardDescription>
-          Optimize your portfolio based on risk tolerance and expected returns
+          Optimize your portfolio allocation based on modern portfolio theory
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="risk-tolerance">Risk Tolerance</Label>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm">Low</span>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                defaultValue="5"
-                id="risk-tolerance"
-                className="flex-1"
-              />
-              <span className="text-sm">High</span>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Time Horizon</label>
+          <Select value={timeHorizon} onValueChange={setTimeHorizon}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select time horizon" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="short">Short Term (&lt; 1 year)</SelectItem>
+              <SelectItem value="medium">Medium Term (1-5 years)</SelectItem>
+              <SelectItem value="long">Long Term (&gt; 5 years)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium">Risk Tolerance</label>
+            <span className="text-sm font-medium">{riskTolerance[0]}%</span>
+          </div>
+          <Slider
+            defaultValue={[50]}
+            max={100}
+            step={1}
+            value={riskTolerance}
+            onValueChange={setRiskTolerance}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Conservative</span>
+            <span>Aggressive</span>
+          </div>
+        </div>
+        
+        <Button className="w-full" onClick={handleOptimize} disabled={isOptimizing}>
+          {isOptimizing ? "Optimizing..." : "Optimize Portfolio"}
+        </Button>
+        
+        <div className="pt-6 border-t">
+          <h4 className="text-sm font-medium mb-4">Optimized Asset Allocation</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+              <div className="text-3xl font-bold">60%</div>
+              <div className="text-sm text-muted-foreground">BTC</div>
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="investment-horizon">Investment Horizon</Label>
-            <Select defaultValue="medium">
-              <SelectTrigger id="investment-horizon">
-                <SelectValue placeholder="Select investment horizon" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="short">Short Term (&lt; 1 year)</SelectItem>
-                <SelectItem value="medium">Medium Term (1-5 years)</SelectItem>
-                <SelectItem value="long">Long Term (&gt; 5 years)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="optimization-goal">Optimization Goal</Label>
-            <Select defaultValue="balanced">
-              <SelectTrigger id="optimization-goal">
-                <SelectValue placeholder="Select optimization goal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="maxReturn">Maximize Return</SelectItem>
-                <SelectItem value="minRisk">Minimize Risk</SelectItem>
-                <SelectItem value="balanced">Balanced Approach</SelectItem>
-                <SelectItem value="sharpe">Maximize Sharpe Ratio</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Button className="w-full">
-            <Sliders className="mr-2 h-4 w-4" />
-            Optimize Portfolio
-          </Button>
-          
-          <div className="border rounded-lg p-4 mt-4 space-y-4">
-            <h3 className="text-lg font-semibold">Recommended Allocation</h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                  <span>Bitcoin (BTC)</span>
-                </div>
-                <span className="font-medium">40%</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                  <span>Ethereum (ETH)</span>
-                </div>
-                <span className="font-medium">30%</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                  <span>Solana (SOL)</span>
-                </div>
-                <span className="font-medium">15%</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                  <span>Cardano (ADA)</span>
-                </div>
-                <span className="font-medium">10%</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
-                  <span>Others</span>
-                </div>
-                <span className="font-medium">5%</span>
-              </div>
+            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+              <div className="text-3xl font-bold">25%</div>
+              <div className="text-sm text-muted-foreground">ETH</div>
             </div>
-            
-            <div className="bg-muted h-40 rounded-md flex items-center justify-center">
-              <p className="text-muted-foreground">Portfolio allocation chart</p>
+            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+              <div className="text-3xl font-bold">10%</div>
+              <div className="text-sm text-muted-foreground">SOL</div>
+            </div>
+            <div className="flex flex-col items-center justify-center bg-secondary p-4 rounded-md text-center">
+              <div className="text-3xl font-bold">5%</div>
+              <div className="text-sm text-muted-foreground">USDC</div>
             </div>
           </div>
         </div>

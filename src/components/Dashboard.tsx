@@ -91,7 +91,7 @@ const Dashboard = () => {
   };
   
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
       {showOnboarding && (
         <InteractiveOnboarding onComplete={handleOnboardingComplete} />
       )}
@@ -104,20 +104,20 @@ const Dashboard = () => {
       />
       
       <CustomizableDashboardLayout onLayoutChange={handleLayoutChange}>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 bg-card rounded-lg p-2 shadow-sm">
           <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
             <DashboardTabList activeTab={activeTab} onTabChange={handleTabChange} />
           </Tabs>
           <DashboardCustomizer onLayoutChange={handleLayoutChange} className="ml-2" />
         </div>
         
-        <div className={isLoading ? "animate-pulse" : ""}>
+        <div className={`transition-opacity duration-300 ${isLoading ? "opacity-50" : "opacity-100"}`}>
           <Tabs value={activeTab}>
             <TabsContent value="overview">
               <CollapsibleCard
                 title="Overview"
                 description="Your trading activity at a glance"
-                className="mb-6"
+                className="mb-6 shadow-md"
               >
                 <DashboardOverview />
               </CollapsibleCard>
@@ -127,7 +127,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Portfolio"
                 description="View and manage your investments"
-                className="mb-6"
+                className="mb-6 shadow-md"
               >
                 <DashboardPortfolio />
               </CollapsibleCard>
@@ -137,7 +137,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Watchlist"
                 description="Cryptocurrencies you're monitoring"
-                className="mb-6"
+                className="mb-6 shadow-md"
               >
                 <DashboardWatchlist />
               </CollapsibleCard>
@@ -147,7 +147,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Trading"
                 description="Execute trades and view history"
-                className="mb-6"
+                className="mb-6 shadow-md"
               >
                 <DashboardTrading />
               </CollapsibleCard>
@@ -157,7 +157,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Analysis"
                 description="Market analysis and insights"
-                className="mb-6"
+                className="mb-6 shadow-md"
               >
                 <DashboardAnalysis />
               </CollapsibleCard>
@@ -167,7 +167,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Tools"
                 description="Trading tools and utilities"
-                className="mb-6"
+                className="mb-6 shadow-md"
               >
                 <DashboardTools />
               </CollapsibleCard>
