@@ -1,120 +1,132 @@
 
 import { CoinOption } from "@/types/trading";
-import apiCache from "./api/cacheService";
 
-// Cache key for price monitoring
-const PRICE_MONITORING_CACHE_KEY = "price-monitoring";
+// Initial mock data
+const mockCoins: CoinOption[] = [
+  { 
+    id: "bitcoin", 
+    name: "Bitcoin", 
+    symbol: "BTC", 
+    price: 61245.32,
+    priceChange: 1200,
+    changePercent: 2.3,
+    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    volume: 28000000000,
+    marketCap: 1180000000000,
+    value: "bitcoin",
+    label: "Bitcoin (BTC)"
+  },
+  { 
+    id: "ethereum", 
+    name: "Ethereum", 
+    symbol: "ETH", 
+    price: 3010.45,
+    priceChange: -120,
+    changePercent: -1.5,
+    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+    volume: 15000000000,
+    marketCap: 360000000000,
+    value: "ethereum",
+    label: "Ethereum (ETH)"
+  },
+  { 
+    id: "solana", 
+    name: "Solana", 
+    symbol: "SOL", 
+    price: 121.33,
+    priceChange: 3.56,
+    changePercent: 3.1,
+    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+    volume: 5200000000,
+    marketCap: 90000000000,
+    value: "solana",
+    label: "Solana (SOL)"
+  },
+  { 
+    id: "cardano", 
+    name: "Cardano", 
+    symbol: "ADA", 
+    price: 0.45,
+    priceChange: -0.02,
+    changePercent: -2.6,
+    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+    volume: 890000000,
+    marketCap: 24000000000,
+    value: "cardano",
+    label: "Cardano (ADA)"
+  },
+  { 
+    id: "ripple", 
+    name: "XRP", 
+    symbol: "XRP", 
+    price: 0.61,
+    priceChange: 0.01,
+    changePercent: 1.8,
+    image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+    volume: 2400000000,
+    marketCap: 32000000000,
+    value: "ripple",
+    label: "XRP (XRP)"
+  },
+  { 
+    id: "dogecoin", 
+    name: "Dogecoin", 
+    symbol: "DOGE", 
+    price: 0.138,
+    priceChange: -0.004,
+    changePercent: -2.1,
+    image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
+    volume: 1900000000,
+    marketCap: 18000000000,
+    value: "dogecoin",
+    label: "Dogecoin (DOGE)"
+  }
+];
 
-/**
- * Start monitoring prices for the given coin IDs
- * @param coinIds Array of coin IDs to monitor
- * @param onUpdate Callback function called when prices are updated
- * @param interval Update interval in milliseconds
- * @returns A function to stop monitoring
- */
+// Simulates price fluctuations for realistic data
+const simulateMarketMovement = (coins: CoinOption[]): CoinOption[] => {
+  return coins.map(coin => {
+    // Random price movement between -2% and 2%
+    const changePercent = (Math.random() * 4) - 2;
+    const priceChange = coin.price * (changePercent / 100);
+    const newPrice = coin.price + priceChange;
+    
+    return {
+      ...coin,
+      price: Number(newPrice.toFixed(2)),
+      priceChange: Number(priceChange.toFixed(2)),
+      changePercent: Number(changePercent.toFixed(2)),
+      // Update other currency conversions
+      priceAUD: Number((newPrice * 1.5).toFixed(2)),
+      priceEUR: Number((newPrice * 0.92).toFixed(2)),
+      priceGBP: Number((newPrice * 0.79).toFixed(2))
+    };
+  });
+};
+
+// Start monitoring price changes
 export const startPriceMonitoring = (
   coinIds: string[],
   onUpdate: (coins: CoinOption[]) => void,
-  interval: number = 5000
+  intervalMs: number = 5000
 ) => {
-  // Initial data
-  let coins: CoinOption[] = coinIds.map(id => {
-    // Try to get from cache first
-    const cachedCoin = apiCache.get<CoinOption>(`${PRICE_MONITORING_CACHE_KEY}-${id}`);
-    
-    if (cachedCoin) {
-      return cachedCoin;
-    }
-    
-    // Default values if not found in cache
-    return {
-      id,
-      value: id,
-      label: id.charAt(0).toUpperCase() + id.slice(1),
-      name: id.charAt(0).toUpperCase() + id.slice(1),
-      symbol: id.substring(0, 3).toUpperCase(),
-      price: 100 + Math.random() * 900, // Random initial price
-      priceChange: 0,
-      changePercent: 0,
-      volume: 1000000 + Math.random() * 9000000,
-      marketCap: 10000000 + Math.random() * 90000000,
-      rank: Math.floor(Math.random() * 100) + 1
-    };
-  });
+  // Filter coins based on requested IDs
+  let monitoredCoins = mockCoins.filter(coin => coinIds.includes(coin.id));
   
-  // Call the update function with initial data
-  onUpdate([...coins]);
+  // If no coins match, use defaults
+  if (monitoredCoins.length === 0) {
+    monitoredCoins = mockCoins;
+  }
   
-  // Set up interval for periodic price updates
+  // Initial update
+  onUpdate(monitoredCoins);
+  
+  // Set up interval for price movements
   const intervalId = setInterval(() => {
-    coins = coins.map(coin => {
-      // Generate random price change (up to ±5%)
-      const changePct = (Math.random() * 10) - 5;
-      const priceChange = (coin.price || 0) * (changePct / 100);
-      const newPrice = (coin.price || 0) + priceChange;
-      
-      // Update the coin with new price and change values
-      const updatedCoin: CoinOption = {
-        ...coin,
-        price: newPrice,
-        priceChange: priceChange,
-        changePercent: changePct,
-        // Randomly update volume and market cap occasionally
-        volume: (coin.volume || 0) * (1 + (Math.random() * 0.1) - 0.05),
-        marketCap: (coin.marketCap || 0) * (1 + (Math.random() * 0.1) - 0.05)
-      };
-      
-      // Cache the updated coin
-      apiCache.set(`${PRICE_MONITORING_CACHE_KEY}-${coin.id}`, updatedCoin, interval * 10);
-      
-      return updatedCoin;
-    });
-    
-    // Call the update function with the updated data
-    onUpdate([...coins]);
-  }, interval);
+    monitoredCoins = simulateMarketMovement(monitoredCoins);
+    onUpdate(monitoredCoins);
+  }, intervalMs);
   
-  // Return a function to stop monitoring
-  return () => {
-    clearInterval(intervalId);
-  };
-};
-
-/**
- * Get the latest price for a specific coin
- * @param coinId Coin ID to get the price for
- * @returns The latest price or null if not found
- */
-export const getLatestPrice = (coinId: string): number | null => {
-  const cachedCoin = apiCache.get<CoinOption>(`${PRICE_MONITORING_CACHE_KEY}-${coinId}`);
-  return cachedCoin?.price || null;
-};
-
-/**
- * Get all monitored coins
- * @returns Array of monitored coins
- */
-export const getAllMonitoredCoins = (): CoinOption[] => {
-  // This is a simplified implementation
-  // In a real app, we would track all monitored coins in a more sophisticated way
-  const cachedItems: Record<string, any> = {};
-  
-  // Extract all cached coins with the monitoring prefix
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith(`api-cache-${PRICE_MONITORING_CACHE_KEY}-`)) {
-      try {
-        const value = localStorage.getItem(key);
-        if (value) {
-          const coin = JSON.parse(value);
-          if (coin.data && coin.data.id) {
-            cachedItems[coin.data.id] = coin.data;
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing cache item:", e);
-      }
-    }
-  });
-  
-  return Object.values(cachedItems);
+  // Return function to stop monitoring
+  return () => clearInterval(intervalId);
 };

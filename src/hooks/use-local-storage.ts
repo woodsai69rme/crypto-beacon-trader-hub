@@ -4,7 +4,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
   // Get from local storage then
   // parse stored json or return initialValue
   const readValue = (): T => {
-    // Prevent build error "window is undefined" but keep working
+    // Prevent build error "window is undefined" but keeps working
     if (typeof window === 'undefined') {
       return initialValue;
     }
@@ -29,12 +29,12 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
       // Allow value to be a function so we have same API as useState
       const valueToStore =
         value instanceof Function ? value(storedValue) : value;
+      
       // Save state
       setStoredValue(valueToStore);
+      
       // Save to local storage
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      }
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
     }
@@ -42,17 +42,6 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
 
   useEffect(() => {
     setStoredValue(readValue());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setStoredValue(readValue());
-    };
-
-    // Listen for storage change events
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

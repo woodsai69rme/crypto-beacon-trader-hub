@@ -3,15 +3,15 @@ export interface CoinOption {
   id: string;
   name: string;
   symbol: string;
-  price: number;  // Changed from optional to required
+  price: number;  // Required property
   priceChange?: number;
   changePercent?: number;
   image?: string;
   volume?: number;
   marketCap?: number;
   rank?: number;
-  value: string;  // Added for select components
-  label: string;  // Added for select components
+  value?: string;  // For select components
+  label?: string;  // For select components
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
@@ -148,4 +148,42 @@ export interface WidgetGridProps {
 export interface WidgetListProps {
   widgets: Widget[];
   onRemove?: (id: string) => void;
+}
+
+export type SupportedCurrency = "USD" | "AUD" | "EUR" | "GBP" | "JPY" | "CAD" | "CHF" | "CNY" | "SGD" | "NZD";
+
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  currency?: SupportedCurrency;
+  provider?: string;
+  type?: string;
+  allowBots?: boolean;
+}
+
+export interface ModelRunningTabProps {
+  selectedModel: LocalModel | null;
+  isRunning: boolean;
+  onStopModel: () => void;
+  onStartModel: (model: LocalModel) => void;
+}
+
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  returnRate: number;
+  winRate: number;
+  risk: 'low' | 'medium' | 'high';
+  timeframe: string;
+  parameters?: Record<string, any>;
+  assets?: string[];
+  backtestResults?: {
+    periods: number;
+    profit: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+  };
 }

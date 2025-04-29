@@ -33,7 +33,7 @@ const Dashboard = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [alertCount, setAlertCount] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false); // Set to false by default to skip onboarding
   const [layoutOptions, setLayoutOptions] = useLocalStorage<DashboardLayoutOptions>("dashboard-layout", {
     compactMode: false,
     densityLevel: 'comfortable'

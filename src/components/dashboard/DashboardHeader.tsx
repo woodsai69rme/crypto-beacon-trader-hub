@@ -1,96 +1,51 @@
 
 import React from "react";
+import { Bell, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Bell, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import ThemeSwitcher from "../settings/ThemeSwitcher";
-import CryptoSearch from "../CryptoSearch";
-import { CoinOption } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
 
-export interface DashboardHeaderProps {
-  notificationCount?: number;
-  alertCount?: number;
-  onRefresh?: () => void;
-  isLoading?: boolean;
+interface DashboardHeaderProps {
+  notificationCount: number;
+  alertCount: number;
+  isLoading: boolean;
+  onRefresh: () => void;
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-  notificationCount = 0,
-  alertCount = 0,
-  onRefresh,
-  isLoading = false
+  notificationCount,
+  alertCount,
+  isLoading,
+  onRefresh
 }) => {
-  const handleCoinSelect = (coin: CoinOption) => {
-    // In a real app, navigate to coin detail page
-    // For now, just show a toast
-    toast({
-      title: `Selected ${coin.name}`,
-      description: `You selected ${coin.name} (${coin.symbol?.toUpperCase()})`
-    });
-  };
-  
-  const handleNotificationsClick = () => {
-    toast({
-      title: "Notifications",
-      description: `You have ${notificationCount} unread notifications`,
-    });
-  };
-  
-  const handleAlertsClick = () => {
-    toast({
-      title: "Alerts",
-      description: `You have ${alertCount} active alerts`,
-    });
-  };
-  
   return (
-    <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
-      <div className="flex-1 max-w-md">
-        <CryptoSearch onCoinSelect={handleCoinSelect} />
+    <div className="flex justify-between items-center mb-6">
+      <div>
+        <h1 className="text-2xl font-bold">Trading Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back to your crypto trading dashboard</p>
       </div>
       
       <div className="flex items-center gap-2">
-        {notificationCount > 0 && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative" 
-            aria-label={`${notificationCount} notifications`}
-            onClick={handleNotificationsClick}
-          >
-            <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center p-0 text-[10px]" variant="destructive">
+        <Button variant="outline" size="icon" className="relative">
+          <Bell className="h-4 w-4" />
+          {notificationCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
               {notificationCount}
             </Badge>
-          </Button>
-        )}
+          )}
+        </Button>
         
-        {alertCount > 0 && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative" 
-            aria-label={`${alertCount} alerts`}
-            onClick={handleAlertsClick}
-          >
-            <AlertTriangle className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center p-0 text-[10px]" variant="destructive">
-              {alertCount}
-            </Badge>
-          </Button>
-        )}
-        
-        <ThemeSwitcher />
-        
-        <Button 
-          variant="outline" 
-          size="icon"
-          disabled={isLoading} 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onRefresh}
-          aria-label="Refresh dashboard"
+          disabled={isLoading}
+          className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
     </div>
