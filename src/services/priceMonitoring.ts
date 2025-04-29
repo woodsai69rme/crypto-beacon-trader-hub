@@ -1,122 +1,120 @@
 
-import { fetchCryptoData } from "./enhancedCryptoApi";
 import { CoinOption } from "@/types/trading";
+import apiCache from "./api/cacheService";
 
-type PriceUpdateCallback = (coins: CoinOption[]) => void;
-
-let monitoringInterval: number | null = null;
-let coinCache: CoinOption[] = [];
+// Cache key for price monitoring
+const PRICE_MONITORING_CACHE_KEY = "price-monitoring";
 
 /**
- * Starts monitoring prices for the specified coins
+ * Start monitoring prices for the given coin IDs
  * @param coinIds Array of coin IDs to monitor
- * @param callback Function to call when prices update
- * @param interval Interval in ms (default 10 seconds)
+ * @param onUpdate Callback function called when prices are updated
+ * @param interval Update interval in milliseconds
  * @returns A function to stop monitoring
  */
 export const startPriceMonitoring = (
   coinIds: string[],
-  callback: PriceUpdateCallback,
-  interval: number = 10000
-): () => void => {
-  // Stop any existing monitoring
-  if (monitoringInterval) {
-    clearInterval(monitoringInterval);
-    monitoringInterval = null;
-  }
+  onUpdate: (coins: CoinOption[]) => void,
+  interval: number = 5000
+) => {
+  // Initial data
+  let coins: CoinOption[] = coinIds.map(id => {
+    // Try to get from cache first
+    const cachedCoin = apiCache.get<CoinOption>(`${PRICE_MONITORING_CACHE_KEY}-${id}`);
+    
+    if (cachedCoin) {
+      return cachedCoin;
+    }
+    
+    // Default values if not found in cache
+    return {
+      id,
+      value: id,
+      label: id.charAt(0).toUpperCase() + id.slice(1),
+      name: id.charAt(0).toUpperCase() + id.slice(1),
+      symbol: id.substring(0, 3).toUpperCase(),
+      price: 100 + Math.random() * 900, // Random initial price
+      priceChange: 0,
+      changePercent: 0,
+      volume: 1000000 + Math.random() * 9000000,
+      marketCap: 10000000 + Math.random() * 90000000,
+      rank: Math.floor(Math.random() * 100) + 1
+    };
+  });
   
-  // Initial fetch
-  fetchPrices(coinIds, callback);
+  // Call the update function with initial data
+  onUpdate([...coins]);
   
-  // Start interval
-  monitoringInterval = window.setInterval(() => {
-    fetchPrices(coinIds, callback);
+  // Set up interval for periodic price updates
+  const intervalId = setInterval(() => {
+    coins = coins.map(coin => {
+      // Generate random price change (up to ±5%)
+      const changePct = (Math.random() * 10) - 5;
+      const priceChange = (coin.price || 0) * (changePct / 100);
+      const newPrice = (coin.price || 0) + priceChange;
+      
+      // Update the coin with new price and change values
+      const updatedCoin: CoinOption = {
+        ...coin,
+        price: newPrice,
+        priceChange: priceChange,
+        changePercent: changePct,
+        // Randomly update volume and market cap occasionally
+        volume: (coin.volume || 0) * (1 + (Math.random() * 0.1) - 0.05),
+        marketCap: (coin.marketCap || 0) * (1 + (Math.random() * 0.1) - 0.05)
+      };
+      
+      // Cache the updated coin
+      apiCache.set(`${PRICE_MONITORING_CACHE_KEY}-${coin.id}`, updatedCoin, interval * 10);
+      
+      return updatedCoin;
+    });
+    
+    // Call the update function with the updated data
+    onUpdate([...coins]);
   }, interval);
   
-  // Return function to stop monitoring
+  // Return a function to stop monitoring
   return () => {
-    if (monitoringInterval) {
-      clearInterval(monitoringInterval);
-      monitoringInterval = null;
-    }
+    clearInterval(intervalId);
   };
 };
 
 /**
- * Fetches prices for the specified coins
+ * Get the latest price for a specific coin
+ * @param coinId Coin ID to get the price for
+ * @returns The latest price or null if not found
  */
-const fetchPrices = async (coinIds: string[], callback: PriceUpdateCallback) => {
-  try {
-    const allCoins = await fetchCryptoData(50);
-    
-    // Filter to just the coins we want
-    const filteredCoins = allCoins.filter(coin => coinIds.includes(coin.id));
-    
-    // Map to the format expected by the callback
-    const mappedCoins: CoinOption[] = filteredCoins.map(coin => {
-      // Get previous price if we have it
-      const previousCoin = coinCache.find(c => c.id === coin.id);
-      const previousPrice = previousCoin?.price;
-      
-      // Calculate price change for UI effects
-      const currentPrice = coin.current_price || coin.price || 0;
-      const priceChange = previousPrice ? currentPrice - previousPrice : 0;
-      const changePercent = previousPrice ? (priceChange / previousPrice) * 100 : 0;
-      
-      return {
-        id: coin.id,
-        value: coin.id,
-        label: `${coin.name} (${coin.symbol.toUpperCase()})`,
-        name: coin.name,
-        symbol: coin.symbol,
-        price: currentPrice,
-        image: coin.image,
-        priceChange,
-        changePercent,
-        volume: coin.total_volume || coin.volume,
-        marketCap: coin.market_cap || coin.marketCap,
-        rank: coin.market_cap_rank || coin.rank
-      };
-    });
-    
-    // Update cache
-    coinCache = mappedCoins;
-    
-    // Call callback
-    callback(mappedCoins);
-  } catch (error) {
-    console.error("Error fetching prices for monitoring:", error);
-    
-    // If we have cached data, use that
-    if (coinCache.length > 0) {
-      callback(coinCache);
-    } else {
-      // Generate mock data as fallback
-      const mockCoins: CoinOption[] = coinIds.map((id, index) => {
-        const price = id === "bitcoin" ? 58000 : 
-                     id === "ethereum" ? 3500 : 
-                     id === "solana" ? 110 : 
-                     id === "cardano" ? 0.45 : 
-                     100 - (index * 10);
-                     
-        return {
-          id,
-          value: id,
-          label: `${id.charAt(0).toUpperCase() + id.slice(1)} (${id.substring(0, 3).toUpperCase()})`,
-          name: id.charAt(0).toUpperCase() + id.slice(1),
-          symbol: id.substring(0, 3),
-          price,
-          image: `https://via.placeholder.com/32/3${index}45${index}8/${index}e${index}fff?text=${id.substring(0, 1).toUpperCase()}`,
-          priceChange: 0,
-          changePercent: 0,
-          volume: 1000000 * (index + 1),
-          marketCap: 10000000 * (10 - index),
-          rank: index + 1
-        };
-      });
-      
-      coinCache = mockCoins;
-      callback(mockCoins);
+export const getLatestPrice = (coinId: string): number | null => {
+  const cachedCoin = apiCache.get<CoinOption>(`${PRICE_MONITORING_CACHE_KEY}-${coinId}`);
+  return cachedCoin?.price || null;
+};
+
+/**
+ * Get all monitored coins
+ * @returns Array of monitored coins
+ */
+export const getAllMonitoredCoins = (): CoinOption[] => {
+  // This is a simplified implementation
+  // In a real app, we would track all monitored coins in a more sophisticated way
+  const cachedItems: Record<string, any> = {};
+  
+  // Extract all cached coins with the monitoring prefix
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith(`api-cache-${PRICE_MONITORING_CACHE_KEY}-`)) {
+      try {
+        const value = localStorage.getItem(key);
+        if (value) {
+          const coin = JSON.parse(value);
+          if (coin.data && coin.data.id) {
+            cachedItems[coin.data.id] = coin.data;
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing cache item:", e);
+      }
     }
-  }
+  });
+  
+  return Object.values(cachedItems);
 };

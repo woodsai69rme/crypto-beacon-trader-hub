@@ -1,5 +1,6 @@
 
 import { toast } from "@/components/ui/use-toast";
+import apiCache from "./cacheService";
 
 // Mock API key storage
 let apiKey: string | null = null;
@@ -7,6 +8,10 @@ let apiKey: string | null = null;
 export const setCryptoCompareApiKey = (key: string) => {
   apiKey = key;
   localStorage.setItem('cryptoCompareApiKey', key);
+  toast({
+    title: "API Key Updated",
+    description: "Your CryptoCompare API key has been updated successfully.",
+  });
   return true;
 };
 
@@ -17,8 +22,16 @@ export const getCryptoCompareApiKey = (): string | null => {
   return apiKey;
 };
 
-export const fetchPriceMulti = async (fromSymbols: string[], toSymbols: string[]): Promise<Record<string, Record<string, number>>> => {
+export const fetchMultipleSymbolPrices = async (symbols: string[], currency: string = 'USD') => {
   try {
+    const symbolsStr = symbols.join(',');
+    const cacheKey = `crypto-compare-multi-${symbolsStr}-${currency}`;
+    const cachedData = apiCache.get(cacheKey);
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const key = getCryptoCompareApiKey();
     const headers: HeadersInit = {};
     
@@ -26,11 +39,8 @@ export const fetchPriceMulti = async (fromSymbols: string[], toSymbols: string[]
       headers['authorization'] = `Apikey ${key}`;
     }
     
-    const fsyms = fromSymbols.join(',');
-    const tsyms = toSymbols.join(',');
-    
     const response = await fetch(
-      `https://min-api.cryptocompare.com/data/pricemulti?fsyms=${fsyms}&tsyms=${tsyms}`,
+      `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${symbolsStr}&tsyms=${currency}`,
       { headers }
     );
     
@@ -38,40 +48,53 @@ export const fetchPriceMulti = async (fromSymbols: string[], toSymbols: string[]
       throw new Error('Failed to fetch prices from CryptoCompare');
     }
     
-    return await response.json();
+    const data = await response.json();
+    
+    // Cache for 1 minute
+    apiCache.set(cacheKey, data, 60 * 1000);
+    
+    return data;
   } catch (error) {
     console.error("Error fetching from CryptoCompare:", error);
     toast({
       title: "API Error",
-      description: "Could not fetch data from CryptoCompare API. Using mock data instead.",
+      description: "Could not fetch data from CryptoCompare API.",
       variant: "destructive",
     });
     
-    // Return mock data
-    const mockData: Record<string, Record<string, number>> = {};
-    
-    fromSymbols.forEach(from => {
-      mockData[from] = {};
-      toSymbols.forEach(to => {
-        let rate = 1;
-        if (from === 'BTC' && to === 'USD') rate = 58000;
-        else if (from === 'ETH' && to === 'USD') rate = 3500;
-        else if (from === 'BTC' && to === 'EUR') rate = 54000;
-        else if (from === 'ETH' && to === 'EUR') rate = 3250;
-        mockData[from][to] = rate;
-      });
-    });
-    
-    return mockData;
+    // Return a mock response
+    return {
+      RAW: symbols.reduce((acc, symbol) => {
+        acc[symbol] = {
+          USD: {
+            PRICE: symbol === 'BTC' ? 45000 + Math.random() * 1000 : 
+                  symbol === 'ETH' ? 2500 + Math.random() * 100 : 
+                  100 + Math.random() * 50,
+            CHANGE24HOUR: (Math.random() * 1000) - 500,
+            CHANGEPCT24HOUR: (Math.random() * 10) - 5,
+            VOLUME24HOUR: symbol === 'BTC' ? 30000000000 + Math.random() * 1000000000 : 
+                        symbol === 'ETH' ? 20000000000 + Math.random() * 1000000000 : 
+                        1000000000 + Math.random() * 100000000,
+            MKTCAP: symbol === 'BTC' ? 800000000000 + Math.random() * 20000000000 : 
+                  symbol === 'ETH' ? 300000000000 + Math.random() * 10000000000 : 
+                  10000000000 + Math.random() * 1000000000
+          }
+        };
+        return acc;
+      }, {})
+    };
   }
 };
 
-export const fetchHistoricalDaily = async (
-  symbol: string,
-  currency: string = 'USD',
-  limit: number = 30
-): Promise<{ time: number; close: number; high: number; low: number; open: number; volumefrom: number; volumeto: number }[]> => {
+export const fetchHistoricalData = async (symbol: string, timeframe: string = 'day', limit: number = 30) => {
   try {
+    const cacheKey = `crypto-compare-history-${symbol}-${timeframe}-${limit}`;
+    const cachedData = apiCache.get(cacheKey);
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const key = getCryptoCompareApiKey();
     const headers: HeadersInit = {};
     
@@ -79,8 +102,20 @@ export const fetchHistoricalDaily = async (
       headers['authorization'] = `Apikey ${key}`;
     }
     
+    let endpoint = '';
+    switch (timeframe) {
+      case 'minute':
+        endpoint = 'histominute';
+        break;
+      case 'hour':
+        endpoint = 'histohour';
+        break;
+      default:
+        endpoint = 'histoday';
+    }
+    
     const response = await fetch(
-      `https://min-api.cryptocompare.com/data/v2/histoday?fsym=${symbol}&tsym=${currency}&limit=${limit}`,
+      `https://min-api.cryptocompare.com/data/${endpoint}?fsym=${symbol}&tsym=USD&limit=${limit}`,
       { headers }
     );
     
@@ -89,35 +124,47 @@ export const fetchHistoricalDaily = async (
     }
     
     const data = await response.json();
-    return data.Data.Data;
+    
+    // Cache based on timeframe
+    let cacheTTL = 60 * 1000; // 1 minute default
+    
+    if (timeframe === 'hour') {
+      cacheTTL = 5 * 60 * 1000; // 5 minutes
+    } else if (timeframe === 'day') {
+      cacheTTL = 60 * 60 * 1000; // 1 hour
+    }
+    
+    apiCache.set(cacheKey, data, cacheTTL);
+    
+    return data;
   } catch (error) {
-    console.error("Error fetching from CryptoCompare:", error);
+    console.error("Error fetching historical data from CryptoCompare:", error);
     toast({
       title: "API Error",
-      description: "Could not fetch historical data from CryptoCompare API. Using mock data instead.",
+      description: "Could not fetch historical data.",
       variant: "destructive",
     });
     
-    // Generate mock historical data
-    const mockData = [];
-    const now = Math.floor(Date.now() / 1000);
-    let price = symbol === 'BTC' ? 58000 : 3500;
-    
-    for (let i = limit; i >= 0; i--) {
-      const time = now - i * 24 * 60 * 60;
-      const change = (Math.random() - 0.5) * 0.05; // -2.5% to +2.5%
-      price = price * (1 + change);
-      
-      mockData.push({
-        time,
-        close: price,
-        high: price * 1.02,
-        low: price * 0.98,
-        open: price * (1 - change/2),
-        volumefrom: 1000 * Math.random() * 100,
-        volumeto: price * 1000 * Math.random() * 100
-      });
-    }
+    // Return mock data
+    const mockData = {
+      Data: Array(limit).fill(0).map((_, i) => ({
+        time: Math.floor(Date.now() / 1000) - (i * (timeframe === 'minute' ? 60 : timeframe === 'hour' ? 3600 : 86400)),
+        close: symbol === 'BTC' ? 45000 + Math.random() * 5000 : 
+                symbol === 'ETH' ? 2500 + Math.random() * 300 : 
+                100 + Math.random() * 50,
+        high: symbol === 'BTC' ? 46000 + Math.random() * 5000 : 
+              symbol === 'ETH' ? 2600 + Math.random() * 300 : 
+              110 + Math.random() * 50,
+        low: symbol === 'BTC' ? 44000 + Math.random() * 5000 : 
+            symbol === 'ETH' ? 2400 + Math.random() * 300 : 
+            90 + Math.random() * 50,
+        open: symbol === 'BTC' ? 44500 + Math.random() * 5000 : 
+              symbol === 'ETH' ? 2450 + Math.random() * 300 : 
+              95 + Math.random() * 50,
+        volumefrom: Math.random() * 10000,
+        volumeto: Math.random() * 1000000000
+      }))
+    };
     
     return mockData;
   }

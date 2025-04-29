@@ -54,6 +54,9 @@ export interface WatchlistItem {
   market_cap_rank: number;
   price_change_percentage_24h: number;
   priceChangePercentage24h?: number;
+  coinId?: string;
+  price?: number;
+  addedAt?: string;
 }
 
 export interface CoinOption {
@@ -123,19 +126,6 @@ export interface ApiUsageStats {
   endpoint?: string;
 }
 
-export interface CryptoSearchProps {
-  onCoinSelect: (coin: CoinOption) => void;
-  placeholder?: string;
-  className?: string;
-}
-
-export interface DashboardHeaderProps {
-  notificationCount?: number;
-  alertCount?: number;
-  onRefresh?: () => void;
-  isLoading?: boolean;
-}
-
 export interface Trade {
   id: string;
   type: 'buy' | 'sell';
@@ -152,79 +142,6 @@ export interface Trade {
   coinSymbol?: string;
   totalValue?: number;
   timestamp?: string;
-  currency?: string;
-  currentValue?: number;
-  profitLoss?: number;
-}
-
-export interface PortfolioBenchmark {
-  id: string;
-  name: string;
-  symbol?: string;
-  type: 'index' | 'coin' | 'custom';
-  performance: number;
-  lastUpdated?: string;
-  color?: string;
-  data?: { date: string; value: number; performance: number; }[];
-}
-
-export interface ATOTaxRate {
-  rate: number;
-  minIncome: number;
-  maxIncome?: number;
-  offset?: number;
-  marginRate: number;
-}
-
-export interface ATOTaxCalculation {
-  assessableIncome: number;
-  taxOnAssessableIncome: number;
-  taxWithheld: number;
-  capitalGains: number;
-  CGTDiscount: number;
-  deductions: number;
-  taxRefundOrOwed: number;
-}
-
-export interface WidgetPosition {
-  x: number;
-  y: number;
-}
-
-export type WidgetType = 
-  | 'portfolio' 
-  | 'chart' 
-  | 'watchlist' 
-  | 'news' 
-  | 'alerts' 
-  | 'trading' 
-  | 'aiTrading' 
-  | 'multiExchange' 
-  | 'aiAnalysis' 
-  | 'education' 
-  | 'community';
-
-export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
-
-export interface Widget {
-  id: string;
-  position: WidgetPosition;
-  title: string;
-  type: WidgetType;
-  size: WidgetSize;
-  lastUpdated?: string;
-  config?: any;
-}
-
-export interface ApiEndpoint {
-  id: string;
-  name: string;
-  url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  description?: string;
-  requiresKey: boolean;
-  category: string;
-  sampleResponse?: string;
 }
 
 export interface TradingAccount {
@@ -232,13 +149,104 @@ export interface TradingAccount {
   name: string;
   balance: number;
   currency: string;
-  exchange?: string;
+  type: 'spot' | 'margin' | 'futures';
+  createdAt: string;
+  updatedAt: string;
+  trades: Trade[];
+  performance: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    allTime: number;
+  };
+  risk: {
+    level: 'low' | 'medium' | 'high';
+    exposure: number;
+  };
   isActive: boolean;
   isDemo: boolean;
-  created: string;
-  lastUpdated: string;
-  apiCredentials?: {
-    key: string;
-    secret: string;
-  };
+}
+
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  data: number[] | Array<{ date: string; value: number; performance: number }>;
+  color: string;
+}
+
+export interface PortfolioAllocation {
+  asset: string;
+  value: number;
+  percentage: number;
+  color: string;
+}
+
+export interface ATOTaxRate {
+  minIncome: number;
+  maxIncome: number;
+  baseAmount: number;
+  marginRate: number;
+}
+
+export interface ATOTaxCalculation {
+  income: number;
+  taxBracket: string;
+  taxPayable: number;
+  effectiveRate: number;
+  marginalRate: number;
+  takeHome: number;
+  breakdown: {
+    bracket: string;
+    amount: number;
+    tax: number;
+  }[];
+}
+
+export interface WidgetType {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  size: 'small' | 'medium' | 'large';
+}
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
+
+export interface Widget {
+  id: string;
+  position: { x: number; y: number };
+  title: string;
+  type: string;
+  size: WidgetSize;
+  lastUpdated?: string;
+}
+
+export interface CryptoSearchProps {
+  onCoinSelect: (coin: CoinOption) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export interface DashboardHeaderProps {
+  notificationCount?: number;
+  alertCount?: number;
+  onRefresh?: () => void;
+  isLoading?: boolean;
+}
+
+export interface WidgetGridProps {
+  widgets: Widget[];
+  onRemove: (id: string) => void;
+  onUpdatePosition: (id: string, position: { x: number; y: number }) => void;
+}
+
+export interface WidgetListProps {
+  widgets: Widget[];
+  onRemove: (id: string) => void;
+}
+
+export interface AddWidgetDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddWidget: (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string; }) => void;
 }
