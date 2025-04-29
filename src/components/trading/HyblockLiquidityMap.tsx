@@ -1,190 +1,241 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HelpCircle, Layers, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
-import { HyblockLiquidityMapProps, HyblockLiquidityZone } from '@/types/trading';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LineChart, BarChart3, AlertCircle, RefreshCw, Info } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HyblockLiquidityMapProps, HyblockLiquidityZone } from "./types";
 
-const HyblockLiquidityMap: React.FC<HyblockLiquidityMapProps> = ({ currentPrice, symbol }) => {
-  // Generate mock liquidity zones
-  const generateLiquidityZones = (): HyblockLiquidityZone[] => {
-    const basePrice = currentPrice;
-    
-    return [
-      {
-        id: 'zone-1',
-        priceRange: { min: basePrice * 1.12, max: basePrice * 1.15 },
-        volumeProfile: 8500000,
-        strength: 'strong',
-        type: 'resistance',
-        timeframe: '1d',
-        lastTested: '2023-04-12T14:28:00Z',
-        breachCount: 0
-      },
-      {
-        id: 'zone-2',
-        priceRange: { min: basePrice * 1.05, max: basePrice * 1.07 },
-        volumeProfile: 5200000,
-        strength: 'medium',
-        type: 'resistance',
-        timeframe: '1d',
-        lastTested: '2023-04-18T09:15:00Z',
-        breachCount: 1
-      },
-      {
-        id: 'zone-3',
-        priceRange: { min: basePrice * 0.98, max: basePrice * 1.02 },
-        volumeProfile: 12000000,
-        strength: 'strong',
-        type: 'neutral',
-        timeframe: '1h',
-        lastTested: '2023-04-22T16:45:00Z',
-        breachCount: 8
-      },
-      {
-        id: 'zone-4',
-        priceRange: { min: basePrice * 0.94, max: basePrice * 0.96 },
-        volumeProfile: 7800000,
-        strength: 'medium',
-        type: 'support',
-        timeframe: '4h',
-        lastTested: '2023-04-16T22:30:00Z',
-        breachCount: 2
-      },
-      {
-        id: 'zone-5',
-        priceRange: { min: basePrice * 0.88, max: basePrice * 0.92 },
-        volumeProfile: 9500000,
-        strength: 'strong',
-        type: 'support',
-        timeframe: '1d',
-        lastTested: '2023-04-08T10:15:00Z',
-        breachCount: 0
-      }
-    ];
+const HyblockLiquidityMap: React.FC<HyblockLiquidityMapProps> = ({
+  symbol = "BTC/USD",
+  timeframe = "1D"
+}) => {
+  const [selectedSymbol, setSelectedSymbol] = useState(symbol);
+  const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const liquidityZones: HyblockLiquidityZone[] = [
+    { min: 67000, max: 68500, strength: 85, type: 'sell' },
+    { min: 64200, max: 65000, strength: 65, type: 'sell' },
+    { min: 62000, max: 62800, strength: 45, type: 'buy' },
+    { min: 58500, max: 60000, strength: 90, type: 'buy' },
+    { min: 55000, max: 56000, strength: 70, type: 'buy' },
+  ];
+  
+  const handleRefresh = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
   };
   
-  const liquidityZones = generateLiquidityZones();
+  const currentPrice = 61800;
+  const nearestBuyZone = liquidityZones.filter(zone => zone.type === 'buy')
+    .sort((a, b) => Math.abs(currentPrice - (a.min + a.max)/2) - Math.abs(currentPrice - (b.min + b.max)/2))[0];
   
-  const formatPrice = (price: number) => {
-    return price > 100 ? price.toFixed(2) : price.toFixed(price > 1 ? 2 : 6);
-  };
+  const nearestSellZone = liquidityZones.filter(zone => zone.type === 'sell')
+    .sort((a, b) => Math.abs(currentPrice - (a.min + a.max)/2) - Math.abs(currentPrice - (b.min + b.max)/2))[0];
   
-  const getZoneColor = (zone: HyblockLiquidityZone) => {
-    const type = zone.type;
-    const strength = zone.strength;
-    
-    if (type === 'resistance') {
-      if (strength === 'strong') return 'bg-red-500/20 border-red-500/30';
-      return 'bg-red-400/10 border-red-400/20';
-    }
-    else if (type === 'support') {
-      if (strength === 'strong') return 'bg-green-500/20 border-green-500/30';
-      return 'bg-green-400/10 border-green-400/20';
-    }
-    return 'bg-blue-500/10 border-blue-500/20';
-  };
-  
-  const getZoneTypeIcon = (type: string) => {
-    if (type === 'resistance') return <ArrowUp className="h-4 w-4 text-red-500" />;
-    if (type === 'support') return <ArrowDown className="h-4 w-4 text-green-500" />;
-    return <TrendingUp className="h-4 w-4 text-blue-500" />;
-  };
-  
-  const getZoneHeight = (zone: HyblockLiquidityZone) => {
-    const volumeProfile = zone.volumeProfile;
-    // Calculate height based on volume profile
-    return Math.max(40, Math.min(80, 30 + volumeProfile / 200000));
-  };
-
   return (
-    <Card className="shadow-lg border border-border">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Layers className="h-5 w-5 text-primary" />
-            Hyblock Liquidity Map
-            <span className="text-sm text-muted-foreground ml-1">{symbol}</span>
-          </CardTitle>
-          
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Hyblock Liquidity Map
+            </CardTitle>
+            <CardDescription>
+              Visualize buy and sell liquidity zones to identify key market levels
+            </CardDescription>
+          </div>
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Info className="h-4 w-4" />
+                </Button>
               </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Liquidity map shows areas of high trading activity and potential price reversal zones. Red areas are resistance, green are support.</p>
+              <TooltipContent>
+                <p className="max-w-xs text-xs">
+                  Liquidity maps show where significant buy and sell orders are clustered.
+                  These are potential support and resistance zones where price may react.
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
       </CardHeader>
       
-      <CardContent>
-        <div className="bg-muted/20 p-3 rounded-md mb-4">
-          <div className="text-sm font-medium mb-1">Current Price</div>
-          <div className="text-2xl font-bold">${formatPrice(currentPrice)}</div>
-        </div>
-          
-        <div className="relative h-96 mt-6 border-l border-t border-border">
-          {/* Y-axis price labels */}
-          <div className="absolute -left-16 top-0 h-full flex flex-col justify-between text-xs text-muted-foreground">
-            {liquidityZones.map((zone, index) => (
-              <div key={`price-${index}`} className="flex flex-col">
-                <span>${formatPrice(zone.priceRange.max)}</span>
-                <span>${formatPrice(zone.priceRange.min)}</span>
-              </div>
-            ))}
+      <CardContent className="space-y-6">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <div className="text-sm font-medium mb-2">Symbol</div>
+            <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BTC/USD">BTC/USD</SelectItem>
+                <SelectItem value="ETH/USD">ETH/USD</SelectItem>
+                <SelectItem value="SOL/USD">SOL/USD</SelectItem>
+                <SelectItem value="ADA/USD">ADA/USD</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          {/* Price line */}
-          <div 
-            className="absolute w-full border-t border-dashed border-primary z-10 flex justify-end"
-            style={{ 
-              top: `${liquidityZones.findIndex(z => 
-                z.priceRange.min < currentPrice && z.priceRange.max > currentPrice
-              ) * 20 + 10}%`
-            }}
-          >
-            <div className="bg-primary px-2 py-1 rounded-sm text-xs -translate-y-1/2 mr-1">
-              ${formatPrice(currentPrice)}
+          <div className="flex-1 min-w-[200px]">
+            <div className="text-sm font-medium mb-2">Timeframe</div>
+            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1H">1 Hour</SelectItem>
+                <SelectItem value="4H">4 Hours</SelectItem>
+                <SelectItem value="1D">1 Day</SelectItem>
+                <SelectItem value="1W">1 Week</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex-1 min-w-[200px]">
+            <div className="text-sm font-medium mb-2">Actions</div>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              disabled={isLoading}
+              onClick={handleRefresh}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? 'Refreshing...' : 'Refresh Map'}
+            </Button>
+          </div>
+        </div>
+        
+        <div className="h-80 border rounded-lg p-4 relative">
+          <div className="absolute inset-0 flex flex-col justify-between p-4">
+            {liquidityZones.map((zone, index) => {
+              const topPosition = 100 - (((zone.max - 55000) / (68500 - 55000)) * 100);
+              const height = ((zone.max - zone.min) / (68500 - 55000)) * 100;
+              
+              return (
+                <div 
+                  key={index}
+                  className={`absolute left-0 right-[20%] rounded-r-md ${
+                    zone.type === 'buy' ? 'bg-green-500/20 border-l-4 border-green-500' : 
+                    'bg-red-500/20 border-l-4 border-red-500'
+                  }`}
+                  style={{
+                    top: `${topPosition}%`, 
+                    height: `${height}%`,
+                    opacity: zone.strength / 100
+                  }}
+                >
+                  <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 -translate-x-full text-xs">
+                    ${zone.max.toLocaleString()}
+                  </div>
+                  <div className="h-full flex items-center px-2">
+                    <div className="text-xs font-medium">
+                      {zone.type === 'buy' ? 'BUY' : 'SELL'} Zone ({zone.strength}% strength)
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            
+            {/* Current price marker */}
+            <div 
+              className="absolute left-0 right-0 border-t-2 border-blue-500 border-dashed flex items-center justify-end"
+              style={{
+                top: `${100 - (((currentPrice - 55000) / (68500 - 55000)) * 100)}%`,
+              }}
+            >
+              <div className="bg-blue-500 text-white text-xs py-1 px-2 rounded-md">
+                Current: ${currentPrice.toLocaleString()}
+              </div>
             </div>
           </div>
           
-          {/* Liquidity zones */}
-          {liquidityZones.map((zone, index) => {
-            const top = index * 20;
-            const height = getZoneHeight(zone);
-            
-            return (
-              <div 
-                key={zone.id}
-                className={`absolute w-full left-0 ${getZoneColor(zone)} border rounded-sm p-2`}
-                style={{ 
-                  top: `${top}%`, 
-                  height: `${height}px`
-                }}
-              >
-                <div className="flex justify-between">
-                  <div className="flex items-center space-x-1">
-                    {getZoneTypeIcon(zone.type)}
-                    <span className="text-xs font-medium">
-                      {zone.type.charAt(0).toUpperCase() + zone.type.slice(1)}
-                    </span>
-                  </div>
-                  <div className="text-xs opacity-70">
-                    {zone.timeframe} | {zone.breachCount} tests
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          <div className="absolute right-0 top-0 bottom-0 w-[20%] flex flex-col justify-between p-4">
+            <div className="bg-red-500/20 rounded-md p-2 text-center text-xs font-medium">
+              High Sell Pressure
+            </div>
+            <div className="bg-gradient-to-b from-red-500/20 to-green-500/20 h-3/5 rounded-md"></div>
+            <div className="bg-green-500/20 rounded-md p-2 text-center text-xs font-medium">
+              High Buy Support
+            </div>
+          </div>
         </div>
         
-        <div className="text-xs text-muted-foreground mt-4 flex items-center gap-1">
-          <Layers className="h-3 w-3" />
-          <span>Liquidity zones represent areas with high volume and potential price reversal points</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-md border overflow-hidden">
+            <div className="bg-muted/50 p-2 text-xs font-medium">Buy Liquidity Zones</div>
+            <div className="divide-y">
+              {liquidityZones.filter(zone => zone.type === 'buy').map((zone, index) => (
+                <div key={`buy-${index}`} className="p-2 grid grid-cols-3 text-sm">
+                  <div>${zone.min.toLocaleString()} - ${zone.max.toLocaleString()}</div>
+                  <div className="flex items-center gap-1">
+                    <span className={`inline-block w-3 h-3 rounded-full ${
+                      zone.strength > 80 ? 'bg-green-500' : 
+                      zone.strength > 50 ? 'bg-green-400' : 'bg-green-300'
+                    }`}></span>
+                    <span>{zone.strength}%</span>
+                  </div>
+                  <div className="text-right">
+                    {currentPrice > zone.max 
+                      ? `${(currentPrice - zone.max).toLocaleString()} below` 
+                      : currentPrice < zone.min
+                      ? `${(zone.min - currentPrice).toLocaleString()} above`
+                      : 'CURRENT'
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="rounded-md border overflow-hidden">
+            <div className="bg-muted/50 p-2 text-xs font-medium">Sell Liquidity Zones</div>
+            <div className="divide-y">
+              {liquidityZones.filter(zone => zone.type === 'sell').map((zone, index) => (
+                <div key={`sell-${index}`} className="p-2 grid grid-cols-3 text-sm">
+                  <div>${zone.min.toLocaleString()} - ${zone.max.toLocaleString()}</div>
+                  <div className="flex items-center gap-1">
+                    <span className={`inline-block w-3 h-3 rounded-full ${
+                      zone.strength > 80 ? 'bg-red-500' : 
+                      zone.strength > 50 ? 'bg-red-400' : 'bg-red-300'
+                    }`}></span>
+                    <span>{zone.strength}%</span>
+                  </div>
+                  <div className="text-right">
+                    {currentPrice > zone.max 
+                      ? `${(currentPrice - zone.max).toLocaleString()} below` 
+                      : currentPrice < zone.min
+                      ? `${(zone.min - currentPrice).toLocaleString()} above`
+                      : 'CURRENT'
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+        
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Price is approaching a {nearestBuyZone.strength}% strength buy zone at ${nearestBuyZone.min.toLocaleString()}-${nearestBuyZone.max.toLocaleString()}. 
+            Next significant sell zone at ${nearestSellZone.min.toLocaleString()}-${nearestSellZone.max.toLocaleString()}.
+          </AlertDescription>
+        </Alert>
       </CardContent>
     </Card>
   );

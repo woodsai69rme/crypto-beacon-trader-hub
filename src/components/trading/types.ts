@@ -51,3 +51,123 @@ export type CoinOption = {
   value: string;
   label: string;
 };
+
+export interface FibonacciLevels {
+  level0: number;
+  level236: number;
+  level382: number;
+  level500: number;
+  level618: number;
+  level786: number;
+  level1000: number;
+}
+
+export interface FibonacciAnalysisProps {
+  symbol?: string;
+  timeframe?: string;
+}
+
+export interface HyblockLiquidityZone {
+  min: number;
+  max: number;
+  strength: number;
+  type: 'buy' | 'sell';
+}
+
+export interface HyblockLiquidityMapProps {
+  symbol?: string;
+  timeframe?: string;
+}
+
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  profit: number;
+  profitPercentage: number;
+  maxDrawdown: number;
+  winRate: number;
+  trades: {
+    id: string;
+    timestamp: string;
+    date: string;
+    type: 'buy' | 'sell';
+    price: number;
+    amount: number;
+    total: number;
+    profit: number;
+    profitPercentage: number;
+  }[];
+  sharpeRatio: number;
+  profitFactor: number;
+  averageProfit: number;
+  averageLoss: number;
+  initialCapital: number;
+  finalCapital: number;
+  totalReturn: number;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  sortinoRatio: number;
+}
+
+export interface OptimizationResult {
+  strategyId: string;
+  parameterValues: Record<string, any>;
+  performance: {
+    profit: number;
+    profitPercentage: number;
+    maxDrawdown: number;
+    winRate: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalReturn: number;
+  };
+  improvement: number;
+}
+
+export interface StrategyParameter {
+  id: string;
+  name: string;
+  description: string;
+  type: "number" | "boolean" | "select" | "string";
+  value: any;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+}
+
+export type AITradingStrategy = {
+  id: string;
+  name: string;
+  description: string;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
+  timeframe: string;
+  parameters: any;
+  riskLevel?: string;
+  indicators?: string[];
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    sharpeRatio?: number;
+    trades?: number;
+    profitLoss?: number;
+    drawdown?: number;
+    returns?: number;
+  };
+  creator?: string;
+  tags?: string[];
+};

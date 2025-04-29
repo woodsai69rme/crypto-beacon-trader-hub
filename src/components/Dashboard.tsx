@@ -15,6 +15,7 @@ import DashboardCustomizer from "./DashboardCustomizer";
 import CustomizableDashboardLayout from "./dashboard/CustomizableDashboardLayout";
 import InteractiveOnboarding from "./onboarding/InteractiveOnboarding";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export type DashboardTab = 'overview' | 'portfolio' | 'watchlist' | 'trading' | 'analysis' | 'tools';
 
@@ -24,6 +25,7 @@ interface DashboardLayoutOptions {
 }
 
 const Dashboard = () => {
+  const { colorScheme } = useTheme();
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
     // Try to retrieve last active tab from localStorage
     const savedTab = localStorage.getItem("dashboardActiveTab");
@@ -90,6 +92,9 @@ const Dashboard = () => {
     });
   };
   
+  // Apply theme classes based on current color scheme
+  const cardClasses = `mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card ${colorScheme !== 'default' ? `themed-card` : ''}`;
+  
   return (
     <div className="mx-auto px-0 py-4 max-w-full">
       {showOnboarding && (
@@ -117,7 +122,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Overview"
                 description="Your trading activity at a glance"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
+                className={cardClasses}
               >
                 <DashboardOverview />
               </CollapsibleCard>
@@ -127,7 +132,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Portfolio"
                 description="View and manage your investments"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
+                className={cardClasses}
               >
                 <DashboardPortfolio />
               </CollapsibleCard>
@@ -137,7 +142,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Watchlist"
                 description="Cryptocurrencies you're monitoring"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
+                className={cardClasses}
               >
                 <DashboardWatchlist />
               </CollapsibleCard>
@@ -147,7 +152,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Trading"
                 description="Execute trades and view history"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
+                className={cardClasses}
               >
                 <DashboardTrading />
               </CollapsibleCard>
@@ -157,7 +162,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Analysis"
                 description="Market analysis and insights"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
+                className={cardClasses}
               >
                 <DashboardAnalysis />
               </CollapsibleCard>
@@ -167,7 +172,7 @@ const Dashboard = () => {
               <CollapsibleCard
                 title="Tools"
                 description="Trading tools and utilities"
-                className="mb-6 shadow-md border border-border rounded-lg overflow-hidden bg-card"
+                className={cardClasses}
               >
                 <DashboardTools />
               </CollapsibleCard>

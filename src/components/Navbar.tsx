@@ -1,189 +1,146 @@
 
-import { useState } from "react";
-import { 
-  Bitcoin, 
-  BarChart2, 
-  MessageCircle, 
-  TrendingUp, 
-  Settings, 
-  Menu, 
-  X,
-  PieChart,
-  LineChart,
-  Calculator,
-  Wrench
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import React from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import {
+  Bell,
+  Search,
+  Settings,
+  Menu,
+  LogOut,
+  User,
+  HelpCircle
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from './ui/dropdown-menu';
+import ThemeSwitcher from './ThemeSwitcher';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { colorScheme } = useTheme();
   
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleNavClick = (section: string) => {
-    // In a real app, this would navigate to a different route
-    // For now, we'll just scroll to the section if it exists, or show a toast
-    const element = document.getElementById(section);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      toast({
-        title: "Navigation",
-        description: `Navigating to ${section}`,
-      });
-    }
-    
-    // Close mobile menu after navigation
-    setIsMenuOpen(false);
-  };
-
   return (
-    <nav className="sticky top-0 z-50 bg-crypto-dark border-b border-border">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Bitcoin className="h-6 w-6 text-crypto-bitcoin" />
-            <span className="text-xl font-bold">CryptoBeacon</span>
-          </div>
-          
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            <button 
-              onClick={() => handleNavClick("dashboard")} 
-              className="flex items-center space-x-1 text-foreground hover:text-primary"
+    <header className={`border-b border-border sticky top-0 z-50 w-full backdrop-blur-md bg-background/70`}>
+      <div className="container mx-auto flex h-16 items-center px-4 sm:px-6">
+        <div className="mr-4 flex">
+          <a href="/" className="flex items-center space-x-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-6 w-6"
             >
-              <BarChart2 className="h-4 w-4" />
-              <span>Dashboard</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick("portfolio")} 
-              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
-            >
-              <PieChart className="h-4 w-4" />
-              <span>Portfolio</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick("markets")} 
-              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
-            >
-              <TrendingUp className="h-4 w-4" />
-              <span>Markets</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick("trading")} 
-              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
-            >
-              <LineChart className="h-4 w-4" />
-              <span>Trading</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick("news")} 
-              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span>News</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick("taxes")} 
-              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
-            >
-              <Calculator className="h-4 w-4" />
-              <span>Taxes</span>
-            </button>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleNavClick("settings")}>
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </Button>
-            <Button variant="default" size="sm" onClick={() => toast({
-              title: "Connect Wallet",
-              description: "Wallet connection feature would open here",
-            })}>Connect Wallet</Button>
-          </div>
-          
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden text-gray-300 hover:text-white"
-            onClick={toggleMenu}
-          >
-            {isMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            <span className="font-bold text-lg hidden md:inline-block">CryptoTrader</span>
+          </a>
         </div>
         
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden pt-4 pb-3 border-t border-border mt-3">
-            <div className="space-y-3">
-              <button 
-                onClick={() => handleNavClick("dashboard")}
-                className="block w-full px-3 py-2 rounded-md bg-secondary text-white font-medium text-left"
-              >
-                Dashboard
-              </button>
-              <button 
-                onClick={() => handleNavClick("portfolio")}
-                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
-              >
-                Portfolio
-              </button>
-              <button 
-                onClick={() => handleNavClick("markets")}
-                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
-              >
-                Markets
-              </button>
-              <button 
-                onClick={() => handleNavClick("trading")}
-                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
-              >
-                Trading
-              </button>
-              <button 
-                onClick={() => handleNavClick("news")}
-                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
-              >
-                News
-              </button>
-              <button 
-                onClick={() => handleNavClick("taxes")}
-                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
-              >
-                Taxes
-              </button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-center mt-4"
-                onClick={() => handleNavClick("settings")}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
+        <div className="flex-1 md:ml-auto md:mr-6 relative max-w-md hidden md:block">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+            type="search" 
+            placeholder="Search..."
+            className="w-full pl-8 rounded-full bg-secondary/50 border-none"
+          />
+        </div>
+        
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-600" />
+            <span className="sr-only">Notifications</span>
+          </Button>
+          
+          <ThemeSwitcher />
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+                <span className="sr-only">Settings</span>
               </Button>
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="w-full justify-center mt-2"
-                onClick={() => toast({
-                  title: "Connect Wallet",
-                  description: "Wallet connection feature would open here",
-                })}
-              >
-                Connect Wallet
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Help</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Menu</span>
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
+                <img
+                  src="https://github.com/shadcn.png"
+                  alt="User"
+                  className="rounded-full"
+                />
               </Button>
-            </div>
-          </div>
-        )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Help</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

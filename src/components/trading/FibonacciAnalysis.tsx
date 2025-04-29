@@ -1,124 +1,173 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Ruler, TrendingUp } from 'lucide-react';
-import { FibonacciAnalysisProps, FibonacciLevels } from '@/types/trading';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LineChart, TrendingDown, TrendingUp, AlertCircle, Download } from "lucide-react";
+import { FibonacciAnalysisProps, FibonacciLevels } from "./types";
 
-const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({ priceData, symbol }) => {
-  // Calculate fibonacci levels
-  const calculateFibLevels = (): FibonacciLevels => {
-    // Find price high and low points
-    let high = -Infinity;
-    let low = Infinity;
-    
-    priceData.forEach(data => {
-      const price = typeof data.price === 'number' ? data.price : 
-                   (data[1] || data.value || data.close || 0);
-      
-      if (price > high) high = price;
-      if (price < low) low = price;
-    });
-    
-    const diff = high - low;
-    
-    return {
-      level0: low,                     // 0%
-      level236: low + diff * 0.236,    // 23.6%
-      level382: low + diff * 0.382,    // 38.2%
-      level500: low + diff * 0.5,      // 50.0%
-      level618: low + diff * 0.618,    // 61.8%
-      level786: low + diff * 0.786,    // 78.6%
-      level1000: high,                 // 100%
-      level1618: high + diff * 0.618,  // 161.8%
-      level2618: high + diff * 1.618,  // 261.8%
-      level4236: high + diff * 3.236   // 423.6%
-    };
+const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({ 
+  symbol = "BTC/USD",
+  timeframe = "1D"
+}) => {
+  const [selectedSymbol, setSelectedSymbol] = useState(symbol);
+  const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
+  const [trend, setTrend] = useState<'up' | 'down'>('up');
+  
+  const fibLevels: FibonacciLevels = {
+    level0: 67890.00,
+    level236: 65230.45,
+    level382: 63450.67,
+    level500: 61800.54,
+    level618: 60150.20,
+    level786: 58430.89,
+    level1000: 56230.78
   };
   
-  const fibLevels = calculateFibLevels();
-  const currentPrice = priceData.length > 0 ? 
-    (priceData[priceData.length - 1].price || priceData[priceData.length - 1][1] || 0) : 0;
-
-  const formatPrice = (price: number) => {
-    return price > 100 ? price.toFixed(2) : price.toFixed(price > 1 ? 2 : 6);
-  };
-  
-  const getDirectionalClass = (level: number) => {
-    if (level > currentPrice) return "text-green-500";
-    if (level < currentPrice) return "text-red-500";
-    return "text-blue-500";
-  };
-  
-  const getLevelStatus = (level: number) => {
-    if (level > currentPrice) return "↑ Resistance";
-    if (level < currentPrice) return "↓ Support";
-    return "Current";
-  };
-
   return (
-    <Card className="shadow-lg border border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Ruler className="h-5 w-5 text-primary" />
-          Fibonacci Analysis <span className="text-sm text-muted-foreground ml-2">{symbol}</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <LineChart className="h-5 w-5" />
+          Fibonacci Analysis
         </CardTitle>
+        <CardDescription>
+          Identify potential support and resistance levels using Fibonacci retracements
+        </CardDescription>
       </CardHeader>
       
-      <CardContent>
-        <div className="space-y-4">
-          <div className="bg-muted/20 p-3 rounded-md">
-            <div className="text-sm font-medium mb-2">Current Price</div>
-            <div className="text-2xl font-bold">${formatPrice(currentPrice)}</div>
+      <CardContent className="space-y-6">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <div className="text-sm font-medium mb-2">Symbol</div>
+            <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BTC/USD">BTC/USD</SelectItem>
+                <SelectItem value="ETH/USD">ETH/USD</SelectItem>
+                <SelectItem value="SOL/USD">SOL/USD</SelectItem>
+                <SelectItem value="ADA/USD">ADA/USD</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Fibonacci Levels</div>
+          <div className="flex-1 min-w-[200px]">
+            <div className="text-sm font-medium mb-2">Timeframe</div>
+            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1H">1 Hour</SelectItem>
+                <SelectItem value="4H">4 Hours</SelectItem>
+                <SelectItem value="1D">1 Day</SelectItem>
+                <SelectItem value="1W">1 Week</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex-1 min-w-[200px]">
+            <div className="text-sm font-medium mb-2">Trend Direction</div>
+            <div className="flex gap-2">
+              <Button 
+                variant={trend === 'up' ? "default" : "outline"} 
+                className="flex-1"
+                onClick={() => setTrend('up')}
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Uptrend
+              </Button>
+              <Button 
+                variant={trend === 'down' ? "default" : "outline"} 
+                className="flex-1"
+                onClick={() => setTrend('down')}
+              >
+                <TrendingDown className="h-4 w-4 mr-2" />
+                Downtrend
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="h-80 border rounded-lg p-4 relative">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-muted-foreground flex flex-col items-center">
+              <LineChart className="h-12 w-12 mb-2" />
+              <p>Fibonacci chart will render here</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-md border overflow-hidden">
+          <div className="bg-muted/50 p-2 grid grid-cols-3 text-xs font-medium">
+            <div>Fibonacci Level</div>
+            <div>Price</div>
+            <div>Status</div>
+          </div>
+          
+          <div className="divide-y">
+            <div className="p-2 grid grid-cols-3 text-sm">
+              <div>0.0</div>
+              <div>${fibLevels.level0.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-muted-foreground">Swing {trend === 'up' ? 'High' : 'Low'}</div>
+            </div>
             
-            <div className="grid gap-1">
-              <div className={`p-2 rounded-md bg-muted/10 flex justify-between ${getDirectionalClass(fibLevels.level0)}`}>
-                <div className="font-medium">0%</div>
-                <div>${formatPrice(fibLevels.level0)}</div>
-                <div className="text-xs opacity-70">{getLevelStatus(fibLevels.level0)}</div>
-              </div>
-              
-              <div className={`p-2 rounded-md bg-muted/10 flex justify-between ${getDirectionalClass(fibLevels.level236)}`}>
-                <div className="font-medium">23.6%</div>
-                <div>${formatPrice(fibLevels.level236)}</div>
-                <div className="text-xs opacity-70">{getLevelStatus(fibLevels.level236)}</div>
-              </div>
-              
-              <div className={`p-2 rounded-md bg-muted/10 flex justify-between ${getDirectionalClass(fibLevels.level382)}`}>
-                <div className="font-medium">38.2%</div>
-                <div>${formatPrice(fibLevels.level382)}</div>
-                <div className="text-xs opacity-70">{getLevelStatus(fibLevels.level382)}</div>
-              </div>
-              
-              <div className={`p-2 rounded-md bg-muted/10 flex justify-between ${getDirectionalClass(fibLevels.level500)}`}>
-                <div className="font-medium">50.0%</div>
-                <div>${formatPrice(fibLevels.level500)}</div>
-                <div className="text-xs opacity-70">{getLevelStatus(fibLevels.level500)}</div>
-              </div>
-              
-              <div className={`p-2 rounded-md bg-muted/10 flex justify-between ${getDirectionalClass(fibLevels.level618)}`}>
-                <div className="font-medium">61.8%</div>
-                <div>${formatPrice(fibLevels.level618)}</div>
-                <div className="text-xs opacity-70">{getLevelStatus(fibLevels.level618)}</div>
-              </div>
-              
-              <div className={`p-2 rounded-md bg-muted/10 flex justify-between ${getDirectionalClass(fibLevels.level1000)}`}>
-                <div className="font-medium">100.0%</div>
-                <div>${formatPrice(fibLevels.level1000)}</div>
-                <div className="text-xs opacity-70">{getLevelStatus(fibLevels.level1000)}</div>
-              </div>
+            <div className="p-2 grid grid-cols-3 text-sm">
+              <div>0.236</div>
+              <div>${fibLevels.level236.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-blue-500">Weak Reaction</div>
+            </div>
+            
+            <div className="p-2 grid grid-cols-3 text-sm">
+              <div>0.382</div>
+              <div>${fibLevels.level382.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-indigo-500">Moderate Support</div>
+            </div>
+            
+            <div className="p-2 grid grid-cols-3 text-sm bg-green-500/10">
+              <div>0.5</div>
+              <div>${fibLevels.level500.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-green-500 font-medium">Current Price Zone</div>
+            </div>
+            
+            <div className="p-2 grid grid-cols-3 text-sm">
+              <div>0.618</div>
+              <div>${fibLevels.level618.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-amber-500">Strong Support</div>
+            </div>
+            
+            <div className="p-2 grid grid-cols-3 text-sm">
+              <div>0.786</div>
+              <div>${fibLevels.level786.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-orange-500">Very Strong Support</div>
+            </div>
+            
+            <div className="p-2 grid grid-cols-3 text-sm">
+              <div>1.0</div>
+              <div>${fibLevels.level1000.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-muted-foreground">Swing {trend === 'up' ? 'Low' : 'High'}</div>
             </div>
           </div>
-          
-          <div className="text-xs text-muted-foreground mt-2">
-            <div className="flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              <span>Fibonacci levels help identify potential support and resistance zones</span>
-            </div>
-          </div>
+        </div>
+        
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {trend === 'up' 
+              ? "Current price is finding support at the 0.5 Fibonacci level, suggesting a potential bounce."
+              : "Current price is facing resistance at the 0.5 Fibonacci level, watch for potential rejection."
+            }
+          </AlertDescription>
+        </Alert>
+        
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export Analysis
+          </Button>
         </div>
       </CardContent>
     </Card>
