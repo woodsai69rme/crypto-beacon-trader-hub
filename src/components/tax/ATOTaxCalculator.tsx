@@ -208,7 +208,7 @@ const ATOTaxCalculator: React.FC = () => {
                 checked={cgtDiscount}
                 onCheckedChange={setCgtDiscount}
               />
-              <Label htmlFor="cgt-discount">Apply 50% CGT discount (for assets held > 12 months)</Label>
+              <Label htmlFor="cgt-discount">Apply 50% CGT discount (for assets held &gt; 12 months)</Label>
             </div>
           </div>
           
