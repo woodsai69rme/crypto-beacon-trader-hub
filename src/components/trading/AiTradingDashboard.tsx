@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,8 @@ import { CoinOption } from "@/types/trading";
 import AiTradingBotMetrics from "./AiTradingBotMetrics";
 import AiTradingStrategySelector from "./AiTradingStrategySelector";
 import AiTradingVisualizer from "./AiTradingVisualizer";
+import { Maximize2 } from 'lucide-react';
+import DetachedAiTradingDashboard from './DetachedAiTradingDashboard';
 
 const AI_BOTS = [
   {
@@ -52,6 +53,7 @@ const AiTradingDashboard: React.FC = () => {
   const [tradingPairs, setTradingPairs] = useState<string[]>(["BTC/USD", "ETH/USD", "SOL/USD"]);
   const [selectedPair, setSelectedPair] = useState<string>("BTC/USD");
   const [lastSignal, setLastSignal] = useState<string | null>(null);
+  const [isDetached, setIsDetached] = useState<boolean>(false);
   
   useEffect(() => {
     // Start price monitoring to get real-time market data
@@ -121,6 +123,32 @@ const AiTradingDashboard: React.FC = () => {
     }
   };
 
+  const toggleDetachedMode = () => {
+    setIsDetached(!isDetached);
+  };
+
+  if (isDetached) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            AI Trading Dashboard
+          </CardTitle>
+          <CardDescription>
+            Dashboard is currently in detached mode. Click below to return to normal view.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center py-12">
+          <Button onClick={toggleDetachedMode}>
+            Return to Dashboard
+          </Button>
+          <DetachedAiTradingDashboard onClose={toggleDetachedMode} />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -134,11 +162,16 @@ const AiTradingDashboard: React.FC = () => {
               Advanced AI-powered trading analysis and execution
             </CardDescription>
           </div>
-          {isRunning && (
-            <Badge variant="outline" className="bg-green-500/10 text-green-500 animate-pulse">
-              AI Active
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={toggleDetachedMode} className="h-8 w-8">
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+            {isRunning && (
+              <Badge variant="outline" className="bg-green-500/10 text-green-500 animate-pulse">
+                AI Active
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       

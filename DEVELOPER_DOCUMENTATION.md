@@ -1,4 +1,3 @@
-
 # CryptoTrader Developer Documentation
 
 ## Architecture Overview
@@ -13,7 +12,7 @@ CryptoTrader is built on a modern React/TypeScript stack with a focus on compone
 - **UI Components**: Shadcn UI
 - **State Management**: React Context API
 - **Data Fetching**: TanStack Query
-- **Charts**: Recharts
+- **Charts**: Recharts, Nivo
 - **Icons**: Lucide React
 - **Build/Deploy**: Not specified (recommend GitHub Actions)
 
@@ -29,6 +28,10 @@ src/
 │   ├── trading/      # Trading components
 │   └── ui/           # Shadcn UI components
 ├── contexts/         # React contexts for state management
+├── docs/             # Documentation
+│   ├── developer/    # Developer documentation
+│   ├── features/     # Feature documentation
+│   └── user/         # User documentation
 ├── hooks/            # Custom React hooks
 ├── lib/              # Utility functions
 ├── pages/            # Page components
@@ -41,23 +44,26 @@ src/
 
 ### Dashboard Components
 
-- `DashboardOverview`: Main dashboard view with market data and portfolio summary
-- `DashboardHeader`: Header with navigation, search, and user controls
-- `DashboardAnalysis`: Analysis dashboard with technical indicators and charts
+- `Dashboard`: Main dashboard container with tab navigation
+- `DashboardOverview`: Market overview with key metrics
+- `DashboardPortfolio`: Portfolio management and performance tracking
+- `DashboardTrading`: Trading interface with AI integration
+- `DashboardAnalysis`: Technical and fundamental analysis tools
+- `DashboardTools`: Utility tools for traders
 
 ### Trading Components
 
-- `RealTimeTrading`: Live trading interface with price charts and order entry
-- `AiTradingBots`: AI trading bot configuration and monitoring
-- `LocalModelTrading`: Integration with local AI models for predictions
-- `TradingPairComparison`: Compare trading pairs side by side
+- `FakeTrading`: Simulated trading system for practice
+- `RealTimeTrading`: Live trading interface with market data
+- `AiTradingBots`: AI-powered trading bots with strategy selection
+- `AiTradingDashboard`: Comprehensive AI trading dashboard
+- `DetachedAiTradingDashboard`: Floating, resizable AI dashboard
 
-### Market Analysis
+### Theme System
 
-- `MarketCorrelations`: Analyze correlations between cryptocurrencies
-- `TechnicalIndicators`: Display and configure technical indicators
-- `SentimentAnalysis`: Track market sentiment from news and social media
-- `QuantitativeAnalysis`: Advanced quantitative metrics
+- `ThemeProvider`: Context provider for theme state
+- `ThemeSwitcher`: UI component for changing theme and color scheme
+- Support for dark/light modes and multiple color schemes
 
 ## State Management
 
@@ -66,7 +72,7 @@ The application uses React Context API for state management across different dom
 - `AiTradingContext`: Manages AI trading bots and strategies
 - `AuthContext`: Handles user authentication and permissions
 - `CurrencyContext`: Manages currency conversion and selection
-- `ThemeContext`: Controls dark/light theme switching
+- `ThemeContext`: Controls dark/light theme switching and color schemes
 
 ## API Integration
 
@@ -103,35 +109,75 @@ try {
 
 ## Type System
 
-The application uses TypeScript for type safety. Key type definitions can be found in `src/types/trading.d.ts` and include:
+The application uses TypeScript for type safety. Key type definitions include:
 
 - `CryptoData`: Cryptocurrency market data
 - `Trade`: Trading transaction
 - `AITradingStrategy`: AI trading strategy configuration
-- `LocalModel`: Local AI model definition
+- `CoinOption`: Cryptocurrency option for selection
+- `ApiProvider`: API provider configuration
 
-## UI Components
+## Theming System
 
-The application uses Shadcn UI components with Tailwind CSS for styling. Custom components build on this foundation to create domain-specific UI elements.
-
-### Example Component Pattern
+### Theme Context
 
 ```typescript
-interface ComponentProps {
-  // Props definition
+interface ThemeContextType {
+  theme: string;         // 'light' or 'dark'
+  setTheme: (t: string) => void;
+  colorScheme: string;   // 'default', 'blue', 'purple', etc.
+  setColorScheme: (c: string) => void;
+}
+```
+
+### CSS Implementation
+
+Themes use CSS variables and Tailwind classes:
+
+```css
+:root {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  /* Other variables */
 }
 
-const ExampleComponent: React.FC<ComponentProps> = (props) => {
-  // Component implementation
-  
-  return (
-    <div className="tailwind-classes">
-      {/* JSX */}
-    </div>
-  );
-};
+.light {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  /* Light theme overrides */
+}
 
-export default ExampleComponent;
+/* Color schemes */
+.blue {
+  --primary: 221 83% 53%;
+}
+```
+
+## AI Trading System
+
+### AI Bot Types
+
+- **Trend Analyzer**: Follows market trends and momentum
+- **Pattern Recognition**: Identifies chart patterns and formations
+- **Sentiment Analyzer**: Analyzes news and social media sentiment
+- **Quantum AI**: Advanced ML with multi-timeframe analysis
+
+### Strategy Configuration
+
+```typescript
+type AITradingStrategy = {
+  id: string;
+  name: string;
+  description: string;
+  type: 'trend-following' | 'mean-reversion' | /* other types */;
+  timeframe: string;
+  parameters: any;
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    // Other metrics
+  };
+};
 ```
 
 ## Adding New Features
@@ -144,20 +190,70 @@ export default ExampleComponent;
 4. Export the component
 5. Import and use it where needed
 
-### Adding a New API Integration
+### Adding a New Theme or Color Scheme
 
-1. Add the endpoint to the appropriate service file
-2. Create any necessary TypeScript interfaces
-3. Implement the service method
-4. Use the service in components
+1. Add CSS variables to the theme system
+2. Update the `ThemeSwitcher` component options
+3. Add the new theme class to the `ThemeContext` class handling
 
-### Adding New Pages
+### Implementing a New AI Strategy
 
-1. Create a new page component
-2. Add a route in the router configuration
-3. Add navigation links to the new page
+1. Define the strategy in the `AITradingStrategy` type
+2. Add implementation to the AI trading service
+3. Update the strategy selection UI
+4. Implement performance tracking for the new strategy
 
-## Build and Deployment
+## Best Practices
+
+### Code Organization
+
+- Keep components focused on a single responsibility
+- Use TypeScript interfaces for all props and state
+- Extract reusable logic to custom hooks
+- Maintain consistent naming conventions
+
+### Performance Optimization
+
+- Use React.memo for pure components
+- Implement virtualized lists for long data sets
+- Optimize re-renders with useMemo and useCallback
+- Lazy load components that aren't immediately needed
+
+### Error Handling
+
+- Implement error boundaries for component errors
+- Use try/catch for asynchronous operations
+- Display user-friendly error messages
+- Log detailed errors for debugging
+
+### Accessibility
+
+- Ensure all interactive elements are keyboard accessible
+- Maintain proper heading hierarchy
+- Use ARIA attributes where appropriate
+- Test with screen readers
+
+## Testing Strategy
+
+### Unit Tests
+
+- Test individual components in isolation
+- Mock API calls and context providers
+- Verify component behavior with different props
+
+### Integration Tests
+
+- Test interactions between related components
+- Verify context providers work correctly with consumers
+- Test form submissions and data flow
+
+### End-to-End Tests
+
+- Test critical user flows
+- Verify application behavior in realistic scenarios
+- Test across different browsers and devices
+
+## Deployment
 
 ### Development
 
@@ -179,113 +275,6 @@ npm run build
 npm run preview
 ```
 
-## Common Patterns and Best Practices
+## Conclusion
 
-### Data Fetching
-
-Use TanStack Query for data fetching and caching:
-
-```typescript
-const { data, isLoading, error } = useQuery({
-  queryKey: ['coins', coinId],
-  queryFn: () => cryptoApi.getCoinData(coinId),
-});
-```
-
-### Form Handling
-
-Use React Hook Form for form management:
-
-```typescript
-const form = useForm<FormValues>({
-  defaultValues: {
-    // Default values
-  },
-});
-
-const onSubmit = (data: FormValues) => {
-  // Handle form submission
-};
-
-return (
-  <form onSubmit={form.handleSubmit(onSubmit)}>
-    {/* Form fields */}
-  </form>
-);
-```
-
-### Responsive Design
-
-Use Tailwind CSS responsive modifiers for adaptive layouts:
-
-```jsx
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  {/* Content */}
-</div>
-```
-
-### Error Boundaries
-
-Implement error boundaries around critical components:
-
-```jsx
-<ErrorBoundary fallback={<ErrorFallback />}>
-  <CriticalComponent />
-</ErrorBoundary>
-```
-
-## Performance Considerations
-
-- Use React.memo for components that don't need frequent re-renders
-- Implement virtualization for long lists
-- Use code splitting for larger components
-- Optimize images and assets
-- Implement caching strategies for API calls
-
-## Testing
-
-### Component Testing
-
-Use Jest and React Testing Library for component tests:
-
-```typescript
-test('renders component', () => {
-  render(<Component />);
-  expect(screen.getByText('Expected Text')).toBeInTheDocument();
-});
-```
-
-### Integration Testing
-
-Test component interactions using user-event:
-
-```typescript
-test('handles user interaction', async () => {
-  render(<Component />);
-  await userEvent.click(screen.getByText('Click Me'));
-  expect(screen.getByText('Result')).toBeInTheDocument();
-});
-```
-
-## Troubleshooting Common Issues
-
-- **Type errors**: Ensure types are properly defined and imported
-- **API errors**: Check network tab for response details
-- **Rendering issues**: Verify component props and state
-- **Performance issues**: Look for unnecessary re-renders
-
-## Contributing Guidelines
-
-1. Fork the repository
-2. Create a feature branch
-3. Make changes following the coding standards
-4. Write tests
-5. Submit a pull request
-
-## API Documentation
-
-Refer to the API documentation for detailed endpoint information.
-
-## License
-
-[License information would go here]
+This documentation provides a comprehensive overview of the CryptoTrader application architecture, components, and development practices. For more detailed information about specific features, refer to the documentation in the `src/docs` directory.

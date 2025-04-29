@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ResponsiveLine } from '@nivo/line';
-import { EnhancedPortfolioBenchmarkingProps } from '../trading/types';
+import { EnhancedPortfolioBenchmarkingProps } from '@/types/trading';
 
 const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({
   portfolioPerformance,

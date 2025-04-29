@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +58,23 @@ const MarketAnalyzer = () => {
     if (absCorrelation > 0.7) return "text-green-500";
     if (absCorrelation > 0.4) return "text-amber-400";
     return "text-muted-foreground";
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      // Convert to number before using toFixed
+      const value = typeof payload[0].value === 'string' 
+        ? parseFloat(payload[0].value)
+        : payload[0].value;
+      
+      return (
+        <div className="custom-tooltip bg-card p-2 border rounded-md shadow-md">
+          <p className="label font-medium">{`${label}`}</p>
+          <p className="value text-primary">{`Value: ${value.toFixed(2)}`}</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -260,6 +276,7 @@ const MarketAnalyzer = () => {
                       date.setDate(date.getDate() - (29 - value));
                       return `Date: ${date.getMonth() + 1}/${date.getDate()}`;
                     }}
+                    content={<CustomTooltip />}
                   />
                   <Line 
                     type="monotone" 

@@ -171,3 +171,12 @@ export type AITradingStrategy = {
   creator?: string;
   tags?: string[];
 };
+
+export interface ExtendedTradingTimeframe {
+  id: string;
+  label: string;
+  value: string;
+  description: string;
+  candleCount?: number;
+  defaultIndicators?: string[];
+}

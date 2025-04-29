@@ -1,3 +1,4 @@
+
 export type Trade = {
   id: string;
   coinId: string;
@@ -135,7 +136,7 @@ export type AITradingStrategy = {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
   timeframe: string;
   parameters: any;
   riskLevel?: string;
@@ -270,15 +271,12 @@ export interface ApiEndpoint {
   rateLimit?: string;
 }
 
-// Add missing types
 export interface CoinOption {
-  value: string;
-  label: string;
   id: string;
   name: string;
   symbol: string;
+  price: number; // Make this required to fix type errors
   image?: string;
-  price?: number;
   priceChange?: number;
   changePercent?: number;
   volume?: number;
@@ -287,6 +285,8 @@ export interface CoinOption {
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
+  value: string;
+  label: string;
 }
 
 export interface ApiProvider {
@@ -299,6 +299,14 @@ export interface ApiProvider {
   endpoints: ApiEndpoint[];
   rateLimit: number;
   tier: string;
+  website?: string;
+  docs?: string;
+  authMethod?: 'header' | 'query' | 'none';
+  apiKeyName?: string;
+  requiresAuth?: boolean;
+  authRequired?: boolean;
+  priority?: number;
+  defaultHeaders?: Record<string, string>;
 }
 
 export interface WidgetGridProps {
@@ -310,4 +318,13 @@ export interface WidgetGridProps {
 export interface WidgetListProps {
   widgets: Widget[];
   onRemove?: (id: string) => void;
+}
+
+export interface ExtendedTradingTimeframe {
+  id: string;
+  label: string;
+  value: string;
+  description: string;
+  candleCount?: number;
+  defaultIndicators?: string[];
 }

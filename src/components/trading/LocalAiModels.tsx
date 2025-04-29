@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -114,32 +113,34 @@ const LocalAiModels = () => {
     });
   };
   
-  const handleCreateNewModel = () => {
-    if (!newModelFormData.name || !newModelFormData.endpoint) {
+  const handleAddModel = () => {
+    if (!newModelFormData.name || !newModelFormData.endpoint || !newModelFormData.description) {
       toast({
-        title: "Validation Error",
-        description: "Please provide both a name and endpoint URL",
+        title: "Error",
+        description: "Please fill all required fields",
         variant: "destructive"
       });
       return;
     }
-    
-    const newModel: LocalModel = {
+
+    // Ensure type is one of the allowed values
+    const validType = newModelFormData.type === "prediction" || 
+                      newModelFormData.type === "sentiment" || 
+                      newModelFormData.type === "trading" || 
+                      newModelFormData.type === "analysis" ? 
+                      newModelFormData.type : "analysis";
+
+    const model: LocalModel = {
       id: `model-${Date.now()}`,
       name: newModelFormData.name!,
       endpoint: newModelFormData.endpoint!,
-      type: newModelFormData.type as "prediction" | "sentiment" | "trading" | "analysis",
-      isConnected: false,
+      type: validType,
       description: newModelFormData.description,
-      performance: {
-        accuracy: 0,
-        returns: 0,
-        sharpeRatio: 0,
-        maxDrawdown: 0
-      }
+      isConnected: false,
+      lastUsed: null
     };
     
-    setLocalModels([...localModels, newModel]);
+    setLocalModels([...localModels, model]);
     
     setNewModelFormData({
       name: "",
@@ -327,7 +328,7 @@ const LocalAiModels = () => {
                 />
               </div>
               
-              <Button onClick={handleCreateNewModel} className="w-full">
+              <Button onClick={handleAddModel} className="w-full">
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add AI Model
               </Button>

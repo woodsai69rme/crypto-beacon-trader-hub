@@ -22,6 +22,7 @@ interface ThemeOption {
 
 const ThemeSwitcher = () => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
 
   const themeOptions: ThemeOption[] = [
     { value: "dark", label: "Dark", description: "Dark theme with deep backgrounds" },

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,77 +18,58 @@ import AiTradingDetailedDashboard from "./AiTradingDetailedDashboard";
 const AiTradingBots: React.FC = () => {
   const [strategies, setStrategies] = useState<AITradingStrategy[]>([
     {
-      id: "trend-following-ai",
-      name: "AI Trend Following",
-      description: "Uses machine learning to identify and follow market trends",
+      id: "trend-following-1",
+      name: "AI Momentum",
+      description: "Detects and follows market momentum using machine learning",
       type: "trend-following",
-      timeframe: "1d",
-      parameters: {
-        riskLevel: "medium",
-        backtestResults: {
-          winRate: 0.68,
-          profitFactor: 1.85,
-          sharpeRatio: 1.42,
-          drawdown: 15,
-          returns: 45
-        }
-      },
-      performance: {
-        winRate: 0.68,
-        profitFactor: 1.85,
-        trades: 124,
-        profitLoss: 18.5,
-        drawdown: 12.3
-      }
-    },
-    {
-      id: "mean-reversion-ai",
-      name: "AI Mean Reversion",
-      description: "Identifies overbought and oversold conditions using AI",
-      type: "mean-reversion",
       timeframe: "4h",
       parameters: {
-        riskLevel: "medium",
-        backtestResults: {
-          winRate: 0.72,
-          profitFactor: 1.95,
-          sharpeRatio: 1.65,
-          drawdown: 12,
-          returns: 52
-        }
-      },
-      performance: {
-        winRate: 0.72,
-        profitFactor: 1.95,
-        trades: 95,
-        profitLoss: 24.5,
-        drawdown: 8.7
-      }
-    },
-    {
-      id: "sentiment-analysis",
-      name: "AI Sentiment Trading",
-      description: "Analyzes market sentiment using NLP",
-      type: "custom",
-      timeframe: "1d",
-      parameters: {
-        strategyType: "sentiment",
-        riskLevel: "high",
-        backtestResults: {
-          winRate: 0.65,
-          profitFactor: 2.1,
-          sharpeRatio: 1.38,
-          drawdown: 22,
-          returns: 75
-        }
+        rsiPeriod: 14,
+        macdFast: 12,
+        macdSlow: 26,
+        macdSignal: 9,
+        minVolume: 10000000
       },
       performance: {
         winRate: 0.65,
-        profitFactor: 2.1,
-        trades: 78,
-        profitLoss: 32.8,
-        drawdown: 18.2
+        profitFactor: 1.8,
+        sharpeRatio: 1.45,
+        drawdown: 12
       }
+    },
+    {
+      id: "mean-reversion-1",
+      name: "AI Mean Reversion",
+      description: "Uses AI to find overbought/oversold conditions",
+      type: "mean-reversion",
+      timeframe: "1h",
+      parameters: {
+        rsiThresholdHigh: 70,
+        rsiThresholdLow: 30,
+        bollingerPeriod: 20,
+        bollingerDeviation: 2
+      },
+      performance: {
+        winRate: 0.72,
+        profitFactor: 2.1,
+        sharpeRatio: 1.65,
+        drawdown: 8
+      }
+    },
+    {
+      id: "sentiment-analysis-1",
+      name: "Sentiment Analyzer",
+      description: "Analyzes market sentiment from news and social media",
+      type: "sentiment",
+      timeframe: "1d",
+      parameters: {
+        newsWeight: 0.6,
+        socialMediaWeight: 0.4,
+        sentimentThreshold: 0.2,
+        minConfidence: 0.7
+      },
+      creator: "AI Research Team",
+      tags: ["sentiment", "news", "social"]
     }
   ]);
   

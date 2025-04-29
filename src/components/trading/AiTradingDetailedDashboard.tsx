@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -464,6 +463,8 @@ const AiTradingDetailedDashboard: React.FC = () => {
                     <div className="mr-2">
                       {strategy.type === 'trend-following' && <TrendingUp className="h-4 w-4" />}
                       {strategy.type === 'mean-reversion' && <ArrowUpDown className="h-4 w-4" />}
+                      {strategy.type === 'breakout' && <Cpu className="h-4 w-4" />}
+                      {strategy.type === 'sentiment' && <PieChart className="h-4 w-4" />}
                       {strategy.type === 'custom' && <Brain className="h-4 w-4" />}
                     </div>
                     <div className="text-left">
