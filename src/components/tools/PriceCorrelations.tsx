@@ -256,7 +256,7 @@ const PriceCorrelations = () => {
             <div className="flex-1 bg-muted/20 p-3 rounded-md">
               <h3 className="text-sm font-medium mb-2">Trading Insights</h3>
               <p className="text-xs text-muted-foreground">
-                High correlation ({">"} 0.7) indicates assets that tend to move together. For diversification, 
+                High correlation ({'>'}0.7) indicates assets that tend to move together. For diversification, 
                 consider assets with low or negative correlation to your primary holdings.
               </p>
             </div>

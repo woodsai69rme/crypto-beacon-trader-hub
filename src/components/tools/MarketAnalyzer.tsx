@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, TrendingUp, TrendingDown, AlertCircle, Activity, Share2 } from "lucide-react";
-import { ResponsiveLine } from "@nivo/line";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const MarketAnalyzer = () => {
   const [activeTab, setActiveTab] = useState("sentiment");
@@ -33,16 +33,11 @@ const MarketAnalyzer = () => {
     { name: "ADX", value: 24, interpretation: "Neutral Trend", bullish: true },
   ];
   
-  const sentimentData = [
-    {
-      id: "sentiment",
-      color: "hsl(210, 70%, 50%)",
-      data: Array.from({ length: 30 }, (_, i) => ({
-        x: i,
-        y: 50 + Math.sin(i / 2) * 25 + Math.random() * 10,
-      })),
-    },
-  ];
+  // Create sentiment data for the chart
+  const sentimentData = Array.from({ length: 30 }, (_, i) => ({
+    name: i,
+    value: 50 + Math.sin(i / 2) * 25 + Math.random() * 10,
+  }));
   
   const marketCorrelations = [
     { asset1: "BTC", asset2: "ETH", correlation: 0.86, trend: "Increasing" },
@@ -246,74 +241,35 @@ const MarketAnalyzer = () => {
             
             <div className="h-64 w-full mt-4">
               <h4 className="text-sm font-medium mb-2">Sentiment Trend (30 days)</h4>
-              <ResponsiveLine
-                data={sentimentData}
-                margin={{ top: 10, right: 10, bottom: 30, left: 40 }}
-                xScale={{ type: "point" }}
-                yScale={{
-                  type: "linear",
-                  min: "auto",
-                  max: "auto",
-                }}
-                curve="monotoneX"
-                axisBottom={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: 0,
-                  tickValues: [0, 7, 14, 21, 29],
-                  format: (value) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - (29 - value));
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                  },
-                }}
-                axisLeft={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: 0,
-                  tickValues: [0, 25, 50, 75, 100],
-                }}
-                enableGridX={false}
-                colors={{ scheme: "category10" }}
-                lineWidth={3}
-                pointSize={4}
-                pointColor={{ theme: "background" }}
-                pointBorderWidth={2}
-                pointBorderColor={{ from: "serieColor" }}
-                enableArea={true}
-                areaOpacity={0.15}
-                useMesh={true}
-                theme={{
-                  textColor: "#888",
-                  fontSize: 11,
-                  axis: {
-                    domain: {
-                      line: {
-                        stroke: "#555",
-                      },
-                    },
-                    ticks: {
-                      line: {
-                        stroke: "#555",
-                      },
-                    },
-                  },
-                  grid: {
-                    line: {
-                      stroke: "#333",
-                      strokeWidth: 0.5,
-                    },
-                  },
-                  tooltip: {
-                    container: {
-                      background: "#222",
-                      color: "#eee",
-                      boxShadow: "0 3px 9px rgba(0, 0, 0, 0.5)",
-                      borderRadius: "4px",
-                    },
-                  },
-                }}
-              />
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={sentimentData}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="name"
+                    tickFormatter={(value) => {
+                      const date = new Date();
+                      date.setDate(date.getDate() - (29 - value));
+                      return `${date.getMonth() + 1}/${date.getDate()}`;
+                    }} 
+                  />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip 
+                    formatter={(value) => [`${value.toFixed(2)}%`, 'Sentiment']}
+                    labelFormatter={(value) => {
+                      const date = new Date();
+                      date.setDate(date.getDate() - (29 - value));
+                      return `Date: ${date.getMonth() + 1}/${date.getDate()}`;
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#2563eb" 
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </TabsContent>
           
