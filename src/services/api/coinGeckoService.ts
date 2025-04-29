@@ -1,66 +1,104 @@
 
+import { CryptoData, CryptoChartData } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
-// API key storage
-let apiKey = '';
+// Mock API key storage
+let apiKey: string | null = null;
 
-/**
- * Set the CoinGecko API key
- * @param key - The API key to set
- */
-export const setCoinGeckoApiKey = (key: string): void => {
+export const setCoinGeckoApiKey = (key: string) => {
   apiKey = key;
   localStorage.setItem('coinGeckoApiKey', key);
-  toast({
-    title: "CoinGecko API Key Updated",
-    description: "Your API key has been saved successfully.",
-  });
+  return true;
 };
 
-/**
- * Get the saved CoinGecko API key
- * @returns The saved API key or an empty string
- */
-export const getCoinGeckoApiKey = (): string => {
+export const getCoinGeckoApiKey = (): string | null => {
   if (!apiKey) {
-    apiKey = localStorage.getItem('coinGeckoApiKey') || '';
+    apiKey = localStorage.getItem('coinGeckoApiKey');
   }
   return apiKey;
 };
 
-/**
- * Check if the CoinGecko API key is set
- * @returns True if the API key is set, false otherwise
- */
-export const hasCoinGeckoApiKey = (): boolean => {
-  return !!getCoinGeckoApiKey();
-};
-
-/**
- * Reset the CoinGecko API key
- */
-export const resetCoinGeckoApiKey = (): void => {
-  apiKey = '';
-  localStorage.removeItem('coinGeckoApiKey');
-  toast({
-    title: "CoinGecko API Key Removed",
-    description: "Your API key has been removed successfully.",
-  });
-};
-
-/**
- * Verify if a CoinGecko API key is valid
- * @param key - The API key to verify
- * @returns A promise resolving to true if valid, false otherwise
- */
-export const verifyCoinGeckoApiKey = async (key: string): Promise<boolean> => {
+export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<CryptoData[]> => {
   try {
-    // Simulate API verification with a delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    // In a real app, this would make an actual API request
-    return key.length > 16; // Simple validation for example purposes
+    // In a real app, we would use the API key
+    // For now, returning mock data
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch coins from CoinGecko');
+    }
+    
+    const data = await response.json();
+    return data as CryptoData[];
   } catch (error) {
-    console.error("Error verifying CoinGecko API key:", error);
-    return false;
+    console.error("Error fetching from CoinGecko:", error);
+    toast({
+      title: "API Error",
+      description: "Could not fetch data from CoinGecko API. Using mock data instead.",
+      variant: "destructive",
+    });
+    
+    // Fallback to local mock data
+    return import("../cryptoApi").then(module => module.getMockCryptoData().slice(0, limit));
+  }
+};
+
+export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: number = 30): Promise<CryptoChartData> => {
+  try {
+    // In a real app, we would use the API key
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch coin history from CoinGecko');
+    }
+    
+    const data = await response.json();
+    return data as CryptoChartData;
+  } catch (error) {
+    console.error("Error fetching from CoinGecko:", error);
+    toast({
+      title: "API Error",
+      description: "Could not fetch historical data from CoinGecko API. Using mock data instead.",
+      variant: "destructive",
+    });
+    
+    // Fallback to local mock data
+    return import("../cryptoApi").then(module => module.fetchCoinHistory(coinId, days));
+  }
+};
+
+export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoData[]> => {
+  try {
+    // In a real app, we would use the API key
+    const response = await fetch(`https://api.coingecko.com/api/v3/search?query=${query}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to search coins from CoinGecko');
+    }
+    
+    const data = await response.json();
+    return data.coins.map((coin: any) => ({
+      id: coin.id,
+      name: coin.name,
+      symbol: coin.symbol,
+      image: coin.large,
+      market_cap_rank: coin.market_cap_rank,
+    })) as Partial<CryptoData>[] as CryptoData[];
+  } catch (error) {
+    console.error("Error searching from CoinGecko:", error);
+    toast({
+      title: "API Error",
+      description: "Could not search CoinGecko API. Using mock data instead.",
+      variant: "destructive",
+    });
+    
+    // Fallback to local mock data
+    return import("../cryptoApi").then(module => {
+      const mockData = module.getMockCryptoData();
+      return mockData.filter(coin => 
+        coin.name.toLowerCase().includes(query.toLowerCase()) || 
+        coin.symbol.toLowerCase().includes(query.toLowerCase())
+      );
+    });
   }
 };

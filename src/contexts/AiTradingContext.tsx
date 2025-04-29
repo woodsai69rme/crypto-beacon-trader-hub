@@ -1,11 +1,22 @@
 
 import React, { createContext, useContext, useState } from "react";
 
+export type TradingStrategyType = 
+  "traditional" | 
+  "ai-predictive" | 
+  "hybrid" | 
+  "trend-following" | 
+  "mean-reversion" | 
+  "breakout" | 
+  "sentiment" | 
+  "machine-learning" | 
+  "multi-timeframe";
+
 export interface TradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: "traditional" | "ai-predictive" | "hybrid" | "trend-following" | "mean-reversion" | "breakout" | "sentiment" | "machine-learning" | "multi-timeframe";
+  type: TradingStrategyType;
   risk: "low" | "medium" | "high";
   timeframe: "short" | "medium" | "long";
   performance: {

@@ -1,146 +1,141 @@
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { PlusCircle } from "lucide-react";
-import type { Widget } from "@/types/trading";
-import WidgetList from "./dashboard/widgets/WidgetList";
+import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
 import WidgetGrid from "./dashboard/widgets/WidgetGrid";
+import WidgetList from "./dashboard/widgets/WidgetList";
 import AddWidgetDialog from "./dashboard/widgets/AddWidgetDialog";
+import { Widget, WidgetType, WidgetSize } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
 
-interface CustomizableDashboardProps {
-  availableWidgets?: Widget[];
-  onLayoutSave?: (layout: Widget[]) => void;
-  children?: React.ReactNode;
-}
-
-const defaultWidgets: Widget[] = [
-  { id: "widget-trading", type: "trading", title: "Trading", size: "medium", position: 0 },
-  { id: "widget-aiTrading", type: "aiTrading", title: "AI Trading Bots", size: "medium", position: 1 },
-  { id: "widget-multiExchange", type: "multiExchange", title: "Multi-Exchange Trading", size: "full", position: 2 },
-  { id: "widget-aiAnalysis", type: "aiAnalysis", title: "AI Market Analysis", size: "medium", position: 3 },
-  { id: "widget-education", type: "education", title: "Trading Education", size: "medium", position: 4 },
-  { id: "widget-community", type: "community", title: "Community Hub", size: "full", position: 5 },
-];
-
-const CustomizableDashboard = ({
-  availableWidgets = defaultWidgets,
-  onLayoutSave = () => {},
-  children
-}: CustomizableDashboardProps) => {
-  const [widgets, setWidgets] = useState<Widget[]>(availableWidgets);
-  const [isEditing, setIsEditing] = useState(false);
+const CustomizableDashboard = () => {
   const [isAddingWidget, setIsAddingWidget] = useState(false);
-
-  const moveWidget = (id: string, direction: "up" | "down") => {
-    const index = widgets.findIndex(w => w.id === id);
-    if (
-      (direction === "up" && index === 0) || 
-      (direction === "down" && index === widgets.length - 1)
-    ) return;
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [widgets, setWidgets] = useState<Widget[]>([
+    {
+      id: "portfolio-widget",
+      position: { x: 0, y: 0 },
+      title: "Portfolio Overview",
+      type: "portfolio",
+      size: "medium",
+    },
+    {
+      id: "chart-widget",
+      position: { x: 1, y: 0 },
+      title: "Market Chart",
+      type: "chart",
+      size: "medium",
+    },
+    {
+      id: "watchlist-widget",
+      position: { x: 0, y: 1 },
+      title: "Watchlist",
+      type: "watchlist",
+      size: "small",
+    },
+    {
+      id: "news-widget",
+      position: { x: 1, y: 1 },
+      title: "Crypto News",
+      type: "news",
+      size: "small",
+    },
+    {
+      id: "alerts-widget",
+      position: { x: 0, y: 2 },
+      title: "Price Alerts",
+      type: "alerts",
+      size: "small",
+    }
+  ]);
+  
+  const handleAddWidget = (type: WidgetType, title: string, size: WidgetSize) => {
+    // Find the next available position
+    const maxY = Math.max(...widgets.map(w => w.position.y));
     
-    const newWidgets = [...widgets];
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    const newWidget: Widget = {
+      id: `${type}-${Date.now()}`,
+      position: { x: 0, y: maxY + 1 },
+      title,
+      type,
+      size,
+      lastUpdated: new Date().toISOString(),
+    };
     
-    const temp = { ...newWidgets[targetIndex] };
-    newWidgets[targetIndex] = { ...newWidgets[index] };
-    newWidgets[index] = temp;
-    
-    newWidgets[targetIndex].position = targetIndex;
-    newWidgets[index].position = index;
-    
-    setWidgets(newWidgets);
-  };
-
-  const changeWidgetSize = (id: string, size: Widget["size"]) => {
-    const newWidgets = widgets.map(widget => 
-      widget.id === id ? { ...widget, size } : widget
-    );
-    setWidgets(newWidgets);
-  };
-
-  const removeWidget = (id: string) => {
-    const newWidgets = widgets
-      .filter(widget => widget.id !== id)
-      .map((widget, index) => ({ ...widget, position: index }));
-    setWidgets(newWidgets);
-  };
-
-  const addWidget = (newWidget: Omit<Widget, "id" | "position">) => {
-    const id = `widget-${Date.now()}`;
-    const position = widgets.length;
-    setWidgets([...widgets, { ...newWidget, id, position }]);
+    setWidgets([...widgets, newWidget]);
     setIsAddingWidget(false);
     
     toast({
       title: "Widget Added",
-      description: `${newWidget.title} has been added to your dashboard`
+      description: `${title} has been added to your dashboard`
     });
   };
-
-  const saveLayout = () => {
-    onLayoutSave(widgets);
-    setIsEditing(false);
+  
+  const handleRemoveWidget = (id: string) => {
+    setWidgets(widgets.filter(widget => widget.id !== id));
+    
     toast({
-      title: "Layout saved",
-      description: "Your dashboard layout has been updated"
+      title: "Widget Removed",
+      description: "The widget has been removed from your dashboard"
     });
   };
-
-  if (!isEditing) {
-    return (
-      <div>
-        <div className="flex justify-end mb-4">
-          <Button variant="outline" onClick={() => setIsEditing(true)}>
-            Customize Dashboard
-          </Button>
-        </div>
-        
-        <WidgetGrid widgets={widgets} />
-        {children}
-      </div>
-    );
-  }
-
+  
+  const handleUpdateWidgetPosition = (id: string, position: { x: number, y: number }) => {
+    setWidgets(widgets.map(widget => 
+      widget.id === id ? { ...widget, position } : widget
+    ));
+  };
+  
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Customize Your Dashboard</CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setIsAddingWidget(true)}
-          className="flex items-center gap-1"
-        >
-          <PlusCircle className="h-4 w-4" />
-          Add Widget
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <WidgetList 
-          widgets={widgets}
-          onMoveWidget={moveWidget}
-          onSizeChange={changeWidgetSize}
-          onRemoveWidget={removeWidget}
-        />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Dashboard</h2>
         
-        <div className="flex justify-end space-x-2 mt-4">
-          <Button variant="outline" onClick={() => setIsEditing(false)}>
-            Cancel
+        <div className="flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            {viewMode === "grid" ? "List View" : "Grid View"}
           </Button>
-          <Button onClick={saveLayout}>
-            Save Layout
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsAddingWidget(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add Widget
+          </Button>
+          
+          <Button variant="outline" size="sm">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Customize
           </Button>
         </div>
-      </CardContent>
-
+      </div>
+      
+      {viewMode === "grid" ? (
+        <WidgetGrid 
+          widgets={widgets} 
+          onRemove={handleRemoveWidget}
+          onUpdatePosition={handleUpdateWidgetPosition}
+        />
+      ) : (
+        <WidgetList 
+          widgets={widgets} 
+          onRemove={handleRemoveWidget} 
+        />
+      )}
+      
       <AddWidgetDialog 
         open={isAddingWidget} 
         onOpenChange={setIsAddingWidget} 
-        onAddWidget={addWidget}
+        onAddWidget={handleAddWidget} 
       />
-    </Card>
+    </div>
   );
 };
 

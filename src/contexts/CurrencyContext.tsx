@@ -1,135 +1,127 @@
 
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { fetchCurrencyRates } from "@/services/enhancedCryptoApi";
 
 interface CurrencyContextType {
-  baseCurrency: string;
-  setBaseCurrency: (currency: string) => void;
-  exchangeRates: Record<string, number>;
-  formatCurrency: (value: number, currency?: string) => string;
-  convertCurrency: (value: number, from: string, to: string) => number;
-  availableCurrencies: string[];
-  conversionRates: {
-    USD_AUD: number;
-    USD_EUR: number;
-    USD_GBP: number;
-    USD_JPY: number;
-  };
+  activeCurrency: string;
+  setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
+  convert: (value: number, from?: string, to?: string) => number;
+  formatValue: (value: number, currency?: string) => string;
+  rates: Record<string, Record<string, number>> | { [key: string]: number };
+  conversionRates: Record<string, number>;
 }
 
-const defaultExchangeRates: Record<string, number> = {
-  USD: 1,
-  EUR: 0.93,
-  GBP: 0.82,
-  JPY: 147.32,
-  AUD: 1.54,
-  CAD: 1.38,
-  CNY: 7.23,
-  BTC: 0.000019,
-  ETH: 0.00032
-};
-
-const defaultCurrencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CNY", "BTC", "ETH"];
-
 const CurrencyContext = createContext<CurrencyContextType>({
-  baseCurrency: "USD",
-  setBaseCurrency: () => {},
-  exchangeRates: defaultExchangeRates,
-  formatCurrency: () => "",
-  convertCurrency: () => 0,
-  availableCurrencies: defaultCurrencies,
-  conversionRates: {
-    USD_AUD: 1.54,
-    USD_EUR: 0.93,
-    USD_GBP: 0.82,
-    USD_JPY: 147.32,
-  }
+  activeCurrency: "USD",
+  setActiveCurrency: () => {},
+  convert: () => 0,
+  formatValue: () => "",
+  rates: {},
+  conversionRates: {},
 });
-
-export const useCurrency = () => useContext(CurrencyContext);
 
 interface CurrencyProviderProps {
   children: React.ReactNode;
 }
 
-export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
-  const [baseCurrency, setBaseCurrency] = useState("USD");
-  const [exchangeRates, setExchangeRates] = useState(defaultExchangeRates);
-  
-  // Define conversion rates for trading components
-  const conversionRates = {
-    USD_AUD: 1.54,
-    USD_EUR: 0.93,
-    USD_GBP: 0.82,
-    USD_JPY: 147.32,
-  };
+export function CurrencyProvider({ children }: CurrencyProviderProps) {
+  const [activeCurrency, setActiveCurrency] = useState("USD");
+  const [rates, setRates] = useState<Record<string, Record<string, number>>>({});
+  const [conversionRates, setConversionRates] = useState<Record<string, number>>({
+    USD: 1,
+    EUR: 0.93,
+    GBP: 0.82,
+    AUD: 1.52,
+    CAD: 1.35,
+    JPY: 113.5,
+  });
 
-  // In a real app, we would fetch the latest exchange rates from an API
+  // Fetch rates on component mount and when activeCurrency changes
   useEffect(() => {
-    const fetchExchangeRates = async () => {
+    const fetchRates = async () => {
       try {
-        // Simulate API call with a delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const cryptos = ["BTC", "ETH", "SOL", "ADA", "DOGE"];
+        const currencies = ["USD", "EUR", "GBP", "AUD", "CAD", "JPY"];
         
-        // For now, use static rates, but in production this would be an API call
-        setExchangeRates(defaultExchangeRates);
+        const ratesData = await fetchCurrencyRates(cryptos, currencies);
+        setRates(ratesData);
       } catch (error) {
-        console.error("Failed to fetch exchange rates:", error);
+        console.error("Error fetching currency rates:", error);
       }
     };
-    
-    fetchExchangeRates();
+
+    fetchRates();
   }, []);
-  
-  const convertCurrency = (value: number, from: string, to: string): number => {
+
+  // Convert a value from one currency to another
+  const convert = (value: number, from: string = "USD", to: string = activeCurrency): number => {
     if (from === to) return value;
-    
-    // First convert to USD as the base
-    const valueInUSD = from === "USD" ? value : value / exchangeRates[from];
-    
-    // Convert from USD to target currency
-    return to === "USD" ? valueInUSD : valueInUSD * exchangeRates[to];
+
+    // If direct conversion is available
+    if (conversionRates[from] && conversionRates[to]) {
+      // Convert from source to USD first (as base), then to target
+      const valueInUSD = value / conversionRates[from];
+      return valueInUSD * conversionRates[to];
+    }
+
+    // Fallback for crypto conversions or when direct rates aren't available
+    if (rates[from] && rates[from][to]) {
+      return value * rates[from][to];
+    } else if (rates[from] && rates[from]["USD"] && rates["USD"] && rates["USD"][to]) {
+      // Use USD as intermediate if direct conversion not available
+      const valueInUSD = value * rates[from]["USD"];
+      return valueInUSD * rates["USD"][to];
+    }
+
+    // If all else fails, just return the original value
+    console.warn(`No conversion rate found for ${from} to ${to}`);
+    return value;
   };
-  
-  const formatCurrency = (value: number, currency = baseCurrency): string => {
-    const symbols: Record<string, string> = {
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-      JPY: "¥",
-      AUD: "A$",
-      CAD: "C$",
-      CNY: "¥",
-      BTC: "₿",
-      ETH: "Ξ"
-    };
+
+  // Format a value according to the active currency or specified currency
+  const formatValue = (value: number, currency: string = activeCurrency): string => {
+    if (isNaN(value)) return "N/A";
     
-    // Format number based on currency
-    const options: Intl.NumberFormatOptions = {
-      maximumFractionDigits: currency === "JPY" ? 0 : 2,
-      minimumFractionDigits: currency === "JPY" ? 0 : 2
-    };
+    let formatter: Intl.NumberFormat;
     
-    if (currency === "BTC" || currency === "ETH") {
-      options.maximumFractionDigits = 8;
-      options.minimumFractionDigits = 4;
+    switch (currency) {
+      case "USD":
+        formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+        break;
+      case "EUR":
+        formatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+        break;
+      case "GBP":
+        formatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+        break;
+      case "AUD":
+        formatter = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
+        break;
+      case "CAD":
+        formatter = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' });
+        break;
+      case "JPY":
+        formatter = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' });
+        break;
+      default:
+        formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     }
     
-    return `${symbols[currency] || currency}${value.toLocaleString(undefined, options)}`;
+    return formatter.format(value);
   };
 
   return (
-    <CurrencyContext.Provider
-      value={{
-        baseCurrency,
-        setBaseCurrency,
-        exchangeRates,
-        formatCurrency,
-        convertCurrency,
-        availableCurrencies: defaultCurrencies,
-        conversionRates
-      }}
-    >
+    <CurrencyContext.Provider value={{ 
+      activeCurrency, 
+      setActiveCurrency, 
+      convert, 
+      formatValue, 
+      rates,
+      conversionRates
+    }}>
       {children}
     </CurrencyContext.Provider>
   );
-};
+}
+
+export const useCurrency = () => useContext(CurrencyContext);

@@ -1,5 +1,6 @@
 
 import { toast } from "@/components/ui/use-toast";
+import { getMockCryptoData } from "./cryptoApi";
 import apiCache from "./api/cacheService";
 import { CryptoData, CryptoChartData } from "@/types/trading";
 import { 
@@ -7,228 +8,234 @@ import {
   fetchCoinHistoryFromCoinGecko,
   searchCoinsFromCoinGecko 
 } from "./api/coinGeckoService";
-import { 
-  fetchCoinsFromCryptoCompare, 
-  fetchCoinHistoryFromCryptoCompare,
-  fetchTechnicalIndicatorsFromCryptoCompare 
-} from "./api/cryptoCompareService";
-import { fetchCoinHistory } from "./cryptoApi";
+import { fetchPriceMulti } from "./api/cryptoCompareService";
+import { fetchLatestListings } from "./api/coinMarketCapService";
 
-// Utility function to handle API errors with fallbacks
-async function fetchWithFallback<T>(
-  primaryFetch: () => Promise<T>,
-  fallbackFetch: () => Promise<T>,
-  errorMessage: string
-): Promise<T> {
-  try {
-    return await primaryFetch();
-  } catch (primaryError) {
-    console.error("Primary API failed:", primaryError);
-    
-    try {
-      // Log fallback usage for analytics
-      console.log("Using fallback API");
-      return await fallbackFetch();
-    } catch (fallbackError) {
-      console.error("Fallback API failed:", fallbackError);
-      toast({
-        title: "API Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw new Error(errorMessage);
-    }
-  }
-}
+// API selection preference
+type ApiProvider = "coinGecko" | "cryptoCompare" | "coinMarketCap";
+let preferredProvider: ApiProvider = "coinGecko";
 
-// Mock data generator for when all APIs fail
-const getMockCryptoData = (limit: number = 20): CryptoData[] => {
-  const mockCoins: CryptoData[] = [];
-
-  const baseCoins = [
-    { name: "Bitcoin", symbol: "BTC", price: 58000, change: 2.3 },
-    { name: "Ethereum", symbol: "ETH", price: 3100, change: -1.5 },
-    { name: "Cardano", symbol: "ADA", price: 0.53, change: 5.2 },
-    { name: "Solana", symbol: "SOL", price: 125, change: 8.7 },
-    { name: "Ripple", symbol: "XRP", price: 0.58, change: -2.1 },
-    { name: "Polkadot", symbol: "DOT", price: 7.2, change: 3.4 },
-    { name: "Dogecoin", symbol: "DOGE", price: 0.08, change: 1.5 },
-    { name: "Avalanche", symbol: "AVAX", price: 34, change: -3.2 },
-    { name: "Chainlink", symbol: "LINK", price: 12.5, change: 4.8 },
-    { name: "Polygon", symbol: "MATIC", price: 0.78, change: -1.2 },
-  ];
-
-  // Generate mock data based on the base coins
-  for (let i = 0; i < Math.min(limit, baseCoins.length); i++) {
-    const coin = baseCoins[i];
-    const mcRank = i + 1;
-    const volume = coin.price * (10000000 - i * 500000);
-    const marketCap = coin.price * (1000000000 - i * 50000000);
-
-    mockCoins.push({
-      id: coin.name.toLowerCase(),
-      symbol: coin.symbol.toLowerCase(),
-      name: coin.name,
-      image: `https://cryptologos.cc/logos/${coin.name.toLowerCase()}-${coin.symbol.toLowerCase()}-logo.png`,
-      current_price: coin.price,
-      market_cap: marketCap,
-      market_cap_rank: mcRank,
-      fully_diluted_valuation: marketCap * 1.2,
-      total_volume: volume,
-      high_24h: coin.price * (1 + 0.05),
-      low_24h: coin.price * (1 - 0.05),
-      price_change_24h: coin.price * (coin.change / 100),
-      price_change_percentage_24h: coin.change,
-      market_cap_change_24h: marketCap * (coin.change / 100),
-      market_cap_change_percentage_24h: coin.change,
-      circulating_supply: Math.floor(marketCap / coin.price),
-      total_supply: Math.floor(marketCap / coin.price) * 1.5,
-      max_supply: Math.floor(marketCap / coin.price) * 2,
-      ath: coin.price * 2,
-      ath_change_percentage: -50,
-      ath_date: "2021-11-10T14:24:11.849Z",
-      atl: coin.price * 0.2,
-      atl_change_percentage: 400,
-      atl_date: "2020-03-13T02:35:41.000Z",
-      roi: null,
-      last_updated: new Date().toISOString()
-    });
-  }
-
-  return mockCoins;
+export const setPreferredApiProvider = (provider: ApiProvider) => {
+  preferredProvider = provider;
+  localStorage.setItem("preferredApiProvider", provider);
 };
 
-// Enhanced version of fetchTopCoins with caching and fallback
-export const fetchTopCoins = async (limit: number = 20): Promise<CryptoData[]> => {
-  const cacheKey = `topCoins-${limit}`;
-  const cachedData = apiCache.get<CryptoData[]>(cacheKey);
+export const getPreferredApiProvider = (): ApiProvider => {
+  const storedPreference = localStorage.getItem("preferredApiProvider");
+  if (storedPreference && ["coinGecko", "cryptoCompare", "coinMarketCap"].includes(storedPreference)) {
+    preferredProvider = storedPreference as ApiProvider;
+  }
+  return preferredProvider;
+};
+
+/**
+ * Fetches cryptocurrency data from the preferred API provider with caching
+ */
+export const fetchCryptoData = async (limit: number = 10): Promise<CryptoData[]> => {
+  const cacheKey = `crypto-data-${limit}`;
+  const cached = apiCache.get<CryptoData[]>(cacheKey);
   
-  if (cachedData) {
-    return cachedData;
+  if (cached) {
+    return cached;
   }
   
   try {
-    const coins = await fetchWithFallback<CryptoData[]>(
-      () => fetchCoinsFromCoinGecko(limit),
-      () => fetchCoinsFromCryptoCompare(limit),
-      "Failed to fetch cryptocurrency data"
-    );
+    let data: CryptoData[];
+    const provider = getPreferredApiProvider();
     
-    // Get AUD conversion rate and add AUD prices
-    const conversionResponse = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=AUD");
-    let audRate = 1.45; // Default fallback rate
-    
-    if (conversionResponse.ok) {
-      const rateData = await conversionResponse.json();
-      audRate = rateData.rates.AUD || audRate;
+    switch (provider) {
+      case "coinGecko":
+        data = await fetchCoinsFromCoinGecko(limit);
+        break;
+      case "coinMarketCap":
+        data = await fetchLatestListings(limit);
+        break;
+      default:
+        // CryptoCompare doesn't have a direct mapping API for this
+        // Fallback to CoinGecko
+        data = await fetchCoinsFromCoinGecko(limit);
     }
     
-    // Add AUD prices to the coin data
-    const coinsWithAUD = coins.map((coin: any) => ({
+    // Process the data for consistency across APIs
+    const processedData = data.map(coin => ({
       ...coin,
-      priceAUD: coin.current_price * audRate
+      // Add calculated fields that might be missing
+      price: coin.current_price,
+      marketCap: coin.market_cap,
+      rank: coin.market_cap_rank,
+      volume: coin.total_volume,
+      priceChange: coin.price_change_24h,
+      changePercent: coin.price_change_percentage_24h,
     }));
     
-    // Cache the result
-    apiCache.set(cacheKey, coinsWithAUD, 2 * 60 * 1000); // 2 minutes cache
+    // Cache the data
+    apiCache.set(cacheKey, processedData, 5 * 60 * 1000); // Cache for 5 minutes
     
-    return coinsWithAUD;
+    return processedData;
   } catch (error) {
-    console.error("API Error:", error);
-    return getMockCryptoData(limit);
+    console.error("Error fetching crypto data:", error);
+    toast({
+      title: "Data Fetch Error",
+      description: "Failed to fetch cryptocurrency data. Using fallback data.",
+      variant: "destructive",
+    });
+    
+    // Use mock data as fallback
+    const mockData = getMockCryptoData().slice(0, limit);
+    return mockData;
   }
 };
 
-// Enhanced version of fetchCoinHistory with caching and fallback
-export const fetchEnhancedCoinHistory = async (
-  coinId: string, 
-  days: number = 7
-): Promise<CryptoChartData | null> => {
-  const cacheKey = `coinHistory-${coinId}-${days}`;
-  const cachedData = apiCache.get<CryptoChartData>(cacheKey);
+/**
+ * Fetches historical price data for a cryptocurrency
+ */
+export const fetchCryptoHistory = async (
+  coinId: string,
+  days: number = 30
+): Promise<CryptoChartData> => {
+  const cacheKey = `crypto-history-${coinId}-${days}`;
+  const cached = apiCache.get<CryptoChartData>(cacheKey);
   
-  if (cachedData) {
-    return cachedData;
+  if (cached) {
+    return cached;
   }
   
   try {
-    const data = await fetchWithFallback<CryptoChartData>(
-      () => fetchCoinHistoryFromCoinGecko(coinId, days),
-      () => fetchCoinHistoryFromCryptoCompare(coinId, days),
-      `Failed to fetch history for ${coinId}`
-    );
+    const data = await fetchCoinHistoryFromCoinGecko(coinId, days);
     
-    // Cache the result
-    apiCache.set(cacheKey, data, 5 * 60 * 1000); // 5 minutes cache
+    // Cache the data
+    apiCache.set(cacheKey, data, 30 * 60 * 1000); // Cache for 30 minutes
     
     return data;
   } catch (error) {
-    console.error("API Error:", error);
-    return null;
+    console.error("Error fetching crypto history:", error);
+    // Don't show toast here, coinGeckoService already does
+    
+    // Use CryptoAPI's fetchCoinHistory as fallback
+    const fallbackData = await import("./cryptoApi").then(module => module.fetchCoinHistory(coinId, days));
+    return fallbackData;
   }
 };
 
-// Enhanced version of searchCoins with caching
-export const searchCoins = async (query: string): Promise<CryptoData[]> => {
-  if (!query || query.length < 2) return [];
-  
-  const cacheKey = `search-${query}`;
-  const cachedData = apiCache.get<CryptoData[]>(cacheKey);
-  
-  if (cachedData) {
-    return cachedData;
-  }
-  
-  try {
-    const results = await searchCoinsFromCoinGecko(query);
-    
-    // Cache the result
-    apiCache.set(cacheKey, results, 5 * 60 * 1000); // 5 minutes cache
-    
-    return results;
-  } catch (error) {
-    console.error("Search Error:", error);
+/**
+ * Searches for cryptocurrencies by name or symbol
+ */
+export const searchCryptos = async (query: string): Promise<CryptoData[]> => {
+  if (!query || query.trim().length < 2) {
     return [];
   }
-};
-
-// Get Technical Indicators
-export const fetchTechnicalIndicators = async (
-  coinId: string,
-  indicator: string
-): Promise<any> => {
-  const cacheKey = `indicator-${coinId}-${indicator}`;
-  const cachedData = apiCache.get<any>(cacheKey);
   
-  if (cachedData) {
-    return cachedData;
+  const cacheKey = `crypto-search-${query}`;
+  const cached = apiCache.get<CryptoData[]>(cacheKey);
+  
+  if (cached) {
+    return cached;
   }
   
   try {
-    // CryptoCompare provides technical indicators
-    const data = await fetchTechnicalIndicatorsFromCryptoCompare(coinId, indicator);
+    const data = await searchCoinsFromCoinGecko(query);
     
-    // Cache the result
-    apiCache.set(cacheKey, data, 5 * 60 * 1000); // 5 minutes cache
+    // Cache the search results for a short time
+    apiCache.set(cacheKey, data, 10 * 60 * 1000); // Cache for 10 minutes
     
     return data;
   } catch (error) {
-    console.error("Technical Indicator API Error:", error);
-    return null;
+    console.error("Error searching cryptocurrencies:", error);
+    // Don't show toast here, coinGeckoService already does
+    
+    // Use mock data as fallback and filter it
+    return getMockCryptoData().filter(coin => 
+      coin.name.toLowerCase().includes(query.toLowerCase()) || 
+      coin.symbol.toLowerCase().includes(query.toLowerCase())
+    );
   }
 };
 
-// For backward compatibility
-export { fetchCoinHistory } from "./cryptoApi";
+/**
+ * Fetches currency conversion rates for cryptocurrencies
+ */
+export const fetchCurrencyRates = async (
+  cryptos: string[] = ["BTC", "ETH"], 
+  currencies: string[] = ["USD", "EUR", "GBP"]
+): Promise<Record<string, Record<string, number>>> => {
+  const cacheKey = `currency-rates-${cryptos.join("-")}-${currencies.join("-")}`;
+  const cached = apiCache.get<Record<string, Record<string, number>>>(cacheKey);
+  
+  if (cached) {
+    return cached;
+  }
+  
+  try {
+    const data = await fetchPriceMulti(cryptos, currencies);
+    
+    // Cache the data
+    apiCache.set(cacheKey, data, 5 * 60 * 1000); // Cache for 5 minutes
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching currency rates:", error);
+    toast({
+      title: "API Error",
+      description: "Could not fetch currency conversion rates. Using fallback data.",
+      variant: "destructive",
+    });
+    
+    // Return mock data
+    const mockData: Record<string, Record<string, number>> = {};
+    
+    cryptos.forEach(crypto => {
+      mockData[crypto] = {};
+      currencies.forEach(currency => {
+        let rate = 1;
+        if (crypto === "BTC" && currency === "USD") rate = 58000;
+        else if (crypto === "ETH" && currency === "USD") rate = 3500;
+        else if (crypto === "BTC" && currency === "EUR") rate = 54000;
+        else if (crypto === "ETH" && currency === "EUR") rate = 3250;
+        else if (crypto === "BTC" && currency === "GBP") rate = 48000;
+        else if (crypto === "ETH" && currency === "GBP") rate = 2900;
+        mockData[crypto][currency] = rate;
+      });
+    });
+    
+    return mockData;
+  }
+};
 
-// Export types
-export type { CryptoData, CryptoChartData } from "@/types/trading";
-
-// Clear cache function for manual refreshes
-export const clearApiCache = () => {
-  apiCache.clear();
-  toast({
-    title: "Cache Cleared",
-    description: "API cache has been cleared and fresh data will be loaded.",
-  });
+/**
+ * Refreshes cached data to ensure it's up-to-date
+ */
+export const refreshCryptoData = async (): Promise<boolean> => {
+  try {
+    // Clear relevant caches
+    const cacheKeys = [
+      "crypto-data-10", 
+      "crypto-data-20", 
+      "crypto-data-50",
+      "currency-rates-BTC-ETH-USD-EUR-GBP"
+    ];
+    
+    cacheKeys.forEach(key => apiCache.remove(key));
+    
+    // Make new requests to repopulate the cache
+    await Promise.all([
+      fetchCryptoData(10),
+      fetchCurrencyRates()
+    ]);
+    
+    toast({
+      title: "Data Refreshed",
+      description: "Cryptocurrency data has been updated successfully.",
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Error refreshing crypto data:", error);
+    toast({
+      title: "Refresh Failed",
+      description: "Could not refresh cryptocurrency data.",
+      variant: "destructive",
+    });
+    
+    return false;
+  }
 };

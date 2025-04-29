@@ -60,13 +60,25 @@ export interface CoinOption {
   value: string;
   label: string;
   image?: string;
+  id?: string;
+  name?: string;
+  symbol?: string;
+  price?: number;
+  priceAUD?: number;
+  priceEUR?: number; 
+  priceGBP?: number;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
+  rank?: number;
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  username: string;
+  username?: string;
   avatar?: string;
   preferences: {
     theme: string;
@@ -104,6 +116,11 @@ export interface ApiUsageStats {
     remaining: number;
     resetsAt: string;
   };
+  service?: string;
+  currentUsage?: number;
+  maxUsage?: number;
+  resetTime?: string;
+  endpoint?: string;
 }
 
 export interface CryptoSearchProps {
@@ -130,6 +147,14 @@ export interface Trade {
   status: 'completed' | 'pending' | 'failed';
   exchangeRate?: number;
   exchangeId?: string;
+  coinId?: string;
+  coinName?: string;
+  coinSymbol?: string;
+  totalValue?: number;
+  timestamp?: string;
+  currency?: string;
+  currentValue?: number;
+  profitLoss?: number;
 }
 
 export interface PortfolioBenchmark {
@@ -166,7 +191,18 @@ export interface WidgetPosition {
   y: number;
 }
 
-export type WidgetType = 'portfolio' | 'chart' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'multiExchange' | 'aiAnalysis' | 'education' | 'community';
+export type WidgetType = 
+  | 'portfolio' 
+  | 'chart' 
+  | 'watchlist' 
+  | 'news' 
+  | 'alerts' 
+  | 'trading' 
+  | 'aiTrading' 
+  | 'multiExchange' 
+  | 'aiAnalysis' 
+  | 'education' 
+  | 'community';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'full';
 

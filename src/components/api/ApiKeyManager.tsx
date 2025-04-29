@@ -1,233 +1,306 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Toggle } from "@/components/ui/toggle";
-import { ApiKeyInfo } from '@/types/trading';
-import { toast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, Plus, Trash, Check, AlertTriangle } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
+import { Key, EyeOff, Eye, Check, X, AlertTriangle } from "lucide-react";
+import { ApiKeyInfo } from "@/types/trading";
+import { getCoinGeckoApiKey, setCoinGeckoApiKey } from "@/services/api/coinGeckoService";
+import { getCryptoCompareApiKey, setCryptoCompareApiKey } from "@/services/api/cryptoCompareService";
+import { getCoinMarketCapApiKey, setCoinMarketCapApiKey } from "@/services/api/coinMarketCapService";
 
 const ApiKeyManager = () => {
   const [apiKeys, setApiKeys] = useState<ApiKeyInfo[]>([
-    { 
-      service: "CoinGecko", 
-      key: "cg_api_key_123456789abcdef", 
-      isActive: true,
-      lastTested: new Date().toISOString(),
-      testResult: 'success'
+    {
+      id: "coingecko",
+      provider: "CoinGecko",
+      key: "",
+      name: "CoinGecko API Key",
+      created: new Date().toISOString(),
+      isActive: false
     },
-    { 
-      service: "CryptoCompare", 
-      key: "cc_api_key_abcdef123456789", 
-      isActive: true,
-      lastTested: new Date().toISOString(),
-      testResult: 'success'
+    {
+      id: "cryptocompare",
+      provider: "CryptoCompare",
+      key: "",
+      name: "CryptoCompare API Key",
+      created: new Date().toISOString(),
+      isActive: false
+    },
+    {
+      id: "coinmarketcap",
+      provider: "CoinMarketCap",
+      key: "",
+      name: "CoinMarketCap API Key",
+      created: new Date().toISOString(),
+      isActive: false
     }
   ]);
   
-  const [newService, setNewService] = useState<string>("");
-  const [newKey, setNewKey] = useState<string>("");
-  const [showKey, setShowKey] = useState<Record<string, boolean>>({});
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [showKey, setShowKey] = useState<string | null>(null);
+  const [editedKey, setEditedKey] = useState("");
   
-  const handleAddKey = () => {
-    if (!newService || !newKey) {
-      toast({
-        title: "Error",
-        description: "Please enter both service and API key",
-        variant: "destructive"
-      });
-      return;
+  // Load saved API keys on component mount
+  useEffect(() => {
+    const loadApiKeys = () => {
+      const updatedKeys = [...apiKeys];
+      
+      // Load CoinGecko API key
+      const coinGeckoKey = getCoinGeckoApiKey();
+      if (coinGeckoKey) {
+        const index = updatedKeys.findIndex(k => k.id === "coingecko");
+        if (index !== -1) {
+          updatedKeys[index] = {
+            ...updatedKeys[index],
+            key: coinGeckoKey,
+            isActive: true
+          };
+        }
+      }
+      
+      // Load CryptoCompare API key
+      const cryptoCompareKey = getCryptoCompareApiKey();
+      if (cryptoCompareKey) {
+        const index = updatedKeys.findIndex(k => k.id === "cryptocompare");
+        if (index !== -1) {
+          updatedKeys[index] = {
+            ...updatedKeys[index],
+            key: cryptoCompareKey,
+            isActive: true
+          };
+        }
+      }
+      
+      // Load CoinMarketCap API key
+      const coinMarketCapKey = getCoinMarketCapApiKey();
+      if (coinMarketCapKey) {
+        const index = updatedKeys.findIndex(k => k.id === "coinmarketcap");
+        if (index !== -1) {
+          updatedKeys[index] = {
+            ...updatedKeys[index],
+            key: coinMarketCapKey,
+            isActive: true
+          };
+        }
+      }
+      
+      setApiKeys(updatedKeys);
+    };
+    
+    loadApiKeys();
+  }, []);
+  
+  const startEdit = (id: string, currentKey: string) => {
+    setIsEditing(id);
+    setEditedKey(currentKey);
+  };
+  
+  const cancelEdit = () => {
+    setIsEditing(null);
+    setEditedKey("");
+  };
+  
+  const saveKey = (id: string) => {
+    const keyIndex = apiKeys.findIndex(k => k.id === id);
+    if (keyIndex === -1) return;
+    
+    let success = false;
+    
+    // Save key to the appropriate service
+    if (id === "coingecko") {
+      success = setCoinGeckoApiKey(editedKey);
+    } else if (id === "cryptocompare") {
+      success = setCryptoCompareApiKey(editedKey);
+    } else if (id === "coinmarketcap") {
+      success = setCoinMarketCapApiKey(editedKey);
     }
     
-    const newKeyInfo: ApiKeyInfo = {
-      service: newService,
-      key: newKey,
-      isActive: true
-    };
-    
-    setApiKeys([...apiKeys, newKeyInfo]);
-    setNewService("");
-    setNewKey("");
-    
-    toast({
-      title: "API Key Added",
-      description: `API key for ${newService} has been added`
-    });
+    if (success) {
+      const updatedKeys = [...apiKeys];
+      updatedKeys[keyIndex] = {
+        ...updatedKeys[keyIndex],
+        key: editedKey,
+        isActive: !!editedKey,
+        lastUsed: editedKey ? new Date().toISOString() : undefined
+      };
+      
+      setApiKeys(updatedKeys);
+      setIsEditing(null);
+      setEditedKey("");
+      
+      toast({
+        title: "API Key Saved",
+        description: `The ${updatedKeys[keyIndex].provider} API key has been updated.`
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Could not save the API key.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const handleRemoveKey = (index: number) => {
-    const updatedKeys = [...apiKeys];
-    const removedKey = updatedKeys[index];
-    updatedKeys.splice(index, 1);
-    setApiKeys(updatedKeys);
+  const toggleKeyVisibility = (id: string) => {
+    setShowKey(showKey === id ? null : id);
+  };
+  
+  const toggleActive = (id: string, active: boolean) => {
+    const keyIndex = apiKeys.findIndex(k => k.id === id);
+    if (keyIndex === -1) return;
     
-    toast({
-      title: "API Key Removed",
-      description: `API key for ${removedKey.service} has been removed`
-    });
-  };
-  
-  const toggleKeyVisibility = (index: number) => {
-    setShowKey({
-      ...showKey,
-      [index]: !showKey[index]
-    });
-  };
-  
-  const toggleKeyActive = (index: number) => {
-    const updatedKeys = [...apiKeys];
-    updatedKeys[index].isActive = !updatedKeys[index].isActive;
-    setApiKeys(updatedKeys);
-    
-    toast({
-      title: updatedKeys[index].isActive ? "API Key Activated" : "API Key Deactivated",
-      description: `API key for ${updatedKeys[index].service} has been ${updatedKeys[index].isActive ? 'activated' : 'deactivated'}`
-    });
-  };
-  
-  const testApiKey = (index: number) => {
-    // Simulate API key testing
     const updatedKeys = [...apiKeys];
     
-    // For demonstration, we'll randomly determine if the test is successful
-    const isSuccessful = Math.random() > 0.2;
-    
-    updatedKeys[index] = {
-      ...updatedKeys[index],
-      lastTested: new Date().toISOString(),
-      testResult: isSuccessful ? 'success' : 'failed'
-    };
+    if (!active) {
+      // If deactivating, clear the key
+      if (id === "coingecko") {
+        setCoinGeckoApiKey("");
+      } else if (id === "cryptocompare") {
+        setCryptoCompareApiKey("");
+      } else if (id === "coinmarketcap") {
+        setCoinMarketCapApiKey("");
+      }
+      
+      updatedKeys[keyIndex] = {
+        ...updatedKeys[keyIndex],
+        key: "",
+        isActive: false
+      };
+    } else {
+      // If activating without a key, start editing
+      if (!updatedKeys[keyIndex].key) {
+        startEdit(id, "");
+        return;
+      } else {
+        // If key exists, just activate
+        updatedKeys[keyIndex] = {
+          ...updatedKeys[keyIndex],
+          isActive: true
+        };
+      }
+    }
     
     setApiKeys(updatedKeys);
     
-    toast({
-      title: isSuccessful ? "API Key Valid" : "API Key Invalid",
-      description: isSuccessful 
-        ? `API key for ${updatedKeys[index].service} is valid and working` 
-        : `API key for ${updatedKeys[index].service} failed verification`,
-      variant: isSuccessful ? "default" : "destructive"
-    });
+    if (!active) {
+      toast({
+        title: "API Key Deactivated",
+        description: `The ${updatedKeys[keyIndex].provider} API key has been removed.`
+      });
+    }
+  };
+  
+  const maskKey = (key: string) => {
+    if (!key) return "Not set";
+    if (key.length <= 8) return "●".repeat(key.length);
+    return key.substring(0, 4) + "●".repeat(key.length - 8) + key.substring(key.length - 4);
   };
   
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="service">Service</Label>
-            <Input
-              id="service"
-              placeholder="e.g. CoinGecko, Binance"
-              value={newService}
-              onChange={(e) => setNewService(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="apiKey">API Key</Label>
-            <div className="relative">
-              <Input
-                id="apiKey"
-                type="password"
-                placeholder="Enter your API key"
-                value={newKey}
-                onChange={(e) => setNewKey(e.target.value)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0"
-                onClick={() => setShowKey({...showKey, new: !showKey.new})}
-              >
-                {showKey.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
+    <Card>
+      <CardContent className="space-y-6 pt-6">
+        {apiKeys.map((apiKey) => (
+          <div key={apiKey.id} className="border rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-medium flex items-center">
+                  <Key className="h-4 w-4 mr-2" />
+                  {apiKey.provider}
+                </h3>
+                <p className="text-sm text-muted-foreground">{apiKey.name}</p>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Label htmlFor={`activate-${apiKey.id}`} className="sr-only">Activate</Label>
+                <Switch
+                  id={`activate-${apiKey.id}`}
+                  checked={apiKey.isActive}
+                  onCheckedChange={(checked) => toggleActive(apiKey.id, checked)}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <Button onClick={handleAddKey} className="w-full">
-          <Plus className="h-4 w-4 mr-2" />
-          Add API Key
-        </Button>
-      </div>
-      
-      <div>
-        <h3 className="text-lg font-medium mb-4">Saved API Keys</h3>
-        
-        {apiKeys.length > 0 ? (
-          <div className="space-y-3">
-            {apiKeys.map((apiKey, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="space-y-1">
-                  <div className="flex items-center">
-                    <span className="font-medium">{apiKey.service}</span>
-                    {apiKey.testResult && (
-                      <span className="ml-2">
-                        {apiKey.testResult === 'success' ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <AlertTriangle className="h-4 w-4 text-red-500" />
-                        )}
-                      </span>
-                    )}
+            
+            {isEditing === apiKey.id ? (
+              <div className="space-y-2">
+                <Label htmlFor={`key-input-${apiKey.id}`} className="sr-only">API Key</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id={`key-input-${apiKey.id}`}
+                    value={editedKey}
+                    onChange={(e) => setEditedKey(e.target.value)}
+                    placeholder="Enter API key"
+                    type="text"
+                    autoFocus
+                  />
+                  <Button size="icon" onClick={() => saveKey(apiKey.id)}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="outline" onClick={cancelEdit}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enter your {apiKey.provider} API key. This will be stored in your browser's local storage.
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="font-mono text-sm">
+                    {showKey === apiKey.id ? apiKey.key : maskKey(apiKey.key)}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-sm text-muted-foreground font-mono">
-                      {showKey[index] ? apiKey.key : apiKey.key.substring(0, 3) + '•'.repeat(apiKey.key.length - 6) + apiKey.key.substring(apiKey.key.length - 3)}
-                    </div>
+                  
+                  {apiKey.key && (
                     <Button
-                      variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
-                      onClick={() => toggleKeyVisibility(index)}
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={() => toggleKeyVisibility(apiKey.id)}
                     >
-                      {showKey[index] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      {showKey === apiKey.id ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
-                  </div>
-                  {apiKey.lastTested && (
-                    <div className="text-xs text-muted-foreground">
-                      Last tested: {new Date(apiKey.lastTested).toLocaleString()}
-                    </div>
                   )}
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <Toggle
-                    pressed={apiKey.isActive}
-                    onPressedChange={() => toggleKeyActive(index)}
-                    aria-label="Toggle API key active state"
-                  >
-                    {apiKey.isActive ? "Active" : "Inactive"}
-                  </Toggle>
-                  
+                {apiKey.isActive && apiKey.key ? (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => testApiKey(index)}
+                    onClick={() => startEdit(apiKey.id, apiKey.key)}
                   >
-                    Test
+                    Change
                   </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                    onClick={() => handleRemoveKey(index)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
+                ) : apiKey.isActive ? (
+                  <div className="flex items-center text-amber-500">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Key required</span>
+                  </div>
+                ) : null}
               </div>
-            ))}
+            )}
+            
+            {apiKey.isActive && apiKey.lastUsed && (
+              <p className="text-xs text-muted-foreground">
+                Last used: {new Date(apiKey.lastUsed).toLocaleString()}
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No API keys added yet. Add your first API key above.
-          </div>
-        )}
-      </div>
-    </div>
+        ))}
+        
+        <div className="text-xs text-muted-foreground">
+          <p>Note: API keys are stored in your browser's local storage and are not sent to our servers.</p>
+          <p className="mt-1">When using public API keys, you may encounter rate limits. Consider signing up for official API access.</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -165,3 +165,6 @@ export const fetchTopCoins = async (limit: number = 10): Promise<CryptoData[]> =
   // Combine and return the top N coins
   return [...mockData, ...additionalCoins].slice(0, limit);
 };
+
+// Export CryptoChartData type for proper usage
+export type { CryptoChartData } from '@/types/trading';

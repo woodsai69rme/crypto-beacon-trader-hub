@@ -19,8 +19,8 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "dark", // Default to dark instead of system
-  colorScheme: "blue", // Default to blue instead of default
+  theme: "dark",
+  colorScheme: "blue",
   setTheme: () => Promise.resolve(),
   setColorScheme: () => Promise.resolve(),
 };
@@ -29,8 +29,8 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "dark", // Default to dark instead of system
-  defaultColorScheme = "blue", // Default to blue instead of default
+  defaultTheme = "dark",
+  defaultColorScheme = "blue",
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
@@ -42,28 +42,13 @@ export function ThemeProvider({
     () => (localStorage.getItem(`${storageKey}-color`) as ColorScheme) || defaultColorScheme
   );
 
-  // Force dark mode on light mode selection
-  useEffect(() => {
-    if (theme === 'light') {
-      setThemeState('dark');
-    }
-  }, [theme]);
-
+  // Always apply dark mode
   useEffect(() => {
     const root = window.document.documentElement;
 
     // Always apply dark theme, regardless of user selection
     root.classList.remove("light");
     root.classList.add("dark");
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "dark"; // Always choose dark even for system preference
-
-      root.classList.add(systemTheme);
-    }
   }, [theme]);
 
   useEffect(() => {
@@ -85,8 +70,8 @@ export function ThemeProvider({
   }, [colorScheme]);
 
   const setTheme = async (theme: Theme) => {
-    // Force dark mode
-    const actualTheme = theme === 'light' ? 'dark' : theme;
+    // Always use dark mode
+    const actualTheme = "dark";
     
     localStorage.setItem(`${storageKey}-mode`, actualTheme);
     setThemeState(actualTheme);
@@ -101,7 +86,7 @@ export function ThemeProvider({
     <ThemeProviderContext.Provider
       {...props}
       value={{
-        theme,
+        theme: "dark", // Always return "dark" as the theme
         colorScheme,
         setTheme,
         setColorScheme,
