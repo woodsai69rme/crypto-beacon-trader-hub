@@ -1,107 +1,44 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
-type Theme = "dark" | "light" | "system";
-type ColorScheme = "default" | "blue" | "purple" | "green" | "amber" | "red" | "slate";
-
-interface ThemeProviderProps {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  defaultColorScheme?: ColorScheme;
-  storageKey?: string;
-}
-
-interface ThemeProviderState {
-  theme: Theme;
-  colorScheme: ColorScheme;
-  setTheme: (theme: Theme) => Promise<void>;
-  setColorScheme: (colorScheme: ColorScheme) => Promise<void>;
-}
-
-const initialState: ThemeProviderState = {
-  theme: "dark",
-  colorScheme: "blue",
-  setTheme: () => Promise.resolve(),
-  setColorScheme: () => Promise.resolve(),
+type ThemeContextType = {
+  theme: string;
+  setTheme: (theme: string) => void;
 };
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+const ThemeContext = createContext<ThemeContextType>({
+  theme: "dark", // Default to dark theme
+  setTheme: () => {},
+});
 
-export function ThemeProvider({
-  children,
-  defaultTheme = "dark",
-  defaultColorScheme = "blue",
-  storageKey = "ui-theme",
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(
-    () => (localStorage.getItem(`${storageKey}-mode`) as Theme) || defaultTheme
-  );
-  
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(
-    () => (localStorage.getItem(`${storageKey}-color`) as ColorScheme) || defaultColorScheme
-  );
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<string>(() => {
+    // Use dark theme as default, but check if the user has previously set a preference
+    const storedTheme = localStorage.getItem("theme");
+    return storedTheme || "dark";
+  });
 
-  // Always apply dark mode
   useEffect(() => {
-    const root = window.document.documentElement;
-
-    // Always apply dark theme, regardless of user selection
-    root.classList.remove("light");
-    root.classList.add("dark");
+    // Update theme class on document element
+    const root = document.documentElement;
+    
+    // Remove all theme classes
+    root.classList.remove("light", "dark");
+    
+    // Add the current theme class
+    root.classList.add(theme);
+    
+    // Store the theme preference
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-
-    // Remove all existing color scheme classes
-    root.classList.remove(
-      "theme-default",
-      "theme-blue",
-      "theme-purple", 
-      "theme-green",
-      "theme-amber",
-      "theme-red",
-      "theme-slate"
-    );
-
-    // Add the new color scheme class
-    root.classList.add(`theme-${colorScheme}`);
-  }, [colorScheme]);
-
-  const setTheme = async (theme: Theme) => {
-    // Always use dark mode
-    const actualTheme = "dark";
-    
-    localStorage.setItem(`${storageKey}-mode`, actualTheme);
-    setThemeState(actualTheme);
-  };
-
-  const setColorScheme = async (colorScheme: ColorScheme) => {
-    localStorage.setItem(`${storageKey}-color`, colorScheme);
-    setColorSchemeState(colorScheme);
-  };
-
   return (
-    <ThemeProviderContext.Provider
-      {...props}
-      value={{
-        theme: "dark", // Always return "dark" as the theme
-        colorScheme,
-        setTheme,
-        setColorScheme,
-      }}
-    >
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
-    </ThemeProviderContext.Provider>
+    </ThemeContext.Provider>
   );
-}
-
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
-
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider");
-
-  return context;
 };
+
+export const useTheme = () => useContext(ThemeContext);
+
+export default ThemeContext;

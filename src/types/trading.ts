@@ -1,4 +1,3 @@
-
 export type Trade = {
   id: string;
   coinId: string;
@@ -135,9 +134,11 @@ export interface ApiKeyInfo {
   name: string;
   key: string;
   service: string;
+  provider: string;
   createdAt: string;
   lastUsed?: string;
   isValid: boolean;
+  isActive: boolean;
   permissions: string[];
 }
 

@@ -1,4 +1,3 @@
-
 import { CryptoData, CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 import apiCache from "./api/cacheService";
@@ -8,6 +7,7 @@ const CACHE_KEYS = {
   SEARCH: 'crypto-search',
   TRENDING: 'crypto-trending',
   TECHNICAL: 'technical-indicators',
+  MARKET_DATA: 'market-data',
 };
 
 // Base API URLs
@@ -297,6 +297,109 @@ export const fetchTechnicalIndicators = async (coinId: string, days: number = 14
       macd: []
     };
   }
+};
+
+/**
+ * Fetch cryptocurrency data
+ */
+export const fetchCryptoData = async (limit: number = 10): Promise<CryptoData[]> => {
+  const cacheKey = `${CACHE_KEYS.MARKET_DATA}-${limit}`;
+  const cachedResult = apiCache.get<CryptoData[]>(cacheKey);
+  
+  if (cachedResult) {
+    return cachedResult;
+  }
+  
+  try {
+    const response = await fetch(
+      `${COINGECKO_API_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`,
+      DEFAULT_FETCH_OPTIONS
+    );
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Cache the results
+    apiCache.set<CryptoData[]>(cacheKey, data, 5 * 60 * 1000); // Cache for 5 minutes
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching cryptocurrency data:", error);
+    toast({
+      title: "API Error",
+      description: "Failed to fetch cryptocurrency data. Using mock data instead.",
+      variant: "destructive",
+    });
+    
+    // Return mock data
+    return generateMockCryptoData(limit);
+  }
+};
+
+/**
+ * Generate mock cryptocurrency data
+ */
+const generateMockCryptoData = (count: number = 10): CryptoData[] => {
+  const cryptos = [
+    { id: "bitcoin", symbol: "btc", name: "Bitcoin", image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png" },
+    { id: "ethereum", symbol: "eth", name: "Ethereum", image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png" },
+    { id: "binancecoin", symbol: "bnb", name: "BNB", image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png" },
+    { id: "solana", symbol: "sol", name: "Solana", image: "https://assets.coingecko.com/coins/images/4128/large/solana.png" },
+    { id: "ripple", symbol: "xrp", name: "XRP", image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png" },
+    { id: "cardano", symbol: "ada", name: "Cardano", image: "https://assets.coingecko.com/coins/images/975/large/cardano.png" },
+    { id: "polkadot", symbol: "dot", name: "Polkadot", image: "https://assets.coingecko.com/coins/images/12171/large/polkadot.png" },
+    { id: "dogecoin", symbol: "doge", name: "Dogecoin", image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png" },
+    { id: "avalanche-2", symbol: "avax", name: "Avalanche", image: "https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png" },
+    { id: "chainlink", symbol: "link", name: "Chainlink", image: "https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png" },
+    { id: "uniswap", symbol: "uni", name: "Uniswap", image: "https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png" },
+    { id: "litecoin", symbol: "ltc", name: "Litecoin", image: "https://assets.coingecko.com/coins/images/2/large/litecoin.png" },
+    { id: "polygon", symbol: "matic", name: "Polygon", image: "https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png" },
+    { id: "cosmos", symbol: "atom", name: "Cosmos", image: "https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png" },
+    { id: "stellar", symbol: "xlm", name: "Stellar", image: "https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png" },
+  ];
+  
+  return cryptos.slice(0, count).map((crypto, index) => {
+    const price = crypto.id === "bitcoin" ? 45000 + Math.random() * 5000 : 
+                  crypto.id === "ethereum" ? 3000 + Math.random() * 500 : 
+                  10 + Math.random() * 200;
+    
+    const priceChangePercent = (Math.random() * 16) - 8; // -8% to +8%
+    const priceChange = price * (priceChangePercent / 100);
+    const marketCap = price * (10000000 + Math.random() * 90000000);
+    const volume = marketCap * (Math.random() * 0.3);
+    
+    return {
+      id: crypto.id,
+      symbol: crypto.symbol,
+      name: crypto.name,
+      image: crypto.image,
+      current_price: price,
+      market_cap: marketCap,
+      market_cap_rank: index + 1,
+      fully_diluted_valuation: marketCap * 1.2,
+      total_volume: volume,
+      high_24h: price * (1 + Math.random() * 0.1),
+      low_24h: price * (1 - Math.random() * 0.1),
+      price_change_24h: priceChange,
+      price_change_percentage_24h: priceChangePercent,
+      market_cap_change_24h: marketCap * (priceChangePercent / 100),
+      market_cap_change_percentage_24h: priceChangePercent,
+      circulating_supply: 1000000 + Math.random() * 9000000,
+      total_supply: 2100000 + Math.random() * 8000000,
+      max_supply: crypto.id === "bitcoin" ? 21000000 : null,
+      ath: price * 2,
+      ath_change_percentage: -50,
+      ath_date: "2021-11-10T14:24:11.849Z",
+      atl: price * 0.1,
+      atl_change_percentage: 900,
+      atl_date: "2020-03-13T02:24:11.849Z",
+      roi: null,
+      last_updated: new Date().toISOString()
+    };
+  });
 };
 
 /**

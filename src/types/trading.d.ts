@@ -1,4 +1,3 @@
-
 export interface CryptoData {
   id: string;
   symbol: string;
@@ -29,7 +28,7 @@ export interface CryptoData {
     times: number;
     currency: string;
     percentage: number;
-  };
+  } | null;
   price?: number;
   marketCap?: number;
   rank?: number;
@@ -46,17 +45,18 @@ export interface CryptoChartData {
 
 export interface WatchlistItem {
   id: string;
+  coinId: string;
   symbol: string;
   name: string;
-  image: string;
-  current_price: number;
-  market_cap: number;
-  market_cap_rank: number;
-  price_change_percentage_24h: number;
-  priceChangePercentage24h?: number;
-  coinId?: string;
-  price?: number;
-  addedAt?: string;
+  price: number;
+  priceChangePercentage24h: number;
+  addedAt: string;
+  alertSettings?: {
+    highPrice?: number;
+    lowPrice?: number;
+    percentageChangeThreshold?: number;
+    enabled: boolean;
+  };
 }
 
 export interface CoinOption {

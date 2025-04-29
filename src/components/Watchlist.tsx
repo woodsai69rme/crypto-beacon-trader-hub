@@ -28,25 +28,27 @@ const Watchlist = () => {
       setWatchlist([
         {
           id: "bitcoin",
+          coinId: "bitcoin",
           symbol: "btc",
           name: "Bitcoin",
-          image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579",
-          current_price: 58000,
-          market_cap: 1100000000000,
-          market_cap_rank: 1,
-          price_change_percentage_24h: 2.1,
-          priceChangePercentage24h: 2.1
+          price: 58000,
+          priceChangePercentage24h: 2.1,
+          addedAt: new Date().toISOString(),
+          alertSettings: {
+            enabled: false
+          }
         },
         {
           id: "ethereum",
+          coinId: "ethereum",
           symbol: "eth",
           name: "Ethereum",
-          image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880",
-          current_price: 3500,
-          market_cap: 420000000000,
-          market_cap_rank: 2,
-          price_change_percentage_24h: 2.9,
-          priceChangePercentage24h: 2.9
+          price: 3500,
+          priceChangePercentage24h: 2.9,
+          addedAt: new Date().toISOString(),
+          alertSettings: {
+            enabled: false
+          }
         }
       ]);
     }
@@ -69,17 +71,11 @@ const Watchlist = () => {
       
       // Update existing watchlist items with fresh data
       const updatedWatchlist = watchlist.map(item => {
-        const freshData = data.find(coin => coin.id === item.id);
+        const freshData = data.find(coin => coin.id === item.coinId || coin.id === item.id);
         if (freshData) {
           return {
-            id: freshData.id,
-            symbol: freshData.symbol,
-            name: freshData.name,
-            image: freshData.image,
-            current_price: freshData.current_price,
-            market_cap: freshData.market_cap,
-            market_cap_rank: freshData.market_cap_rank,
-            price_change_percentage_24h: freshData.price_change_percentage_24h,
+            ...item,
+            price: freshData.current_price,
             priceChangePercentage24h: freshData.price_change_percentage_24h
           };
         }
@@ -105,7 +101,7 @@ const Watchlist = () => {
   
   const addToWatchlist = async (coinId: string) => {
     // Check if already in watchlist
-    if (watchlist.some(item => item.id === coinId)) {
+    if (watchlist.some(item => item.coinId === coinId || item.id === coinId)) {
       toast({
         title: "Already in watchlist",
         description: "This coin is already in your watchlist",
@@ -121,14 +117,15 @@ const Watchlist = () => {
       if (coin) {
         const newWatchlistItem: WatchlistItem = {
           id: coin.id,
+          coinId: coin.id,
           symbol: coin.symbol,
           name: coin.name,
-          image: coin.image,
-          current_price: coin.current_price,
-          market_cap: coin.market_cap,
-          market_cap_rank: coin.market_cap_rank,
-          price_change_percentage_24h: coin.price_change_percentage_24h,
-          priceChangePercentage24h: coin.price_change_percentage_24h
+          price: coin.current_price,
+          priceChangePercentage24h: coin.price_change_percentage_24h,
+          addedAt: new Date().toISOString(),
+          alertSettings: {
+            enabled: false
+          }
         };
         
         setWatchlist(prev => [...prev, newWatchlistItem]);
@@ -154,7 +151,7 @@ const Watchlist = () => {
   };
   
   const removeFromWatchlist = (coinId: string) => {
-    setWatchlist(prev => prev.filter(item => item.id !== coinId));
+    setWatchlist(prev => prev.filter(item => item.id !== coinId && item.coinId !== coinId));
     toast({
       title: "Removed from watchlist",
       description: "The coin has been removed from your watchlist",
@@ -213,10 +210,11 @@ const Watchlist = () => {
             </div>
             
             {watchlist.map((coin) => {
-              const priceInCurrency = convert(coin.current_price, "USD", activeCurrency);
-              const marketCapInCurrency = convert(coin.market_cap, "USD", activeCurrency);
+              const priceInCurrency = convert(coin.price, "USD", activeCurrency);
+              // For market cap, we'll estimate it based on the price
+              const marketCapInCurrency = convert(coin.price * 1000000, "USD", activeCurrency); 
               
-              const isPriceUp = (coin.price_change_percentage_24h || 0) >= 0;
+              const isPriceUp = (coin.priceChangePercentage24h || 0) >= 0;
               
               return (
                 <div 
@@ -225,8 +223,11 @@ const Watchlist = () => {
                 >
                   {/* Coin */}
                   <div className="col-span-2 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-                      <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" />
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                      {/* Placeholder for images */}
+                      <div className="w-full h-full flex items-center justify-center text-xs font-bold">
+                        {coin.symbol.substring(0, 1).toUpperCase()}
+                      </div>
                     </div>
                     <div>
                       <div className="font-medium">{coin.symbol.toUpperCase()}</div>
@@ -236,7 +237,7 @@ const Watchlist = () => {
                   
                   {/* Rank */}
                   <div className="text-right">
-                    <Badge variant="outline" className="border-muted">#{coin.market_cap_rank}</Badge>
+                    <Badge variant="outline" className="border-muted">#</Badge>
                   </div>
                   
                   {/* Price */}
@@ -248,7 +249,7 @@ const Watchlist = () => {
                   <div className={`text-right ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
                     <span className="inline-flex items-center">
                       {isPriceUp ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
-                      {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
+                      {Math.abs(coin.priceChangePercentage24h || 0).toFixed(2)}%
                     </span>
                   </div>
                   
