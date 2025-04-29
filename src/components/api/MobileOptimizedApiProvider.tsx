@@ -76,7 +76,7 @@ const MobileOptimizedApiProvider: React.FC = () => {
           aria-label={`${provider.name} enabled`}
         />
         
-        {provider.requiresAuth && (
+        {(provider.authRequired || provider.requiresAuth) && (
           isMobile ? (
             <Sheet>
               <SheetTrigger asChild>

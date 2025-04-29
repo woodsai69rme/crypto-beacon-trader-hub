@@ -1,0 +1,52 @@
+
+/* Common utility classes for styling */
+.bg-crypto-dark {
+  background-color: var(--app-bg, #1A1F2C);
+}
+
+.border-border {
+  border-color: var(--border-color, #333344);
+}
+
+.text-crypto-bitcoin {
+  color: #F7931A;
+}
+
+.text-foreground {
+  color: var(--text-primary, white);
+}
+
+.text-muted-foreground {
+  color: var(--text-secondary, #B0B0C0);
+}
+
+.hover:text-primary:hover {
+  color: #9b87f5;
+}
+
+.text-primary {
+  color: #9b87f5;
+}
+
+.bg-secondary {
+  background-color: var(--secondary, #240052);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Dark card styling */
+.crypto-card {
+  background-color: var(--card-bg, #222333);
+  border-color: var(--border-color, #333344);
+  color: var(--text-primary, white);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
