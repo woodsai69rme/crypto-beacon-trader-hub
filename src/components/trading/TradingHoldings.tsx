@@ -74,13 +74,15 @@ const TradingHoldings: React.FC<TradingHoldingsProps> = ({
             <div className="space-y-4">
               {ownedCoins.map(coin => {
                 const amount = getOwnedCoinAmount(coin.id);
-                const coinPrice = activeCurrency === 'AUD' && coin.priceAUD 
-                  ? coin.priceAUD
-                  : activeCurrency === 'EUR' && coin.priceEUR
-                    ? coin.priceEUR
-                    : activeCurrency === 'GBP' && coin.priceGBP
-                      ? coin.priceGBP
-                      : coin.price;
+                let coinPrice = coin.price;
+                
+                if (activeCurrency === 'AUD') {
+                  coinPrice = coin.priceAUD || coin.price * conversionRate;
+                } else if (activeCurrency === 'EUR') {
+                  coinPrice = coin.priceEUR || coin.price * 0.92;
+                } else if (activeCurrency === 'GBP') {
+                  coinPrice = coin.priceGBP || coin.price * 0.8;
+                }
                       
                 const value = amount * coinPrice;
                 

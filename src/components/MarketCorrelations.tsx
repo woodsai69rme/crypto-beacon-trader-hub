@@ -1,15 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ResponsiveContainer, 
-  XAxis, YAxis, Tooltip, 
-  Cell, Surface
-} from "recharts";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { formatCurrency } from "@/utils/formatters";
-import { CryptoData, fetchTopCoins } from "@/services/cryptoApi";
+import { CryptoData, CoinOption } from "@/types/trading";
 
 // Custom Heatmap implementation since recharts doesn't have a built-in Heatmap
 const CustomHeatmap = ({ data, width, height, colorScale }: any) => {
@@ -17,7 +12,7 @@ const CustomHeatmap = ({ data, width, height, colorScale }: any) => {
   const cellHeight = height / data.length;
 
   return (
-    <Surface width={width} height={height}>
+    <svg width={width} height={height}>
       {data.map((row: any, rowIndex: number) => 
         row.map((value: number, colIndex: number) => {
           // Convert correlation value (-1 to 1) to color intensity
@@ -41,7 +36,7 @@ const CustomHeatmap = ({ data, width, height, colorScale }: any) => {
           );
         })
       )}
-    </Surface>
+    </svg>
   );
 };
 
@@ -52,6 +47,38 @@ interface Correlation {
     [key: string]: number;
   };
 }
+
+// Helper function to convert CoinOption to CryptoData
+const convertCoinOptionToCryptoData = (coin: CoinOption): CryptoData => {
+  return {
+    id: coin.id,
+    symbol: coin.symbol,
+    name: coin.name,
+    image: coin.image,
+    current_price: coin.price,
+    market_cap: coin.marketCap || 0,
+    market_cap_rank: coin.rank || 0,
+    fully_diluted_valuation: null,
+    total_volume: coin.volume || 0,
+    high_24h: null,
+    low_24h: null,
+    price_change_24h: coin.priceChange || 0,
+    price_change_percentage_24h: coin.changePercent || 0,
+    market_cap_change_24h: 0,
+    market_cap_change_percentage_24h: 0,
+    circulating_supply: 0,
+    total_supply: null,
+    max_supply: null,
+    ath: null,
+    ath_change_percentage: null,
+    ath_date: null,
+    atl: null,
+    atl_change_percentage: null,
+    atl_date: null,
+    roi: null,
+    last_updated: new Date().toISOString()
+  };
+};
 
 const MarketCorrelations = () => {
   const [coins, setCoins] = useState<CryptoData[]>([]);
@@ -69,37 +96,87 @@ const MarketCorrelations = () => {
   const fetchCoinsAndCorrelations = async () => {
     setIsLoading(true);
     try {
-      const coinsData = await fetchTopCoins(10);
-      setCoins(coinsData.map(coin => ({
-        id: coin.id,
-        symbol: coin.symbol,
-        name: coin.name,
-        image: coin.image,
-        current_price: coin.price,
-        market_cap: coin.marketCap || 0,
-        market_cap_rank: coin.rank || 0,
-        fully_diluted_valuation: null,
-        total_volume: coin.volume || 0,
-        high_24h: null,
-        low_24h: null,
-        price_change_24h: coin.priceChange || 0,
-        price_change_percentage_24h: coin.changePercent || 0,
-        market_cap_change_24h: 0,
-        market_cap_change_percentage_24h: 0,
-        circulating_supply: 0,
-        total_supply: null,
-        max_supply: null,
-        ath: null,
-        ath_change_percentage: null,
-        ath_date: null,
-        atl: null,
-        atl_change_percentage: null,
-        atl_date: null,
-        roi: null,
-        last_updated: new Date().toISOString()
-      })));
+      // Mock data for coins
+      const mockCoins: CoinOption[] = [
+        { 
+          id: "bitcoin", 
+          name: "Bitcoin", 
+          symbol: "BTC", 
+          price: 61245.32,
+          priceChange: 1200,
+          changePercent: 2.3,
+          image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+          volume: 28000000000,
+          marketCap: 1180000000000,
+          rank: 1
+        },
+        { 
+          id: "ethereum", 
+          name: "Ethereum", 
+          symbol: "ETH", 
+          price: 3010.45,
+          priceChange: -120,
+          changePercent: -1.5,
+          image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+          volume: 15000000000,
+          marketCap: 360000000000,
+          rank: 2
+        },
+        { 
+          id: "solana", 
+          name: "Solana", 
+          symbol: "SOL", 
+          price: 121.33,
+          priceChange: 3.56,
+          changePercent: 3.1,
+          image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+          volume: 5200000000,
+          marketCap: 90000000000,
+          rank: 3
+        },
+        { 
+          id: "cardano", 
+          name: "Cardano", 
+          symbol: "ADA", 
+          price: 0.45,
+          priceChange: -0.02,
+          changePercent: -2.6,
+          image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+          volume: 890000000,
+          marketCap: 24000000000,
+          rank: 4
+        },
+        { 
+          id: "ripple", 
+          name: "XRP", 
+          symbol: "XRP", 
+          price: 0.61,
+          priceChange: 0.01,
+          changePercent: 1.8,
+          image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+          volume: 2400000000,
+          marketCap: 32000000000,
+          rank: 5
+        },
+        { 
+          id: "dogecoin", 
+          name: "Dogecoin", 
+          symbol: "DOGE", 
+          price: 0.138,
+          priceChange: -0.004,
+          changePercent: -2.1,
+          image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
+          volume: 1900000000,
+          marketCap: 18000000000,
+          rank: 6
+        }
+      ];
       
-      // Generate mock correlation data (in a real app, this would come from API)
+      // Convert CoinOption array to CryptoData array
+      const coinsData = mockCoins.map(coin => convertCoinOptionToCryptoData(coin));
+      setCoins(coinsData);
+      
+      // Generate mock correlation data
       generateMockCorrelations(coinsData);
     } catch (error) {
       console.error("Failed to fetch correlation data:", error);
@@ -173,14 +250,6 @@ const MarketCorrelations = () => {
         });
       }
     }
-  };
-  
-  const prepareHeatmapData = () => {
-    const coinIds = availableCoins.map(coin => coin.id);
-    const heatmapData = coinIds.map(id1 => 
-      coinIds.map(id2 => correlations[id1]?.[id2] || 0)
-    );
-    return heatmapData;
   };
   
   return (

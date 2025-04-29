@@ -11,6 +11,7 @@ const AiTradingContext = createContext<AiTradingContextType>({
   connectBotToAccount: () => {},
   disconnectBot: () => {},
   activeBots: {},
+  addStrategy: () => {}
 });
 
 interface AiTradingProviderProps {

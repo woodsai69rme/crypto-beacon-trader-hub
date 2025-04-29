@@ -1,176 +1,250 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Bell, Search, Settings, ChevronDown, LogOut, User, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Search, Bell, User, Menu } from 'lucide-react';
-import { CryptoSearchProps, CoinOption, CryptoData } from '@/types/trading';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/components/ui/use-toast';
-import { ThemeToggle } from '../ThemeToggle';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import ThemeToggle from "../ThemeToggle";
+import { CryptoSearchProps, DashboardHeaderProps, User as UserType } from '@/types/trading';
 
-interface DashboardHeaderProps {
-  toggleSidebar?: () => void;
-  unreadNotifications?: number;
-  onOpenNotifications?: () => void;
-  onOpenUserMenu?: () => void;
-  onSearch?: (searchTerm: string) => void;
-}
+// User placeholder data - in a real app, this would come from auth context
+const userPlaceholder: UserType = {
+  id: "user1",
+  email: "trader@example.com",
+  displayName: "Crypto Trader",
+  photoURL: "https://avatars.githubusercontent.com/u/12345678",
+  createdAt: new Date().toISOString(),
+  settings: {
+    notifications: true
+  }
+};
 
 const CryptoSearch: React.FC<CryptoSearchProps> = ({ coins, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [filteredCoins, setFilteredCoins] = useState<CoinOption[] | CryptoData[]>([]);
-
-  useEffect(() => {
-    if (searchTerm.length >= 2) {
-      const filtered = coins.filter(coin => 
-        coin.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredCoins(filtered.slice(0, 5));
-      setShowDropdown(true);
-    } else {
-      setShowDropdown(false);
-    }
-  }, [searchTerm, coins]);
-
-  const handleSelect = (coin: CoinOption | CryptoData) => {
-    onSelect(coin);
-    setSearchTerm('');
-    setShowDropdown(false);
-  };
-
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const filteredCoins = searchTerm.length > 0 
+    ? coins.filter(
+        coin => 
+          coin.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 5) 
+    : [];
+  
   return (
-    <div className="relative w-full max-w-xs">
+    <div className="relative w-full max-w-sm">
       <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
+          type="search"
           placeholder="Search coins..."
+          className="w-full bg-background pl-8 pr-10"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8 w-full"
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setIsSearching(e.target.value.length > 0);
+          }}
         />
+        {isSearching && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="absolute right-0 top-0 h-full px-3 py-2"
+            onClick={() => {
+              setSearchTerm('');
+              setIsSearching(false);
+            }}
+          >
+            <span className="sr-only">Clear</span>
+            <span aria-hidden="true">×</span>
+          </Button>
+        )}
       </div>
       
-      {showDropdown && (
-        <Card className="absolute mt-1 w-full z-10">
-          <CardContent className="p-1">
-            {filteredCoins.length > 0 ? (
-              filteredCoins.map((coin) => (
-                <div 
-                  key={coin.id}
-                  className="flex items-center p-2 hover:bg-muted rounded cursor-pointer"
-                  onClick={() => handleSelect(coin)}
+      {isSearching && filteredCoins.length > 0 && (
+        <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+          <ul className="py-1">
+            {filteredCoins.map((coin: any) => (
+              <li key={coin.id}>
+                <button
+                  className="flex w-full items-center px-3 py-2 text-left text-sm hover:bg-accent"
+                  onClick={() => {
+                    onSelect(coin);
+                    setSearchTerm('');
+                    setIsSearching(false);
+                  }}
                 >
-                  <div className="flex-1">
-                    <div className="font-medium">{coin.name}</div>
-                    <div className="text-xs text-muted-foreground">{coin.symbol}</div>
-                  </div>
-                  <div className="text-sm">
-                    ${('current_price' in coin ? coin.current_price : coin.price).toFixed(2)}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-2 text-center text-muted-foreground">No results found</div>
-            )}
-          </CardContent>
-        </Card>
+                  {coin.image && (
+                    <img 
+                      src={coin.image} 
+                      alt={coin.name} 
+                      className="mr-2 h-5 w-5"
+                    />
+                  )}
+                  <span>{coin.name}</span>
+                  <span className="ml-1 text-muted-foreground">({coin.symbol.toUpperCase()})</span>
+                  {(coin.price || coin.current_price) && (
+                    <span className="ml-auto font-medium">
+                      ${(coin.price || coin.current_price).toLocaleString()}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {isSearching && searchTerm.length > 0 && filteredCoins.length === 0 && (
+        <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover p-4 shadow-md">
+          <p className="text-center text-sm text-muted-foreground">No coins found</p>
+        </div>
       )}
     </div>
   );
 };
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-  toggleSidebar,
-  unreadNotifications = 0,
-  onOpenNotifications,
-  onOpenUserMenu,
-  onSearch
-}) => {
-  const { user, logout } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSearch) {
-      onSearch(searchTerm);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out"
-    });
-  };
-
-  // Mock data for the crypto search
-  const mockCoins: CoinOption[] = [
-    { 
-      id: "bitcoin", 
-      name: "Bitcoin", 
-      symbol: "BTC", 
-      price: 61245.32,
-      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
-    },
-    { 
-      id: "ethereum", 
-      name: "Ethereum", 
-      symbol: "ETH", 
-      price: 3010.45,
-      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png"
-    }
-  ];
-
-  const handleCoinSelect = (coin: CoinOption | CryptoData) => {
-    toast({
-      title: `Selected ${coin.name}`,
-      description: `Symbol: ${coin.symbol}, Price: $${('current_price' in coin ? coin.current_price : coin.price).toFixed(2)}`
-    });
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ notificationCount, alertCount, onRefresh, isLoading }) => {
+  const [user] = useState<UserType>(userPlaceholder);
+  
+  const handleCoinSelect = (coin: any) => {
+    console.log("Selected coin:", coin);
+    // In a real app, you would navigate to the coin detail page or perform some other action
   };
 
   return (
-    <div className="w-full py-2 px-4 border-b bg-background flex items-center justify-between">
-      <div className="flex items-center">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 md:hidden">
-          <Menu className="h-5 w-5" />
-        </Button>
-        
-        <form onSubmit={handleSearch} className="hidden md:block">
-          <CryptoSearch coins={mockCoins} onSelect={handleCoinSelect} />
-        </form>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <ThemeToggle />
-        
-        <div className="relative">
-          <Button variant="ghost" size="icon" onClick={onOpenNotifications}>
-            <Bell className="h-5 w-5" />
-            {unreadNotifications > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">
-                {unreadNotifications}
-              </span>
-            )}
-          </Button>
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <a href="/" className="flex items-center space-x-2 font-medium">
+            <span className="text-primary text-lg font-bold">CryptoTrader</span>
+          </a>
+          <nav className="flex items-center space-x-6 text-sm font-medium ml-6">
+            <a href="/dashboard" className="transition-colors hover:text-foreground/80 text-foreground">Dashboard</a>
+            <a href="/trading" className="transition-colors hover:text-foreground/80 text-muted-foreground">Trading</a>
+            <a href="/portfolio" className="transition-colors hover:text-foreground/80 text-muted-foreground">Portfolio</a>
+            <a href="/settings" className="transition-colors hover:text-foreground/80 text-muted-foreground">Settings</a>
+          </nav>
         </div>
-        
-        <Button variant="ghost" size="icon" onClick={onOpenUserMenu}>
-          {user?.photoURL ? (
-            <img 
-              src={user.photoURL} 
-              alt="User" 
-              className="h-7 w-7 rounded-full" 
-            />
-          ) : (
-            <User className="h-5 w-5" />
-          )}
-        </Button>
+
+        <div className="flex-1 md:grow-0 md:w-96">
+          <CryptoSearch 
+            coins={[
+              { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 65000, image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png" },
+              { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3400, image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" }
+            ]} 
+            onSelect={handleCoinSelect} 
+          />
+        </div>
+
+        <div className="flex flex-1 items-center justify-end space-x-2">
+          <nav className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={onRefresh}
+              disabled={isLoading}
+            >
+              <Bell className={`h-5 w-5 ${isLoading ? "animate-pulse" : ""}`} />
+              {notificationCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]"
+                >
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                </Badge>
+              )}
+              <span className="sr-only">Notifications</span>
+            </Button>
+            
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Settings className="h-5 w-5" />
+                  {alertCount > 0 && (
+                    <Badge
+                      variant="outline"
+                      className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] border-amber-500 text-amber-500"
+                    >
+                      {alertCount}
+                    </Badge>
+                  )}
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Settings</SheetTitle>
+                </SheetHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <p className="col-span-4">Quick settings content will go here</p>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <ThemeToggle />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.photoURL} alt={user.displayName || user.email} />
+                    <AvatarFallback>
+                      {(user.displayName?.charAt(0) || user.email.charAt(0)).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <span>Help</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+        </div>
       </div>
-    </div>
+    </header>
   );
 };
 

@@ -1,25 +1,29 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-export const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
+/**
+ * Custom hook to detect if the current screen size is mobile
+ * @param breakpoint The breakpoint to consider mobile (default: 768px)
+ * @returns Boolean indicating if the screen is mobile size
+ */
+export const useIsMobile = (breakpoint: number = 768) => {
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
     // Set initial value
-    checkIfMobile();
-    
-    // Add event listener for window resize
-    window.addEventListener('resize', checkIfMobile);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
+    setIsMobile(window.innerWidth < breakpoint);
+
+    // Handle window resize
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < breakpoint);
     };
-  }, []);
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, [breakpoint]);
 
   return isMobile;
 };

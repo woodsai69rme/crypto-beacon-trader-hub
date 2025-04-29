@@ -1,140 +1,136 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Brain, CheckCircle, Link, LinkOff } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Link2, Power, Settings, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { LocalModel } from "./types";
+import { toast } from "@/components/ui/use-toast";
 
-export interface ModelConnectionTabProps {
+interface ModelConnectionTabProps {
   models: LocalModel[];
   onConnect: (model: LocalModel) => void;
   onDisconnect: (modelId: string) => void;
 }
 
-export const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({ 
-  models, 
-  onConnect, 
-  onDisconnect 
+export const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({
+  models,
+  onConnect,
+  onDisconnect,
 }) => {
-  const [newModelUrl, setNewModelUrl] = useState("");
-  const [newModelName, setNewModelName] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [testingModelId, setTestingModelId] = useState<string | null>(null);
   
-  const handleConnect = (model: LocalModel) => {
-    onConnect(model);
-  };
-  
-  const handleDisconnect = (modelId: string) => {
-    onDisconnect(modelId);
-  };
-  
-  const handleAddNewModel = () => {
-    if (!newModelUrl || !newModelName) return;
-    setIsConnecting(true);
+  const testConnection = async (model: LocalModel) => {
+    setTestingModelId(model.id);
     
-    // Simulate connection delay
-    setTimeout(() => {
-      const newModel: LocalModel = {
-        id: `model-${Date.now()}`,
-        name: newModelName,
-        description: `Custom model at ${newModelUrl}`,
-        endpoint: newModelUrl,
-        type: "prediction",
-        isConnected: false
-      };
+    try {
+      // Simulate API call to test connection
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      onConnect(newModel);
-      setNewModelUrl("");
-      setNewModelName("");
-      setIsConnecting(false);
-    }, 1500);
+      // Simulate a successful connection
+      toast({
+        title: "Connection Successful",
+        description: `Successfully connected to ${model.name}`,
+      });
+      
+      onConnect(model);
+    } catch (error) {
+      console.error("Connection error:", error);
+      toast({
+        title: "Connection Failed",
+        description: "Could not establish connection to the AI model",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingModelId(null);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {models.map(model => (
-          <Card key={model.id} className="p-4 relative overflow-hidden">
-            <div className="flex items-center mb-2">
-              <Brain className="h-4 w-4 mr-2" />
-              <h3 className="font-medium">{model.name}</h3>
+    <div className="space-y-4">
+      {models.length === 0 ? (
+        <div className="text-center p-8 border rounded-md bg-muted/50">
+          <AlertTriangle className="mx-auto h-10 w-10 text-amber-500 mb-2" />
+          <h3 className="text-lg font-semibold mb-1">No Models Available</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            There are no AI models available to connect. Please generate or add a model.
+          </p>
+          <Button variant="outline">Add Model</Button>
+        </div>
+      ) : models.map(model => (
+        <Card key={model.id} className={`${model.isConnected ? 'border-primary/50' : ''}`}>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center">
+                  {model.name}
+                  {model.isConnected && (
+                    <Badge variant="outline" className="ml-2 bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20">
+                      Connected
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {model.type.charAt(0).toUpperCase() + model.type.slice(1)} Model
+                </CardDescription>
+              </div>
               {model.isConnected && (
-                <span className="ml-2 text-green-600 text-xs flex items-center">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Connected
-                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onDisconnect(model.id)}
+                  className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                >
+                  <Power className="h-4 w-4 mr-1" />
+                  Disconnect
+                </Button>
               )}
             </div>
-            
-            <p className="text-xs text-muted-foreground mb-2">
-              {model.description}
-            </p>
-            
-            <div className="text-xs text-muted-foreground mb-3 truncate">
-              Endpoint: {model.endpoint}
+          </CardHeader>
+          <CardContent className="pb-2">
+            <div className="text-sm text-muted-foreground">
+              {model.description && (
+                <p className="mb-1">{model.description}</p>
+              )}
+              {model.endpoint && (
+                <p className="font-mono text-xs truncate">
+                  Endpoint: {model.endpoint}
+                </p>
+              )}
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="text-xs">
-                {model.lastUsed && (
-                  <span className="text-muted-foreground">
-                    Last used: {new Date(model.lastUsed).toLocaleString()}
-                  </span>
-                )}
-              </div>
-              
-              <div>
-                {model.isConnected ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDisconnect(model.id)}
-                    className="text-xs h-8"
-                  >
-                    <LinkOff className="h-3 w-3 mr-1" />
-                    Disconnect
-                  </Button>
+          </CardContent>
+          <CardFooter className="pt-1">
+            {model.isConnected ? (
+              <Button variant="outline" size="sm" className="w-full">
+                <Settings className="h-4 w-4 mr-1" />
+                Configure
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full"
+                onClick={() => testConnection(model)}
+                disabled={testingModelId === model.id}
+              >
+                {testingModelId === model.id ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-1"></div>
+                    Connecting...
+                  </>
                 ) : (
-                  <Button 
-                    size="sm"
-                    onClick={() => handleConnect(model)}
-                    className="text-xs h-8"
-                  >
-                    <Link className="h-3 w-3 mr-1" />
+                  <>
+                    <Link2 className="h-4 w-4 mr-1" />
                     Connect
-                  </Button>
+                  </>
                 )}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-      
-      <div className="border-t pt-6 mt-6">
-        <h3 className="text-sm font-medium mb-4">Add New Model</h3>
-        <div className="flex flex-col gap-4">
-          <Input
-            placeholder="Model Name"
-            value={newModelName}
-            onChange={(e) => setNewModelName(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <Input
-              placeholder="Model Endpoint (e.g., http://localhost:8000/predict)"
-              value={newModelUrl}
-              onChange={(e) => setNewModelUrl(e.target.value)}
-              className="flex-1"
-            />
-            <Button 
-              onClick={handleAddNewModel} 
-              disabled={!newModelUrl || !newModelName || isConnecting}
-            >
-              {isConnecting ? "Connecting..." : "Add & Connect"}
-            </Button>
-          </div>
-        </div>
-      </div>
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      ))}
     </div>
   );
 };
+
+export default ModelConnectionTab;

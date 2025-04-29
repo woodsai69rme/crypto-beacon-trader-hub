@@ -248,14 +248,17 @@ export type AIStrategyType =
   | "sentiment" 
   | "machine-learning"
   | "custom"
-  | "multi-timeframe";
+  | "multi-timeframe"
+  | "ai-predictive" 
+  | "traditional" 
+  | "hybrid";
 
 // AI Trading Strategy
 export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: AIStrategyType;
   timeframe: string;
   parameters: Record<string, any>;
 }
@@ -451,77 +454,6 @@ export interface HyblockMarketData {
   lastUpdated: string;
 }
 
-// LocalModel Interface
-export interface LocalModel {
-  id: string;
-  name: string;
-  description: string;
-  endpoint?: string;
-  type: string;
-  isConnected?: boolean;
-  lastUsed?: string;
-  parameters: Record<string, any>;
-  performance: {
-    accuracy: number;
-    returns: number;
-    sharpeRatio: number;
-    maxDrawdown: number;
-  };
-  status: 'active' | 'inactive' | 'training';
-  creator: string;
-  fileSize?: number;
-  version?: string;
-}
-
-// TradingViewChart Config
-export interface TradingViewChartConfig {
-  symbol: string;
-  interval: string;
-  timezone?: string;
-  theme?: 'light' | 'dark';
-  style?: 'candles' | 'bars' | 'line' | 'area';
-  studies?: string[];
-  width?: string | number;
-  height?: string | number;
-  containerId?: string;
-}
-
-// Quantitative Analysis
-export interface QuantitativeAnalysis {
-  id: string;
-  symbol: string;
-  timeframe: string;
-  timestamp: string;
-  buyProbability: number;
-  sellProbability: number;
-  holdProbability: number;
-  expectedValue: number;
-  riskRewardRatio: number;
-  confidenceScore: number;
-  signals: {
-    indicator: string;
-    value: number;
-    signal: 'buy' | 'sell' | 'neutral';
-    strength: number;
-    timeframe: string;
-  }[];
-  shortTerm: {
-    direction: 'up' | 'down' | 'sideways';
-    probability: number;
-    targetPrice?: number;
-  };
-  mediumTerm: {
-    direction: 'up' | 'down' | 'sideways';
-    probability: number;
-    targetPrice?: number;
-  };
-  longTerm: {
-    direction: 'up' | 'down' | 'sideways';
-    probability: number;
-    targetPrice?: number;
-  };
-}
-
 // Portfolio Benchmark type
 export interface PortfolioBenchmark {
   id: string;
@@ -643,4 +575,36 @@ export interface QuantitativeAnalysisProps {
 export interface CryptoSearchProps {
   coins: CoinOption[] | CryptoData[];
   onSelect: (coin: CoinOption | CryptoData) => void;
+}
+
+// User interface for auth context
+export interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  createdAt: string;
+  settings?: Record<string, any>;
+  preferences?: Record<string, any>;
+  subscription?: {
+    tier: 'free' | 'premium' | 'enterprise';
+    expiresAt: string;
+    features: string[];
+  };
+}
+
+// Dashboard Header Props
+export interface DashboardHeaderProps {
+  notificationCount: number;
+  alertCount: number;
+  onRefresh: () => void;
+  isLoading: boolean;
+}
+
+// Model List Props
+export interface ModelListProps {
+  models: LocalModel[];
+  isTestingConnection?: string;
+  onTestConnection?: (model: LocalModel) => Promise<void>;
+  onRemoveModel: (id: string) => void;
 }
