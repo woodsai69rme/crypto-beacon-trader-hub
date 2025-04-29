@@ -1,370 +1,271 @@
-import React from 'react';
-import { FibonacciLevels } from "@/types/trading";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  ReferenceLine
-} from 'recharts';
-import { useTheme } from '@/contexts/ThemeContext';
 
-interface FibonacciLevel {
-  level: number;
-  price: number;
-  color: string;
-  label: string;
-  significance: 'weak' | 'medium' | 'strong';
+import React, { useState } from 'react';
+import { FibonacciLevels } from '@/types/trading';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
+import { ChevronDown, Sliders } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+interface FibonacciAnalysisProps {
+  priceData: { time: string; price: number }[];
+  symbol: string;
 }
 
-const FIBONACCI_RATIOS = {
-  EXTENSION_2618: { value: 2.618, color: '#FF0000', label: '261.8% Extension' },
-  EXTENSION_1618: { value: 1.618, color: '#FF6B00', label: '161.8% Extension' },
-  EXTENSION_1: { value: 1, color: '#FFD700', label: '100% Extension' },
-  RETRACEMENT_786: { value: 0.786, color: '#00BFFF', label: '78.6% Retracement' },
-  RETRACEMENT_618: { value: 0.618, color: '#00FF00', label: '61.8% Retracement' },
-  RETRACEMENT_5: { value: 0.5, color: '#FF69B4', label: '50% Retracement' },
-  RETRACEMENT_382: { value: 0.382, color: '#8A2BE2', label: '38.2% Retracement' },
-  RETRACEMENT_236: { value: 0.236, color: '#9932CC', label: '23.6% Retracement' },
-};
+const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({ priceData, symbol }) => {
+  const [timeRange, setTimeRange] = useState<string>("1d");
+  const [reverseMode, setReverseMode] = useState<boolean>(false);
+  const [showAllLevels, setShowAllLevels] = useState<boolean>(false);
+  const [levelsVisibility, setLevelsVisibility] = useState<Record<string, boolean>>({
+    level0: true,
+    level236: true,
+    level382: true,
+    level500: true,
+    level618: true,
+    level786: true,
+    level1000: true,
+    level1618: false,
+    level2618: false,
+    level4236: false,
+  });
 
-const coins = [
-  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
-  { id: 'solana', name: 'Solana', symbol: 'SOL' },
-  { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
-];
-
-const timeframes = [
-  { value: '1h', label: '1 Hour' },
-  { value: '4h', label: '4 Hours' },
-  { value: '1d', label: 'Daily' },
-  { value: '1w', label: 'Weekly' },
-];
-
-const generateMockPriceData = (count: number, basePrice: number) => {
-  const data = [];
-  let currentPrice = basePrice;
-  
-  // Generate a trending pattern with some volatility
-  for (let i = 0; i < count; i++) {
-    const trend = i < count / 2 ? 1 : -1; // Uptrend then downtrend
-    const volatility = basePrice * 0.03; // 3% volatility
-    const change = (Math.random() * volatility - volatility / 2) + (trend * basePrice * 0.01); // Trend + random volatility
-    
-    currentPrice += change;
-    
-    data.push({
-      time: new Date(Date.now() - (count - i) * 3600000).toISOString().slice(0, 10),
-      price: Math.max(currentPrice, basePrice * 0.5), // Ensure price doesn't go too low
-    });
-  }
-  
-  return data;
-};
-
-const calculateFibonacciLevels = (data: any[]): FibonacciLevel[] => {
-  if (data.length < 2) return [];
-  
-  // Find price swing (high and low)
-  const prices = data.map(d => d.price);
-  const highPrice = Math.max(...prices);
-  const lowPrice = Math.min(...prices);
-  const priceDiff = highPrice - lowPrice;
-  
   // Calculate Fibonacci levels
-  const levels: FibonacciLevel[] = [
-    { 
-      level: FIBONACCI_RATIOS.EXTENSION_2618.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.EXTENSION_2618.value),
-      color: FIBONACCI_RATIOS.EXTENSION_2618.color,
-      label: FIBONACCI_RATIOS.EXTENSION_2618.label,
-      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
-    },
-    { 
-      level: FIBONACCI_RATIOS.EXTENSION_1618.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.EXTENSION_1618.value),
-      color: FIBONACCI_RATIOS.EXTENSION_1618.color,
-      label: FIBONACCI_RATIOS.EXTENSION_1618.label,
-      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
-    },
-    { 
-      level: FIBONACCI_RATIOS.EXTENSION_1.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.EXTENSION_1.value),
-      color: FIBONACCI_RATIOS.EXTENSION_1.color,
-      label: FIBONACCI_RATIOS.EXTENSION_1.label,
-      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
-    },
-    { 
-      level: FIBONACCI_RATIOS.RETRACEMENT_786.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_786.value),
-      color: FIBONACCI_RATIOS.RETRACEMENT_786.color,
-      label: FIBONACCI_RATIOS.RETRACEMENT_786.label,
-      significance: Math.random() > 0.7 ? 'strong' : Math.random() > 0.4 ? 'medium' : 'weak'
-    },
-    { 
-      level: FIBONACCI_RATIOS.RETRACEMENT_618.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_618.value),
-      color: FIBONACCI_RATIOS.RETRACEMENT_618.color,
-      label: FIBONACCI_RATIOS.RETRACEMENT_618.label,
-      significance: 'strong' // 61.8% is often significant
-    },
-    { 
-      level: FIBONACCI_RATIOS.RETRACEMENT_5.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_5.value),
-      color: FIBONACCI_RATIOS.RETRACEMENT_5.color,
-      label: FIBONACCI_RATIOS.RETRACEMENT_5.label,
-      significance: 'medium'
-    },
-    { 
-      level: FIBONACCI_RATIOS.RETRACEMENT_382.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_382.value),
-      color: FIBONACCI_RATIOS.RETRACEMENT_382.color,
-      label: FIBONACCI_RATIOS.RETRACEMENT_382.label,
-      significance: 'strong' // 38.2% is often significant
-    },
-    { 
-      level: FIBONACCI_RATIOS.RETRACEMENT_236.value, 
-      price: lowPrice + (priceDiff * FIBONACCI_RATIOS.RETRACEMENT_236.value),
-      color: FIBONACCI_RATIOS.RETRACEMENT_236.color,
-      label: FIBONACCI_RATIOS.RETRACEMENT_236.label,
-      significance: 'weak'
-    },
-  ];
-  
-  return levels;
-};
-
-const FibonacciAnalysis: React.FC = () => {
-  const { theme } = useTheme();
-  const [selectedCoin, setSelectedCoin] = useState(coins[0].id);
-  const [selectedTimeframe, setSelectedTimeframe] = useState(timeframes[2].value);
-  const [priceData, setPriceData] = useState<any[]>([]);
-  const [fibLevels, setFibLevels] = useState<FibonacciLevel[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [autoCalculate, setAutoCalculate] = useState(true);
-  
-  // Generate chart data based on selected coin and timeframe
-  const fetchPriceData = () => {
-    setLoading(true);
-    
-    // Mock data - in a real app, fetch from API
-    const basePrice = selectedCoin === 'bitcoin' ? 50000 : 
-                       selectedCoin === 'ethereum' ? 3000 : 
-                       selectedCoin === 'solana' ? 120 : 1.2;
-    
-    const dataPoints = selectedTimeframe === '1h' ? 24 : 
-                        selectedTimeframe === '4h' ? 30 :
-                        selectedTimeframe === '1d' ? 30 : 20;
-    
-    // Simulate API call
-    setTimeout(() => {
-      const data = generateMockPriceData(dataPoints, basePrice);
-      setPriceData(data);
-      
-      const levels = calculateFibonacciLevels(data);
-      setFibLevels(levels);
-      
-      setLastUpdated(new Date().toLocaleTimeString());
-      setLoading(false);
-    }, 800);
-  };
-  
-  // Fetch data on component mount and when selection changes
-  useEffect(() => {
-    if (autoCalculate) {
-      fetchPriceData();
+  const calculateFibonacciLevels = (): FibonacciLevels => {
+    if (!priceData || priceData.length < 2) {
+      return {
+        level0: 0,
+        level236: 0,
+        level382: 0,
+        level500: 0,
+        level618: 0,
+        level786: 0,
+        level1000: 0,
+        level1618: 0,
+        level2618: 0,
+        level4236: 0
+      };
     }
-  }, [selectedCoin, selectedTimeframe, autoCalculate]);
-  
-  // Format tooltip value
-  const formatPrice = (value: number) => {
-    return `$${value.toFixed(2)}`;
+
+    let prices = priceData.map(d => d.price);
+    let min = Math.min(...prices);
+    let max = Math.max(...prices);
+    
+    // If reverse mode is enabled, flip the direction
+    let startPrice = reverseMode ? max : min;
+    let endPrice = reverseMode ? min : max;
+    let range = endPrice - startPrice;
+
+    return {
+      level0: startPrice,
+      level236: startPrice + range * 0.236,
+      level382: startPrice + range * 0.382,
+      level500: startPrice + range * 0.5,
+      level618: startPrice + range * 0.618,
+      level786: startPrice + range * 0.786,
+      level1000: endPrice,
+      level1618: startPrice + range * 1.618,
+      level2618: startPrice + range * 2.618,
+      level4236: startPrice + range * 4.236
+    };
   };
-  
-  // Get current coin symbol for display
-  const currentCoinSymbol = coins.find(coin => coin.id === selectedCoin)?.symbol || 'BTC';
-  
-  // Find significant levels for trade recommendation
-  const significantLevels = fibLevels.filter(level => level.significance === 'strong');
-  const currentPrice = priceData.length > 0 ? priceData[priceData.length - 1].price : 0;
-  
-  // Find nearest resistance and support
-  const resistanceLevels = fibLevels
-    .filter(level => level.price > currentPrice)
-    .sort((a, b) => a.price - b.price);
-    
-  const supportLevels = fibLevels
-    .filter(level => level.price < currentPrice)
-    .sort((a, b) => b.price - a.price);
-    
-  const nearestResistance = resistanceLevels.length > 0 ? resistanceLevels[0] : null;
-  const nearestSupport = supportLevels.length > 0 ? supportLevels[0] : null;
-  
+
+  const levels = calculateFibonacciLevels();
+
+  const toggleLevelVisibility = (level: string) => {
+    setLevelsVisibility(prev => ({
+      ...prev,
+      [level]: !prev[level]
+    }));
+  };
+
+  const levelColors: Record<string, string> = {
+    level0: "#FF0000",    // Red
+    level236: "#FF7F00",  // Orange
+    level382: "#FFFF00",  // Yellow
+    level500: "#00FF00",  // Green
+    level618: "#0000FF",  // Blue
+    level786: "#4B0082",  // Indigo
+    level1000: "#8B00FF", // Violet
+    level1618: "#FFC0CB", // Pink
+    level2618: "#800080", // Purple
+    level4236: "#A52A2A"  // Brown
+  };
+
+  const levelLabels: Record<string, string> = {
+    level0: "0%",
+    level236: "23.6%",
+    level382: "38.2%",
+    level500: "50.0%",
+    level618: "61.8%",
+    level786: "78.6%",
+    level1000: "100%",
+    level1618: "161.8%",
+    level2618: "261.8%",
+    level4236: "423.6%"
+  };
+
+  const formatPrice = (value: number) => {
+    return value.toFixed(2);
+  };
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg font-bold">Fibonacci Analysis</CardTitle>
-            {lastUpdated && (
-              <p className="text-xs text-muted-foreground">Last updated: {lastUpdated}</p>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Select value={selectedCoin} onValueChange={setSelectedCoin}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Select coin" />
-              </SelectTrigger>
-              <SelectContent>
-                {coins.map(coin => (
-                  <SelectItem key={coin.id} value={coin.id}>
-                    {coin.name} ({coin.symbol})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Timeframe" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeframes.map(tf => (
-                  <SelectItem key={tf.value} value={tf.value}>
-                    {tf.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={fetchPriceData}
-              disabled={loading}
-            >
-              {loading ? 'Calculating...' : 'Calculate'}
-            </Button>
-          </div>
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg">Fibonacci Analysis - {symbol}</CardTitle>
+        <div className="flex items-center space-x-2">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Time Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1h">1 Hour</SelectItem>
+              <SelectItem value="4h">4 Hours</SelectItem>
+              <SelectItem value="1d">1 Day</SelectItem>
+              <SelectItem value="1w">1 Week</SelectItem>
+              <SelectItem value="1m">1 Month</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Sliders className="h-4 w-4 mr-1" />
+                Settings
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[240px]">
+              <div className="space-y-2">
+                <div className="font-medium">Fibonacci Options</div>
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    id="reverseMode"
+                    checked={reverseMode} 
+                    onChange={() => setReverseMode(!reverseMode)} 
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="reverseMode" className="text-sm">Reverse Mode (Top to Bottom)</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    id="showAllLevels"
+                    checked={showAllLevels} 
+                    onChange={() => {
+                      setShowAllLevels(!showAllLevels);
+                      if (!showAllLevels) {
+                        setLevelsVisibility({
+                          level0: true,
+                          level236: true,
+                          level382: true,
+                          level500: true,
+                          level618: true,
+                          level786: true,
+                          level1000: true,
+                          level1618: true,
+                          level2618: true,
+                          level4236: true,
+                        });
+                      } else {
+                        setLevelsVisibility({
+                          level0: true,
+                          level236: true,
+                          level382: true,
+                          level500: true,
+                          level618: true,
+                          level786: true,
+                          level1000: true,
+                          level1618: false,
+                          level2618: false,
+                          level4236: false,
+                        });
+                      }
+                    }} 
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="showAllLevels" className="text-sm">Show Extension Levels</label>
+                </div>
+                <div className="border-t pt-2 mt-2">
+                  <div className="font-medium mb-1">Toggle Levels</div>
+                  <div className="grid grid-cols-2 gap-1">
+                    {Object.entries(levelLabels).map(([level, label]) => (
+                      <div key={level} className="flex items-center space-x-1">
+                        <input 
+                          type="checkbox" 
+                          id={level}
+                          checked={levelsVisibility[level]} 
+                          onChange={() => toggleLevelVisibility(level)} 
+                          className="rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <label htmlFor={level} className="text-xs">{label}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </CardHeader>
-      
-      <CardContent className="pt-0">
-        <div className="h-[400px] w-full mt-2">
+      <CardContent>
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={priceData}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                dataKey="time"
-                tick={{ fontSize: 12 }}
-                interval="preserveStartEnd"
+                dataKey="time" 
+                tick={{ fontSize: 10 }}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return timeRange === '1d' ? 
+                    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+                    date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                }}
               />
               <YAxis 
-                domain={['auto', 'auto']}
-                tickFormatter={formatPrice}
-                tick={{ fontSize: 12 }}
-                width={80}
+                domain={['dataMin', 'dataMax']} 
+                tick={{ fontSize: 10 }}
+                tickFormatter={(value) => formatPrice(value)}
               />
-              <Tooltip
-                labelFormatter={(label) => `Date: ${label}`}
-                formatter={(value: any) => [`$${value.toFixed(2)}`, 'Price']}
+              <Tooltip 
+                formatter={(value: number) => [`$${formatPrice(value)}`, 'Price']}
+                labelFormatter={(label) => new Date(label).toLocaleString()}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="price" 
+                stroke="#8884d8" 
+                dot={false} 
+                animationDuration={500}
               />
               
-              {/* Add Fibonacci reference lines */}
-              {fibLevels.map((level, index) => (
-                <ReferenceLine
-                  key={index}
-                  y={level.price}
-                  stroke={level.color}
-                  strokeWidth={2}
-                  strokeDasharray={level.significance === 'strong' ? '0' : level.significance === 'medium' ? '3 3' : '2 6'}
-                  label={{
-                    value: `${(level.level * 100).toFixed(1)}% - $${level.price.toFixed(0)}`,
-                    position: 'right',
-                    fill: level.color,
-                    fontSize: 12
-                  }}
-                />
-              ))}
-              
-              <Line
-                type="monotone"
-                dataKey="price"
-                stroke="#8884d8"
-                strokeWidth={2}
-                dot={{ r: 2 }}
-                activeDot={{ r: 6 }}
-              />
+              {/* Fibonacci Levels */}
+              {Object.entries(levels).map(([levelKey, value]) => {
+                if (levelsVisibility[levelKey]) {
+                  return (
+                    <ReferenceLine 
+                      key={levelKey}
+                      y={value} 
+                      stroke={levelColors[levelKey]} 
+                      strokeDasharray="3 3"
+                      label={{ 
+                        value: `${levelLabels[levelKey]} - $${formatPrice(value)}`, 
+                        fill: levelColors[levelKey],
+                        fontSize: 10,
+                        position: 'right'
+                      }} 
+                    />
+                  );
+                }
+                return null;
+              })}
             </LineChart>
           </ResponsiveContainer>
-        </div>
-        
-        <div className="mt-6 space-y-4">
-          <div>
-            <h3 className="font-medium mb-2">Trade Recommendations</h3>
-            <div className="flex flex-wrap gap-2">
-              {nearestResistance && (
-                <Badge variant="outline" className="bg-red-500/10 text-red-500">
-                  Resistance: ${nearestResistance.price.toFixed(2)} ({nearestResistance.label})
-                </Badge>
-              )}
-              {nearestSupport && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-500">
-                  Support: ${nearestSupport.price.toFixed(2)} ({nearestSupport.label})
-                </Badge>
-              )}
-              {currentPrice > 0 && (
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-500">
-                  Current: ${currentPrice.toFixed(2)}
-                </Badge>
-              )}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border rounded-md p-3 bg-card/50">
-              <h4 className="text-sm font-medium mb-1">Key Fibonacci Levels</h4>
-              <ul className="space-y-1 text-sm">
-                {fibLevels
-                  .filter(level => level.significance === 'strong')
-                  .map((level, index) => (
-                    <li key={index} className="flex justify-between items-center">
-                      <span>{level.label}</span>
-                      <span className="font-mono">${level.price.toFixed(2)}</span>
-                    </li>
-                  ))
-                }
-              </ul>
-            </div>
-            
-            <div className="border rounded-md p-3 bg-card/50">
-              <h4 className="text-sm font-medium mb-1">Trend Analysis</h4>
-              <div>
-                <p className="text-sm mb-1">
-                  {priceData.length > 1 && 
-                    priceData[priceData.length - 1].price > priceData[0].price
-                      ? '🔼 Uptrend: Consider buy at support levels'
-                      : '🔽 Downtrend: Consider sell at resistance levels'
-                  }
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Probability: {Math.round(Math.random() * 30 + 60)}% based on Fibonacci analysis
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

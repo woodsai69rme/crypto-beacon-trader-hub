@@ -149,6 +149,7 @@ export type Trade = {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
+  tags?: string[];
 };
 
 export type TradingAccount = {

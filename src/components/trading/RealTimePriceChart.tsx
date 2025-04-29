@@ -1,158 +1,410 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend,
+  ResponsiveContainer, 
+  ReferenceLine 
+} from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CoinOption } from '@/types/trading';
+import { Clock, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 
-export interface RealTimePriceChartProps {
-  coins?: CoinOption[];
-  selectedCoinId?: string;
+interface RealTimePriceChartProps {
+  coinId: string;
+  availableCoins: CoinOption[];
   onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
   updateInterval?: number;
-  coinId?: string;
-  availableCoins?: CoinOption[];
 }
 
+interface PricePoint {
+  time: string;
+  price: number;
+  volume?: number;
+}
+
+const MAX_DATA_POINTS = 100;
+
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({ 
-  coins = [], 
-  selectedCoinId, 
-  onSelectCoin, 
-  updateInterval = 3000,
-  coinId,
-  availableCoins = [],
+  coinId, 
+  availableCoins,
+  onSelectCoin,
+  selectedCoinId,
+  updateInterval = 3000
 }) => {
-  // Use either selectedCoinId or coinId, with selectedCoinId taking precedence
-  const activeCoinId = selectedCoinId || coinId || (coins.length > 0 ? coins[0].id : "bitcoin");
+  const [chartData, setChartData] = useState<PricePoint[]>([]);
+  const [timeframe, setTimeframe] = useState<string>("5m");
+  const [chartType, setChartType] = useState<string>("line");
+  const [indicatorsVisible, setIndicatorsVisible] = useState<string[]>([]);
+  const [activeCoin, setActiveCoin] = useState<string>(coinId || selectedCoinId || "bitcoin");
   
-  // Use either coins or availableCoins, with coins taking precedence
-  const activeCoinList = coins.length > 0 ? coins : availableCoins;
+  const currentCoin = availableCoins.find(coin => coin.id === activeCoin);
+  const lastPrice = useRef<number>(currentCoin?.price || 0);
+  const priceDirection = currentCoin?.price && lastPrice.current ? (currentCoin.price > lastPrice.current ? 'up' : 'down') : undefined;
   
-  const [priceData, setPriceData] = useState<{ time: string; price: number }[]>([]);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  
-  // Find the selected coin
-  const selectedCoin = activeCoinList.find(c => c.id === activeCoinId);
-  
-  // Generate price data for the chart on component mount and when selected coin changes
   useEffect(() => {
-    if (!selectedCoin) return;
+    // Update when the coinId prop changes
+    if (coinId && coinId !== activeCoin) {
+      setActiveCoin(coinId);
+    }
+  }, [coinId]);
+
+  useEffect(() => {
+    // Update when the selectedCoinId prop changes
+    if (selectedCoinId && selectedCoinId !== activeCoin) {
+      setActiveCoin(selectedCoinId);
+    }
+  }, [selectedCoinId]);
+  
+  useEffect(() => {
+    // Setup initial chart data with historical values
+    const initData = generateHistoricalData(activeCoin);
+    setChartData(initData);
     
-    // Generate some initial price data - we'll start with the current price
-    const initialData = [];
-    const now = Date.now();
-    const basePrice = selectedCoin.price;
+    // Setup interval for real-time updates
+    const updateTimer = setInterval(() => {
+      updateChartData();
+    }, updateInterval);
     
-    // Generate 20 price points going back in time from now
-    for (let i = 19; i >= 0; i--) {
-      // Random price with small variations around the base price
-      const randomFactor = 1 + (Math.random() * 0.04 - 0.02); // +/- 2%
-      initialData.push({
-        time: new Date(now - i * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        price: basePrice * randomFactor
+    return () => clearInterval(updateTimer);
+  }, [activeCoin, updateInterval]);
+  
+  useEffect(() => {
+    // Update the lastPrice ref when the price changes
+    if (currentCoin?.price) {
+      lastPrice.current = currentCoin.price;
+    }
+  }, [currentCoin?.price]);
+  
+  // Generate simulated historical data
+  const generateHistoricalData = (coinId: string): PricePoint[] => {
+    const coin = availableCoins.find(c => c.id === coinId);
+    if (!coin) return [];
+    
+    const basePrice = coin.price;
+    const now = new Date();
+    const data: PricePoint[] = [];
+    
+    // Generate more or fewer points based on timeframe
+    let points = 20;
+    let intervalMinutes = 5;
+    
+    switch (timeframe) {
+      case "1h":
+        points = 12;
+        intervalMinutes = 5;
+        break;
+      case "4h":
+        points = 24;
+        intervalMinutes = 10;
+        break;
+      case "1d":
+        points = 24;
+        intervalMinutes = 60;
+        break;
+      default: // 5m
+        points = 20;
+        intervalMinutes = 0.25;
+    }
+    
+    for (let i = points; i > 0; i--) {
+      const time = new Date(now.getTime() - (i * intervalMinutes * 60000));
+      const volatility = getVolatilityForCoin(coinId);
+      const randomChange = (Math.random() * 2 - 1) * volatility;
+      const price = basePrice * (1 + (randomChange / 100) * i / points);
+      const volume = Math.floor(Math.random() * basePrice * 100) + 1000;
+      
+      data.push({
+        time: time.toISOString(),
+        price,
+        volume
       });
     }
     
-    setPriceData(initialData);
-  }, [selectedCoin]);
+    return data;
+  };
   
-  // Update price data at regular intervals
-  useEffect(() => {
-    if (!selectedCoin) return;
+  // Get volatility level for coin (used for generating random price changes)
+  const getVolatilityForCoin = (coinId: string): number => {
+    const volatilityLevels: {[key: string]: number} = {
+      bitcoin: 1.2,
+      ethereum: 2.0,
+      solana: 4.0,
+      cardano: 3.0,
+      ripple: 2.5,
+      dogecoin: 5.0
+    };
     
-    const interval = setInterval(() => {
-      setIsUpdating(true);
+    return volatilityLevels[coinId] || 2.0;
+  };
+  
+  // Update chart with new data point
+  const updateChartData = () => {
+    const coin = availableCoins.find(c => c.id === activeCoin);
+    if (!coin) return;
+    
+    const now = new Date();
+    const volatility = getVolatilityForCoin(activeCoin);
+    const randomChange = (Math.random() * 2 - 1) * volatility / 5;
+    const lastDataPoint = chartData[chartData.length - 1];
+    const lastPrice = lastDataPoint ? lastDataPoint.price : coin.price;
+    
+    const newPrice = lastPrice * (1 + randomChange / 100);
+    const volume = Math.floor(Math.random() * coin.price * 100) + 1000;
+    
+    const newPoint = {
+      time: now.toISOString(),
+      price: newPrice,
+      volume
+    };
+    
+    setChartData(prevData => {
+      const newData = [...prevData, newPoint];
+      if (newData.length > MAX_DATA_POINTS) {
+        return newData.slice(-MAX_DATA_POINTS);
+      }
+      return newData;
+    });
+  };
+  
+  // Handle coin selection change
+  const handleCoinChange = (value: string) => {
+    setActiveCoin(value);
+    if (onSelectCoin) {
+      onSelectCoin(value);
+    }
+  };
+  
+  // Format display value for timestamp based on timeframe
+  const formatTimestamp = (time: string): string => {
+    const date = new Date(time);
+    switch (timeframe) {
+      case "1d":
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      case "4h":
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      default: // 5m, 1h
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+  };
+  
+  // Calculate simple moving average
+  const calculateSMA = (period: number) => {
+    return chartData.map((point, index, array) => {
+      if (index < period - 1) {
+        return null; // Not enough data points yet
+      }
       
-      setPriceData(prevData => {
-        if (!prevData || prevData.length === 0) return prevData;
-        
-        // Get the latest price
-        const newPrice = selectedCoin.price * (1 + (Math.random() * 0.02 - 0.01)); // +/- 1%
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Add new price to the end and remove oldest price
-        const newData = [...prevData.slice(1), { time: now, price: newPrice }];
-        return newData;
-      });
+      let sum = 0;
+      for (let i = 0; i < period; i++) {
+        sum += array[index - i].price;
+      }
       
-      setIsUpdating(false);
-    }, updateInterval);
+      return sum / period;
+    });
+  };
+  
+  // Get SMA data for indicators
+  const getSMAData = () => {
+    const result: { sma20?: number[], sma50?: number[] } = {};
     
-    return () => clearInterval(interval);
-  }, [selectedCoin, updateInterval]);
-  
-  if (!selectedCoin || priceData.length === 0) {
-    return (
-      <Card className="w-full h-[300px] flex items-center justify-center">
-        <RefreshCw className="animate-spin h-6 w-6 text-muted-foreground" />
-      </Card>
-    );
-  }
-  
-  // Calculate price change from first to last data point
-  const priceChange = priceData.length > 1 ? 
-    priceData[priceData.length - 1].price - priceData[0].price : 0;
-  const priceChangePercent = priceData.length > 1 && priceData[0].price ?
-    (priceChange / priceData[0].price) * 100 : 0;
+    if (indicatorsVisible.includes('sma20')) {
+      result.sma20 = calculateSMA(20);
+    }
     
-  const isPriceUp = priceChange >= 0;
+    if (indicatorsVisible.includes('sma50')) {
+      result.sma50 = calculateSMA(50);
+    }
+    
+    return result;
+  };
   
+  const smaData = getSMAData();
+  
+  // Reset chart data
+  const handleResetChart = () => {
+    const initData = generateHistoricalData(activeCoin);
+    setChartData(initData);
+  };
+  
+  // Format price for display
+  const formatPrice = (value: number) => {
+    if (value >= 1000) {
+      return `$${value.toFixed(2)}`;
+    } else if (value >= 1) {
+      return `$${value.toFixed(4)}`;
+    } else {
+      return `$${value.toFixed(6)}`;
+    }
+  };
+
   return (
-    <Card className="w-full">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h3 className="text-lg font-medium">{selectedCoin.name} ({selectedCoin.symbol})</h3>
-            <div className="flex items-center">
-              <span className="text-xl font-bold">${selectedCoin.price?.toFixed(2)}</span>
-              <div className={`ml-3 flex items-center ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
-                {isPriceUp ? <ArrowUp className="h-4 w-4 mr-1" /> : <ArrowDown className="h-4 w-4 mr-1" />}
-                <span className="text-sm">{Math.abs(priceChangePercent).toFixed(2)}%</span>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Select value={activeCoin} onValueChange={handleCoinChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Select Coin" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCoins.map(coin => (
+                <SelectItem key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
-          {isUpdating && <RefreshCw className="animate-spin h-4 w-4 text-muted-foreground" />}
+          {currentCoin && (
+            <div className="text-sm">
+              <span className="font-medium">{formatPrice(currentCoin.price)}</span>
+              
+              {priceDirection && (
+                <span className={`ml-2 ${priceDirection === 'up' ? 'text-green-500' : 'text-red-500'} flex items-center`}>
+                  {priceDirection === 'up' ? (
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                  )}
+                  {currentCoin.changePercent !== undefined ? Math.abs(currentCoin.changePercent).toFixed(2) : '0.00'}%
+                </span>
+              )}
+            </div>
+          )}
         </div>
         
-        <div className="h-[250px]">
+        <div className="flex items-center gap-2">
+          <ToggleGroup type="single" value={timeframe} onValueChange={(value) => value && setTimeframe(value)}>
+            <ToggleGroupItem value="5m" size="sm">5m</ToggleGroupItem>
+            <ToggleGroupItem value="1h" size="sm">1h</ToggleGroupItem>
+            <ToggleGroupItem value="4h" size="sm">4h</ToggleGroupItem>
+            <ToggleGroupItem value="1d" size="sm">1d</ToggleGroupItem>
+          </ToggleGroup>
+          
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleResetChart}
+            title="Reset Chart"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      <div className="border rounded-md p-4">
+        <Tabs value={chartType} onValueChange={setChartType} className="mb-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="line">Line</TabsTrigger>
+            <TabsTrigger value="candlestick">Candlestick</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={priceData}>
-              <CartesianGrid strokeDasharray="3 3" />
+            <LineChart
+              data={chartData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
               <XAxis 
                 dataKey="time" 
-                padding={{ left: 10, right: 10 }}
+                tickFormatter={formatTimestamp} 
                 tick={{ fontSize: 12 }}
+                stroke="#666"
               />
               <YAxis 
-                domain={['auto', 'auto']}
+                domain={['dataMin', 'dataMax']} 
+                tickFormatter={formatPrice}
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `$${value.toFixed(2)}`}
+                stroke="#666"
               />
-              <Tooltip
-                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
-                labelFormatter={(label) => `Time: ${label}`}
+              <Tooltip 
+                formatter={(value: number) => [formatPrice(value), 'Price']}
+                labelFormatter={(time) => {
+                  return `Time: ${new Date(time).toLocaleTimeString()}`;
+                }}
               />
-              {priceData.length > 0 && (
-                <ReferenceLine
-                  y={priceData[0].price}
-                  stroke="#888"
-                  strokeDasharray="3 3"
+              <Legend />
+              
+              {/* Main price line */}
+              <Line 
+                type="monotone" 
+                dataKey="price" 
+                stroke="#8884d8" 
+                dot={false} 
+                strokeWidth={2}
+              />
+              
+              {/* SMA indicators */}
+              {indicatorsVisible.includes('sma20') && (
+                <Line
+                  type="monotone"
+                  dataKey="sma20"
+                  stroke="#ff7300"
+                  dot={false}
+                  strokeWidth={1.5}
+                  connectNulls
                 />
               )}
-              <Line
-                type="monotone"
-                dataKey="price"
-                stroke={isPriceUp ? "#10b981" : "#ef4444"}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
+              
+              {indicatorsVisible.includes('sma50') && (
+                <Line
+                  type="monotone"
+                  dataKey="sma50"
+                  stroke="#82ca9d"
+                  dot={false}
+                  strokeWidth={1.5}
+                  connectNulls
+                />
+              )}
+              
+              {/* Current price reference line */}
+              {currentCoin && (
+                <ReferenceLine 
+                  y={currentCoin.price} 
+                  stroke="#ff0000" 
+                  strokeDasharray="3 3"
+                  label={{ 
+                    value: `Current: ${formatPrice(currentCoin.price)}`, 
+                    position: 'right', 
+                    fill: '#ff0000',
+                    fontSize: 12
+                  }}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div>
+          <span className="text-xs text-muted-foreground flex items-center">
+            <Clock className="h-3 w-3 mr-1" />
+            Auto-updates every {updateInterval / 1000} seconds
+          </span>
+        </div>
+        
+        <ToggleGroup 
+          type="multiple" 
+          value={indicatorsVisible}
+          onValueChange={setIndicatorsVisible}
+        >
+          <ToggleGroupItem value="sma20" size="sm" className="text-xs">SMA 20</ToggleGroupItem>
+          <ToggleGroupItem value="sma50" size="sm" className="text-xs">SMA 50</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+    </div>
   );
 };
 

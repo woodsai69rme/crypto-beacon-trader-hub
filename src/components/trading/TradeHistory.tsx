@@ -1,8 +1,7 @@
 
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SupportedCurrency } from "./TradingStats";
-import { Trade } from "./types";
+import { SupportedCurrency, Trade } from "@/types/trading";
 
 interface TradeHistoryProps {
   trades: Trade[];

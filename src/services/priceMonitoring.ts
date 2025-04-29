@@ -1,132 +1,146 @@
 
-import { CoinOption } from "@/types/trading";
+import type { CoinOption } from "@/types/trading";
 
-// Initial mock data
-const mockCoins: CoinOption[] = [
-  { 
-    id: "bitcoin", 
-    name: "Bitcoin", 
-    symbol: "BTC", 
-    price: 61245.32,
-    priceChange: 1200,
-    changePercent: 2.3,
-    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-    volume: 28000000000,
-    marketCap: 1180000000000,
-    value: "bitcoin",
-    label: "Bitcoin (BTC)"
-  },
-  { 
-    id: "ethereum", 
-    name: "Ethereum", 
-    symbol: "ETH", 
-    price: 3010.45,
-    priceChange: -120,
-    changePercent: -1.5,
-    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-    volume: 15000000000,
-    marketCap: 360000000000,
-    value: "ethereum",
-    label: "Ethereum (ETH)"
-  },
-  { 
-    id: "solana", 
-    name: "Solana", 
-    symbol: "SOL", 
-    price: 121.33,
-    priceChange: 3.56,
-    changePercent: 3.1,
-    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-    volume: 5200000000,
-    marketCap: 90000000000,
-    value: "solana",
-    label: "Solana (SOL)"
-  },
-  { 
-    id: "cardano", 
-    name: "Cardano", 
-    symbol: "ADA", 
-    price: 0.45,
-    priceChange: -0.02,
-    changePercent: -2.6,
-    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
-    volume: 890000000,
-    marketCap: 24000000000,
-    value: "cardano",
-    label: "Cardano (ADA)"
-  },
-  { 
-    id: "ripple", 
-    name: "XRP", 
-    symbol: "XRP", 
-    price: 0.61,
-    priceChange: 0.01,
-    changePercent: 1.8,
-    image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
-    volume: 2400000000,
-    marketCap: 32000000000,
-    value: "ripple",
-    label: "XRP (XRP)"
-  },
-  { 
-    id: "dogecoin", 
-    name: "Dogecoin", 
-    symbol: "DOGE", 
-    price: 0.138,
-    priceChange: -0.004,
-    changePercent: -2.1,
-    image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
-    volume: 1900000000,
-    marketCap: 18000000000,
-    value: "dogecoin",
-    label: "Dogecoin (DOGE)"
-  }
-];
+type UpdateCallback = (updatedPrices: CoinOption[]) => void;
 
-// Simulates price fluctuations for realistic data
-const simulateMarketMovement = (coins: CoinOption[]): CoinOption[] => {
-  return coins.map(coin => {
-    // Random price movement between -2% and 2%
-    const changePercent = (Math.random() * 4) - 2;
-    const priceChange = coin.price * (changePercent / 100);
-    const newPrice = coin.price + priceChange;
-    
-    return {
-      ...coin,
-      price: Number(newPrice.toFixed(2)),
-      priceChange: Number(priceChange.toFixed(2)),
-      changePercent: Number(changePercent.toFixed(2)),
-      // Update other currency conversions
-      priceAUD: Number((newPrice * 1.5).toFixed(2)),
-      priceEUR: Number((newPrice * 0.92).toFixed(2)),
-      priceGBP: Number((newPrice * 0.79).toFixed(2))
-    };
-  });
+// Cache to store the latest prices
+let latestPrices: Record<string, CoinOption> = {};
+
+// Default price variations in percentage (for simulating real-time changes)
+const DEFAULT_PRICE_VARIATIONS: Record<string, number> = {
+  bitcoin: 0.5,  // 0.5% variation
+  ethereum: 0.7, // 0.7% variation
+  solana: 1.2,   // 1.2% variation
+  cardano: 1.0,  // 1.0% variation
+  ripple: 0.8,   // 0.8% variation
+  dogecoin: 1.5, // 1.5% variation
 };
 
-// Start monitoring price changes
-export const startPriceMonitoring = (
+/**
+ * Function to simulate price updates for specified coins
+ * @param coinIds List of coin IDs to monitor
+ * @param callback Function to call with updated prices
+ * @param interval How often to update prices in milliseconds
+ * @returns Function to stop monitoring
+ */
+export function startPriceMonitoring(
   coinIds: string[],
-  onUpdate: (coins: CoinOption[]) => void,
-  intervalMs: number = 5000
-) => {
-  // Filter coins based on requested IDs
-  let monitoredCoins = mockCoins.filter(coin => coinIds.includes(coin.id));
-  
-  // If no coins match, use defaults
-  if (monitoredCoins.length === 0) {
-    monitoredCoins = mockCoins;
+  callback: UpdateCallback,
+  interval = 3000 // Default update interval: 3 seconds
+): () => void {
+  // Initialize the latestPrices cache if empty
+  if (Object.keys(latestPrices).length === 0) {
+    coinIds.forEach(coinId => {
+      const defaultPrice = getDefaultPriceForCoin(coinId);
+      latestPrices[coinId] = {
+        id: coinId,
+        name: getCoinName(coinId),
+        symbol: getCoinSymbol(coinId),
+        price: defaultPrice,
+        value: coinId,
+        label: getCoinName(coinId),
+        priceChange: 0,
+        changePercent: 0,
+      };
+    });
   }
+
+  // Set up interval for updating prices
+  const timerId = setInterval(() => {
+    const updatedCoins: CoinOption[] = [];
+    
+    coinIds.forEach(coinId => {
+      if (!latestPrices[coinId]) return;
+      
+      const currentPrice = latestPrices[coinId].price;
+      const variation = DEFAULT_PRICE_VARIATIONS[coinId] || 0.5;
+      
+      // Generate a random price change within the variation percentage
+      const randomChange = (Math.random() * 2 - 1) * variation / 100;
+      const newPrice = currentPrice * (1 + randomChange);
+      const priceChange = newPrice - currentPrice;
+      const changePercent = (priceChange / currentPrice) * 100;
+      
+      // Update the price in the cache
+      latestPrices[coinId] = {
+        ...latestPrices[coinId],
+        price: newPrice,
+        priceChange,
+        changePercent,
+        priceAUD: newPrice * 1.48, // Simple conversion rate
+        priceEUR: newPrice * 0.92, // Simple conversion rate
+        priceGBP: newPrice * 0.8,  // Simple conversion rate
+      };
+      
+      updatedCoins.push(latestPrices[coinId]);
+    });
+    
+    // Call the callback with updated prices
+    if (updatedCoins.length > 0) {
+      callback(updatedCoins);
+    }
+  }, interval);
   
-  // Initial update
-  onUpdate(monitoredCoins);
+  // Return a function to stop the monitoring
+  return () => clearInterval(timerId);
+}
+
+/**
+ * Get a default price for a coin based on its ID
+ */
+function getDefaultPriceForCoin(coinId: string): number {
+  const defaultPrices: Record<string, number> = {
+    bitcoin: 61245.32,
+    ethereum: 3010.45,
+    solana: 142.87,
+    cardano: 0.45,
+    ripple: 0.57,
+    dogecoin: 0.14,
+    binance: 520.76,
+    polkadot: 7.32,
+    litecoin: 82.14,
+    chainlink: 14.56,
+  };
   
-  // Set up interval for price movements
-  const intervalId = setInterval(() => {
-    monitoredCoins = simulateMarketMovement(monitoredCoins);
-    onUpdate(monitoredCoins);
-  }, intervalMs);
+  return defaultPrices[coinId] || 100; // Default to 100 if not found
+}
+
+/**
+ * Get the full name of a coin based on its ID
+ */
+function getCoinName(coinId: string): string {
+  const coinNames: Record<string, string> = {
+    bitcoin: 'Bitcoin',
+    ethereum: 'Ethereum',
+    solana: 'Solana',
+    cardano: 'Cardano',
+    ripple: 'XRP',
+    dogecoin: 'Dogecoin',
+    binance: 'Binance Coin',
+    polkadot: 'Polkadot',
+    litecoin: 'Litecoin',
+    chainlink: 'Chainlink',
+  };
   
-  // Return function to stop monitoring
-  return () => clearInterval(intervalId);
-};
+  return coinNames[coinId] || coinId.charAt(0).toUpperCase() + coinId.slice(1);
+}
+
+/**
+ * Get the symbol of a coin based on its ID
+ */
+function getCoinSymbol(coinId: string): string {
+  const coinSymbols: Record<string, string> = {
+    bitcoin: 'BTC',
+    ethereum: 'ETH',
+    solana: 'SOL',
+    cardano: 'ADA',
+    ripple: 'XRP',
+    dogecoin: 'DOGE',
+    binance: 'BNB',
+    polkadot: 'DOT',
+    litecoin: 'LTC',
+    chainlink: 'LINK',
+  };
+  
+  return coinSymbols[coinId] || coinId.toUpperCase().slice(0, 3);
+}

@@ -2,427 +2,555 @@
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Activity,
-  BookOpen,
-  Brain,
-  BrainCircuit,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  Code,
-  Github,
-  Info,
-  LineChart,
-  List,
-  Play,
-  Plus,
-  RefreshCw,
-  Settings,
-  Shield,
-  Star,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Bot, Brain, AlertTriangle, TrendingUp, BarChart2, ArrowDown, ArrowUp, Check, X } from "lucide-react";
 import { AITradingStrategy } from "@/types/trading";
+import AiTradingBotDetail from "./AiTradingBotDetail";
+import { toast } from "@/components/ui/use-toast";
 
-const AiTradingBots = () => {
-  const [activeTab, setActiveTab] = useState("available");
-  const [activeStrategy, setActiveStrategy] = useState<AITradingStrategy | null>(null);
-  const [runningBots, setRunningBots] = useState<AITradingStrategy[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-  const [creationProgress, setCreationProgress] = useState(0);
+const AI_STRATEGIES: AITradingStrategy[] = [
+  {
+    id: "strategy-1",
+    name: "Trend Following",
+    description: "Uses moving averages and momentum indicators to identify and follow market trends",
+    riskLevel: "medium",
+    timeframe: "4h",
+    type: "trend-following",
+    performance: 12.5,
+    creator: "System",
+    tags: ["Momentum", "Moving Averages", "Slow"],
+    indicators: ["EMA", "RSI", "ATR"]
+  },
+  {
+    id: "strategy-2",
+    name: "Breakout Hunter",
+    description: "Detects price breakouts from key support and resistance levels",
+    riskLevel: "high",
+    timeframe: "1h",
+    type: "breakout",
+    performance: 18.2,
+    creator: "System",
+    tags: ["Volatile", "Breakouts", "Support/Resistance"],
+    indicators: ["Bollinger Bands", "Volume", "Price Action"]
+  },
+  {
+    id: "strategy-3",
+    name: "Mean Reversion",
+    description: "Identifies overbought and oversold conditions for reversals",
+    riskLevel: "low",
+    timeframe: "1d",
+    type: "mean-reversion",
+    performance: 8.7,
+    creator: "System",
+    tags: ["Stable", "Oscillators", "Reversal"],
+    indicators: ["RSI", "Stochastic", "MACD"]
+  }
+];
 
-  // Mock strategies
-  const availableStrategies: AITradingStrategy[] = [
-    {
-      id: "trend-following-1",
-      name: "TrendMaster AI",
-      description: "Uses AI to identify and follow market trends with adaptive entry and exit points.",
-      riskLevel: "medium",
-      timeframe: "1D",
-      type: "trend-following",
-      parameters: {
-        movingAverages: ["SMA-50", "EMA-21"],
-        stopLoss: 5,
-        takeProfit: 15,
-      },
-      tags: ["trend", "momentum", "popular"],
-      performance: 12.4,
-      creator: "CryptoLabs AI"
-    },
-    {
-      id: "mean-reversion-1",
-      name: "Volatility Stabilizer",
-      description: "Identifies overbought and oversold conditions to capitalize on price reversions.",
-      riskLevel: "low",
-      timeframe: "4H",
-      type: "mean-reversion",
-      parameters: {
-        rsi: { oversold: 30, overbought: 70 },
-        bollingerBands: { std: 2 },
-      },
-      tags: ["mean-reversion", "volatility"],
-      performance: 8.7,
-      creator: "Quantum Trading"
-    },
-    {
-      id: "breakout-detection-1",
-      name: "BreakoutHunter Pro",
-      description: "Detects volume-confirmed breakouts from consolidation patterns.",
-      riskLevel: "high",
-      timeframe: "1H",
-      type: "breakout",
-      parameters: {
-        volumeThreshold: 1.5,
-        consolidationPeriod: 14,
-      },
-      tags: ["breakout", "volume", "aggressive"],
-      performance: 18.9,
-      creator: "AlgoTraders Inc."
-    },
-  ];
+const MARKET_CONDITIONS = [
+  { id: "bull", name: "Bull Market", description: "Market is in an uptrend across multiple timeframes" },
+  { id: "bear", name: "Bear Market", description: "Market is in a downtrend across multiple timeframes" },
+  { id: "sideways", name: "Sideways Market", description: "Market is consolidating in a range" },
+  { id: "volatile", name: "Volatile Market", description: "Market is experiencing high volatility" }
+];
 
-  const handleActivateStrategy = (strategy: AITradingStrategy) => {
-    setActiveStrategy(strategy);
-  };
+const AiTradingBots: React.FC = () => {
+  const [strategies, setStrategies] = useState<AITradingStrategy[]>(AI_STRATEGIES);
+  const [activeStrategyId, setActiveStrategyId] = useState<string | null>(null);
+  const [selectedMarketType, setSelectedMarketType] = useState<string>("bull");
+  const [backtest, setBacktest] = useState({
+    period: "6m",
+    startingCapital: 10000,
+    maxTradeSize: 20,
+    slippage: 0.5,
+    useStopLoss: true,
+    useTakeProfit: true
+  });
+  const [activeTab, setActiveTab] = useState("manage");
+  const [newStrategy, setNewStrategy] = useState<Partial<AITradingStrategy>>({
+    name: "",
+    description: "",
+    riskLevel: "medium",
+    timeframe: "1h",
+    type: "trend-following"
+  });
 
-  const handleCreateBot = () => {
-    if (!activeStrategy) return;
+  // Get active strategy
+  const activeStrategy = activeStrategyId 
+    ? strategies.find(s => s.id === activeStrategyId)
+    : null;
 
-    setIsCreating(true);
-    setCreationProgress(0);
-
-    const interval = setInterval(() => {
-      setCreationProgress((prev) => {
-        const newProgress = prev + 10;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setRunningBots((prev) => [...prev, activeStrategy]);
-            setIsCreating(false);
-            setActiveStrategy(null);
-            setCreationProgress(0);
-          }, 500);
-          return 100;
-        }
-        return newProgress;
-      });
-    }, 300);
-  };
-
-  const getStrategyIcon = (type: string) => {
-    switch (type) {
-      case "trend-following":
-        return <TrendingUp className="h-5 w-5 text-blue-500" />;
-      case "mean-reversion":
-        return <RefreshCw className="h-5 w-5 text-green-500" />;
-      case "breakout":
-        return <Zap className="h-5 w-5 text-yellow-500" />;
-      case "sentiment":
-        return <Activity className="h-5 w-5 text-purple-500" />;
-      case "machine-learning":
-        return <BrainCircuit className="h-5 w-5 text-indigo-500" />;
+  // Filter strategies by market condition
+  const filterStrategiesByMarket = (marketType: string) => {
+    switch(marketType) {
+      case "bull":
+        return strategies.filter(s => 
+          s.type === "trend-following" || s.type === "breakout"
+        );
+      case "bear":
+        return strategies.filter(s => 
+          s.type === "mean-reversion" || s.type === "sentiment"
+        );
+      case "sideways":
+        return strategies.filter(s => 
+          s.type === "mean-reversion" || s.type === "machine-learning"
+        );
+      case "volatile":
+        return strategies.filter(s => 
+          s.type === "breakout" || s.type === "hybrid"
+        );
       default:
-        return <Brain className="h-5 w-5 text-primary" />;
+        return strategies;
     }
   };
 
-  const getRiskColor = (riskLevel: "low" | "medium" | "high") => {
-    switch (riskLevel) {
+  // Get filtered strategies by current market selection
+  const filteredStrategies = filterStrategiesByMarket(selectedMarketType);
+
+  const handleCreateStrategy = () => {
+    if (!newStrategy.name || !newStrategy.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a strategy name and description",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newStrategyData: AITradingStrategy = {
+      id: `strategy-${Date.now()}`,
+      name: newStrategy.name || "New Strategy",
+      description: newStrategy.description || "",
+      riskLevel: newStrategy.riskLevel || "medium",
+      timeframe: newStrategy.timeframe || "1h",
+      type: newStrategy.type || "trend-following",
+      creator: "User",
+      performance: 0,
+      indicators: [],
+      tags: []
+    };
+    
+    setStrategies([...strategies, newStrategyData]);
+    
+    setNewStrategy({
+      name: "",
+      description: "",
+      riskLevel: "medium",
+      timeframe: "1h",
+      type: "trend-following"
+    });
+    
+    toast({
+      title: "Strategy Created",
+      description: "Your new AI trading strategy has been created"
+    });
+  };
+
+  const handleRunBacktest = () => {
+    toast({
+      title: "Backtesting Started",
+      description: `Running backtest on ${activeStrategy?.name} with ${backtest.period} data`,
+    });
+    
+    // Simulate a delay for the backtest
+    setTimeout(() => {
+      toast({
+        title: "Backtest Complete",
+        description: "Results are now available in the Performance tab",
+      });
+    }, 3000);
+  };
+
+  const handleDeleteStrategy = (strategyId: string) => {
+    setStrategies(strategies.filter(s => s.id !== strategyId));
+    if (activeStrategyId === strategyId) {
+      setActiveStrategyId(null);
+    }
+    
+    toast({
+      title: "Strategy Deleted",
+      description: "AI trading strategy has been removed"
+    });
+  };
+
+  const getRiskBadgeColor = (risk: string) => {
+    switch(risk) {
       case "low":
-        return "bg-green-500/80";
+        return "bg-green-500/10 text-green-500";
       case "medium":
-        return "bg-yellow-500/80";
+        return "bg-amber-500/10 text-amber-500";
       case "high":
-        return "bg-red-500/80";
+        return "bg-red-500/10 text-red-500";
       default:
-        return "bg-blue-500/80";
+        return "bg-blue-500/10 text-blue-500";
     }
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BrainCircuit className="h-5 w-5" />
-            <CardTitle>AI Trading Bots</CardTitle>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              AI Trading Bots
+            </CardTitle>
+            <CardDescription>
+              Automated trading strategies using artificial intelligence
+            </CardDescription>
           </div>
-          <Badge variant="outline" className="font-normal">
-            Beta Feature
-          </Badge>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm">Create Strategy</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New AI Strategy</DialogTitle>
+                <DialogDescription>
+                  Design a custom trading strategy powered by AI
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 my-4">
+                <div className="space-y-2">
+                  <Label htmlFor="strategy-name">Strategy Name</Label>
+                  <Input 
+                    id="strategy-name" 
+                    value={newStrategy.name} 
+                    onChange={(e) => setNewStrategy({...newStrategy, name: e.target.value})}
+                    placeholder="e.g. Momentum Swing Trader"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="strategy-description">Description</Label>
+                  <Input 
+                    id="strategy-description" 
+                    value={newStrategy.description} 
+                    onChange={(e) => setNewStrategy({...newStrategy, description: e.target.value})}
+                    placeholder="Describe what your strategy does"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="strategy-type">Type</Label>
+                  <Select 
+                    value={newStrategy.type} 
+                    onValueChange={(value) => setNewStrategy({...newStrategy, type: value as AITradingStrategy["type"]})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select strategy type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="trend-following">Trend Following</SelectItem>
+                      <SelectItem value="mean-reversion">Mean Reversion</SelectItem>
+                      <SelectItem value="breakout">Breakout</SelectItem>
+                      <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
+                      <SelectItem value="machine-learning">Machine Learning</SelectItem>
+                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="strategy-timeframe">Timeframe</Label>
+                  <Select 
+                    value={newStrategy.timeframe} 
+                    onValueChange={(value) => setNewStrategy({...newStrategy, timeframe: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select timeframe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5m">5 Minutes</SelectItem>
+                      <SelectItem value="15m">15 Minutes</SelectItem>
+                      <SelectItem value="1h">1 Hour</SelectItem>
+                      <SelectItem value="4h">4 Hours</SelectItem>
+                      <SelectItem value="1d">1 Day</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="strategy-risk">Risk Level</Label>
+                  <Select 
+                    value={newStrategy.riskLevel} 
+                    onValueChange={(value) => setNewStrategy({...newStrategy, riskLevel: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select risk level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low Risk</SelectItem>
+                      <SelectItem value="medium">Medium Risk</SelectItem>
+                      <SelectItem value="high">High Risk</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button onClick={handleCreateStrategy}>Create Strategy</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-        <CardDescription>
-          Deploy AI-powered trading strategies that adapt to market conditions
-        </CardDescription>
       </CardHeader>
-
-      <CardContent className="space-y-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="available">Available</TabsTrigger>
-            <TabsTrigger value="running">Running ({runningBots.length})</TabsTrigger>
-            <TabsTrigger value="custom">Create Custom</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="available" className="space-y-4 pt-4">
-            {availableStrategies.map((strategy) => (
-              <Card
+      
+      <CardContent>
+        <div className="mb-4">
+          <Label className="mb-2 block">Optimize for Market Condition</Label>
+          <Tabs defaultValue={selectedMarketType} onValueChange={setSelectedMarketType}>
+            <TabsList className="grid grid-cols-4">
+              {MARKET_CONDITIONS.map(condition => (
+                <TabsTrigger key={condition.id} value={condition.id}>
+                  {condition.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <p className="text-xs text-muted-foreground mt-2">
+            {MARKET_CONDITIONS.find(c => c.id === selectedMarketType)?.description}
+          </p>
+        </div>
+        
+        <div className="space-y-3">
+          {filteredStrategies.length > 0 ? (
+            filteredStrategies.map(strategy => (
+              <div 
                 key={strategy.id}
-                className={`transition-all hover:shadow-md ${
-                  activeStrategy?.id === strategy.id ? "border-primary" : ""
-                }`}
+                className={`p-4 border rounded-lg ${activeStrategyId === strategy.id ? 'border-primary' : 'border-border'} cursor-pointer`}
+                onClick={() => setActiveStrategyId(activeStrategyId === strategy.id ? null : strategy.id)}
               >
-                <CardHeader className="py-3">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      {strategy.type && getStrategyIcon(strategy.type)}
-                      <CardTitle className="text-base">{strategy.name}</CardTitle>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${getRiskColor(
-                          strategy.riskLevel
-                        )} bg-opacity-15 text-foreground`}
-                      >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-medium flex items-center">
+                      {strategy.name}
+                      <Badge className={`ml-2 ${getRiskBadgeColor(strategy.riskLevel)}`}>
                         {strategy.riskLevel.charAt(0).toUpperCase() + strategy.riskLevel.slice(1)} Risk
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {strategy.timeframe}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleActivateStrategy(strategy)}
-                      >
-                        {activeStrategy?.id === strategy.id ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </Button>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{strategy.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-sm font-medium ${(strategy.performance || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {(strategy.performance || 0) >= 0 ? '+' : ''}{strategy.performance || 0}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {strategy.timeframe} timeframe
                     </div>
                   </div>
-                </CardHeader>
-
-                {activeStrategy?.id === strategy.id && (
-                  <>
-                    <CardContent className="py-0">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {strategy.description}
-                      </p>
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <div className="text-xs font-medium">Performance</div>
-                          <div className="flex items-center gap-2">
-                            <LineChart className="h-4 w-4 text-muted-foreground" />
-                            <div className="text-lg font-medium text-green-500">
-                              +{strategy.performance?.toFixed(1)}%
-                            </div>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Past 30 days (simulated)
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="text-xs font-medium">Details</div>
-                          <div className="flex flex-wrap gap-1 pt-1">
-                            {strategy.tags?.map((tag) => (
-                              <Badge
-                                key={tag}
-                                variant="secondary"
-                                className="bg-secondary/50 text-xs"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="text-xs text-muted-foreground pt-1">
-                            Created by {strategy.creator || "Unknown"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator className="my-4" />
-
-                      <div className="space-y-2">
-                        <div className="text-xs font-medium flex items-center gap-1">
-                          <Settings className="h-3 w-3" /> Strategy Parameters
-                        </div>
-                        <div className="text-xs font-mono bg-muted/30 rounded p-2 overflow-x-auto">
-                          <pre>{JSON.stringify(strategy.parameters, null, 2)}</pre>
-                        </div>
-                      </div>
-                    </CardContent>
-
-                    <CardFooter className="pt-2 pb-4">
-                      <Button
-                        className="w-full"
-                        onClick={handleCreateBot}
-                        disabled={isCreating}
-                      >
-                        {isCreating ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Setting up your bot...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-4 w-4 mr-2" />
-                            Deploy Trading Bot
-                          </>
-                        )}
-                      </Button>
-                    </CardFooter>
-                  </>
-                )}
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="running" className="space-y-4 pt-4">
-            {runningBots.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center">
-                  <Info className="h-8 w-8 text-muted-foreground mb-2" />
-                  <h3 className="text-lg font-medium mb-1">No Active Bots</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    You don't have any AI trading bots running at the moment.
-                  </p>
+                </div>
+                
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {strategy.tags?.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Brain className="h-3.5 w-3.5 mr-1" />
+                    {strategy.type?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  </div>
                   <Button
-                    onClick={() => setActiveTab("available")}
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteStrategy(strategy.id);
+                    }}
                   >
-                    <List className="h-4 w-4 mr-2" />
-                    Browse Available Strategies
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              // Render running bots
-              runningBots.map((bot) => (
-                <Card key={`running-${bot.id}`}>
-                  <CardHeader className="py-3">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        {bot.type && getStrategyIcon(bot.type)}
-                        <CardTitle className="text-base">{bot.name}</CardTitle>
-                      </div>
-                      <Badge
-                        variant="default"
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        Active
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Profit/Loss</p>
-                        <p className="text-lg font-medium text-green-500">+$125.45</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Active Since</p>
-                        <p className="text-sm">3 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span>Performance</span>
-                        <span className="text-green-500">+2.4%</span>
-                      </div>
-                      <Progress value={42} className="h-1" />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Settings className="h-4 w-4 mr-1" /> Configure
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() =>
-                        setRunningBots((prev) =>
-                          prev.filter((strategy) => strategy.id !== bot.id)
-                        )
-                      }
-                    >
-                      Stop Bot
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="custom" className="pt-4">
-            <Card>
-              <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center">
-                <Shield className="h-8 w-8 text-muted-foreground mb-2" />
-                <h3 className="text-lg font-medium mb-1">Coming Soon</h3>
-                <p className="text-sm text-muted-foreground mb-4 max-w-md">
-                  Custom AI strategy creation is under development. Stay tuned for updates!
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xs">
-                  <Button variant="secondary" size="sm" className="flex-1" disabled>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Request Access
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    asChild
-                  >
-                    <a
-                      href="https://github.com/crypto-trading-ai/roadmap"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Github className="h-4 w-4 mr-2" />
-                      Roadmap
-                    </a>
+                    Delete
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Alert className="mt-4">
-              <BookOpen className="h-4 w-4" />
-              <AlertTitle>Developer Preview</AlertTitle>
-              <AlertDescription className="text-sm">
-                Advanced users can access our API documentation to create custom strategies
-                using our Python SDK.
-              </AlertDescription>
-            </Alert>
-          </TabsContent>
-        </Tabs>
-
-        {isCreating && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span>Deploying AI trading bot...</span>
-              <span>{creationProgress}%</span>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 border border-dashed rounded-lg border-muted-foreground/20">
+              <AlertTriangle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">No suitable strategies for this market condition.</p>
+              <p className="text-sm text-muted-foreground mt-1">Create a new strategy or change market type.</p>
             </div>
-            <Progress value={creationProgress} className="h-1" />
-            <p className="text-xs text-muted-foreground">
-              Initializing strategy parameters and connecting to pricing engine
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
+      
+      {activeStrategy && (
+        <CardFooter className="flex flex-col border-t pt-4">
+          <div className="w-full">
+            <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-3">
+                <TabsTrigger value="manage">Manage</TabsTrigger>
+                <TabsTrigger value="backtest">Backtest</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="manage" className="mt-4">
+                <AiTradingBotDetail 
+                  botId={`bot-${activeStrategy.id}`}
+                  strategyId={activeStrategy.id}
+                  strategyName={activeStrategy.name}
+                />
+              </TabsContent>
+              
+              <TabsContent value="backtest" className="mt-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="mb-2 block">Backtest Period</Label>
+                        <Select value={backtest.period} onValueChange={(value) => setBacktest({...backtest, period: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1m">1 Month</SelectItem>
+                            <SelectItem value="3m">3 Months</SelectItem>
+                            <SelectItem value="6m">6 Months</SelectItem>
+                            <SelectItem value="1y">1 Year</SelectItem>
+                            <SelectItem value="3y">3 Years</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="mb-2 block">Starting Capital</Label>
+                        <div className="flex items-center">
+                          <span className="mr-2">$</span>
+                          <Input
+                            type="number"
+                            value={backtest.startingCapital}
+                            onChange={(e) => setBacktest({...backtest, startingCapital: parseInt(e.target.value)})}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="mb-2 block">Max Trade Size (%)</Label>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex-1">
+                            <Slider
+                              value={[backtest.maxTradeSize]}
+                              min={1}
+                              max={100}
+                              step={1}
+                              onValueChange={(value) => setBacktest({...backtest, maxTradeSize: value[0]})}
+                            />
+                          </div>
+                          <div className="w-12 text-center">{backtest.maxTradeSize}%</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="use-sl">Use Stop Loss</Label>
+                        <Switch
+                          id="use-sl"
+                          checked={backtest.useStopLoss}
+                          onCheckedChange={(checked) => setBacktest({...backtest, useStopLoss: checked})}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="use-tp">Use Take Profit</Label>
+                        <Switch
+                          id="use-tp"
+                          checked={backtest.useTakeProfit}
+                          onCheckedChange={(checked) => setBacktest({...backtest, useTakeProfit: checked})}
+                        />
+                      </div>
+                      
+                      <Button className="w-full" onClick={handleRunBacktest}>
+                        Run Backtest
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="performance" className="mt-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-muted/30 p-3 rounded-md">
+                          <div className="text-sm text-muted-foreground">Performance</div>
+                          <div className={`text-xl font-semibold ${(activeStrategy.performance || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {(activeStrategy.performance || 0) >= 0 ? '+' : ''}{activeStrategy.performance || 0}%
+                          </div>
+                        </div>
+                        <div className="bg-muted/30 p-3 rounded-md">
+                          <div className="text-sm text-muted-foreground">Win Rate</div>
+                          <div className="text-xl font-semibold">62%</div>
+                        </div>
+                        <div className="bg-muted/30 p-3 rounded-md">
+                          <div className="text-sm text-muted-foreground">Risk/Reward</div>
+                          <div className="text-xl font-semibold">1.8</div>
+                        </div>
+                        <div className="bg-muted/30 p-3 rounded-md">
+                          <div className="text-sm text-muted-foreground">Max Drawdown</div>
+                          <div className="text-xl font-semibold text-red-500">-14.2%</div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Recommended Markets</h3>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="text-xs">BTC/USD</Badge>
+                          <Badge variant="outline" className="text-xs">ETH/USD</Badge>
+                          <Badge variant="outline" className="text-xs">SOL/USD</Badge>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Performance History</h3>
+                        <div className="space-y-2">
+                          {["Strategy run on 2023-05-15: +3.2%", "Strategy run on 2023-05-10: -1.1%", "Strategy run on 2023-05-05: +4.5%"].map((history, index) => (
+                            <div key={index} className="text-xs flex justify-between p-2 border-b">
+                              <span>{history.split(": ")[0]}</span>
+                              <span className={history.includes("+") ? "text-green-500" : "text-red-500"}>
+                                {history.split(": ")[1]}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Strengths & Weaknesses</h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center text-xs">
+                            <Check className="h-3 w-3 text-green-500 mr-1" />
+                            <span>Performs well in {activeStrategy.type === 'trend-following' ? 'trending' : 'volatile'} markets</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Check className="h-3 w-3 text-green-500 mr-1" />
+                            <span>Consistent returns over {backtest.period} timeframe</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <X className="h-3 w-3 text-red-500 mr-1" />
+                            <span>Underperforms in {activeStrategy.type === 'trend-following' ? 'sideways' : 'trending'} markets</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };

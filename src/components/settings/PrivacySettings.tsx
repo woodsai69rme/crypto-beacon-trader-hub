@@ -5,47 +5,20 @@ import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/
 import { SettingsComponentProps } from "./types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">User Interface</h3>
+        <h3 className="text-lg font-medium">Profile Privacy</h3>
         
         <FormField
           control={form.control}
-          name="theme"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Theme</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a theme" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="dark">Dark (Default)</SelectItem>
-                  <SelectItem value="darker">Darker</SelectItem>
-                  <SelectItem value="midnight">Midnight</SelectItem>
-                  <SelectItem value="cyberpunk">Cyberpunk</SelectItem>
-                  <SelectItem value="matrix">Matrix</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Choose your preferred dark theme variant
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.compactMode"
+          name="privacy.publicProfile"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel>Compact Mode</FormLabel>
-                <FormDescription>Use a more dense layout to fit more content</FormDescription>
+                <FormLabel>Public Profile</FormLabel>
+                <FormDescription>Make your profile visible to other users</FormDescription>
               </div>
               <FormControl>
                 <Switch
@@ -59,12 +32,12 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="appearance.animationsEnabled"
+          name="privacy.showPortfolio"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel>Enable Animations</FormLabel>
-                <FormDescription>Toggle UI animations and transitions</FormDescription>
+                <FormLabel>Show Portfolio</FormLabel>
+                <FormDescription>Display your portfolio holdings to others</FormDescription>
               </div>
               <FormControl>
                 <Switch
@@ -78,12 +51,12 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="appearance.highContrastMode"
+          name="privacy.shareActivity"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel>High Contrast Mode</FormLabel>
-                <FormDescription>Increase contrast for better visibility</FormDescription>
+                <FormLabel>Share Activity</FormLabel>
+                <FormDescription>Allow others to see your trading activity</FormDescription>
               </div>
               <FormControl>
                 <Switch
@@ -97,107 +70,106 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       </div>
       
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Trading Interface</h3>
+        <h3 className="text-lg font-medium">Data & Security</h3>
         
         <FormField
           control={form.control}
-          name="layout"
+          name="account.twoFactorEnabled"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel>Two-Factor Authentication</FormLabel>
+                <FormDescription>Add an extra layer of security to your account</FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="account.loginAlerts"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel>Login Alerts</FormLabel>
+                <FormDescription>Get notified of new logins to your account</FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="dataPrivacy.shareAnalytics"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel>Share Analytics</FormLabel>
+                <FormDescription>Help improve the platform with anonymous usage data</FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="dataPrivacy.storeHistory"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel>Store History</FormLabel>
+                <FormDescription>Keep record of your trading and browsing history</FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="exportFormat"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Dashboard Layout</FormLabel>
+              <FormLabel>Data Export Format</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select layout" />
+                    <SelectValue placeholder="Select export format" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="compact">Compact</SelectItem>
-                  <SelectItem value="traderview">TradingView Style</SelectItem>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
-                Organize your dashboard modules
+                Format for exporting your data and reports
               </FormDescription>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.showTradingHistory"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Trading History</FormLabel>
-                <FormDescription>Display your recent trades on the dashboard</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.showPortfolioChart"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Portfolio Chart</FormLabel>
-                <FormDescription>Display portfolio performance chart on the dashboard</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="trading.confirmTradeExecutions"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Confirm Trade Executions</FormLabel>
-                <FormDescription>Show confirmation dialog before executing trades</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="trading.showPriceAlerts"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Price Alerts</FormLabel>
-                <FormDescription>Display price alert notifications on the trading interface</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
             </FormItem>
           )}
         />
@@ -206,4 +178,4 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   );
 };
 
-export default AppearanceSettings;
+export default PrivacySettings;

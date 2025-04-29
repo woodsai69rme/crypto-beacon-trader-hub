@@ -1,78 +1,58 @@
 
 import React from "react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronDown } from "lucide-react";
 import { SupportedCurrency } from "@/types/trading";
 
 interface CurrencySelectorProps {
   activeCurrency: SupportedCurrency;
   onCurrencyChange: (currency: SupportedCurrency) => void;
-  disabled?: boolean;
-  className?: string;
+  variant?: 'default' | 'outline' | 'minimal';
+  size?: 'default' | 'sm';
 }
 
-const CURRENCY_NAMES: Record<SupportedCurrency, string> = {
-  USD: "US Dollar",
-  AUD: "Australian Dollar",
-  EUR: "Euro",
-  GBP: "British Pound",
-  JPY: "Japanese Yen",
-  CAD: "Canadian Dollar",
-  CHF: "Swiss Franc",
-  CNY: "Chinese Yuan",
-  BTC: "Bitcoin",
-  ETH: "Ethereum"
-};
-
-const CURRENCY_SYMBOLS: Record<SupportedCurrency, string> = {
-  USD: "$",
-  AUD: "A$",
-  EUR: "€",
-  GBP: "£",
-  JPY: "¥",
-  CAD: "C$",
-  CHF: "Fr",
-  CNY: "¥",
-  BTC: "₿",
-  ETH: "Ξ"
-};
-
-const CurrencySelector = ({ 
+const CurrencySelector: React.FC<CurrencySelectorProps> = ({ 
   activeCurrency, 
-  onCurrencyChange,
-  disabled = false,
-  className = "" 
-}: CurrencySelectorProps) => {
+  onCurrencyChange, 
+  variant = 'default',
+  size = 'default'
+}) => {
+  const getButtonVariant = () => {
+    switch (variant) {
+      case 'outline':
+        return 'outline';
+      case 'minimal':
+        return 'ghost';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getButtonSize = () => {
+    return size === 'sm' ? 'sm' : 'default';
+  };
+
   return (
-    <Select 
-      value={activeCurrency} 
-      onValueChange={(val) => onCurrencyChange(val as SupportedCurrency)}
-      disabled={disabled}
-    >
-      <SelectTrigger 
-        className={`w-[130px] h-9 text-sm border-border ${className}`}
-        aria-label="Select currency"
-      >
-        <DollarSign className="w-4 h-4 mr-1" />
-        <SelectValue placeholder="Currency" />
-      </SelectTrigger>
-      <SelectContent>
-        {(Object.entries(CURRENCY_NAMES) as [SupportedCurrency, string][]).map(([code, name]) => (
-          <SelectItem key={code} value={code}>
-            <div className="flex items-center">
-              <span className="currency-symbol mr-2">{CURRENCY_SYMBOLS[code]}</span>
-              <span>{code}</span>
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant={getButtonVariant()} size={getButtonSize()} className="gap-1">
+          {activeCurrency}
+          <ChevronDown className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'}`} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[200px]" align="end">
+        <Tabs defaultValue={activeCurrency} onValueChange={(value) => onCurrencyChange(value as SupportedCurrency)}>
+          <TabsList className="grid grid-cols-2">
+            <TabsTrigger value="USD">USD</TabsTrigger>
+            <TabsTrigger value="EUR">EUR</TabsTrigger>
+            <TabsTrigger value="GBP">GBP</TabsTrigger>
+            <TabsTrigger value="AUD">AUD</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </PopoverContent>
+    </Popover>
   );
 };
 

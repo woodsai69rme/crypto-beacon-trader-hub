@@ -8,8 +8,7 @@ import TradingStats from "./trading/TradingStats";
 import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { useEffect } from "react";
-import { SupportedCurrency, CoinOption, Trade } from "@/types/trading";
+import { SupportedCurrency, Trade, CoinOption } from "@/types/trading";
 
 const FakeTrading = () => {
   const {
