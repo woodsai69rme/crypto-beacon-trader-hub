@@ -72,8 +72,8 @@ const TaxCalculator = () => {
                 <SelectValue placeholder="Select holding period" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="short">Short Term (< 1 year)</SelectItem>
-                <SelectItem value="long">Long Term (> 1 year)</SelectItem>
+                <SelectItem value="short">Short Term (&lt; 1 year)</SelectItem>
+                <SelectItem value="long">Long Term (&gt; 1 year)</SelectItem>
                 <SelectItem value="mixed">Mixed</SelectItem>
               </SelectContent>
             </Select>
