@@ -1,5 +1,5 @@
 
-import { ApiProvider } from "@/types/trading";
+import { ApiProvider, ApiEndpoint } from "@/types/trading";
 
 const defaultProviders: ApiProvider[] = [
   {
@@ -13,13 +13,38 @@ const defaultProviders: ApiProvider[] = [
     enabled: true,
     requiresAuth: false,
     rateLimit: 50,
-    endpoints: {
-      coins: "/coins/markets",
-      coin: "/coins/{id}",
-      price: "/simple/price",
-      search: "/search",
-      trending: "/search/trending"
-    },
+    endpoints: [
+      {
+        path: "/coins/markets",
+        method: "GET",
+        description: "Get list of coins with market data",
+        requiresAuth: false
+      },
+      {
+        path: "/coins/{id}",
+        method: "GET",
+        description: "Get current data for a coin",
+        requiresAuth: false
+      },
+      {
+        path: "/simple/price",
+        method: "GET",
+        description: "Get simple price data",
+        requiresAuth: false
+      },
+      {
+        path: "/search",
+        method: "GET",
+        description: "Search for coins, categories and markets",
+        requiresAuth: false
+      },
+      {
+        path: "/search/trending",
+        method: "GET",
+        description: "Get trending search coins",
+        requiresAuth: false
+      }
+    ],
     defaultHeaders: {}
   },
   {
@@ -36,13 +61,38 @@ const defaultProviders: ApiProvider[] = [
     apiKeyName: "X-MBX-APIKEY",
     authMethod: "header",
     priority: 5,
-    endpoints: {
-      ticker: "/api/v3/ticker/price",
-      klines: "/api/v3/klines",
-      depth: "/api/v3/depth",
-      trades: "/api/v3/trades",
-      exchangeInfo: "/api/v3/exchangeInfo"
-    },
+    endpoints: [
+      {
+        path: "/api/v3/ticker/price",
+        method: "GET",
+        description: "Latest price for a symbol",
+        requiresAuth: false
+      },
+      {
+        path: "/api/v3/klines",
+        method: "GET",
+        description: "Kline/candlestick data",
+        requiresAuth: false
+      },
+      {
+        path: "/api/v3/depth",
+        method: "GET",
+        description: "Order book depth data",
+        requiresAuth: false
+      },
+      {
+        path: "/api/v3/trades",
+        method: "GET",
+        description: "Recent trades",
+        requiresAuth: false
+      },
+      {
+        path: "/api/v3/exchangeInfo",
+        method: "GET",
+        description: "Exchange information",
+        requiresAuth: false
+      }
+    ],
     defaultHeaders: {}
   }
 ];

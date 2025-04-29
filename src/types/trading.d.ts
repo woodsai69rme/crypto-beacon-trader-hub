@@ -32,7 +32,7 @@ export interface ApiProvider {
   authMethod?: string;
   priority?: number;
   defaultHeaders?: Record<string, string>;
-  endpoints?: Record<string, string>;
+  endpoints?: ApiEndpoint[];
   rateLimit?: number;
   tier?: string;
 }

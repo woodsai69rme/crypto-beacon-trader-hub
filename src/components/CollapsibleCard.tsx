@@ -1,8 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface CollapsibleCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface CollapsibleCardProps {
   children: React.ReactNode;
   defaultCollapsed?: boolean;
   className?: string;
+  collapseBelow?: string;
 }
 
 const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
@@ -18,8 +20,17 @@ const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
   children,
   defaultCollapsed = false,
   className = "",
+  collapseBelow,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const shouldCollapseByDefault = collapseBelow ? useMediaQuery(`(max-width: ${collapseBelow})`) : false;
+  
+  // Update collapsed state when screen size changes if collapseBelow is provided
+  useEffect(() => {
+    if (collapseBelow) {
+      setIsCollapsed(shouldCollapseByDefault ? true : defaultCollapsed);
+    }
+  }, [shouldCollapseByDefault, collapseBelow, defaultCollapsed]);
 
   return (
     <Card className={className}>

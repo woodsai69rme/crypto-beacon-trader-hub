@@ -1,4 +1,3 @@
-
 export type Trade = {
   id: string;
   coinId: string;
@@ -165,8 +164,10 @@ export interface ATOTaxRate {
 
 export interface ATOTaxCalculation {
   year: number;
+  taxYear: string;
   assessableIncome: number;
-  taxBracket: ATOTaxRate;
+  taxableIncome: number;
+  bracketInfo: ATOTaxRate;
   taxPayable: number;
   taxWithheld: number;
   taxRefundOrOwed: number;
@@ -174,9 +175,17 @@ export interface ATOTaxCalculation {
   CGTDiscount: number;
   deductions: number;
   effectiveTaxRate: number;
-  financialYear?: string; // Add missing property
-  taxableIncome?: number; // Add missing property
-  medicareLevyPayable?: number; // Add missing property
+  effectiveRate: number;
+  marginalRate: number;
+  takeHome: number;
+  medicareLevyPayable: number;
+  income: number;
+  breakdown: {
+    bracket: string;
+    amount: number;
+    tax: number;
+  }[];
+  financialYear?: string;
 }
 
 export type CryptoData = {
