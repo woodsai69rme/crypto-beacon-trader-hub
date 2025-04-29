@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,6 +64,8 @@ const LocalAiModels = () => {
   // State to track which models are connected
   const [connectedModels, setConnectedModels] = useState<LocalModel[]>([]);
   const [testingModelId, setTestingModelId] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<LocalModel | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
   
   // Connect a model
   const handleConnectModel = (model: LocalModel) => {
@@ -76,6 +77,7 @@ const LocalAiModels = () => {
     // Add to connected models
     setConnectedModels([...connectedModels, { ...model, isConnected: true }]);
     setModels(updatedModels);
+    setSelectedModel({ ...model, isConnected: true });
     
     toast({
       title: "Model Connected",
@@ -95,6 +97,11 @@ const LocalAiModels = () => {
     
     setConnectedModels(updatedConnectedModels);
     setModels(updatedModels);
+    
+    if (selectedModel && selectedModel.id === modelId) {
+      setIsRunning(false);
+      setSelectedModel(null);
+    }
     
     toast({
       title: "Model Disconnected",
@@ -127,6 +134,26 @@ const LocalAiModels = () => {
     } finally {
       setTestingModelId("");
     }
+  };
+  
+  // Start the model
+  const handleStartModel = (model: LocalModel) => {
+    setIsRunning(true);
+    
+    toast({
+      title: "Model Started",
+      description: `${model.name} is now running`,
+    });
+  };
+  
+  // Stop the model
+  const handleStopModel = () => {
+    setIsRunning(false);
+    
+    toast({
+      title: "Model Stopped",
+      description: "The model has been stopped",
+    });
   };
   
   // Add a new model
@@ -177,21 +204,19 @@ const LocalAiModels = () => {
             <ModelConnectionTab 
               models={models.filter(m => !m.isConnected)} 
               onConnect={handleConnectModel}
-              onDisconnect={handleDisconnectModel}
+              testingModelId={testingModelId}
+              onTestConnection={handleTestConnection}
             />
           </TabsContent>
           
           <TabsContent value="running">
-            {connectedModels.length > 0 ? (
-              <div className="space-y-6">
-                {connectedModels.map(model => (
-                  <ModelRunningTab
-                    key={model.id}
-                    model={model}
-                    onDisconnect={handleDisconnectModel}
-                  />
-                ))}
-              </div>
+            {selectedModel && selectedModel.isConnected ? (
+              <ModelRunningTab
+                selectedModel={selectedModel}
+                isRunning={isRunning}
+                onStartModel={handleStartModel}
+                onStopModel={handleStopModel}
+              />
             ) : (
               <div className="text-center p-10 border rounded-md bg-muted/50">
                 <h3 className="text-lg font-semibold mb-2">No Active Models</h3>

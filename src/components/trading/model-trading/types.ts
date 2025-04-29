@@ -14,19 +14,15 @@ export interface TradingStrategy {
   };
 }
 
-// Re-export LocalModel as a type
-export type { TradingLocalModel };
-
-// Define a type that merges both LocalModel definitions
+// Define a full LocalModel interface that has all the properties needed
 export interface LocalModel {
   id: string;
   name: string;
+  description?: string;
   endpoint?: string;
   type: "prediction" | "sentiment" | "trading" | "analysis";
   isConnected?: boolean;
   lastUsed?: string;
-  description?: string;
-  parameters?: Record<string, any>;
   performance?: {
     accuracy: number;
     returns: number;

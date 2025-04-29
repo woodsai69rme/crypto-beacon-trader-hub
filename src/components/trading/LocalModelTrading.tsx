@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelConnectionTab } from "./model-trading/ModelConnectionTab";
 import { ModelGenerationTab } from "./model-trading/ModelGenerationTab";
-import { ModelRunningTab } from "./model-trading/ModelRunningTab";
+import ModelRunningTab from "./model-trading/ModelRunningTab";
 import { toast } from "@/components/ui/use-toast";
 import { LocalModel } from "./model-trading/types"; // Import from the local types file
 
@@ -30,6 +30,7 @@ const LocalModelTrading: React.FC = () => {
   
   const [selectedModel, setSelectedModel] = useState<LocalModel | null>(null);
   const [activeTab, setActiveTab] = useState<string>("connect");
+  const [isRunning, setIsRunning] = useState<boolean>(false);
   
   const connectModel = (model: LocalModel) => {
     const updatedModels = models.map(m => {
@@ -62,6 +63,7 @@ const LocalModelTrading: React.FC = () => {
     
     if (selectedModel && selectedModel.id === modelId) {
       setSelectedModel({ ...selectedModel, isConnected: false });
+      setIsRunning(false);
     }
     
     toast({
@@ -76,6 +78,22 @@ const LocalModelTrading: React.FC = () => {
     toast({
       title: "Model Added",
       description: `${model.name} has been added to your local models`
+    });
+  };
+  
+  const startModel = (model: LocalModel) => {
+    setIsRunning(true);
+    toast({
+      title: "Model Started",
+      description: `${model.name} is now running and processing data`
+    });
+  };
+  
+  const stopModel = () => {
+    setIsRunning(false);
+    toast({
+      title: "Model Stopped",
+      description: "The model has been stopped"
     });
   };
 
@@ -107,8 +125,10 @@ const LocalModelTrading: React.FC = () => {
           <TabsContent value="run">
             {selectedModel && selectedModel.isConnected ? (
               <ModelRunningTab 
-                model={selectedModel} 
-                onDisconnect={() => disconnectModel(selectedModel.id)} 
+                selectedModel={selectedModel}
+                isRunning={isRunning}
+                onStartModel={startModel}
+                onStopModel={stopModel}
               />
             ) : (
               <div className="text-center p-6">

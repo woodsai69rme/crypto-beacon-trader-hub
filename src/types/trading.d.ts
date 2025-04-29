@@ -75,6 +75,8 @@ export interface Widget {
 
 export type WidgetType = 'portfolio-summary' | 'price-chart' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'multiExchange' | 'education' | 'community' | 'aiAnalysis' | 'custom';
 
+export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
+
 export interface PortfolioBenchmark {
   id: string;
   name: string;
