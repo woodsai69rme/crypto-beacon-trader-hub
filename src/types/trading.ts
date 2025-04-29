@@ -1,3 +1,4 @@
+
 export type Trade = {
   id: string;
   coinId: string;
@@ -60,6 +61,7 @@ export interface Widget {
   position: { x: number; y: number };
   config?: any;
   lastUpdated?: string;
+  customContent?: string; // Add missing property for custom widgets
 }
 
 export type WidgetType = 
@@ -70,7 +72,16 @@ export type WidgetType =
   | 'trade-history'
   | 'market-overview'
   | 'performance-metrics'
-  | 'alerts';
+  | 'alerts'
+  | 'portfolio' // Add missing widget types
+  | 'chart'
+  | 'trading'
+  | 'aiTrading'
+  | 'multiExchange'
+  | 'education'
+  | 'community'
+  | 'aiAnalysis'
+  | 'custom';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
 
@@ -116,17 +127,9 @@ export type AITradingStrategy = {
   description: string;
   type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
   timeframe: string;
-  parameters: {
-    riskLevel: string;
-    strategyType?: string;
-    backtestResults?: {
-      winRate: number;
-      profitFactor: number;
-      sharpeRatio: number;
-      drawdown: number;
-      returns: number;
-    };
-  };
+  parameters: any;
+  riskLevel?: string;
+  indicators?: string[];
 };
 
 export interface ApiKeyInfo {
@@ -171,6 +174,9 @@ export interface ATOTaxCalculation {
   CGTDiscount: number;
   deductions: number;
   effectiveTaxRate: number;
+  financialYear?: string; // Add missing property
+  taxableIncome?: number; // Add missing property
+  medicareLevyPayable?: number; // Add missing property
 }
 
 export type CryptoData = {
@@ -207,6 +213,13 @@ export type CryptoData = {
   price_change_percentage_1h_in_currency?: number;
   price_change_percentage_24h_in_currency?: number;
   price_change_percentage_7d_in_currency?: number;
+  // Add properties that other files are looking for
+  price?: number;
+  marketCap?: number;
+  rank?: number;
+  volume?: number;
+  priceChange?: number;
+  changePercent?: number;
 };
 
 export interface CryptoChartData {
@@ -224,4 +237,46 @@ export interface ApiEndpoint {
   parameters?: Record<string, string>;
   authentication?: boolean;
   rateLimit?: string;
+}
+
+// Add missing types
+export interface CoinOption {
+  value: string;
+  label: string;
+  id: string;
+  name: string;
+  symbol: string;
+  image?: string;
+  price?: number;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
+  rank?: number;
+  priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  description: string;
+  baseUrl: string;
+  apiKey?: string;
+  enabled: boolean;
+  endpoints: ApiEndpoint[];
+  rateLimit: number;
+  tier: string;
+}
+
+export interface WidgetGridProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
+}
+
+export interface WidgetListProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
 }

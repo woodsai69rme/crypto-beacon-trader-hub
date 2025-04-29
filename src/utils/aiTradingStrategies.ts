@@ -101,3 +101,16 @@ export const getStrategyById = (
 ): AITradingStrategy | undefined => {
   return predefinedStrategies.find(strategy => strategy.id === strategyId);
 };
+
+// Define available timeframes for trading strategies
+export const availableTimeframes = [
+  { value: "1m", label: "1 Minute", description: "Very short-term trading" },
+  { value: "5m", label: "5 Minutes", description: "Short-term scalping" },
+  { value: "15m", label: "15 Minutes", description: "Short-term trading" },
+  { value: "30m", label: "30 Minutes", description: "Medium-short term" },
+  { value: "1h", label: "1 Hour", description: "Medium-term trading" },
+  { value: "4h", label: "4 Hours", description: "Medium-long term" },
+  { value: "1d", label: "1 Day", description: "Long-term trading" },
+  { value: "1w", label: "1 Week", description: "Position trading" },
+  { value: "1M", label: "1 Month", description: "Long-term investment" }
+];

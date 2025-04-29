@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
@@ -133,7 +132,9 @@ const CustomizableDashboard = () => {
       <AddWidgetDialog 
         open={isAddingWidget} 
         onOpenChange={setIsAddingWidget} 
-        onAddWidget={handleAddWidget} 
+        onAddWidget={(widget) => {
+          handleAddWidget(widget.type, widget.title, widget.size);
+        }}
       />
     </div>
   );

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import ThemeSwitcher from "../settings/ThemeSwitcher";
 import CryptoSearch from "../CryptoSearch";
 import { CoinOption } from "@/types/trading";
-import { useRouter } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Fix useRouter to useNavigate
 import { toast } from "@/components/ui/use-toast";
 
 export interface DashboardHeaderProps {

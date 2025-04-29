@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Dialog,
@@ -55,7 +54,11 @@ const AuthDialog = ({ open, onOpenChange, onLogin, onSignup }: AuthDialogProps) 
         email: email,
         preferences: {
           theme: 'dark',
-          notifications: true,
+          notifications: {
+            email: true,
+            push: true,
+            priceAlerts: true
+          },
           marketAlerts: true,
           currency: 'USD'
         }
@@ -114,7 +117,11 @@ const AuthDialog = ({ open, onOpenChange, onLogin, onSignup }: AuthDialogProps) 
         email: email,
         preferences: {
           theme: 'dark',
-          notifications: true,
+          notifications: {
+            email: true,
+            push: true,
+            priceAlerts: false
+          },
           marketAlerts: false,
           currency: 'USD'
         }

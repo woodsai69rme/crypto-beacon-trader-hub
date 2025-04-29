@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,24 +40,24 @@ const TechnicalIndicatorChart: React.FC<TechnicalIndicatorChartProps> = ({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const result = await fetchTechnicalIndicators(coinId, indicator);
+        const result = await fetchTechnicalIndicators(coinId, Number(timeRange)); // Convert to number
         
-        if (result && result.Data) {
+        if (result && result.data) { // Use data instead of Data
           // Format data for chart based on indicator type
           let formattedData;
           
           switch (indicator) {
             case "RSI":
-              formattedData = formatRsiData(result.Data);
+              formattedData = formatRsiData(result.data); // Use data instead of Data
               break;
             case "MACD":
-              formattedData = formatMacdData(result.Data);
+              formattedData = formatMacdData(result.data); // Use data instead of Data
               break;
             case "Bollinger Bands":
-              formattedData = formatBollingerData(result.Data);
+              formattedData = formatBollingerData(result.data); // Use data instead of Data
               break;
             case "Moving Average":
-              formattedData = formatMovingAverageData(result.Data);
+              formattedData = formatMovingAverageData(result.data); // Use data instead of Data
               break;
             default:
               formattedData = [];
