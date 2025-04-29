@@ -38,7 +38,7 @@ export type CoinOption = {
   id: string;
   name: string;
   symbol: string;
-  price: number;  // Required property
+  price: number;
   priceAUD?: number;
   priceEUR?: number; 
   priceGBP?: number;

@@ -1,150 +1,116 @@
+
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import TaxCalculator from "../TaxCalculator";
-import EnhancedPortfolioBenchmarking from "../portfolio/EnhancedPortfolioBenchmarking";
-import MarketMetrics from "../MarketMetrics";
-import LocalAiModels from "../trading/LocalAiModels";
+import { Download, UploadCloud, FileDown, FileUp, BarChart4, Settings2, Wallet } from "lucide-react";
+import CsvImportExport from "../tools/CsvImportExport";
+import TaxCalculator from "../tools/TaxCalculator";
 import ApiProviderManagement from "../api/ApiProviderManagement";
-import TaxHarvestingTool from "../tax/TaxHarvestingTool";
-import ATOTaxCalculator from "../tax/ATOTaxCalculator";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { toast } from "@/components/ui/use-toast";
-import { Download, Settings, BarChart4, FileText, Database, Share2 } from "lucide-react";
-
-// Sample portfolio performance data for demo
-const samplePortfolioData = {
-  performance: [0, 4.2, 7.1, 5.3, 10.7, 8.2, 12.1, 15.8, 12.3, 18.7, 16.1, 21.8],
-  dates: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-};
+import PortfolioOptimizer from "../tools/PortfolioOptimizer";
+import PortfolioBenchmarking from "../tools/PortfolioBenchmarking";
+import NotificationSettings from "../settings/NotificationSettings";
 
 const DashboardTools = () => {
-  const [trades] = useLocalStorage<any[]>("fakeTradingHistory", []);
-  const [activeTab, setActiveTab] = React.useState("metrics");
-
-  const handleExportData = () => {
-    // Create a JSON blob with all user data
-    const userData = {
-      trades,
-      portfolio: "Sample portfolio data",
-      watchlist: "Sample watchlist data",
-      settings: "Sample user settings"
-    };
-    
-    const blob = new Blob([JSON.stringify(userData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "crypto_dashboard_data_export.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Data Exported",
-      description: "Your data has been exported successfully"
-    });
-  };
-
+  const samplePortfolioPerformance = [2.3, 1.8, -0.5, 1.2, 2.8, 3.2, -1.3, 0.7, 1.9, 2.1];
+  const samplePortfolioDates = [
+    "2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01", "2023-05-01", 
+    "2023-06-01", "2023-07-01", "2023-08-01", "2023-09-01", "2023-10-01"
+  ];
+  
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Trading & Analysis Tools</h2>
-        <Button 
-          onClick={handleExportData}
-          variant="outline"
-          size="sm"
-          className="flex items-center"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Export All Data
-        </Button>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-7 mb-6">
-          <TabsTrigger value="metrics">
-            <BarChart4 className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Market Metrics</span>
-            <span className="sm:hidden">Metrics</span>
-          </TabsTrigger>
-          <TabsTrigger value="benchmarking">
-            <Share2 className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Portfolio Benchmarking</span>
-            <span className="sm:hidden">Benchmarking</span>
+      <Tabs defaultValue="import-export" className="w-full">
+        <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-4">
+          <TabsTrigger value="import-export">
+            <UploadCloud className="h-4 w-4 mr-2" />
+            <span className="hidden md:inline">Import/Export</span>
           </TabsTrigger>
           <TabsTrigger value="tax">
-            <FileText className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Tax Calculator</span>
-            <span className="sm:hidden">Tax</span>
-          </TabsTrigger>
-          <TabsTrigger value="ato">
-            <FileText className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">ATO Tax</span>
-            <span className="sm:hidden">ATO</span>
-          </TabsTrigger>
-          <TabsTrigger value="harvest">
-            <FileText className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Tax Harvesting</span>
-            <span className="sm:hidden">Harvest</span>
+            <Wallet className="h-4 w-4 mr-2" />
+            <span className="hidden md:inline">Tax Tools</span>
           </TabsTrigger>
           <TabsTrigger value="api">
-            <Database className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">API Management</span>
-            <span className="sm:hidden">APIs</span>
+            <Settings2 className="h-4 w-4 mr-2" />
+            <span className="hidden md:inline">API Management</span>
           </TabsTrigger>
-          <TabsTrigger value="local">
-            <Settings className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Local AI</span>
-            <span className="sm:hidden">AI</span>
+          <TabsTrigger value="optimizer">
+            <BarChart4 className="h-4 w-4 mr-2" />
+            <span className="hidden md:inline">Portfolio Optimizer</span>
+          </TabsTrigger>
+          <TabsTrigger value="benchmarking">
+            <FileDown className="h-4 w-4 mr-2" />
+            <span className="hidden md:inline">Benchmarking</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <FileUp className="h-4 w-4 mr-2" />
+            <span className="hidden md:inline">Notifications</span>
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="metrics">
-          <MarketMetrics />
+        <TabsContent value="import-export" className="mt-4">
+          <CsvImportExport />
         </TabsContent>
         
-        <TabsContent value="benchmarking">
-          <EnhancedPortfolioBenchmarking 
-            portfolioPerformance={samplePortfolioData.performance}
-            portfolioDates={samplePortfolioData.dates}
-          />
+        <TabsContent value="tax" className="mt-4">
+          <TaxCalculator />
         </TabsContent>
         
-        <TabsContent value="tax">
-          <TaxCalculator trades={trades} />
-        </TabsContent>
-        
-        <TabsContent value="ato">
-          <ATOTaxCalculator />
-        </TabsContent>
-        
-        <TabsContent value="harvest">
-          <TaxHarvestingTool />
-        </TabsContent>
-        
-        <TabsContent value="api">
+        <TabsContent value="api" className="mt-4">
           <ApiProviderManagement />
         </TabsContent>
         
-        <TabsContent value="local">
-          <div className="p-4 border rounded-md bg-muted/30 mb-6">
-            <h3 className="font-medium mb-2">Local AI Model Integration</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Connect to AI models running on your local machine for enhanced privacy, customization, 
-              and reduced dependency on cloud APIs.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="default" onClick={() => window.location.href = "#trading"}>
-                Go to Trading Bots
-              </Button>
-              <Button variant="outline">Learn More</Button>
-            </div>
-          </div>
-          <LocalAiModels />
+        <TabsContent value="optimizer" className="mt-4">
+          <PortfolioOptimizer />
+        </TabsContent>
+        
+        <TabsContent value="benchmarking" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Portfolio Benchmarking</CardTitle>
+              <CardDescription>
+                Compare your portfolio performance against market benchmarks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PortfolioBenchmarking
+                portfolioPerformance={samplePortfolioPerformance}
+                portfolioDates={samplePortfolioDates}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationSettings />
         </TabsContent>
       </Tabs>
+      
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button variant="outline" className="flex flex-col h-24 items-center justify-center">
+              <Download className="h-6 w-6 mb-2" />
+              <span>Export Data</span>
+            </Button>
+            <Button variant="outline" className="flex flex-col h-24 items-center justify-center">
+              <UploadCloud className="h-6 w-6 mb-2" />
+              <span>Import Data</span>
+            </Button>
+            <Button variant="outline" className="flex flex-col h-24 items-center justify-center">
+              <FileDown className="h-6 w-6 mb-2" />
+              <span>Download Report</span>
+            </Button>
+            <Button variant="outline" className="flex flex-col h-24 items-center justify-center">
+              <FileUp className="h-6 w-6 mb-2" />
+              <span>Upload Document</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

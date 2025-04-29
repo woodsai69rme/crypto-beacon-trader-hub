@@ -1,7 +1,6 @@
 
 import React from "react";
-
-export type SupportedCurrency = "USD" | "AUD" | "EUR" | "GBP" | "JPY" | "CAD" | "CHF" | "CNY" | "SGD" | "NZD";
+import { SupportedCurrency } from "@/types/trading";
 
 interface TradingStatsProps {
   balance: number;
