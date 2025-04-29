@@ -204,3 +204,8 @@ export interface LocalModel {
     maxDrawdown: number;
   };
 }
+
+export interface FibonacciAnalysisProps {
+  priceData: any[];
+  symbol: string;
+}

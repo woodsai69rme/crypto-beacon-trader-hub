@@ -17,3 +17,28 @@ export interface ModelTrainingConfig {
   learningRate: number;
   validationSplit: number;
 }
+
+export interface ModelTrainingProgress {
+  currentEpoch: number;
+  totalEpochs: number;
+  accuracy: number;
+  loss: number;
+  status: 'idle' | 'training' | 'completed' | 'failed';
+  error?: string;
+}
+
+export interface ModelPrediction {
+  timestamp: string;
+  predictedPrice: number;
+  actualPrice?: number;
+  direction: 'up' | 'down' | 'neutral';
+  confidence: number;
+}
+
+export interface ModelConnection {
+  id: string;
+  status: 'connected' | 'disconnected' | 'error';
+  lastConnected?: string;
+  endpoint: string;
+  latency?: number;
+}
