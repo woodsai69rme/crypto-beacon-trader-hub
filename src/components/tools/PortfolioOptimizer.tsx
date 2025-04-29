@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { PieChart, BarChart2, ArrowRight } from "lucide-react";
-import { ResponsivePie } from "@nivo/pie";
+import { PieChart as ReChartPie, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
 const PortfolioOptimizer = () => {
   const [riskLevel, setRiskLevel] = useState(50);
@@ -20,24 +20,24 @@ const PortfolioOptimizer = () => {
   
   // Initial portfolio allocation
   const [allocation, setAllocation] = useState([
-    { id: "BTC", value: 30, color: "#f7931a" },
-    { id: "ETH", value: 20, color: "#627eea" },
-    { id: "AAPL", value: 15, color: "#999999" },
-    { id: "AMZN", value: 15, color: "#ff9900" },
-    { id: "MSFT", value: 10, color: "#7cbb00" },
-    { id: "GOOGL", value: 10, color: "#4285f4" },
+    { id: "BTC", name: "BTC", value: 30, color: "#f7931a" },
+    { id: "ETH", name: "ETH", value: 20, color: "#627eea" },
+    { id: "AAPL", name: "AAPL", value: 15, color: "#999999" },
+    { id: "AMZN", name: "AMZN", value: 15, color: "#ff9900" },
+    { id: "MSFT", name: "MSFT", value: 10, color: "#7cbb00" },
+    { id: "GOOGL", name: "GOOGL", value: 10, color: "#4285f4" },
   ]);
   
   // Optimized portfolio allocation
   const [optimizedAllocation, setOptimizedAllocation] = useState([
-    { id: "BTC", value: 25, color: "#f7931a" },
-    { id: "ETH", value: 15, color: "#627eea" },
-    { id: "SOL", value: 10, color: "#00ffbd" },
-    { id: "AAPL", value: 12, color: "#999999" },
-    { id: "AMZN", value: 8, color: "#ff9900" },
-    { id: "MSFT", value: 10, color: "#7cbb00" },
-    { id: "GOOGL", value: 10, color: "#4285f4" },
-    { id: "GOLD", value: 10, color: "#ffd700" },
+    { id: "BTC", name: "BTC", value: 25, color: "#f7931a" },
+    { id: "ETH", name: "ETH", value: 15, color: "#627eea" },
+    { id: "SOL", name: "SOL", value: 10, color: "#00ffbd" },
+    { id: "AAPL", name: "AAPL", value: 12, color: "#999999" },
+    { id: "AMZN", name: "AMZN", value: 8, color: "#ff9900" },
+    { id: "MSFT", name: "MSFT", value: 10, color: "#7cbb00" },
+    { id: "GOOGL", name: "GOOGL", value: 10, color: "#4285f4" },
+    { id: "GOLD", name: "GOLD", value: 10, color: "#ffd700" },
   ]);
   
   // Key metrics
@@ -91,6 +91,18 @@ const PortfolioOptimizer = () => {
       
       setOptimizedAllocation(newOptimized);
     }, 1500);
+  };
+  
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border p-2 shadow-md rounded-md">
+          <p className="font-medium">{payload[0].name}</p>
+          <p className="text-sm">{`${payload[0].value}%`}</p>
+        </div>
+      );
+    }
+    return null;
   };
   
   return (
@@ -185,39 +197,26 @@ const PortfolioOptimizer = () => {
           <div className="space-y-4">
             <div className="text-sm font-medium">Current Allocation</div>
             <div className="h-[230px]">
-              <ResponsivePie
-                data={allocation}
-                margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                innerRadius={0.5}
-                padAngle={0.7}
-                cornerRadius={3}
-                activeOuterRadiusOffset={8}
-                borderWidth={1}
-                borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
-                arcLinkLabelsSkipAngle={10}
-                arcLinkLabelsTextColor="#888888"
-                arcLinkLabelsThickness={2}
-                arcLinkLabelsColor={{ from: "color" }}
-                arcLabelsSkipAngle={10}
-                arcLabelsTextColor={{ from: "color", modifiers: [["darker", 2]] }}
-                colors={{ datum: 'data.color' }}
-                theme={{
-                  labels: {
-                    text: {
-                      fontSize: 10,
-                      fill: "#FFFFFF",
-                    },
-                  },
-                  tooltip: {
-                    container: {
-                      background: "#222",
-                      color: "#eee",
-                      boxShadow: "0 3px 9px rgba(0, 0, 0, 0.5)",
-                      borderRadius: "4px",
-                    },
-                  },
-                }}
-              />
+              <ResponsiveContainer width="100%" height="100%">
+                <ReChartPie data={allocation}>
+                  <Pie
+                    data={allocation}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    label={({name, value}) => `${name}: ${value}%`}
+                  >
+                    {allocation.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </ReChartPie>
+              </ResponsiveContainer>
             </div>
             
             <div className="space-y-1">
@@ -246,39 +245,26 @@ const PortfolioOptimizer = () => {
                   <ArrowRight className="h-4 w-4 text-green-500" />
                 </div>
                 <div className="h-[230px]">
-                  <ResponsivePie
-                    data={optimizedAllocation}
-                    margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                    innerRadius={0.5}
-                    padAngle={0.7}
-                    cornerRadius={3}
-                    activeOuterRadiusOffset={8}
-                    borderWidth={1}
-                    borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
-                    arcLinkLabelsSkipAngle={10}
-                    arcLinkLabelsTextColor="#888888"
-                    arcLinkLabelsThickness={2}
-                    arcLinkLabelsColor={{ from: "color" }}
-                    arcLabelsSkipAngle={10}
-                    arcLabelsTextColor={{ from: "color", modifiers: [["darker", 2]] }}
-                    colors={{ datum: 'data.color' }}
-                    theme={{
-                      labels: {
-                        text: {
-                          fontSize: 10,
-                          fill: "#FFFFFF",
-                        },
-                      },
-                      tooltip: {
-                        container: {
-                          background: "#222",
-                          color: "#eee",
-                          boxShadow: "0 3px 9px rgba(0, 0, 0, 0.5)",
-                          borderRadius: "4px",
-                        },
-                      },
-                    }}
-                  />
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ReChartPie data={optimizedAllocation}>
+                      <Pie
+                        data={optimizedAllocation}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={2}
+                        label={({name, value}) => `${name}: ${value}%`}
+                      >
+                        {optimizedAllocation.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </ReChartPie>
+                  </ResponsiveContainer>
                 </div>
                 
                 <div className="space-y-1">
