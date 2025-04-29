@@ -1,5 +1,5 @@
+
 import { toast } from "@/components/ui/use-toast";
-import { getMockCryptoData } from "./cryptoApi";
 import apiCache from "./api/cacheService";
 import { CryptoData, CryptoChartData } from "@/types/trading";
 import { 
@@ -12,6 +12,7 @@ import {
   fetchCoinHistoryFromCryptoCompare,
   fetchTechnicalIndicatorsFromCryptoCompare 
 } from "./api/cryptoCompareService";
+import { fetchCoinHistory } from "./cryptoApi";
 
 // Utility function to handle API errors with fallbacks
 async function fetchWithFallback<T>(
@@ -39,6 +40,63 @@ async function fetchWithFallback<T>(
     }
   }
 }
+
+// Mock data generator for when all APIs fail
+const getMockCryptoData = (limit: number = 20): CryptoData[] => {
+  const mockCoins: CryptoData[] = [];
+
+  const baseCoins = [
+    { name: "Bitcoin", symbol: "BTC", price: 58000, change: 2.3 },
+    { name: "Ethereum", symbol: "ETH", price: 3100, change: -1.5 },
+    { name: "Cardano", symbol: "ADA", price: 0.53, change: 5.2 },
+    { name: "Solana", symbol: "SOL", price: 125, change: 8.7 },
+    { name: "Ripple", symbol: "XRP", price: 0.58, change: -2.1 },
+    { name: "Polkadot", symbol: "DOT", price: 7.2, change: 3.4 },
+    { name: "Dogecoin", symbol: "DOGE", price: 0.08, change: 1.5 },
+    { name: "Avalanche", symbol: "AVAX", price: 34, change: -3.2 },
+    { name: "Chainlink", symbol: "LINK", price: 12.5, change: 4.8 },
+    { name: "Polygon", symbol: "MATIC", price: 0.78, change: -1.2 },
+  ];
+
+  // Generate mock data based on the base coins
+  for (let i = 0; i < Math.min(limit, baseCoins.length); i++) {
+    const coin = baseCoins[i];
+    const mcRank = i + 1;
+    const volume = coin.price * (10000000 - i * 500000);
+    const marketCap = coin.price * (1000000000 - i * 50000000);
+
+    mockCoins.push({
+      id: coin.name.toLowerCase(),
+      symbol: coin.symbol.toLowerCase(),
+      name: coin.name,
+      image: `https://cryptologos.cc/logos/${coin.name.toLowerCase()}-${coin.symbol.toLowerCase()}-logo.png`,
+      current_price: coin.price,
+      market_cap: marketCap,
+      market_cap_rank: mcRank,
+      fully_diluted_valuation: marketCap * 1.2,
+      total_volume: volume,
+      high_24h: coin.price * (1 + 0.05),
+      low_24h: coin.price * (1 - 0.05),
+      price_change_24h: coin.price * (coin.change / 100),
+      price_change_percentage_24h: coin.change,
+      market_cap_change_24h: marketCap * (coin.change / 100),
+      market_cap_change_percentage_24h: coin.change,
+      circulating_supply: Math.floor(marketCap / coin.price),
+      total_supply: Math.floor(marketCap / coin.price) * 1.5,
+      max_supply: Math.floor(marketCap / coin.price) * 2,
+      ath: coin.price * 2,
+      ath_change_percentage: -50,
+      ath_date: "2021-11-10T14:24:11.849Z",
+      atl: coin.price * 0.2,
+      atl_change_percentage: 400,
+      atl_date: "2020-03-13T02:35:41.000Z",
+      roi: null,
+      last_updated: new Date().toISOString()
+    });
+  }
+
+  return mockCoins;
+};
 
 // Enhanced version of fetchTopCoins with caching and fallback
 export const fetchTopCoins = async (limit: number = 20): Promise<CryptoData[]> => {
@@ -82,7 +140,7 @@ export const fetchTopCoins = async (limit: number = 20): Promise<CryptoData[]> =
 };
 
 // Enhanced version of fetchCoinHistory with caching and fallback
-export const fetchCoinHistory = async (
+export const fetchEnhancedCoinHistory = async (
   coinId: string, 
   days: number = 7
 ): Promise<CryptoChartData | null> => {
@@ -161,7 +219,7 @@ export const fetchTechnicalIndicators = async (
 };
 
 // For backward compatibility
-export { getMockCryptoData } from "./cryptoApi";
+export { fetchCoinHistory } from "./cryptoApi";
 
 // Export types
 export type { CryptoData, CryptoChartData } from "@/types/trading";

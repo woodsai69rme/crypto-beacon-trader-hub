@@ -11,8 +11,9 @@ import {
 } from "recharts";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchCoinHistory, CryptoChartData } from "../services/cryptoApi";
+import { fetchCoinHistory } from "../services/cryptoApi";
 import { toast } from "@/components/ui/use-toast";
+import { CryptoChartData } from "@/types/trading";
 
 interface EnhancedCryptoChartProps {
   coin: string;

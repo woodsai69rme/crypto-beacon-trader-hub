@@ -1,204 +1,129 @@
 
-import { CoinOption, CryptoData } from "@/types/trading";
+import { CryptoChartData, CryptoData } from "@/types/trading";
 
-/**
- * Fetches top cryptocurrencies by market cap
- * @param limit Number of coins to fetch
- * @returns Promise resolving to an array of CoinOption objects
- */
-export async function fetchTopCoins(limit: number = 10): Promise<CoinOption[]> {
-  try {
-    // In a real application, this would fetch from an API like CoinGecko
-    // For demo purposes, we'll return mock data
-    console.log(`Fetching top ${limit} coins`);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return getMockCoins(limit);
-  } catch (error) {
-    console.error("Error fetching top coins:", error);
-    return [];
-  }
-}
-
-/**
- * Fetches detailed data for a specific cryptocurrency
- * @param coinId The ID of the coin to fetch
- * @returns Promise resolving to a CryptoData object
- */
-export async function fetchCoinDetails(coinId: string): Promise<CryptoData | null> {
-  try {
-    console.log(`Fetching details for coin: ${coinId}`);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 700));
-    
-    const mockCoins = getMockCoins(20);
-    const matchedCoin = mockCoins.find(coin => coin.id === coinId);
-    
-    if (!matchedCoin) {
-      return null;
-    }
-    
-    // Convert CoinOption to CryptoData
-    return {
-      id: matchedCoin.id,
-      symbol: matchedCoin.symbol,
-      name: matchedCoin.name,
-      image: matchedCoin.image,
-      current_price: matchedCoin.price,
-      market_cap: matchedCoin.marketCap || 0,
-      market_cap_rank: matchedCoin.rank || 0,
-      fully_diluted_valuation: matchedCoin.marketCap ? matchedCoin.marketCap * 1.1 : null,
-      total_volume: matchedCoin.volume || 0,
-      high_24h: matchedCoin.price * 1.05,
-      low_24h: matchedCoin.price * 0.95,
-      price_change_24h: matchedCoin.priceChange || 0,
-      price_change_percentage_24h: matchedCoin.changePercent || 0,
-      market_cap_change_24h: (matchedCoin.marketCap || 0) * ((matchedCoin.changePercent || 0) / 100),
-      market_cap_change_percentage_24h: (matchedCoin.changePercent || 0) * 0.8,
-      circulating_supply: Math.floor(Math.random() * 100000000),
-      total_supply: Math.floor(Math.random() * 200000000),
-      max_supply: Math.floor(Math.random() * 300000000),
-      ath: matchedCoin.price * (1 + Math.random() * 5),
-      ath_change_percentage: -Math.random() * 30,
-      ath_date: new Date(Date.now() - Math.random() * 31536000000).toISOString(),
-      atl: matchedCoin.price * (0.1 + Math.random() * 0.2),
-      atl_change_percentage: Math.random() * 1000 + 500,
-      atl_date: new Date(Date.now() - Math.random() * 157680000000).toISOString(),
-      roi: null,
-      last_updated: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error(`Error fetching coin details for ${coinId}:`, error);
-    return null;
-  }
-}
-
-/**
- * Generates mock coin data
- * @param count Number of mock coins to generate
- * @returns Array of CoinOption objects
- */
-function getMockCoins(count: number): CoinOption[] {
-  const baseCoinData: CoinOption[] = [
+// Mock data for when API calls fail
+export const getMockCryptoData = (limit: number = 10): CryptoData[] => {
+  const mockCoins: CryptoData[] = [
     {
       id: "bitcoin",
+      symbol: "btc",
       name: "Bitcoin",
-      symbol: "BTC",
-      price: 60000 + Math.random() * 2000,
-      priceAUD: 90000 + Math.random() * 3000,
-      priceEUR: 55000 + Math.random() * 1800,
-      priceGBP: 48000 + Math.random() * 1500,
-      priceChange: 1200 + Math.random() * 200,
-      changePercent: 2.3 + Math.random(),
       image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-      volume: 28000000000 + Math.random() * 1000000000,
-      marketCap: 1180000000000 + Math.random() * 10000000000,
-      rank: 1
+      current_price: 50123.45,
+      market_cap: 928374982734,
+      market_cap_rank: 1,
+      fully_diluted_valuation: 1050000000000,
+      total_volume: 32893749823,
+      high_24h: 51000,
+      low_24h: 49000,
+      price_change_24h: 1200,
+      price_change_percentage_24h: 2.4,
+      market_cap_change_24h: 19273492834,
+      market_cap_change_percentage_24h: 2.1,
+      circulating_supply: 18923812,
+      total_supply: 21000000,
+      max_supply: 21000000,
+      ath: 68000,
+      ath_change_percentage: -26.5,
+      ath_date: "2021-11-10T14:24:11.849Z",
+      atl: 67.81,
+      atl_change_percentage: 73732.25,
+      atl_date: "2013-07-06T00:00:00.000Z",
+      roi: null,
+      last_updated: new Date().toISOString()
     },
     {
       id: "ethereum",
+      symbol: "eth",
       name: "Ethereum",
-      symbol: "ETH",
-      price: 3000 + Math.random() * 200,
-      priceAUD: 4500 + Math.random() * 300,
-      priceEUR: 2800 + Math.random() * 180,
-      priceGBP: 2400 + Math.random() * 150,
-      priceChange: -120 + Math.random() * 40,
-      changePercent: -1.5 + Math.random() * 0.5,
       image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-      volume: 15000000000 + Math.random() * 500000000,
-      marketCap: 360000000000 + Math.random() * 5000000000,
-      rank: 2
-    },
-    {
-      id: "solana",
-      name: "Solana",
-      symbol: "SOL",
-      price: 121 + Math.random() * 10,
-      priceAUD: 180 + Math.random() * 15,
-      priceEUR: 110 + Math.random() * 9,
-      priceGBP: 95 + Math.random() * 8,
-      priceChange: 3.56 + Math.random(),
-      changePercent: 3.1 + Math.random() * 0.5,
-      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-      volume: 5200000000 + Math.random() * 200000000,
-      marketCap: 90000000000 + Math.random() * 2000000000,
-      rank: 3
-    },
-    {
-      id: "cardano",
-      name: "Cardano",
-      symbol: "ADA",
-      price: 0.45 + Math.random() * 0.05,
-      priceAUD: 0.67 + Math.random() * 0.07,
-      priceEUR: 0.42 + Math.random() * 0.04,
-      priceGBP: 0.36 + Math.random() * 0.03,
-      priceChange: -0.02 + Math.random() * 0.01,
-      changePercent: -2.6 + Math.random(),
-      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
-      volume: 890000000 + Math.random() * 50000000,
-      marketCap: 24000000000 + Math.random() * 500000000,
-      rank: 4
-    },
-    {
-      id: "ripple",
-      name: "XRP",
-      symbol: "XRP",
-      price: 0.61 + Math.random() * 0.05,
-      priceAUD: 0.91 + Math.random() * 0.07,
-      priceEUR: 0.57 + Math.random() * 0.04,
-      priceGBP: 0.48 + Math.random() * 0.03,
-      priceChange: 0.01 + Math.random() * 0.005,
-      changePercent: 1.8 + Math.random() * 0.5,
-      image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
-      volume: 2400000000 + Math.random() * 100000000,
-      marketCap: 32000000000 + Math.random() * 500000000,
-      rank: 5
-    },
-    {
-      id: "dogecoin",
-      name: "Dogecoin",
-      symbol: "DOGE",
-      price: 0.138 + Math.random() * 0.01,
-      priceAUD: 0.207 + Math.random() * 0.015,
-      priceEUR: 0.128 + Math.random() * 0.009,
-      priceGBP: 0.107 + Math.random() * 0.008,
-      priceChange: -0.004 + Math.random() * 0.001,
-      changePercent: -2.1 + Math.random(),
-      image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
-      volume: 1900000000 + Math.random() * 100000000,
-      marketCap: 18000000000 + Math.random() * 500000000,
-      rank: 6
+      current_price: 3010.45,
+      market_cap: 328947982734,
+      market_cap_rank: 2,
+      fully_diluted_valuation: 350000000000,
+      total_volume: 12893749823,
+      high_24h: 3100,
+      low_24h: 2900,
+      price_change_24h: -120,
+      price_change_percentage_24h: -1.5,
+      market_cap_change_24h: -5273492834,
+      market_cap_change_percentage_24h: -1.2,
+      circulating_supply: 120923812,
+      total_supply: null,
+      max_supply: null,
+      ath: 4800,
+      ath_change_percentage: -37.5,
+      ath_date: "2021-11-10T14:24:11.849Z",
+      atl: 0.43,
+      atl_change_percentage: 700732.25,
+      atl_date: "2015-10-20T00:00:00.000Z",
+      roi: {
+        times: 100.5,
+        currency: "usd",
+        percentage: 10050
+      },
+      last_updated: new Date().toISOString()
     }
+    // Add more mock coins if needed
   ];
-  
-  // Add more mock coins if needed
-  const extraCoins: CoinOption[] = [];
-  
-  for (let i = baseCoinData.length; i < count; i++) {
-    const rank = i + 1;
-    const randomPrice = 0.1 + Math.random() * (1000 / (rank + 5));
-    const randomSymbol = `CRY${rank}`;
+
+  // If limit is less than the number of mock coins, return only the requested number
+  return mockCoins.slice(0, limit);
+};
+
+// Mock function to fetch historical data
+export const fetchCoinHistory = async (
+  coinId: string,
+  days: number = 7
+): Promise<CryptoChartData | null> => {
+  try {
+    // In a real app, this would call an API
+    // For now, generate mock data
+    const mockPrices: [number, number][] = [];
+    const mockMarketCaps: [number, number][] = [];
+    const mockTotalVolumes: [number, number][] = [];
     
-    extraCoins.push({
-      id: `crypto-${rank}`,
-      name: `Crypto ${rank}`,
-      symbol: randomSymbol,
-      price: randomPrice,
-      priceAUD: randomPrice * 1.5,
-      priceEUR: randomPrice * 0.9,
-      priceGBP: randomPrice * 0.78,
-      priceChange: randomPrice * (Math.random() * 0.2 - 0.1),
-      changePercent: (Math.random() * 10 - 5),
-      image: `https://cryptoicons.org/api/color/${randomSymbol.toLowerCase()}/64`,
-      volume: Math.random() * 500000000,
-      marketCap: randomPrice * 1000000 * (100 - rank),
-      rank: rank
-    });
+    const now = Date.now();
+    const dayInMs = 24 * 60 * 60 * 1000;
+    const interval = (days <= 1) ? dayInMs / 24 : dayInMs; // Hourly for 1 day view, daily otherwise
+    
+    // Base price depends on the coin
+    const basePrice = coinId === 'bitcoin' ? 50000 : 
+                     coinId === 'ethereum' ? 3000 : 
+                     coinId === 'cardano' ? 0.45 : 
+                     coinId === 'solana' ? 120 : 
+                     coinId === 'ripple' ? 0.6 : 1.0;
+    
+    // Generate data points
+    for (let i = 0; i <= days; i++) {
+      const timestamp = now - ((days - i) * dayInMs);
+      
+      // Add some random fluctuation
+      const randomChange = (Math.random() - 0.5) * 0.05; // +/- 2.5%
+      const price = basePrice * (1 + randomChange);
+      
+      // Generate higher volumes and market caps for more popular coins
+      const popularityFactor = coinId === 'bitcoin' ? 100 : 
+                              coinId === 'ethereum' ? 50 : 
+                              coinId === 'cardano' ? 10 : 
+                              coinId === 'solana' ? 20 : 5;
+      
+      // Add data points
+      mockPrices.push([timestamp, price]);
+      mockMarketCaps.push([timestamp, price * 1000000 * popularityFactor]);
+      mockTotalVolumes.push([timestamp, price * 100000 * popularityFactor * (Math.random() + 0.5)]);
+    }
+    
+    return {
+      prices: mockPrices,
+      market_caps: mockMarketCaps,
+      total_volumes: mockTotalVolumes
+    };
+  } catch (error) {
+    console.error("Error fetching coin history:", error);
+    return null;
   }
-  
-  return [...baseCoinData, ...extraCoins].slice(0, count);
-}
+};
+
+// Export types
+export type { CryptoData, CryptoChartData };

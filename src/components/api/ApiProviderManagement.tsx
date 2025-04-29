@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
 import { apiProviderManager } from "@/services/api/apiProviderConfig";
-import { ApiProvider } from "@/types/trading";
+import { ApiProvider, ApiEndpoint } from "@/types/trading";
 import { Settings, Pencil, Trash, Plus } from "lucide-react";
 
 const ApiProviderManagement: React.FC = () => {

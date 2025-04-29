@@ -1,153 +1,119 @@
 
-import { toast } from "@/components/ui/use-toast";
-import apiCache from "./cacheService";
 import { CryptoData, CryptoChartData } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
 
-// API endpoints
 const BASE_URL = "https://api.coingecko.com/api/v3";
-const PRO_BASE_URL = "https://pro-api.coingecko.com/api/v3";
 
-let apiKey: string | null = null;
-let usePro: boolean = false;
-
-// Set API key for Pro access
-export function setCoinGeckoApiKey(key: string | null): void {
-  if (key && key.trim()) {
-    apiKey = key.trim();
-    usePro = true;
-    toast({
-      title: "CoinGecko Pro API Key Set",
-      description: "Using CoinGecko Pro API for data"
-    });
-  } else {
-    apiKey = null;
-    usePro = false;
-    toast({
-      title: "Using CoinGecko Free API",
-      description: "API rate limits will apply"
-    });
-  }
-}
-
-// Helper function to build URL with API key if available
-function buildUrl(endpoint: string, params: Record<string, string | number> = {}): string {
-  const baseUrl = usePro ? PRO_BASE_URL : BASE_URL;
-  
-  // Convert params to query string
-  const queryParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    queryParams.append(key, String(value));
-  });
-  
-  const url = `${baseUrl}${endpoint}?${queryParams.toString()}`;
-  return url;
-}
-
-// Helper function to make API requests with error handling
-async function makeRequest<T>(endpoint: string, params: Record<string, string | number> = {}, cacheDuration = 5 * 60 * 1000): Promise<T> {
-  const url = buildUrl(endpoint, params);
-  const cacheKey = `coingecko-${endpoint}-${JSON.stringify(params)}`;
-  
-  // Try to get from cache first
-  const cachedData = apiCache.get<T>(cacheKey);
-  if (cachedData) {
-    return cachedData;
-  }
+// Helper function for API requests
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeout: number = 10000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
   
   try {
-    const headers: HeadersInit = {
-      'Accept': 'application/json'
-    };
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
     
-    // Add API key for Pro access
-    if (usePro && apiKey) {
-      headers['x-cg-pro-api-key'] = apiKey;
-    }
+    clearTimeout(id);
     
-    const response = await fetch(url, { headers });
-    
-    // Handle rate limiting and other errors
     if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error("CoinGecko API rate limit exceeded");
-      }
-      throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      throw new Error(`API request failed with status ${response.status}`);
     }
     
-    const data = await response.json() as T;
+    return await response.json();
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+};
+
+// Fetch top coins from CoinGecko
+export const fetchCoinsFromCoinGecko = async (limit: number = 20): Promise<CryptoData[]> => {
+  try {
+    const params = new URLSearchParams({
+      vs_currency: "usd",
+      order: "market_cap_desc",
+      per_page: limit.toString(),
+      page: "1",
+      sparkline: "false",
+      price_change_percentage: "24h"
+    });
     
-    // Cache the result
-    apiCache.set(cacheKey, data, cacheDuration);
+    const url = `${BASE_URL}/coins/markets?${params}`;
+    const data = await fetchWithTimeout(url);
     
     return data;
   } catch (error) {
-    console.error("CoinGecko API error:", error);
-    throw error;
+    console.error("CoinGecko API Error:", error);
+    throw new Error(`Failed to fetch coins from CoinGecko: ${(error as Error).message}`);
   }
-}
-
-// Fetch top coins from CoinGecko
-export async function fetchCoinsFromCoinGecko(limit: number = 20): Promise<CryptoData[]> {
-  return makeRequest<CryptoData[]>('/coins/markets', {
-    vs_currency: 'usd',
-    order: 'market_cap_desc',
-    per_page: limit,
-    page: '1',
-    sparkline: 'false',
-    locale: 'en'
-  });
-}
+};
 
 // Fetch historical data for a specific coin
-export async function fetchCoinHistoryFromCoinGecko(coinId: string, days: number = 7): Promise<CryptoChartData> {
-  return makeRequest<CryptoChartData>(`/coins/${coinId}/market_chart`, {
-    vs_currency: 'usd',
-    days: days
-  });
-}
-
-// Search for coins by term
-export async function searchCoinsFromCoinGecko(query: string): Promise<CryptoData[]> {
-  if (!query || query.length < 2) return [];
-  
-  const searchResults = await makeRequest<{coins: any[]}>('/search', { query });
-  
-  if (!searchResults.coins || searchResults.coins.length === 0) {
-    return [];
+export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: number = 7): Promise<CryptoChartData> => {
+  try {
+    const params = new URLSearchParams({
+      vs_currency: "usd",
+      days: days.toString()
+    });
+    
+    const url = `${BASE_URL}/coins/${coinId}/market_chart?${params}`;
+    const data = await fetchWithTimeout(url);
+    
+    return data;
+  } catch (error) {
+    console.error("CoinGecko API Error:", error);
+    throw new Error(`Failed to fetch history for ${coinId}: ${(error as Error).message}`);
   }
-  
-  // Get top 10 results and fetch their details
-  const coinIds = searchResults.coins.slice(0, 10).map(coin => coin.id).join(',');
-  
-  const detailedResults = await makeRequest<CryptoData[]>('/coins/markets', {
-    vs_currency: 'usd',
-    ids: coinIds,
-    order: 'market_cap_desc',
-    sparkline: 'false',
-    locale: 'en'
-  });
-  
-  return detailedResults;
-}
+};
 
-// Get more detailed information about a specific coin
-export async function fetchCoinDetails(coinId: string): Promise<any> {
-  return makeRequest(`/coins/${coinId}`, {
-    localization: '0',
-    tickers: '0',
-    market_data: '1',
-    community_data: '0',
-    developer_data: '0',
-    sparkline: '0'
-  }, 15 * 60 * 1000); // Cache for 15 minutes
-}
-
-// Get global crypto market data
-export async function fetchGlobalMarketData(): Promise<any> {
-  return makeRequest('/global', {}, 10 * 60 * 1000); // Cache for 10 minutes
-}
-
-// Get trending coins
-export async function fetchTrendingCoins(): Promise<any> {
-  return makeRequest('/search/trending', {}, 60 * 60 * 1000); // Cache for 1 hour
-}
+// Search for coins by query
+export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoData[]> => {
+  try {
+    const params = new URLSearchParams({
+      query
+    });
+    
+    const url = `${BASE_URL}/search?${params}`;
+    const data = await fetchWithTimeout(url);
+    
+    if (!data.coins || !Array.isArray(data.coins)) {
+      return [];
+    }
+    
+    // Convert search results to CryptoData format with limited info
+    // We'll need to fetch full details separately if needed
+    return data.coins.slice(0, 10).map((coin: any) => ({
+      id: coin.id,
+      symbol: coin.symbol.toLowerCase(),
+      name: coin.name,
+      image: coin.large || coin.thumb,
+      current_price: 0, // We don't have price data from search endpoint
+      market_cap: 0,
+      market_cap_rank: coin.market_cap_rank || 0,
+      fully_diluted_valuation: null,
+      total_volume: 0,
+      high_24h: null,
+      low_24h: null,
+      price_change_24h: 0,
+      price_change_percentage_24h: 0,
+      market_cap_change_24h: 0,
+      market_cap_change_percentage_24h: 0,
+      circulating_supply: 0,
+      total_supply: null,
+      max_supply: null,
+      ath: null,
+      ath_change_percentage: null,
+      ath_date: null,
+      atl: null,
+      atl_change_percentage: null,
+      atl_date: null,
+      roi: null,
+      last_updated: new Date().toISOString()
+    }));
+  } catch (error) {
+    console.error("CoinGecko API Error:", error);
+    throw new Error(`Failed to search coins: ${(error as Error).message}`);
+  }
+};

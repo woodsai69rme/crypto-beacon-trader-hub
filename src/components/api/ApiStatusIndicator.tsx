@@ -1,69 +1,41 @@
 
-import React from 'react';
-import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 
-type ApiStatus = 'online' | 'offline' | 'degraded' | 'unknown';
+type ApiStatus = "operational" | "degraded" | "down";
 
 interface ApiStatusIndicatorProps {
   status: ApiStatus;
   className?: string;
-  showText?: boolean;
-  size?: 'sm' | 'md' | 'lg';
 }
 
-const ApiStatusIndicator: React.FC<ApiStatusIndicatorProps> = ({
-  status,
-  className,
-  showText = true,
-  size = 'md'
-}) => {
-  // Determine the appropriate icon and colors based on status
-  const getStatusDisplay = () => {
-    switch (status) {
-      case 'online':
-        return {
-          icon: <CheckCircle2 className={sizeClasses.icon} />,
-          color: 'text-green-500',
-          text: 'Online'
-        };
-      case 'offline':
-        return {
-          icon: <XCircle className={sizeClasses.icon} />,
-          color: 'text-red-500',
-          text: 'Offline'
-        };
-      case 'degraded':
-        return {
-          icon: <AlertCircle className={sizeClasses.icon} />,
-          color: 'text-amber-500',
-          text: 'Degraded'
-        };
-      case 'unknown':
-      default:
-        return {
-          icon: <AlertCircle className={sizeClasses.icon} />,
-          color: 'text-muted-foreground',
-          text: 'Unknown'
-        };
-    }
-  };
-
-  // Size classes for different components
-  const sizeClasses = {
-    container: size === 'sm' ? 'gap-1' : size === 'lg' ? 'gap-2' : 'gap-1.5',
-    icon: size === 'sm' ? 'h-3 w-3' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4',
-    text: size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-sm' : 'text-xs'
-  };
-
-  const { icon, color, text } = getStatusDisplay();
-
-  return (
-    <div className={cn('flex items-center', sizeClasses.container, color, className)}>
-      {icon}
-      {showText && <span className={sizeClasses.text}>{text}</span>}
-    </div>
-  );
+const ApiStatusIndicator: React.FC<ApiStatusIndicatorProps> = ({ status, className }) => {
+  switch (status) {
+    case "operational":
+      return (
+        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Operational
+        </Badge>
+      );
+    case "degraded":
+      return (
+        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+          <AlertTriangle className="w-3 h-3 mr-1" />
+          Degraded
+        </Badge>
+      );
+    case "down":
+      return (
+        <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
+          <XCircle className="w-3 h-3 mr-1" />
+          Down
+        </Badge>
+      );
+    default:
+      return null;
+  }
 };
 
 export default ApiStatusIndicator;

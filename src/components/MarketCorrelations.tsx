@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { CryptoData, CoinOption } from "@/types/trading";
+import CorrelationExplainer from "./MarketCorrelations/CorrelationExplainer";
 
 // Custom Heatmap implementation since recharts doesn't have a built-in Heatmap
 const CustomHeatmap = ({ data, width, height, colorScale }: any) => {
@@ -54,7 +55,7 @@ const convertCoinOptionToCryptoData = (coin: CoinOption): CryptoData => {
     id: coin.id,
     symbol: coin.symbol,
     name: coin.name,
-    image: coin.image,
+    image: coin.image || "",
     current_price: coin.price,
     market_cap: coin.marketCap || 0,
     market_cap_rank: coin.rank || 0,
@@ -369,9 +370,9 @@ const MarketCorrelations = () => {
               </div>
               
               {selectedCoins.length > 0 ? (
-                <div>
+                <div className="space-y-4 pt-4">
                   <h3 className="font-medium mb-2">Correlation Analysis</h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {selectedCoins.map((coin1Id) => {
                       const coin1 = availableCoins.find(c => c.id === coin1Id);
                       if (!coin1) return null;
@@ -382,51 +383,42 @@ const MarketCorrelations = () => {
                           <div className="mt-2 space-y-1">
                             {selectedCoins
                               .filter(id => id !== coin1Id)
-                              .map((coin2Id) => {
+                              .map(coin2Id => {
                                 const coin2 = availableCoins.find(c => c.id === coin2Id);
                                 if (!coin2) return null;
                                 
                                 const correlation = correlations[coin1Id]?.[coin2Id] || 0;
+                                const correlationDesc = getCorrelationDescription(correlation);
+                                const textColor = correlation > 0.5 ? "text-green-500" : 
+                                                  correlation < -0.5 ? "text-red-500" : 
+                                                  "text-muted-foreground";
                                 
                                 return (
-                                  <div key={`pair-${coin1Id}-${coin2Id}`} className="flex justify-between text-sm">
-                                    <span>vs {coin2.name} ({coin2.symbol}): </span>
-                                    <span className={correlation > 0 ? "text-green-500" : "text-red-500"}>
-                                      {correlation.toFixed(2)} - {getCorrelationDescription(correlation)}
+                                  <div key={`${coin1Id}-${coin2Id}`} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                                    <div className="flex items-center gap-2">
+                                      <span>{coin1.symbol} → {coin2.symbol}:</span>
+                                    </div>
+                                    <span className={textColor + " font-medium"}>
+                                      {correlation.toFixed(2)} ({correlationDesc})
                                     </span>
                                   </div>
                                 );
                               })}
                           </div>
-                          
-                          <div className="mt-3 text-sm text-muted-foreground">
-                            <strong>Insight:</strong> {' '}
-                            {correlations[coin1Id] && Object.values(correlations[coin1Id]).some(val => val < -0.5) 
-                              ? `${coin1.name} shows strong negative correlation with some assets, making it good for portfolio diversification.` 
-                              : `${coin1.name} shows mostly positive correlations, suggesting similar price movements to other assets.`
-                            }
-                          </div>
                         </div>
                       );
                     })}
                   </div>
+                  
+                  <div className="pt-4">
+                    <CorrelationExplainer />
+                  </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Select up to 3 assets to see detailed correlation analysis.</p>
+                <div className="py-8 text-center text-muted-foreground">
+                  <p>Select at least one cryptocurrency to view correlation analysis.</p>
                 </div>
               )}
-              
-              <div className="p-3 border rounded-md bg-muted/50 text-sm text-muted-foreground">
-                <h4 className="font-medium mb-1">What is Correlation?</h4>
-                <p>Correlation measures how assets move in relation to each other:</p>
-                <ul className="list-disc list-inside space-y-1 mt-1">
-                  <li><strong>Positive correlation (0 to 1):</strong> Assets tend to move in the same direction</li>
-                  <li><strong>Negative correlation (0 to -1):</strong> Assets tend to move in opposite directions</li>
-                  <li><strong>No correlation (near 0):</strong> Assets move independently of each other</li>
-                </ul>
-                <p className="mt-2">Diversifying with negatively correlated assets can help reduce portfolio risk.</p>
-              </div>
             </div>
           </TabsContent>
         </Tabs>

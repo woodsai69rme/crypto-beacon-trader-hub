@@ -1,89 +1,145 @@
 
-// Simple cache service for API responses
-
-interface CacheEntry<T> {
-  data: T;
-  expiresAt: number;
+interface CacheItem<T> {
+  value: T;
+  expiry: number;
 }
 
 class ApiCache {
-  private cache: Map<string, CacheEntry<any>> = new Map();
-  
-  /**
-   * Get a value from the cache
-   * @param key Cache key
-   * @returns The cached value or null if not found or expired
-   */
-  get<T>(key: string): T | null {
-    const entry = this.cache.get(key);
+  private cache: Map<string, CacheItem<any>> = new Map();
+  private readonly maxItems: number = 100;
+  private readonly storagePrefix: string = 'crypto-api-cache:';
+  private readonly useLocalStorage: boolean = true;
+
+  constructor() {
+    this.loadCacheFromStorage();
+  }
+
+  private loadCacheFromStorage(): void {
+    if (!this.useLocalStorage) return;
     
-    if (!entry) {
+    try {
+      // Get all relevant items from localStorage
+      const cacheKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(this.storagePrefix)) {
+          cacheKeys.push(key);
+        }
+      }
+      
+      // Load each item into memory cache
+      cacheKeys.forEach(fullKey => {
+        const key = fullKey.slice(this.storagePrefix.length);
+        const item = localStorage.getItem(fullKey);
+        if (item) {
+          const parsed: CacheItem<any> = JSON.parse(item);
+          
+          // Only add non-expired items
+          if (parsed.expiry > Date.now()) {
+            this.cache.set(key, parsed);
+          } else {
+            // Clean up expired items
+            localStorage.removeItem(fullKey);
+          }
+        }
+      });
+      
+      console.log(`Loaded ${this.cache.size} items from cache`);
+    } catch (error) {
+      console.error("Failed to load cache from storage:", error);
+      // Clear any potentially corrupted cache
+      this.clear();
+    }
+  }
+
+  public set<T>(key: string, value: T, ttlMs: number = 60000): void {
+    const expiry = Date.now() + ttlMs;
+    const item: CacheItem<T> = { value, expiry };
+    
+    // Memory cache
+    this.cache.set(key, item);
+    
+    // Local storage (if enabled)
+    if (this.useLocalStorage) {
+      try {
+        localStorage.setItem(
+          `${this.storagePrefix}${key}`, 
+          JSON.stringify(item)
+        );
+      } catch (error) {
+        console.error("Failed to store in localStorage:", error);
+        // If storage is full, clear some space
+        if (error instanceof DOMException && error.name === "QuotaExceededError") {
+          this.pruneOldestItems(10);
+          // Try again
+          try {
+            localStorage.setItem(
+              `${this.storagePrefix}${key}`, 
+              JSON.stringify(item)
+            );
+          } catch (retryError) {
+            console.error("Failed to store in localStorage after pruning:", retryError);
+          }
+        }
+      }
+    }
+    
+    // If we've reached the item limit, remove the oldest item
+    if (this.cache.size > this.maxItems) {
+      this.pruneOldestItems(1);
+    }
+  }
+
+  public get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    
+    // Return null if item doesn't exist or is expired
+    if (!item || item.expiry < Date.now()) {
+      // Clean up expired item
+      if (item) {
+        this.delete(key);
+      }
       return null;
     }
     
-    // Check if expired
-    if (Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
-      return null;
-    }
+    return item.value;
+  }
+
+  public delete(key: string): void {
+    this.cache.delete(key);
     
-    return entry.data;
+    if (this.useLocalStorage) {
+      localStorage.removeItem(`${this.storagePrefix}${key}`);
+    }
   }
-  
-  /**
-   * Set a value in the cache
-   * @param key Cache key
-   * @param value Value to cache
-   * @param ttl Time to live in milliseconds
-   */
-  set<T>(key: string, value: T, ttl: number): void {
-    const expiresAt = Date.now() + ttl;
-    this.cache.set(key, { data: value, expiresAt });
-  }
-  
-  /**
-   * Clear all entries from the cache
-   */
-  clear(): void {
+
+  public clear(): void {
     this.cache.clear();
+    
+    if (this.useLocalStorage) {
+      // Only clear items with our prefix
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(this.storagePrefix)) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
   }
-  
-  /**
-   * Delete a specific entry from the cache
-   * @param key Cache key
-   */
-  delete(key: string): boolean {
-    return this.cache.delete(key);
+
+  private pruneOldestItems(count: number): void {
+    const keys = Array.from(this.cache.keys());
+    const itemsToRemove = Math.min(count, keys.length);
+    
+    for (let i = 0; i < itemsToRemove; i++) {
+      this.delete(keys[i]);
+    }
   }
-  
-  /**
-   * Get the number of entries in the cache
-   */
-  get size(): number {
+
+  public getCacheSize(): number {
     return this.cache.size;
-  }
-  
-  /**
-   * Check if a key exists in the cache and is not expired
-   * @param key Cache key
-   */
-  has(key: string): boolean {
-    const entry = this.cache.get(key);
-    
-    if (!entry) {
-      return false;
-    }
-    
-    // Check if expired
-    if (Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
-      return false;
-    }
-    
-    return true;
   }
 }
 
-// Export a singleton instance
 const apiCache = new ApiCache();
 export default apiCache;
