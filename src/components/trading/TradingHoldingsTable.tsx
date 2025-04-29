@@ -1,8 +1,8 @@
 
 import React from "react";
 import { ArrowUp, ArrowDown, Wallet } from "lucide-react";
-import { SupportedCurrency } from "./TradingStats";
-import type { CoinOption } from "./types";
+import { SupportedCurrency } from "@/types/trading";
+import type { CoinOption } from "@/types/trading";
 
 interface TradingHoldingsTableProps {
   availableCoins: CoinOption[];

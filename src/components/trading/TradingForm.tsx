@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { ChevronDown, ArrowDownRight, ArrowRightLeft } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportedCurrency } from "./TradingStats";
+import { SupportedCurrency } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
+import { CoinOption } from "@/types/trading";
 
 type CoinOption = {
   id: string;

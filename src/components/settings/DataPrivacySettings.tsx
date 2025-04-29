@@ -1,40 +1,35 @@
 
 import React from "react";
-import { UseFormReturn } from "react-hook-form";
+import { SettingsComponentProps } from "./types";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+} from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { SettingsFormValues } from "./types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Download, Trash } from "lucide-react";
 
-interface DataPrivacySettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
+const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
-    <div className="space-y-6">
-      <div>
+    <>
+      <div className="space-y-4">
         <h3 className="text-lg font-medium">Privacy Settings</h3>
-        <p className="text-sm text-muted-foreground">
-          Manage your privacy preferences and data sharing
-        </p>
-      </div>
-      
-      <Separator />
-      
-      <div>
-        <h4 className="text-sm font-medium mb-4">Profile Visibility</h4>
+        
         <div className="space-y-4">
           <FormField
             control={form.control}
             name="privacy.publicProfile"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
                   <FormLabel>Public Profile</FormLabel>
                   <FormDescription>
-                    Make your profile visible to other users
+                    Allow others to view your profile.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -51,11 +46,11 @@ const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
             control={form.control}
             name="privacy.showPortfolio"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel>Portfolio Visibility</FormLabel>
+                  <FormLabel>Show Portfolio</FormLabel>
                   <FormDescription>
-                    Show your portfolio holdings to other users
+                    Make your portfolio visible to other users.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -72,11 +67,11 @@ const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
             control={form.control}
             name="privacy.shareActivity"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel>Activity Sharing</FormLabel>
+                  <FormLabel>Share Activity</FormLabel>
                   <FormDescription>
-                    Share your trading activity with other users
+                    Share your trading activity with the community.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -91,20 +86,19 @@ const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
         </div>
       </div>
       
-      <Separator />
-      
-      <div>
-        <h4 className="text-sm font-medium mb-4">Data Collection</h4>
+      <div className="space-y-4 pt-6 border-t">
+        <h3 className="text-lg font-medium">Data Management</h3>
+        
         <div className="space-y-4">
           <FormField
             control={form.control}
             name="dataPrivacy.shareAnalytics"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel>Usage Analytics</FormLabel>
+                  <FormLabel>Share Analytics</FormLabel>
                   <FormDescription>
-                    Share anonymous usage data to help improve the platform
+                    Allow us to collect anonymous usage data to improve the app.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -121,11 +115,11 @@ const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
             control={form.control}
             name="dataPrivacy.storeHistory"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel>Trading History</FormLabel>
+                  <FormLabel>Store Trading History</FormLabel>
                   <FormDescription>
-                    Store your trading history for personalized insights
+                    Save your trading history for future analysis.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -140,10 +134,9 @@ const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
         </div>
       </div>
       
-      <Separator />
-      
-      <div>
-        <h4 className="text-sm font-medium mb-4">Data Export</h4>
+      <div className="space-y-4 pt-6 border-t">
+        <h3 className="text-lg font-medium">Export & Delete</h3>
+        
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -151,30 +144,36 @@ const DataPrivacySettings: React.FC<DataPrivacySettingsProps> = ({ form }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Export Format</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select export format" />
+                      <SelectValue placeholder="Select format" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="csv">CSV</SelectItem>
                     <SelectItem value="json">JSON</SelectItem>
+                    <SelectItem value="csv">CSV</SelectItem>
                     <SelectItem value="pdf">PDF</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  Default format for exporting your data
-                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button className="flex items-center gap-1" variant="secondary">
+              <Download className="h-4 w-4" />
+              Export My Data
+            </Button>
+            <Button className="flex items-center gap-1" variant="destructive">
+              <Trash className="h-4 w-4" />
+              Delete My Account
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,184 +1,91 @@
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AiBotTradingProps } from "@/types/trading";
-import { Bot, LineChart, TrendingUp, ArrowUpDown, PlayCircle, StopCircle } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AiBotTradingProps } from '@/types/trading';
+import { Play, Pause, RefreshCw, Settings, TrendingUp } from 'lucide-react';
 
 const AiTradingBotDetail: React.FC<AiBotTradingProps> = ({
   botId,
   strategyId,
   strategyName
 }) => {
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [botHealth, setBotHealth] = useState<number>(100);
-  const [performance, setPerformance] = useState<{
-    lastTrade: number | null;
-    todayPnL: number;
-    weekPnL: number;
-  }>({
-    lastTrade: null,
-    todayPnL: 3.2,
-    weekPnL: -1.4
+  const [isRunning, setIsRunning] = React.useState(false);
+  const [performance, setPerformance] = React.useState({
+    totalTrades: 24,
+    successRate: 68,
+    profitLoss: 12.34,
+    averageTradeTime: '2.5 hrs',
   });
-  
-  const toggleBot = () => {
-    if (isRunning) {
-      setIsRunning(false);
-      toast({
-        title: "Bot Stopped",
-        description: `${strategyName} AI trading bot has been stopped.`
-      });
-    } else {
-      setIsRunning(true);
-      toast({
-        title: "Bot Started",
-        description: `${strategyName} AI trading bot is now active.`
-      });
-      
-      // Simulate a trade after 5 seconds
-      setTimeout(() => {
-        if (Math.random() > 0.5) {
-          simulateTrade("buy");
-        } else {
-          simulateTrade("sell");
-        }
-      }, 5000);
-    }
+
+  const handleToggleBot = () => {
+    setIsRunning(!isRunning);
   };
-  
-  const simulateTrade = (type: "buy" | "sell") => {
-    const price = type === "buy" ? 58432.15 : 58567.32;
-    const amount = 0.05;
-    const total = price * amount;
-    
-    setPerformance(prev => ({
-      ...prev,
-      lastTrade: type === "buy" ? price : -price
-    }));
-    
-    toast({
-      title: `${type === "buy" ? "Buy" : "Sell"} Order Executed`,
-      description: `${amount} BTC at $${price.toLocaleString()} ($${total.toLocaleString()})`,
-      variant: type === "buy" ? "default" : "destructive"
-    });
-  };
-  
+
   return (
-    <Card className="w-full bg-card shadow-lg border border-border">
-      <CardHeader className="bg-card/50 border-b border-border">
+    <Card className="w-full">
+      <CardHeader className="bg-muted/50">
         <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-foreground flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              {strategyName} Bot
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">ID: {botId.substring(0, 8)}</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Badge variant={botHealth > 80 ? "outline" : "destructive"} className="bg-primary/10">
-              Health: {botHealth}%
-            </Badge>
-            {isRunning && (
-              <Badge variant="outline" className="bg-green-500/10 text-green-500 animate-pulse">
-                Active
-              </Badge>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            {strategyName}
+          </CardTitle>
+          <Button 
+            variant={isRunning ? "destructive" : "default"}
+            size="sm"
+            onClick={handleToggleBot}
+          >
+            {isRunning ? (
+              <>
+                <Pause className="mr-2 h-4 w-4" />
+                Stop
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Start
+              </>
             )}
-          </div>
+          </Button>
         </div>
       </CardHeader>
-      
-      <CardContent className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-primary/5 p-4 rounded-lg border border-border">
-            <div className="flex justify-between items-start">
-              <div className="text-sm font-medium">Last Trade</div>
-              {performance.lastTrade !== null ? (
-                <Badge variant={performance.lastTrade > 0 ? "outline" : "destructive"}>
-                  {performance.lastTrade > 0 ? "BUY" : "SELL"}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="opacity-50">NONE</Badge>
-              )}
+      <CardContent className="pt-4">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="text-sm text-muted-foreground">Total Trades</div>
+              <div className="text-xl font-semibold">{performance.totalTrades}</div>
             </div>
-            <div className="mt-2 text-2xl font-bold text-foreground">
-              {performance.lastTrade 
-                ? `$${Math.abs(performance.lastTrade).toLocaleString()}`
-                : "—"}
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="text-sm text-muted-foreground">Success Rate</div>
+              <div className="text-xl font-semibold">{performance.successRate}%</div>
             </div>
-          </div>
-          
-          <div className="bg-primary/5 p-4 rounded-lg border border-border">
-            <div className="flex justify-between items-start">
-              <div className="text-sm font-medium">Today's P&L</div>
-              <TrendingUp className={`h-4 w-4 ${performance.todayPnL >= 0 ? 'text-green-500' : 'text-red-500'}`} />
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="text-sm text-muted-foreground">Profit/Loss</div>
+              <div className={`text-xl font-semibold ${
+                performance.profitLoss > 0 ? 'text-green-500' : 'text-red-500'
+              }`}>
+                {performance.profitLoss > 0 ? '+' : ''}{performance.profitLoss}%
+              </div>
             </div>
-            <div className={`mt-2 text-2xl font-bold ${performance.todayPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {performance.todayPnL >= 0 ? '+' : ''}{performance.todayPnL}%
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="text-sm text-muted-foreground">Avg Trade Time</div>
+              <div className="text-xl font-semibold">{performance.averageTradeTime}</div>
             </div>
           </div>
           
-          <div className="bg-primary/5 p-4 rounded-lg border border-border">
-            <div className="flex justify-between items-start">
-              <div className="text-sm font-medium">Week P&L</div>
-              <ArrowUpDown className={`h-4 w-4 ${performance.weekPnL >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-            </div>
-            <div className={`mt-2 text-2xl font-bold ${performance.weekPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {performance.weekPnL >= 0 ? '+' : ''}{performance.weekPnL}%
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-card rounded-lg border border-border p-4">
-          <div className="text-sm font-medium mb-3 flex items-center gap-2">
-            <LineChart className="h-4 w-4" />
-            Performance Chart
-          </div>
-          <div className="h-[160px] flex items-center justify-center text-muted-foreground text-sm">
-            Chart visualization would be displayed here
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-card rounded-lg border border-border p-4">
-            <div className="text-xs text-muted-foreground mb-1">Strategy</div>
-            <div className="font-medium">{strategyName}</div>
-            <div className="text-xs text-muted-foreground mt-2">ID: {strategyId.substring(0, 8)}</div>
-          </div>
-          
-          <div className="bg-card rounded-lg border border-border p-4">
-            <div className="text-xs text-muted-foreground mb-1">Parameters</div>
-            <div className="font-medium">Default</div>
-            <div className="text-xs text-muted-foreground mt-2">Configured for BTC/USD</div>
+          <div className="flex justify-between pt-2">
+            <Button variant="outline" size="sm" className="flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              Configure
+            </Button>
+            <Button variant="outline" size="sm" className="flex items-center">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh Stats
+            </Button>
           </div>
         </div>
       </CardContent>
-      
-      <CardFooter className="border-t border-border pt-4 flex justify-between">
-        <Button variant="outline">
-          Configure
-        </Button>
-        
-        <Button
-          variant={isRunning ? "destructive" : "default"}
-          onClick={toggleBot}
-          className="min-w-[120px]"
-        >
-          {isRunning ? (
-            <>
-              <StopCircle className="mr-2 h-4 w-4" />
-              Stop Bot
-            </>
-          ) : (
-            <>
-              <PlayCircle className="mr-2 h-4 w-4" />
-              Start Bot
-            </>
-          )}
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

@@ -1,21 +1,55 @@
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from "react";
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  User, 
+  Bell, 
+  Shield, 
+  Palette, 
+  Settings as SettingsIcon 
+} from "lucide-react";
 
-export interface SettingsTabsProps {
+interface SettingsTabsProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
+  onTabChange: (value: string) => void;
 }
 
-const SettingsTabs = ({ activeTab, onTabChange }: SettingsTabsProps) => {
+const SettingsTabs: React.FC<SettingsTabsProps> = ({ activeTab, onTabChange }) => {
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList className="grid grid-cols-4 gap-4">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        <TabsTrigger value="privacy">Privacy</TabsTrigger>
-        <TabsTrigger value="appearance">Appearance</TabsTrigger>
-      </TabsList>
-    </Tabs>
+    <TabsList className="grid grid-cols-4 w-full">
+      <TabsTrigger
+        value="general"
+        onClick={() => onTabChange("general")}
+        className="flex items-center gap-2"
+      >
+        <User className="h-4 w-4" />
+        <span className="hidden sm:inline">General</span>
+      </TabsTrigger>
+      <TabsTrigger
+        value="notifications"
+        onClick={() => onTabChange("notifications")}
+        className="flex items-center gap-2"
+      >
+        <Bell className="h-4 w-4" />
+        <span className="hidden sm:inline">Notifications</span>
+      </TabsTrigger>
+      <TabsTrigger
+        value="privacy"
+        onClick={() => onTabChange("privacy")}
+        className="flex items-center gap-2"
+      >
+        <Shield className="h-4 w-4" />
+        <span className="hidden sm:inline">Privacy</span>
+      </TabsTrigger>
+      <TabsTrigger
+        value="appearance"
+        onClick={() => onTabChange("appearance")}
+        className="flex items-center gap-2"
+      >
+        <Palette className="h-4 w-4" />
+        <span className="hidden sm:inline">Appearance</span>
+      </TabsTrigger>
+    </TabsList>
   );
 };
 

@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { FibonacciLevels } from "@/types/trading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,6 @@ import {
   ReferenceLine
 } from 'recharts';
 import { useTheme } from '@/contexts/ThemeContext';
-import { FibonacciLevels } from '@/types/trading';
 
 interface FibonacciLevel {
   level: number;

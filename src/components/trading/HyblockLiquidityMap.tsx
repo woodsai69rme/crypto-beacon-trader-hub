@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { HyblockLiquidityZone } from "@/types/trading";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
@@ -17,7 +17,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { RefreshCcw, TrendingUp, TrendingDown } from 'lucide-react';
-import { HyblockLiquidityZone } from '@/types/trading';
 import { toast } from '@/components/ui/use-toast';
 
 interface PriceLevel {

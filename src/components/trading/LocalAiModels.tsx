@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React from 'react';
+import { LocalModel } from "@/types/trading";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { LocalModel } from "@/types/trading";
 import { ModelConnectionTab } from "./model-trading/ModelConnectionTab";
 import { ModelGenerationTab } from "./model-trading/ModelGenerationTab";
 import ModelRunningTab from "./model-trading/ModelRunningTab";

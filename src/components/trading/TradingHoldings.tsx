@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SupportedCurrency } from "./TradingStats";
+import { SupportedCurrency } from "@/types/trading";
 import { CoinOption } from "@/types/trading";
 
 interface TradingHoldingsProps {

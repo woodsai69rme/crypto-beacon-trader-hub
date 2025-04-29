@@ -1,61 +1,42 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Save, RefreshCw } from "lucide-react";
 
-export interface SettingsFooterProps {
-  isSaving?: boolean;
-  isSubmitting?: boolean;
-  onReset?: () => void;
-  onCancel?: () => void;
-  onApply?: () => void;
-  showSaveButton?: boolean;
+interface SettingsFooterProps {
+  isSaving: boolean;
+  onReset: () => void;
 }
 
-const SettingsFooter: React.FC<SettingsFooterProps> = ({
-  isSaving = false,
-  isSubmitting = false,
-  onReset,
-  onCancel,
-  onApply,
-  showSaveButton = true
-}) => {
+const SettingsFooter: React.FC<SettingsFooterProps> = ({ isSaving, onReset }) => {
   return (
-    <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-      {onCancel && (
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-      )}
-      
-      {onReset && (
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onReset}
-          disabled={isSaving || isSubmitting}
-        >
-          Reset to Defaults
-        </Button>
-      )}
-      
-      {showSaveButton && (
-        <Button 
-          type="submit" 
-          disabled={isSaving || isSubmitting}
-        >
-          {isSaving || isSubmitting ? "Saving..." : "Save Changes"}
-        </Button>
-      )}
-      
-      {onApply && (
-        <Button 
-          type="button" 
-          onClick={onApply}
-          disabled={isSaving || isSubmitting}
-        >
-          Apply
-        </Button>
-      )}
+    <div className="flex justify-between pt-6 border-t">
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={onReset}
+        className="flex items-center gap-2"
+      >
+        <RefreshCw className="h-4 w-4" />
+        Reset
+      </Button>
+      <Button 
+        type="submit" 
+        disabled={isSaving}
+        className="flex items-center gap-2"
+      >
+        {isSaving ? (
+          <>
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save className="h-4 w-4" />
+            Save Changes
+          </>
+        )}
+      </Button>
     </div>
   );
 };
