@@ -1,10 +1,26 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ATOTaxCalculation, ATOTaxRate } from '@/types/trading';
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+// Formatting utilities
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD'
+  }).format(value);
+};
+
+const formatPercentage = (value: number): string => {
+  return `${value.toFixed(2)}%`;
+};
 
 // ATO tax rates for 2023-2024
 const taxRates2023: ATOTaxRate[] = [

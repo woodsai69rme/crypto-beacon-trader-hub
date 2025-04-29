@@ -10,8 +10,8 @@ export interface CoinOption {
   volume?: number;
   marketCap?: number;
   rank?: number;
-  value?: string;  // For select components
-  label?: string;  // For select components
+  value: string;  // Making value required for select components
+  label: string;  // Making label required for select components
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
@@ -32,7 +32,7 @@ export interface ApiProvider {
   authMethod?: string;
   priority?: number;
   defaultHeaders?: Record<string, string>;
-  endpoints?: ApiEndpoint[];
+  endpoints: ApiEndpoint[];
   rateLimit?: number;
   tier?: string;
 }
@@ -224,4 +224,12 @@ export interface Trade {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
+}
+
+export interface ApiUsageStats {
+  service: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime: string;
+  endpoint: string;
 }
