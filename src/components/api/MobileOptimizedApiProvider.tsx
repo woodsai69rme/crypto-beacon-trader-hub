@@ -1,183 +1,143 @@
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import { toast } from "@/components/ui/use-toast";
-import { apiProviderManager } from "@/services/api/apiProviderConfig";
-import type { ApiProvider } from "@/types/trading";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Settings, Pencil, Trash, Plus, Lock } from "lucide-react";
+import { ApiProvider } from "@/types/trading";
+import { ChevronDown, ChevronRight, ExternalLink, Key } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-const MobileOptimizedApiProvider: React.FC = () => {
-  const [providers, setProviders] = useState<ApiProvider[]>(apiProviderManager.getAllProviders());
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [currentProvider, setCurrentProvider] = useState<ApiProvider | null>(null);
-  const isMobile = useIsMobile();
-  
-  const refreshProviders = () => {
-    setProviders(apiProviderManager.getAllProviders());
+interface MobileOptimizedApiProviderProps {
+  provider: ApiProvider;
+  onToggle: (id: string) => void;
+  onUpdateApiKey: (id: string, apiKey: string) => void;
+}
+
+const MobileOptimizedApiProvider: React.FC<MobileOptimizedApiProviderProps> = ({
+  provider,
+  onToggle,
+  onUpdateApiKey,
+}) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [apiKey, setApiKey] = React.useState(provider.apiKey || "");
+  const [showApiKey, setShowApiKey] = React.useState(false);
+
+  const handleApiKeySave = () => {
+    onUpdateApiKey(provider.id, apiKey);
   };
-  
-  const handleToggleProvider = (id: string) => {
-    apiProviderManager.toggleProviderEnabled(id);
-    refreshProviders();
-  };
-  
-  const handleUpdateApiKey = (id: string, apiKey: string) => {
-    try {
-      apiProviderManager.setProviderApiKey(id, apiKey);
-      refreshProviders();
-      
-      toast({
-        title: "API Key Updated",
-        description: "Your API key has been saved",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message,
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const renderProviderItem = (provider: ApiProvider) => (
-    <div key={provider.id} className="flex items-center justify-between p-3 border-b last:border-0">
-      <div className="flex-1">
-        <div className="font-medium">{provider.name}</div>
-        <div className="text-xs text-muted-foreground">{provider.baseUrl}</div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <Switch
-          checked={provider.enabled}
-          onCheckedChange={() => handleToggleProvider(provider.id)}
-          aria-label={`${provider.name} enabled`}
-        />
-        
-        {(provider.authRequired || provider.requiresAuth) && (
-          isMobile ? (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Lock className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom">
-                <SheetHeader>
-                  <SheetTitle>Set API Key for {provider.name}</SheetTitle>
-                  <SheetDescription>
-                    Enter your API key to authenticate with this provider.
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="py-6">
-                  <Label htmlFor={`mobile-api-key-${provider.id}`}>API Key</Label>
-                  <Input 
-                    id={`mobile-api-key-${provider.id}`} 
-                    placeholder="Enter API key"
-                    type="password"
-                    defaultValue={provider.apiKey || ""}
-                    className="mt-2"
-                  />
-                </div>
-                <SheetFooter>
-                  <Button
-                    onClick={() => {
-                      const input = document.getElementById(`mobile-api-key-${provider.id}`) as HTMLInputElement;
-                      handleUpdateApiKey(provider.id, input.value);
-                    }}
-                  >
-                    Save Key
-                  </Button>
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
-          ) : (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Lock className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>API Key for {provider.name}</DialogTitle>
-                  <DialogDescription>
-                    Enter your API key to authenticate with {provider.name}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                  <Label htmlFor={`api-key-${provider.id}`}>API Key</Label>
-                  <Input 
-                    id={`api-key-${provider.id}`} 
-                    placeholder="Enter API key"
-                    type="password"
-                    defaultValue={provider.apiKey || ""}
-                    className="mt-2"
-                  />
-                </div>
-                <DialogFooter>
-                  <Button
-                    onClick={() => {
-                      const input = document.getElementById(`api-key-${provider.id}`) as HTMLInputElement;
-                      handleUpdateApiKey(provider.id, input.value);
-                    }}
-                  >
-                    Save Key
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )
-        )}
-      </div>
-    </div>
-  );
-  
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          API Providers
-        </CardTitle>
-        <CardDescription>
-          Configure data providers for crypto price data
-        </CardDescription>
+    <Card className={!provider.enabled ? "opacity-60" : ""}>
+      <CardHeader className="cursor-pointer py-3" onClick={() => setIsOpen(!isOpen)}>
+        <div className="flex justify-between items-center">
+          <div className="flex gap-2 items-center">
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            )}
+            <CardTitle className="text-base">{provider.name}</CardTitle>
+          </div>
+          <Switch
+            checked={provider.enabled}
+            onCheckedChange={() => onToggle(provider.id)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {providers.map(renderProviderItem)}
-        </div>
-        
-        <div className="mt-6">
-          <Button variant="outline" size="sm" className="w-full" onClick={() => refreshProviders()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Refresh Providers
-          </Button>
-        </div>
-      </CardContent>
+
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleContent>
+          <CardContent className="pt-0 pb-3 space-y-3">
+            <p className="text-sm">{provider.description}</p>
+
+            <div className="text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Base URL:</span>
+                <span className="font-mono">{provider.baseUrl}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Auth Required:</span>
+                <span>
+                  {provider.requiresAuth || provider.authRequired ? "Yes" : "No"}
+                </span>
+              </div>
+
+              {(provider.requiresAuth || provider.authRequired) && (
+                <div className="space-y-2 mt-2 pt-2 border-t">
+                  <div className="flex items-center gap-2">
+                    <Key className="h-4 w-4" />
+                    <span className="text-sm font-medium">API Key</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Input
+                      type={showApiKey ? "text" : "password"}
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      className="text-xs h-8"
+                      placeholder="Enter API key"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={handleApiKeySave}
+                    >
+                      Save
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="show-api-key"
+                      checked={showApiKey}
+                      onCheckedChange={setShowApiKey}
+                    />
+                    <label
+                      htmlFor="show-api-key"
+                      className="text-xs cursor-pointer"
+                    >
+                      Show API Key
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-2 mt-2 border-t">
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-xs"
+                  asChild
+                >
+                  <a
+                    href={provider.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Visit Website <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                </Button>
+
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-xs"
+                  asChild
+                >
+                  <a
+                    href={provider.docs}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Docs <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 };

@@ -1,336 +1,253 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { PortfolioBenchmark } from "@/types/trading";
-import { generateHistoricalData } from "@/utils/mockDataGenerators";
+import { PortfolioBenchmark } from '@/types/trading';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Settings2 } from 'lucide-react';
+
+// Sample data
+const generateHistoricalData = (days: number, volatility: number, trend: number) => {
+  const data = [];
+  let value = 100;
+  
+  for (let i = days; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    
+    // Random walk with trend
+    const change = (Math.random() - 0.5) * volatility + trend;
+    value = value * (1 + change / 100);
+    
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value,
+      performance: value - 100,
+    });
+  }
+  
+  return data;
+};
+
+// Sample benchmarks with historical performance
+const benchmarks: PortfolioBenchmark[] = [
+  {
+    id: "portfolio",
+    name: "Your Portfolio",
+    symbol: "PORTFOLIO",
+    type: "custom",
+    color: "#4f46e5",
+    performance: 15.3,
+    lastUpdated: new Date().toISOString(),
+    data: generateHistoricalData(90, 2, 0.2)
+  },
+  {
+    id: "bitcoin",
+    name: "Bitcoin",
+    symbol: "BTC",
+    type: "crypto",
+    color: "#f7931a",
+    performance: 24.7,
+    lastUpdated: new Date().toISOString(),
+    data: generateHistoricalData(90, 3, 0.3)
+  },
+  {
+    id: "ethereum",
+    name: "Ethereum",
+    symbol: "ETH",
+    type: "crypto",
+    color: "#62688f",
+    performance: 19.2,
+    lastUpdated: new Date().toISOString(),
+    data: generateHistoricalData(90, 3.5, 0.25)
+  },
+  {
+    id: "sp500",
+    name: "S&P 500",
+    symbol: "SPX",
+    type: "index",
+    color: "#0088cc",
+    performance: 8.5,
+    lastUpdated: new Date().toISOString(),
+    data: generateHistoricalData(90, 1, 0.1)
+  },
+  {
+    id: "nasdaq",
+    name: "NASDAQ",
+    symbol: "NDAQ",
+    type: "index",
+    color: "#990000",
+    performance: 10.2,
+    lastUpdated: new Date().toISOString(),
+    data: generateHistoricalData(90, 1.5, 0.15)
+  },
+  {
+    id: "gold",
+    name: "Gold",
+    symbol: "XAU",
+    type: "index",
+    color: "#FFD700",
+    performance: 5.8,
+    lastUpdated: new Date().toISOString(),
+    data: generateHistoricalData(90, 0.8, 0.06)
+  }
+];
 
 const EnhancedPortfolioBenchmarking = () => {
-  const [timeRange, setTimeRange] = useState<"1w" | "1m" | "3m" | "6m" | "1y" | "all">("3m");
-  const [benchmarks, setBenchmarks] = useState<PortfolioBenchmark[]>([]);
-  const [selectedBenchmarks, setSelectedBenchmarks] = useState<string[]>(["portfolio", "btc"]);
-  const [portfolioData, setPortfolioData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedBenchmarks, setSelectedBenchmarks] = useState<string[]>(["portfolio", "bitcoin", "sp500"]);
+  const [timeRange, setTimeRange] = useState<string>("30d");
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
   
+  // Process chart data based on selected benchmarks and time range
   useEffect(() => {
-    // In a real app, this would fetch actual data from an API
-    const fetchData = async () => {
-      setIsLoading(true);
-      
-      // Generate mock data for demonstration
-      const portfolioPoints = generateHistoricalData(timeRange, 10000, 0.05);
-      const bitcoinData = generateHistoricalData(timeRange, 50000, 0.08);
-      const ethereumData = generateHistoricalData(timeRange, 3000, 0.1);
-      const sp500Data = generateHistoricalData(timeRange, 4000, 0.03);
-      const nasdaqData = generateHistoricalData(timeRange, 12000, 0.04);
-      const goldData = generateHistoricalData(timeRange, 1800, 0.02);
-      
-      // Create benchmark objects
-      const benchmarkData: PortfolioBenchmark[] = [
-        {
-          id: "btc",
-          name: "Bitcoin",
-          symbol: "BTC",
-          type: "crypto",
-          performance: [5, 8, 12, 9, 15, 20, 18],
-          lastUpdated: new Date().toISOString(),
-          data: bitcoinData,
-          color: "#F7931A"
-        },
-        {
-          id: "eth",
-          name: "Ethereum",
-          symbol: "ETH",
-          type: "crypto",
-          performance: [3, 7, 10, 8, 12, 15, 14],
-          lastUpdated: new Date().toISOString(),
-          data: ethereumData,
-          color: "#627EEA"
-        },
-        {
-          id: "sp500",
-          name: "S&P 500",
-          symbol: "SPX",
-          type: "index",
-          performance: [2, 4, 6, 5, 7, 8, 9],
-          lastUpdated: new Date().toISOString(),
-          data: sp500Data,
-          color: "#8A2BE2"
-        },
-        {
-          id: "nasdaq",
-          name: "NASDAQ",
-          symbol: "IXIC",
-          type: "index",
-          performance: [3, 5, 7, 6, 8, 9, 10],
-          lastUpdated: new Date().toISOString(),
-          data: nasdaqData,
-          color: "#E6007A"
-        },
-        {
-          id: "gold",
-          name: "Gold",
-          symbol: "XAU",
-          type: "index",
-          performance: [1, 2, 1, 3, 2, 4, 3],
-          lastUpdated: new Date().toISOString(),
-          data: goldData,
-          color: "#FFD700"
-        }
-      ];
-      
-      // Add portfolio as a benchmark
-      const portfolioBenchmark: PortfolioBenchmark = {
-        id: "portfolio",
-        name: "Your Portfolio",
-        symbol: "PORT",
-        type: "custom",
-        performance: [4, 6, 9, 7, 10, 12, 11],
-        lastUpdated: new Date().toISOString(),
-        data: portfolioPoints,
-        color: "#10B981"
-      };
-      
-      setBenchmarks([portfolioBenchmark, ...benchmarkData]);
-      setPortfolioData(portfolioPoints);
-      setIsLoading(false);
-    };
+    const daysToShow = timeRange === "7d" ? 7 : 
+                       timeRange === "30d" ? 30 : 
+                       timeRange === "90d" ? 90 : 
+                       365;
     
-    fetchData();
-  }, [timeRange]);
-  
-  const handleBenchmarkToggle = (benchmarkId: string) => {
-    setSelectedBenchmarks(prev => {
-      if (prev.includes(benchmarkId)) {
-        return prev.filter(id => id !== benchmarkId);
-      } else {
-        return [...prev, benchmarkId];
-      }
+    const filteredBenchmarks = benchmarks.filter(b => selectedBenchmarks.includes(b.id));
+    
+    // Get data points for the selected time range
+    const allDates = new Set<string>();
+    filteredBenchmarks.forEach(benchmark => {
+      const recentData = benchmark.data.slice(-daysToShow);
+      recentData.forEach(d => allDates.add(d.date));
     });
-  };
-  
-  const getPerformanceText = (benchmarkId: string) => {
-    const benchmark = benchmarks.find(b => b.id === benchmarkId);
-    if (!benchmark) return "0%";
     
-    const data = benchmark.data;
-    if (!data || data.length < 2) return "0%";
+    const dates = Array.from(allDates).sort();
     
-    if (Array.isArray(data) && typeof data[0] === 'object') {
-      const firstValue = (data[0] as any).value;
-      const lastValue = (data[data.length - 1] as any).value;
-      const percentChange = ((lastValue - firstValue) / firstValue) * 100;
-      return `${percentChange.toFixed(2)}%`;
-    }
-    
-    return "0%";
-  };
-  
-  const getChartData = () => {
-    if (benchmarks.length === 0) return [];
-    
-    // Find the benchmark with the most data points to use as base
-    const baseData = benchmarks.find(b => b.id === "portfolio")?.data || [];
-    if (!baseData.length) return [];
-    
-    // Create a merged dataset for the chart
-    return (baseData as any[]).map((point, index) => {
-      const dataPoint: any = {
-        date: point.date,
-      };
+    const processedData = dates.map(date => {
+      const dataPoint: any = { date };
       
-      // Add data for each selected benchmark
-      selectedBenchmarks.forEach(benchmarkId => {
-        const benchmark = benchmarks.find(b => b.id === benchmarkId);
-        if (benchmark && benchmark.data && benchmark.data[index]) {
-          if (typeof benchmark.data[index] === 'object') {
-            dataPoint[benchmark.id] = (benchmark.data[index] as any).value;
-          } else {
-            dataPoint[benchmark.id] = benchmark.data[index];
-          }
+      filteredBenchmarks.forEach(benchmark => {
+        const matchingDataPoint = benchmark.data.find(d => d.date === date);
+        if (matchingDataPoint) {
+          dataPoint[benchmark.id] = matchingDataPoint.performance;
         }
       });
       
       return dataPoint;
     });
+    
+    setChartData(processedData);
+  }, [selectedBenchmarks, timeRange]);
+  
+  const toggleBenchmark = (id: string) => {
+    if (selectedBenchmarks.includes(id)) {
+      setSelectedBenchmarks(selectedBenchmarks.filter(b => b !== id));
+    } else {
+      if (selectedBenchmarks.length < 5) { // Limit to 5 benchmarks for readability
+        setSelectedBenchmarks([...selectedBenchmarks, id]);
+      }
+    }
   };
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl">Portfolio Benchmarking</CardTitle>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle>Portfolio Benchmarking</CardTitle>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSettings(!showSettings)}
+            className={showSettings ? "bg-secondary" : ""}
+          >
+            <Settings2 className="h-4 w-4" />
+          </Button>
+          <Tabs value={timeRange} onValueChange={setTimeRange}>
+            <TabsList className="grid grid-cols-4 h-8">
+              <TabsTrigger value="7d" className="text-xs">7D</TabsTrigger>
+              <TabsTrigger value="30d" className="text-xs">30D</TabsTrigger>
+              <TabsTrigger value="90d" className="text-xs">90D</TabsTrigger>
+              <TabsTrigger value="1y" className="text-xs">1Y</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </CardHeader>
+      
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex flex-wrap justify-between items-center gap-2">
-            <Tabs defaultValue="performance" className="w-full max-w-md">
-              <TabsList className="grid grid-cols-2">
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                <TabsTrigger value="correlation">Correlation</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="performance" className="space-y-4">
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <Button
-                    variant={timeRange === "1w" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTimeRange("1w")}
-                  >
-                    1W
-                  </Button>
-                  <Button
-                    variant={timeRange === "1m" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTimeRange("1m")}
-                  >
-                    1M
-                  </Button>
-                  <Button
-                    variant={timeRange === "3m" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTimeRange("3m")}
-                  >
-                    3M
-                  </Button>
-                  <Button
-                    variant={timeRange === "6m" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTimeRange("6m")}
-                  >
-                    6M
-                  </Button>
-                  <Button
-                    variant={timeRange === "1y" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTimeRange("1y")}
-                  >
-                    1Y
-                  </Button>
-                  <Button
-                    variant={timeRange === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTimeRange("all")}
-                  >
-                    All
-                  </Button>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Select>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Add Benchmark" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {benchmarks
-                        .filter(b => !selectedBenchmarks.includes(b.id))
-                        .map(benchmark => (
-                          <SelectItem 
-                            key={benchmark.id} 
-                            value={benchmark.id}
-                            onClick={() => handleBenchmarkToggle(benchmark.id)}
-                          >
-                            {benchmark.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  {selectedBenchmarks.map(benchmarkId => {
-                    const benchmark = benchmarks.find(b => b.id === benchmarkId);
-                    if (!benchmark) return null;
-                    
-                    return (
-                      <div 
-                        key={benchmark.id}
-                        className="flex items-center gap-2 px-3 py-1 rounded-full text-sm border"
-                        style={{ borderColor: benchmark.color }}
-                      >
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: benchmark.color }}
-                        />
-                        <span>{benchmark.name}</span>
-                        <span className="text-xs">
-                          ({getPerformanceText(benchmark.id)})
-                        </span>
-                        <button 
-                          className="ml-1 text-muted-foreground hover:text-foreground"
-                          onClick={() => handleBenchmarkToggle(benchmark.id)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                <div className="h-[300px] mt-4">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <p>Loading chart data...</p>
-                    </div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={getChartData()}>
-                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 12 }}
-                          tickFormatter={(value) => {
-                            const date = new Date(value);
-                            return `${date.getMonth() + 1}/${date.getDate()}`;
-                          }}
-                        />
-                        <YAxis 
-                          tick={{ fontSize: 12 }}
-                          tickFormatter={(value) => {
-                            if (value >= 1000) {
-                              return `$${(value / 1000).toFixed(1)}k`;
-                            }
-                            return `$${value}`;
-                          }}
-                        />
-                        <Tooltip 
-                          formatter={(value: number) => [`$${value.toFixed(2)}`, ""]}
-                          labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                        />
-                        <Legend />
-                        {selectedBenchmarks.map(benchmarkId => {
-                          const benchmark = benchmarks.find(b => b.id === benchmarkId);
-                          if (!benchmark) return null;
-                          
-                          return (
-                            <Line
-                              key={benchmark.id}
-                              type="monotone"
-                              dataKey={benchmark.id}
-                              name={benchmark.name}
-                              stroke={benchmark.color}
-                              strokeWidth={2}
-                              dot={false}
-                              activeDot={{ r: 6 }}
-                            />
-                          );
-                        })}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="correlation">
-                <div className="p-8 text-center">
-                  <p className="text-muted-foreground">
-                    Correlation analysis will be available in a future update.
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
+        {showSettings && (
+          <div className="mb-4 p-3 border rounded-md bg-muted/40">
+            <p className="text-sm font-medium mb-2">Select Benchmarks (max 5)</p>
+            <div className="flex flex-wrap gap-2">
+              {benchmarks.map((benchmark) => (
+                <Button
+                  key={benchmark.id}
+                  variant={selectedBenchmarks.includes(benchmark.id) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleBenchmark(benchmark.id)}
+                  className="text-xs"
+                  style={{
+                    borderColor: selectedBenchmarks.includes(benchmark.id) ? benchmark.color : undefined,
+                    background: selectedBenchmarks.includes(benchmark.id) ? benchmark.color : undefined,
+                    opacity: selectedBenchmarks.includes(benchmark.id) ? 1 : 0.7
+                  }}
+                >
+                  {benchmark.symbol}
+                </Button>
+              ))}
+            </div>
           </div>
+        )}
+        
+        <div className="h-[250px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <XAxis 
+                dataKey="date" 
+                tickMargin={10}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                }}
+                minTickGap={30}
+              />
+              <YAxis 
+                tickFormatter={(value) => `${value.toFixed(1)}%`}
+                domain={['dataMin - 5', 'dataMax + 5']}
+              />
+              <Tooltip 
+                formatter={(value) => [`${parseFloat(value as string).toFixed(2)}%`, ""]}
+                labelFormatter={(label) => `Date: ${new Date(label).toLocaleDateString()}`}
+              />
+              <Legend />
+              {benchmarks
+                .filter(benchmark => selectedBenchmarks.includes(benchmark.id))
+                .map((benchmark) => (
+                  <Line
+                    key={benchmark.id}
+                    type="monotone"
+                    dataKey={benchmark.id}
+                    name={benchmark.name}
+                    stroke={benchmark.color}
+                    activeDot={{ r: 6 }}
+                    strokeWidth={2}
+                  />
+                ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+          {benchmarks
+            .filter(benchmark => selectedBenchmarks.includes(benchmark.id))
+            .map((benchmark) => (
+              <div 
+                key={benchmark.id} 
+                className="border rounded-md p-2 text-sm flex flex-col"
+                style={{ borderLeftColor: benchmark.color, borderLeftWidth: 3 }}
+              >
+                <div className="font-medium">{benchmark.name}</div>
+                <div className={benchmark.performance >= 0 ? "text-green-500" : "text-red-500"}>
+                  {benchmark.performance >= 0 ? "+" : ""}
+                  {benchmark.performance.toFixed(2)}%
+                </div>
+              </div>
+            ))}
         </div>
       </CardContent>
     </Card>

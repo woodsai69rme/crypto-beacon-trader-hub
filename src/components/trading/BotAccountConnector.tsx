@@ -1,121 +1,133 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAiTrading } from '@/contexts/AiTradingContext';
-import { useTradingAccounts } from '@/hooks/use-trading-accounts';
-import { toast } from '@/components/ui/use-toast';
-import { LinkIcon, Unlink } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { TradingAccount } from "@/types/trading";
 
 interface BotAccountConnectorProps {
-  botId: string;
-  botName: string;
+  accounts: TradingAccount[];
+  onAccountSelect: (accountId: string) => void;
+  selectedAccountId: string;
+}
+
+interface AccountWithBotsEnabled extends TradingAccount {
+  allowBots?: boolean;
 }
 
 const BotAccountConnector: React.FC<BotAccountConnectorProps> = ({
-  botId,
-  botName
+  accounts,
+  onAccountSelect,
+  selectedAccountId,
 }) => {
-  const { accounts } = useTradingAccounts();
-  const { connectBotToAccount, disconnectBot, getConnectedAccount } = useAiTrading();
-  
-  const connectedAccountId = getConnectedAccount(botId);
-  const [selectedAccountId, setSelectedAccountId] = useState<string>(connectedAccountId || '');
-  
-  const eligibleAccounts = accounts.filter(account => account.allowBots);
-  
-  const handleConnectAccount = () => {
-    if (!selectedAccountId) {
-      toast({
-        title: "No Account Selected",
-        description: "Please select an account to connect",
-        variant: "destructive"
-      });
-      return;
+  const [accountsWithBotSettings, setAccountsWithBotSettings] = useState<AccountWithBotsEnabled[]>([]);
+
+  useEffect(() => {
+    // Initialize accounts with bot settings
+    setAccountsWithBotSettings(
+      accounts.map((account) => ({
+        ...account,
+        allowBots: account.id === selectedAccountId ? true : false,
+      }))
+    );
+  }, [accounts, selectedAccountId]);
+
+  const handleToggleBots = (accountId: string, allowed: boolean) => {
+    const updatedAccounts = accountsWithBotSettings.map((account) => {
+      if (account.id === accountId) {
+        return { ...account, allowBots: allowed };
+      }
+      return account;
+    });
+
+    setAccountsWithBotSettings(updatedAccounts);
+
+    // If enabling bots for an account, select that account
+    if (allowed) {
+      onAccountSelect(accountId);
+    } else if (accountId === selectedAccountId) {
+      // If disabling the currently selected account, find another enabled one
+      const nextEnabledAccount = updatedAccounts.find(
+        (a) => a.allowBots && a.id !== accountId
+      );
+      if (nextEnabledAccount) {
+        onAccountSelect(nextEnabledAccount.id);
+      } else {
+        onAccountSelect(""); // No enabled accounts
+      }
     }
-    
-    connectBotToAccount(botId, selectedAccountId);
-    
-    toast({
-      title: "Account Connected",
-      description: `${botName} has been connected to the selected account`
-    });
   };
-  
-  const handleDisconnectAccount = () => {
-    disconnectBot(botId);
-    setSelectedAccountId('');
-    
-    toast({
-      title: "Account Disconnected",
-      description: `${botName} has been disconnected from the account`
-    });
-  };
-  
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Connect to Trading Account</label>
-        
-        <div className="flex space-x-2">
-          <Select 
-            value={selectedAccountId} 
-            onValueChange={setSelectedAccountId}
-            disabled={!!connectedAccountId}
-          >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Select account" />
-            </SelectTrigger>
-            <SelectContent>
-              {eligibleAccounts.length > 0 ? (
-                eligibleAccounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {account.name} (${account.balance.toLocaleString()})
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="none" disabled>
-                  No eligible accounts found
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          
-          {connectedAccountId ? (
-            <Button 
-              variant="outline" 
-              onClick={handleDisconnectAccount}
-              className="shrink-0"
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium mb-2">
+              Select Trading Account for Bots
+            </h3>
+            <Select
+              value={selectedAccountId}
+              onValueChange={onAccountSelect}
+              disabled={!accountsWithBotSettings.some((a) => a.allowBots)}
             >
-              <Unlink className="h-4 w-4 mr-2" />
-              Disconnect
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleConnectAccount} 
-              disabled={!selectedAccountId || eligibleAccounts.length === 0}
-              className="shrink-0"
-            >
-              <LinkIcon className="h-4 w-4 mr-2" />
-              Connect
-            </Button>
-          )}
+              <SelectTrigger>
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {accountsWithBotSettings
+                  .filter((a) => a.allowBots)
+                  .map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name} (${account.balance.toFixed(2)})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium mb-2">
+              Account Bot Permissions
+            </h3>
+            {accountsWithBotSettings.map((account) => (
+              <div
+                key={account.id}
+                className="flex items-center justify-between py-2 border-b last:border-0"
+              >
+                <div>
+                  <p className="text-sm font-medium">{account.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Balance: ${account.balance.toFixed(2)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {account.allowBots && (
+                    <Badge variant="outline" className="bg-primary/10">
+                      Bot Enabled
+                    </Badge>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor={`bot-${account.id}`}>
+                      {account.allowBots ? "Enabled" : "Disabled"}
+                    </Label>
+                    <Switch
+                      id={`bot-${account.id}`}
+                      checked={account.allowBots}
+                      onCheckedChange={(checked) =>
+                        handleToggleBots(account.id, checked)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      
-      {connectedAccountId && (
-        <div className="text-xs text-muted-foreground">
-          <span className="text-green-500">●</span> Connected to{' '}
-          {accounts.find(acc => acc.id === connectedAccountId)?.name || 'Unknown account'}
-        </div>
-      )}
-      
-      {eligibleAccounts.length === 0 && (
-        <div className="text-sm text-amber-500">
-          No accounts with bot trading enabled. Please enable bot trading on an account first.
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

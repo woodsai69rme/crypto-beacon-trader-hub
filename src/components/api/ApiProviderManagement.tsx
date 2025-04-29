@@ -1,433 +1,463 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
-import { apiProviderManager } from "@/services/api/apiProviderConfig";
 import { ApiProvider, ApiEndpoint } from "@/types/trading";
-import { Settings, Pencil, Trash, Plus } from "lucide-react";
+import { apiProviderManager } from "@/services/api/apiProviderConfig";
+import { Check, Edit, Plus, Trash } from "lucide-react";
 
-const ApiProviderManagement: React.FC = () => {
-  const [providers, setProviders] = useState<ApiProvider[]>([]);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [currentProvider, setCurrentProvider] = useState<ApiProvider | null>(null);
+const ApiProviderManagement = () => {
+  const [providers, setProviders] = useState<ApiProvider[]>(apiProviderManager.getAllProviders());
+  const [editingProvider, setEditingProvider] = useState<ApiProvider | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const [newProvider, setNewProvider] = useState<Partial<ApiProvider>>({
+    id: "",
     name: "",
+    description: "",
     baseUrl: "",
-    authMethod: "header",
-    requiresAuth: false,
+    website: "",
+    docs: "",
+    authRequired: false,
+    apiKey: "",
     enabled: true,
+    requiresAuth: false,
+    apiKeyName: "",
+    authMethod: "",
     priority: 10,
-    endpoints: {}
+    endpoints: {} as Record<string, string>,
+    defaultHeaders: {}
   });
-  
-  useEffect(() => {
-    refreshProviders();
-  }, []);
-  
-  const refreshProviders = () => {
+
+  const handleAddProvider = () => {
     try {
-      const allProviders = apiProviderManager.getAllProviders();
-      setProviders(allProviders);
-    } catch (error) {
-      console.error("Error loading API providers:", error);
-      toast({
-        title: "Error Loading Providers",
-        description: "Failed to load API providers. Please try again.",
-        variant: "destructive"
+      const completeProvider: ApiProvider = {
+        id: newProvider.id || `provider-${Date.now()}`,
+        name: newProvider.name || "New Provider",
+        description: newProvider.description || "",
+        baseUrl: newProvider.baseUrl || "",
+        website: newProvider.website || "",
+        docs: newProvider.docs || "",
+        authRequired: newProvider.authRequired || false,
+        apiKey: newProvider.apiKey || "",
+        enabled: newProvider.enabled !== undefined ? newProvider.enabled : true,
+        requiresAuth: newProvider.requiresAuth || false,
+        apiKeyName: newProvider.apiKeyName || "",
+        authMethod: newProvider.authMethod || "",
+        priority: newProvider.priority || 10,
+        endpoints: newProvider.endpoints || {},
+        defaultHeaders: newProvider.defaultHeaders || {}
+      };
+
+      apiProviderManager.addProvider(completeProvider);
+      setProviders(apiProviderManager.getAllProviders());
+      setIsAddingNew(false);
+      setNewProvider({
+        id: "",
+        name: "",
+        description: "",
+        baseUrl: "",
+        website: "",
+        docs: "",
+        authRequired: false,
+        apiKey: "",
+        enabled: true,
+        requiresAuth: false,
+        apiKeyName: "",
+        authMethod: "",
+        priority: 10,
+        endpoints: {} as Record<string, string>,
+        defaultHeaders: {}
       });
+    } catch (error) {
+      console.error("Error adding provider:", error);
     }
   };
-  
+
+  const handleDeleteProvider = (id: string) => {
+    try {
+      apiProviderManager.deleteProvider(id);
+      setProviders(apiProviderManager.getAllProviders());
+      if (editingProvider?.id === id) {
+        setEditingProvider(null);
+      }
+    } catch (error) {
+      console.error("Error deleting provider:", error);
+    }
+  };
+
   const handleToggleProvider = (id: string) => {
     try {
       apiProviderManager.toggleProviderEnabled(id);
-      refreshProviders();
+      setProviders(apiProviderManager.getAllProviders());
+      
+      if (editingProvider?.id === id) {
+        const updatedProvider = apiProviderManager.getProviderById(id);
+        if (updatedProvider) {
+          setEditingProvider(updatedProvider);
+        }
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message,
-        variant: "destructive"
-      });
+      console.error("Error toggling provider:", error);
     }
   };
-  
+
   const handleUpdateApiKey = (id: string, apiKey: string) => {
     try {
       apiProviderManager.setProviderApiKey(id, apiKey);
-      refreshProviders();
+      setProviders(apiProviderManager.getAllProviders());
       
-      toast({
-        title: "API Key Updated",
-        description: "Your API key has been saved",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message,
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const handleEditProvider = (provider: ApiProvider) => {
-    setCurrentProvider(provider);
-    setIsEditOpen(true);
-  };
-  
-  const handleDeleteProvider = (id: string) => {
-    if (confirm("Are you sure you want to delete this API provider?")) {
-      try {
-        apiProviderManager.deleteProvider(id);
-        refreshProviders();
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: (error as Error).message,
-          variant: "destructive"
-        });
+      if (editingProvider?.id === id) {
+        const updatedProvider = apiProviderManager.getProviderById(id);
+        if (updatedProvider) {
+          setEditingProvider(updatedProvider);
+        }
       }
-    }
-  };
-  
-  const handleSaveEdit = () => {
-    if (!currentProvider) return;
-    
-    try {
-      apiProviderManager.updateProvider(currentProvider.id, currentProvider);
-      setIsEditOpen(false);
-      refreshProviders();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message,
-        variant: "destructive"
-      });
+      console.error("Error updating API key:", error);
     }
   };
-  
-  const handleAddProvider = () => {
-    if (!newProvider.name || !newProvider.baseUrl) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide at least a name and base URL",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      const provider: ApiProvider = {
-        id: newProvider.name?.toLowerCase().replace(/\s+/g, '-') || Date.now().toString(),
-        name: newProvider.name || "New Provider",
-        baseUrl: newProvider.baseUrl || "",
-        authMethod: newProvider.authMethod as "header" | "query" | "none" || "header",
-        apiKeyName: newProvider.apiKeyName,
-        requiresAuth: newProvider.requiresAuth || false,
-        enabled: newProvider.enabled || true,
-        priority: newProvider.priority || 10,
-        endpoints: newProvider.endpoints || {},
-        defaultHeaders: newProvider.defaultHeaders
-      };
-      
-      apiProviderManager.addProvider(provider);
-      setIsAddOpen(false);
-      setNewProvider({
-        name: "",
-        baseUrl: "",
-        authMethod: "header",
-        requiresAuth: false,
-        enabled: true,
-        priority: 10,
-        endpoints: {}
-      });
-      refreshProviders();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message,
-        variant: "destructive"
-      });
+
+  const handleResetProviders = () => {
+    if (confirm("This will reset all providers to default settings. Continue?")) {
+      apiProviderManager.resetToDefaults();
+      setProviders(apiProviderManager.getAllProviders());
+      setEditingProvider(null);
     }
   };
-  
-  const renderEndpoints = (endpoints: Record<string, string>) => {
-    return Object.entries(endpoints).map(([key, value]) => (
-      <div key={key} className="flex justify-between text-xs py-1 border-t">
-        <span className="font-medium">{key}</span>
-        <span className="text-muted-foreground">{value}</span>
-      </div>
-    ));
-  };
-  
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          API Provider Management
-        </CardTitle>
-        <CardDescription>
-          Configure and manage API providers for cryptocurrency data
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {providers.map(provider => (
-            <Card key={provider.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-base">{provider.name}</CardTitle>
-                  <Switch
-                    checked={provider.enabled}
-                    onCheckedChange={() => handleToggleProvider(provider.id)}
-                    aria-label={`${provider.name} enabled`}
-                  />
-                </div>
-                <CardDescription className="text-xs truncate">
-                  {provider.baseUrl}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="space-y-2">
-                  {provider.requiresAuth && (
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={`api-key-${provider.id}`} className="text-sm">
-                        API Key:
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id={`api-key-${provider.id}`}
-                          type="password"
-                          placeholder="••••••••"
-                          value={provider.apiKey || ""}
-                          onChange={(e) => handleUpdateApiKey(provider.id, e.target.value)}
-                          className="w-40 h-8 text-xs"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Priority:</span>
-                    <span className="text-sm">{provider.priority}</span>
-                  </div>
-                  
-                  <div className="pt-2">
-                    <div className="text-sm font-medium mb-1">Endpoints:</div>
-                    <div className="bg-muted/40 rounded p-2 text-xs max-h-24 overflow-y-auto">
-                      {renderEndpoints(provider.endpoints)}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <div className="px-6 py-2 bg-muted/20 flex justify-end gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => handleEditProvider(provider)}
-                >
-                  <Pencil className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                {provider.id !== "coingecko" && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleDeleteProvider(provider.id)}
-                  >
-                    <Trash className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                )}
-              </div>
-            </Card>
-          ))}
-          
-          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit API Provider</DialogTitle>
-                <DialogDescription>
-                  Update the settings for this API provider
-                </DialogDescription>
-              </DialogHeader>
-              {currentProvider && (
-                <div className="space-y-4 py-4">
-                  <div>
-                    <Label htmlFor="edit-name">Name</Label>
-                    <Input 
-                      id="edit-name"
-                      value={currentProvider.name}
-                      onChange={(e) => setCurrentProvider({
-                        ...currentProvider,
-                        name: e.target.value
-                      })}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="edit-url">Base URL</Label>
-                    <Input 
-                      id="edit-url"
-                      value={currentProvider.baseUrl}
-                      onChange={(e) => setCurrentProvider({
-                        ...currentProvider,
-                        baseUrl: e.target.value
-                      })}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="edit-priority">Priority (lower = higher priority)</Label>
-                    <Input 
-                      id="edit-priority"
-                      type="number"
-                      className="w-20"
-                      value={currentProvider.priority}
-                      onChange={(e) => setCurrentProvider({
-                        ...currentProvider,
-                        priority: parseInt(e.target.value) || 10
-                      })}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="edit-auth-required"
-                      checked={currentProvider.requiresAuth}
-                      onCheckedChange={(checked) => setCurrentProvider({
-                        ...currentProvider,
-                        requiresAuth: checked
-                      })}
-                    />
-                    <Label htmlFor="edit-auth-required">Requires Authentication</Label>
-                  </div>
-                </div>
-              )}
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveEdit}>Save Changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full" onClick={() => setIsAddOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add New API Provider
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add API Provider</DialogTitle>
-                <DialogDescription>
-                  Add a new API provider for cryptocurrency data
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div>
-                  <Label htmlFor="add-name">Name</Label>
-                  <Input 
-                    id="add-name"
-                    value={newProvider.name || ''}
-                    onChange={(e) => setNewProvider({
-                      ...newProvider,
-                      name: e.target.value
-                    })}
-                    placeholder="e.g., Binance API"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="add-url">Base URL</Label>
-                  <Input 
-                    id="add-url"
-                    value={newProvider.baseUrl || ''}
-                    onChange={(e) => setNewProvider({
-                      ...newProvider,
-                      baseUrl: e.target.value
-                    })}
-                    placeholder="e.g., https://api.binance.com"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="add-priority">Priority</Label>
-                  <Input 
-                    id="add-priority"
-                    type="number"
-                    className="w-20"
-                    value={newProvider.priority || 10}
-                    onChange={(e) => setNewProvider({
-                      ...newProvider,
-                      priority: parseInt(e.target.value) || 10
-                    })}
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="add-auth-required"
-                    checked={newProvider.requiresAuth || false}
-                    onCheckedChange={(checked) => setNewProvider({
-                      ...newProvider,
-                      requiresAuth: checked
-                    })}
-                  />
-                  <Label htmlFor="add-auth-required">Requires Authentication</Label>
-                </div>
-                
-                {newProvider.requiresAuth && (
-                  <div>
-                    <Label htmlFor="add-key-name">API Key Name</Label>
-                    <Input 
-                      id="add-key-name"
-                      value={newProvider.apiKeyName || ''}
-                      onChange={(e) => setNewProvider({
-                        ...newProvider,
-                        apiKeyName: e.target.value
-                      })}
-                      placeholder="e.g., X-API-KEY"
-                    />
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleAddProvider}>Add Provider</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>API Provider Management</CardTitle>
+        <div className="flex gap-2">
           <Button 
             variant="outline" 
-            className="w-full"
-            onClick={() => {
-              apiProviderManager.resetToDefaults();
-              refreshProviders();
-            }}
+            size="sm" 
+            onClick={() => setIsAddingNew(!isAddingNew)}
           >
-            Reset to Default Providers
+            {isAddingNew ? <Check className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+            {isAddingNew ? "Done" : "Add Provider"}
           </Button>
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={handleResetProviders}
+          >
+            Reset to Defaults
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {isAddingNew && (
+          <Card className="mb-4 border-dashed">
+            <CardHeader>
+              <CardTitle>Add New Provider</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-id">ID</Label>
+                  <Input 
+                    id="new-id" 
+                    value={newProvider.id} 
+                    onChange={(e) => setNewProvider({...newProvider, id: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-name">Name</Label>
+                  <Input 
+                    id="new-name" 
+                    value={newProvider.name} 
+                    onChange={(e) => setNewProvider({...newProvider, name: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="new-description">Description</Label>
+                <Input 
+                  id="new-description" 
+                  value={newProvider.description} 
+                  onChange={(e) => setNewProvider({...newProvider, description: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="new-baseUrl">Base URL</Label>
+                <Input 
+                  id="new-baseUrl" 
+                  value={newProvider.baseUrl} 
+                  onChange={(e) => setNewProvider({...newProvider, baseUrl: e.target.value})}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-website">Website</Label>
+                  <Input 
+                    id="new-website" 
+                    value={newProvider.website} 
+                    onChange={(e) => setNewProvider({...newProvider, website: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-docs">Documentation URL</Label>
+                  <Input 
+                    id="new-docs" 
+                    value={newProvider.docs} 
+                    onChange={(e) => setNewProvider({...newProvider, docs: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="new-requiresAuth">Authentication</Label>
+                  <Switch 
+                    id="new-requiresAuth" 
+                    checked={newProvider.requiresAuth}
+                    onCheckedChange={(checked) => 
+                      setNewProvider({...newProvider, requiresAuth: checked, authRequired: checked})
+                    }
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="new-authMethod">Auth Method</Label>
+                  <Select 
+                    value={newProvider.authMethod} 
+                    onValueChange={(value) => setNewProvider({...newProvider, authMethod: value})}
+                    disabled={!newProvider.requiresAuth}
+                  >
+                    <SelectTrigger id="new-authMethod">
+                      <SelectValue placeholder="Select method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="header">Header</SelectItem>
+                      <SelectItem value="query">Query Parameter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="new-apiKeyName">API Key Name</Label>
+                  <Input 
+                    id="new-apiKeyName" 
+                    value={newProvider.apiKeyName} 
+                    onChange={(e) => setNewProvider({...newProvider, apiKeyName: e.target.value})}
+                    disabled={!newProvider.requiresAuth}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-priority">Priority (lower is higher)</Label>
+                  <Input 
+                    id="new-priority" 
+                    type="number" 
+                    value={newProvider.priority} 
+                    onChange={(e) => setNewProvider({...newProvider, priority: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="new-enabled">Enabled</Label>
+                  <Switch 
+                    id="new-enabled" 
+                    checked={newProvider.enabled}
+                    onCheckedChange={(checked) => setNewProvider({...newProvider, enabled: checked})}
+                  />
+                </div>
+              </div>
+              
+              <Button onClick={handleAddProvider}>
+                Add Provider
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        
+        <div className="space-y-4">
+          {providers.map((provider) => (
+            <Card key={provider.id} className={!provider.enabled ? "opacity-60" : ""}>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <div className="flex items-center">
+                  <Switch 
+                    checked={provider.enabled}
+                    onCheckedChange={() => handleToggleProvider(provider.id)}
+                    className="mr-2"
+                  />
+                  <div>
+                    <CardTitle className="text-lg">{provider.name}</CardTitle>
+                    <p className="text-xs text-muted-foreground">{provider.id}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setEditingProvider(editingProvider?.id === provider.id ? null : provider)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  {provider.id !== "coingecko" && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDeleteProvider(provider.id)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              
+              {editingProvider?.id === provider.id && (
+                <CardContent className="border-t pt-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${provider.id}-description`}>Description</Label>
+                    <Input 
+                      id={`${provider.id}-description`} 
+                      value={editingProvider.description}
+                      onChange={(e) => setEditingProvider({...editingProvider, description: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`${provider.id}-baseUrl`}>Base URL</Label>
+                    <Input 
+                      id={`${provider.id}-baseUrl`} 
+                      value={editingProvider.baseUrl}
+                      onChange={(e) => setEditingProvider({...editingProvider, baseUrl: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`${provider.id}-website`}>Website</Label>
+                      <Input 
+                        id={`${provider.id}-website`} 
+                        value={editingProvider.website}
+                        onChange={(e) => setEditingProvider({...editingProvider, website: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`${provider.id}-docs`}>Documentation URL</Label>
+                      <Input 
+                        id={`${provider.id}-docs`} 
+                        value={editingProvider.docs}
+                        onChange={(e) => setEditingProvider({...editingProvider, docs: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`${provider.id}-priority`}>Priority (lower is higher)</Label>
+                      <Input 
+                        id={`${provider.id}-priority`} 
+                        type="number" 
+                        value={editingProvider.priority || 10}
+                        onChange={(e) => setEditingProvider({
+                          ...editingProvider, 
+                          priority: parseInt(e.target.value)
+                        })}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor={`${provider.id}-requiresAuth`}>Authentication Required</Label>
+                      <Switch 
+                        id={`${provider.id}-requiresAuth`} 
+                        checked={editingProvider.requiresAuth || editingProvider.authRequired}
+                        onCheckedChange={(checked) => setEditingProvider({
+                          ...editingProvider, 
+                          requiresAuth: checked,
+                          authRequired: checked
+                        })}
+                      />
+                    </div>
+                  </div>
+                  
+                  {(editingProvider.requiresAuth || editingProvider.authRequired) && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor={`${provider.id}-authMethod`}>Auth Method</Label>
+                          <Select 
+                            value={editingProvider.authMethod || "header"} 
+                            onValueChange={(value) => setEditingProvider({
+                              ...editingProvider, 
+                              authMethod: value
+                            })}
+                          >
+                            <SelectTrigger id={`${provider.id}-authMethod`}>
+                              <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="header">Header</SelectItem>
+                              <SelectItem value="query">Query Parameter</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`${provider.id}-apiKeyName`}>API Key Name</Label>
+                          <Input 
+                            id={`${provider.id}-apiKeyName`} 
+                            value={editingProvider.apiKeyName || ""}
+                            onChange={(e) => setEditingProvider({
+                              ...editingProvider, 
+                              apiKeyName: e.target.value
+                            })}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor={`${provider.id}-apiKey`}>API Key</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            id={`${provider.id}-apiKey`} 
+                            type="password" 
+                            value={editingProvider.apiKey || ""}
+                            onChange={(e) => setEditingProvider({...editingProvider, apiKey: e.target.value})}
+                            className="flex-1"
+                          />
+                          <Button 
+                            onClick={() => handleUpdateApiKey(provider.id, editingProvider.apiKey || "")}
+                          >
+                            Save Key
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">API keys are stored locally in your browser.</p>
+                      </div>
+                    </>
+                  )}
+                  
+                  <Button 
+                    onClick={() => {
+                      apiProviderManager.updateProvider(provider.id, editingProvider);
+                      setProviders(apiProviderManager.getAllProviders());
+                      setEditingProvider(null);
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </CardContent>
+              )}
+              
+              {editingProvider?.id !== provider.id && (
+                <CardContent className="py-2">
+                  <p className="text-sm">{provider.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{provider.baseUrl}</p>
+                </CardContent>
+              )}
+            </Card>
+          ))}
         </div>
       </CardContent>
     </Card>

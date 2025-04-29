@@ -9,8 +9,8 @@ import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
-import { Trade } from "./trading/types"; // Import Trade from the trading/types.ts not from /types/trading.ts
-import { CoinOption } from "@/types/trading";
+import { Trade } from "@/types/trading"; // Import from /types/trading.ts
+import { CoinOption } from "@/types/trading"; // Import from /types/trading.ts
 
 const FakeTrading = () => {
   const {

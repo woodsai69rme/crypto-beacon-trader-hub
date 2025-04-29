@@ -1,249 +1,312 @@
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowRightLeft, TrendingDown } from "lucide-react";
-import { Trade } from "@/types/trading";
-import { useTradingAccounts } from "@/hooks/use-trading-accounts";
-import { SupportedCurrency } from "@/components/trading/TradingStats";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Check, XCircle } from "lucide-react";
+import { CoinOption, Trade } from "@/types/trading";
 
-interface TaxHarvestingOpportunity {
-  coinId: string;
-  coinSymbol: string;
-  currentPrice: number;
-  averageCost: number;
-  quantity: number;
-  potentialLoss: number;
-  recommendedAction: 'sell' | 'hold';
-  reasoning: string;
-  washSaleWarning: boolean;
+// Extended Trade type that includes tags
+interface TaxHarvestTrade extends Trade {
+  tags?: string[];
 }
 
-const TaxHarvestingTool = () => {
-  const { toast } = useToast();
-  const { accounts, activeAccountId, addTradeToAccount, getActiveAccount } = useTradingAccounts();
+const TaxHarvestingTool: React.FC = () => {
+  const [trades, setTrades] = useState<TaxHarvestTrade[]>([
+    {
+      id: "1",
+      coinId: "bitcoin",
+      coinName: "Bitcoin",
+      coinSymbol: "BTC",
+      type: "buy",
+      amount: 0.5,
+      price: 42000,
+      totalValue: 21000,
+      timestamp: "2023-01-15T00:00:00Z",
+      currency: "USD",
+      currentValue: 30000,
+      profitLoss: 9000,
+      tags: ["long-term"]
+    },
+    {
+      id: "2",
+      coinId: "ethereum",
+      coinName: "Ethereum",
+      coinSymbol: "ETH",
+      type: "buy",
+      amount: 5,
+      price: 2800,
+      totalValue: 14000,
+      timestamp: "2023-02-10T00:00:00Z",
+      currency: "USD",
+      currentValue: 15000,
+      profitLoss: 1000,
+      tags: ["long-term"]
+    },
+    {
+      id: "3",
+      coinId: "solana",
+      coinName: "Solana",
+      coinSymbol: "SOL",
+      type: "buy",
+      amount: 50,
+      price: 120,
+      totalValue: 6000,
+      timestamp: "2023-06-20T00:00:00Z",
+      currency: "USD",
+      currentValue: 5500,
+      profitLoss: -500,
+      tags: ["short-term", "harvest-candidate"]
+    },
+    {
+      id: "4",
+      coinId: "cardano",
+      coinName: "Cardano",
+      coinSymbol: "ADA",
+      type: "buy",
+      amount: 2000,
+      price: 0.55,
+      totalValue: 1100,
+      timestamp: "2023-08-05T00:00:00Z",
+      currency: "USD",
+      currentValue: 900,
+      profitLoss: -200,
+      tags: ["short-term", "harvest-candidate"]
+    }
+  ]);
   
-  const [taxYear, setTaxYear] = useState<number>(new Date().getFullYear());
-  const [minLossThreshold, setMinLossThreshold] = useState<number>(100);
-  const [washSalePeriod, setWashSalePeriod] = useState<number>(30);
-  const [includeFees, setIncludeFees] = useState<boolean>(true);
-  const [opportunities, setOpportunities] = useState<TaxHarvestingOpportunity[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [harvestingYear, setHarvestingYear] = useState<string>("2023");
+  const [harvestThreshold, setHarvestThreshold] = useState<number>(1000);
   
-  const currentYear = new Date().getFullYear();
-  const yearOptions = [currentYear, currentYear - 1, currentYear - 2];
-  
-  const activeAccount = getActiveAccount();
-  
-  const analyzeTaxOpportunities = () => {
-    setIsAnalyzing(true);
+  const addMockTrade = () => {
+    const mockCoins: CoinOption[] = [
+      { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 60000, value: "bitcoin", label: "Bitcoin" },
+      { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3000, value: "ethereum", label: "Ethereum" },
+      { id: "solana", name: "Solana", symbol: "SOL", price: 110, value: "solana", label: "Solana" },
+      { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, value: "cardano", label: "Cardano" },
+      { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.12, value: "dogecoin", label: "Dogecoin" }
+    ];
     
-    setTimeout(() => {
-      // In a real app, this would analyze actual trade data
-      // For this demo, we'll generate some sample opportunities
-      const mockOpportunities: TaxHarvestingOpportunity[] = [
-        {
-          coinId: "bitcoin",
-          coinSymbol: "BTC",
-          currentPrice: 57250.75,
-          averageCost: 62500.25,
-          quantity: 0.25,
-          potentialLoss: 1312.38,
-          recommendedAction: 'sell',
-          reasoning: "Harvesting this loss could offset capital gains while still maintaining crypto exposure through alternative assets",
-          washSaleWarning: false
-        },
-        {
-          coinId: "solana",
-          coinSymbol: "SOL",
-          currentPrice: 112.50,
-          averageCost: 148.75,
-          quantity: 10,
-          potentialLoss: 362.50,
-          recommendedAction: 'sell',
-          reasoning: "Opportunity to realize loss and potentially re-enter at better price point after wash sale period",
-          washSaleWarning: true
-        },
-        {
-          coinId: "cardano",
-          coinSymbol: "ADA",
-          currentPrice: 0.38,
-          averageCost: 0.42,
-          quantity: 1000,
-          potentialLoss: 40.00,
-          recommendedAction: 'hold',
-          reasoning: "Loss is below your minimum threshold of $100",
-          washSaleWarning: false
-        }
-      ];
-      
-      setOpportunities(mockOpportunities.filter(o => o.potentialLoss > minLossThreshold));
-      setIsAnalyzing(false);
-      
-      toast({
-        title: "Analysis Complete",
-        description: `Found ${mockOpportunities.length} potential tax harvesting opportunities`,
-      });
-    }, 1500);
-  };
-  
-  const executeHarvesting = (opportunity: TaxHarvestingOpportunity) => {
-    if (!activeAccount) return;
+    const randomCoin = mockCoins[Math.floor(Math.random() * mockCoins.length)];
+    const isBuy = Math.random() > 0.3;
+    const amount = parseFloat((Math.random() * 10).toFixed(2));
+    const priceVariation = (Math.random() * 0.2) - 0.1; // -10% to +10%
+    const price = randomCoin.price * (1 + priceVariation);
+    const totalValue = price * amount;
     
-    // Create a sell trade to harvest the tax loss
-    const trade: Omit<Trade, "id" | "timestamp"> = {
-      coinId: opportunity.coinId,
-      coinName: `${opportunity.coinSymbol} Coin`,
-      coinSymbol: opportunity.coinSymbol,
-      type: 'sell',
-      amount: opportunity.quantity,
-      price: opportunity.currentPrice,
-      totalValue: opportunity.quantity * opportunity.currentPrice,
-      currency: "USD" as SupportedCurrency,
-      tags: ['tax-harvesting']
+    // Random date in the past year
+    const daysAgo = Math.floor(Math.random() * 365);
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    
+    const currentValueVariation = (Math.random() * 0.4) - 0.2; // -20% to +20%
+    const currentValue = totalValue * (1 + currentValueVariation);
+    const profitLoss = currentValue - totalValue;
+    
+    // Determine if it's a short or long term hold
+    const isLongTerm = daysAgo > 365;
+    const isHarvestCandidate = profitLoss < -harvestThreshold / 10;
+    
+    const tags: string[] = [];
+    if (isLongTerm) {
+      tags.push("long-term");
+    } else {
+      tags.push("short-term");
+    }
+    
+    if (isHarvestCandidate) {
+      tags.push("harvest-candidate");
+    }
+    
+    const newTrade: TaxHarvestTrade = {
+      id: Date.now().toString(),
+      coinId: randomCoin.id,
+      coinName: randomCoin.name,
+      coinSymbol: randomCoin.symbol,
+      type: isBuy ? 'buy' : 'sell',
+      amount,
+      price,
+      totalValue,
+      timestamp: date.toISOString(),
+      currency: "USD",
+      currentValue,
+      profitLoss,
+      tags
     };
     
-    addTradeToAccount(activeAccount.id, trade as Trade);
-    
-    // Remove this opportunity from the list
-    setOpportunities(opportunities.filter(o => o.coinId !== opportunity.coinId));
-    
-    toast({
-      title: "Tax Loss Harvested",
-      description: `Successfully sold ${opportunity.quantity} ${opportunity.coinSymbol} to harvest a $${opportunity.potentialLoss.toFixed(2)} loss`,
-    });
+    setTrades([...trades, newTrade]);
   };
   
+  // Filter for harvest candidates
+  const harvestCandidates = trades.filter(
+    trade => trade.profitLoss < 0 && 
+            trade.tags?.includes("harvest-candidate")
+  );
+  
+  // Calculate potential tax savings
+  const potentialSavings = harvestCandidates.reduce(
+    (total, trade) => total + Math.abs(trade.profitLoss) * 0.15, // Assuming 15% tax rate
+    0
+  );
+  
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingDown className="h-5 w-5" />
-          Tax Loss Harvesting Tool
-        </CardTitle>
+        <CardTitle>Tax-Loss Harvesting Tool</CardTitle>
         <CardDescription>
-          Identify opportunities to offset capital gains by harvesting losses in your portfolio
+          Identify opportunities to harvest losses for tax benefits
         </CardDescription>
       </CardHeader>
-      
       <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <span className="block text-sm font-medium mb-1">Tax Year</span>
+            <Select value={harvestingYear} onValueChange={setHarvestingYear}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2023">2023</SelectItem>
+                <SelectItem value="2024">2024</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <span className="block text-sm font-medium mb-1">Harvesting Threshold</span>
+            <Input 
+              type="number"
+              value={harvestThreshold}
+              onChange={(e) => setHarvestThreshold(Number(e.target.value))}
+              placeholder="Minimum loss to harvest"
+            />
+          </div>
+          
+          <div className="flex items-end">
+            <Button onClick={addMockTrade} className="w-full">
+              Add Mock Trade
+            </Button>
+          </div>
+        </div>
+        
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="tax-year">Tax Year</Label>
-              <Select value={taxYear.toString()} onValueChange={(value) => setTaxYear(parseInt(value))}>
-                <SelectTrigger id="tax-year" className="w-full mt-1">
-                  <SelectValue placeholder="Select tax year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {yearOptions.map(year => (
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="loss-threshold">Min Loss Threshold ($)</Label>
-              <Input 
-                id="loss-threshold"
-                type="number"
-                value={minLossThreshold}
-                onChange={(e) => setMinLossThreshold(parseFloat(e.target.value) || 0)}
-                className="mt-1"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="wash-sale-period">Wash Sale Period (days)</Label>
-              <Input 
-                id="wash-sale-period"
-                type="number"
-                value={washSalePeriod}
-                onChange={(e) => setWashSalePeriod(parseInt(e.target.value) || 30)}
-                className="mt-1"
-              />
-            </div>
-            
-            <div className="flex items-end">
-              <div className="items-top flex space-x-2 mt-6">
-                <Checkbox 
-                  id="include-fees" 
-                  checked={includeFees}
-                  onCheckedChange={(checked) => setIncludeFees(!!checked)}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="include-fees">Include fees in calculations</Label>
+          <div>
+            <h3 className="text-lg font-medium mb-2">Harvesting Opportunities</h3>
+            <div className="bg-muted rounded-md p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-muted-foreground">Potential Tax Savings</span>
+                  <p className="text-2xl font-bold">${potentialSavings.toFixed(2)}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Opportunities</span>
+                  <p className="text-2xl font-bold">{harvestCandidates.length}</p>
                 </div>
               </div>
             </div>
           </div>
           
-          <Button 
-            onClick={analyzeTaxOpportunities} 
-            disabled={isAnalyzing}
-            className="w-full md:w-auto"
-          >
-            {isAnalyzing ? "Analyzing..." : "Analyze Tax Opportunities"}
-          </Button>
-          
-          {opportunities.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-medium mb-4">Tax Harvesting Opportunities</h3>
-              
-              <div className="space-y-4">
-                {opportunities.map((opportunity, index) => (
-                  <div key={index} className="border rounded-md p-4 bg-muted/40">
-                    <div className="flex justify-between mb-2">
-                      <div className="font-medium">{opportunity.coinSymbol}</div>
-                      <div className={opportunity.recommendedAction === 'sell' ? 'text-green-600' : 'text-amber-600'}>
-                        {opportunity.recommendedAction === 'sell' ? 'Recommended' : 'Hold'}
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3">
-                      <div className="text-muted-foreground">Quantity:</div>
-                      <div>{opportunity.quantity}</div>
-                      
-                      <div className="text-muted-foreground">Current Price:</div>
-                      <div>${opportunity.currentPrice.toFixed(2)}</div>
-                      
-                      <div className="text-muted-foreground">Average Cost:</div>
-                      <div>${opportunity.averageCost.toFixed(2)}</div>
-                      
-                      <div className="text-muted-foreground">Potential Loss:</div>
-                      <div className="text-red-500">-${opportunity.potentialLoss.toFixed(2)}</div>
-                    </div>
-                    
-                    <div className="mt-3 text-sm">{opportunity.reasoning}</div>
-                    
-                    {opportunity.washSaleWarning && (
-                      <div className="mt-2 text-sm bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 p-2 rounded">
-                        Wash Sale Warning: Don't repurchase this asset within {washSalePeriod} days to avoid wash sale rules.
-                      </div>
-                    )}
-                    
-                    {opportunity.recommendedAction === 'sell' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="mt-3 w-full sm:w-auto"
-                        onClick={() => executeHarvesting(opportunity)}
-                      >
-                        <ArrowRightLeft className="h-4 w-4 mr-2" />
-                        Execute Tax Harvest
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div>
+            <h3 className="text-lg font-medium mb-2">Harvest Candidates</h3>
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Asset</TableHead>
+                    <TableHead>Purchase Date</TableHead>
+                    <TableHead>Purchase Value</TableHead>
+                    <TableHead>Current Value</TableHead>
+                    <TableHead className="text-right">Unrealized Loss</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {harvestCandidates.length > 0 ? (
+                    harvestCandidates.map((trade) => (
+                      <TableRow key={trade.id}>
+                        <TableCell>
+                          {trade.coinName} ({trade.coinSymbol})
+                        </TableCell>
+                        <TableCell>
+                          {new Date(trade.timestamp).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          ${trade.totalValue.toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          ${trade.currentValue?.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right text-red-500 font-medium">
+                          ${Math.abs(trade.profitLoss).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4">
+                        <div className="flex flex-col items-center text-muted-foreground">
+                          <XCircle className="h-6 w-6 mb-1" />
+                          <span>No harvesting opportunities found</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          )}
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-medium mb-2">All Positions</h3>
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Asset</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>P/L</TableHead>
+                    <TableHead>Term</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {trades.map((trade) => (
+                    <TableRow key={trade.id}>
+                      <TableCell>
+                        {trade.coinSymbol}
+                      </TableCell>
+                      <TableCell>
+                        <span className={trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                          {trade.type.toUpperCase()}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(trade.timestamp).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {trade.amount} @ ${trade.price.toFixed(2)}
+                      </TableCell>
+                      <TableCell className={
+                        trade.profitLoss > 0
+                          ? 'text-green-500'
+                          : trade.profitLoss < 0
+                          ? 'text-red-500'
+                          : ''
+                      }>
+                        {trade.profitLoss > 0 && '+'}
+                        ${trade.profitLoss.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        {trade.tags?.includes('long-term') ? 'Long' : 'Short'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

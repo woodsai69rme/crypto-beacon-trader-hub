@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AddWidgetDialogProps, WidgetSize, WidgetType } from "@/types/trading";
+import { WidgetSize, WidgetType } from "@/types/trading";
 import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle } from "lucide-react";
+
+export interface AddWidgetDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddWidget: (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => void;
+}
 
 const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onOpenChange, onAddWidget }) => {
   const [title, setTitle] = React.useState('');

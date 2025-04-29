@@ -109,7 +109,9 @@ const MarketCorrelations = () => {
           image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
           volume: 28000000000,
           marketCap: 1180000000000,
-          rank: 1
+          rank: 1,
+          value: "bitcoin",
+          label: "Bitcoin"
         },
         { 
           id: "ethereum", 
@@ -121,7 +123,9 @@ const MarketCorrelations = () => {
           image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
           volume: 15000000000,
           marketCap: 360000000000,
-          rank: 2
+          rank: 2,
+          value: "ethereum",
+          label: "Ethereum"
         },
         { 
           id: "solana", 
@@ -133,7 +137,9 @@ const MarketCorrelations = () => {
           image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
           volume: 5200000000,
           marketCap: 90000000000,
-          rank: 3
+          rank: 3,
+          value: "solana",
+          label: "Solana"
         },
         { 
           id: "cardano", 
@@ -145,7 +151,9 @@ const MarketCorrelations = () => {
           image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
           volume: 890000000,
           marketCap: 24000000000,
-          rank: 4
+          rank: 4,
+          value: "cardano",
+          label: "Cardano"
         },
         { 
           id: "ripple", 
@@ -157,7 +165,9 @@ const MarketCorrelations = () => {
           image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
           volume: 2400000000,
           marketCap: 32000000000,
-          rank: 5
+          rank: 5,
+          value: "ripple",
+          label: "XRP"
         },
         { 
           id: "dogecoin", 
@@ -169,7 +179,9 @@ const MarketCorrelations = () => {
           image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
           volume: 1900000000,
           marketCap: 18000000000,
-          rank: 6
+          rank: 6,
+          value: "dogecoin",
+          label: "Dogecoin"
         }
       ];
       

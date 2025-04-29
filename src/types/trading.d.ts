@@ -3,7 +3,7 @@ export interface CoinOption {
   id: string;
   name: string;
   symbol: string;
-  price?: number;
+  price: number;  // Changed from optional to required
   priceChange?: number;
   changePercent?: number;
   image?: string;
@@ -33,6 +33,8 @@ export interface ApiProvider {
   priority?: number;
   defaultHeaders?: Record<string, string>;
   endpoints?: Record<string, string>;
+  rateLimit?: number;
+  tier?: string;
 }
 
 export interface ApiEndpoint {
@@ -41,6 +43,14 @@ export interface ApiEndpoint {
   description: string;
   params?: Record<string, string>;
   requiresAuth: boolean;
+  id?: string;
+  authentication?: boolean;
+  rateLimit?: string;
+  parameters?: Record<string, string>;
+  cacheDuration?: number;
+  headers?: any[];
+  body?: any[];
+  rateLimited?: boolean;
 }
 
 export interface ApiKeyInfo {
@@ -73,9 +83,10 @@ export interface Widget {
   size: WidgetSize;
   lastUpdated?: string;
   customContent?: string;
+  config?: any;
 }
 
-export type WidgetType = 'portfolio-summary' | 'price-chart' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'multiExchange' | 'education' | 'community' | 'aiAnalysis' | 'custom';
+export type WidgetType = 'portfolio-summary' | 'price-chart' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'multiExchange' | 'education' | 'community' | 'aiAnalysis' | 'custom' | 'chart' | 'portfolio' | 'trade-history' | 'market-overview' | 'performance-metrics';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
 
@@ -83,7 +94,7 @@ export interface PortfolioBenchmark {
   id: string;
   name: string;
   symbol: string;
-  type: 'crypto' | 'index' | 'stock';
+  type: 'crypto' | 'index' | 'stock' | 'custom';
   data: {
     date: string;
     value: number;
@@ -97,14 +108,14 @@ export interface PortfolioBenchmark {
 export interface ATOTaxRate {
   year: number;
   minIncome: number;
-  maxIncome: number;
+  maxIncome: number | null;
   baseAmount: number;
   marginRate: number;
 }
 
 export interface ATOTaxCalculation {
-  taxYear: string;
   year: number;
+  taxYear: string;
   assessableIncome: number;
   taxableIncome: number;
   bracketInfo: ATOTaxRate;
@@ -125,4 +136,16 @@ export interface ATOTaxCalculation {
     amount: number;
     tax: number;
   }[];
+  financialYear?: string;
+}
+
+export interface WidgetGridProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
+}
+
+export interface WidgetListProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
 }

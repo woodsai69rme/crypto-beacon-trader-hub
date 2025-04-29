@@ -1,101 +1,100 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ModelRunningTabProps } from "./ModelRunningTabProps";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, Play, StopCircle } from 'lucide-react';
+import { LocalModel } from './types';
+import { ModelRunningTabProps } from './ModelRunningTabProps';
 
-const ModelRunningTab = ({ selectedModel, isRunning, onStopModel, onStartModel }: ModelRunningTabProps) => {
+const ModelRunningTab: React.FC<ModelRunningTabProps> = ({
+  selectedModel,
+  isRunning,
+  onStopModel,
+  onStartModel
+}) => {
   if (!selectedModel) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-        <p>Select a model to run first</p>
-      </div>
+      <Card className="border border-dashed border-muted-foreground/50">
+        <CardContent className="pt-6 text-center">
+          <AlertTriangle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-muted-foreground">No model selected</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Please select a model from the available models list
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">{selectedModel.name}</h3>
-          <p className="text-sm text-muted-foreground">{selectedModel.description}</p>
-        </div>
-        <Badge variant={isRunning ? "default" : "outline"}>
-          {isRunning ? "Running" : "Stopped"}
-        </Badge>
-      </div>
-
-      {isRunning && (
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Processing data...</span>
-            <span>75%</span>
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>{selectedModel.name}</CardTitle>
+            <CardDescription>{selectedModel.type} model</CardDescription>
           </div>
-          <Progress value={75} className="h-2" />
+          <Badge variant={isRunning ? "success" : "outline"}>
+            {isRunning ? "Running" : "Stopped"}
+          </Badge>
         </div>
-      )}
-
-      <Tabs defaultValue="output">
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="output">Output</TabsTrigger>
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
-        </TabsList>
-        <TabsContent value="output" className="space-y-4">
-          <div className="border rounded-md p-4 h-48 overflow-y-auto bg-muted/30 font-mono text-sm">
-            {isRunning ? (
-              <>
-                <p className="text-green-500">[INFO] Model started successfully</p>
-                <p className="text-muted-foreground">[INFO] Loading market data...</p>
-                <p className="text-muted-foreground">[INFO] Processing BTC/USD pair</p>
-                <p className="text-muted-foreground">[INFO] Analyzing historical patterns</p>
-                <p className="text-amber-500">[WARN] Limited data for accurate predictions</p>
-                <p className="text-muted-foreground">[INFO] Generating forecast...</p>
-              </>
-            ) : (
-              <p className="text-muted-foreground">Start the model to see output</p>
-            )}
-          </div>
-        </TabsContent>
-        <TabsContent value="metrics">
-          <div className="border rounded-md p-4 h-48">
-            <p className="text-center text-muted-foreground pt-16">
-              {isRunning ? "Collecting metrics..." : "No metrics available"}
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium mb-1">Model Description</p>
+            <p className="text-sm text-muted-foreground">
+              {selectedModel.description || `An AI ${selectedModel.type} model for cryptocurrency trading.`}
             </p>
           </div>
-        </TabsContent>
-        <TabsContent value="logs">
-          <div className="border rounded-md p-4 h-48 overflow-y-auto bg-muted/30 font-mono text-xs">
-            {isRunning ? (
-              <>
-                <p>[2025-04-28 10:15:32] Initializing model parameters</p>
-                <p>[2025-04-28 10:15:33] Loading LSTM architecture</p>
-                <p>[2025-04-28 10:15:34] Configuration: epochs=50, batch_size=32</p>
-                <p>[2025-04-28 10:15:35] Preprocessing historical data</p>
-                <p>[2025-04-28 10:15:36] Normalizing inputs</p>
-                <p>[2025-04-28 10:15:37] Starting training loop</p>
-              </>
-            ) : (
-              <p className="text-muted-foreground">Model logs will appear here</p>
-            )}
+          
+          {selectedModel.performance && (
+            <div>
+              <p className="text-sm font-medium mb-1">Performance Metrics</p>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Accuracy</p>
+                  <p className="font-medium">{selectedModel.performance.accuracy}%</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Returns</p>
+                  <p className="font-medium">{selectedModel.performance.returns}%</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Sharpe Ratio</p>
+                  <p className="font-medium">{selectedModel.performance.sharpeRatio}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Max Drawdown</p>
+                  <p className="font-medium">{selectedModel.performance.maxDrawdown}%</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div>
+            <p className="text-sm font-medium mb-1">Status</p>
+            <p className="text-sm text-muted-foreground">
+              {isRunning ? "Model is currently active and processing market data." : "Model is currently inactive."}
+            </p>
           </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-2">
+        </div>
+      </CardContent>
+      
+      <CardFooter>
         {isRunning ? (
-          <Button variant="destructive" onClick={onStopModel}>
-            Stop Model
+          <Button variant="destructive" onClick={onStopModel} className="w-full">
+            <StopCircle className="h-4 w-4 mr-2" /> Stop Model
           </Button>
         ) : (
-          <Button onClick={() => onStartModel(selectedModel)}>
-            Start Model
+          <Button variant="default" onClick={() => onStartModel(selectedModel)} className="w-full">
+            <Play className="h-4 w-4 mr-2" /> Start Model
           </Button>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 
