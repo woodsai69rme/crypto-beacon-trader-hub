@@ -1,136 +1,223 @@
 
 import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
 import ApiStatusIndicator from "./ApiStatusIndicator";
-import { Settings, RefreshCw, ExternalLink } from "lucide-react";
-import { apiProviderManager } from "@/services/api/apiProviderConfig";
+import { toast } from "@/components/ui/use-toast";
+import { ApiEndpoint } from "@/types/trading";
 
-const ApiProviderSettings = () => {
-  const [apiKey, setApiKey] = useState("");
-  const [provider, setProvider] = useState({
-    name: "CoinGecko API",
-    status: "operational" as const,
-    requestsRemaining: 45,
-    requestLimit: 50,
-    resetTime: "60 minutes",
-    isEnabled: true
-  });
-
-  const handleSaveApiKey = () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid API key.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Simulate saving the API key
-    toast({
-      title: "API Key Saved",
-      description: "Your API key has been saved successfully."
-    });
-
-    // In a real app, you would store this in secure storage and
-    // update the apiProviderManager configuration
+interface ApiProviderSettingsProps {
+  id: string;
+  name: string;
+  description: string;
+  status: "operational" | "degraded" | "down";
+  apiEndpoints: ApiEndpoint[];
+  credentials: {
+    apiKey?: string;
+    username?: string;
+    password?: string;
   };
+  onSave: (id: string, settings: any) => void;
+}
 
-  const handleToggleProvider = () => {
-    const newStatus = !provider.isEnabled;
+const ApiProviderSettings: React.FC<ApiProviderSettingsProps> = ({
+  id,
+  name,
+  description,
+  status,
+  apiEndpoints,
+  credentials,
+  onSave
+}) => {
+  const [apiKey, setApiKey] = useState(credentials.apiKey || "");
+  const [username, setUsername] = useState(credentials.username || "");
+  const [password, setPassword] = useState(credentials.password || "");
+  const [enableRateLimiting, setEnableRateLimiting] = useState(true);
+  const [enableCaching, setEnableCaching] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const handleSave = async () => {
+    setIsSaving(true);
     
-    setProvider({
-      ...provider,
-      isEnabled: newStatus
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    onSave(id, {
+      apiKey,
+      username,
+      password,
+      settings: {
+        enableRateLimiting,
+        enableCaching
+      }
     });
-
+    
     toast({
-      title: `API ${newStatus ? "Enabled" : "Disabled"}`,
-      description: `CoinGecko API has been ${newStatus ? "enabled" : "disabled"}.`
+      title: "Settings Saved",
+      description: `Configuration for ${name} has been updated.`
     });
-
-    // In a real app, you would update the apiProviderManager configuration
+    
+    setIsSaving(false);
   };
-
-  const handleRefreshStatus = () => {
-    toast({
-      title: "Status Refreshed",
-      description: "API status has been refreshed."
-    });
-
-    // In a real app, you would fetch the latest status from the provider
-  };
-
+  
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            API Provider Settings
-          </CardTitle>
-          <ApiStatusIndicator status={provider.status} />
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>{name}</CardTitle>
+            <CardDescription className="mt-1">{description}</CardDescription>
+          </div>
+          <ApiStatusIndicator status={status} />
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-medium text-base">{provider.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              Usage: {provider.requestsRemaining}/{provider.requestLimit} requests (Resets in {provider.resetTime})
-            </p>
-          </div>
-          <Switch 
-            checked={provider.isEnabled}
-            onCheckedChange={handleToggleProvider}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="api-key">API Key</Label>
-          <div className="flex gap-2">
-            <Input 
-              id="api-key"
+      <CardContent className="space-y-6">
+        {/* API Credentials */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">API Credentials</h3>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-api-key`}>API Key</Label>
+            <Input
+              id={`${id}-api-key`}
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your CoinGecko API key"
-              className="flex-1"
+              placeholder="Enter API key"
             />
-            <Button onClick={handleSaveApiKey}>Save</Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Optional. Enter your API key to increase rate limits.
-          </p>
+          
+          {(credentials.username !== undefined || credentials.password !== undefined) && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-username`}>Username</Label>
+                <Input
+                  id={`${id}-username`}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-password`}>Password</Label>
+                <Input
+                  id={`${id}-password`}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                />
+              </div>
+            </>
+          )}
         </div>
         
-        <div className="border-t pt-4">
-          <div className="flex justify-between">
-            <Button variant="outline" size="sm" onClick={handleRefreshStatus}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Status
-            </Button>
-            
-            <Button variant="ghost" size="sm" asChild>
-              <a 
-                href="https://www.coingecko.com/api/documentation" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center"
-              >
-                API Documentation
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </a>
-            </Button>
+        {/* API Settings */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">API Settings</h3>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor={`${id}-rate-limiting`}>Rate Limiting</Label>
+              <p className="text-sm text-muted-foreground">
+                Limit API requests to prevent hitting rate limits
+              </p>
+            </div>
+            <Switch
+              id={`${id}-rate-limiting`}
+              checked={enableRateLimiting}
+              onCheckedChange={setEnableRateLimiting}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor={`${id}-caching`}>Response Caching</Label>
+              <p className="text-sm text-muted-foreground">
+                Cache API responses to reduce requests and improve performance
+              </p>
+            </div>
+            <Switch
+              id={`${id}-caching`}
+              checked={enableCaching}
+              onCheckedChange={setEnableCaching}
+            />
+          </div>
+        </div>
+        
+        {/* Available Endpoints */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Available Endpoints</h3>
+          
+          <div className="overflow-auto max-h-60 rounded-md border">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Path
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Method
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Rate Limit
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {apiEndpoints.map((endpoint, index) => (
+                  <tr key={index} className={index % 2 === 0 ? 'bg-card' : 'bg-muted/20'}>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                      <code className="bg-muted/30 px-1 py-0.5 rounded text-xs">
+                        {endpoint.path}
+                      </code>
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                      <span className={`
+                        px-2 py-0.5 rounded text-xs font-medium
+                        ${endpoint.method === 'GET' ? 'bg-green-500/20 text-green-500' : ''}
+                        ${endpoint.method === 'POST' ? 'bg-blue-500/20 text-blue-500' : ''}
+                        ${endpoint.method === 'PUT' ? 'bg-amber-500/20 text-amber-500' : ''}
+                        ${endpoint.method === 'DELETE' ? 'bg-red-500/20 text-red-500' : ''}
+                      `}>
+                        {endpoint.method}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-sm">
+                      {endpoint.description}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                      {endpoint.rateLimit || 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+                {apiEndpoints.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-4 text-center text-sm text-muted-foreground">
+                      No endpoints available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </CardContent>
+      
+      <CardFooter className="flex justify-between">
+        <Button variant="outline">Reset</Button>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

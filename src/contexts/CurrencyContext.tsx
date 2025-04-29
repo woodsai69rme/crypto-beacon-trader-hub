@@ -8,6 +8,12 @@ interface CurrencyContextType {
   formatCurrency: (value: number, currency?: string) => string;
   convertCurrency: (value: number, from: string, to: string) => number;
   availableCurrencies: string[];
+  conversionRates: {
+    USD_AUD: number;
+    USD_EUR: number;
+    USD_GBP: number;
+    USD_JPY: number;
+  };
 }
 
 const defaultExchangeRates: Record<string, number> = {
@@ -30,7 +36,13 @@ const CurrencyContext = createContext<CurrencyContextType>({
   exchangeRates: defaultExchangeRates,
   formatCurrency: () => "",
   convertCurrency: () => 0,
-  availableCurrencies: defaultCurrencies
+  availableCurrencies: defaultCurrencies,
+  conversionRates: {
+    USD_AUD: 1.54,
+    USD_EUR: 0.93,
+    USD_GBP: 0.82,
+    USD_JPY: 147.32,
+  }
 });
 
 export const useCurrency = () => useContext(CurrencyContext);
@@ -42,6 +54,14 @@ interface CurrencyProviderProps {
 export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
   const [baseCurrency, setBaseCurrency] = useState("USD");
   const [exchangeRates, setExchangeRates] = useState(defaultExchangeRates);
+  
+  // Define conversion rates for trading components
+  const conversionRates = {
+    USD_AUD: 1.54,
+    USD_EUR: 0.93,
+    USD_GBP: 0.82,
+    USD_JPY: 147.32,
+  };
 
   // In a real app, we would fetch the latest exchange rates from an API
   useEffect(() => {
@@ -105,7 +125,8 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         exchangeRates,
         formatCurrency,
         convertCurrency,
-        availableCurrencies: defaultCurrencies
+        availableCurrencies: defaultCurrencies,
+        conversionRates
       }}
     >
       {children}

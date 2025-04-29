@@ -1,129 +1,138 @@
 
-import { CryptoChartData, CryptoData } from "@/types/trading";
+import { CryptoData, CryptoChartData } from "../types/trading";
 
-// Mock data for when API calls fail
-export const getMockCryptoData = (limit: number = 10): CryptoData[] => {
-  const mockCoins: CryptoData[] = [
+/**
+ * Mock function to get cryptocurrency market data
+ * @returns Promise resolving to an array of crypto data
+ */
+export const getMockCryptoData = async (): Promise<CryptoData[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Return mock data
+  return [
     {
       id: "bitcoin",
       symbol: "btc",
       name: "Bitcoin",
       image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-      current_price: 50123.45,
-      market_cap: 928374982734,
+      current_price: 61245.32,
+      market_cap: 1203271283828,
       market_cap_rank: 1,
-      fully_diluted_valuation: 1050000000000,
-      total_volume: 32893749823,
-      high_24h: 51000,
-      low_24h: 49000,
-      price_change_24h: 1200,
-      price_change_percentage_24h: 2.4,
-      market_cap_change_24h: 19273492834,
-      market_cap_change_percentage_24h: 2.1,
-      circulating_supply: 18923812,
+      fully_diluted_valuation: 1287542145259,
+      total_volume: 28102841079,
+      high_24h: 62541.79,
+      low_24h: 60837.21,
+      price_change_24h: 259.37,
+      price_change_percentage_24h: 0.42581,
+      market_cap_change_24h: 5078463822,
+      market_cap_change_percentage_24h: 0.42375,
+      circulating_supply: 19667925,
       total_supply: 21000000,
       max_supply: 21000000,
-      ath: 68000,
-      ath_change_percentage: -26.5,
+      ath: 68789.63,
+      ath_change_percentage: -11.13,
       ath_date: "2021-11-10T14:24:11.849Z",
       atl: 67.81,
-      atl_change_percentage: 73732.25,
+      atl_change_percentage: 90223.75,
       atl_date: "2013-07-06T00:00:00.000Z",
       roi: null,
-      last_updated: new Date().toISOString()
+      last_updated: "2023-04-26T14:30:09.235Z",
+      price_change_percentage_1h_in_currency: 0.15,
+      price_change_percentage_24h_in_currency: 0.42581,
+      price_change_percentage_7d_in_currency: -1.23
     },
     {
       id: "ethereum",
       symbol: "eth",
       name: "Ethereum",
       image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-      current_price: 3010.45,
-      market_cap: 328947982734,
+      current_price: 3021.45,
+      market_cap: 362847283828,
       market_cap_rank: 2,
-      fully_diluted_valuation: 350000000000,
-      total_volume: 12893749823,
-      high_24h: 3100,
-      low_24h: 2900,
-      price_change_24h: -120,
-      price_change_percentage_24h: -1.5,
-      market_cap_change_24h: -5273492834,
-      market_cap_change_percentage_24h: -1.2,
-      circulating_supply: 120923812,
-      total_supply: null,
+      fully_diluted_valuation: 362847283828,
+      total_volume: 15251789245,
+      high_24h: 3087.42,
+      low_24h: 2978.51,
+      price_change_24h: 42.94,
+      price_change_percentage_24h: 1.4378,
+      market_cap_change_24h: 5236428731,
+      market_cap_change_percentage_24h: 1.4629,
+      circulating_supply: 120171000,
+      total_supply: 120171000,
       max_supply: null,
-      ath: 4800,
-      ath_change_percentage: -37.5,
-      ath_date: "2021-11-10T14:24:11.849Z",
-      atl: 0.43,
-      atl_change_percentage: 700732.25,
+      ath: 4878.26,
+      ath_change_percentage: -38.06,
+      ath_date: "2021-11-10T14:24:19.604Z",
+      atl: 0.432979,
+      atl_change_percentage: 697464.29,
       atl_date: "2015-10-20T00:00:00.000Z",
       roi: {
-        times: 100.5,
-        currency: "usd",
-        percentage: 10050
+        times: 86.32,
+        currency: "btc",
+        percentage: 8632.42
       },
-      last_updated: new Date().toISOString()
+      last_updated: "2023-04-26T14:30:25.471Z",
+      price_change_percentage_1h_in_currency: 0.25,
+      price_change_percentage_24h_in_currency: 1.4378,
+      price_change_percentage_7d_in_currency: -2.37
     }
-    // Add more mock coins if needed
   ];
-
-  // If limit is less than the number of mock coins, return only the requested number
-  return mockCoins.slice(0, limit);
 };
 
-// Mock function to fetch historical data
-export const fetchCoinHistory = async (
-  coinId: string,
-  days: number = 7
-): Promise<CryptoChartData | null> => {
-  try {
-    // In a real app, this would call an API
-    // For now, generate mock data
-    const mockPrices: [number, number][] = [];
-    const mockMarketCaps: [number, number][] = [];
-    const mockTotalVolumes: [number, number][] = [];
+/**
+ * Mock function to fetch historical data for a specific coin
+ * @param coinId - The ID of the cryptocurrency
+ * @param days - Number of days of history to fetch
+ * @returns Promise resolving to chart data
+ */
+export const fetchCoinHistory = async (coinId: string, days: number = 7): Promise<CryptoChartData> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Generate mock historical data
+  const now = Date.now();
+  const oneDayMs = 86400000;
+  const prices: [number, number][] = [];
+  const market_caps: [number, number][] = [];
+  const total_volumes: [number, number][] = [];
+  
+  let basePrice = coinId === "bitcoin" ? 61000 : coinId === "ethereum" ? 3000 : 1;
+  let baseMarketCap = coinId === "bitcoin" ? 1200000000000 : coinId === "ethereum" ? 360000000000 : 10000000000;
+  let baseVolume = coinId === "bitcoin" ? 25000000000 : coinId === "ethereum" ? 15000000000 : 1000000000;
+  
+  // Generate data points for each day
+  for (let i = days; i >= 0; i--) {
+    const timestamp = now - (i * oneDayMs);
     
-    const now = Date.now();
-    const dayInMs = 24 * 60 * 60 * 1000;
-    const interval = (days <= 1) ? dayInMs / 24 : dayInMs; // Hourly for 1 day view, daily otherwise
+    // Add some randomness to the data
+    const randomFactor = 0.95 + (Math.random() * 0.1);
+    const priceVariation = basePrice * randomFactor;
+    const marketCapVariation = baseMarketCap * randomFactor;
+    const volumeVariation = baseVolume * (0.8 + (Math.random() * 0.4));
     
-    // Base price depends on the coin
-    const basePrice = coinId === 'bitcoin' ? 50000 : 
-                     coinId === 'ethereum' ? 3000 : 
-                     coinId === 'cardano' ? 0.45 : 
-                     coinId === 'solana' ? 120 : 
-                     coinId === 'ripple' ? 0.6 : 1.0;
+    prices.push([timestamp, priceVariation]);
+    market_caps.push([timestamp, marketCapVariation]);
+    total_volumes.push([timestamp, volumeVariation]);
     
-    // Generate data points
-    for (let i = 0; i <= days; i++) {
-      const timestamp = now - ((days - i) * dayInMs);
-      
-      // Add some random fluctuation
-      const randomChange = (Math.random() - 0.5) * 0.05; // +/- 2.5%
-      const price = basePrice * (1 + randomChange);
-      
-      // Generate higher volumes and market caps for more popular coins
-      const popularityFactor = coinId === 'bitcoin' ? 100 : 
-                              coinId === 'ethereum' ? 50 : 
-                              coinId === 'cardano' ? 10 : 
-                              coinId === 'solana' ? 20 : 5;
-      
-      // Add data points
-      mockPrices.push([timestamp, price]);
-      mockMarketCaps.push([timestamp, price * 1000000 * popularityFactor]);
-      mockTotalVolumes.push([timestamp, price * 100000 * popularityFactor * (Math.random() + 0.5)]);
-    }
-    
-    return {
-      prices: mockPrices,
-      market_caps: mockMarketCaps,
-      total_volumes: mockTotalVolumes
-    };
-  } catch (error) {
-    console.error("Error fetching coin history:", error);
-    return null;
+    // Make the next day's base price dependent on the current day
+    basePrice = priceVariation;
+    baseMarketCap = marketCapVariation;
   }
+  
+  return {
+    prices,
+    market_caps,
+    total_volumes
+  };
 };
 
-// Export types
-export type { CryptoData, CryptoChartData };
+/**
+ * Mock function to fetch top coins by market cap
+ * @param limit - Maximum number of coins to return
+ * @returns Promise resolving to an array of crypto data
+ */
+export const fetchTopCoins = async (limit: number = 10): Promise<CryptoData[]> => {
+  const allCoins = await getMockCryptoData();
+  return allCoins.slice(0, limit);
+};

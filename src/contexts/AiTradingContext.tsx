@@ -1,203 +1,149 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { AITradingStrategy, LocalModel, CoinOption } from "@/types/trading";
-import { predefinedStrategies, getStrategyById } from "@/utils/aiTradingStrategies";
-import { startPriceMonitoring } from "@/services/priceMonitoring";
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
+import { AITradingStrategy, Trade } from "@/types/trading";
+import { AVAILABLE_STRATEGIES, analyzeMarketConditions, executeAITrade } from "@/services/aiTradingService";
 
 interface AiTradingContextType {
   availableStrategies: AITradingStrategy[];
-  activeModels: LocalModel[];
-  startModel: (strategyId: string, coins: string[]) => Promise<string | null>;
-  stopModel: (modelId: string) => Promise<boolean>;
-  getModelById: (modelId: string) => LocalModel | undefined;
-  isLoading: boolean;
-  modelData: Record<string, CoinOption[]>;
+  activeStrategy: AITradingStrategy | null;
+  setActiveStrategy: (strategy: AITradingStrategy | null) => void;
+  isProcessing: boolean;
+  connectBotToAccount: (botId: string, accountId: string) => void;
+  disconnectBot: (botId: string) => void;
+  getConnectedAccount: (botId: string) => string | null;
+  executeAiTrade: (botId: string, accountId: string, coinData: any) => Promise<Trade | null>;
+  connectedAccounts: Record<string, string>; // botId -> accountId
 }
 
+// Create a context
 const AiTradingContext = createContext<AiTradingContextType>({
   availableStrategies: [],
-  activeModels: [],
-  startModel: () => Promise.resolve(null),
-  stopModel: () => Promise.resolve(false),
-  getModelById: () => undefined,
-  isLoading: false,
-  modelData: {}
+  activeStrategy: null,
+  setActiveStrategy: () => {},
+  isProcessing: false,
+  connectBotToAccount: () => {},
+  disconnectBot: () => {},
+  getConnectedAccount: () => null,
+  executeAiTrade: async () => null,
+  connectedAccounts: {},
 });
 
-export const useAiTrading = () => useContext(AiTradingContext);
-
-interface AiTradingProviderProps {
-  children: React.ReactNode;
-}
-
-export const AiTradingProvider: React.FC<AiTradingProviderProps> = ({ children }) => {
-  const [availableStrategies, setAvailableStrategies] = useState<AITradingStrategy[]>(predefinedStrategies);
-  const [activeModels, setActiveModels] = useState<LocalModel[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [modelData, setModelData] = useState<Record<string, CoinOption[]>>({});
+// Create a provider
+export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [availableStrategies, setAvailableStrategies] = useState<AITradingStrategy[]>([]);
+  const [activeStrategy, setActiveStrategy] = useState<AITradingStrategy | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [connectedAccounts, setConnectedAccounts] = useState<Record<string, string>>(() => {
+    const saved = localStorage.getItem('ai-connected-accounts');
+    return saved ? JSON.parse(saved) : {};
+  });
   
-  // Load persisted models from localStorage on mount
   useEffect(() => {
-    try {
-      const savedModels = localStorage.getItem('ai-trading-active-models');
-      if (savedModels) {
-        setActiveModels(JSON.parse(savedModels));
-      }
-    } catch (error) {
-      console.error('Failed to load saved models:', error);
-    }
+    setAvailableStrategies(AVAILABLE_STRATEGIES);
   }, []);
   
-  // Save active models to localStorage whenever they change
   useEffect(() => {
-    try {
-      localStorage.setItem('ai-trading-active-models', JSON.stringify(activeModels));
-    } catch (error) {
-      console.error('Failed to save models:', error);
-    }
-  }, [activeModels]);
+    localStorage.setItem('ai-connected-accounts', JSON.stringify(connectedAccounts));
+  }, [connectedAccounts]);
   
-  // Start monitoring prices for active models
-  useEffect(() => {
-    const modelStopFunctions: Record<string, () => void> = {};
-    
-    activeModels.forEach(model => {
-      if (model.status === 'running' && model.coins.length > 0 && !modelData[model.id]) {
-        // Start monitoring prices for this model's coins
-        const stopFunction = startPriceMonitoring(
-          model.coins,
-          (updatedCoins) => {
-            setModelData(prevData => ({
-              ...prevData,
-              [model.id]: updatedCoins
-            }));
-          }
-        );
-        
-        modelStopFunctions[model.id] = stopFunction;
-      }
+  const connectBotToAccount = (botId: string, accountId: string) => {
+    setConnectedAccounts(prev => {
+      const updated = { ...prev, [botId]: accountId };
+      return updated;
     });
-    
-    // Cleanup function to stop all price monitoring when component unmounts
-    return () => {
-      Object.values(modelStopFunctions).forEach(stopFn => stopFn());
-    };
-  }, [activeModels]);
+    toast({
+      title: "Bot Connected",
+      description: `Trading bot has been connected to account ${accountId}`,
+    });
+  };
   
-  const startModel = async (strategyId: string, coins: string[]): Promise<string | null> => {
-    setIsLoading(true);
-    
+  const disconnectBot = (botId: string) => {
+    setConnectedAccounts(prev => {
+      const updated = { ...prev };
+      delete updated[botId];
+      return updated;
+    });
+    toast({
+      title: "Bot Disconnected",
+      description: "Trading bot has been disconnected from account",
+    });
+  };
+  
+  const getConnectedAccount = (botId: string): string | null => {
+    return connectedAccounts[botId] || null;
+  };
+  
+  const executeAiTrade = async (botId: string, accountId: string, coinData: any): Promise<Trade | null> => {
     try {
-      const strategy = getStrategyById(strategyId);
+      setIsProcessing(true);
       
+      // Get strategy for this bot
+      const strategy = availableStrategies.find(s => s.id === botId);
       if (!strategy) {
-        throw new Error(`Strategy with ID ${strategyId} not found`);
+        throw new Error("Strategy not found");
       }
       
-      if (coins.length === 0) {
-        throw new Error('At least one coin must be selected');
-      }
-      
-      // Create a new model instance
-      const modelId = `model-${Date.now()}`;
-      const newModel: LocalModel = {
-        id: modelId,
-        name: `${strategy.name} Model`,
-        description: `AI trading model using ${strategy.name} strategy`,
-        status: 'running',
-        strategy: strategy.name,
-        coins,
-        startedAt: new Date().toISOString(),
-        lastUpdate: new Date().toISOString(),
-        performance: {
-          totalPnL: 0,
-          winRate: 0,
-          trades: 0
-        }
+      // Get account data (in a real application this would fetch the actual account)
+      const mockAccount = {
+        id: accountId,
+        balance: 10000,
+        initialBalance: 10000,
+        name: "Demo Account",
+        trades: [],
+        currency: "USD",
+        createdAt: new Date().toISOString(),
       };
       
-      // Add the new model to active models
-      setActiveModels(prevModels => [...prevModels, newModel]);
+      // Analyze market using AI
+      const analysis = await analyzeMarketConditions(
+        strategy, 
+        coinData.id, 
+        [] // Empty array for historical data in this simplified version
+      );
       
-      toast({
-        title: 'Model Started',
-        description: `${strategy.name} model is now running on ${coins.length} coins.`,
-      });
+      // Execute trade based on analysis
+      const trade = await executeAITrade(strategy, mockAccount, coinData, analysis);
       
-      return modelId;
+      if (trade) {
+        toast({
+          title: "AI Trade Executed",
+          description: `${trade.type.toUpperCase()} ${trade.amount} ${trade.coinSymbol} at $${trade.price}`,
+        });
+      }
+      
+      return trade;
     } catch (error) {
-      console.error('Failed to start model:', error);
+      console.error("Error executing AI trade:", error);
       toast({
-        title: 'Failed to Start Model',
-        description: (error as Error).message,
-        variant: 'destructive'
+        title: "AI Trade Error",
+        description: "Failed to execute the AI trade",
+        variant: "destructive"
       });
       return null;
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
     }
   };
   
-  const stopModel = async (modelId: string): Promise<boolean> => {
-    try {
-      // Find the model to stop
-      const modelIndex = activeModels.findIndex(m => m.id === modelId);
-      
-      if (modelIndex === -1) {
-        throw new Error(`Model with ID ${modelId} not found`);
-      }
-      
-      // Update the model status to stopped
-      const updatedModels = [...activeModels];
-      updatedModels[modelIndex] = {
-        ...updatedModels[modelIndex],
-        status: 'stopped'
-      };
-      
-      setActiveModels(updatedModels);
-      
-      // Remove model data
-      setModelData(prevData => {
-        const newData = { ...prevData };
-        delete newData[modelId];
-        return newData;
-      });
-      
-      toast({
-        title: 'Model Stopped',
-        description: 'The trading model has been stopped.',
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Failed to stop model:', error);
-      toast({
-        title: 'Error',
-        description: (error as Error).message,
-        variant: 'destructive'
-      });
-      return false;
-    }
-  };
-  
-  const getModelById = (modelId: string): LocalModel | undefined => {
-    return activeModels.find(model => model.id === modelId);
-  };
-
   return (
-    <AiTradingContext.Provider
-      value={{
+    <AiTradingContext.Provider 
+      value={{ 
         availableStrategies,
-        activeModels,
-        startModel,
-        stopModel,
-        getModelById,
-        isLoading,
-        modelData
+        activeStrategy, 
+        setActiveStrategy,
+        isProcessing,
+        connectBotToAccount,
+        disconnectBot,
+        getConnectedAccount,
+        executeAiTrade,
+        connectedAccounts
       }}
     >
       {children}
     </AiTradingContext.Provider>
   );
 };
+
+// Create a hook to use the context
+export const useAiTrading = () => useContext(AiTradingContext);

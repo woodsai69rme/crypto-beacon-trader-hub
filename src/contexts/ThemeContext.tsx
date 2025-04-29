@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
-type ColorScheme = "default" | "blue" | "purple" | "green" | "amber";
+type ColorScheme = "default" | "blue" | "purple" | "green" | "amber" | "red" | "slate";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -19,8 +19,8 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "system",
-  colorScheme: "default",
+  theme: "dark", // Default to dark instead of system
+  colorScheme: "blue", // Default to blue instead of default
   setTheme: () => Promise.resolve(),
   setColorScheme: () => Promise.resolve(),
 };
@@ -29,8 +29,8 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
-  defaultColorScheme = "default",
+  defaultTheme = "dark", // Default to dark instead of system
+  defaultColorScheme = "blue", // Default to blue instead of default
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
@@ -42,22 +42,28 @@ export function ThemeProvider({
     () => (localStorage.getItem(`${storageKey}-color`) as ColorScheme) || defaultColorScheme
   );
 
+  // Force dark mode on light mode selection
+  useEffect(() => {
+    if (theme === 'light') {
+      setThemeState('dark');
+    }
+  }, [theme]);
+
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove("light", "dark");
+    // Always apply dark theme, regardless of user selection
+    root.classList.remove("light");
+    root.classList.add("dark");
 
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
         ? "dark"
-        : "light";
+        : "dark"; // Always choose dark even for system preference
 
       root.classList.add(systemTheme);
-      return;
     }
-
-    root.classList.add(theme);
   }, [theme]);
 
   useEffect(() => {
@@ -69,7 +75,9 @@ export function ThemeProvider({
       "theme-blue",
       "theme-purple", 
       "theme-green",
-      "theme-amber"
+      "theme-amber",
+      "theme-red",
+      "theme-slate"
     );
 
     // Add the new color scheme class
@@ -77,8 +85,11 @@ export function ThemeProvider({
   }, [colorScheme]);
 
   const setTheme = async (theme: Theme) => {
-    localStorage.setItem(`${storageKey}-mode`, theme);
-    setThemeState(theme);
+    // Force dark mode
+    const actualTheme = theme === 'light' ? 'dark' : theme;
+    
+    localStorage.setItem(`${storageKey}-mode`, actualTheme);
+    setThemeState(actualTheme);
   };
 
   const setColorScheme = async (colorScheme: ColorScheme) => {

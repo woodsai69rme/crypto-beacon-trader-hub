@@ -10,7 +10,7 @@ interface ApiStatusIndicatorProps {
   className?: string;
 }
 
-const ApiStatusIndicator: React.FC<ApiStatusIndicatorProps> = ({ status, className }) => {
+const ApiStatusIndicator = ({ status, className }: ApiStatusIndicatorProps) => {
   switch (status) {
     case "operational":
       return (

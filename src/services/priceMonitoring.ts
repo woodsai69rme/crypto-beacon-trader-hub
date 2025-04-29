@@ -1,71 +1,131 @@
 
 import { CoinOption } from '@/types/trading';
 
-/**
- * Starts monitoring cryptocurrency prices with regular updates
- * @param coinIds Array of coin IDs to monitor
- * @param updateCallback Callback function to handle updated prices
- * @param interval Update interval in milliseconds
- * @returns Function to stop price monitoring
- */
+// Mock price update function to simulate real-time updates
 export const startPriceMonitoring = (
   coinIds: string[],
-  updateCallback: (updatedCoins: CoinOption[]) => void,
+  onUpdate: (updatedCoins: CoinOption[]) => void,
   interval: number = 5000
 ): () => void => {
-  console.log(`Starting price monitoring for ${coinIds.length} coins`);
+  let previousPrices: Record<string, number> = {};
   
-  // In a real application, this would connect to a websocket or API
-  // For demo purposes, we'll simulate price updates with random fluctuations
+  // Store initial mock data for coins
+  const baseCoins: Record<string, CoinOption> = {
+    "bitcoin": { 
+      id: "bitcoin", 
+      name: "Bitcoin", 
+      symbol: "BTC", 
+      price: 61245.32,
+      priceChange: 0,
+      changePercent: 0,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      volume: 28000000000,
+      marketCap: 1180000000000
+    },
+    "ethereum": { 
+      id: "ethereum", 
+      name: "Ethereum", 
+      symbol: "ETH", 
+      price: 3010.45,
+      priceChange: 0,
+      changePercent: 0,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      volume: 15000000000,
+      marketCap: 360000000000
+    },
+    "solana": { 
+      id: "solana", 
+      name: "Solana", 
+      symbol: "SOL", 
+      price: 142.87,
+      priceChange: 0,
+      changePercent: 0,
+      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+      volume: 5200000000,
+      marketCap: 90000000000
+    },
+    "cardano": { 
+      id: "cardano", 
+      name: "Cardano", 
+      symbol: "ADA", 
+      price: 0.45,
+      priceChange: 0,
+      changePercent: 0,
+      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+      volume: 890000000,
+      marketCap: 24000000000
+    },
+    "ripple": { 
+      id: "ripple", 
+      name: "XRP", 
+      symbol: "XRP", 
+      price: 0.57,
+      priceChange: 0,
+      changePercent: 0,
+      image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+      volume: 2400000000,
+      marketCap: 32000000000
+    },
+    "dogecoin": { 
+      id: "dogecoin", 
+      name: "Dogecoin", 
+      symbol: "DOGE", 
+      price: 0.14,
+      priceChange: 0,
+      changePercent: 0,
+      image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
+      volume: 1900000000,
+      marketCap: 18000000000
+    }
+  };
   
-  // Set up interval to update prices periodically
-  const intervalId = setInterval(() => {
-    const updatedCoins: CoinOption[] = coinIds.map(coinId => {
-      // Generate a random price change between -1% and +1%
-      const priceChangePct = (Math.random() * 2 - 1) / 100;
-      
-      // Return a simplified coin object with updated price
-      // In a real app, you would fetch the current price from an API
-      return {
-        id: coinId,
-        name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
-        symbol: coinId.substring(0, 3).toUpperCase(),
-        price: getBasePriceForCoin(coinId) * (1 + priceChangePct),
-        priceChange: getBasePriceForCoin(coinId) * priceChangePct,
-        changePercent: priceChangePct * 100
-      };
-    });
+  // Store the initial prices
+  coinIds.forEach(id => {
+    if (baseCoins[id]) {
+      previousPrices[id] = baseCoins[id].price;
+    }
+  });
+  
+  // Function to generate a new mock price
+  const generateNewPrice = (id: string): number => {
+    const baseCoin = baseCoins[id];
+    if (!baseCoin) return 0;
     
-    // Call the update callback with the updated coins
-    updateCallback(updatedCoins);
-  }, interval);
+    const basePrice = baseCoin.price;
+    const volatility = id === "bitcoin" ? 0.005 : id === "ethereum" ? 0.008 : 0.012;
+    const change = basePrice * volatility * (Math.random() * 2 - 1);
+    
+    return Number((previousPrices[id] + change).toFixed(2));
+  };
   
-  // Return a function to stop the price monitoring
+  // Function to update prices
+  const updatePrices = () => {
+    const updatedCoins: CoinOption[] = coinIds
+      .filter(id => baseCoins[id])
+      .map(id => {
+        const newPrice = generateNewPrice(id);
+        const priceChange = newPrice - previousPrices[id];
+        const changePercent = (priceChange / previousPrices[id]) * 100;
+        
+        // Update previous price for next time
+        previousPrices[id] = newPrice;
+        
+        return {
+          ...baseCoins[id],
+          price: newPrice,
+          priceChange: Number(priceChange.toFixed(2)),
+          changePercent: Number(changePercent.toFixed(2))
+        };
+      });
+    
+    onUpdate(updatedCoins);
+  };
+  
+  // Start interval
+  const timer = setInterval(updatePrices, interval) as unknown as number;
+  
+  // Return function to stop monitoring
   return () => {
-    clearInterval(intervalId);
-    console.log('Price monitoring stopped');
+    clearInterval(timer);
   };
-};
-
-/**
- * Helper function to get a base price for a coin based on its ID
- * In a real application, this would be fetched from an API
- */
-const getBasePriceForCoin = (coinId: string): number => {
-  const basePrices: Record<string, number> = {
-    bitcoin: 60000,
-    ethereum: 3000,
-    ripple: 0.6,
-    cardano: 0.45,
-    solana: 120,
-    dogecoin: 0.14,
-    polkadot: 6.5,
-    chainlink: 12,
-    litecoin: 70,
-    stellar: 0.12
-  };
-  
-  return basePrices[coinId.toLowerCase()] || 
-    // Default for unknown coins: random price between $0.1 and $100
-    Math.floor(Math.random() * 10000) / 100;
 };

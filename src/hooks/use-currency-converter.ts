@@ -25,6 +25,14 @@ export const useCurrencyConverter = (options: CurrencyConverterOptions = {}) => 
   
   const rates = options.rates || defaultRates;
 
+  // Pre-calculated conversion rates for common pairs
+  const conversionRates = {
+    USD_AUD: 1.54,
+    USD_EUR: 0.93,
+    USD_GBP: 0.82,
+    USD_JPY: 147.32,
+  };
+
   /**
    * Convert a value from one currency to another
    */
@@ -76,6 +84,9 @@ export const useCurrencyConverter = (options: CurrencyConverterOptions = {}) => 
     setActiveCurrency,
     convert,
     formatValue,
-    rates
+    rates,
+    conversionRates
   };
 };
+
+export type SupportedCurrency = "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "CHF" | "CNY" | "BTC" | "ETH";

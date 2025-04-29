@@ -23,11 +23,13 @@ const ThemeSwitcher = () => {
   const [isChanging, setIsChanging] = React.useState(false);
   
   const colorSchemes = [
-    { id: 'default', name: 'Default', color: '#222333', description: 'System default theme' },
-    { id: 'blue', name: 'Blue', color: '#112240', description: 'Cool blue theme' },
-    { id: 'purple', name: 'Purple', color: '#1E1B2E', description: 'Rich purple theme' },
-    { id: 'green', name: 'Green', color: '#0F2922', description: 'Calming green theme' },
+    { id: 'default', name: 'Default Dark', color: '#222333', description: 'Classic dark theme' },
+    { id: 'blue', name: 'Deep Blue', color: '#112240', description: 'Cool blue theme' },
+    { id: 'purple', name: 'Royal Purple', color: '#1E1B2E', description: 'Rich purple theme' },
+    { id: 'green', name: 'Emerald', color: '#0F2922', description: 'Calming green theme' },
     { id: 'amber', name: 'Amber', color: '#332211', description: 'Warm amber theme' },
+    { id: 'red', name: 'Ruby', color: '#2C151B', description: 'Deep red theme' },
+    { id: 'slate', name: 'Slate', color: '#1E293B', description: 'Professional slate theme' },
   ];
 
   const handleThemeChange = async (newTheme: typeof theme) => {
@@ -43,7 +45,7 @@ const ThemeSwitcher = () => {
   const handleColorSchemeChange = async (newScheme: typeof colorScheme) => {
     setIsChanging(true);
     try {
-      await setColorScheme(newScheme);
+      await setColorScheme(newScheme as any);
     } finally {
       // Add a small delay to make transition look smoother
       setTimeout(() => setIsChanging(false), 300);
@@ -53,14 +55,8 @@ const ThemeSwitcher = () => {
   const getThemeIcon = () => {
     if (isChanging) return <Loader2 className="h-5 w-5 animate-spin" />;
     
-    switch (theme) {
-      case "dark":
-        return <Moon className="h-5 w-5" />;
-      case "light":
-        return <Sun className="h-5 w-5" />;
-      default:
-        return <Monitor className="h-5 w-5" />;
-    }
+    // Always show moon icon since we're forcing dark mode
+    return <Moon className="h-5 w-5" />;
   };
 
   return (
@@ -89,16 +85,6 @@ const ThemeSwitcher = () => {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Theme Mode</DropdownMenuLabel>
         <DropdownMenuItem 
-          onClick={() => handleThemeChange("light")}
-          className="flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2">
-            <Sun className="h-4 w-4" />
-            <span>Light</span>
-          </div>
-          {theme === "light" && <span className="text-primary">✓</span>}
-        </DropdownMenuItem>
-        <DropdownMenuItem 
           onClick={() => handleThemeChange("dark")}
           className="flex items-center justify-between"
         >
@@ -114,7 +100,7 @@ const ThemeSwitcher = () => {
         >
           <div className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
-            <span>System</span>
+            <span>System (Dark)</span>
           </div>
           {theme === "system" && <span className="text-primary">✓</span>}
         </DropdownMenuItem>
@@ -134,7 +120,6 @@ const ThemeSwitcher = () => {
                 style={{ backgroundColor: scheme.color }}
               />
               <span>{scheme.name}</span>
-              <span className="text-xs text-muted-foreground">{scheme.description}</span>
             </div>
             {colorScheme === scheme.id && (
               <span className="text-primary">✓</span>
