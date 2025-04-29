@@ -66,11 +66,11 @@ const ATOTaxCalculator: React.FC = () => {
     const taxRefundOrOwed = taxWithheld - totalTax - medicareLevy;
     
     setCalculation({
-      financialYear: taxYear,
+      taxYear: taxYear,
       year: parseInt(taxYear.split("-")[0]),
       assessableIncome: assessableIncome,
       taxableIncome: assessableIncome,
-      taxBracket: bracket,
+      bracketInfo: bracket,
       taxPayable: totalTax,
       taxWithheld: taxWithheld,
       taxRefundOrOwed: taxRefundOrOwed,
@@ -78,7 +78,6 @@ const ATOTaxCalculator: React.FC = () => {
       CGTDiscount: cgtDiscount ? capitalGains / 2 : 0,
       deductions: deductions,
       effectiveTaxRate: effectiveRate,
-      taxBracket: "N/A",
       effectiveRate: effectiveRate,
       marginalRate: marginalRate * 100,
       takeHome: assessableIncome - totalTax - medicareLevy,
@@ -223,7 +222,7 @@ const ATOTaxCalculator: React.FC = () => {
           <CardHeader>
             <CardTitle>Tax Calculation Results</CardTitle>
             <CardDescription>
-              {calculation.financialYear} Financial Year
+              {calculation.taxYear} Financial Year
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -311,7 +310,7 @@ const ATOTaxCalculator: React.FC = () => {
           </CardContent>
           <CardFooter className="flex-col items-start text-xs text-muted-foreground">
             <p>This is an estimate only. Please consult a tax professional for advice.</p>
-            <p>Tax rates are based on ATO resident individual rates for {calculation.financialYear}.</p>
+            <p>Tax rates are based on ATO resident individual rates for {calculation.taxYear}.</p>
           </CardFooter>
         </Card>
       )}

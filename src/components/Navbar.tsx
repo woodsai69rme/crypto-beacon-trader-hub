@@ -14,12 +14,30 @@ import {
   Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleNavClick = (section: string) => {
+    // In a real app, this would navigate to a different route
+    // For now, we'll just scroll to the section if it exists, or show a toast
+    const element = document.getElementById(section);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      toast({
+        title: "Navigation",
+        description: `Navigating to ${section}`,
+      });
+    }
+    
+    // Close mobile menu after navigation
+    setIsMenuOpen(false);
   };
 
   return (
@@ -33,38 +51,59 @@ const Navbar = () => {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <a href="#" className="flex items-center space-x-1 text-foreground hover:text-primary">
+            <button 
+              onClick={() => handleNavClick("dashboard")} 
+              className="flex items-center space-x-1 text-foreground hover:text-primary"
+            >
               <BarChart2 className="h-4 w-4" />
               <span>Dashboard</span>
-            </a>
-            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+            </button>
+            <button 
+              onClick={() => handleNavClick("portfolio")} 
+              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+            >
               <PieChart className="h-4 w-4" />
               <span>Portfolio</span>
-            </a>
-            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+            </button>
+            <button 
+              onClick={() => handleNavClick("markets")} 
+              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+            >
               <TrendingUp className="h-4 w-4" />
               <span>Markets</span>
-            </a>
-            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+            </button>
+            <button 
+              onClick={() => handleNavClick("trading")} 
+              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+            >
               <LineChart className="h-4 w-4" />
               <span>Trading</span>
-            </a>
-            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+            </button>
+            <button 
+              onClick={() => handleNavClick("news")} 
+              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+            >
               <MessageCircle className="h-4 w-4" />
               <span>News</span>
-            </a>
-            <a href="#" className="flex items-center space-x-1 text-muted-foreground hover:text-primary">
+            </button>
+            <button 
+              onClick={() => handleNavClick("taxes")} 
+              className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
+            >
               <Calculator className="h-4 w-4" />
               <span>Taxes</span>
-            </a>
+            </button>
           </div>
           
           <div className="hidden md:flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="gap-1">
+            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleNavClick("settings")}>
               <Settings className="h-4 w-4" />
               <span>Settings</span>
             </Button>
-            <Button variant="default" size="sm">Connect Wallet</Button>
+            <Button variant="default" size="sm" onClick={() => toast({
+              title: "Connect Wallet",
+              description: "Wallet connection feature would open here",
+            })}>Connect Wallet</Button>
           </div>
           
           {/* Mobile Menu Button */}
@@ -84,29 +123,60 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="md:hidden pt-4 pb-3 border-t border-border mt-3">
             <div className="space-y-3">
-              <a href="#" className="block px-3 py-2 rounded-md bg-secondary text-white font-medium">
+              <button 
+                onClick={() => handleNavClick("dashboard")}
+                className="block w-full px-3 py-2 rounded-md bg-secondary text-white font-medium text-left"
+              >
                 Dashboard
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+              </button>
+              <button 
+                onClick={() => handleNavClick("portfolio")}
+                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
+              >
                 Portfolio
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+              </button>
+              <button 
+                onClick={() => handleNavClick("markets")}
+                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
+              >
                 Markets
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+              </button>
+              <button 
+                onClick={() => handleNavClick("trading")}
+                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
+              >
                 Trading
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+              </button>
+              <button 
+                onClick={() => handleNavClick("news")}
+                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
+              >
                 News
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white">
+              </button>
+              <button 
+                onClick={() => handleNavClick("taxes")}
+                className="block w-full px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-white text-left"
+              >
                 Taxes
-              </a>
-              <Button variant="outline" size="sm" className="w-full justify-center mt-4">
+              </button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-center mt-4"
+                onClick={() => handleNavClick("settings")}
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="default" size="sm" className="w-full justify-center mt-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="w-full justify-center mt-2"
+                onClick={() => toast({
+                  title: "Connect Wallet",
+                  description: "Wallet connection feature would open here",
+                })}
+              >
                 Connect Wallet
               </Button>
             </div>

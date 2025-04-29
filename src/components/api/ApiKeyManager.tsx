@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 
 const ApiKeyManager: React.FC = () => {
+  // Setting collapsed by default as requested
   const [isOpen, setIsOpen] = useState(false);
   
   const apiKeyData = [

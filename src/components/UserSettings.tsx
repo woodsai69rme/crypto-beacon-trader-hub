@@ -97,7 +97,7 @@ const UserSettings = () => {
   return (
     <CollapsibleCard 
       title="User Settings" 
-      defaultCollapsed={true}  // Changed to true to make it collapsed by default
+      defaultCollapsed={true}  // Set to true to make it collapsed by default
       collapseBelow="md"
       className="w-full"
     >

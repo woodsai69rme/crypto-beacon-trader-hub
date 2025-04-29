@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import ThemeSwitcher from "../settings/ThemeSwitcher";
 import CryptoSearch from "../CryptoSearch";
 import { CoinOption } from "@/types/trading";
-import { useNavigate } from "react-router-dom"; 
 import { toast } from "@/components/ui/use-toast";
 
 export interface DashboardHeaderProps {
@@ -22,14 +21,26 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onRefresh,
   isLoading = false
 }) => {
-  const navigate = useNavigate();
-  
   const handleCoinSelect = (coin: CoinOption) => {
     // In a real app, navigate to coin detail page
     // For now, just show a toast
     toast({
       title: `Selected ${coin.name}`,
       description: `You selected ${coin.name} (${coin.symbol?.toUpperCase()})`
+    });
+  };
+  
+  const handleNotificationsClick = () => {
+    toast({
+      title: "Notifications",
+      description: `You have ${notificationCount} unread notifications`,
+    });
+  };
+  
+  const handleAlertsClick = () => {
+    toast({
+      title: "Alerts",
+      description: `You have ${alertCount} active alerts`,
     });
   };
   
@@ -41,7 +52,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       
       <div className="flex items-center gap-2">
         {notificationCount > 0 && (
-          <Button variant="ghost" size="icon" className="relative" aria-label={`${notificationCount} notifications`}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative" 
+            aria-label={`${notificationCount} notifications`}
+            onClick={handleNotificationsClick}
+          >
             <Bell className="h-5 w-5" />
             <Badge className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center p-0 text-[10px]" variant="destructive">
               {notificationCount}
@@ -50,7 +67,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         )}
         
         {alertCount > 0 && (
-          <Button variant="ghost" size="icon" className="relative" aria-label={`${alertCount} alerts`}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative" 
+            aria-label={`${alertCount} alerts`}
+            onClick={handleAlertsClick}
+          >
             <AlertTriangle className="h-5 w-5" />
             <Badge className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center p-0 text-[10px]" variant="destructive">
               {alertCount}

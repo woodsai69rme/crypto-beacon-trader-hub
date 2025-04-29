@@ -1,107 +1,101 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
-import { ModelRunningTabProps } from './ModelRunningTabProps';
-import { formatDistanceToNow } from 'date-fns';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LocalModel } from "./types";
+import { ModelRunningTabProps } from "./ModelRunningTabProps";
 
-const ModelRunningTab: React.FC<ModelRunningTabProps> = ({ model, onDisconnect }) => {
-  // Calculate running time if startedAt is available
-  const runningTime = model.startedAt 
-    ? formatDistanceToNow(new Date(model.startedAt), { addSuffix: false })
-    : 'Unknown';
+export function ModelRunningTab({ selectedModel, isRunning, onStopModel, onStartModel }: ModelRunningTabProps) {
+  if (!selectedModel) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+        <p>Select a model to run first</p>
+      </div>
+    );
+  }
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-lg">{model.name}</CardTitle>
-            <CardDescription>{model.description || 'AI trading model'}</CardDescription>
-          </div>
-          <Badge 
-            variant={model.status === 'running' ? 'default' : 'destructive'}
-            className="uppercase text-xs"
-          >
-            {model.status}
-          </Badge>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-medium">{selectedModel.name}</h3>
+          <p className="text-sm text-muted-foreground">{selectedModel.description}</p>
         </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Strategy</p>
-              <p className="font-medium">{model.strategy}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Runtime</p>
-              <p className="font-medium">{runningTime}</p>
-            </div>
-            
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Coins</p>
-              <p className="font-medium">
-                {model.coins?.length > 0 
-                  ? model.coins.join(', ').toUpperCase() 
-                  : 'No coins selected'}
-              </p>
-            </div>
-            
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Last Update</p>
-              <p className="font-medium">
-                {model.lastUpdate 
-                  ? formatDistanceToNow(new Date(model.lastUpdate), { addSuffix: true })
-                  : 'No updates yet'}
-              </p>
-            </div>
+        <Badge variant={isRunning ? "default" : "outline"}>
+          {isRunning ? "Running" : "Stopped"}
+        </Badge>
+      </div>
+
+      {isRunning && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Processing data...</span>
+            <span>75%</span>
           </div>
-          
-          {model.performance && (
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t">
-              <div className="text-center p-2 bg-muted/50 rounded">
-                <p className="text-xs text-muted-foreground">Total P&L</p>
-                <p className={`font-semibold ${model.performance.totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {model.performance.totalPnL >= 0 ? '+' : ''}{model.performance.totalPnL.toFixed(2)}%
-                </p>
-              </div>
-              <div className="text-center p-2 bg-muted/50 rounded">
-                <p className="text-xs text-muted-foreground">Win Rate</p>
-                <p className="font-semibold">{model.performance.winRate.toFixed(1)}%</p>
-              </div>
-              <div className="text-center p-2 bg-muted/50 rounded">
-                <p className="text-xs text-muted-foreground">Trades</p>
-                <p className="font-semibold">{model.performance.trades}</p>
-              </div>
-            </div>
-          )}
-          
-          <div className="flex justify-between items-center pt-2">
-            {model.status === 'running' ? (
-              <div className="flex items-center">
-                <Spinner size="sm" className="text-green-500 mr-2" />
-                <span className="text-sm">Model is active</span>
-              </div>
+          <Progress value={75} className="h-2" />
+        </div>
+      )}
+
+      <Tabs defaultValue="output">
+        <TabsList className="grid grid-cols-3 mb-4">
+          <TabsTrigger value="output">Output</TabsTrigger>
+          <TabsTrigger value="metrics">Metrics</TabsTrigger>
+          <TabsTrigger value="logs">Logs</TabsTrigger>
+        </TabsList>
+        <TabsContent value="output" className="space-y-4">
+          <div className="border rounded-md p-4 h-48 overflow-y-auto bg-muted/30 font-mono text-sm">
+            {isRunning ? (
+              <>
+                <p className="text-green-500">[INFO] Model started successfully</p>
+                <p className="text-muted-foreground">[INFO] Loading market data...</p>
+                <p className="text-muted-foreground">[INFO] Processing BTC/USD pair</p>
+                <p className="text-muted-foreground">[INFO] Analyzing historical patterns</p>
+                <p className="text-amber-500">[WARN] Limited data for accurate predictions</p>
+                <p className="text-muted-foreground">[INFO] Generating forecast...</p>
+              </>
             ) : (
-              <div className="text-sm text-muted-foreground">Model is not running</div>
+              <p className="text-muted-foreground">Start the model to see output</p>
             )}
-            
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => onDisconnect(model.id)}
-            >
-              Disconnect
-            </Button>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </TabsContent>
+        <TabsContent value="metrics">
+          <div className="border rounded-md p-4 h-48">
+            <p className="text-center text-muted-foreground pt-16">
+              {isRunning ? "Collecting metrics..." : "No metrics available"}
+            </p>
+          </div>
+        </TabsContent>
+        <TabsContent value="logs">
+          <div className="border rounded-md p-4 h-48 overflow-y-auto bg-muted/30 font-mono text-xs">
+            {isRunning ? (
+              <>
+                <p>[2025-04-28 10:15:32] Initializing model parameters</p>
+                <p>[2025-04-28 10:15:33] Loading LSTM architecture</p>
+                <p>[2025-04-28 10:15:34] Configuration: epochs=50, batch_size=32</p>
+                <p>[2025-04-28 10:15:35] Preprocessing historical data</p>
+                <p>[2025-04-28 10:15:36] Normalizing inputs</p>
+                <p>[2025-04-28 10:15:37] Starting training loop</p>
+              </>
+            ) : (
+              <p className="text-muted-foreground">Model logs will appear here</p>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex justify-end gap-2">
+        {isRunning ? (
+          <Button variant="destructive" onClick={onStopModel}>
+            Stop Model
+          </Button>
+        ) : (
+          <Button onClick={() => onStartModel(selectedModel)}>
+            Start Model
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
-
-export default ModelRunningTab;
