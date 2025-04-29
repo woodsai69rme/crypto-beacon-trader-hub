@@ -1,6 +1,4 @@
 
-import { LocalModel as TradingLocalModel } from '@/types/trading';
-
 export interface TradingStrategy {
   id: string;
   name: string;
@@ -14,7 +12,7 @@ export interface TradingStrategy {
   };
 }
 
-// Define a full LocalModel interface that has all the properties needed
+// Define a full LocalModel interface
 export interface LocalModel {
   id: string;
   name: string;

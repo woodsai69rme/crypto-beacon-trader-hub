@@ -1,3 +1,4 @@
+
 export interface CoinOption {
   id: string;
   name: string;
@@ -31,6 +32,7 @@ export interface ApiProvider {
   authMethod?: string;
   priority?: number;
   defaultHeaders?: Record<string, string>;
+  endpoints?: Record<string, string>;
 }
 
 export interface ApiEndpoint {
@@ -93,6 +95,7 @@ export interface PortfolioBenchmark {
 }
 
 export interface ATOTaxRate {
+  year: number;
   minIncome: number;
   maxIncome: number;
   baseAmount: number;

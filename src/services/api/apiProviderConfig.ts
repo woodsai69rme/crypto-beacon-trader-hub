@@ -1,4 +1,3 @@
-
 import { ApiProvider, ApiEndpoint } from "@/types/trading";
 
 // Default API providers
@@ -10,46 +9,14 @@ const defaultProviders: ApiProvider[] = [
     baseUrl: "https://api.coingecko.com/api/v3",
     apiKey: "",
     enabled: true,
-    endpoints: [
-      {
-        path: "/coins/markets",
-        method: "GET",
-        description: "List all supported coins with market data",
-        parameters: {
-          vs_currency: "currency (e.g., usd)",
-          ids: "coin ids (comma-separated)",
-          order: "sort order",
-          per_page: "items per page",
-          page: "page number",
-          sparkline: "include sparkline data"
-        }
-      },
-      {
-        path: "/coins/{id}",
-        method: "GET",
-        description: "Get current data for a coin",
-        parameters: {
-          id: "coin id (e.g., bitcoin)",
-          localization: "include localized data",
-          tickers: "include ticker data",
-          market_data: "include market data",
-          community_data: "include community data",
-          developer_data: "include developer data"
-        }
-      },
-      {
-        path: "/coins/{id}/market_chart",
-        method: "GET",
-        description: "Get historical market data",
-        parameters: {
-          id: "coin id (e.g., bitcoin)",
-          vs_currency: "currency (e.g., usd)",
-          days: "data up to number of days ago"
-        }
-      }
-    ],
-    rateLimit: 50,
-    tier: "free",
+    endpoints: {
+      "/coins/markets": "List all supported coins with market data",
+      "/coins/{id}": "Get current data for a coin",
+      "/coins/{id}/market_chart": "Get historical market data"
+    },
+    website: "https://www.coingecko.com",
+    docs: "https://www.coingecko.com/api/documentation",
+    authRequired: false,
     requiresAuth: false,
     priority: 1
   },
@@ -60,45 +27,17 @@ const defaultProviders: ApiProvider[] = [
     baseUrl: "https://min-api.cryptocompare.com/data",
     apiKey: "",
     enabled: true,
-    endpoints: [
-      {
-        path: "/price",
-        method: "GET",
-        description: "Single symbol price",
-        parameters: {
-          fsym: "from symbol",
-          tsyms: "to symbols (comma-separated)"
-        },
-        authentication: true
-      },
-      {
-        path: "/pricemulti",
-        method: "GET",
-        description: "Multiple symbol prices",
-        parameters: {
-          fsyms: "from symbols (comma-separated)",
-          tsyms: "to symbols (comma-separated)"
-        },
-        authentication: true
-      },
-      {
-        path: "/v2/histoday",
-        method: "GET",
-        description: "Daily OHLCV data",
-        parameters: {
-          fsym: "from symbol",
-          tsym: "to symbol",
-          limit: "number of data points",
-          toTs: "end timestamp",
-          aggregate: "data aggregation"
-        },
-        authentication: true
-      }
-    ],
-    rateLimit: 100,
-    tier: "standard",
+    endpoints: {
+      "/price": "Single symbol price",
+      "/pricemulti": "Multiple symbol prices",
+      "/v2/histoday": "Daily OHLCV data"
+    },
+    website: "https://www.cryptocompare.com",
+    docs: "https://min-api.cryptocompare.com/documentation",
+    authRequired: true,
     requiresAuth: true,
     apiKeyName: "api_key",
+    authMethod: "header",
     priority: 2,
     defaultHeaders: {
       "Content-Type": "application/json"

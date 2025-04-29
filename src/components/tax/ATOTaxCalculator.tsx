@@ -12,11 +12,11 @@ import { ATOTaxRate, ATOTaxCalculation } from "@/types/trading";
 
 // ATO tax rates for resident individuals 2022-2023
 const taxRates2023: ATOTaxRate[] = [
-  { minIncome: 0, maxIncome: 18200, baseAmount: 0, marginRate: 0 },
-  { minIncome: 18201, maxIncome: 45000, baseAmount: 0, marginRate: 0.19 },
-  { minIncome: 45001, maxIncome: 120000, baseAmount: 5092, marginRate: 0.325 },
-  { minIncome: 120001, maxIncome: 180000, baseAmount: 29467, marginRate: 0.37 },
-  { minIncome: 180001, maxIncome: Number.POSITIVE_INFINITY, baseAmount: 51667, marginRate: 0.45 }
+  { minIncome: 0, maxIncome: 18200, baseAmount: 0, marginRate: 0, year: 2023 },
+  { minIncome: 18201, maxIncome: 45000, baseAmount: 0, marginRate: 0.19, year: 2023 },
+  { minIncome: 45001, maxIncome: 120000, baseAmount: 5092, marginRate: 0.325, year: 2023 },
+  { minIncome: 120001, maxIncome: 180000, baseAmount: 29467, marginRate: 0.37, year: 2023 },
+  { minIncome: 180001, maxIncome: Number.POSITIVE_INFINITY, baseAmount: 51667, marginRate: 0.45, year: 2023 }
 ];
 
 const ATOTaxCalculator: React.FC = () => {
