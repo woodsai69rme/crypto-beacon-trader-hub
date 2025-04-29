@@ -2,9 +2,7 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
-  background-color: #1A1F2C;
   min-height: 100vh;
   color: #fff;
 }
@@ -210,6 +208,30 @@ button,
   --indicator-border: #554433;
 }
 
+.theme-red {
+  --app-bg: #1D0E12;
+  --card-bg: #2C151B;
+  --border-color: #3D242A;
+  --border-hover: #4D343A;
+  --text-primary: #FFE6EB;
+  --text-secondary: #C0A0A8;
+  --input-bg: #37191F;
+  --indicator-bg: #3D242A;
+  --indicator-border: #4D343A;
+}
+
+.theme-slate {
+  --app-bg: #0F172A;
+  --card-bg: #1E293B;
+  --border-color: #334155;
+  --border-hover: #475569;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --input-bg: #273449;
+  --indicator-bg: #334155;
+  --indicator-border: #475569;
+}
+
 /* Apply theme colors */
 .themed-app {
   background-color: var(--app-bg);
@@ -239,46 +261,89 @@ button:focus {
   box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--border-color) !important;
 }
 
-/* Light mode overrides */
-.light {
-  --app-bg: #F5F7FA;
-  --card-bg: #FFFFFF;
-  --border-color: #E2E8F0;
-  --border-hover: #CBD5E1;
-  --text-primary: #1E293B;
-  --text-secondary: #64748B;
-  --input-bg: #F8FAFC;
-  --indicator-bg: #F1F5F9;
-  --indicator-border: #E2E8F0;
+/* Force dark mode styles */
+.bg-card, 
+.bg-background, 
+.bg-popover,
+.bg-white,
+.bg-muted,
+[data-theme="dark"] .bg-card,
+[data-theme="dark"] .bg-background,
+[data-theme="dark"] .bg-popover,
+[data-theme="dark"] .bg-white {
+  background-color: var(--card-bg, #222333) !important;
+  color: var(--text-primary, white) !important;
 }
 
-.light .themed-app {
-  background-color: var(--app-bg);
-  color: var(--text-primary);
+.border,
+.border-border,
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-border {
+  border-color: var(--border-color, #333344) !important;
 }
 
-.light .themed-card {
-  background-color: var(--card-bg);
-  border-color: var(--border-color);
-  color: var(--text-primary);
+.crypto-card {
+  background-color: var(--card-bg, #222333) !important;
+  border-color: var(--border-color, #333344) !important;
+  color: var(--text-primary, white) !important;
 }
 
-.light .bg-card, 
-.light .bg-background, 
-.light .bg-popover,
-.light .bg-white,
-.light .bg-muted {
-  background-color: var(--card-bg) !important;
-  color: var(--text-primary) !important;
+/* Force all text to white */
+.text-black, 
+.text-foreground,
+.text-card-foreground,
+[data-theme="dark"] .text-black,
+[data-theme="dark"] .text-foreground,
+[data-theme="dark"] .text-card-foreground {
+  color: var(--text-primary, white) !important;
 }
 
-.light .text-black, 
-.light .text-foreground,
-.light .text-card-foreground {
-  color: var(--text-primary) !important;
+/* Light text styles */
+.text-muted-foreground {
+  color: var(--text-secondary, #B0B0C0) !important;
 }
 
-.light .border,
-.light .border-border {
-  border-color: var(--border-color) !important;
+/* Set all inputs and selects to dark */
+input, 
+select, 
+textarea, 
+button,
+.bg-gray-100,
+[role="combobox"] {
+  background-color: var(--input-bg, #2A2A3A) !important;
+  color: var(--text-primary, white) !important;
+  border-color: var(--border-color, #333344) !important;
+}
+
+/* Key indicators styling */
+.key-indicator {
+  color: var(--text-primary, white) !important;
+  background-color: var(--indicator-bg, #333344) !important;
+  border: 1px solid var(--indicator-border, #444455) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+.border-gray-200 {
+  border-color: var(--border-color, #333344) !important;
+}
+
+/* Dark theme for dialogs and popovers */
+[role="dialog"],
+[role="tooltip"],
+[role="menu"],
+[data-state="open"] {
+  background-color: var(--card-bg, #222333) !important;
+  border-color: var(--border-color, #333344) !important;
+  color: var(--text-primary, white) !important;
+}
+
+/* Remove any white backgrounds from body */
+body {
+  background-color: var(--app-bg, #1A1F2C) !important;
+  color: var(--text-primary, white) !important;
+}
+
+html {
+  background-color: var(--app-bg, #1A1F2C) !important;
 }
