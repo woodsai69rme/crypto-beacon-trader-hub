@@ -17,7 +17,7 @@ function App() {
           <div className="themed-app min-h-screen flex flex-col bg-background">
             <Navbar />
             <div className="container mx-auto px-4 sm:px-6 py-6 flex-1 max-w-7xl">
-              <h1 className="text-3xl font-bold mb-6 text-foreground">Crypto Trading Platform</h1>
+              <h1 className="text-3xl font-bold mb-6 text-foreground bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Crypto Trading Platform</h1>
               <Dashboard />
             </div>
             <footer className="py-6 border-t border-border">

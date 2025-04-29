@@ -103,7 +103,7 @@
   
   /* Gradient text for headings */
   .gradient-text {
-    @apply bg-gradient-to-r from-crypto-blue to-crypto-purple bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent;
   }
   
   /* Status indicators */

@@ -5,7 +5,8 @@ export interface ApiProvider {
   baseUrl: string;
   description: string;
   endpoints: ApiEndpoint[];
-  isActive: boolean;
+  isActive?: boolean;
+  enabled?: boolean;
   rateLimits?: RateLimit[];
   apiKey?: string;
   website?: string;
