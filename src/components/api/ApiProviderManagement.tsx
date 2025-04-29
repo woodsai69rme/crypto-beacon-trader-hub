@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,17 +39,17 @@ const ApiProviderManagement = () => {
         name: newProvider.name || "New Provider",
         description: newProvider.description || "",
         baseUrl: newProvider.baseUrl || "",
-        website: newProvider.website || "",
-        docs: newProvider.docs || "",
-        authRequired: newProvider.authRequired || false,
+        website: newProvider.website,
+        docs: newProvider.docs,
+        authRequired: newProvider.authRequired,
         apiKey: newProvider.apiKey || "",
         enabled: newProvider.enabled !== undefined ? newProvider.enabled : true,
-        requiresAuth: newProvider.requiresAuth || false,
-        apiKeyName: newProvider.apiKeyName || "",
-        authMethod: newProvider.authMethod || "",
-        priority: newProvider.priority || 10,
+        requiresAuth: newProvider.requiresAuth,
+        apiKeyName: newProvider.apiKeyName,
+        authMethod: newProvider.authMethod,
+        priority: newProvider.priority,
         endpoints: newProvider.endpoints || [],
-        defaultHeaders: newProvider.defaultHeaders || {}
+        defaultHeaders: newProvider.defaultHeaders
       };
 
       apiProviderManager.addProvider(completeProvider);

@@ -1,4 +1,3 @@
-
 export interface ApiProvider {
   id: string;
   name: string;
@@ -99,7 +98,11 @@ export interface CoinOption {
   volume?: number;
   marketCap?: number;
   value: string;
-  label?: string;
+  label: string;
+  priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
+  rank?: number;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
@@ -113,9 +116,12 @@ export interface AITradingStrategy {
   description: string;
   riskLevel: 'low' | 'medium' | 'high';
   timeframe: string;
+  type?: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
   performance?: number;
   creator?: string;
   tags?: string[];
+  parameters?: any;
+  indicators?: string[];
 }
 
 export interface AiBotTradingProps {
@@ -124,8 +130,32 @@ export interface AiBotTradingProps {
   strategyName: string;
 }
 
-export interface SupportedCurrency {
-  code: string;
+export type SupportedCurrency = "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "CHF" | "CNY" | "BTC" | "ETH";
+
+// Additional properties for compatibility
+export type Trade = {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  timestamp: string;
+  currency: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+};
+
+export type TradingAccount = {
+  id: string;
   name: string;
-  symbol: string;
-}
+  balance: number;
+  initialBalance: number;
+  trades: Trade[];
+  currency: string;
+  createdAt: string;
+};

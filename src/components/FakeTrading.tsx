@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TradingForm from "./trading/TradingForm";
@@ -8,8 +9,7 @@ import AccountManager from "./trading/AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { useEffect } from "react";
-import { SupportedCurrency } from "@/types/trading";
-import { Trade, CoinOption } from "@/components/trading/types";
+import { SupportedCurrency, CoinOption, Trade } from "@/types/trading";
 
 const FakeTrading = () => {
   const {
@@ -76,7 +76,7 @@ const FakeTrading = () => {
       if (amount > 0) {
         const coin = availableCoins.find(c => c.id === coinId);
         if (coin) {
-          totalValue += coin.price * amount;
+          totalValue += coin.price! * amount;
         }
       }
     });
@@ -104,13 +104,13 @@ const FakeTrading = () => {
       coinSymbol: selectedCoin.symbol,
       type,
       amount,
-      price: selectedCoin.price,
-      totalValue: amount * selectedCoin.price,
+      price: selectedCoin.price!,
+      totalValue: amount * selectedCoin.price!,
       timestamp: new Date().toISOString(),
-      currency: selectedCurrency as SupportedCurrency
+      currency: selectedCurrency
     };
     
-    addTradeToAccount(activeAccount.id, trade as any);
+    addTradeToAccount(activeAccount.id, trade);
   };
 
   return (
@@ -162,7 +162,7 @@ const FakeTrading = () => {
             
             <div className="mt-6">
               <TradeHistory
-                trades={activeAccount.trades as Trade[]}
+                trades={activeAccount.trades}
                 formatCurrency={formatValue}
                 activeCurrency={activeCurrency as SupportedCurrency}
               />

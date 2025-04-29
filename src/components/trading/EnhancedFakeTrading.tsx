@@ -5,12 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TradingForm from "./TradingForm";
 import TradingHoldings from "./TradingHoldings";
 import TradeHistory from "./TradeHistory";
-import TradingStats, { SupportedCurrency } from "./TradingStats";
+import TradingStats from "./TradingStats";
 import AccountManager from "./AccountManager";
 import { useTradingAccounts } from "@/hooks/use-trading-accounts";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 import { startPriceMonitoring } from "@/services/priceMonitoring";
-import { CoinOption } from "@/types/trading";
+import { CoinOption, SupportedCurrency, Trade } from "@/types/trading";
 import { Activity, LineChart } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import RealTimePriceChart from "./RealTimePriceChart";
@@ -36,12 +36,12 @@ const EnhancedFakeTrading: React.FC = () => {
   } = useCurrencyConverter();
 
   const [availableCoins, setAvailableCoins] = useState<CoinOption[]>([
-    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
-    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
-    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
-    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45 },
-    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57 },
-    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14 },
+    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, value: "bitcoin", label: "Bitcoin" },
+    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, value: "ethereum", label: "Ethereum" },
+    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, value: "solana", label: "Solana" },
+    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, value: "cardano", label: "Cardano" },
+    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, value: "ripple", label: "XRP" },
+    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, value: "dogecoin", label: "Dogecoin" },
   ]);
   
   const [selectedCoin, setSelectedCoin] = useState<string>("bitcoin");
@@ -116,7 +116,7 @@ const EnhancedFakeTrading: React.FC = () => {
     Object.entries(coinHoldings).forEach(([coinId, amount]) => {
       if (amount > 0) {
         const coin = availableCoins.find(c => c.id === coinId);
-        if (coin) {
+        if (coin && coin.price) {
           totalValue += coin.price * amount;
         }
       }
@@ -136,9 +136,9 @@ const EnhancedFakeTrading: React.FC = () => {
     const selectedCurrency = activeCurrency as SupportedCurrency;
     const selectedCoin = availableCoins.find(c => c.id === coinId);
     
-    if (!selectedCoin) return;
+    if (!selectedCoin || !selectedCoin.price) return;
     
-    const trade = {
+    const trade: Trade = {
       id: Date.now().toString(),
       coinId,
       coinName: selectedCoin.name,

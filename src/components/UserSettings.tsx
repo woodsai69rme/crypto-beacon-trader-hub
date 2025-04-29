@@ -3,14 +3,16 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import GeneralSettings from "./settings/GeneralSettings";
-import NotificationSettings from "./settings/NotificationSettings";
-import DataPrivacySettings from "./settings/DataPrivacySettings";
-import AppearanceSettings from "./settings/AppearanceSettings";
-import SettingsTabs from "./settings/SettingsTabs";
-import SettingsFooter from "./settings/SettingsFooter";
-import { SettingsFormValues } from "./settings/types";
 import CollapsibleCard from "./CollapsibleCard";
+import { SettingsFormValues } from "./settings/types";
+
+// Import components with proper props setup
+const GeneralSettings = React.lazy(() => import("./settings/GeneralSettings"));
+const NotificationSettings = React.lazy(() => import("./settings/NotificationSettings"));
+const DataPrivacySettings = React.lazy(() => import("./settings/DataPrivacySettings"));
+const AppearanceSettings = React.lazy(() => import("./settings/AppearanceSettings"));
+const SettingsTabs = React.lazy(() => import("./settings/SettingsTabs"));
+const SettingsFooter = React.lazy(() => import("./settings/SettingsFooter"));
 
 const UserSettings = () => {
   const [activeTab, setActiveTab] = useState<string>("general");
@@ -97,38 +99,40 @@ const UserSettings = () => {
   return (
     <CollapsibleCard 
       title="User Settings" 
-      defaultCollapsed={true}  // Set to true to make it collapsed by default
+      defaultCollapsed={true}
       collapseBelow="md"
       className="w-full"
     >
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-        <SettingsTabs 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <SettingsTabs 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+          />
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsContent value="general" className="space-y-6">
-            <GeneralSettings form={form} />
-          </TabsContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsContent value="general" className="space-y-6">
+              <GeneralSettings form={form as any} />
+            </TabsContent>
+            
+            <TabsContent value="notifications" className="space-y-6">
+              <NotificationSettings form={form as any} />
+            </TabsContent>
+            
+            <TabsContent value="privacy" className="space-y-6">
+              <DataPrivacySettings form={form as any} />
+            </TabsContent>
+            
+            <TabsContent value="appearance" className="space-y-6">
+              <AppearanceSettings form={form as any} />
+            </TabsContent>
+          </Tabs>
           
-          <TabsContent value="notifications" className="space-y-6">
-            <NotificationSettings form={form} />
-          </TabsContent>
-          
-          <TabsContent value="privacy" className="space-y-6">
-            <DataPrivacySettings form={form} />
-          </TabsContent>
-          
-          <TabsContent value="appearance" className="space-y-6">
-            <AppearanceSettings form={form} />
-          </TabsContent>
-        </Tabs>
-        
-        <SettingsFooter 
-          isSaving={isSaving} 
-          onReset={handleReset} 
-        />
+          <SettingsFooter 
+            isSaving={isSaving} 
+            onReset={handleReset} 
+          />
+        </React.Suspense>
       </form>
     </CollapsibleCard>
   );
