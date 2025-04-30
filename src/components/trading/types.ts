@@ -180,3 +180,37 @@ export interface ExtendedTradingTimeframe {
   candleCount?: number;
   defaultIndicators?: string[];
 }
+
+export interface TradingSignal {
+  id: string;
+  coinId: string;
+  type: 'buy' | 'sell' | 'hold';
+  price: number;
+  confidence: number;
+  source: string;
+  timestamp: string;
+  reason: string;
+}
+
+export interface StrategyShare {
+  id: string;
+  strategyId: string;
+  strategyName: string;
+  userId: string;
+  username: string;
+  description: string;
+  performance: {
+    winRate: number;
+    returns: number;
+    trades: number;
+  };
+  likes: number;
+  timestamp: string;
+}
+
+export interface QuantitativeAnalysisProps {
+  symbol: string;
+  timeframe: string;
+  depth?: number;
+}
+

@@ -1,69 +1,77 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type ThemeContextType = {
-  theme: string;
-  setTheme: (theme: string) => void;
-  colorScheme: string;
-  setColorScheme: (colorScheme: string) => void;
-};
+type Theme = "light" | "dark";
+type ColorScheme = "default" | "blue" | "purple" | "green" | "amber" | "red" | "slate";
 
-const ThemeContext = createContext<ThemeContextType>({
-  theme: "dark", // Default to dark theme
-  setTheme: () => {},
-  colorScheme: "default", // Default color scheme
-  setColorScheme: () => {}
-});
+interface ThemeContextType {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  colorScheme: ColorScheme;
+  setColorScheme: (colorScheme: ColorScheme) => void;
+}
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<string>(() => {
-    // Use dark theme as default, but check if the user has previously set a preference
-    const storedTheme = localStorage.getItem("theme");
-    return storedTheme || "dark";
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    // Check localStorage first, default to 'dark'
+    const savedTheme = localStorage.getItem("theme");
+    return (savedTheme === "light" || savedTheme === "dark") ? savedTheme : "dark";
   });
-
-  const [colorScheme, setColorScheme] = useState<string>(() => {
-    const storedColorScheme = localStorage.getItem("colorScheme");
-    return storedColorScheme || "default";
+  
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+    // Check localStorage first, default to 'default'
+    const savedColorScheme = localStorage.getItem("colorScheme");
+    return (savedColorScheme === "default" || 
+            savedColorScheme === "blue" || 
+            savedColorScheme === "purple" || 
+            savedColorScheme === "green" || 
+            savedColorScheme === "amber" || 
+            savedColorScheme === "red" || 
+            savedColorScheme === "slate") ? savedColorScheme as ColorScheme : "default";
   });
 
   useEffect(() => {
-    // Update theme class on document element
+    // Apply theme to document root element
     const root = document.documentElement;
-    
-    // Remove all theme classes
     root.classList.remove("light", "dark");
-    
-    // Add the current theme class
     root.classList.add(theme);
-    
-    // Store the theme preference
     localStorage.setItem("theme", theme);
   }, [theme]);
 
   useEffect(() => {
-    // Update colorScheme class on document element
+    // Apply color scheme to document root element
     const root = document.documentElement;
-    
-    // Remove all colorScheme classes
     root.classList.remove("default", "blue", "purple", "green", "amber", "red", "slate");
-    
-    // Add the current colorScheme class if it's not default
     if (colorScheme !== "default") {
       root.classList.add(colorScheme);
     }
-    
-    // Store the colorScheme preference
     localStorage.setItem("colorScheme", colorScheme);
   }, [colorScheme]);
 
+  // Expose setters that update state and localStorage
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+  };
+
+  const setColorScheme = (newColorScheme: ColorScheme) => {
+    setColorSchemeState(newColorScheme);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, colorScheme, setColorScheme }}>
+    <ThemeContext.Provider
+      value={{ theme, setTheme, colorScheme, setColorScheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );
-};
+}
 
-export const useTheme = () => useContext(ThemeContext);
-
-export default ThemeContext;
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+}

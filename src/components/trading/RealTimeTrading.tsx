@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startPriceMonitoring } from "@/services/priceMonitoring";
-import { CoinOption } from '@/types/trading';
+import { CoinOption } from '@/components/trading/types';
 import RealTimePriceChart from './RealTimePriceChart';
 import RealTimePrices from './RealTimePrices';
 import RealTimeTrader from './RealTimeTrader';
@@ -20,7 +21,8 @@ const RealTimeTrading: React.FC = () => {
       image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
       volume: 28000000000,
       marketCap: 1180000000000,
-      value: "BTC" // Adding value to match updated type
+      value: "BTC",
+      label: "Bitcoin (BTC)" 
     },
     { 
       id: "ethereum", 
@@ -32,7 +34,8 @@ const RealTimeTrading: React.FC = () => {
       image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
       volume: 15000000000,
       marketCap: 360000000000,
-      value: "ETH" // Adding value to match updated type
+      value: "ETH",
+      label: "Ethereum (ETH)"
     },
     { 
       id: "solana", 
@@ -44,7 +47,8 @@ const RealTimeTrading: React.FC = () => {
       image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
       volume: 5200000000,
       marketCap: 90000000000,
-      value: "SOL" // Adding value to match updated type
+      value: "SOL",
+      label: "Solana (SOL)"
     },
     { 
       id: "cardano", 
@@ -56,7 +60,8 @@ const RealTimeTrading: React.FC = () => {
       image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
       volume: 890000000,
       marketCap: 24000000000,
-      value: "ADA" // Adding value to match updated type
+      value: "ADA",
+      label: "Cardano (ADA)"
     },
     { 
       id: "ripple", 
@@ -68,7 +73,8 @@ const RealTimeTrading: React.FC = () => {
       image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
       volume: 2400000000,
       marketCap: 32000000000,
-      value: "XRP" // Adding value to match updated type
+      value: "XRP",
+      label: "XRP (XRP)"
     },
     { 
       id: "dogecoin", 
@@ -80,7 +86,8 @@ const RealTimeTrading: React.FC = () => {
       image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
       volume: 1900000000,
       marketCap: 18000000000,
-      value: "DOGE" // Adding value to match updated type
+      value: "DOGE",
+      label: "Dogecoin (DOGE)"
     }
   ]);
   
@@ -92,7 +99,12 @@ const RealTimeTrading: React.FC = () => {
     const stopMonitoring = startPriceMonitoring(
       coinIds,
       (updatedCoins) => {
-        setMarketData(updatedCoins);
+        const enhancedCoins = updatedCoins.map(coin => ({
+          ...coin,
+          label: `${coin.name} (${coin.symbol})`,
+          value: coin.symbol
+        }));
+        setMarketData(enhancedCoins);
       },
       3000 // Update every 3 seconds
     );
@@ -128,7 +140,6 @@ const RealTimeTrading: React.FC = () => {
           
           <TabsContent value="chart">
             <RealTimePriceChart 
-              coins={marketData} 
               selectedCoinId={selectedCoinId}
               onSelectCoin={(coinId) => setSelectedCoinId(coinId)}
             />

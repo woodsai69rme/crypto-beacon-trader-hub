@@ -1,0 +1,147 @@
+
+/* Base Dark Theme (Default) */
+:root {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+}
+
+/* Light Theme */
+.light {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+}
+
+/* Color Schemes */
+.blue {
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 221 83% 53%;
+}
+
+.purple {
+  --primary: 270 76% 54%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 270 76% 54%;
+}
+
+.green {
+  --primary: 142 71% 45%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 142 71% 45%;
+}
+
+.amber {
+  --primary: 38 92% 50%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 38 92% 50%;
+}
+
+.red {
+  --primary: 0 84% 60%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 0 84% 60%;
+}
+
+.slate {
+  --primary: 215 16% 47%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 215 16% 47%;
+}
+
+/* Additional utility class for colored backgrounds */
+.bg-blue-500 {
+  background-color: hsl(221, 83%, 53%);
+}
+
+.bg-purple-500 {
+  background-color: hsl(270, 76%, 54%);
+}
+
+.bg-green-500 {
+  background-color: hsl(142, 71%, 45%);
+}
+
+.bg-amber-500 {
+  background-color: hsl(38, 92%, 50%);
+}
+
+.bg-red-500 {
+  background-color: hsl(0, 84%, 60%);
+}
+
+.bg-slate-500 {
+  background-color: hsl(215, 16%, 47%);
+}
+
+/* Text colors */
+.text-blue-500 {
+  color: hsl(221, 83%, 53%);
+}
+
+.text-purple-500 {
+  color: hsl(270, 76%, 54%);
+}
+
+.text-green-500 {
+  color: hsl(142, 71%, 45%);
+}
+
+.text-amber-500 {
+  color: hsl(38, 92%, 50%);
+}
+
+.text-red-500 {
+  color: hsl(0, 84%, 60%);
+}
+
+.text-slate-500 {
+  color: hsl(215, 16%, 47%);
+}
+
+/* Animation classes */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

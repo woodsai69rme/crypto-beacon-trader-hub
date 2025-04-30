@@ -20,15 +20,16 @@ interface ThemeOption {
   description: string;
 }
 
-const ThemeSwitcher = () => {
+const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
 
+  // Define theme options
   const themeOptions: ThemeOption[] = [
     { value: "dark", label: "Dark", description: "Dark theme with deep backgrounds" },
     { value: "light", label: "Light", description: "Light theme with bright backgrounds" }
   ];
 
+  // Define color scheme options
   const colorSchemeOptions: ThemeOption[] = [
     { value: "default", label: "Default", description: "Standard color scheme" },
     { value: "blue", label: "Ocean Blue", description: "Cool blue tones" },
@@ -41,6 +42,7 @@ const ThemeSwitcher = () => {
 
   const handleThemeChange = (value: string) => {
     setTheme(value);
+    localStorage.setItem("theme", value);
     toast({
       title: "Theme Updated",
       description: `Changed to ${value} theme`,
@@ -50,12 +52,34 @@ const ThemeSwitcher = () => {
 
   const handleColorSchemeChange = (value: string) => {
     setColorScheme(value);
+    localStorage.setItem("colorScheme", value);
     toast({
       title: "Style Updated",
       description: `Changed to ${value} style`,
       duration: 2000
     });
   };
+
+  // Apply theme changes on mount
+  useEffect(() => {
+    // Apply theme from localStorage or default to dark
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    const savedColorScheme = localStorage.getItem("colorScheme") || "default";
+    
+    // Apply theme to document root element
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(savedTheme);
+    
+    // Apply color scheme to document root element
+    document.documentElement.classList.remove("default", "blue", "purple", "green", "amber", "red", "slate");
+    if (savedColorScheme !== "default") {
+      document.documentElement.classList.add(savedColorScheme);
+    }
+    
+    // Update context state
+    setTheme(savedTheme);
+    setColorScheme(savedColorScheme);
+  }, [setTheme, setColorScheme]);
 
   return (
     <DropdownMenu>
@@ -102,7 +126,7 @@ const ThemeSwitcher = () => {
                 <span>{option.label}</span>
                 <span className="text-xs text-muted-foreground">{option.description}</span>
               </div>
-              <div className={`w-4 h-4 rounded-full bg-${option.value === 'default' ? 'primary' : option.value}-500`}></div>
+              <div className={`w-4 h-4 rounded-full ${option.value === 'default' ? 'bg-primary' : `bg-${option.value}-500`}`}></div>
               {colorScheme === option.value && (
                 <span className="text-primary">✓</span>
               )}
