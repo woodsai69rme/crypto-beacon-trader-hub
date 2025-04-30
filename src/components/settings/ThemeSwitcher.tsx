@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, ChevronDown } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,18 +21,18 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const themeOptions = [
-    { value: "light", label: "Light" },
-    { value: "dark", label: "Dark" }
+    { value: "light" as const, label: "Light" },
+    { value: "dark" as const, label: "Dark" }
   ];
   
   const colorSchemeOptions = [
-    { value: "default", label: "Default" },
-    { value: "blue", label: "Blue" },
-    { value: "green", label: "Green" },
-    { value: "purple", label: "Purple" },
-    { value: "amber", label: "Amber" },
-    { value: "red", label: "Red" },
-    { value: "slate", label: "Slate" }
+    { value: "default" as const, label: "Default" },
+    { value: "blue" as const, label: "Blue" },
+    { value: "green" as const, label: "Green" },
+    { value: "purple" as const, label: "Purple" },
+    { value: "amber" as const, label: "Amber" },
+    { value: "red" as const, label: "Red" },
+    { value: "slate" as const, label: "Slate" }
   ];
   
   const getCurrentThemeLabel = () => {

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useTradingAccounts } from './use-trading-accounts';
-import { Trade, CoinOption } from '@/types/trading';
+
+import { useState } from 'react';
+import { CoinOption } from '@/components/trading/types';
 
 export function useTradingPortfolio() {
-  const { accounts, activeAccountId } = useTradingAccounts();
-  const [coinData, setCoinData] = useState<CoinOption[]>([
+  // Initial portfolio data
+  const [portfolio] = useState<CoinOption[]>([
     { 
       id: "bitcoin", 
       name: "Bitcoin", 
@@ -14,7 +14,9 @@ export function useTradingPortfolio() {
       changePercent: 2.3,
       image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
       volume: 28000000000,
-      marketCap: 1180000000000
+      marketCap: 1180000000000,
+      value: "BTC",
+      label: "Bitcoin (BTC)"
     },
     { 
       id: "ethereum", 
@@ -25,56 +27,69 @@ export function useTradingPortfolio() {
       changePercent: -1.5,
       image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
       volume: 15000000000,
-      marketCap: 360000000000
+      marketCap: 360000000000,
+      value: "ETH",
+      label: "Ethereum (ETH)"
     },
-    // Add more coins as needed
+    { 
+      id: "solana", 
+      name: "Solana", 
+      symbol: "SOL", 
+      price: 121.33,
+      priceChange: 3.56,
+      changePercent: 3.1,
+      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+      volume: 5200000000,
+      marketCap: 90000000000,
+      value: "SOL",
+      label: "Solana (SOL)"
+    },
   ]);
 
-  const [portfolioValue, setPortfolioValue] = useState(0);
-  const [holdings, setHoldings] = useState<{ [coinId: string]: number }>({});
+  // Mock holdings
+  const [holdings] = useState<{[key: string]: number}>({
+    "bitcoin": 0.5,
+    "ethereum": 3.2,
+    "solana": 25,
+  });
 
-  useEffect(() => {
-    if (!activeAccountId) {
-      setPortfolioValue(0);
-      setHoldings({});
-      return;
-    }
-
-    const activeAccount = accounts.find(account => account.id === activeAccountId);
-    if (!activeAccount) {
-      setPortfolioValue(0);
-      setHoldings({});
-      return;
-    }
-
-    // Calculate holdings
-    const newHoldings: { [coinId: string]: number } = {};
-    activeAccount.trades.forEach(trade => {
-      if (!newHoldings[trade.coinId]) {
-        newHoldings[trade.coinId] = 0;
-      }
-      if (trade.type === 'buy') {
-        newHoldings[trade.coinId] += trade.amount;
-      } else {
-        newHoldings[trade.coinId] -= trade.amount;
-      }
-    });
-    setHoldings(newHoldings);
-
-    // Calculate portfolio value
-    let totalValue = activeAccount.balance;
-    Object.entries(newHoldings).forEach(([coinId, amount]) => {
-      const coin = coinData.find(c => c.id === coinId);
-      if (coin) {
-        totalValue += coin.price * amount;
-      }
-    });
-    setPortfolioValue(totalValue);
-  }, [accounts, activeAccountId, coinData]);
-
-  const getOwnedCoinAmount = (coinId: string): number => {
-    return holdings[coinId] || 0;
+  // Calculate portfolio value
+  const getPortfolioValue = () => {
+    return portfolio.reduce((total, coin) => {
+      const amount = holdings[coin.id] || 0;
+      return total + (coin.price * amount);
+    }, 0);
   };
 
-  return { portfolioValue, holdings, getOwnedCoinAmount };
+  // Calculate 24h change
+  const getPortfolioDailyChange = () => {
+    return portfolio.reduce((total, coin) => {
+      const amount = holdings[coin.id] || 0;
+      const percentChange = coin.changePercent || 0;
+      return total + (coin.price * amount * percentChange / 100);
+    }, 0);
+  };
+
+  // Calculate allocation percentages
+  const getAllocations = () => {
+    const totalValue = getPortfolioValue();
+    return portfolio.map(coin => {
+      const amount = holdings[coin.id] || 0;
+      const value = coin.price * amount;
+      return {
+        ...coin,
+        amount,
+        value,
+        allocation: (value / totalValue) * 100
+      };
+    });
+  };
+
+  return {
+    portfolio,
+    holdings,
+    portfolioValue: getPortfolioValue(),
+    dailyChange: getPortfolioDailyChange(),
+    allocations: getAllocations(),
+  };
 }

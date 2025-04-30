@@ -53,6 +53,7 @@ interface AiTradingContextType {
   connectBotToAccount: (modelId: string, accountId: string) => void;
   disconnectBot: (modelId: string) => void;
   isProcessing: boolean;
+  addStrategy?: (strategy: AiStrategy, name: string, description: string) => Promise<void>;
 }
 
 const defaultTradingSettings = {
@@ -119,51 +120,25 @@ const initialSignals: TradeSignal[] = [
   }
 ];
 
-// Sample trading accounts for demo
+// Sample trading accounts for demo (with corrected TradingAccount type)
 const sampleTradingAccounts: TradingAccount[] = [
   {
     id: "account-1",
     name: "Main Trading Account",
     balance: 10000,
+    initialBalance: 10000,
     currency: "USD",
-    type: "spot",
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date().toISOString(),
-    trades: [],
-    performance: {
-      daily: 2.3,
-      weekly: -1.5,
-      monthly: 8.7,
-      allTime: 15.2
-    },
-    risk: {
-      level: "medium",
-      exposure: 45.5
-    },
-    isActive: true,
-    isDemo: false
+    trades: []
   },
   {
     id: "account-2",
     name: "Demo Account",
     balance: 50000,
+    initialBalance: 50000,
     currency: "USD",
-    type: "spot",
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date().toISOString(),
-    trades: [],
-    performance: {
-      daily: -0.8,
-      weekly: 4.2,
-      monthly: 12.5,
-      allTime: 12.5
-    },
-    risk: {
-      level: "low",
-      exposure: 25.0
-    },
-    isActive: true,
-    isDemo: true
+    trades: []
   }
 ];
 
@@ -465,15 +440,15 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const trade: Trade = {
         id: tradeId,
         type: signal.action === "buy" ? "buy" : "sell",
-        coin: signal.coin,
+        coinId: signal.coin,
         amount: tradeSize / signal.price,
         price: signal.price,
-        date: new Date(),
-        fees: tradeSize * 0.001, // 0.1% fee
-        status: "completed",
+        timestamp: new Date().toISOString(),
+        currency: "USD" as const,
         coinName: signal.coin,
         coinSymbol: signal.coin,
-        totalValue: tradeSize
+        totalValue: tradeSize,
+        fees: tradeSize * 0.001 // 0.1% fee
       };
       
       // Update the account
@@ -481,14 +456,13 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (acc.id === account.id) {
           const trades = [...acc.trades, trade];
           const balance = signal.action === "buy" ? 
-            acc.balance - tradeSize - trade.fees :
-            acc.balance + tradeSize - trade.fees;
+            acc.balance - tradeSize - (trade.fees || 0) :
+            acc.balance + tradeSize - (trade.fees || 0);
           
           return {
             ...acc,
             balance,
             trades,
-            updatedAt: new Date().toISOString()
           };
         }
         return acc;
@@ -563,6 +537,11 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       description: `${model.name} is now disconnected from all accounts`
     });
   }, [models]);
+
+  // Add custom strategy
+  const addStrategy = useCallback(async (strategy: AiStrategy, name: string, description: string) => {
+    return createModel(name, strategy, description);
+  }, [createModel]);
   
   return (
     <AiTradingContext.Provider
@@ -586,7 +565,8 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         getConnectedAccount,
         connectBotToAccount,
         disconnectBot,
-        isProcessing
+        isProcessing,
+        addStrategy
       }}
     >
       {children}

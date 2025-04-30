@@ -1,140 +1,172 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { CoinOption } from "@/types/trading";
-import { fetchTopCoins } from "@/services/cryptoApi";
-import { toast } from "@/components/ui/use-toast";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { BellRing } from 'lucide-react';
+import { CoinOption } from './types';
+import { fetchCryptoData } from "@/services/cryptoService";
 
 interface RealTimeAlertsProps {
-  availableCoins?: CoinOption[];
+  // Add props if needed
 }
 
-const RealTimeAlerts: React.FC<RealTimeAlertsProps> = ({ availableCoins = [] }) => {
-  const [selectedCoin, setSelectedCoin] = useState<string | undefined>(undefined);
-  const [alertCondition, setAlertCondition] = useState<"above" | "below">("above");
-  const [priceTarget, setPriceTarget] = useState<string>("");
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [coins, setCoins] = useState<CoinOption[]>(availableCoins);
-  const [isLoading, setIsLoading] = useState(availableCoins.length === 0);
-
+const RealTimeAlerts: React.FC<RealTimeAlertsProps> = () => {
+  const [marketData, setMarketData] = useState<CoinOption[]>([]);
+  const [alerts, setAlerts] = useState<{
+    id: string;
+    coin: string;
+    type: 'price' | 'volatility' | 'volume' | 'trend';
+    message: string;
+    severity: 'info' | 'warning' | 'critical';
+    timestamp: Date;
+  }[]>([]);
+  
+  // Fetch crypto data
   useEffect(() => {
-    if (availableCoins.length === 0) {
-      fetchTopCoins(20)
-        .then(coinsData => {
-          setCoins(coinsData);
-          setIsLoading(false);
-        })
-        .catch(error => {
-          console.error("Failed to load coins:", error);
-          setIsLoading(false);
-        });
-    } else {
-      setCoins(availableCoins);
-    }
-  }, [availableCoins]);
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!selectedCoin || !priceTarget) {
-      toast({
-        title: "Missing information",
-        description: "Please select a coin and enter a price target.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newAlert = {
-      coin: selectedCoin,
-      condition: alertCondition,
-      price: priceTarget,
-      timestamp: new Date().toLocaleTimeString(),
+    const fetchData = async () => {
+      try {
+        const data = await fetchCryptoData();
+        // Convert to CoinOption format
+        const formattedData: CoinOption[] = data.map(coin => ({
+          id: coin.id,
+          name: coin.name,
+          symbol: coin.symbol.toUpperCase(),
+          price: coin.current_price,
+          image: coin.image,
+          priceChange: coin.price_change_24h,
+          changePercent: coin.price_change_percentage_24h,
+          volume: coin.total_volume,
+          marketCap: coin.market_cap,
+          value: coin.id,
+          label: `${coin.name} (${coin.symbol.toUpperCase()})`
+        }));
+        
+        setMarketData(formattedData);
+        
+        // Generate mock alerts
+        generateMockAlerts(formattedData);
+      } catch (error) {
+        console.error("Error fetching crypto data:", error);
+      }
     };
-
-    setAlerts([...alerts, newAlert]);
-    setSelectedCoin(undefined);
-    setPriceTarget("");
     
-    toast({
-      title: "Alert set",
-      description: `You'll be notified when ${coins.find(c => c.id === selectedCoin)?.symbol} reaches the target price.`
+    fetchData();
+    
+    // Set up interval to update data
+    const interval = setInterval(() => {
+      fetchData();
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  const generateMockAlerts = (coins: CoinOption[]) => {
+    if (coins.length === 0) return;
+    
+    const mockAlertTypes = [
+      { type: 'price', message: 'Price increased by more than 5% in the last hour' },
+      { type: 'price', message: 'Price dropped by more than 3% in the last hour' },
+      { type: 'volatility', message: 'Unusual volatility detected' },
+      { type: 'volume', message: 'Trading volume spiked by 150%' },
+      { type: 'trend', message: 'Possible trend reversal detected' },
+      { type: 'price', message: 'Price approaching resistance level' },
+      { type: 'price', message: 'Price approaching support level' }
+    ];
+    
+    // Generate 3-7 random alerts
+    const alertCount = Math.floor(Math.random() * 5) + 3;
+    const newAlerts = [];
+    
+    for (let i = 0; i < alertCount; i++) {
+      const randomCoin = coins[Math.floor(Math.random() * coins.length)];
+      const randomAlert = mockAlertTypes[Math.floor(Math.random() * mockAlertTypes.length)];
+      const randomSeverity = Math.random() < 0.2 ? 'critical' : Math.random() < 0.5 ? 'warning' : 'info';
+      
+      // Create a random time in the past 24 hours
+      const randomTime = new Date();
+      randomTime.setHours(randomTime.getHours() - Math.floor(Math.random() * 24));
+      
+      newAlerts.push({
+        id: `alert-${i}-${Date.now()}`,
+        coin: randomCoin.symbol,
+        type: randomAlert.type as 'price' | 'volatility' | 'volume' | 'trend',
+        message: randomAlert.message,
+        severity: randomSeverity as 'info' | 'warning' | 'critical',
+        timestamp: randomTime
+      });
+    }
+    
+    // Sort by time (newest first)
+    newAlerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    
+    setAlerts(newAlerts);
+  };
+  
+  const formatTime = (date: Date): string => {
+    return date.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Real-Time Price Alerts</CardTitle>
-        <CardDescription>Get notified when your favorite coins reach your target prices</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          {alerts.length === 0 ? (
-            <p className="text-muted-foreground">No active alerts set.</p>
-          ) : (
-            <ul>
-              {alerts.map((alert, index) => (
-                <li key={index} className="mb-2">
-                  Alert: {coins.find(c => c.id === alert.coin)?.symbol || alert.coin} will trigger when price is {alert.condition} ${alert.price}
-                  <span className="text-xs text-muted-foreground ml-2">({alert.timestamp})</span>
-                </li>
-              ))}
-            </ul>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <BellRing className="h-5 w-5" />
+              Real-Time Market Alerts
+            </CardTitle>
+            <CardDescription>
+              Automated alerts based on market conditions
+            </CardDescription>
+          </div>
+          
+          {alerts.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              {alerts.length} alerts
+            </Badge>
           )}
         </div>
-        <div className="space-y-4">
-          <div className="grid gap-4">
-            <div>
-              <Label>Asset</Label>
-              {isLoading ? (
-                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
-              ) : (
-                <Select value={selectedCoin} onValueChange={setSelectedCoin}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a coin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {coins.map((coin) => (
-                      <SelectItem key={coin.id} value={coin.id}>
-                        {coin.name} ({coin.symbol})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-
-            <div>
-              <Label>Condition</Label>
-              <Select value={alertCondition} onValueChange={(value: "above" | "below") => setAlertCondition(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="above">Price Above</SelectItem>
-                  <SelectItem value="below">Price Below</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Price Target</Label>
-              <Input
-                type="number"
-                value={priceTarget}
-                onChange={(e) => setPriceTarget(e.target.value)}
-                placeholder="Enter target price"
-              />
-            </div>
-
-            <Button onClick={handleSubmit}>Set Alert</Button>
+      </CardHeader>
+      
+      <CardContent>
+        {alerts.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No market alerts at this time</p>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {alerts.map(alert => (
+              <div key={alert.id} className="border border-border rounded-md p-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      className={
+                        alert.severity === 'critical' ? 'bg-red-500' : 
+                        alert.severity === 'warning' ? 'bg-amber-500' : 
+                        'bg-blue-500'
+                      }
+                    >
+                      {alert.severity}
+                    </Badge>
+                    <span className="font-medium">{alert.coin}</span>
+                  </div>
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {alert.type}
+                  </Badge>
+                </div>
+                
+                <p className="mt-2 text-sm">{alert.message}</p>
+                
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {formatTime(alert.timestamp)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

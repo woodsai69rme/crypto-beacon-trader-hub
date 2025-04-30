@@ -1,428 +1,323 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { BarChart, TrendingUp, TrendingDown, AlertCircle, Activity, Share2 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LineChart, BarChart, Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement } from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
+import { fetchCryptoData, fetchCryptoHistoricalData } from '@/services/cryptoService';
+import { CryptoData } from '@/types/trading';
 
-const MarketAnalyzer = () => {
-  const [activeTab, setActiveTab] = useState("sentiment");
-  const [timeframe, setTimeframe] = useState("1d");
-  const [coin, setCoin] = useState("btc");
-  
-  const marketSentiment = {
-    overall: 65, // on a scale of 0-100
-    change: 3.2,
-    socialMedia: 72,
-    news: 58,
-    technicalSignals: 62,
-    volumeTrend: "increasing",
-  };
-  
-  const marketSignals = [
-    { name: "RSI (14)", value: 62, interpretation: "Neutral", bullish: true },
-    { name: "MACD", value: "Bullish Crossover", interpretation: "Strong Buy", bullish: true },
-    { name: "Moving Avg (50/200)", value: "Golden Cross", interpretation: "Strong Buy", bullish: true },
-    { name: "Bollinger Bands", value: "Upper Band Test", interpretation: "Sell", bullish: false },
-    { name: "Stochastic", value: 78, interpretation: "Overbought", bullish: false },
-    { name: "Volume", value: "+28%", interpretation: "Strong Buy", bullish: true },
-    { name: "OBV", value: "Rising", interpretation: "Buy", bullish: true },
-    { name: "ADX", value: 24, interpretation: "Neutral Trend", bullish: true },
-  ];
-  
-  // Create sentiment data for the chart
-  const sentimentData = Array.from({ length: 30 }, (_, i) => ({
-    name: i,
-    value: 50 + Math.sin(i / 2) * 25 + Math.random() * 10,
-  }));
-  
-  const marketCorrelations = [
-    { asset1: "BTC", asset2: "ETH", correlation: 0.86, trend: "Increasing" },
-    { asset1: "BTC", asset2: "Gold", correlation: 0.24, trend: "Decreasing" },
-    { asset1: "BTC", asset2: "S&P 500", correlation: 0.38, trend: "Stable" },
-    { asset1: "ETH", asset2: "BNB", correlation: 0.72, trend: "Increasing" },
-    { asset1: "BTC", asset2: "USD", correlation: -0.65, trend: "Stable" },
-  ];
-  
-  const getSentimentColor = (sentiment) => {
-    if (sentiment > 70) return "text-green-500";
-    if (sentiment > 50) return "text-green-400";
-    if (sentiment > 40) return "text-amber-400";
-    return "text-red-500";
-  };
-  
-  const getCorrelationColor = (correlation) => {
-    const absCorrelation = Math.abs(correlation);
-    if (absCorrelation > 0.7) return "text-green-500";
-    if (absCorrelation > 0.4) return "text-amber-400";
-    return "text-muted-foreground";
-  };
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      // Convert to number before using toFixed
-      const value = typeof payload[0].value === 'string' 
-        ? parseFloat(payload[0].value)
-        : payload[0].value;
-      
-      return (
-        <div className="custom-tooltip bg-card p-2 border rounded-md shadow-md">
-          <p className="label font-medium">{`${label}`}</p>
-          <p className="value text-primary">{`Value: ${value.toFixed(2)}`}</p>
-        </div>
-      );
+const MarketAnalyzer: React.FC = () => {
+  const [marketData, setMarketData] = useState<CryptoData[]>([]);
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState<string>('bitcoin');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('7');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchCryptoData();
+        setMarketData(data);
+      } catch (error) {
+        console.error("Error fetching market data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+  
+  useEffect(() => {
+    const fetchHistorical = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchCryptoHistoricalData(selectedCoin, parseInt(selectedTimeframe));
+        setHistoricalData(data);
+      } catch (error) {
+        console.error("Error fetching historical data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchHistorical();
+  }, [selectedCoin, selectedTimeframe]);
+  
+  const formatPriceData = () => {
+    if (!historicalData || !historicalData.prices) return null;
+    
+    return {
+      labels: historicalData.prices.map((item: [number, number]) => 
+        new Date(item[0]).toLocaleString(undefined, { month: 'short', day: 'numeric' })
+      ),
+      datasets: [
+        {
+          label: `${selectedCoin} Price (USD)`,
+          data: historicalData.prices.map((item: [number, number]) => item[1]),
+          fill: false,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          tension: 0.1
+        }
+      ]
+    };
+  };
+  
+  const formatVolumeData = () => {
+    if (!historicalData || !historicalData.total_volumes) return null;
+    
+    return {
+      labels: historicalData.total_volumes.map((item: [number, number]) => 
+        new Date(item[0]).toLocaleString(undefined, { month: 'short', day: 'numeric' })
+      ),
+      datasets: [
+        {
+          label: `${selectedCoin} Trading Volume (USD)`,
+          data: historicalData.total_volumes.map((item: [number, number]) => item[1]),
+          backgroundColor: 'rgba(153, 102, 255, 0.2)',
+          borderColor: 'rgba(153, 102, 255, 1)',
+          borderWidth: 1
+        }
+      ]
+    };
+  };
+  
+  const formatMarketCapData = () => {
+    if (!historicalData || !historicalData.market_caps) return null;
+    
+    return {
+      labels: historicalData.market_caps.map((item: [number, number]) => 
+        new Date(item[0]).toLocaleString(undefined, { month: 'short', day: 'numeric' })
+      ),
+      datasets: [
+        {
+          label: `${selectedCoin} Market Cap (USD)`,
+          data: historicalData.market_caps.map((item: [number, number]) => item[1]),
+          backgroundColor: 'rgba(255, 159, 64, 0.2)',
+          borderColor: 'rgba(255, 159, 64, 1)',
+          borderWidth: 1
+        }
+      ]
+    };
+  };
+  
+  const selectedCoinData = marketData.find(coin => coin.id === selectedCoin);
+  
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Market Data Analysis',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+      }
     }
-    return null;
+  };
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+  
+  const formatNumber = (value: number) => {
+    if (value >= 1e9) {
+      return `${(value / 1e9).toFixed(2)}B`;
+    }
+    if (value >= 1e6) {
+      return `${(value / 1e6).toFixed(2)}M`;
+    }
+    if (value >= 1e3) {
+      return `${(value / 1e3).toFixed(2)}K`;
+    }
+    return value.toString();
   };
 
   return (
-    <Card className="shadow-lg border border-border">
+    <Card className="w-full">
       <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <BarChart className="h-5 w-5 text-primary" />
-              Market Analyzer
-            </CardTitle>
-            <CardDescription>
-              Advanced market sentiment and correlation analysis
-            </CardDescription>
-          </div>
-          
-          <div className="flex gap-2">
-            <Select value={coin} onValueChange={setCoin}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Coin" />
+        <CardTitle>Market Analyzer</CardTitle>
+        <CardDescription>
+          Analyze cryptocurrency market data and trends
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-4 justify-between">
+          <div className="w-full md:w-1/2">
+            <label className="text-sm font-medium mb-1 block">Select Cryptocurrency</label>
+            <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a coin" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="btc">Bitcoin</SelectItem>
-                <SelectItem value="eth">Ethereum</SelectItem>
-                <SelectItem value="sol">Solana</SelectItem>
-                <SelectItem value="xrp">XRP</SelectItem>
-                <SelectItem value="ada">Cardano</SelectItem>
+                {marketData.slice(0, 20).map(coin => (
+                  <SelectItem key={coin.id} value={coin.id}>
+                    {coin.name} ({coin.symbol.toUpperCase()})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-[80px]">
-                <SelectValue placeholder="Timeframe" />
+          </div>
+          
+          <div className="w-full md:w-1/2">
+            <label className="text-sm font-medium mb-1 block">Timeframe</label>
+            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1h">1H</SelectItem>
-                <SelectItem value="4h">4H</SelectItem>
-                <SelectItem value="1d">1D</SelectItem>
-                <SelectItem value="1w">1W</SelectItem>
-                <SelectItem value="1m">1M</SelectItem>
+                <SelectItem value="1">1 Day</SelectItem>
+                <SelectItem value="7">7 Days</SelectItem>
+                <SelectItem value="30">30 Days</SelectItem>
+                <SelectItem value="90">3 Months</SelectItem>
+                <SelectItem value="365">1 Year</SelectItem>
+                <SelectItem value="max">Max</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-      </CardHeader>
-      
-      <CardContent className="p-6">
+        
+        {selectedCoinData && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border border-border rounded-lg p-4">
+              <div className="text-sm text-muted-foreground">Current Price</div>
+              <div className="text-2xl font-bold mt-1">
+                ${typeof selectedCoinData.current_price === 'number' ? selectedCoinData.current_price.toFixed(2) : selectedCoinData.current_price}
+              </div>
+              <div className={`text-sm mt-1 ${selectedCoinData.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {selectedCoinData.price_change_percentage_24h >= 0 ? '▲' : '▼'} {Math.abs(selectedCoinData.price_change_percentage_24h).toFixed(2)}% (24h)
+              </div>
+            </div>
+            
+            <div className="border border-border rounded-lg p-4">
+              <div className="text-sm text-muted-foreground">Market Cap</div>
+              <div className="text-2xl font-bold mt-1">
+                {formatCurrency(selectedCoinData.market_cap)}
+              </div>
+              <div className="text-sm mt-1 text-muted-foreground">
+                Rank #{selectedCoinData.market_cap_rank}
+              </div>
+            </div>
+            
+            <div className="border border-border rounded-lg p-4">
+              <div className="text-sm text-muted-foreground">24h Trading Volume</div>
+              <div className="text-2xl font-bold mt-1">
+                {formatCurrency(selectedCoinData.total_volume)}
+              </div>
+              <div className="text-sm mt-1 text-muted-foreground">
+                Volume/Market Cap: {(selectedCoinData.total_volume / selectedCoinData.market_cap).toFixed(3)}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="sentiment">Sentiment</TabsTrigger>
-            <TabsTrigger value="signals">Technical Signals</TabsTrigger>
-            <TabsTrigger value="correlations">Correlations</TabsTrigger>
+            <TabsTrigger value="overview">Price Chart</TabsTrigger>
+            <TabsTrigger value="volume">Volume</TabsTrigger>
+            <TabsTrigger value="marketcap">Market Cap</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="sentiment" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="col-span-1 md:col-span-2 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-lg font-medium flex items-center gap-2">
-                    {marketSentiment.overall > 50 ? (
-                      <TrendingUp className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <TrendingDown className="h-5 w-5 text-red-500" />
-                    )}
-                    Overall Market Sentiment
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Based on social signals, news, and technical analysis
-                  </p>
-                </div>
-                
-                <div className="flex items-center justify-center mb-6">
-                  <div className="w-48 h-48 rounded-full bg-muted relative flex items-center justify-center">
-                    <div
-                      className={`text-4xl font-bold ${getSentimentColor(
-                        marketSentiment.overall
-                      )}`}
-                    >
-                      {marketSentiment.overall}
-                    </div>
-                    <div className="text-muted-foreground text-sm mt-2">/ 100</div>
-                    
-                    <div
-                      className="absolute h-1 bg-primary"
-                      style={{
-                        width: "50%",
-                        transformOrigin: "left center",
-                        transform: `rotate(${
-                          marketSentiment.overall * 1.8 - 90
-                        }deg)`,
-                        left: "50%",
-                        top: "50%",
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center">
-                  <Badge
-                    variant={marketSentiment.change >= 0 ? "default" : "destructive"}
-                    className="text-xs"
-                  >
-                    {marketSentiment.change >= 0 ? "+" : ""}
-                    {marketSentiment.change}% past 24 hours
-                  </Badge>
-                </div>
+          <TabsContent value="overview" className="h-[400px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <p>Loading data...</p>
               </div>
-              
-              <div className="space-y-4">
-                <div className="bg-muted/20 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">Sentiment Sources</h4>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Social Media</span>
-                        <span className={getSentimentColor(marketSentiment.socialMedia)}>
-                          {marketSentiment.socialMedia}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-muted h-1 mt-1">
-                        <div
-                          className="bg-primary h-1"
-                          style={{ width: `${marketSentiment.socialMedia}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>News Analysis</span>
-                        <span className={getSentimentColor(marketSentiment.news)}>
-                          {marketSentiment.news}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-muted h-1 mt-1">
-                        <div
-                          className="bg-primary h-1"
-                          style={{ width: `${marketSentiment.news}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Technical</span>
-                        <span className={getSentimentColor(marketSentiment.technicalSignals)}>
-                          {marketSentiment.technicalSignals}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-muted h-1 mt-1">
-                        <div
-                          className="bg-primary h-1"
-                          style={{ width: `${marketSentiment.technicalSignals}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-muted/20 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium mb-1">Volume Analysis</h4>
-                  <div className="flex items-center gap-1">
-                    <Activity className="h-4 w-4 text-green-500" />
-                    <span className="text-green-500">{marketSentiment.volumeTrend}</span>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Share2 className="h-3 w-3 mr-1" />
-                    Export
-                  </Button>
-                  <Button variant="default" size="sm" className="w-full">
-                    Full Analysis
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="h-64 w-full mt-4">
-              <h4 className="text-sm font-medium mb-2">Sentiment Trend (30 days)</h4>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sentimentData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="name"
-                    tickFormatter={(value) => {
-                      const date = new Date();
-                      date.setDate(date.getDate() - (29 - value));
-                      return `${date.getMonth() + 1}/${date.getDate()}`;
-                    }} 
-                  />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip 
-                    formatter={(value) => [`${value.toFixed(2)}%`, 'Sentiment']}
-                    labelFormatter={(value) => {
-                      const date = new Date();
-                      date.setDate(date.getDate() - (29 - value));
-                      return `Date: ${date.getMonth() + 1}/${date.getDate()}`;
-                    }}
-                    content={<CustomTooltip />}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#2563eb" 
-                    strokeWidth={2}
-                    activeDot={{ r: 6 }} 
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            ) : (
+              formatPriceData() && <Line data={formatPriceData()!} options={chartOptions} />
+            )}
           </TabsContent>
           
-          <TabsContent value="signals" className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-muted/20 p-4 rounded-lg">
-                <h3 className="text-lg font-medium mb-4">Technical Analysis Signals</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {marketSignals.map((signal, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-md bg-muted/10"
-                    >
-                      <div className="space-y-1">
-                        <div className="font-medium">{signal.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {signal.interpretation}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <Badge
-                          variant={signal.bullish ? "default" : "destructive"}
-                          className={`mr-2 ${
-                            signal.bullish ? "bg-green-500/20" : "bg-red-500/20"
-                          }`}
-                        >
-                          {signal.value}
-                        </Badge>
-                        {signal.bullish ? (
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          <TabsContent value="volume" className="h-[400px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <p>Loading data...</p>
               </div>
-              
-              <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-lg flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-amber-500">Conflicting Signals</h4>
-                  <p className="text-sm mt-1">
-                    Bollinger Bands and Stochastic indicators suggest potential overbought
-                    conditions, while most trend indicators remain bullish. Consider reduced
-                    position sizes or tighter stop losses.
-                  </p>
-                </div>
-              </div>
-              
-              <Button className="ml-auto">
-                Detailed Technical Analysis
-              </Button>
-            </div>
+            ) : (
+              formatVolumeData() && <Bar data={formatVolumeData()!} options={chartOptions} />
+            )}
           </TabsContent>
           
-          <TabsContent value="correlations" className="space-y-6">
-            <div className="bg-muted/20 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-4">Asset Correlations</h3>
-              
-              <div className="relative overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="uppercase bg-muted/30 text-xs">
-                    <tr>
-                      <th scope="col" className="px-4 py-3">Asset Pair</th>
-                      <th scope="col" className="px-4 py-3">Correlation</th>
-                      <th scope="col" className="px-4 py-3">Trend</th>
-                      <th scope="col" className="px-4 py-3">Strength</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {marketCorrelations.map((correlation, index) => (
-                      <tr key={index} className="border-b border-muted">
-                        <td className="px-4 py-3">
-                          {correlation.asset1}/{correlation.asset2}
-                        </td>
-                        <td className={`px-4 py-3 ${getCorrelationColor(correlation.correlation)}`}>
-                          {correlation.correlation.toFixed(2)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant="outline" className="font-normal">
-                            {correlation.trend}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="w-full bg-muted h-2 rounded-full">
-                            <div
-                              className={`h-2 rounded-full ${
-                                correlation.correlation > 0
-                                  ? "bg-green-500"
-                                  : "bg-red-500"
-                              }`}
-                              style={{
-                                width: `${Math.abs(correlation.correlation) * 100}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <TabsContent value="marketcap" className="h-[400px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <p>Loading data...</p>
               </div>
-              
-              <div className="text-xs text-muted-foreground mt-4">
-                Correlation scale: -1.0 (perfect negative) to 1.0 (perfect positive)
-              </div>
-            </div>
-            
-            <div className="bg-muted/20 p-4 rounded-lg">
-              <h3 className="text-sm font-medium mb-2">What This Means</h3>
-              <p className="text-sm">
-                BTC and ETH show strong positive correlation (0.86), suggesting these assets
-                move together. BTC and Gold show weak positive correlation (0.24),
-                indicating Gold could provide some portfolio diversification. BTC and USD
-                show moderate negative correlation (-0.65), suggesting BTC often moves
-                opposite to USD strength.
-              </p>
-            </div>
-            
-            <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-lg flex items-start gap-3">
-              <TrendingUp className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-indigo-400">Portfolio Insight</h4>
-                <p className="text-sm mt-1">
-                  High correlation between crypto assets may increase portfolio risk during
-                  market downturns. Consider adding assets with lower correlation for better
-                  diversification.
-                </p>
-              </div>
-            </div>
+            ) : (
+              formatMarketCapData() && <Line data={formatMarketCapData()!} options={chartOptions} />
+            )}
           </TabsContent>
         </Tabs>
+        
+        {selectedCoinData && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="border border-border rounded-lg p-3">
+              <div className="text-sm text-muted-foreground">All-Time High</div>
+              <div className="font-bold mt-1">${typeof selectedCoinData.ath === 'number' ? selectedCoinData.ath.toFixed(2) : selectedCoinData.ath}</div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(selectedCoinData.ath_date).toLocaleDateString()}
+              </div>
+            </div>
+            
+            <div className="border border-border rounded-lg p-3">
+              <div className="text-sm text-muted-foreground">All-Time Low</div>
+              <div className="font-bold mt-1">${typeof selectedCoinData.atl === 'number' ? selectedCoinData.atl.toFixed(2) : selectedCoinData.atl}</div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(selectedCoinData.atl_date).toLocaleDateString()}
+              </div>
+            </div>
+            
+            <div className="border border-border rounded-lg p-3">
+              <div className="text-sm text-muted-foreground">Circulating Supply</div>
+              <div className="font-bold mt-1">{formatNumber(selectedCoinData.circulating_supply)}</div>
+              <div className="text-xs text-muted-foreground">
+                {selectedCoinData.max_supply 
+                  ? `${((selectedCoinData.circulating_supply / selectedCoinData.max_supply) * 100).toFixed(2)}% of max supply`
+                  : 'No max supply'}
+              </div>
+            </div>
+            
+            <div className="border border-border rounded-lg p-3">
+              <div className="text-sm text-muted-foreground">Max Supply</div>
+              <div className="font-bold mt-1">
+                {selectedCoinData.max_supply 
+                  ? formatNumber(selectedCoinData.max_supply)
+                  : 'Unlimited'}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {selectedCoinData.total_supply && `Total: ${formatNumber(selectedCoinData.total_supply)}`}
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

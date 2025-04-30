@@ -1,142 +1,230 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowUp, RefreshCw, Search } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { fetchTopCoins } from "@/services/cryptoApi";
-import { CoinOption } from "@/types/trading";
+import { ArrowUpDown, Search } from 'lucide-react';
+import { CoinOption } from '../types';
+import { fetchCryptoData } from "@/services/cryptoService";
 
 interface RealTimePricesProps {
-  initialCoins?: CoinOption[];
-  onCoinSelect?: (coin: CoinOption) => void;
+  initialCoins: CoinOption[];
+  onSelectCoin: (coinId: string) => void;
+  selectedCoinId: string;
 }
 
 const RealTimePrices: React.FC<RealTimePricesProps> = ({ 
-  initialCoins = [],
-  onCoinSelect 
+  initialCoins,
+  onSelectCoin,
+  selectedCoinId
 }) => {
   const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
-  const [isLoading, setIsLoading] = useState(initialCoins.length === 0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortField, setSortField] = useState<keyof CoinOption>('marketCap');
   
   useEffect(() => {
+    // Fetch real-time price data
+    const fetchPrices = async () => {
+      try {
+        const data = await fetchCryptoData();
+        // Convert to CoinOption format
+        const formattedData: CoinOption[] = data.map(coin => ({
+          id: coin.id,
+          name: coin.name,
+          symbol: coin.symbol.toUpperCase(),
+          price: coin.current_price,
+          image: coin.image,
+          priceChange: coin.price_change_24h,
+          changePercent: coin.price_change_percentage_24h,
+          volume: coin.total_volume,
+          marketCap: coin.market_cap,
+          value: coin.id,
+          label: `${coin.name} (${coin.symbol.toUpperCase()})`
+        }));
+        
+        setCoins(formattedData);
+      } catch (error) {
+        console.error("Error fetching coin data:", error);
+      }
+    };
+    
+    // If no initial coins, fetch data
     if (initialCoins.length === 0) {
-      loadCoins();
+      fetchPrices();
     }
+    
+    // Set up interval for updates
+    const interval = setInterval(() => {
+      fetchPrices();
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
   }, [initialCoins]);
   
-  const loadCoins = async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchTopCoins(12);
-      setCoins(data);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Failed to load coins:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load cryptocurrency data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+  const handleSort = (field: keyof CoinOption) => {
+    if (sortField === field) {
+      // If already sorting by this field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If sorting by a new field, default to desc
+      setSortField(field);
+      setSortDirection('desc');
     }
   };
   
-  const handleRefresh = () => {
-    loadCoins();
-    toast({
-      title: "Data Refreshed",
-      description: "Latest cryptocurrency prices loaded",
+  const filteredAndSortedCoins = coins
+    .filter(coin => {
+      const query = searchQuery.toLowerCase();
+      return coin.name.toLowerCase().includes(query) || 
+             coin.symbol.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      const fieldA = a[sortField];
+      const fieldB = b[sortField];
+      
+      // Handle potential undefined or null values
+      if (fieldA === undefined || fieldA === null) return 1;
+      if (fieldB === undefined || fieldB === null) return -1;
+      
+      // For string comparison
+      if (typeof fieldA === 'string' && typeof fieldB === 'string') {
+        return sortDirection === 'asc' 
+          ? fieldA.localeCompare(fieldB) 
+          : fieldB.localeCompare(fieldA);
+      }
+      
+      // For number comparison
+      return sortDirection === 'asc' 
+        ? (fieldA as number) - (fieldB as number) 
+        : (fieldB as number) - (fieldA as number);
     });
+  
+  const formatPercent = (value: number) => {
+    if (typeof value !== 'number') return '0.00%';
+    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
   
-  const filteredCoins = searchQuery
-    ? coins.filter(coin => 
-        coin.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        coin.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : coins;
-  
-  const handleCoinClick = (coin: CoinOption) => {
-    if (onCoinSelect) {
-      onCoinSelect(coin);
+  const formatPrice = (value: number) => {
+    if (typeof value !== 'number') return '$0.00';
+    
+    if (value < 1) {
+      return `$${value.toFixed(4)}`;
     }
+    
+    if (value < 10) {
+      return `$${value.toFixed(2)}`;
+    }
+    
+    return `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
   };
   
+  const formatLargeNumber = (value: number) => {
+    if (typeof value !== 'number') return '0';
+    
+    if (value >= 1e9) {
+      return `$${(value / 1e9).toFixed(2)}B`;
+    }
+    
+    if (value >= 1e6) {
+      return `$${(value / 1e6).toFixed(2)}M`;
+    }
+    
+    return `$${value.toLocaleString()}`;
+  };
+  
+  const renderSortArrow = (field: keyof CoinOption) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? '↑' : '↓';
+  };
+
   return (
-    <Card className="shadow-md w-full h-full">
-      <CardHeader className="pb-2">
+    <Card>
+      <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-semibold">Real-Time Prices</CardTitle>
-          <Button onClick={handleRefresh} size="icon" variant="ghost">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search coins..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div>
+            <CardTitle>Cryptocurrency Market</CardTitle>
+            <CardDescription>
+              Real-time price data for top cryptocurrencies
+            </CardDescription>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search coins..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 w-[200px]"
+            />
+          </div>
         </div>
       </CardHeader>
       
-      <CardContent>
-        {isLoading ? (
-          <div className="animate-pulse space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted rounded-md"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {filteredCoins.length === 0 ? (
-              <div className="py-6 text-center text-muted-foreground">No coins found</div>
-            ) : (
-              filteredCoins.map((coin) => {
-                const isPriceUp = coin.priceChange && coin.priceChange >= 0;
-                
-                return (
-                  <div
-                    key={coin.id}
-                    className="flex items-center justify-between p-3 rounded-md hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleCoinClick(coin)}
+      <CardContent className="p-0">
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]">#</TableHead>
+                <TableHead className="w-[200px]">Coin</TableHead>
+                <TableHead className="text-right cursor-pointer" onClick={() => handleSort('price')}>
+                  Price {renderSortArrow('price')}
+                </TableHead>
+                <TableHead className="text-right cursor-pointer" onClick={() => handleSort('changePercent')}>
+                  24h Change {renderSortArrow('changePercent')}
+                </TableHead>
+                <TableHead className="text-right hidden md:table-cell cursor-pointer" onClick={() => handleSort('marketCap')}>
+                  Market Cap {renderSortArrow('marketCap')}
+                </TableHead>
+                <TableHead className="text-right hidden md:table-cell cursor-pointer" onClick={() => handleSort('volume')}>
+                  Volume (24h) {renderSortArrow('volume')}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedCoins.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6">
+                    {searchQuery ? 'No coins matching search query' : 'Loading coin data...'}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredAndSortedCoins.slice(0, 20).map((coin, index) => (
+                  <TableRow 
+                    key={coin.id} 
+                    className={`cursor-pointer ${selectedCoinId === coin.id ? 'bg-muted/50' : ''}`}
+                    onClick={() => onSelectCoin(coin.id)}
                   >
-                    <div className="flex items-center">
-                      {coin.image && (
-                        <img src={coin.image} alt={coin.name} className="h-8 w-8 mr-3 rounded-full" />
-                      )}
-                      <div>
-                        <div className="font-medium">{coin.name}</div>
-                        <div className="text-xs text-muted-foreground">{coin.symbol}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <div className="font-medium">${coin.price.toLocaleString()}</div>
-                      {coin.changePercent ? (
-                        <div className={`text-xs flex items-center ${isPriceUp ? "text-green-500" : "text-red-500"}`}>
-                          {isPriceUp ? (
-                            <ArrowUp className="h-3 w-3 mr-1" />
-                          ) : (
-                            <ArrowDown className="h-3 w-3 mr-1" />
-                          )}
-                          {Math.abs(coin.changePercent).toFixed(2)}%
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {coin.image && (
+                          <img src={coin.image} alt={coin.name} className="w-6 h-6" />
+                        )}
+                        <div>
+                          <div className="font-medium">{coin.name}</div>
+                          <div className="text-xs text-muted-foreground">{coin.symbol}</div>
                         </div>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatPrice(coin.price)}
+                    </TableCell>
+                    <TableCell className={`text-right ${(coin.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {formatPercent(coin.changePercent || 0)}
+                    </TableCell>
+                    <TableCell className="text-right hidden md:table-cell">
+                      {formatLargeNumber(coin.marketCap || 0)}
+                    </TableCell>
+                    <TableCell className="text-right hidden md:table-cell">
+                      {formatLargeNumber(coin.volume || 0)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

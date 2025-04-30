@@ -16,6 +16,8 @@ export type Trade = {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
+  fees?: number; // Add fees field to fix context errors
+  coin?: string; // Add coin field to fix context errors
 };
 
 export interface LocalModel {
@@ -32,6 +34,13 @@ export interface LocalModel {
     sharpeRatio: number;
     maxDrawdown: number;
   };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
 }
 
 export type CoinOption = {
@@ -214,3 +223,9 @@ export interface QuantitativeAnalysisProps {
   depth?: number;
 }
 
+export interface RealTimePriceChartProps {
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+  coinId?: string;
+  availableCoins?: CoinOption[];
+}
