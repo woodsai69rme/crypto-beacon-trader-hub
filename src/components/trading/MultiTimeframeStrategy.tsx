@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -262,7 +262,7 @@ const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrat
                   <div className="bg-muted/50 p-4 rounded-md space-y-3">
                     <h4 className="font-medium">Buy Signal Requirements:</h4>
                     <ul className="list-disc list-inside text-sm space-y-1">
-                      <li>Primary: Price above 20 EMA, RSI > 50</li>
+                      <li>Primary: Price above 20 EMA, RSI {'>'}{'>'} 50</li>
                       <li>Secondary: Uptrend confirmed (higher highs & lows)</li>
                       <li>Confirmation: Above 100 SMA, no bearish patterns</li>
                     </ul>
@@ -271,7 +271,7 @@ const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrat
                   <div className="bg-muted/50 p-4 rounded-md space-y-3">
                     <h4 className="font-medium">Sell Signal Requirements:</h4>
                     <ul className="list-disc list-inside text-sm space-y-1">
-                      <li>Primary: Price below 20 EMA, RSI < 50</li>
+                      <li>Primary: Price below 20 EMA, RSI {'<'} 50</li>
                       <li>Secondary: Downtrend confirmed (lower highs & lows)</li>
                       <li>Confirmation: Below 100 SMA or bearish patterns</li>
                     </ul>
@@ -314,7 +314,7 @@ const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrat
                   <div className="space-y-0.5">
                     <Label htmlFor="conflict-warnings">Conflict Warnings</Label>
                     <p className="text-sm text-muted-foreground">
-                      Warn when timeframes show conflicting signals
+                      Get alerts when timeframes give conflicting signals
                     </p>
                   </div>
                   <Switch 
@@ -323,12 +323,12 @@ const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrat
                     onCheckedChange={(checked) => setAlertSettings(prev => ({ ...prev, conflictWarnings: checked }))}
                   />
                 </div>
-
+                
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="divergence-alerts">Divergence Alerts</Label>
                     <p className="text-sm text-muted-foreground">
-                      Alert when indicators show divergence with price
+                      Get notified of RSI divergences on any timeframe
                     </p>
                   </div>
                   <Switch 
@@ -338,49 +338,13 @@ const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrat
                   />
                 </div>
               </div>
-
-              <div className="border-t pt-4">
-                <h3 className="font-medium mb-2">Advanced Settings</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="rsi-period" className="text-sm">RSI Period</Label>
-                    <Select defaultValue="14">
-                      <SelectTrigger id="rsi-period">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="7">7</SelectItem>
-                        <SelectItem value="14">14</SelectItem>
-                        <SelectItem value="21">21</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="ma-type" className="text-sm">Moving Average Type</Label>
-                    <Select defaultValue="ema">
-                      <SelectTrigger id="ma-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sma">Simple (SMA)</SelectItem>
-                        <SelectItem value="ema">Exponential (EMA)</SelectItem>
-                        <SelectItem value="wma">Weighted (WMA)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
-
-      <CardFooter className="flex justify-between border-t pt-4">
-        <Button variant="outline">
-          <Settings2 className="h-4 w-4 mr-2" />
-          Save Preset
-        </Button>
-        <Button onClick={handleApplyStrategy}>Apply Strategy</Button>
+      
+      <CardFooter>
+        <Button onClick={handleApplyStrategy} className="ml-auto">Apply Strategy</Button>
       </CardFooter>
     </Card>
   );

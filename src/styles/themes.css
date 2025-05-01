@@ -1,6 +1,9 @@
 
+/* Theme System - Modern Crypto Styles */
+
 /* Base Dark Theme (Default) */
 :root {
+  /* Core dark theme variables */
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
   --card: 240 10% 3.9%;
@@ -20,9 +23,32 @@
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+
+  /* Crypto-specific colors */
+  --crypto-green: 142 71% 45%;
+  --crypto-red: 0 84% 60%;
+  --crypto-blue: 217 91% 60%;
+  --crypto-yellow: 41 96% 61%;
+  --crypto-purple: 262 83% 65%;
+
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* Default theme colors */
+  --app-bg: #1A1F2C;
+  --card-bg: #222333;
+  --border-color: #333344;
+  --border-hover: #444455;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B0C0;
+  --input-bg: #2A2A3A;
+  --indicator-bg: #333344;
+  --indicator-border: #444455;
+
+  color-scheme: dark;
 }
 
-/* Light Theme */
+/* Light Theme (Base) */
 .light {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -43,105 +69,233 @@
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
+
+  color-scheme: light;
 }
 
-/* Color Schemes */
-.blue {
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 100%;
-  --ring: 221 83% 53%;
+/* ============ THEME 1: MIDNIGHT TECH ============ */
+.midnight-tech {
+  /* Core colors */
+  --app-bg: #0F172A;
+  --card-bg: #1E293B;
+  --border-color: #334155;
+  --border-hover: #475569;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --input-bg: #273449;
+  --indicator-bg: #334155;
+  --indicator-border: #475569;
+  
+  /* Token colors */
+  --primary: 217 91% 60%;
+  --accent: 221 83% 53%;
+  
+  /* Accents */
+  --crypto-blue: 217 91% 60%;
+  --crypto-green: 142 71% 45%;
+  --crypto-red: 0 84% 60%;
+  
+  /* Card with glass effect */
+  --card-glass: rgba(30, 41, 59, 0.7);
 }
 
-.purple {
-  --primary: 270 76% 54%;
-  --primary-foreground: 0 0% 100%;
-  --ring: 270 76% 54%;
+/* ============ THEME 2: CYBER PULSE ============ */
+.cyber-pulse {
+  /* Core colors */
+  --app-bg: #13111C;
+  --card-bg: #1E1B2E;
+  --border-color: #2D2B3D;
+  --border-hover: #3D3B4D;
+  --text-primary: #F8F8FD;
+  --text-secondary: #A09CB0;
+  --input-bg: #252336;
+  --indicator-bg: #2D2B3D;
+  --indicator-border: #3D3B4D;
+  
+  /* Token colors */
+  --primary: 280 75% 60%;
+  --accent: 262 83% 65%;
+  
+  /* Accents */
+  --crypto-purple: 262 83% 65%;
+  --crypto-pink: 330 90% 65%;
+  --crypto-blue: 250 85% 65%;
+  
+  /* Card with glass effect */
+  --card-glass: rgba(30, 27, 46, 0.7);
 }
 
-.green {
+/* ============ THEME 3: MATRIX CODE ============ */
+.matrix-code {
+  /* Core colors */
+  --app-bg: #0A1F1B;
+  --card-bg: #0F2922;
+  --border-color: #1E3D36;
+  --border-hover: #2E4D46;
+  --text-primary: #E6FFF8;
+  --text-secondary: #88B0A0;
+  --input-bg: #14332C;
+  --indicator-bg: #1E3D36;
+  --indicator-border: #2E4D46;
+  
+  /* Token colors */
   --primary: 142 71% 45%;
-  --primary-foreground: 0 0% 100%;
-  --ring: 142 71% 45%;
+  --accent: 160 60% 40%;
+  
+  /* Accents */
+  --crypto-green: 142 71% 45%;
+  --crypto-alt-green: 160 60% 40%;
+  --crypto-yellow: 68 92% 51%;
+  
+  /* Card with glass effect */
+  --card-glass: rgba(15, 41, 34, 0.7);
 }
 
-.amber {
-  --primary: 38 92% 50%;
-  --primary-foreground: 0 0% 100%;
-  --ring: 38 92% 50%;
+/* Apply theme colors */
+.themed-app {
+  background-color: var(--app-bg);
+  color: var(--text-primary);
 }
 
-.red {
-  --primary: 0 84% 60%;
-  --primary-foreground: 0 0% 100%;
-  --ring: 0 84% 60%;
+.themed-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
-.slate {
-  --primary: 215 16% 47%;
-  --primary-foreground: 0 0% 100%;
-  --ring: 215 16% 47%;
+.themed-text {
+  color: var(--text-primary);
 }
 
-/* Additional utility class for colored backgrounds */
-.bg-blue-500 {
-  background-color: hsl(221, 83%, 53%);
+.themed-text-secondary {
+  color: var(--text-secondary);
 }
 
-.bg-purple-500 {
-  background-color: hsl(270, 76%, 54%);
+/* Glass card effect */
+.glass-card {
+  background-color: var(--card-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.bg-green-500 {
-  background-color: hsl(142, 71%, 45%);
+/* Custom button gradients */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  color: var(--text-primary);
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-.bg-amber-500 {
-  background-color: hsl(38, 92%, 50%);
+/* Theme-specific animations */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(var(--primary), 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(var(--primary), 0.8);
+  }
 }
 
-.bg-red-500 {
-  background-color: hsl(0, 84%, 60%);
+.animate-glow-pulse {
+  animation: glow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.bg-slate-500 {
-  background-color: hsl(215, 16%, 47%);
+/* Better scrollbars for all themes */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--app-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-hover);
+}
+
+/* Force dark mode styles for themed elements */
+.bg-card, 
+.bg-background, 
+.bg-popover,
+.bg-white,
+.bg-muted {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.border,
+.border-border {
+  border-color: var(--border-color) !important;
+}
+
+/* Consistent forms across themes */
+input, 
+select, 
+textarea, 
+button,
+.bg-gray-100,
+[role="combobox"] {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Key indicators styling */
+.key-indicator {
+  color: var(--text-primary) !important;
+  background-color: var(--indicator-bg) !important;
+  border: 1px solid var(--indicator-border) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+/* Dialog, tooltip, popover styling */
+[role="dialog"],
+[role="tooltip"],
+[role="menu"],
+[data-state="open"] {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Text colors */
 .text-blue-500 {
-  color: hsl(221, 83%, 53%);
+  color: hsl(var(--crypto-blue)) !important;
 }
 
 .text-purple-500 {
-  color: hsl(270, 76%, 54%);
+  color: hsl(var(--crypto-purple)) !important;
 }
 
 .text-green-500 {
-  color: hsl(142, 71%, 45%);
-}
-
-.text-amber-500 {
-  color: hsl(38, 92%, 50%);
+  color: hsl(var(--crypto-green)) !important;
 }
 
 .text-red-500 {
-  color: hsl(0, 84%, 60%);
+  color: hsl(var(--crypto-red)) !important;
 }
 
-.text-slate-500 {
-  color: hsl(215, 16%, 47%);
+/* Background colors */
+.bg-blue-500 {
+  background-color: hsl(var(--crypto-blue)) !important;
 }
 
-/* Animation classes */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.bg-purple-500 {
+  background-color: hsl(var(--crypto-purple)) !important;
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.bg-green-500 {
+  background-color: hsl(var(--crypto-green)) !important;
+}
+
+.bg-red-500 {
+  background-color: hsl(var(--crypto-red)) !important;
 }

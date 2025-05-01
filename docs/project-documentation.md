@@ -13,6 +13,7 @@ The platform includes:
 - Social trading features
 - Portfolio management
 - Educational resources
+- Multiple modern theme options
 
 This document provides developers with a complete guide to understanding, maintaining, and extending the platform.
 
@@ -53,7 +54,6 @@ npm run dev
 ├── docs/               # Project documentation
 ├── public/             # Static assets
 ├── src/                # Source code
-│   ├── app/            # Next.js app directory
 │   ├── components/     # React components
 │   │   ├── api/        # API-related components
 │   │   ├── charts/     # Chart components
@@ -67,6 +67,7 @@ npm run dev
 │   │   ├── api/        # API service modules
 │   │   └── trading/    # Trading service modules
 │   ├── styles/         # Stylesheets
+│   │   └── themes.css  # Theme definitions
 │   ├── types/          # TypeScript type definitions
 │   └── utils/          # Utility functions
 └── tailwind.config.js  # Tailwind CSS configuration
@@ -95,12 +96,14 @@ npm run dev
 - `HyblockLiquidityMap`: Liquidity visualization
 - `TradingViewChart`: TradingView chart integration
 - `QuantitativeAnalysis`: Trade outcome probability analysis
+- `MultiTimeframeStrategy`: Multiple timeframe analysis tool
 
 #### API Management
 
 - `ApiKeyManagement`: API key configuration
 - `ApiUsageMetrics`: API usage monitoring
 - `RealTimeApiUsage`: Real-time API usage stats
+- `ApiProviderSettings`: API provider configuration
 
 ## Core Technologies
 
@@ -118,6 +121,26 @@ npm run dev
 - **React Context API**: Application state management
 - **Custom Hooks**: Encapsulated logic
 - **localStorage**: Persistent storage
+
+## UI Theming
+
+### Modern Theme System
+
+The application features a sophisticated theme system with multiple visual styles:
+
+1. **Default**: Standard dark theme with balanced contrast
+2. **Midnight Tech**: Deep blue tech-inspired theme with blue accents
+3. **Cyber Pulse**: Vibrant purple cyberpunk style with neon highlights
+4. **Matrix Code**: Green-tinted hacker aesthetic with terminal-inspired design
+
+Each theme includes:
+- Custom color palettes optimized for financial data
+- Consistent color patterns for gains/losses
+- Glassmorphism effects for modern UI
+- Custom scrollbars and animations
+- High contrast ratios for readability
+
+Users can switch themes through the theme switcher, and preferences are saved between sessions.
 
 ## Key Features
 
@@ -194,7 +217,7 @@ No environment variables are required for basic operation. API keys for external
 The application uses browser localStorage for persisting:
 
 - Trading accounts and trades
-- User preferences
+- User preferences and theme settings
 - API keys
 - Trading bot configurations
 - Watchlists
@@ -286,6 +309,13 @@ Documentation for external APIs used by the platform:
 2. **Hyblock Liquidity Map**: Visualize liquidity zones and large orders
 3. **TradingView Charts**: Access professional-grade charts
 4. **Quantitative Analysis**: Get probability estimates for trade outcomes
+5. **Multi-Timeframe Strategy**: Configure strategies across different timeframes
+
+### Customizing Theme
+
+1. **Choose a Base Theme**: Select between Dark or Light mode
+2. **Select a Style**: Choose from multiple modern styles (Default, Midnight Tech, Cyber Pulse, Matrix Code)
+3. **Save Preferences**: Theme choices are automatically saved for future sessions
 
 ## Troubleshooting
 
@@ -342,7 +372,15 @@ Planned integration with Wintermute algorithmic trading:
 
 ## Changelog
 
-### Version 1.0.0 (Current)
+### Version 1.1.0 (Current)
+
+- Multiple modern theme options (Midnight Tech, Cyber Pulse, Matrix Code)
+- Enhanced UI with glassmorphism effects
+- Improved API provider management
+- Multi-timeframe strategy implementation
+- Fixed various type errors and bugs
+
+### Version 1.0.0
 
 - Initial release with core trading features
 - AI trading capabilities

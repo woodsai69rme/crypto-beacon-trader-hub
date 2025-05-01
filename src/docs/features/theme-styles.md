@@ -3,9 +3,9 @@
 
 ## Overview
 
-The application features a comprehensive theme system with multiple style options. Users can customize the look and feel of the platform to match their preferences with various dark-themed styles.
+The application features a comprehensive theme system with multiple style options. Users can customize the look and feel of the platform to match their preferences with various modern dark-themed styles designed specifically for cryptocurrency trading.
 
-## Theme Options
+## Base Themes
 
 ### Dark (Default)
 The default dark theme offers a sleek, modern interface with deep backgrounds and high contrast elements for optimal visibility in low-light environments.
@@ -13,30 +13,40 @@ The default dark theme offers a sleek, modern interface with deep backgrounds an
 ### Light
 A brighter alternative that maintains the modern aesthetic but with lighter backgrounds and appropriate contrast adjustments.
 
-## Style Options
+## Modern Style Options
 
-Users can further customize their experience by selecting from six different color schemes that can be applied to both dark and light modes:
+Users can choose from multiple modern style variations to customize their experience. Each style is designed for optimal readability while providing visual distinctiveness:
 
-### Default
-The standard color palette that balances functionality with a clean, professional aesthetic.
+### Default Style
+The standard dark theme with balanced contrast and a professional aesthetic.
 
-### Ocean Blue
-A cool, calming blue-toned theme that provides a serene trading environment with emphasis on focus and clarity.
+### Midnight Tech
+A deep blue tech-inspired theme perfect for night trading sessions. Features blue accents that highlight important trading data while maintaining a professional look.
 
-### Midnight Purple
-Rich purple gradients create a premium, sophisticated look while maintaining excellent readability and reducing eye strain.
+### Cyber Pulse
+A vibrant purple cyberpunk-inspired style with neon accents, designed for traders who prefer a more modern and visually distinctive interface.
 
-### Forest Green
-Calming green tones create a balanced, natural aesthetic that's easy on the eyes during long trading sessions.
+### Matrix Code
+A green-tinted hacker aesthetic inspired by classic terminal displays. Perfect for traders who prefer the classic tech look with high readability for long sessions.
 
-### Amber Gold
-Warm amber gradients provide a distinctive look inspired by precious metals and financial themes.
+## Design Features
 
-### Ruby Red
-Bold red accents create an energetic, attention-grabbing interface perfect for traders who want high visual impact.
+Each theme includes carefully considered design elements:
 
-### Slate Gray
-Professional slate tones offer a business-oriented aesthetic with subtle depth and understated elegance.
+- **Consistent Color Patterns**: Trading-specific data like gains and losses maintain their green/red color associations across all themes
+- **Glassmorphism Effects**: Subtle backdrop blur and transparency effects for a modern, layered interface
+- **Optimized Contrast**: All themes maintain WCAG AA compliance for text readability
+- **Motion Design**: Subtle animations that enhance usability without distraction
+- **Custom Scrollbars**: Theme-matched scrollbars for a cohesive experience
+
+## Accessibility Features
+
+All themes include:
+
+- **Color Blindness Considerations**: Important data uses both color and shape to convey information
+- **High Contrast Options**: Sufficient contrast ratios for readability
+- **Reduced Motion Option**: Animations can be disabled for users sensitive to motion
+- **Keyboard Navigation**: Complete keyboard accessibility with visible focus indicators
 
 ## Customization Options
 
@@ -45,8 +55,8 @@ Theme and style preferences are easily accessible through the theme switcher in 
 ### How to Change Themes
 
 1. Click the palette icon in the top navigation bar
-2. Select a theme (Dark or Light) from the dropdown menu
-3. Choose a color scheme from the available options
+2. Select a base theme (Dark or Light) from the dropdown menu
+3. Choose a style from the available options
 4. Changes apply instantly and are saved for future sessions
 
 ## Technical Implementation
@@ -57,14 +67,7 @@ The theming system is built on a combination of CSS variables and Tailwind CSS u
 - Theme-specific overrides for components
 - Dark/light mode sensitivity
 - Responsive adaptations for different screen sizes
-
-## Accessibility Considerations
-
-All theme and style combinations maintain WCAG compliance for:
-- Color contrast ratios
-- Focus visibility
-- Text legibility
-- Interactive element identification
+- Glassmorphism effects for modern UI
 
 ## Best Practices
 

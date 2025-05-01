@@ -2,19 +2,31 @@
 import { useState } from "react";
 import "./App.css";
 import "./styles/reset.css"; // Import the reset styles
-import { ThemeProvider } from "./contexts/ThemeContext";
+import "./styles/themes.css"; // Import the theme styles
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { CurrencyProvider } from "./contexts/CurrencyContext";
 import { AiTradingProvider } from "./contexts/AiTradingContext";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "./components/Navbar";
 import Dashboard from "./components/Dashboard";
 
+// Create a themed container component that applies theme classes
+const ThemedContainer = ({ children }: { children: React.ReactNode }) => {
+  const { theme, colorScheme } = useTheme();
+  
+  return (
+    <div className={`themed-app min-h-screen flex flex-col bg-background ${theme} ${colorScheme}`}>
+      {children}
+    </div>
+  );
+};
+
 function App() {
   return (
     <ThemeProvider>
       <CurrencyProvider>
         <AiTradingProvider>
-          <div className="themed-app min-h-screen flex flex-col bg-background">
+          <ThemedContainer>
             <Navbar />
             <div className="container mx-auto px-4 sm:px-6 py-6 flex-1 max-w-7xl">
               <h1 className="text-3xl font-bold mb-6 text-foreground bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Crypto Trading Platform</h1>
@@ -33,7 +45,7 @@ function App() {
               </div>
             </footer>
             <Toaster />
-          </div>
+          </ThemedContainer>
         </AiTradingProvider>
       </CurrencyProvider>
     </ThemeProvider>

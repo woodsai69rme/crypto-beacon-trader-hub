@@ -32,12 +32,9 @@ const ThemeSwitcher: React.FC = () => {
   // Define color scheme options
   const colorSchemeOptions: ThemeOption[] = [
     { value: "default", label: "Default", description: "Standard color scheme" },
-    { value: "blue", label: "Ocean Blue", description: "Cool blue tones" },
-    { value: "purple", label: "Midnight Purple", description: "Rich purple gradients" },
-    { value: "green", label: "Forest Green", description: "Calming green tones" },
-    { value: "amber", label: "Amber Gold", description: "Warm amber gradients" },
-    { value: "red", label: "Ruby Red", description: "Bold red accents" },
-    { value: "slate", label: "Slate Gray", description: "Professional slate tones" }
+    { value: "midnight-tech", label: "Midnight Tech", description: "Deep blue tech-inspired theme" },
+    { value: "cyber-pulse", label: "Cyber Pulse", description: "Vibrant purple cyberpunk style" },
+    { value: "matrix-code", label: "Matrix Code", description: "Green-tinted hacker aesthetic" }
   ];
 
   const handleThemeChange = (value: string) => {
@@ -53,12 +50,12 @@ const ThemeSwitcher: React.FC = () => {
   };
 
   const handleColorSchemeChange = (value: string) => {
-    if (["default", "blue", "purple", "green", "amber", "red", "slate"].includes(value)) {
+    if (["default", "midnight-tech", "cyber-pulse", "matrix-code"].includes(value)) {
       setColorScheme(value as ColorScheme);
       localStorage.setItem("colorScheme", value);
       toast({
         title: "Style Updated",
-        description: `Changed to ${value} style`,
+        description: `Changed to ${value.replace("-", " ")} style`,
         duration: 2000
       });
     }
@@ -75,7 +72,7 @@ const ThemeSwitcher: React.FC = () => {
     document.documentElement.classList.add(savedTheme);
     
     // Apply color scheme to document root element
-    document.documentElement.classList.remove("default", "blue", "purple", "green", "amber", "red", "slate");
+    document.documentElement.classList.remove("default", "midnight-tech", "cyber-pulse", "matrix-code");
     if (savedColorScheme !== "default") {
       document.documentElement.classList.add(savedColorScheme);
     }
@@ -85,7 +82,7 @@ const ThemeSwitcher: React.FC = () => {
       setTheme(savedTheme as Theme);
     }
     
-    if (["default", "blue", "purple", "green", "amber", "red", "slate"].includes(savedColorScheme)) {
+    if (["default", "midnight-tech", "cyber-pulse", "matrix-code"].includes(savedColorScheme)) {
       setColorScheme(savedColorScheme as ColorScheme);
     }
   }, [setTheme, setColorScheme]);
@@ -135,7 +132,7 @@ const ThemeSwitcher: React.FC = () => {
                 <span>{option.label}</span>
                 <span className="text-xs text-muted-foreground">{option.description}</span>
               </div>
-              <div className={`w-4 h-4 rounded-full ${option.value === 'default' ? 'bg-primary' : `bg-${option.value}-500`}`}></div>
+              <div className={`w-4 h-4 rounded-full ${option.value === 'default' ? 'bg-primary' : `bg-${option.value.replace("-", "-")}`}`}></div>
               {colorScheme === option.value && (
                 <span className="text-primary">✓</span>
               )}

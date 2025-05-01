@@ -23,7 +23,7 @@ const WidgetList: React.FC<WidgetListProps> = ({ widgets, onRemove }) => {
   };
   
   return (
-    <Card>
+    <Card className="themed-card glass-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Available Widgets</CardTitle>
       </CardHeader>
