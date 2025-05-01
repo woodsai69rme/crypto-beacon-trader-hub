@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { CoinOption } from '@/types/trading';
+import { CoinOption, SupportedCurrency } from '@/types/trading';
 import TradingForm from "./TradingForm";
 import TradeHistory from "./TradeHistory";
 import TradingStats from "./TradingStats";
@@ -17,6 +17,7 @@ const EnhancedFakeTrading: React.FC = () => {
   const [selectedCoinId, setSelectedCoinId] = useState<string>("bitcoin");
   const [balance, setBalance] = useState<number>(10000);
   const [tradeHistory, setTradeHistory] = useState<any[]>([]);
+  const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>("USD");
 
   // Sample coins data
   const availableCoins: CoinOption[] = [
@@ -144,7 +145,8 @@ const EnhancedFakeTrading: React.FC = () => {
       amount,
       price,
       totalValue,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      currency: activeCurrency
     };
     setTradeHistory([trade, ...tradeHistory]);
 
@@ -152,6 +154,21 @@ const EnhancedFakeTrading: React.FC = () => {
       title: `${type === 'buy' ? 'Purchase' : 'Sale'} Successful`,
       description: `${type === 'buy' ? 'Bought' : 'Sold'} ${amount} ${coin.symbol} for $${totalValue.toFixed(2)}`,
     });
+  };
+
+  // Format currency for display
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: activeCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
+
+  // Get owned amount of a specific coin
+  const getOwnedCoinAmount = (coinId: string) => {
+    return holdingsMap[coinId] || 0;
   };
 
   return (
@@ -191,9 +208,13 @@ const EnhancedFakeTrading: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
                 <TradingForm
-                  availableCoins={availableCoins}
                   balance={balance}
-                  onTrade={(coinId, type, amount, price) => executeTrade(coinId, type, amount, price)}
+                  availableCoins={availableCoins}
+                  onTrade={executeTrade}
+                  getOwnedCoinAmount={getOwnedCoinAmount}
+                  activeCurrency={activeCurrency}
+                  onCurrencyChange={setActiveCurrency}
+                  conversionRate={1}
                 />
               </div>
               <div>
@@ -216,7 +237,11 @@ const EnhancedFakeTrading: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="history">
-            <TradeHistory trades={tradeHistory} />
+            <TradeHistory
+              trades={tradeHistory}
+              formatCurrency={formatCurrency}
+              activeCurrency={activeCurrency}
+            />
           </TabsContent>
 
           <TabsContent value="settings">

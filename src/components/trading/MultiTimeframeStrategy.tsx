@@ -1,387 +1,386 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { TimeframeOption } from '@/types/trading';
-import { Bot, LineChart, TrendingUp, BarChart4 } from 'lucide-react';
+import { AlertCircle, ArrowRight, Clock, Settings2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ExtendedTradingTimeframe } from '@/types/trading';
 
 interface MultiTimeframeStrategyProps {
-  className?: string;
+  onStrategyChange?: (strategy: any) => void;
 }
 
-type ExtendedTradingTimeframe = {
-  value: string;
-  label: string;
-  chartPeriod: string;
-  interval: string;
-  dataPoints: number;
-  description: string;
-};
-
-const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ className }) => {
-  const { toast } = useToast();
-  
-  // Define the timeframe options
-  const timeframeOptions: ExtendedTradingTimeframe[] = [
+const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrategyChange }) => {
+  // Define possible timeframes
+  const availableTimeframes: ExtendedTradingTimeframe[] = [
     { 
-      value: "short",
-      label: "Short-term",
-      chartPeriod: "1d",
+      value: "5m", 
+      label: "5 Minutes",
+      chartPeriod: "1D",
       interval: "5m",
       dataPoints: 288,
-      description: "5-minute intervals for day trading"
+      description: "Short-term scalping and quick trades"
     },
     { 
-      value: "medium",
-      label: "Medium-term",
-      chartPeriod: "5d",
+      value: "15m", 
+      label: "15 Minutes",
+      chartPeriod: "3D",
+      interval: "15m",
+      dataPoints: 288,
+      description: "Short-term trading with reduced noise"
+    },
+    { 
+      value: "1h", 
+      label: "1 Hour",
+      chartPeriod: "7D",
       interval: "1h",
-      dataPoints: 120,
-      description: "Hourly intervals for swing trading"
+      dataPoints: 168,
+      description: "Intraday trading with trend consideration"
     },
     { 
-      value: "long",
-      label: "Long-term",
-      chartPeriod: "30d",
+      value: "4h", 
+      label: "4 Hours",
+      chartPeriod: "30D",
+      interval: "4h",
+      dataPoints: 180,
+      description: "Medium-term trends and swing trading"
+    },
+    { 
+      value: "1d", 
+      label: "1 Day",
+      chartPeriod: "90D",
       interval: "1d",
-      dataPoints: 30,
-      description: "Daily intervals for position trading"
-    }
+      dataPoints: 90,
+      description: "Long-term trends and position trading"
+    },
   ];
 
-  const [strategy, setStrategy] = useState<string>("trend-following");
+  // State for selected timeframes
   const [selectedTimeframes, setSelectedTimeframes] = useState<{
     primary: string;
     secondary: string;
     confirmation: string;
   }>({
-    primary: timeframeOptions[1].value, // Medium by default
-    secondary: timeframeOptions[0].value, // Short by default
-    confirmation: timeframeOptions[2].value // Long by default
+    primary: "1h",
+    secondary: "4h",
+    confirmation: "1d",
   });
 
-  const [indicators, setIndicators] = useState<{
-    primary: string[];
-    secondary: string[];
-    confirmation: string[];
-  }>({
-    primary: ["macd", "rsi"],
-    secondary: ["ema", "bollinger"],
-    confirmation: ["ichimoku", "volume"]
+  // State for alert settings
+  const [alertSettings, setAlertSettings] = useState({
+    enableNotifications: true,
+    conflictWarnings: true,
+    divergenceAlerts: true,
   });
 
-  const [signalStatus, setSignalStatus] = useState<{
-    primary: 'buy' | 'sell' | 'neutral';
-    secondary: 'buy' | 'sell' | 'neutral';
-    confirmation: 'buy' | 'sell' | 'neutral';
-  }>({
-    primary: 'neutral',
-    secondary: 'neutral',
-    confirmation: 'neutral'
-  });
+  // Active tab
+  const [activeTab, setActiveTab] = useState('setup');
 
-  const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState<{
-    consensus: 'buy' | 'sell' | 'neutral';
-    strength: number;
-    confidence: number;
-  }>({
-    consensus: 'neutral',
-    strength: 50,
-    confidence: 0
-  });
-
-  // Strategy options
-  const strategyOptions = [
-    { value: "trend-following", label: "Trend Following" },
-    { value: "mean-reversion", label: "Mean Reversion" },
-    { value: "breakout", label: "Breakout" },
-    { value: "momentum", label: "Momentum" },
-    { value: "hybrid", label: "Hybrid Strategy" }
-  ];
-
-  // Simulate running the strategy
-  const handleRunStrategy = () => {
-    setIsRunning(true);
-
-    // Simulate processing delay
-    setTimeout(() => {
-      // Generate some random results
-      const signalOptions: ('buy' | 'sell' | 'neutral')[] = ['buy', 'sell', 'neutral'];
-      
-      const primarySignal: 'buy' | 'sell' | 'neutral' = signalOptions[Math.floor(Math.random() * 3)];
-      const secondarySignal: 'buy' | 'sell' | 'neutral' = signalOptions[Math.floor(Math.random() * 3)];
-      const confirmationSignal: 'buy' | 'sell' | 'neutral' = signalOptions[Math.floor(Math.random() * 3)];
-      
-      setSignalStatus({
-        primary: primarySignal,
-        secondary: secondarySignal,
-        confirmation: confirmationSignal
-      });
-
-      // Calculate consensus
-      let buyCount = 0;
-      let sellCount = 0;
-
-      if (primarySignal === 'buy') buyCount += 3;
-      if (primarySignal === 'sell') sellCount += 3;
-      
-      if (secondarySignal === 'buy') buyCount += 2;
-      if (secondarySignal === 'sell') sellCount += 2;
-      
-      if (confirmationSignal === 'buy') buyCount += 1;
-      if (confirmationSignal === 'sell') sellCount += 1;
-      
-      let consensus: 'buy' | 'sell' | 'neutral' = 'neutral';
-      if (buyCount > sellCount && buyCount > 1) consensus = 'buy';
-      if (sellCount > buyCount && sellCount > 1) consensus = 'sell';
-      
-      // Calculate strength and confidence
-      const strength = Math.floor(Math.random() * 40) + 30; // 30-70
-      const confidence = Math.min(buyCount, sellCount) === 0 ? 
-        Math.abs(buyCount - sellCount) * 16.67 : // Max 100%
-        (Math.max(buyCount, sellCount) / (buyCount + sellCount)) * 100;
-      
-      setResults({
-        consensus,
-        strength,
-        confidence: Math.round(confidence)
-      });
-      
-      setIsRunning(false);
-
-      toast({
-        title: "Strategy Analysis Complete",
-        description: `Multi-timeframe analysis suggests a ${consensus.toUpperCase()} signal with ${Math.round(confidence)}% confidence.`,
-      });
-    }, 2000);
+  // Handle timeframe changes
+  const handlePrimaryTimeframeChange = (value: string) => {
+    setSelectedTimeframes(prev => ({
+      ...prev,
+      primary: value
+    }));
   };
 
-  // Update timeframe handlers
-  const handlePrimaryTimeframeChange = (value: ExtendedTradingTimeframe) => {
-    setSelectedTimeframes(prev => ({ ...prev, primary: value }));
+  const handleSecondaryTimeframeChange = (value: string) => {
+    setSelectedTimeframes(prev => ({
+      ...prev,
+      secondary: value
+    }));
   };
-  
-  const handleSecondaryTimeframeChange = (value: ExtendedTradingTimeframe) => {
-    setSelectedTimeframes(prev => ({ ...prev, secondary: value }));
-  };
-  
-  const handleConfirmationTimeframeChange = (value: ExtendedTradingTimeframe) => {
-    setSelectedTimeframes(prev => ({ ...prev, confirmation: value }));
+
+  const handleConfirmationTimeframeChange = (value: string) => {
+    setSelectedTimeframes(prev => ({
+      ...prev,
+      confirmation: value
+    }));
   };
 
   // Get timeframe object by value
-  const getTimeframeByValue = (value: string): ExtendedTradingTimeframe => {
-    return timeframeOptions.find(tf => tf.value === value) || timeframeOptions[0];
+  const getTimeframeByValue = (value: string): ExtendedTradingTimeframe | undefined => {
+    return availableTimeframes.find(tf => tf.value === value);
+  };
+
+  const primaryTimeframe = getTimeframeByValue(selectedTimeframes.primary);
+  const secondaryTimeframe = getTimeframeByValue(selectedTimeframes.secondary);
+  const confirmationTimeframe = getTimeframeByValue(selectedTimeframes.confirmation);
+
+  // Handle apply strategy
+  const handleApplyStrategy = () => {
+    if (onStrategyChange) {
+      onStrategyChange({
+        timeframes: selectedTimeframes,
+        alerts: alertSettings,
+        type: 'multi-timeframe',
+      });
+    }
   };
 
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
+          <Clock className="h-5 w-5 text-primary" />
           Multi-Timeframe Strategy
         </CardTitle>
         <CardDescription>
-          Combine multiple timeframes for robust trading signals
+          Configure a trading strategy that analyzes multiple timeframes for stronger signals
         </CardDescription>
       </CardHeader>
-      
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">Strategy Type</label>
-            <Select value={strategy} onValueChange={setStrategy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a strategy" />
-              </SelectTrigger>
-              <SelectContent>
-                {strategyOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Tabs defaultValue="setup">
-            <TabsList className="grid grid-cols-2 mb-4">
-              <TabsTrigger value="setup">Setup</TabsTrigger>
-              <TabsTrigger value="results">Results</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="setup" className="space-y-4">
-              <div className="grid gap-4">
-                <div className="p-4 rounded-md bg-muted/50 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">Primary Timeframe</div>
-                    <Select
-                      value={selectedTimeframes.primary}
-                      onValueChange={(value) => handlePrimaryTimeframeChange(getTimeframeByValue(value))}
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeframeOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="setup">Setup</TabsTrigger>
+            <TabsTrigger value="signals">Signals</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="setup">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-medium">Primary Timeframe</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Main timeframe for trade execution signals
+                    </p>
                   </div>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    {getTimeframeByValue(selectedTimeframes.primary).description}
-                  </div>
-                  
-                  <div className="text-sm">
-                    <span className="font-medium">Indicators:</span> {indicators.primary.join(", ")}
-                  </div>
+                  <Select value={selectedTimeframes.primary} onValueChange={handlePrimaryTimeframeChange}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTimeframes.map((tf) => (
+                        <SelectItem key={tf.value} value={tf.value}>{tf.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                
-                <div className="p-4 rounded-md bg-muted/50 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">Secondary Timeframe</div>
-                    <Select
-                      value={selectedTimeframes.secondary}
-                      onValueChange={(value) => handleSecondaryTimeframeChange(getTimeframeByValue(value))}
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeframeOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-medium">Secondary Timeframe</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Trend direction and context
+                    </p>
                   </div>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    {getTimeframeByValue(selectedTimeframes.secondary).description}
-                  </div>
-                  
-                  <div className="text-sm">
-                    <span className="font-medium">Indicators:</span> {indicators.secondary.join(", ")}
-                  </div>
+                  <Select value={selectedTimeframes.secondary} onValueChange={handleSecondaryTimeframeChange}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTimeframes.map((tf) => (
+                        <SelectItem key={tf.value} value={tf.value}>{tf.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                
-                <div className="p-4 rounded-md bg-muted/50 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">Confirmation Timeframe</div>
-                    <Select
-                      value={selectedTimeframes.confirmation}
-                      onValueChange={(value) => handleConfirmationTimeframeChange(getTimeframeByValue(value))}
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeframeOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-medium">Confirmation Timeframe</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Confirmation of larger trends for better accuracy
+                    </p>
                   </div>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    {getTimeframeByValue(selectedTimeframes.confirmation).description}
+                  <Select value={selectedTimeframes.confirmation} onValueChange={handleConfirmationTimeframeChange}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTimeframes.map((tf) => (
+                        <SelectItem key={tf.value} value={tf.value}>{tf.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="bg-muted/50 p-4 rounded-md">
+                <h3 className="font-medium mb-2">Strategy Summary:</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium w-32">Primary (Entry):</div>
+                    <div>{primaryTimeframe?.label}</div>
+                    <div className="text-xs text-muted-foreground">{primaryTimeframe?.description}</div>
                   </div>
-                  
-                  <div className="text-sm">
-                    <span className="font-medium">Indicators:</span> {indicators.confirmation.join(", ")}
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium w-32">Secondary (Trend):</div>
+                    <div>{secondaryTimeframe?.label}</div>
+                    <div className="text-xs text-muted-foreground">{secondaryTimeframe?.description}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium w-32">Confirmation:</div>
+                    <div>{confirmationTimeframe?.label}</div>
+                    <div className="text-xs text-muted-foreground">{confirmationTimeframe?.description}</div>
                   </div>
                 </div>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="results" className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex justify-between items-center p-4 rounded-md bg-muted/50">
-                  <div>
-                    <div className="text-sm font-medium">Primary Signal ({getTimeframeByValue(selectedTimeframes.primary).label})</div>
-                    <div className={`text-lg font-bold ${
-                      signalStatus.primary === 'buy' ? 'text-green-500' : 
-                      signalStatus.primary === 'sell' ? 'text-red-500' : 'text-muted-foreground'
-                    }`}>
-                      {signalStatus.primary.toUpperCase()}
-                    </div>
-                  </div>
-                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-background">
-                    <LineChart className="h-6 w-6 text-primary" />
-                  </div>
+
+              <div className="bg-amber-50/5 border border-amber-100/20 p-4 rounded-md flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-amber-500">Strategy Notes</p>
+                  <p>For best results, keep timeframes in ascending order, with primary being the smallest and confirmation being the largest.</p>
                 </div>
-                
-                <div className="flex justify-between items-center p-4 rounded-md bg-muted/50">
-                  <div>
-                    <div className="text-sm font-medium">Secondary Signal ({getTimeframeByValue(selectedTimeframes.secondary).label})</div>
-                    <div className={`text-lg font-bold ${
-                      signalStatus.secondary === 'buy' ? 'text-green-500' : 
-                      signalStatus.secondary === 'sell' ? 'text-red-500' : 'text-muted-foreground'
-                    }`}>
-                      {signalStatus.secondary.toUpperCase()}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="signals">
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-medium mb-2">Signal Generation</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  How signals are generated across multiple timeframes
+                </p>
+
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div className="text-center border border-dashed border-border p-2 rounded-md min-w-[100px]">
+                      <div className="text-sm font-medium">Primary</div>
+                      <div className="text-xs text-muted-foreground">{primaryTimeframe?.value}</div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <div className="text-center border border-dashed border-border p-2 rounded-md min-w-[100px]">
+                      <div className="text-sm font-medium">Secondary</div>
+                      <div className="text-xs text-muted-foreground">{secondaryTimeframe?.value}</div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <div className="text-center border border-dashed border-border p-2 rounded-md min-w-[100px]">
+                      <div className="text-sm font-medium">Confirmation</div>
+                      <div className="text-xs text-muted-foreground">{confirmationTimeframe?.value}</div>
                     </div>
                   </div>
-                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-background">
-                    <TrendingUp className="h-6 w-6 text-primary" />
+
+                  <div className="bg-muted/50 p-4 rounded-md space-y-3">
+                    <h4 className="font-medium">Buy Signal Requirements:</h4>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      <li>Primary: Price above 20 EMA, RSI > 50</li>
+                      <li>Secondary: Uptrend confirmed (higher highs & lows)</li>
+                      <li>Confirmation: Above 100 SMA, no bearish patterns</li>
+                    </ul>
                   </div>
-                </div>
-                
-                <div className="flex justify-between items-center p-4 rounded-md bg-muted/50">
-                  <div>
-                    <div className="text-sm font-medium">Confirmation Signal ({getTimeframeByValue(selectedTimeframes.confirmation).label})</div>
-                    <div className={`text-lg font-bold ${
-                      signalStatus.confirmation === 'buy' ? 'text-green-500' : 
-                      signalStatus.confirmation === 'sell' ? 'text-red-500' : 'text-muted-foreground'
-                    }`}>
-                      {signalStatus.confirmation.toUpperCase()}
-                    </div>
+
+                  <div className="bg-muted/50 p-4 rounded-md space-y-3">
+                    <h4 className="font-medium">Sell Signal Requirements:</h4>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      <li>Primary: Price below 20 EMA, RSI < 50</li>
+                      <li>Secondary: Downtrend confirmed (lower highs & lows)</li>
+                      <li>Confirmation: Below 100 SMA or bearish patterns</li>
+                    </ul>
                   </div>
-                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-background">
-                    <BarChart4 className="h-6 w-6 text-primary" />
-                  </div>
-                </div>
-                
-                <div className="p-4 rounded-md bg-card space-y-3 border">
-                  <div className="text-center font-medium">Consensus Result</div>
-                  <div className="text-center text-2xl font-bold py-2 text-primary">
-                    {results.consensus.toUpperCase()}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Signal Strength</div>
-                      <div className="font-medium">{results.strength}%</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Confidence</div>
-                      <div className="font-medium">{results.confidence}%</div>
+
+                  <div className="bg-muted/50 p-4 rounded-md space-y-3">
+                    <h4 className="font-medium">Signal Strength:</h4>
+                    <div className="space-y-2 text-sm">
+                      <p>Signal strength is calculated based on alignment across timeframes:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Strong (3/3): All timeframes aligned</li>
+                        <li>Moderate (2/3): Primary + one other timeframe aligned</li>
+                        <li>Weak (1/3): Only primary timeframe signal</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="notifications">Enable Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive alerts when signals are generated
+                    </p>
+                  </div>
+                  <Switch 
+                    id="notifications"
+                    checked={alertSettings.enableNotifications}
+                    onCheckedChange={(checked) => setAlertSettings(prev => ({ ...prev, enableNotifications: checked }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="conflict-warnings">Conflict Warnings</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Warn when timeframes show conflicting signals
+                    </p>
+                  </div>
+                  <Switch 
+                    id="conflict-warnings"
+                    checked={alertSettings.conflictWarnings}
+                    onCheckedChange={(checked) => setAlertSettings(prev => ({ ...prev, conflictWarnings: checked }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="divergence-alerts">Divergence Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Alert when indicators show divergence with price
+                    </p>
+                  </div>
+                  <Switch 
+                    id="divergence-alerts"
+                    checked={alertSettings.divergenceAlerts}
+                    onCheckedChange={(checked) => setAlertSettings(prev => ({ ...prev, divergenceAlerts: checked }))}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-medium mb-2">Advanced Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="rsi-period" className="text-sm">RSI Period</Label>
+                    <Select defaultValue="14">
+                      <SelectTrigger id="rsi-period">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="7">7</SelectItem>
+                        <SelectItem value="14">14</SelectItem>
+                        <SelectItem value="21">21</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ma-type" className="text-sm">Moving Average Type</Label>
+                    <Select defaultValue="ema">
+                      <SelectTrigger id="ma-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sma">Simple (SMA)</SelectItem>
+                        <SelectItem value="ema">Exponential (EMA)</SelectItem>
+                        <SelectItem value="wma">Weighted (WMA)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
-      
-      <CardFooter>
-        <Button 
-          className="w-full" 
-          onClick={handleRunStrategy} 
-          disabled={isRunning}
-        >
-          {isRunning ? "Processing..." : "Run Multi-Timeframe Analysis"}
+
+      <CardFooter className="flex justify-between border-t pt-4">
+        <Button variant="outline">
+          <Settings2 className="h-4 w-4 mr-2" />
+          Save Preset
         </Button>
+        <Button onClick={handleApplyStrategy}>Apply Strategy</Button>
       </CardFooter>
     </Card>
   );

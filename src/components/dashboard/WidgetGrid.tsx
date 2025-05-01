@@ -1,47 +1,57 @@
 
 import React from 'react';
-import { Widget, WidgetGridProps } from '@/types/trading';
-import WidgetComponent from './WidgetComponent';
+import { Card } from "@/components/ui/card";
+import { WidgetGridProps } from '@/types/trading';
 
-const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosition }) => {
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData('widgetId', id);
+const WidgetGrid: React.FC<WidgetGridProps> = ({
+  id,
+  title,
+  type,
+  size,
+  position,
+  onRemove,
+  onUpdatePosition,
+  children
+}) => {
+  // Handle position update via drag & drop
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (!onUpdatePosition) return;
+    
+    // Calculate new position based on drop location
+    const newX = Math.round((e.clientX - window.innerWidth * 0.1) / 50) * 50;
+    const newY = Math.round((e.clientY - 100) / 50) * 50;
+    
+    onUpdatePosition(id, { x: newX, y: newY });
   };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
+  
+  // Size classes based on widget size
+  const sizeClasses = {
+    small: "w-64 h-64",
+    medium: "w-80 h-80",
+    large: "w-96 h-96",
+    wide: "w-full md:w-2/3 h-80",
+    tall: "w-64 h-128",
+    full: "w-full h-128"
   };
-
-  const handleDrop = (e: React.DragEvent, position: { x: number, y: number }) => {
-    e.preventDefault();
-    const widgetId = e.dataTransfer.getData('widgetId');
-    if (onUpdatePosition) {
-      onUpdatePosition(widgetId, position);
-    }
-  };
-
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {widgets.map((widget) => (
-        <div
-          key={widget.id}
-          className={`
-            ${widget.size === 'small' ? 'col-span-1 row-span-1' : ''}
-            ${widget.size === 'medium' ? 'col-span-1 row-span-2' : ''}
-            ${widget.size === 'large' ? 'col-span-2 row-span-2' : ''}
-            ${widget.size === 'wide' ? 'col-span-2 row-span-1' : ''}
-            ${widget.size === 'tall' ? 'col-span-1 row-span-3' : ''}
-            ${widget.size === 'full' ? 'col-span-3 row-span-2' : ''}
-          `}
-          draggable
-          onDragStart={(e) => handleDragStart(e, widget.id)}
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, { x: widget.position.x, y: widget.position.y })}
+    <Card
+      className={`${sizeClasses[size]} absolute cursor-move overflow-hidden`}
+      style={{ top: position.y, left: position.x }}
+      draggable
+      onDragEnd={handleDragEnd}
+    >
+      {children}
+      
+      {onRemove && (
+        <button
+          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/90 flex items-center justify-center"
+          onClick={() => onRemove(id)}
         >
-          <WidgetComponent widget={widget} onRemove={onRemove} />
-        </div>
-      ))}
-    </div>
+          &times;
+        </button>
+      )}
+    </Card>
   );
 };
 

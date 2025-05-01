@@ -1,248 +1,295 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { toast } from "@/components/ui/use-toast";
-import { LineChart, Activity, Calculator, TrendingUp } from 'lucide-react';
-
-interface QuantitativeAnalysisProps {
-  symbol?: string;
-  timeframe?: string;
-  onResultsCalculated?: (results: any) => void;
-}
+import { LineChart, BarChart, BarChart2, TrendingUp, ArrowDownUp, Calculator } from "lucide-react";
+import { QuantitativeAnalysisProps } from '@/types/trading';
 
 const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
   symbol = "BTC/USD",
   timeframe = "1D",
   onResultsCalculated
 }) => {
-  const [analysisType, setAnalysisType] = useState<string>("monte-carlo");
-  const [confidenceLevel, setConfidenceLevel] = useState<number>(95);
-  const [isCalculating, setIsCalculating] = useState<boolean>(false);
-  
-  const analysisTypes = [
-    { value: "monte-carlo", label: "Monte Carlo Simulation" },
-    { value: "value-at-risk", label: "Value at Risk (VaR)" },
-    { value: "probability-cone", label: "Probability Cone" },
-    { value: "regime-analysis", label: "Market Regime Analysis" }
-  ];
-  
-  const timeframeOptions = [
-    { value: "1H", label: "1 Hour" },
-    { value: "4H", label: "4 Hours" },
-    { value: "1D", label: "1 Day" },
-    { value: "1W", label: "1 Week" },
-    { value: "1M", label: "1 Month" }
-  ];
-  
-  const runAnalysis = () => {
+  const [activeTab, setActiveTab] = useState('momentum');
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [results, setResults] = useState<{
+    momentum: any[];
+    volatility: any[];
+    trends: any[];
+    correlations: any[];
+    summary: any;
+  }>({
+    momentum: [],
+    volatility: [],
+    trends: [],
+    correlations: [],
+    summary: null
+  });
+
+  // Simulate calculation of quantitative indicators
+  const calculateIndicators = () => {
     setIsCalculating(true);
     
-    // Simulate analysis taking time
+    // Simulate API call or calculation
     setTimeout(() => {
-      const results = {
-        type: analysisType,
-        symbol,
-        timeframe,
-        confidenceLevel,
-        outcomes: {
-          best: {
-            return: 23.5,
-            probability: 5
-          },
-          expected: {
-            return: 8.2,
-            probability: 50
-          },
-          worst: {
-            return: -12.4,
-            probability: 5
-          }
-        },
-        metrics: {
-          sharpeRatio: 1.42,
-          volatility: 18.7,
-          drawdown: 24.3,
-          winRate: 62.8
-        },
-        regimes: {
-          current: "bullish",
-          probability: {
-            bullish: 72,
-            neutral: 25,
-            bearish: 3
-          }
-        }
+      // Mock data - in a real app, this would be calculated from actual price data
+      const momentum = [
+        { name: 'RSI (14)', value: 62.4, interpretation: 'Neutral with bullish bias' },
+        { name: 'MACD (12,26,9)', value: '0.12', interpretation: 'Bullish, above signal line' },
+        { name: 'Stochastic Oscillator', value: '78.5', interpretation: 'Overbought territory' },
+        { name: 'ROC (10)', value: 5.2, interpretation: 'Positive momentum' },
+        { name: 'Bull/Bear Power', value: 245.7, interpretation: 'Strong bullish power' }
+      ];
+      
+      const volatility = [
+        { name: 'Bollinger Bandwidth', value: '4.2%', interpretation: 'Average volatility' },
+        { name: 'ATR (14)', value: '$1280', interpretation: 'High volatility' },
+        { name: 'Historical Vol (30D)', value: '48.5%', interpretation: 'Above average' },
+        { name: 'Implied Vol', value: '52.3%', interpretation: 'Expecting higher volatility' },
+        { name: 'VWAP Distance', value: '2.1%', interpretation: 'Price above VWAP' }
+      ];
+      
+      const trends = [
+        { name: 'ADX (14)', value: 28.3, interpretation: 'Strong trend' },
+        { name: 'Supertrend (10,3)', value: 'Bullish', interpretation: 'Above supertrend line' },
+        { name: 'Ichimoku Cloud', value: 'Bullish', interpretation: 'Price above cloud' },
+        { name: 'Parabolic SAR', value: 'Bullish', interpretation: 'Below price' },
+        { name: 'Linear Regression Slope', value: 0.67, interpretation: 'Upward sloping' }
+      ];
+      
+      const correlations = [
+        { name: 'ETH Correlation (30D)', value: 0.92, interpretation: 'Very high positive' },
+        { name: 'S&P 500 Correlation', value: 0.48, interpretation: 'Moderate positive' },
+        { name: 'Gold Correlation', value: 0.12, interpretation: 'Low positive' },
+        { name: 'DXY Correlation', value: -0.56, interpretation: 'Moderate negative' },
+        { name: 'VIX Correlation', value: -0.32, interpretation: 'Low negative' }
+      ];
+      
+      const summary = {
+        overallSignal: 'Bullish',
+        confidence: 72,
+        keyStrengths: [
+          'Strong momentum indicators',
+          'Positive trend strength',
+          'Favorable correlation with ETH'
+        ],
+        keyWeaknesses: [
+          'Overbought on some oscillators',
+          'High volatility suggesting risk',
+          'Negative correlation with dollar index'
+        ],
+        recommendation: 'Consider long positions with tight stop losses due to volatility'
       };
       
+      const newResults = {
+        momentum,
+        volatility,
+        trends,
+        correlations,
+        summary
+      };
+      
+      setResults(newResults);
       setIsCalculating(false);
       
       if (onResultsCalculated) {
-        onResultsCalculated(results);
+        onResultsCalculated(newResults);
       }
-      
-      toast({
-        title: "Analysis Complete",
-        description: `${analysisType.replace("-", " ")} completed with ${confidenceLevel}% confidence level`,
-      });
-    }, 2000);
+    }, 1500);
   };
   
+  // Calculate on first load
+  useEffect(() => {
+    calculateIndicators();
+  }, []);
+  
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="h-5 w-5" />
-          Quantitative Analysis
-        </CardTitle>
-        <CardDescription>
-          Advanced statistical analysis tools for market probability assessment
-        </CardDescription>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+          <div>
+            <CardTitle className="text-xl flex items-center">
+              <Calculator className="mr-2 h-5 w-5 text-primary" />
+              Quantitative Analysis
+            </CardTitle>
+            <CardDescription>
+              {symbol} • {timeframe} Timeframe
+            </CardDescription>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={calculateIndicators}
+            disabled={isCalculating}
+          >
+            {isCalculating ? 'Calculating...' : 'Recalculate'}
+          </Button>
+        </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Analysis Type</Label>
-            <Select value={analysisType} onValueChange={setAnalysisType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select analysis type" />
-              </SelectTrigger>
-              <SelectContent>
-                {analysisTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Asset</Label>
-            <Select defaultValue={symbol}>
-              <SelectTrigger>
-                <SelectValue placeholder={symbol} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="BTC/USD">Bitcoin (BTC/USD)</SelectItem>
-                <SelectItem value="ETH/USD">Ethereum (ETH/USD)</SelectItem>
-                <SelectItem value="SOL/USD">Solana (SOL/USD)</SelectItem>
-                <SelectItem value="XRP/USD">Ripple (XRP/USD)</SelectItem>
-                <SelectItem value="ADA/USD">Cardano (ADA/USD)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Timeframe</Label>
-            <Select defaultValue={timeframe}>
-              <SelectTrigger>
-                <SelectValue placeholder={timeframe} />
-              </SelectTrigger>
-              <SelectContent>
-                {timeframeOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Confidence Level</Label>
-            <span className="text-sm text-muted-foreground">{confidenceLevel}%</span>
-          </div>
-          <Slider
-            defaultValue={[95]}
-            min={80}
-            max={99}
-            step={1}
-            value={[confidenceLevel]}
-            onValueChange={(value) => setConfidenceLevel(value[0])}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="col-span-full md:col-span-1 space-y-2">
-            <h3 className="text-md font-medium">Parameters</h3>
-            
-            <div className="space-y-4 bg-muted/50 p-4 rounded-md">
-              <div>
-                <div className="text-sm text-muted-foreground">Simulations</div>
-                <div className="font-medium">10,000</div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-muted-foreground">Historical Period</div>
-                <div className="font-medium">2 Years</div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-muted-foreground">Projection Period</div>
-                <div className="font-medium">30 Days</div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-muted-foreground">Current Position</div>
-                <div className="font-medium">BTC: 1.25</div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-muted-foreground">Position Value</div>
-                <div className="font-medium">$76,556.65</div>
-              </div>
+      <CardContent>
+        {isCalculating ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+              <p className="mt-4 text-sm text-muted-foreground">Calculating indicators...</p>
             </div>
           </div>
-          
-          <div className="col-span-full md:col-span-2 flex flex-col space-y-4">
-            <h3 className="text-md font-medium">Preview</h3>
-            
-            <div className="flex-1 bg-muted/50 p-4 rounded-md flex items-center justify-center flex-col">
-              {analysisType === "monte-carlo" && (
-                <div className="text-center space-y-2">
-                  <LineChart className="h-16 w-16 text-muted-foreground mx-auto" />
-                  <div>Monte Carlo simulation projects multiple price paths to estimate outcome probabilities</div>
-                </div>
-              )}
+        ) : (
+          <>
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-muted/50">
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">Overall Signal</div>
+                  <div className="text-xl font-bold mt-1">
+                    {results.summary?.overallSignal}
+                  </div>
+                </CardContent>
+              </Card>
               
-              {analysisType === "value-at-risk" && (
-                <div className="text-center space-y-2">
-                  <Activity className="h-16 w-16 text-muted-foreground mx-auto" />
-                  <div>Value at Risk calculates the maximum expected loss at your specified confidence level</div>
-                </div>
-              )}
+              <Card className="bg-muted/50">
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">Confidence</div>
+                  <div className="text-xl font-bold mt-1">
+                    {results.summary?.confidence}%
+                  </div>
+                </CardContent>
+              </Card>
               
-              {analysisType === "probability-cone" && (
-                <div className="text-center space-y-2">
-                  <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto" />
-                  <div>Probability Cone shows the range of possible price outcomes with statistical significance</div>
-                </div>
-              )}
-              
-              {analysisType === "regime-analysis" && (
-                <div className="text-center space-y-2">
-                  <Activity className="h-16 w-16 text-muted-foreground mx-auto" />
-                  <div>Market Regime Analysis identifies the current market state and transition probabilities</div>
-                </div>
-              )}
+              <Card className="bg-muted/50 md:col-span-2">
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">Recommendation</div>
+                  <div className="text-sm font-medium mt-1">
+                    {results.summary?.recommendation}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
-            <Button 
-              onClick={runAnalysis} 
-              disabled={isCalculating} 
-              className="mt-auto"
-            >
-              {isCalculating ? "Calculating..." : "Run Analysis"}
-            </Button>
-          </div>
-        </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-4">
+                <TabsTrigger value="momentum">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span className="hidden md:inline">Momentum</span>
+                </TabsTrigger>
+                <TabsTrigger value="volatility">
+                  <ArrowDownUp className="h-4 w-4 mr-1" />
+                  <span className="hidden md:inline">Volatility</span>
+                </TabsTrigger>
+                <TabsTrigger value="trends">
+                  <LineChart className="h-4 w-4 mr-1" />
+                  <span className="hidden md:inline">Trends</span>
+                </TabsTrigger>
+                <TabsTrigger value="correlations">
+                  <BarChart2 className="h-4 w-4 mr-1" />
+                  <span className="hidden md:inline">Correlations</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="momentum">
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-lg font-medium">Momentum Indicators</h3>
+                  <div className="space-y-2">
+                    {results.momentum.map((indicator, index) => (
+                      <div key={index} className="p-3 bg-muted/50 rounded-md">
+                        <div className="flex justify-between">
+                          <div className="font-medium">{indicator.name}</div>
+                          <div className="font-mono">{indicator.value}</div>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {indicator.interpretation}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="volatility">
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-lg font-medium">Volatility Indicators</h3>
+                  <div className="space-y-2">
+                    {results.volatility.map((indicator, index) => (
+                      <div key={index} className="p-3 bg-muted/50 rounded-md">
+                        <div className="flex justify-between">
+                          <div className="font-medium">{indicator.name}</div>
+                          <div className="font-mono">{indicator.value}</div>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {indicator.interpretation}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="trends">
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-lg font-medium">Trend Indicators</h3>
+                  <div className="space-y-2">
+                    {results.trends.map((indicator, index) => (
+                      <div key={index} className="p-3 bg-muted/50 rounded-md">
+                        <div className="flex justify-between">
+                          <div className="font-medium">{indicator.name}</div>
+                          <div className="font-mono">{indicator.value}</div>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {indicator.interpretation}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="correlations">
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-lg font-medium">Correlation Analysis</h3>
+                  <div className="space-y-2">
+                    {results.correlations.map((indicator, index) => (
+                      <div key={index} className="p-3 bg-muted/50 rounded-md">
+                        <div className="flex justify-between">
+                          <div className="font-medium">{indicator.name}</div>
+                          <div className="font-mono">{indicator.value}</div>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {indicator.interpretation}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="mt-6 pt-4 border-t">
+              <h3 className="text-lg font-medium mb-2">Key Insights</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-green-500 mb-2">Strengths</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {results.summary?.keyStrengths.map((strength, index) => (
+                      <li key={index}>{strength}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-red-500 mb-2">Weaknesses</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {results.summary?.keyWeaknesses.map((weakness, index) => (
+                      <li key={index}>{weakness}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

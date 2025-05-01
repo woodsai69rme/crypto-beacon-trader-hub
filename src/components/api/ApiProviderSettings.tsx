@@ -195,7 +195,7 @@ const ApiProviderSettings: React.FC<ApiProviderSettingsProps> = ({
                       {endpoint.description}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-sm">
-                      {endpoint.rateLimit || 'N/A'}
+                      N/A
                     </td>
                   </tr>
                 ))}

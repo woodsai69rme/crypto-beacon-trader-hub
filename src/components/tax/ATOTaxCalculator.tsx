@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,17 +39,10 @@ const emptyCalculation: ATOTaxCalculation = {
   bracketInfo: taxRates2023[0],
   taxPayable: 0,
   taxWithheld: 0,
-  taxRefundOrOwed: 0,
-  capitalGains: 0,
-  CGTDiscount: 0,
-  deductions: 0,
-  effectiveTaxRate: 0,
+  taxRefundOwed: 0,
   effectiveRate: 0,
-  marginalRate: 0,
-  takeHome: 0,
   medicareLevyPayable: 0,
-  income: 0,
-  breakdown: []
+  totalTaxPayable: 0
 };
 
 const ATOTaxCalculator: React.FC = () => {
@@ -86,10 +78,10 @@ const ATOTaxCalculator: React.FC = () => {
       const totalTaxPayable = baseTax + medicareLevy;
       
       // Tax refund or amount owing
-      const taxRefundOrOwed = taxWithheld - totalTaxPayable;
+      const taxRefundOwed = taxWithheld - totalTaxPayable;
       
       // Effective tax rate
-      const effectiveTaxRate = (totalTaxPayable / taxableIncome) * 100;
+      const effectiveRate = (totalTaxPayable / taxableIncome) * 100;
 
       // Tax breakdown by brackets
       const breakdown = [];
@@ -134,16 +126,17 @@ const ATOTaxCalculator: React.FC = () => {
         bracketInfo: bracket,
         taxPayable: totalTaxPayable,
         taxWithheld: taxWithheld,
-        taxRefundOrOwed: taxRefundOrOwed,
+        taxRefundOwed: taxRefundOwed,
         capitalGains: capitalGains,
         CGTDiscount: cgtDiscount,
         deductions: deductions,
-        effectiveTaxRate: effectiveTaxRate,
-        effectiveRate: effectiveTaxRate,
+        effectiveTaxRate: effectiveRate,
+        effectiveRate: effectiveRate,
         marginalRate: bracket.marginRate * 100,
         takeHome: income - totalTaxPayable,
         medicareLevyPayable: medicareLevy,
         income: income,
+        totalTaxPayable: totalTaxPayable,
         breakdown: breakdown,
       };
 
@@ -249,102 +242,114 @@ const ATOTaxCalculator: React.FC = () => {
       </Card>
       
       {showResults && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Tax Calculation Results</CardTitle>
-            <CardDescription>
-              {result.taxYear} Financial Year
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border rounded-md p-4">
-                <p className="text-sm text-muted-foreground">Assessable Income</p>
-                <p className="text-xl font-semibold">{formatCurrency(result.assessableIncome)}</p>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <p className="text-sm text-muted-foreground">Taxable Income</p>
-                <p className="text-xl font-semibold">{formatCurrency(result.taxableIncome)}</p>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <p className="text-sm text-muted-foreground">Tax Payable</p>
-                <p className="text-xl font-semibold">{formatCurrency(result.taxPayable)}</p>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <p className="text-sm text-muted-foreground">Medicare Levy</p>
-                <p className="text-xl font-semibold">{formatCurrency(result.medicareLevyPayable)}</p>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <p className="text-sm text-muted-foreground">Tax Withheld</p>
-                <p className="text-xl font-semibold">{formatCurrency(result.taxWithheld)}</p>
-              </div>
-              
-              <div className={`border rounded-md p-4 ${result.taxRefundOrOwed >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
-                <p className="text-sm text-muted-foreground">
-                  {result.taxRefundOrOwed >= 0 ? "Tax Refund" : "Tax Payable"}
-                </p>
-                <p className="text-xl font-semibold">
-                  {formatCurrency(Math.abs(result.taxRefundOrOwed))}
-                </p>
-              </div>
-            </div>
+        <div className="mt-6 space-y-6">
+          <h3 className="text-lg font-medium">Tax Summary</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <dl className="space-y-2">
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Taxable Income:</dt>
+                    <dd className="font-medium">{formatCurrency(result.taxableIncome)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Tax Payable:</dt>
+                    <dd className="font-medium">{formatCurrency(result.taxPayable)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Medicare Levy:</dt>
+                    <dd className="font-medium">{formatCurrency(result.medicareLevyPayable)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Tax Withheld:</dt>
+                    <dd className="font-medium">{formatCurrency(result.taxWithheld)}</dd>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 mt-2">
+                    <dt className="font-medium">
+                      {result.taxRefundOwed >= 0 ? "Tax Refund:" : "Tax Owing:"}
+                    </dt>
+                    <dd className={`font-bold ${
+                      result.taxRefundOwed >= 0 ? "text-green-500" : "text-red-500"
+                    }`}>
+                      {formatCurrency(Math.abs(result.taxRefundOwed))}
+                    </dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
             
-            <div>
-              <h3 className="font-semibold mb-2">Tax Summary</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>Effective Tax Rate:</div>
-                <div className="text-right">{formatPercentage(result.effectiveTaxRate)}</div>
-                
-                <div>Marginal Tax Rate:</div>
-                <div className="text-right">{formatPercentage(result.marginalRate)}</div>
-                
-                <div>Capital Gains (before discount):</div>
-                <div className="text-right">{formatCurrency(result.capitalGains)}</div>
-                
-                <div>CGT Discount Applied:</div>
-                <div className="text-right">{formatCurrency(result.CGTDiscount)}</div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-2">Tax Breakdown by Bracket</h3>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Income Bracket</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Tax</TableHead>
+            <Card>
+              <CardContent className="pt-6">
+                <dl className="space-y-2">
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Effective Tax Rate:</dt>
+                    <dd className="font-medium">{formatPercentage(result.effectiveTaxRate || 0)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Marginal Rate:</dt>
+                    <dd className="font-medium">{formatPercentage(result.marginalRate || 0)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">Capital Gains:</dt>
+                    <dd className="font-medium">{formatCurrency(result.capitalGains || 0)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground">CGT Discount:</dt>
+                    <dd className="font-medium">{formatCurrency(result.CGTDiscount || 0)}</dd>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 mt-2">
+                    <dt className="font-medium">Take Home Pay:</dt>
+                    <dd className="font-bold">{formatCurrency(result.takeHome || 0)}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-4">Tax Breakdown</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tax Bracket</TableHead>
+                  <TableHead className="text-right">Income in Bracket</TableHead>
+                  <TableHead className="text-right">Tax Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {result.breakdown?.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{item.bracket}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.tax)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {result.breakdown.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.bracket}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.tax)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell>Total</TableCell>
-                    <TableCell className="text-right">{formatCurrency(result.taxableIncome)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(result.taxPayable)}</TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </div>
-          </CardContent>
-          <CardFooter className="flex-col items-start text-xs text-muted-foreground">
-            <p>This is an estimate only. Please consult a tax professional for advice.</p>
-            <p>Tax rates are based on ATO resident individual rates for {result.taxYear}.</p>
-          </CardFooter>
-        </Card>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">{formatCurrency(result.taxableIncome)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(result.taxPayable)}</TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </div>
+        </div>
       )}
+      
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={() => {
+          setIncome(0);
+          setTaxWithheld(0);
+          setDeductions(0);
+          setCapitalGains(0);
+          setShowResults(false);
+        }}>
+          Reset
+        </Button>
+        <Button onClick={calculateTax}>Calculate Tax</Button>
+      </CardFooter>
     </div>
   );
 };

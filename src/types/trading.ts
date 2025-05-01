@@ -132,6 +132,7 @@ export interface CoinOption {
   priceAUD?: number;
   priceEUR?: number;
   priceGBP?: number;
+  rank?: number; // Adding rank property to fix errors
 }
 
 export interface CryptoSearchProps {
@@ -220,11 +221,24 @@ export interface ATOTaxCalculation {
   bracketInfo: ATOTaxRate;
   taxPayable: number;
   taxWithheld: number;
-  taxRefundOwed: number;
+  taxRefundOwed: number; // Note: corrected from taxRefundOrOwed
   medicareLevyPayable: number;
-  medicareLevySurcharge: number;
-  helpDebtRepayment: number;
+  medicareLevySurcharge?: number;
+  helpDebtRepayment?: number;
   totalTaxPayable: number;
+  effectiveRate?: number;
+  takeHome?: number;
+  income?: number;
+  capitalGains?: number;
+  CGTDiscount?: number;
+  deductions?: number;
+  effectiveTaxRate?: number;
+  marginalRate?: number;
+  breakdown?: Array<{
+    bracket: string;
+    amount: number;
+    tax: number;
+  }>;
 }
 
 export type SupportedCurrency = "USD" | "AUD" | "EUR" | "GBP";
@@ -274,6 +288,7 @@ export interface ApiEndpoint {
   method: "GET" | "POST" | "PUT" | "DELETE";
   params?: Record<string, string>;
   requiresAuth?: boolean;
+  rateLimit?: string;
 }
 
 export type RealTimePriceChartProps = {
@@ -355,6 +370,13 @@ export interface TradingSignal {
   status: 'active' | 'fulfilled' | 'failed' | 'expired';
 }
 
+export interface TimeframeOption {
+  value: string;
+  label: string;
+  description: string;
+  interval: string;
+}
+
 export type ExtendedTradingTimeframe = {
   value: string;
   label: string;
@@ -364,11 +386,74 @@ export type ExtendedTradingTimeframe = {
   description: string;
 };
 
-export type TimeframeOption = {
-  value: string;
-  label: string;
-  description: string;
-  interval: string;
-};
-
 export type ValueType = string | number;
+
+export interface WidgetGridProps extends Widget {
+  onRemove?: (id: string) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
+}
+
+export interface WidgetListProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
+}
+
+export interface TradeHistoryProps {
+  trades: Trade[];
+  formatCurrency: (value: number) => string;
+  activeCurrency: SupportedCurrency;
+}
+
+export interface TradingFormProps {
+  balance: number;
+  availableCoins: CoinOption[];
+  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency) => void;
+  conversionRate: number;
+}
+
+export interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  market_cap: number;
+  market_cap_rank: number;
+  fully_diluted_valuation: number | null;
+  total_volume: number;
+  high_24h: number;
+  low_24h: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  market_cap_change_24h: number;
+  market_cap_change_percentage_24h: number;
+  circulating_supply: number;
+  total_supply: number | null;
+  max_supply: number | null;
+  ath: number;
+  ath_change_percentage: number;
+  ath_date: string;
+  atl: number;
+  atl_change_percentage: number;
+  atl_date: string;
+  roi: {
+    times: number;
+    currency: string;
+    percentage: number;
+  } | null;
+  last_updated: string;
+  price_change_percentage_1h_in_currency?: number;
+  price_change_percentage_24h_in_currency?: number;
+  price_change_percentage_7d_in_currency?: number;
+  value?: string;
+  label?: string;
+}
+
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
+}
