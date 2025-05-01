@@ -1,9 +1,14 @@
 
 import React from 'react';
+import { Widget } from "@/types/trading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
-import { WidgetListProps } from '@/types/trading';
+
+interface WidgetListProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
+}
 
 const WidgetList: React.FC<WidgetListProps> = ({ widgets, onRemove }) => {
   // Icons based on widget type

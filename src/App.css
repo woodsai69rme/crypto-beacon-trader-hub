@@ -1,249 +1,189 @@
 
-/* Global styles */
-:root {
-  --radius: 0.5rem;
-  --font-sans: 'Inter', sans-serif;
-}
+@import './styles/reset.css';
+@import './styles/themes.css';
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-
-.themed-app {
+/* App-specific styles */
+.app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  color: hsl(var(--foreground));
-  background-color: hsl(var(--background));
-  font-family: var(--font-sans);
 }
 
 .container {
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-  }
+/* Theme-specific styles */
+.themed-app {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1536px;
-  }
-}
-
-/* Animation classes */
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-fade-out {
-  animation: fade-out 0.3s ease-out;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.2s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out;
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-out {
-  0% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-
-@keyframes scale-in {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-right {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-/* Utility classes */
-.hover-scale {
-  transition: transform 0.2s;
-}
-
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-.story-link {
-  position: relative;
-  display: inline-block;
-}
-
-.story-link::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  transform: scaleX(0);
-  height: 0.5px;
-  bottom: 0;
-  left: 0;
-  background-color: hsl(var(--primary));
-  transform-origin: bottom right;
-  transition: transform 0.3s;
-}
-
-.story-link:hover::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
-}
-
-.pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Dashboard specific styles */
-.dashboard-grid {
-  display: grid;
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .dashboard-grid {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  }
-}
-
-/* Chart container styles */
-.chart-container {
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
-}
-
-/* Card hover effect */
-.card-hover {
-  transition: all 0.2s;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Fix responsive issues */
-.grid-responsive {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 768px) {
-  .grid-responsive {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid-responsive {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Toast styles - ensure they're visible */
-.toast-container {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 50;
-  pointer-events: none;
-}
-
-.toast {
+.themed-container {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  padding: 1rem;
-  margin-top: 0.5rem;
-  pointer-events: auto;
-  max-width: 350px;
-  width: 100%;
+  border-color: hsl(var(--border));
 }
 
-/* Fix select dropdown visibility */
-.select-dropdown {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border));
+/* Animation for page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Glass card styles */
+.glass-card {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
-  z-index: 40;
+}
+
+/* Custom chart styles */
+.recharts-default-tooltip {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.recharts-tooltip-label {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Midnight Tech theme specific */
+.midnight-tech .gradient-bg {
+  background: linear-gradient(135deg, hsla(217, 91%, 60%, 0.05) 0%, hsla(222, 47%, 11%, 0) 100%);
+}
+
+.midnight-tech .glass-card {
+  background-color: rgba(13, 19, 33, 0.7);
+  border-color: rgba(65, 100, 240, 0.2);
+}
+
+.midnight-tech .accent-border {
+  border-color: hsla(217, 91%, 60%, 0.3);
+}
+
+/* Cyber Pulse theme specific */
+.cyber-pulse .gradient-bg {
+  background: linear-gradient(135deg, hsla(280, 75%, 60%, 0.05) 0%, hsla(280, 50%, 10%, 0) 100%);
+}
+
+.cyber-pulse .glass-card {
+  background-color: rgba(28, 14, 36, 0.7);
+  border-color: rgba(186, 104, 200, 0.2);
+}
+
+.cyber-pulse .accent-border {
+  border-color: hsla(280, 75%, 60%, 0.3);
+}
+
+/* Matrix Code theme specific */
+.matrix-code .gradient-bg {
+  background: linear-gradient(135deg, hsla(120, 100%, 50%, 0.05) 0%, hsla(120, 50%, 7%, 0) 100%);
+}
+
+.matrix-code .glass-card {
+  background-color: rgba(8, 20, 8, 0.7);
+  border-color: rgba(50, 205, 50, 0.2);
+}
+
+.matrix-code .accent-border {
+  border-color: hsla(120, 100%, 50%, 0.3);
+}
+
+.matrix-code .data-text {
+  font-family: 'Courier New', monospace;
+}
+
+/* Animation for numbers in Matrix theme */
+@keyframes numberFlicker {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+.matrix-code .number-animation {
+  animation: numberFlicker 2s infinite;
+}
+
+/* Trading specific colors preserved across all themes */
+.profit {
+  color: rgb(74, 222, 128);
+}
+
+.loss {
+  color: rgb(248, 113, 113);
+}
+
+.neutral {
+  color: hsl(var(--muted-foreground));
+}
+
+.bg-profit {
+  background-color: rgba(74, 222, 128, 0.2);
+}
+
+.bg-loss {
+  background-color: rgba(248, 113, 113, 0.2);
+}
+
+/* Focus styles for accessibility */
+.focus-visible:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .responsive-flex {
+    flex-direction: column;
+  }
+  
+  .hide-on-mobile {
+    display: none;
+  }
+}
+
+/* Print styles for reports */
+@media print {
+  .no-print {
+    display: none;
+  }
+  
+  body {
+    background-color: white;
+    color: black;
+  }
+  
+  .print-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 }

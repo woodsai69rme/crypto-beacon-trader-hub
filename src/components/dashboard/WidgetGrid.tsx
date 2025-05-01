@@ -1,57 +1,72 @@
 
-import React from 'react';
-import { Card } from "@/components/ui/card";
-import { WidgetGridProps } from '@/types/trading';
+import React from "react";
+import { Widget } from "@/types/trading";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+
+interface WidgetGridProps {
+  widgets: Widget[];
+  onRemove?: (id: string) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
+}
 
 const WidgetGrid: React.FC<WidgetGridProps> = ({
-  id,
-  title,
-  type,
-  size,
-  position,
+  widgets,
   onRemove,
-  onUpdatePosition,
-  children
+  onUpdatePosition
 }) => {
-  // Handle position update via drag & drop
-  const handleDragEnd = (e: React.DragEvent) => {
-    if (!onUpdatePosition) return;
-    
-    // Calculate new position based on drop location
-    const newX = Math.round((e.clientX - window.innerWidth * 0.1) / 50) * 50;
-    const newY = Math.round((e.clientY - 100) / 50) * 50;
-    
-    onUpdatePosition(id, { x: newX, y: newY });
+  const getSizeClass = (size: string) => {
+    switch (size) {
+      case "small":
+        return "col-span-1 row-span-1";
+      case "medium":
+        return "col-span-1 row-span-2";
+      case "large":
+        return "col-span-2 row-span-2";
+      case "wide":
+        return "col-span-2 row-span-1";
+      case "tall":
+        return "col-span-1 row-span-3";
+      case "full":
+        return "col-span-full row-span-2";
+      default:
+        return "col-span-1 row-span-1";
+    }
   };
-  
-  // Size classes based on widget size
-  const sizeClasses = {
-    small: "w-64 h-64",
-    medium: "w-80 h-80",
-    large: "w-96 h-96",
-    wide: "w-full md:w-2/3 h-80",
-    tall: "w-64 h-128",
-    full: "w-full h-128"
-  };
-  
+
   return (
-    <Card
-      className={`${sizeClasses[size]} absolute cursor-move overflow-hidden`}
-      style={{ top: position.y, left: position.x }}
-      draggable
-      onDragEnd={handleDragEnd}
-    >
-      {children}
-      
-      {onRemove && (
-        <button
-          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/90 flex items-center justify-center"
-          onClick={() => onRemove(id)}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {widgets.map((widget) => (
+        <Card 
+          key={widget.id} 
+          className={`${getSizeClass(widget.size)} transition-all`}
         >
-          &times;
-        </button>
-      )}
-    </Card>
+          <CardHeader className="flex flex-row items-center justify-between py-3">
+            <CardTitle className="text-base">{widget.title}</CardTitle>
+            {onRemove && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => onRemove(widget.id)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {widget.type === "custom" && widget.customContent ? (
+              <div dangerouslySetInnerHTML={{ __html: widget.customContent }} />
+            ) : (
+              <div className="h-32 flex items-center justify-center text-muted-foreground">
+                {widget.type} widget content goes here
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

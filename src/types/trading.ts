@@ -13,6 +13,9 @@ export interface CoinOption {
   value?: string; // For select components
   label?: string; // For select components
   rank?: number;   // For market correlations
+  priceAUD?: number; // For currency conversion
+  priceEUR?: number; // For currency conversion
+  priceGBP?: number; // For currency conversion
 }
 
 export interface CryptoChartData {
@@ -32,6 +35,10 @@ export interface CryptoData {
   volume?: number;
   marketCap?: number;
   rank?: number;
+  // Fields for compatibility with existing code
+  market_cap_rank?: number;
+  current_price?: number;
+  market_cap?: number;
 }
 
 export interface ExtendedTradingTimeframe {
@@ -41,6 +48,7 @@ export interface ExtendedTradingTimeframe {
   interval: string;
   dataPoints: number;
   description: string;
+  id?: string; // Added for MultiTimeframeStrategy
 }
 
 export interface WidgetGridProps {
@@ -55,14 +63,34 @@ export interface WidgetGridProps {
 }
 
 export interface WidgetListProps {
-  widgets: {
-    id: string;
-    title: string;
-    type: string;
-    size?: 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
-  }[];
+  widgets: Widget[];
   onRemove?: (id: string) => void;
 }
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  size: WidgetSize;
+  position: { x: number; y: number };
+  lastUpdated?: string;
+  customContent?: string;
+}
+
+export type WidgetType = 
+  | "price-chart" 
+  | "portfolio-summary" 
+  | "watchlist" 
+  | "news" 
+  | "trade-history" 
+  | "market-overview" 
+  | "performance-metrics"
+  | "alerts"
+  | "aiTrading"
+  | "custom"
+  | "trading";
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
 
 export interface QuantitativeAnalysisProps {
   coinId: string;
@@ -117,16 +145,183 @@ export interface LocalModel {
     trainedOn?: string;
     lastUpdated?: string;
   };
+  isConnected?: boolean;
+  lastUsed?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
 }
 
 export interface ModelListProps {
   models: LocalModel[];
-  onConnect: (id: string) => void;
-  onDisconnect: (id: string) => void;
-  onActivate: (id: string) => void;
-  onDeactivate: (id: string) => void;
+  onSelect?: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
+  onActivate?: (id: string) => void;
+  onDeactivate?: (id: string) => void;
 }
 
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
 
-// Also add any other missing interfaces that were reported in the errors
+export interface Trade {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  timestamp: string;
+  currency: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+  fees?: number;
+  coin?: string;
+}
+
+export interface TradeHistoryProps {
+  trades: Trade[];
+  formatCurrency: (value: number) => string;
+  activeCurrency: SupportedCurrency;
+}
+
+export interface WatchlistItem {
+  id: string;
+  symbol: string;
+  name: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number;
+  lastUpdated: string;
+  isWatched: boolean;
+}
+
+export interface ApiUsageStats {
+  provider: string;
+  endpoint: string;
+  requests: number;
+  success: number;
+  failed: number;
+  avgLatency: number;
+  lastUsed: string;
+  costPerRequest: number;
+  totalCost: number;
+  quota: number;
+  quotaReset: string;
+  quotaRemaining: number;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  description: string;
+  baseUrl: string;
+  website: string;
+  docs: string;
+  authRequired: boolean;
+  apiKey: string;
+  enabled: boolean;
+  requiresAuth: boolean; // Same as authRequired but kept for backward compatibility
+  apiKeyName: string;
+  authMethod: 'header' | 'query' | 'none';
+  priority: number;
+  endpoints: ApiEndpoint[];
+  defaultHeaders: Record<string, string>;
+  rateLimit: number;
+  tier: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  params: Record<string, string>;
+  responseType: 'json' | 'text' | 'blob';
+  cacheDuration: number;
+  enabled: boolean;
+  description: string;
+  category: string;
+  rateLimit?: number;
+}
+
+// ATO Tax calculation types
+export interface ATOTaxCalculation {
+  year: number;
+  totalIncome: number;
+  taxableIncome: number;
+  incomeTax: number;
+  medicareLevyBase: number;
+  medicareLevySurcharge: number;
+  hecs: number;
+  totalTaxPayable: number;
+  taxRefundOwed: number;
+  taxBracket: string;
+  effectiveTaxRate?: number;
+  marginalRate?: number;
+  capitalGains?: number;
+  CGTDiscount?: number;
+  breakdown?: any;
+}
+
+export interface ATOTaxRate {
+  min: number;
+  max: number;
+  base: number;
+  rate: number;
+  name: string;
+}
+
+export interface TaxHarvestTrade {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  amount: number;
+  price: number;
+  totalValue: number;
+  currentValue: number;
+  timestamp: string;
+  id: string;
+  profitLoss: number;
+  type: 'buy' | 'sell';
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
+export interface TradingFormProps {
+  balance: number;
+  availableCoins: CoinOption[];
+  onExecuteTrade: (type: "buy" | "sell", coinId: string, amount: number) => void;
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency) => void;
+  conversionRate: number;
+}
+
+export interface Theme {
+  id: string;
+  name: string;
+  description: string;
+  className: string;
+  darkMode: boolean;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    foreground: string;
+    muted: string;
+    border: string;
+  };
+}
