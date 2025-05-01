@@ -1,267 +1,300 @@
 
 import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { CoinOption } from '@/types/trading';
 import TradingForm from "./TradingForm";
-import TradingHoldings from "./TradingHoldings";
 import TradeHistory from "./TradeHistory";
 import TradingStats from "./TradingStats";
-import AccountManager from "./AccountManager";
-import { useTradingAccounts } from "@/hooks/use-trading-accounts";
-import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { startPriceMonitoring } from "@/services/priceMonitoring";
-import { CoinOption, SupportedCurrency, Trade } from "@/types/trading";
-import { Activity, LineChart } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
 import RealTimePriceChart from "./RealTimePriceChart";
+import { LineChart, Clock, BarChart4, Settings, Activity } from 'lucide-react';
 
 const EnhancedFakeTrading: React.FC = () => {
-  const {
-    accounts,
-    activeAccountId,
-    setActiveAccountId,
-    createAccount,
-    deleteAccount,
-    addTradeToAccount,
-    getActiveAccount
-  } = useTradingAccounts();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>("trade");
+  const [selectedCoinId, setSelectedCoinId] = useState<string>("bitcoin");
+  const [balance, setBalance] = useState<number>(10000);
+  const [tradeHistory, setTradeHistory] = useState<any[]>([]);
 
-  const activeAccount = getActiveAccount();
+  // Sample coins data
+  const availableCoins: CoinOption[] = [
+    { 
+      id: "bitcoin", 
+      name: "Bitcoin", 
+      symbol: "BTC", 
+      price: 61245.32, 
+      priceChange: 1200,
+      changePercent: 2.3,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      volume: 28000000000,
+      marketCap: 1180000000000,
+      value: "BTC",
+      label: "Bitcoin (BTC)"
+    },
+    { 
+      id: "ethereum", 
+      name: "Ethereum", 
+      symbol: "ETH", 
+      price: 3010.45,
+      priceChange: -120,
+      changePercent: -1.5,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      volume: 15000000000,
+      marketCap: 360000000000,
+      value: "ETH",
+      label: "Ethereum (ETH)"
+    },
+    { 
+      id: "solana", 
+      name: "Solana", 
+      symbol: "SOL", 
+      price: 121.33,
+      priceChange: 3.56,
+      changePercent: 3.1,
+      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+      volume: 5200000000,
+      marketCap: 90000000000,
+      value: "SOL",
+      label: "Solana (SOL)"
+    },
+    { 
+      id: "cardano", 
+      name: "Cardano", 
+      symbol: "ADA", 
+      price: 0.45,
+      priceChange: -0.02,
+      changePercent: -2.6,
+      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+      volume: 890000000,
+      marketCap: 24000000000,
+      value: "ADA",
+      label: "Cardano (ADA)"
+    }
+  ];
 
-  const {
-    activeCurrency,
-    setActiveCurrency,
-    conversionRates,
-    formatValue,
-  } = useCurrencyConverter();
+  const [holdingsMap, setHoldingsMap] = useState<{[key: string]: number}>({
+    "bitcoin": 0.1,
+    "ethereum": 1.5,
+    "solana": 5.0,
+    "cardano": 0.0
+  });
 
-  const [availableCoins, setAvailableCoins] = useState<CoinOption[]>([
-    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32, value: "bitcoin", label: "Bitcoin" },
-    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45, value: "ethereum", label: "Ethereum" },
-    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87, value: "solana", label: "Solana" },
-    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, value: "cardano", label: "Cardano" },
-    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57, value: "ripple", label: "XRP" },
-    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14, value: "dogecoin", label: "Dogecoin" },
-  ]);
-  
-  const [selectedCoin, setSelectedCoin] = useState<string>("bitcoin");
-  const [activeTab, setActiveTab] = useState<string>("trading");
-
-  // Set up real-time price updates
-  useEffect(() => {
-    const coinIds = availableCoins.map(coin => coin.id);
-    
-    const stopMonitoring = startPriceMonitoring(
-      coinIds,
-      (updatedCoins) => {
-        setAvailableCoins(prev => {
-          return prev.map(coin => {
-            const updatedCoin = updatedCoins.find(c => c.id === coin.id);
-            if (!updatedCoin) return coin;
-            
-            return {
-              ...coin,
-              price: updatedCoin.price,
-              priceChange: updatedCoin.priceChange,
-              changePercent: updatedCoin.changePercent,
-            };
-          });
-        });
-      },
-      5000 // Update every 5 seconds
-    );
-    
-    toast({
-      title: "Real-Time Trading Activated",
-      description: "Prices will update every 5 seconds"
-    });
-    
-    return () => {
-      stopMonitoring();
-    };
-  }, []);
-
-  const getOwnedCoinAmount = (coinId: string) => {
-    if (!activeAccount) return 0;
-    
-    return activeAccount.trades
-      .filter(trade => trade.coinId === coinId)
-      .reduce((total, trade) => {
-        if (trade.type === 'buy') {
-          return total + trade.amount;
-        } else {
-          return total - trade.amount;
-        }
-      }, 0);
-  };
-
+  // Calculate portfolio value
   const calculatePortfolioValue = () => {
-    if (!activeAccount) return 0;
-    
-    let totalValue = activeAccount.balance;
-    const coinHoldings: { [key: string]: number } = {};
-    
-    activeAccount.trades.forEach(trade => {
-      if (!coinHoldings[trade.coinId]) {
-        coinHoldings[trade.coinId] = 0;
-      }
-      
-      if (trade.type === 'buy') {
-        coinHoldings[trade.coinId] += trade.amount;
-      } else {
-        coinHoldings[trade.coinId] -= trade.amount;
-      }
-    });
-    
-    Object.entries(coinHoldings).forEach(([coinId, amount]) => {
-      if (amount > 0) {
-        const coin = availableCoins.find(c => c.id === coinId);
-        if (coin && coin.price) {
-          totalValue += coin.price * amount;
-        }
-      }
-    });
-    
-    return totalValue;
+    return Object.entries(holdingsMap).reduce((total, [coinId, amount]) => {
+      const coin = availableCoins.find(c => c.id === coinId);
+      return total + (coin ? coin.price * amount : 0);
+    }, balance);
   };
 
-  const calculatePerformance = () => {
-    if (!activeAccount) return 0;
-    return ((calculatePortfolioValue() - activeAccount.initialBalance) / activeAccount.initialBalance) * 100;
-  };
+  // Execute a trade
+  const executeTrade = (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => {
+    const totalValue = amount * price;
+    const coin = availableCoins.find(c => c.id === coinId);
+    
+    if (!coin) {
+      toast({
+        title: "Error",
+        description: "Coin not found",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const handleExecuteTrade = (type: 'buy' | 'sell', coinId: string, amount: number) => {
-    if (!activeAccount) return;
-    
-    const selectedCurrency = activeCurrency as SupportedCurrency;
-    const selectedCoin = availableCoins.find(c => c.id === coinId);
-    
-    if (!selectedCoin || !selectedCoin.price) return;
-    
-    const trade: Trade = {
-      id: Date.now().toString(),
+    // Check if trade is valid
+    if (type === 'buy' && totalValue > balance) {
+      toast({
+        title: "Insufficient Funds",
+        description: "You don't have enough funds for this trade",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (type === 'sell' && (holdingsMap[coinId] || 0) < amount) {
+      toast({
+        title: "Insufficient Holdings",
+        description: `You don't have enough ${coin.symbol} for this trade`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Update balance
+    const newBalance = type === 'buy' 
+      ? balance - totalValue 
+      : balance + totalValue;
+    setBalance(newBalance);
+
+    // Update holdings
+    setHoldingsMap(prev => ({
+      ...prev,
+      [coinId]: (prev[coinId] || 0) + (type === 'buy' ? amount : -amount)
+    }));
+
+    // Add to trade history
+    const trade = {
+      id: `trade-${Date.now()}`,
       coinId,
-      coinName: selectedCoin.name,
-      coinSymbol: selectedCoin.symbol,
+      coinName: coin.name,
+      coinSymbol: coin.symbol,
       type,
       amount,
-      price: selectedCoin.price,
-      totalValue: amount * selectedCoin.price,
-      timestamp: new Date().toISOString(),
-      currency: selectedCurrency
+      price,
+      totalValue,
+      timestamp: new Date().toISOString()
     };
-    
-    addTradeToAccount(activeAccount.id, trade);
-    
+    setTradeHistory([trade, ...tradeHistory]);
+
     toast({
-      title: `${type === 'buy' ? 'Buy' : 'Sell'} Order Executed`,
-      description: `${amount} ${selectedCoin.symbol} at ${formatValue(selectedCoin.price)}`
+      title: `${type === 'buy' ? 'Purchase' : 'Sale'} Successful`,
+      description: `${type === 'buy' ? 'Bought' : 'Sold'} ${amount} ${coin.symbol} for $${totalValue.toFixed(2)}`,
     });
   };
 
   return (
-    <Card className="w-full bg-card shadow-lg border border-border">
-      <CardHeader className="bg-card/50 border-b border-border">
-        <CardTitle className="text-foreground flex items-center gap-2">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-xl flex items-center gap-2">
           <Activity className="h-5 w-5" />
-          Enhanced Trading System
+          Enhanced Trading Simulator
         </CardTitle>
-        <CardDescription className="text-muted-foreground">Practice trading with real-time price updates</CardDescription>
+        <CardDescription>
+          Practice trading with virtual funds in a realistic environment
+        </CardDescription>
       </CardHeader>
-      
-      <CardContent className="p-6 space-y-6">
-        <AccountManager 
-          accounts={accounts}
-          activeAccountId={activeAccountId}
-          onSelectAccount={setActiveAccountId}
-          onCreateAccount={createAccount}
-          onDeleteAccount={deleteAccount}
-        />
-        
-        {activeAccount && (
-          <>
-            <TradingStats
-              balance={activeAccount.balance}
-              portfolioValue={calculatePortfolioValue()}
-              performance={calculatePerformance()}
-              formatValue={formatValue}
-              currency={activeCurrency as SupportedCurrency}
-            />
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="trading">Trading</TabsTrigger>
-                <TabsTrigger value="chart">Price Chart</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="trading" className="space-y-6 p-4 bg-card/50 rounded-lg border border-border mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <TradingForm
-                    balance={activeAccount.balance}
-                    availableCoins={availableCoins}
-                    onExecuteTrade={handleExecuteTrade}
-                    getOwnedCoinAmount={getOwnedCoinAmount}
-                    activeCurrency={activeCurrency as SupportedCurrency}
-                    onCurrencyChange={setActiveCurrency as (currency: SupportedCurrency) => void}
-                    conversionRate={conversionRates.USD_AUD}
-                  />
-                  
-                  <TradingHoldings
-                    availableCoins={availableCoins}
-                    getOwnedCoinAmount={getOwnedCoinAmount}
-                    onReset={() => deleteAccount(activeAccount.id)}
-                    formatCurrency={formatValue}
-                    activeCurrency={activeCurrency as SupportedCurrency}
-                    conversionRate={conversionRates.USD_AUD}
-                  />
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="chart" className="p-4 bg-card/50 rounded-lg border border-border mt-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                        <LineChart className="h-5 w-5" />
-                        Real-Time Price Chart
-                      </CardTitle>
-                      <div>
-                        <select
-                          className="text-sm border rounded px-2 py-1"
-                          value={selectedCoin}
-                          onChange={(e) => setSelectedCoin(e.target.value)}
-                        >
-                          {availableCoins.map((coin) => (
-                            <option key={coin.id} value={coin.id}>
-                              {coin.name} ({coin.symbol})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <RealTimePriceChart
-                      coinId={selectedCoin}
-                      availableCoins={availableCoins}
-                      updateInterval={5000}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="history" className="p-4 bg-card/50 rounded-lg border border-border mt-4">
-                <TradeHistory
-                  trades={activeAccount.trades}
-                  formatCurrency={formatValue}
-                  activeCurrency={activeCurrency as SupportedCurrency}
+
+      <CardContent className="p-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="trade">
+              <LineChart className="h-4 w-4 mr-2" />
+              Trade
+            </TabsTrigger>
+            <TabsTrigger value="chart">
+              <BarChart4 className="h-4 w-4 mr-2" />
+              Chart
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              <Clock className="h-4 w-4 mr-2" />
+              History
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="trade">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <TradingForm
+                  availableCoins={availableCoins}
+                  balance={balance}
+                  onTrade={(coinId, type, amount, price) => executeTrade(coinId, type, amount, price)}
                 />
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
+              </div>
+              <div>
+                <TradingStats
+                  balance={balance}
+                  portfolioValue={calculatePortfolioValue()}
+                  holdings={holdingsMap}
+                  coins={availableCoins}
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="chart">
+            <RealTimePriceChart
+              coinId={selectedCoinId}
+              availableCoins={availableCoins}
+              onSelectCoin={setSelectedCoinId}
+            />
+          </TabsContent>
+
+          <TabsContent value="history">
+            <TradeHistory trades={tradeHistory} />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-medium mb-2">Account Settings</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-3 bg-muted/50 rounded-md">
+                      <span>Reset Portfolio</span>
+                      <Button variant="destructive" size="sm" onClick={() => {
+                        setBalance(10000);
+                        setHoldingsMap({
+                          "bitcoin": 0,
+                          "ethereum": 0,
+                          "solana": 0,
+                          "cardano": 0
+                        });
+                        setTradeHistory([]);
+                        toast({
+                          title: "Portfolio Reset",
+                          description: "Your portfolio has been reset to the initial state",
+                        });
+                      }}>
+                        Reset
+                      </Button>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-muted/50 rounded-md">
+                      <span>Add Funds</span>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setBalance(balance + 10000);
+                        toast({
+                          title: "Funds Added",
+                          description: "$10,000 has been added to your account",
+                        });
+                      }}>
+                        Add $10,000
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-2">Statistics</h3>
+                  <div className="p-3 bg-muted/50 rounded-md space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Trades:</span>
+                      <span>{tradeHistory.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Initial Balance:</span>
+                      <span>$10,000.00</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Current Value:</span>
+                      <span>${calculatePortfolioValue().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Profit/Loss:</span>
+                      <span className={calculatePortfolioValue() > 10000 ? "text-green-500" : "text-red-500"}>
+                        {(calculatePortfolioValue() - 10000).toFixed(2)} ({((calculatePortfolioValue() / 10000 - 1) * 100).toFixed(2)}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
+
+      <CardFooter className="flex justify-between">
+        <div className="text-sm text-muted-foreground">
+          Balance: ${balance.toFixed(2)}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Portfolio: ${calculatePortfolioValue().toFixed(2)}
+        </div>
+      </CardFooter>
     </Card>
   );
 };

@@ -1,4 +1,6 @@
 
+import { ReactNode } from "react";
+
 export type Trade = {
   id: string;
   coinId: string;
@@ -14,6 +16,13 @@ export type Trade = {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
+  fees?: number;
+  tags?: string[];
+  coin?: {
+    name: string;
+    symbol: string;
+    image?: string;
+  };
 };
 
 export type TradingAccount = {
@@ -24,6 +33,7 @@ export type TradingAccount = {
   trades: Trade[];
   currency: string;
   createdAt: string;
+  type?: 'standard' | 'ai' | 'demo';
 };
 
 export type PortfolioBenchmark = {
@@ -61,7 +71,7 @@ export interface Widget {
   position: { x: number; y: number };
   config?: any;
   lastUpdated?: string;
-  customContent?: string; // Add missing property for custom widgets
+  customContent?: string; 
 }
 
 export type WidgetType = 
@@ -73,7 +83,7 @@ export type WidgetType =
   | 'market-overview'
   | 'performance-metrics'
   | 'alerts'
-  | 'portfolio' // Add missing widget types
+  | 'portfolio'
   | 'chart'
   | 'trading'
   | 'aiTrading'
@@ -105,6 +115,23 @@ export interface UserPreferences {
     push: boolean;
     priceAlerts: boolean;
   };
+}
+
+export interface CoinOption {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange?: number;
+  changePercent?: number;
+  image?: string;
+  volume?: number;
+  marketCap?: number;
+  value: string;
+  label: string;
+  priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
 }
 
 export interface CryptoSearchProps {
@@ -193,138 +220,155 @@ export interface ATOTaxCalculation {
   bracketInfo: ATOTaxRate;
   taxPayable: number;
   taxWithheld: number;
-  taxRefundOrOwed: number;
-  capitalGains: number;
-  CGTDiscount: number;
-  deductions: number;
-  effectiveTaxRate: number;
-  effectiveRate: number;
-  marginalRate: number;
-  takeHome: number;
+  taxRefundOwed: number;
   medicareLevyPayable: number;
-  income: number;
-  breakdown: {
-    bracket: string;
-    amount: number;
-    tax: number;
-  }[];
-  financialYear?: string;
+  medicareLevySurcharge: number;
+  helpDebtRepayment: number;
+  totalTaxPayable: number;
 }
 
-export type CryptoData = {
-  id: string;
-  symbol: string;
-  name: string;
-  image: string;
-  current_price: number;
-  market_cap: number;
-  market_cap_rank: number;
-  fully_diluted_valuation: number | null;
-  total_volume: number;
-  high_24h: number;
-  low_24h: number;
-  price_change_24h: number;
-  price_change_percentage_24h: number;
-  market_cap_change_24h: number;
-  market_cap_change_percentage_24h: number;
-  circulating_supply: number;
-  total_supply: number | null;
-  max_supply: number | null;
-  ath: number;
-  ath_change_percentage: number;
-  ath_date: string;
-  atl: number;
-  atl_change_percentage: number;
-  atl_date: string;
-  roi: {
-    times: number;
-    currency: string;
-    percentage: number;
-  } | null;
-  last_updated: string;
-  price_change_percentage_1h_in_currency?: number;
-  price_change_percentage_24h_in_currency?: number;
-  price_change_percentage_7d_in_currency?: number;
-  // Add properties that other files are looking for
-  price?: number;
-  marketCap?: number;
-  rank?: number;
-  volume?: number;
-  priceChange?: number;
-  changePercent?: number;
+export type SupportedCurrency = "USD" | "AUD" | "EUR" | "GBP";
+
+export type CurrencySymbol = "$" | "€" | "£";
+
+export type CurrencyRates = {
+  USD_AUD: number;
+  USD_EUR: number;
+  USD_GBP: number;
+  AUD_USD: number;
+  AUD_EUR: number;
+  AUD_GBP: number;
+  EUR_USD: number;
+  EUR_AUD: number;
+  EUR_GBP: number;
+  GBP_USD: number;
+  GBP_AUD: number;
+  GBP_EUR: number;
 };
-
-export interface CryptoChartData {
-  prices: [number, number][];
-  market_caps: [number, number][];
-  total_volumes: [number, number][];
-}
-
-export type SupportedCurrency = "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "CHF" | "CNY" | "BTC" | "ETH";
-
-export interface ApiEndpoint {
-  path: string;
-  method: string;
-  description: string;
-  parameters?: Record<string, string>;
-  authentication?: boolean;
-  rateLimit?: string;
-}
-
-export interface CoinOption {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number; // Make this required to fix type errors
-  image?: string;
-  priceChange?: number;
-  changePercent?: number;
-  volume?: number;
-  marketCap?: number;
-  rank?: number;
-  priceAUD?: number;
-  priceEUR?: number;
-  priceGBP?: number;
-  value: string;
-  label: string;
-}
 
 export interface ApiProvider {
   id: string;
   name: string;
   description: string;
   baseUrl: string;
-  apiKey?: string;
+  website: string;
+  docs: string;
+  authRequired: boolean;
+  apiKey: string;
   enabled: boolean;
+  requiresAuth: boolean;
+  apiKeyName: string;
+  authMethod: "header" | "query" | "none";
+  priority: number;
   endpoints: ApiEndpoint[];
+  defaultHeaders: Record<string, string>;
   rateLimit: number;
-  tier: string;
-  website?: string;
-  docs?: string;
-  authMethod?: 'header' | 'query' | 'none';
-  apiKeyName?: string;
-  requiresAuth?: boolean;
-  authRequired?: boolean;
-  priority?: number;
-  defaultHeaders?: Record<string, string>;
+  tier: "free" | "basic" | "premium";
 }
 
-export interface WidgetGridProps {
-  widgets: Widget[];
-  onRemove?: (id: string) => void;
-  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
-}
-
-export interface WidgetListProps {
-  widgets: Widget[];
-  onRemove?: (id: string) => void;
-}
-
-export interface ExtendedTradingTimeframe {
+export interface ApiEndpoint {
   id: string;
-  label: string;
-  value: string;
+  name: string;
   description: string;
-  candleCount?: number;
-  defaultIndicators?: string[];
+  path: string;
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  params?: Record<string, string>;
+  requiresAuth?: boolean;
 }
+
+export type RealTimePriceChartProps = {
+  coinId: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins: CoinOption[];
+  updateInterval?: number;
+};
+
+export type LocalModel = {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+};
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect?: (model: LocalModel) => void;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
+}
+
+export interface QuantitativeAnalysisProps {
+  symbol?: string;
+  timeframe?: string;
+  onResultsCalculated?: (results: any) => void;
+}
+
+export interface StrategyShare {
+  id: string;
+  strategyId: string;
+  strategyName: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  description: string;
+  performance: {
+    winRate: number;
+    profitFactor: number;
+    netProfit: number;
+    trades: number;
+    sharpeRatio: number;
+  };
+  timeframe: string;
+  tags: string[];
+  likes: number;
+  createdAt: string;
+  isVerified: boolean;
+}
+
+export interface TradingSignal {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  coin: string;
+  symbol: string;
+  direction: 'buy' | 'sell';
+  price: number;
+  targetPrice: number;
+  stopLoss: number;
+  timeframe: string;
+  confidence: number;
+  reasoning: string;
+  createdAt: string;
+  expiresAt: string;
+  likes: number;
+  status: 'active' | 'fulfilled' | 'failed' | 'expired';
+}
+
+export type ExtendedTradingTimeframe = {
+  value: string;
+  label: string;
+  chartPeriod: string;
+  interval: string;
+  dataPoints: number;
+  description: string;
+};
+
+export type TimeframeOption = {
+  value: string;
+  label: string;
+  description: string;
+  interval: string;
+};
+
+export type ValueType = string | number;

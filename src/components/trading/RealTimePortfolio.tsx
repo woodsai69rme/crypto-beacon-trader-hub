@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CoinOption } from './types';
+import { CoinOption } from '@/types/trading';
 
 interface RealTimePortfolioProps {
   // Add any props here
@@ -60,6 +60,32 @@ const RealTimePortfolio: React.FC<RealTimePortfolioProps> = () => {
       marketCap: 24000000000,
       value: "ADA",
       label: "Cardano (ADA)"
+    },
+    {
+      id: "ripple",
+      name: "XRP",
+      symbol: "XRP",
+      price: 0.57,
+      image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+      priceChange: 0.01,
+      changePercent: 1.8,
+      volume: 2400000000,
+      marketCap: 32000000000,
+      value: "XRP",
+      label: "XRP (XRP)"
+    },
+    {
+      id: "dogecoin",
+      name: "Dogecoin",
+      symbol: "DOGE",
+      price: 0.14,
+      image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
+      priceChange: -0.004,
+      changePercent: -2.1,
+      volume: 1900000000,
+      marketCap: 18000000000,
+      value: "DOGE",
+      label: "Dogecoin (DOGE)"
     }
   ]);
   

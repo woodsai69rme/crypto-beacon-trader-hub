@@ -4,16 +4,31 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAiTrading } from "@/contexts/AiTradingContext";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { AITradingStrategy } from '@/types/trading';
 
-const CustomStrategy: React.FC = () => {
-  const { addStrategy, isLoading } = useAiTrading();
-  
+interface CustomStrategyProps {
+  onAddStrategy?: (strategy: AITradingStrategy) => Promise<void>;
+}
+
+const CustomStrategy: React.FC<CustomStrategyProps> = ({ onAddStrategy }) => {
   const [name, setName] = useState('');
   const [strategy, setStrategy] = useState<string>('');
   const [description, setDescription] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const strategyTypes = [
+    { value: 'traditional', label: 'Traditional Technical Analysis' },
+    { value: 'ai-predictive', label: 'AI Predictive Analytics' },
+    { value: 'hybrid', label: 'Hybrid (AI + Technical)' },
+    { value: 'trend-following', label: 'Trend Following' },
+    { value: 'mean-reversion', label: 'Mean Reversion' },
+    { value: 'breakout', label: 'Breakout Trading' },
+    { value: 'sentiment', label: 'Sentiment Analysis' },
+    { value: 'machine-learning', label: 'Machine Learning' },
+    { value: 'multi-timeframe', label: 'Multi-Timeframe Analysis' }
+  ];
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,18 +43,36 @@ const CustomStrategy: React.FC = () => {
     }
     
     try {
-      if (addStrategy) {
-        await addStrategy(strategy as any, name, description);
-        setName('');
-        setStrategy('');
-        setDescription('');
-      } else {
-        toast({
-          title: "Function Not Available",
-          description: "The addStrategy function is not available",
-          variant: "destructive"
-        });
+      setIsLoading(true);
+      
+      const newStrategy: AITradingStrategy = {
+        id: `strategy-${Date.now()}`,
+        name,
+        description,
+        type: strategy as any,
+        timeframe: "1h",
+        parameters: {},
+        indicators: ["rsi", "macd", "ema"],
+        performance: {
+          winRate: 0,
+          profitFactor: 0,
+          trades: 0
+        }
+      };
+      
+      if (onAddStrategy) {
+        await onAddStrategy(newStrategy);
       }
+      
+      // Reset form
+      setName('');
+      setStrategy('');
+      setDescription('');
+      
+      toast({
+        title: "Strategy Created",
+        description: "Your custom strategy has been added",
+      });
     } catch (error) {
       console.error("Error creating strategy:", error);
       toast({
@@ -47,20 +80,10 @@ const CustomStrategy: React.FC = () => {
         description: "Failed to create custom strategy",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  const strategyTypes = [
-    { value: 'traditional', label: 'Traditional Technical Analysis' },
-    { value: 'ai-predictive', label: 'AI Predictive Analytics' },
-    { value: 'hybrid', label: 'Hybrid (AI + Technical)' },
-    { value: 'trend-following', label: 'Trend Following' },
-    { value: 'mean-reversion', label: 'Mean Reversion' },
-    { value: 'breakout', label: 'Breakout Trading' },
-    { value: 'sentiment', label: 'Sentiment Analysis' },
-    { value: 'machine-learning', label: 'Machine Learning' },
-    { value: 'multi-timeframe', label: 'Multi-Timeframe Analysis' }
-  ];
   
   return (
     <Card>

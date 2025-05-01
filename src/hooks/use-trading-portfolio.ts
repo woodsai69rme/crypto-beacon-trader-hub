@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { CoinOption } from '@/components/trading/types';
+import { CoinOption } from '@/types/trading';
 
 export function useTradingPortfolio() {
   // Initial portfolio data

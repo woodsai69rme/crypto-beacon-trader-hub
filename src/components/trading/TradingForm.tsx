@@ -1,273 +1,168 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { ChevronDown, ArrowDownRight, ArrowRightLeft } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportedCurrency } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
+import { ArrowLeftRight, TrendingDown, TrendingUp } from "lucide-react";
 import { CoinOption } from "@/types/trading";
 
-type CoinOption = {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceAUD?: number;
-};
-
 interface TradingFormProps {
-  balance: number;
   availableCoins: CoinOption[];
-  onExecuteTrade: (type: 'buy' | 'sell', coinId: string, amount: number) => void;
-  getOwnedCoinAmount: (coinId: string) => number;
-  activeCurrency: SupportedCurrency;
-  onCurrencyChange: (currency: SupportedCurrency) => void;
-  conversionRate: number;
+  balance: number;
+  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
 }
 
-const TradingForm: React.FC<TradingFormProps> = ({ 
-  balance, 
-  availableCoins, 
-  onExecuteTrade,
-  getOwnedCoinAmount,
-  activeCurrency,
-  onCurrencyChange,
-  conversionRate
-}) => {
-  const [selectedCoin, setSelectedCoin] = useState(availableCoins[0]?.id || "");
-  const [tradeAmount, setTradeAmount] = useState("");
+const TradingForm: React.FC<TradingFormProps> = ({ availableCoins, balance, onTrade }) => {
+  const [selectedCoinId, setSelectedCoinId] = useState<string>(availableCoins[0]?.id || "");
+  const [amount, setAmount] = useState<string>("");
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   
-  const handleExecuteTrade = () => {
-    const amount = parseFloat(tradeAmount);
-    
-    if (isNaN(amount) || amount <= 0) {
+  const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);
+  const totalValue = selectedCoin ? Number(amount) * selectedCoin.price : 0;
+  
+  const handleAmountChange = (value: string) => {
+    // Allow only numbers and a decimal point
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setAmount(value);
+    }
+  };
+  
+  const handleTradeSubmit = () => {
+    if (!selectedCoin) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount greater than zero",
+        title: "Error",
+        description: "Please select a cryptocurrency",
         variant: "destructive"
       });
       return;
     }
     
-    const selectedCoinData = availableCoins.find(c => c.id === selectedCoin);
-    if (!selectedCoinData) return;
-    
-    const coinPrice = activeCurrency === 'AUD' && selectedCoinData.priceAUD 
-      ? selectedCoinData.priceAUD 
-      : activeCurrency === 'AUD' // Fallback if priceAUD is not available
-        ? selectedCoinData.price * conversionRate 
-        : selectedCoinData.price;
-    
-    const totalCost = amount * coinPrice;
-    
-    if (tradeType === 'buy') {
-      if (totalCost > balance) {
-        toast({
-          title: "Insufficient Balance",
-          description: "You don't have enough funds to execute this trade",
-          variant: "destructive"
-        });
-        return;
-      }
-    } else {
-      const ownedAmount = getOwnedCoinAmount(selectedCoin);
-      if (amount > ownedAmount) {
-        toast({
-          title: "Insufficient Coins",
-          description: `You only have ${ownedAmount.toFixed(6)} ${selectedCoinData.symbol}`,
-          variant: "destructive"
-        });
-        return;
-      }
+    if (!amount || Number(amount) <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "destructive"
+      });
+      return;
     }
     
-    onExecuteTrade(tradeType, selectedCoin, amount);
+    if (tradeType === 'buy' && totalValue > balance) {
+      toast({
+        title: "Insufficient Funds",
+        description: `You need $${totalValue.toFixed(2)} but have $${balance.toFixed(2)}`,
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Reset form
-    setTradeAmount("");
-    
-    toast({
-      title: "Trade Executed",
-      description: `Successfully ${tradeType === 'buy' ? 'bought' : 'sold'} ${amount} ${selectedCoinData.symbol}`
-    });
+    onTrade(selectedCoin.id, tradeType, Number(amount), selectedCoin.price);
+    setAmount("");
   };
   
-  const calculateTotalCost = () => {
-    if (!selectedCoin || !tradeAmount || isNaN(parseFloat(tradeAmount))) return 0;
+  const handleQuickBuy = (percentage: number) => {
+    if (!selectedCoin) return;
     
-    const coin = availableCoins.find(c => c.id === selectedCoin);
-    if (!coin) return 0;
-    
-    const price = activeCurrency === 'AUD' && coin.priceAUD 
-      ? coin.priceAUD 
-      : activeCurrency === 'AUD' 
-        ? coin.price * conversionRate 
-        : coin.price;
-    
-    return parseFloat(tradeAmount) * price;
+    const maxAmount = balance / selectedCoin.price;
+    const calculatedAmount = (maxAmount * percentage / 100).toFixed(8);
+    setAmount(calculatedAmount);
+    setTradeType('buy');
   };
-  
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: activeCurrency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
-  };
-  
-  const selectedCoinData = availableCoins.find(c => c.id === selectedCoin);
-  const coinPrice = selectedCoinData 
-    ? (activeCurrency === 'AUD' && selectedCoinData.priceAUD
-        ? selectedCoinData.priceAUD
-        : activeCurrency === 'AUD'
-          ? selectedCoinData.price * conversionRate
-          : selectedCoinData.price)
-    : 0;
-  
-  const ownedAmount = selectedCoin ? getOwnedCoinAmount(selectedCoin) : 0;
   
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex justify-between items-center">
-          <span>Trade</span>
-          <div className="flex items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs px-2">
-                  {activeCurrency}
-                  <ChevronDown className="ml-1 h-3 w-3" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[120px]" align="end">
-                <Tabs defaultValue={activeCurrency} onValueChange={(value) => onCurrencyChange(value as SupportedCurrency)}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="USD">USD</TabsTrigger>
-                    <TabsTrigger value="AUD">AUD</TabsTrigger>
-                    <TabsTrigger value="EUR">EUR</TabsTrigger>
-                    <TabsTrigger value="GBP">GBP</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </PopoverContent>
-            </Popover>
-          </div>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <ArrowLeftRight className="h-4 w-4" />
+          Execute Trade
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="bg-muted/50 p-3 rounded-md">
-            <div className="text-xs text-muted-foreground mb-1">Available Balance</div>
-            <div className="font-medium text-xl">{formatCurrency(balance)}</div>
-          </div>
-          
-          <div>
-            <Label htmlFor="coin-select">Select Coin</Label>
-            <Select
-              value={selectedCoin}
-              onValueChange={setSelectedCoin}
-            >
-              <SelectTrigger id="coin-select" className="mt-1">
-                <SelectValue placeholder="Select a coin" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCoins.map(coin => (
-                  <SelectItem key={coin.id} value={coin.id}>
-                    {coin.name} ({coin.symbol})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {selectedCoinData && (
-            <div className="flex justify-between text-sm">
-              <div>Current Price:</div>
-              <div className="font-medium">{formatCurrency(coinPrice)}</div>
+      
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Select Cryptocurrency</div>
+          <Select value={selectedCoinId} onValueChange={setSelectedCoinId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a cryptocurrency" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCoins.map(coin => (
+                <SelectItem key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {selectedCoin && (
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Current Price</div>
+            <div className="text-lg font-semibold">${selectedCoin.price.toLocaleString()}</div>
+            <div className={`text-xs ${selectedCoin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              {selectedCoin.changePercent >= 0 ? '▲' : '▼'} {Math.abs(selectedCoin.changePercent).toFixed(2)}% (24h)
             </div>
-          )}
-          
-          {selectedCoin && ownedAmount > 0 && (
-            <div className="flex justify-between text-sm">
-              <div>You own:</div>
-              <div className="font-medium">
-                {ownedAmount.toFixed(6)} {selectedCoinData?.symbol}
-              </div>
-            </div>
-          )}
-          
+          </div>
+        )}
+        
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Trade Type</div>
           <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant={tradeType === 'buy' ? "default" : "outline"} 
-              className="w-full"
+            <Button
+              type="button"
+              variant={tradeType === 'buy' ? "default" : "outline"}
               onClick={() => setTradeType('buy')}
+              className={tradeType === 'buy' ? 'bg-green-500 hover:bg-green-600' : ''}
             >
+              <TrendingUp className="h-4 w-4 mr-2" />
               Buy
             </Button>
-            <Button 
-              variant={tradeType === 'sell' ? "default" : "outline"} 
-              className="w-full"
+            <Button
+              type="button"
+              variant={tradeType === 'sell' ? "default" : "outline"}
               onClick={() => setTradeType('sell')}
+              className={tradeType === 'sell' ? 'bg-red-500 hover:bg-red-600' : ''}
             >
+              <TrendingDown className="h-4 w-4 mr-2" />
               Sell
             </Button>
           </div>
-          
-          <div>
-            <Label htmlFor="amount">
-              Amount ({selectedCoinData?.symbol})
-            </Label>
-            <div className="mt-1 relative">
-              <Input 
-                id="amount"
-                value={tradeAmount}
-                onChange={(e) => setTradeAmount(e.target.value)}
-                placeholder={`Amount in ${selectedCoinData?.symbol}`}
-                type="number"
-                step="any"
-                min="0"
-              />
-              {tradeType === 'sell' && ownedAmount > 0 && (
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  className="absolute top-0 right-0 h-full px-3 text-xs"
-                  onClick={() => setTradeAmount(ownedAmount.toString())}
-                >
-                  Max
-                </Button>
-              )}
+        </div>
+        
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Amount</div>
+          <div className="flex space-x-2">
+            <Input
+              type="text"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => handleAmountChange(e.target.value)}
+            />
+            <div className="bg-muted flex items-center justify-center px-3 rounded-md">
+              {selectedCoin?.symbol || "---"}
             </div>
           </div>
           
-          {tradeAmount && !isNaN(parseFloat(tradeAmount)) && (
-            <div className="flex justify-between text-sm">
-              <div>Total {tradeType === 'buy' ? 'Cost' : 'Value'}:</div>
-              <div className="font-medium">{formatCurrency(calculateTotalCost())}</div>
-            </div>
-          )}
+          <div className="text-xs text-muted-foreground">
+            Total Value: ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+          </div>
           
+          <div className="grid grid-cols-4 gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleQuickBuy(25)}>25%</Button>
+            <Button variant="outline" size="sm" onClick={() => handleQuickBuy(50)}>50%</Button>
+            <Button variant="outline" size="sm" onClick={() => handleQuickBuy(75)}>75%</Button>
+            <Button variant="outline" size="sm" onClick={() => handleQuickBuy(100)}>100%</Button>
+          </div>
+        </div>
+        
+        <div className="pt-2">
           <Button 
-            onClick={handleExecuteTrade} 
-            className="w-full"
-            disabled={!selectedCoin || !tradeAmount || isNaN(parseFloat(tradeAmount)) || parseFloat(tradeAmount) <= 0}
+            className="w-full" 
+            onClick={handleTradeSubmit}
+            disabled={!selectedCoin || !amount || Number(amount) <= 0}
           >
-            {tradeType === 'buy' ? (
-              <>
-                <ArrowDownRight className="h-4 w-4 mr-2" />
-                Buy {selectedCoinData?.symbol}
-              </>
-            ) : (
-              <>
-                <ArrowRightLeft className="h-4 w-4 mr-2" />
-                Sell {selectedCoinData?.symbol}
-              </>
-            )}
+            {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol || ""}
           </Button>
         </div>
       </CardContent>

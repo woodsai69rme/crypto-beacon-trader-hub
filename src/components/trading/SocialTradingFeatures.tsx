@@ -2,448 +2,452 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { StrategyShare, TradingSignal } from '@/types/trading';
-import { toast } from "@/components/ui/use-toast";
-import { 
-  Search, 
-  Users, 
-  TrendingUp, 
-  ChevronUp, 
-  ChevronDown, 
-  MessageSquare, 
-  Share2, 
-  ThumbsUp, 
-  Download 
-} from "lucide-react";
+import { Heart, MessageSquare, Share, ThumbsUp, User, Users, Check, Sparkles } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
-// Mock data for strategy shares
-const mockStrategyShares: StrategyShare[] = [
-  {
-    id: "1",
-    userId: "user1",
-    username: "CryptoMaster",
-    userAvatar: "https://github.com/shadcn.png",
-    strategyName: "BTC Breakout Strategy",
-    strategyType: "breakout",
-    description: "This strategy detects and trades Bitcoin breakouts with high accuracy.",
-    performance: {
-      winRate: 0.68,
-      profitFactor: 1.85,
-      totalTrades: 125,
-      averageReturn: 2.4
-    },
-    tags: ["Bitcoin", "Breakout", "Technical"],
-    likes: 45,
-    downloads: 23,
-    timestamp: "2025-04-25T10:30:00Z"
-  },
-  {
-    id: "2",
-    userId: "user2",
-    username: "AlgoTrader",
-    userAvatar: "https://api.dicebear.com/7.x/bottts/svg",
-    strategyName: "ETH-BTC Correlation Arbitrage",
-    strategyType: "arbitrage",
-    description: "Exploits correlation divergence between ETH and BTC for reliable profits.",
-    performance: {
-      winRate: 0.72,
-      profitFactor: 1.95,
-      totalTrades: 98,
-      averageReturn: 1.8
-    },
-    tags: ["Ethereum", "Bitcoin", "Arbitrage", "Correlation"],
-    likes: 38,
-    downloads: 17,
-    timestamp: "2025-04-24T14:15:00Z"
-  },
-  {
-    id: "3",
-    userId: "user3",
-    username: "TechAnalyst",
-    userAvatar: "https://api.dicebear.com/7.x/initials/svg?seed=TA",
-    strategyName: "Multi-Timeframe SOL Strategy",
-    strategyType: "multi-timeframe",
-    description: "Combines signals from multiple timeframes for Solana trading.",
-    performance: {
-      winRate: 0.65,
-      profitFactor: 2.1,
-      totalTrades: 75,
-      averageReturn: 3.2
-    },
-    tags: ["Solana", "Multi-Timeframe", "Technical"],
-    likes: 22,
-    downloads: 9,
-    timestamp: "2025-04-22T09:45:00Z"
-  }
-];
-
-// Mock data for trading signals
-const mockTradingSignals: TradingSignal[] = [
-  {
-    id: "1",
-    userId: "user1",
-    username: "CryptoMaster",
-    userAvatar: "https://github.com/shadcn.png",
-    coinId: "bitcoin",
-    coinSymbol: "BTC",
-    type: "buy",
-    entryPrice: 59750,
-    targetPrice: 65000,
-    stopLoss: 57500,
-    timeframe: "4h",
-    confidence: "high",
-    reasoning: "BTC breaking out of a 3-week consolidation with increasing volume.",
-    timestamp: "2025-04-28T08:20:00Z",
-    likes: 18,
-    comments: 3
-  },
-  {
-    id: "2",
-    userId: "user2",
-    username: "AlgoTrader",
-    userAvatar: "https://api.dicebear.com/7.x/bottts/svg",
-    coinId: "ethereum",
-    coinSymbol: "ETH",
-    type: "sell",
-    entryPrice: 3050,
-    targetPrice: 2850,
-    stopLoss: 3150,
-    timeframe: "1d",
-    confidence: "medium",
-    reasoning: "ETH showing bearish divergence on daily RSI with decreasing volume.",
-    timestamp: "2025-04-27T16:45:00Z",
-    likes: 12,
-    comments: 5
-  },
-  {
-    id: "3",
-    userId: "user3",
-    username: "TechAnalyst",
-    userAvatar: "https://api.dicebear.com/7.x/initials/svg?seed=TA",
-    coinId: "solana",
-    coinSymbol: "SOL",
-    type: "buy",
-    entryPrice: 140.5,
-    targetPrice: 155,
-    stopLoss: 135,
-    timeframe: "1h",
-    confidence: "high",
-    reasoning: "SOL just completed an inverse head and shoulders pattern.",
-    timestamp: "2025-04-28T07:30:00Z",
-    likes: 24,
-    comments: 7
-  }
-];
-
-const SocialTradingFeatures: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>("signals");
-  const [strategyShares, setStrategyShares] = useState<StrategyShare[]>([]);
-  const [tradingSignals, setTradingSignals] = useState<TradingSignal[]>([]);
-  
-  // Initialize with mock data
-  useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      setStrategyShares(mockStrategyShares);
-      setTradingSignals(mockTradingSignals);
-    }, 500);
-  }, []);
-  
-  // Filter trading signals based on search query
-  const filteredSignals = tradingSignals.filter(signal => {
-    const lowerQuery = searchQuery.toLowerCase();
-    return (
-      signal.username.toLowerCase().includes(lowerQuery) ||
-      signal.coinSymbol.toLowerCase().includes(lowerQuery) ||
-      signal.reasoning.toLowerCase().includes(lowerQuery)
-    );
-  });
-  
-  // Filter strategy shares based on search query
-  const filteredShares = strategyShares.filter(share => {
-    const lowerQuery = searchQuery.toLowerCase();
-    return (
-      share.username.toLowerCase().includes(lowerQuery) ||
-      share.strategyName.toLowerCase().includes(lowerQuery) ||
-      share.description.toLowerCase().includes(lowerQuery) ||
-      share.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-    );
-  });
-  
-  const handleLikeSignal = (signalId: string) => {
-    setTradingSignals(prevSignals => 
-      prevSignals.map(signal => 
-        signal.id === signalId 
-          ? { ...signal, likes: signal.likes + 1 }
-          : signal
-      )
-    );
-    
-    toast({
-      title: "Signal Liked",
-      description: "You've liked this trading signal"
-    });
+interface StrategyShare {
+  id: string;
+  strategyId: string;
+  strategyName: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  description: string;
+  performance: {
+    winRate: number;
+    profitFactor: number;
+    netProfit: number;
+    trades: number;
+    sharpeRatio: number;
   };
+  timeframe: string;
+  tags: string[];
+  likes: number;
+  createdAt: string;
+  isVerified: boolean;
+}
+
+interface TradingSignal {
+  id: string;
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  coin: string;
+  symbol: string;
+  direction: 'buy' | 'sell';
+  price: number;
+  targetPrice: number;
+  stopLoss: number;
+  timeframe: string;
+  confidence: number;
+  reasoning: string;
+  createdAt: string;
+  expiresAt: string;
+  likes: number;
+  status: 'active' | 'fulfilled' | 'failed' | 'expired';
+}
+
+interface SocialTradingFeaturesProps {
+  className?: string;
+}
+
+const SocialTradingFeatures: React.FC<SocialTradingFeaturesProps> = ({ className }) => {
+  const [strategies, setStrategies] = useState<StrategyShare[]>([
+    {
+      id: "strat1",
+      strategyId: "strategy-1",
+      strategyName: "Trend Momentum Pro",
+      userId: "user1",
+      username: "cryptotrader",
+      userAvatar: "https://api.dicebear.com/7.x/personas/svg?seed=cryptotrader",
+      description: "A proven trend following strategy that uses momentum indicators to find optimal entry points",
+      performance: {
+        winRate: 68,
+        profitFactor: 2.3,
+        netProfit: 15400,
+        trades: 187,
+        sharpeRatio: 1.8
+      },
+      timeframe: "4h",
+      tags: ["trend", "momentum", "macd", "ema"],
+      likes: 348,
+      createdAt: "2023-11-15T09:23:15Z",
+      isVerified: true
+    },
+    {
+      id: "strat2",
+      strategyId: "strategy-2",
+      strategyName: "Breakout Scanner",
+      userId: "user2",
+      username: "algotrader",
+      userAvatar: "https://api.dicebear.com/7.x/personas/svg?seed=algotrader",
+      description: "Identifies and trades volatility breakouts from consolidation patterns",
+      performance: {
+        winRate: 62,
+        profitFactor: 1.9,
+        netProfit: 9800,
+        trades: 143,
+        sharpeRatio: 1.6
+      },
+      timeframe: "1h",
+      tags: ["breakout", "volatility", "bollinger", "atr"],
+      likes: 217,
+      createdAt: "2023-12-04T14:37:22Z",
+      isVerified: false
+    },
+    {
+      id: "strat3",
+      strategyId: "strategy-3",
+      strategyName: "Sentiment AI Alpha",
+      userId: "user3",
+      username: "tradingAI",
+      userAvatar: "https://api.dicebear.com/7.x/personas/svg?seed=tradingAI",
+      description: "Uses AI sentiment analysis from social media and news to predict market moves",
+      performance: {
+        winRate: 71,
+        profitFactor: 2.7,
+        netProfit: 22600,
+        trades: 98,
+        sharpeRatio: 2.2
+      },
+      timeframe: "1d",
+      tags: ["ai", "sentiment", "social", "news"],
+      likes: 492,
+      createdAt: "2023-10-22T11:15:43Z",
+      isVerified: true
+    }
+  ]);
   
-  const handleLikeStrategy = (strategyId: string) => {
-    setStrategyShares(prevShares => 
-      prevShares.map(share => 
-        share.id === strategyId 
-          ? { ...share, likes: share.likes + 1 }
-          : share
-      )
-    );
+  const [signals, setSignals] = useState<TradingSignal[]>([
+    {
+      id: "signal1",
+      userId: "user1",
+      username: "cryptotrader",
+      userAvatar: "https://api.dicebear.com/7.x/personas/svg?seed=cryptotrader",
+      coin: "Bitcoin",
+      symbol: "BTC",
+      direction: "buy",
+      price: 61250,
+      targetPrice: 65000,
+      stopLoss: 59800,
+      timeframe: "4h",
+      confidence: 85,
+      reasoning: "Strong bullish divergence on 4h RSI with increasing volume and support at the 200 EMA",
+      createdAt: "2023-04-15T08:22:15Z",
+      expiresAt: "2023-04-18T08:22:15Z",
+      likes: 124,
+      status: "active"
+    },
+    {
+      id: "signal2",
+      userId: "user2",
+      username: "algotrader",
+      userAvatar: "https://api.dicebear.com/7.x/personas/svg?seed=algotrader",
+      coin: "Ethereum",
+      symbol: "ETH",
+      direction: "sell",
+      price: 3020,
+      targetPrice: 2850,
+      stopLoss: 3120,
+      timeframe: "1d",
+      confidence: 72,
+      reasoning: "Double top pattern formed on daily chart with bearish MACD crossover and declining volume",
+      createdAt: "2023-04-14T16:45:32Z",
+      expiresAt: "2023-04-21T16:45:32Z",
+      likes: 87,
+      status: "active"
+    },
+    {
+      id: "signal3",
+      userId: "user3",
+      username: "tradingAI",
+      userAvatar: "https://api.dicebear.com/7.x/personas/svg?seed=tradingAI",
+      coin: "Solana",
+      symbol: "SOL",
+      direction: "buy",
+      price: 121.5,
+      targetPrice: 135,
+      stopLoss: 115,
+      timeframe: "12h",
+      confidence: 92,
+      reasoning: "AI sentiment analysis detected a significant positive shift in social media mentions with institutional buying patterns",
+      createdAt: "2023-04-16T09:12:45Z",
+      expiresAt: "2023-04-20T09:12:45Z",
+      likes: 194,
+      status: "active"
+    }
+  ]);
+  
+  const handleLikeStrategy = (id: string) => {
+    setStrategies(strategies.map(strategy => {
+      if (strategy.id === id) {
+        return {
+          ...strategy,
+          likes: strategy.likes + 1
+        };
+      }
+      return strategy;
+    }));
     
     toast({
       title: "Strategy Liked",
-      description: "You've liked this trading strategy"
+      description: "This strategy has been added to your favorites",
     });
   };
   
-  const handleDownloadStrategy = (strategyId: string) => {
-    setStrategyShares(prevShares => 
-      prevShares.map(share => 
-        share.id === strategyId 
-          ? { ...share, downloads: share.downloads + 1 }
-          : share
-      )
-    );
+  const handleLikeSignal = (id: string) => {
+    setSignals(signals.map(signal => {
+      if (signal.id === id) {
+        return {
+          ...signal,
+          likes: signal.likes + 1
+        };
+      }
+      return signal;
+    }));
     
     toast({
-      title: "Strategy Downloaded",
-      description: "Trading strategy has been added to your library"
+      title: "Signal Liked",
+      description: "This signal has been added to your watchlist",
     });
   };
-
+  
+  const handleFollowUser = (username: string) => {
+    toast({
+      title: "Following User",
+      description: `You are now following ${username}`,
+    });
+  };
+  
+  const handleShareStrategy = (id: string) => {
+    toast({
+      title: "Strategy Shared",
+      description: "Strategy has been shared to your connections",
+    });
+  };
+  
+  const handleApplyStrategy = (id: string) => {
+    toast({
+      title: "Strategy Applied",
+      description: "This strategy has been applied to your trading account",
+    });
+  };
+  
   return (
-    <Card className="w-full">
+    <Card className={className}>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Social Trading
-            </CardTitle>
-            <CardDescription>
-              Connect with traders, share strategies, and follow signals
-            </CardDescription>
-          </div>
-          
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search signals, strategies..."
-              className="pl-8 w-full sm:w-[250px]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Social Trading
+        </CardTitle>
+        <CardDescription>
+          Discover and share trading strategies with the community
+        </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="signals">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Trading Signals
-            </TabsTrigger>
-            <TabsTrigger value="strategies">
-              <Share2 className="h-4 w-4 mr-2" />
-              Shared Strategies
-            </TabsTrigger>
+        <Tabs defaultValue="strategies">
+          <TabsList className="grid grid-cols-3 mb-6">
+            <TabsTrigger value="strategies">Strategies</TabsTrigger>
+            <TabsTrigger value="signals">Signals</TabsTrigger>
+            <TabsTrigger value="community">Community</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="signals" className="space-y-6">
-            {filteredSignals.length > 0 ? (
-              filteredSignals.map((signal) => (
-                <Card key={signal.id} className="overflow-hidden">
-                  <div className="flex items-start p-4 gap-4">
-                    <Avatar>
-                      <AvatarImage src={signal.userAvatar} />
-                      <AvatarFallback>{signal.username.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="font-medium">{signal.username}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(signal.timestamp).toLocaleString()}
-                          </div>
-                        </div>
-                        
-                        <Badge variant={signal.type === 'buy' ? 'default' : 'destructive'}>
-                          {signal.type === 'buy' ? 'BUY' : 'SELL'} {signal.coinSymbol}
-                        </Badge>
-                      </div>
-                      
-                      <div className="mt-2">
-                        <div className="text-sm">{signal.reasoning}</div>
-                        
-                        <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                          <div className="bg-muted rounded p-1.5">
-                            <div className="text-muted-foreground">Entry</div>
-                            <div className="font-medium">${signal.entryPrice.toLocaleString()}</div>
-                          </div>
-                          <div className="bg-muted rounded p-1.5">
-                            <div className="text-muted-foreground">Target</div>
-                            <div className="font-medium">${signal.targetPrice.toLocaleString()}</div>
-                          </div>
-                          <div className="bg-muted rounded p-1.5">
-                            <div className="text-muted-foreground">Stop Loss</div>
-                            <div className="font-medium">${signal.stopLoss.toLocaleString()}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 flex items-center gap-4">
-                          <div className="flex items-center text-xs">
-                            <Badge variant="outline" className="mr-1">
-                              {signal.timeframe}
-                            </Badge>
-                            <span className="text-muted-foreground">timeframe</span>
-                          </div>
-                          
-                          <Badge variant={
-                            signal.confidence === 'high' ? 'default' : 
-                            signal.confidence === 'medium' ? 'secondary' : 
-                            'outline'
-                          }>
-                            {signal.confidence} confidence
-                          </Badge>
-                          
-                          <div className="ml-auto flex items-center gap-3">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8" 
-                              onClick={() => handleLikeSignal(signal.id)}
-                            >
-                              <ThumbsUp className="h-4 w-4" />
-                              <span className="ml-1 text-xs">{signal.likes}</span>
-                            </Button>
-                            
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MessageSquare className="h-4 w-4" />
-                              <span className="ml-1 text-xs">{signal.comments}</span>
-                            </Button>
-                          </div>
-                        </div>
+          <TabsContent value="strategies" className="space-y-6">
+            <div className="space-y-4">
+              {strategies.map(strategy => (
+                <div key={strategy.id} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar>
+                        <AvatarImage src={strategy.userAvatar} />
+                        <AvatarFallback>{strategy.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{strategy.username}</div>
+                        <div className="text-sm text-muted-foreground">{new Date(strategy.createdAt).toLocaleDateString()}</div>
                       </div>
                     </div>
+                    {strategy.isVerified && (
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-200 flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        Verified
+                      </Badge>
+                    )}
                   </div>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No trading signals found matching your search.
-              </div>
-            )}
+                  
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-medium">{strategy.strategyName}</h3>
+                      <Badge variant="outline" className="text-xs">{strategy.timeframe}</Badge>
+                    </div>
+                    <p className="text-muted-foreground">{strategy.description}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-5 gap-2 text-center">
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Win Rate</div>
+                      <div className="font-medium">{strategy.performance.winRate}%</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Profit Factor</div>
+                      <div className="font-medium">{strategy.performance.profitFactor}</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Net Profit</div>
+                      <div className="font-medium">${strategy.performance.netProfit}</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Trades</div>
+                      <div className="font-medium">{strategy.performance.trades}</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Sharpe</div>
+                      <div className="font-medium">{strategy.performance.sharpeRatio}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {strategy.tags.map(tag => (
+                      <Badge variant="secondary" key={tag}>#{tag}</Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex items-center space-x-1">
+                      <Button variant="ghost" size="icon" onClick={() => handleLikeStrategy(strategy.id)}>
+                        <Heart className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                      <span className="text-sm text-muted-foreground">{strategy.likes}</span>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => handleFollowUser(strategy.username)}>
+                        <User className="h-4 w-4 mr-1" />
+                        Follow
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleShareStrategy(strategy.id)}>
+                        <Share className="h-4 w-4 mr-1" />
+                        Share
+                      </Button>
+                      <Button size="sm" onClick={() => handleApplyStrategy(strategy.id)}>
+                        Apply Strategy
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
             
-            <div className="text-center mt-4">
+            <div className="flex justify-center">
+              <Button variant="outline">
+                Load More Strategies
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="signals" className="space-y-6">
+            <div className="space-y-4">
+              {signals.map(signal => (
+                <div key={signal.id} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar>
+                        <AvatarImage src={signal.userAvatar} />
+                        <AvatarFallback>{signal.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{signal.username}</div>
+                        <div className="text-sm text-muted-foreground">{new Date(signal.createdAt).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                    
+                    <Badge 
+                      variant={signal.direction === "buy" ? "outline" : "outline"}
+                      className={`${signal.direction === "buy" ? "bg-green-500/10 text-green-500 border-green-200" : "bg-red-500/10 text-red-500 border-red-200"}`}
+                    >
+                      {signal.direction.toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-medium">{signal.coin} ({signal.symbol})</h3>
+                      <Badge variant="outline" className="text-xs">{signal.timeframe}</Badge>
+                    </div>
+                    <p className="text-muted-foreground">{signal.reasoning}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Entry</div>
+                      <div className="font-medium">${signal.price.toLocaleString()}</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Target</div>
+                      <div className="font-medium">${signal.targetPrice.toLocaleString()}</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Stop Loss</div>
+                      <div className="font-medium">${signal.stopLoss.toLocaleString()}</div>
+                    </div>
+                    <div className="p-2 rounded-md bg-muted/50">
+                      <div className="text-xs text-muted-foreground">Confidence</div>
+                      <div className="font-medium">{signal.confidence}%</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Expires: {new Date(signal.expiresAt).toLocaleString()}
+                    </div>
+                    
+                    <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-200">
+                      {signal.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex items-center space-x-1">
+                      <Button variant="ghost" size="icon" onClick={() => handleLikeSignal(signal.id)}>
+                        <ThumbsUp className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                      <span className="text-sm text-muted-foreground">{signal.likes}</span>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Comment
+                      </Button>
+                      <Button size="sm">
+                        <Sparkles className="h-4 w-4 mr-1" />
+                        Apply Signal
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-center">
               <Button variant="outline">
                 Load More Signals
               </Button>
             </div>
           </TabsContent>
           
-          <TabsContent value="strategies" className="space-y-6">
-            {filteredShares.length > 0 ? (
-              filteredShares.map((share) => (
-                <Card key={share.id} className="overflow-hidden">
-                  <div className="flex items-start p-4 gap-4">
-                    <Avatar>
-                      <AvatarImage src={share.userAvatar} />
-                      <AvatarFallback>{share.username.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="font-medium">{share.username}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(share.timestamp).toLocaleString()}
-                          </div>
-                        </div>
-                        
-                        <Badge variant="outline">
-                          {share.strategyType}
-                        </Badge>
-                      </div>
-                      
-                      <div className="mt-2">
-                        <div className="font-medium">{share.strategyName}</div>
-                        <div className="text-sm mt-1">{share.description}</div>
-                        
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {share.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                          <div className="bg-muted rounded p-2">
-                            <div className="text-muted-foreground">Win Rate</div>
-                            <div className="font-medium">{(share.performance.winRate * 100).toFixed(1)}%</div>
-                          </div>
-                          <div className="bg-muted rounded p-2">
-                            <div className="text-muted-foreground">Profit Factor</div>
-                            <div className="font-medium">{share.performance.profitFactor.toFixed(2)}</div>
-                          </div>
-                          <div className="bg-muted rounded p-2">
-                            <div className="text-muted-foreground">Total Trades</div>
-                            <div className="font-medium">{share.performance.totalTrades}</div>
-                          </div>
-                          <div className="bg-muted rounded p-2">
-                            <div className="text-muted-foreground">Avg Return</div>
-                            <div className="font-medium">{share.performance.averageReturn.toFixed(1)}%</div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 flex items-center">
-                          <div className="ml-auto flex items-center gap-3">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => handleLikeStrategy(share.id)}
-                            >
-                              <ThumbsUp className="h-4 w-4" />
-                              <span className="ml-1 text-xs">{share.likes}</span>
-                            </Button>
-                            
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => handleDownloadStrategy(share.id)}
-                            >
-                              <Download className="h-4 w-4" />
-                              <span className="ml-1 text-xs">{share.downloads}</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No strategies found matching your search.
-              </div>
-            )}
-            
-            <div className="text-center mt-4">
+          <TabsContent value="community" className="space-y-6">
+            <div className="text-center space-y-2">
+              <div className="text-lg">Coming soon!</div>
+              <p className="text-muted-foreground">
+                Our community features are currently under development. Check back soon for forums, leaderboards, and competitions.
+              </p>
               <Button variant="outline">
-                Load More Strategies
+                Join Waitlist
               </Button>
             </div>
           </TabsContent>

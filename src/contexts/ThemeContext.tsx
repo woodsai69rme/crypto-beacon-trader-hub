@@ -1,8 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type Theme = "light" | "dark";
-type ColorScheme = "default" | "blue" | "purple" | "green" | "amber" | "red" | "slate";
+export type Theme = "light" | "dark";
+export type ColorScheme = "default" | "blue" | "purple" | "green" | "amber" | "red" | "slate";
 
 interface ThemeContextType {
   theme: Theme;
@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Check localStorage first, default to 'dark'
     const savedTheme = localStorage.getItem("theme");
-    return (savedTheme === "light" || savedTheme === "dark") ? savedTheme : "dark";
+    return (savedTheme === "light" || savedTheme === "dark") ? savedTheme as Theme : "dark";
   });
   
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {

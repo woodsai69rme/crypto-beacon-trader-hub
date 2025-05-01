@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '@/contexts/ThemeContext';
+import React, { useState } from 'react';
+import { useTheme, Theme, ColorScheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Palette } from 'lucide-react';
 import {
@@ -15,7 +15,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 interface ThemeOption {
-  value: string;
+  value: Theme | ColorScheme;
   label: string;
   description: string;
 }
@@ -41,27 +41,31 @@ const ThemeSwitcher: React.FC = () => {
   ];
 
   const handleThemeChange = (value: string) => {
-    setTheme(value);
-    localStorage.setItem("theme", value);
-    toast({
-      title: "Theme Updated",
-      description: `Changed to ${value} theme`,
-      duration: 2000
-    });
+    if (value === "light" || value === "dark") {
+      setTheme(value as Theme);
+      localStorage.setItem("theme", value);
+      toast({
+        title: "Theme Updated",
+        description: `Changed to ${value} theme`,
+        duration: 2000
+      });
+    }
   };
 
   const handleColorSchemeChange = (value: string) => {
-    setColorScheme(value);
-    localStorage.setItem("colorScheme", value);
-    toast({
-      title: "Style Updated",
-      description: `Changed to ${value} style`,
-      duration: 2000
-    });
+    if (["default", "blue", "purple", "green", "amber", "red", "slate"].includes(value)) {
+      setColorScheme(value as ColorScheme);
+      localStorage.setItem("colorScheme", value);
+      toast({
+        title: "Style Updated",
+        description: `Changed to ${value} style`,
+        duration: 2000
+      });
+    }
   };
 
   // Apply theme changes on mount
-  useEffect(() => {
+  React.useEffect(() => {
     // Apply theme from localStorage or default to dark
     const savedTheme = localStorage.getItem("theme") || "dark";
     const savedColorScheme = localStorage.getItem("colorScheme") || "default";
@@ -77,8 +81,13 @@ const ThemeSwitcher: React.FC = () => {
     }
     
     // Update context state
-    setTheme(savedTheme);
-    setColorScheme(savedColorScheme);
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme as Theme);
+    }
+    
+    if (["default", "blue", "purple", "green", "amber", "red", "slate"].includes(savedColorScheme)) {
+      setColorScheme(savedColorScheme as ColorScheme);
+    }
   }, [setTheme, setColorScheme]);
 
   return (

@@ -1,200 +1,130 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, RefreshCw } from 'lucide-react';
-import { CoinOption } from './types';
-import { fetchCryptoData } from "@/services/cryptoService";
-
-interface RealTimePriceChartProps {
-  selectedCoinId: string;
-  onSelectCoin: (coinId: string) => void;
-  coinId?: string;
-  availableCoins?: CoinOption[];
-}
+import { convertToCoinOptions, fetchCryptoHistoricalData, fetchMultipleCryptoData } from '@/services/cryptoService';
+import { CoinOption, RealTimePriceChartProps } from '@/types/trading';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({ 
+  coinId, 
   selectedCoinId, 
-  onSelectCoin,
-  coinId,
-  availableCoins: propAvailableCoins
+  onSelectCoin, 
+  availableCoins,
+  updateInterval = 5000 
 }) => {
-  const effectiveCoinId = coinId || selectedCoinId;
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [chartData, setChartData] = useState<any>(null);
+  const [timeframe, setTimeframe] = useState<string>("7");
   
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [timeFrame, setTimeFrame] = useState<string>("1d");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [availableCoins, setAvailableCoins] = useState<CoinOption[]>(propAvailableCoins || []);
-  
-  useEffect(() => {
-    // If coin options were not provided via props, fetch them
-    if (!propAvailableCoins) {
-      const fetchCoins = async () => {
-        try {
-          const coins = await fetchCryptoData();
-          const formattedCoins: CoinOption[] = coins.map(coin => ({
-            id: coin.id,
-            name: coin.name,
-            symbol: coin.symbol.toUpperCase(),
-            price: coin.current_price,
-            image: coin.image,
-            priceChange: coin.price_change_24h,
-            changePercent: coin.price_change_percentage_24h,
-            volume: coin.total_volume,
-            marketCap: coin.market_cap,
-            value: coin.id,
-            label: `${coin.name} (${coin.symbol.toUpperCase()})`
-          }));
-          setAvailableCoins(formattedCoins);
-        } catch (error) {
-          console.error("Error fetching coins:", error);
-        }
-      };
-      
-      fetchCoins();
-    }
-  }, [propAvailableCoins]);
-  
-  useEffect(() => {
-    loadChartData();
-  }, [effectiveCoinId, timeFrame]);
+  const timeframeOptions = [
+    { value: "1", label: "24 Hours" },
+    { value: "7", label: "7 Days" },
+    { value: "30", label: "30 Days" },
+    { value: "90", label: "3 Months" },
+    { value: "365", label: "1 Year" }
+  ];
   
   const loadChartData = async () => {
+    if (!coinId) return;
     setIsLoading(true);
     
     try {
-      // In a real application, this would fetch from an API
-      // For demo purposes, we'll generate random data
-      const daysMap: Record<string, number> = {
-        "1h": 1,
-        "1d": 30,
-        "1w": 90,
-        "1m": 180,
-        "1y": 365
-      };
+      const data = await fetchCryptoHistoricalData(coinId, parseInt(timeframe));
       
-      const days = daysMap[timeFrame] || 30;
-      const dataPoints = days * 24;
-      const now = new Date();
-      const startPrice = Math.random() * 1000 + 100;
-      
-      const mockData = Array(dataPoints).fill(0).map((_, index) => {
-        const date = new Date(now.getTime() - (dataPoints - index) * 3600000);
-        const random = Math.random();
-        const volatility = 0.02;
-        const change = volatility * (random - 0.5);
-        const price = startPrice * Math.exp(index * 0.001 + change);
-        
-        return {
-          date: date.toISOString(),
-          price: price,
-          volume: Math.round(Math.random() * 1000000)
-        };
+      // Format data for chart
+      const timestamps = data.prices.map((item: [number, number]) => {
+        const date = new Date(item[0]);
+        return date.toLocaleDateString();
       });
       
-      setChartData(mockData);
+      const prices = data.prices.map((item: [number, number]) => item[1]);
+      
+      setChartData({
+        labels: timestamps,
+        datasets: [{
+          label: 'Price (USD)',
+          data: prices,
+          borderColor: 'rgb(53, 162, 235)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        }]
+      });
+      
     } catch (error) {
-      console.error("Error loading chart data:", error);
+      console.error("Failed to load chart data:", error);
     } finally {
       setIsLoading(false);
     }
   };
   
-  const handleRefresh = () => {
+  // Load initial chart data
+  useEffect(() => {
     loadChartData();
-  };
+    
+    // Set up interval for real-time updates
+    const intervalId = setInterval(() => {
+      loadChartData();
+    }, updateInterval);
+    
+    return () => clearInterval(intervalId);
+  }, [coinId, timeframe, updateInterval]);
   
-  const selectedCoin = availableCoins.find(coin => coin.id === effectiveCoinId);
-
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Price Chart</CardTitle>
-            <CardDescription>
-              {selectedCoin 
-                ? `${selectedCoin.name} (${selectedCoin.symbol}) price over time` 
-                : "Select a coin to view price chart"}
-            </CardDescription>
+      <CardHeader className="pb-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+          <CardTitle className="text-xl">Price Chart</CardTitle>
+          <div className="flex items-center space-x-2">
+            <Select value={coinId} onValueChange={(value) => onSelectCoin && onSelectCoin(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a coin" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCoins.map(coin => (
+                  <SelectItem key={coin.id} value={coin.id}>
+                    {coin.name} ({coin.symbol})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeframeOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button variant="outline" size="icon" onClick={loadChartData}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
-          
-          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </Button>
         </div>
       </CardHeader>
       
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="w-full sm:w-64">
-              <Select 
-                value={effectiveCoinId} 
-                onValueChange={onSelectCoin}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a coin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCoins.map(coin => (
-                    <SelectItem key={coin.id} value={coin.id}>
-                      <div className="flex items-center gap-2">
-                        {coin.image && (
-                          <img src={coin.image} alt={coin.name} className="w-5 h-5" />
-                        )}
-                        <span>{coin.name} ({coin.symbol})</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Tabs defaultValue="1d" value={timeFrame} onValueChange={setTimeFrame}>
-              <TabsList>
-                <TabsTrigger value="1h">1H</TabsTrigger>
-                <TabsTrigger value="1d">1D</TabsTrigger>
-                <TabsTrigger value="1w">1W</TabsTrigger>
-                <TabsTrigger value="1m">1M</TabsTrigger>
-                <TabsTrigger value="1y">1Y</TabsTrigger>
-              </TabsList>
-            </Tabs>
+      <CardContent className="h-[300px] flex items-center justify-center">
+        {isLoading ? (
+          <div className="flex flex-col items-center space-y-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="text-sm text-muted-foreground">Loading chart data...</div>
           </div>
-          
-          {selectedCoin ? (
-            <div className="h-[350px] flex items-center justify-center border border-border rounded-lg">
-              <div className="text-center text-muted-foreground">
-                {isLoading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <LineChart className="h-12 w-12 animate-pulse" />
-                    <p>Loading chart data...</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <LineChart className="h-12 w-12" />
-                    <p>
-                      Price Chart Visualization Placeholder
-                      <br />
-                      {selectedCoin.name} - {timeFrame.toUpperCase()} timeframe
-                    </p>
-                  </div>
-                )}
-              </div>
+        ) : (
+          chartData ? (
+            <div className="text-center">
+              Price chart visualization would be displayed here (using a charting library like recharts)
             </div>
           ) : (
-            <div className="h-[350px] flex items-center justify-center border border-border rounded-lg">
-              <div className="text-center text-muted-foreground">
-                <div className="flex flex-col items-center gap-2">
-                  <LineChart className="h-12 w-12" />
-                  <p>Select a coin to view price chart</p>
-                </div>
-              </div>
+            <div className="text-center text-muted-foreground">
+              No chart data available
             </div>
-          )}
-        </div>
+          )
+        )}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme, Theme, ColorScheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import {
@@ -21,18 +21,18 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const themeOptions = [
-    { value: "light" as const, label: "Light" },
-    { value: "dark" as const, label: "Dark" }
+    { value: "light" as Theme, label: "Light" },
+    { value: "dark" as Theme, label: "Dark" }
   ];
   
   const colorSchemeOptions = [
-    { value: "default" as const, label: "Default" },
-    { value: "blue" as const, label: "Blue" },
-    { value: "green" as const, label: "Green" },
-    { value: "purple" as const, label: "Purple" },
-    { value: "amber" as const, label: "Amber" },
-    { value: "red" as const, label: "Red" },
-    { value: "slate" as const, label: "Slate" }
+    { value: "default" as ColorScheme, label: "Default" },
+    { value: "blue" as ColorScheme, label: "Blue" },
+    { value: "green" as ColorScheme, label: "Green" },
+    { value: "purple" as ColorScheme, label: "Purple" },
+    { value: "amber" as ColorScheme, label: "Amber" },
+    { value: "red" as ColorScheme, label: "Red" },
+    { value: "slate" as ColorScheme, label: "Slate" }
   ];
   
   const getCurrentThemeLabel = () => {

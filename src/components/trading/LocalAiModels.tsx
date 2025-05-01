@@ -1,38 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  PlusCircle, 
-  RefreshCw, 
-  Trash2, 
-  Edit, 
-  Brain, 
-  Cpu, 
-  Server, 
-  CheckCircle,
-  XCircle 
-} from "lucide-react";
-import { LocalModel } from "./types";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { useForm } from "react-hook-form";
 import { toast } from "@/components/ui/use-toast";
+import { LocalModel, ModelListProps } from "@/types/trading";
+import ModelList from './model-trading/ModelList';
+import { Bot, Check, Github, HardDrive, Plus, Share2, Terminal, Upload, Workflow } from 'lucide-react';
 
-const LocalAiModels = () => {
-  const [localModels, setLocalModels] = useState<LocalModel[]>([
+const LocalAiModels: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("installed");
+  const [isImporting, setIsImporting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      endpoint: "",
+      description: "",
+      type: "prediction" as const,
+      requiresAuth: false,
+    },
+  });
+
+  const [models, setModels] = useState<LocalModel[]>([
     {
       id: "model-1",
-      name: "AI Trend Predictor",
-      endpoint: "http://localhost:8000/api/predict",
+      name: "Price Predictor LLM",
+      endpoint: "http://localhost:8000/predict",
       type: "prediction",
       isConnected: true,
-      lastUsed: new Date(Date.now() - 3600000).toISOString(),
-      description: "Predicts market trends based on technical indicators",
+      lastUsed: "2023-04-15T14:23:45Z",
+      description: "A specialized large language model trained on financial data to predict cryptocurrency prices",
       performance: {
-        accuracy: 68,
-        returns: 23,
-        sharpeRatio: 1.2,
-        maxDrawdown: 12
+        accuracy: 78.4,
+        returns: 12.5,
+        sharpeRatio: 1.67,
+        maxDrawdown: 8.2
       }
     },
     {
@@ -41,297 +53,334 @@ const LocalAiModels = () => {
       endpoint: "http://localhost:8001/analyze",
       type: "sentiment",
       isConnected: false,
-      lastUsed: new Date(Date.now() - 86400000).toISOString(),
-      description: "Analyzes market sentiment from news and social media",
-      performance: {
-        accuracy: 72,
-        returns: 31,
-        sharpeRatio: 1.5,
-        maxDrawdown: 15
-      }
+      lastUsed: "2023-04-10T09:17:22Z",
+      description: "Analyzes news and social media sentiment for market impact assessment"
     },
     {
       id: "model-3",
-      name: "Trading Bot Engine",
+      name: "Trading Bot Alpha",
       endpoint: "http://localhost:8002/trade",
       type: "trading",
       isConnected: true,
-      lastUsed: new Date(Date.now() - 43200000).toISOString(),
-      description: "Executes trades based on AI signals",
+      lastUsed: "2023-04-16T18:05:11Z",
+      description: "An automated trading system using LSTM neural networks",
       performance: {
-        accuracy: 65,
-        returns: 28,
-        sharpeRatio: 1.3,
-        maxDrawdown: 18
+        accuracy: 81.2,
+        returns: 18.7,
+        sharpeRatio: 1.92,
+        maxDrawdown: 7.5
       }
+    },
+    {
+      id: "model-4",
+      name: "Market Pattern Analyzer",
+      endpoint: "http://localhost:8003/analyze",
+      type: "analysis",
+      isConnected: false,
+      description: "Identifies recurring patterns in market data using advanced pattern recognition algorithms"
     }
   ]);
-  
-  const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null);
-  const [newModelFormData, setNewModelFormData] = useState<Partial<LocalModel>>({
-    name: "",
-    endpoint: "",
-    type: "prediction",
-    description: ""
-  });
-  
-  const handleConnectionTest = (modelId: string) => {
-    setIsTestingConnection(modelId);
-    
-    // Simulate connection test
+
+  const handleModelConnect = (model: LocalModel) => {
+    setIsConnecting(true);
+    // Simulate API connection
     setTimeout(() => {
-      setLocalModels(models => models.map(model => {
-        if (model.id === modelId) {
-          const success = Math.random() > 0.3;
-          
-          toast({
-            title: success ? "Connection Successful" : "Connection Failed",
-            description: success 
-              ? `Successfully connected to ${model.name}` 
-              : `Failed to connect to ${model.name}. Check endpoint URL and server status.`,
-            variant: success ? "default" : "destructive"
-          });
-          
-          return {
-            ...model,
-            isConnected: success
-          };
-        }
-        return model;
-      }));
-      
-      setIsTestingConnection(null);
+      setModels(models.map(m => 
+        m.id === model.id ? { ...m, isConnected: true } : m
+      ));
+      setIsConnecting(false);
+      toast({
+        title: "Model Connected",
+        description: `Successfully connected to ${model.name}`,
+      });
     }, 1500);
   };
-  
-  const handleDeleteModel = (modelId: string) => {
-    setLocalModels(models => models.filter(model => model.id !== modelId));
-    
+
+  const handleModelDisconnect = (modelId: string) => {
+    setModels(models.map(m => 
+      m.id === modelId ? { ...m, isConnected: false } : m
+    ));
     toast({
-      title: "Model Deleted",
-      description: "The AI model has been removed from your local collection",
+      title: "Model Disconnected",
+      description: `Model has been disconnected`,
     });
   };
-  
-  const handleAddModel = () => {
-    if (!newModelFormData.name || !newModelFormData.endpoint || !newModelFormData.description) {
+
+  const handleModelSelect = (model: LocalModel) => {
+    toast({
+      title: "Model Selected",
+      description: `You selected ${model.name}`,
+    });
+  };
+
+  const handleImportSubmit = () => {
+    setIsImporting(true);
+    // Simulate import process
+    setTimeout(() => {
+      setIsImporting(false);
       toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive"
+        title: "Model Imported",
+        description: "The AI model has been successfully imported",
       });
-      return;
-    }
+      setActiveTab("installed");
+    }, 2000);
+  };
 
-    // Ensure type is one of the allowed values
-    const validType = newModelFormData.type === "prediction" || 
-                      newModelFormData.type === "sentiment" || 
-                      newModelFormData.type === "trading" || 
-                      newModelFormData.type === "analysis" ? 
-                      newModelFormData.type : "analysis";
-
-    const model: LocalModel = {
-      id: `model-${Date.now()}`,
-      name: newModelFormData.name!,
-      endpoint: newModelFormData.endpoint!,
-      type: validType,
-      description: newModelFormData.description,
+  const onSubmit = (data: any) => {
+    const newModel: LocalModel = {
+      id: `model-${models.length + 1}`,
+      name: data.name,
+      endpoint: data.endpoint,
+      type: data.type,
       isConnected: false,
-      lastUsed: null
+      description: data.description,
     };
     
-    setLocalModels([...localModels, model]);
-    
-    setNewModelFormData({
-      name: "",
-      endpoint: "",
-      type: "prediction",
-      description: ""
-    });
+    setModels([...models, newModel]);
+    form.reset();
     
     toast({
       title: "Model Added",
-      description: "New AI model has been added to your collection"
+      description: "Your AI model has been added to the dashboard",
     });
   };
-  
-  const getModelTypeIcon = (type: string) => {
-    switch (type) {
-      case 'prediction':
-        return <Brain className="h-4 w-4" />;
-      case 'sentiment':
-        return <Server className="h-4 w-4" />;
-      case 'trading':
-        return <Cpu className="h-4 w-4" />;
-      default:
-        return <Brain className="h-4 w-4" />;
-    }
-  };
-  
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Local AI Models</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="h-5 w-5" />
+          Local AI Models
+        </CardTitle>
         <CardDescription>
-          Manage local AI models and endpoints for custom trading strategies
+          Connect and manage your local AI models for trading and analysis
         </CardDescription>
       </CardHeader>
       
-      <CardContent>
-        <Tabs defaultValue="models">
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="models">Your Models</TabsTrigger>
-            <TabsTrigger value="add">Add New Model</TabsTrigger>
+      <CardContent className="space-y-6">
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="installed">Installed Models</TabsTrigger>
+            <TabsTrigger value="add">Add Model</TabsTrigger>
+            <TabsTrigger value="import">Import Model</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="models">
-            <div className="space-y-4">
-              {localModels.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Server className="mx-auto h-10 w-10 mb-4" />
-                  <p>No local AI models found</p>
-                  <p className="text-sm">Add your first model to get started</p>
-                </div>
-              ) : (
-                localModels.map(model => (
-                  <div 
-                    key={model.id} 
-                    className={`border rounded-lg p-4 ${
-                      model.isConnected ? 'border-green-500/50' : 'border-red-500/50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium">{model.name}</h3>
-                          <Badge variant={model.isConnected ? "outline" : "secondary"}>
-                            {model.isConnected ? (
-                              <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
-                            ) : (
-                              <XCircle className="h-3 w-3 mr-1 text-red-500" />
-                            )}
-                            {model.isConnected ? 'Connected' : 'Disconnected'}
-                          </Badge>
-                          <Badge variant="outline" className="flex items-center">
-                            {getModelTypeIcon(model.type)}
-                            <span className="ml-1">{model.type}</span>
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mt-1">{model.description}</p>
-                        
-                        <div className="text-xs text-muted-foreground mt-2">
-                          <p>Endpoint: {model.endpoint}</p>
-                          {model.lastUsed && (
-                            <p>Last used: {new Date(model.lastUsed).toLocaleString()}</p>
-                          )}
-                        </div>
-                        
-                        {model.performance && (
-                          <div className="mt-3 grid grid-cols-4 gap-2">
-                            <div className="bg-muted/20 rounded p-1 text-center">
-                              <p className="text-xs text-muted-foreground">Accuracy</p>
-                              <p className="font-medium">{model.performance.accuracy}%</p>
-                            </div>
-                            <div className="bg-muted/20 rounded p-1 text-center">
-                              <p className="text-xs text-muted-foreground">Returns</p>
-                              <p className="font-medium">{model.performance.returns}%</p>
-                            </div>
-                            <div className="bg-muted/20 rounded p-1 text-center">
-                              <p className="text-xs text-muted-foreground">Sharpe</p>
-                              <p className="font-medium">{model.performance.sharpeRatio}</p>
-                            </div>
-                            <div className="bg-muted/20 rounded p-1 text-center">
-                              <p className="text-xs text-muted-foreground">Max DD</p>
-                              <p className="font-medium">{model.performance.maxDrawdown}%</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => handleConnectionTest(model.id)}
-                          disabled={isTestingConnection === model.id}
-                        >
-                          <RefreshCw className={`h-4 w-4 ${
-                            isTestingConnection === model.id ? 'animate-spin' : ''
-                          }`} />
-                          <span className="sr-only">Test connection</span>
-                        </Button>
-                        
-                        <Button variant="outline" size="icon">
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit model</span>
-                        </Button>
-                        
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => handleDeleteModel(model.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete model</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+          <TabsContent value="installed" className="space-y-6">
+            <ModelList 
+              models={models}
+              onSelect={handleModelSelect}
+              onConnect={handleModelConnect}
+              onDisconnect={handleModelDisconnect}
+            />
+            
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={() => setActiveTab("add")} className="w-full max-w-md">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Model
+              </Button>
             </div>
           </TabsContent>
           
           <TabsContent value="add">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Model Name</label>
-                <Input
-                  placeholder="e.g. My Custom LSTM Model"
-                  value={newModelFormData.name}
-                  onChange={(e) => setNewModelFormData({...newModelFormData, name: e.target.value})}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Model Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter model name" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Endpoint URL</label>
-                <Input
-                  placeholder="e.g. http://localhost:8000/api/predict"
-                  value={newModelFormData.endpoint}
-                  onChange={(e) => setNewModelFormData({...newModelFormData, endpoint: e.target.value})}
+                
+                <FormField
+                  control={form.control}
+                  name="endpoint"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>API Endpoint</FormLabel>
+                      <FormControl>
+                        <Input placeholder="http://localhost:8000/predict" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        URL where your model's API is running
+                      </FormDescription>
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Model Type</label>
-                <Tabs 
-                  value={newModelFormData.type} 
-                  onValueChange={(value) => setNewModelFormData({...newModelFormData, type: value})}
-                  className="w-full"
-                >
-                  <TabsList className="grid grid-cols-4 w-full">
-                    <TabsTrigger value="prediction">Prediction</TabsTrigger>
-                    <TabsTrigger value="sentiment">Sentiment</TabsTrigger>
-                    <TabsTrigger value="trading">Trading</TabsTrigger>
-                    <TabsTrigger value="analysis">Analysis</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Description (optional)</label>
-                <Input
-                  placeholder="Brief description of what your model does"
-                  value={newModelFormData.description}
-                  onChange={(e) => setNewModelFormData({...newModelFormData, description: e.target.value})}
+                
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Model Type</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                        <Button
+                          type="button"
+                          variant={field.value === "prediction" ? "default" : "outline"}
+                          className="flex flex-col items-center justify-center h-24 gap-2"
+                          onClick={() => form.setValue("type", "prediction")}
+                        >
+                          <Terminal className="h-6 w-6" />
+                          <div className="text-sm">Prediction</div>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={field.value === "sentiment" ? "default" : "outline"}
+                          className="flex flex-col items-center justify-center h-24 gap-2"
+                          onClick={() => form.setValue("type", "sentiment")}
+                        >
+                          <Workflow className="h-6 w-6" />
+                          <div className="text-sm">Sentiment</div>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={field.value === "trading" ? "default" : "outline"}
+                          className="flex flex-col items-center justify-center h-24 gap-2"
+                          onClick={() => form.setValue("type", "trading")}
+                        >
+                          <Bot className="h-6 w-6" />
+                          <div className="text-sm">Trading</div>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={field.value === "analysis" ? "default" : "outline"}
+                          className="flex flex-col items-center justify-center h-24 gap-2"
+                          onClick={() => form.setValue("type", "analysis")}
+                        >
+                          <Share2 className="h-6 w-6" />
+                          <div className="text-sm">Analysis</div>
+                        </Button>
+                      </div>
+                    </FormItem>
+                  )}
                 />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Describe what this model does..." {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="requiresAuth"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Authentication Required</FormLabel>
+                        <FormDescription>
+                          Enable if your model requires an API key
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" type="button" onClick={() => setActiveTab("installed")}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Model
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </TabsContent>
+          
+          <TabsContent value="import">
+            <div className="space-y-6">
+              <div className="grid gap-6">
+                <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Drag and drop your model file here, or click to browse
+                  </p>
+                  <Input type="file" className="hidden" />
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium mb-2">Or import from repository</div>
+                  <div className="flex gap-2">
+                    <Input placeholder="GitHub repository URL" className="flex-1" />
+                    <Button variant="outline">
+                      <Github className="h-4 w-4 mr-2" />
+                      Connect
+                    </Button>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium mb-2">Or import from local path</div>
+                  <div className="flex gap-2">
+                    <Input placeholder="C:/Users/username/models/my_model" className="flex-1" />
+                    <Button variant="outline">
+                      <HardDrive className="h-4 w-4 mr-2" />
+                      Browse
+                    </Button>
+                  </div>
+                </div>
               </div>
               
-              <Button onClick={handleAddModel} className="w-full">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add AI Model
-              </Button>
+              <div className="pt-4 border-t">
+                <div className="text-sm font-medium mb-2">API Authentication (if required)</div>
+                <InputOTP maxLength={12} value={apiKey} onChange={setApiKey}>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                  </InputOTPGroup>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                    <InputOTPSlot index={6} />
+                    <InputOTPSlot index={7} />
+                  </InputOTPGroup>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={8} />
+                    <InputOTPSlot index={9} />
+                    <InputOTPSlot index={10} />
+                    <InputOTPSlot index={11} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" type="button" onClick={() => setActiveTab("installed")}>
+                  Cancel
+                </Button>
+                <Button onClick={handleImportSubmit} disabled={isImporting}>
+                  {isImporting ? (
+                    <>Importing...</>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Import Model
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

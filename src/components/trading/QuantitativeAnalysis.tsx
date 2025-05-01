@@ -1,259 +1,250 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { QuantitativeAnalysisProps } from "@/types/trading";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { toast } from "@/components/ui/use-toast";
+import { LineChart, Activity, Calculator, TrendingUp } from 'lucide-react';
 
-const defaultData: QuantitativeAnalysisProps = {
-  symbol: "BTC",
-  timeframe: "1D",
-  timestamp: new Date().toISOString(),
-  buyProbability: 0.65,
-  sellProbability: 0.25,
-  holdProbability: 0.10,
-  expectedValue: 4.2,
-  riskRewardRatio: 2.8,
-  confidenceScore: 0.72,
-  signals: [
-    {
-      indicator: "RSI",
-      value: 58,
-      signal: "buy",
-      strength: 0.7,
-      timeframe: "1D"
-    },
-    {
-      indicator: "MACD",
-      value: 0.002,
-      signal: "buy",
-      strength: 0.8,
-      timeframe: "1D"
-    },
-    {
-      indicator: "Bollinger Bands",
-      value: 0.95,
-      signal: "neutral",
-      strength: 0.4,
-      timeframe: "1D"
-    }
-  ],
-  shortTerm: {
-    direction: "up",
-    probability: 0.68,
-    targetPrice: 65000
-  },
-  mediumTerm: {
-    direction: "up",
-    probability: 0.72,
-    targetPrice: 68000
-  },
-  longTerm: {
-    direction: "up",
-    probability: 0.65
-  }
-};
+interface QuantitativeAnalysisProps {
+  symbol?: string;
+  timeframe?: string;
+  onResultsCalculated?: (results: any) => void;
+}
 
-const QuantitativeAnalysis: React.FC<Partial<QuantitativeAnalysisProps>> = (props) => {
-  // Combine default data with props
-  const data: QuantitativeAnalysisProps = { ...defaultData, ...props };
+const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
+  symbol = "BTC/USD",
+  timeframe = "1D",
+  onResultsCalculated
+}) => {
+  const [analysisType, setAnalysisType] = useState<string>("monte-carlo");
+  const [confidenceLevel, setConfidenceLevel] = useState<number>(95);
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
   
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>("1D");
-  const [selectedCoin, setSelectedCoin] = useState<string>("BTC");
+  const analysisTypes = [
+    { value: "monte-carlo", label: "Monte Carlo Simulation" },
+    { value: "value-at-risk", label: "Value at Risk (VaR)" },
+    { value: "probability-cone", label: "Probability Cone" },
+    { value: "regime-analysis", label: "Market Regime Analysis" }
+  ];
   
-  // Function to render the probability bar
-  const ProbabilityBar: React.FC<{
-    probability: number;
-    label: string;
-    color: string;
-  }> = ({ probability, label, color }) => (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs">
-        <span>{label}</span>
-        <span>{(probability * 100).toFixed(0)}%</span>
-      </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
-        <div 
-          className={`h-full ${color}`} 
-          style={{ width: `${probability * 100}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-
+  const timeframeOptions = [
+    { value: "1H", label: "1 Hour" },
+    { value: "4H", label: "4 Hours" },
+    { value: "1D", label: "1 Day" },
+    { value: "1W", label: "1 Week" },
+    { value: "1M", label: "1 Month" }
+  ];
+  
+  const runAnalysis = () => {
+    setIsCalculating(true);
+    
+    // Simulate analysis taking time
+    setTimeout(() => {
+      const results = {
+        type: analysisType,
+        symbol,
+        timeframe,
+        confidenceLevel,
+        outcomes: {
+          best: {
+            return: 23.5,
+            probability: 5
+          },
+          expected: {
+            return: 8.2,
+            probability: 50
+          },
+          worst: {
+            return: -12.4,
+            probability: 5
+          }
+        },
+        metrics: {
+          sharpeRatio: 1.42,
+          volatility: 18.7,
+          drawdown: 24.3,
+          winRate: 62.8
+        },
+        regimes: {
+          current: "bullish",
+          probability: {
+            bullish: 72,
+            neutral: 25,
+            bearish: 3
+          }
+        }
+      };
+      
+      setIsCalculating(false);
+      
+      if (onResultsCalculated) {
+        onResultsCalculated(results);
+      }
+      
+      toast({
+        title: "Analysis Complete",
+        description: `${analysisType.replace("-", " ")} completed with ${confidenceLevel}% confidence level`,
+      });
+    }, 2000);
+  };
+  
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>Coin</Label>
-          <Select defaultValue={selectedCoin} onValueChange={setSelectedCoin}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select coin" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-              <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-              <SelectItem value="SOL">Solana (SOL)</SelectItem>
-              <SelectItem value="XRP">Ripple (XRP)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Timeframe</Label>
-          <Select defaultValue={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1H">1 Hour</SelectItem>
-              <SelectItem value="4H">4 Hours</SelectItem>
-              <SelectItem value="1D">1 Day</SelectItem>
-              <SelectItem value="1W">1 Week</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5" />
+          Quantitative Analysis
+        </CardTitle>
+        <CardDescription>
+          Advanced statistical analysis tools for market probability assessment
+        </CardDescription>
+      </CardHeader>
       
-      <Button className="w-full">Run Quantitative Analysis</Button>
-      
-      <Card className="border border-primary/20">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 gap-y-6 gap-x-8">
-            <div>
-              <h4 className="text-sm font-medium mb-2">Buy/Sell Probability</h4>
-              <div className="space-y-2">
-                <ProbabilityBar 
-                  probability={data.buyProbability} 
-                  label="Buy" 
-                  color="bg-green-500" 
-                />
-                <ProbabilityBar 
-                  probability={data.sellProbability} 
-                  label="Sell" 
-                  color="bg-red-500" 
-                />
-                <ProbabilityBar 
-                  probability={data.holdProbability} 
-                  label="Hold" 
-                  color="bg-yellow-500" 
-                />
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2">Key Metrics</h4>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span>Expected Value:</span>
-                  <span className="font-medium">{data.expectedValue.toFixed(1)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Risk/Reward:</span>
-                  <span className="font-medium">{data.riskRewardRatio.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Confidence:</span>
-                  <span className="font-medium">{(data.confidenceScore * 100).toFixed(0)}%</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="col-span-2">
-              <h4 className="text-sm font-medium mb-2">Signal Analysis</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {data.signals.map((signal, index) => (
-                  <div key={index} className="p-2 border rounded bg-muted/30">
-                    <div className="text-xs font-medium">{signal.indicator}</div>
-                    <div className={`text-xs font-medium ${
-                      signal.signal === 'buy' 
-                        ? 'text-green-500' 
-                        : signal.signal === 'sell'
-                          ? 'text-red-500'
-                          : 'text-yellow-500'
-                    }`}>
-                      {signal.signal.toUpperCase()} ({(signal.strength * 100).toFixed(0)}%)
-                    </div>
-                  </div>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Analysis Type</Label>
+            <Select value={analysisType} onValueChange={setAnalysisType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select analysis type" />
+              </SelectTrigger>
+              <SelectContent>
+                {analysisTypes.map(type => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
                 ))}
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Asset</Label>
+            <Select defaultValue={symbol}>
+              <SelectTrigger>
+                <SelectValue placeholder={symbol} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BTC/USD">Bitcoin (BTC/USD)</SelectItem>
+                <SelectItem value="ETH/USD">Ethereum (ETH/USD)</SelectItem>
+                <SelectItem value="SOL/USD">Solana (SOL/USD)</SelectItem>
+                <SelectItem value="XRP/USD">Ripple (XRP/USD)</SelectItem>
+                <SelectItem value="ADA/USD">Cardano (ADA/USD)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Timeframe</Label>
+            <Select defaultValue={timeframe}>
+              <SelectTrigger>
+                <SelectValue placeholder={timeframe} />
+              </SelectTrigger>
+              <SelectContent>
+                {timeframeOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Confidence Level</Label>
+            <span className="text-sm text-muted-foreground">{confidenceLevel}%</span>
+          </div>
+          <Slider
+            defaultValue={[95]}
+            min={80}
+            max={99}
+            step={1}
+            value={[confidenceLevel]}
+            onValueChange={(value) => setConfidenceLevel(value[0])}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="col-span-full md:col-span-1 space-y-2">
+            <h3 className="text-md font-medium">Parameters</h3>
             
-            <div className="col-span-2">
-              <h4 className="text-sm font-medium mb-2">Time Horizon Predictions</h4>
-              <div className="space-y-2">
-                <div className="p-2 border rounded flex justify-between items-center">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Short Term (1-3 days)</div>
-                    <div className={`font-medium ${
-                      data.shortTerm.direction === 'up' 
-                        ? 'text-green-500' 
-                        : data.shortTerm.direction === 'down'
-                          ? 'text-red-500'
-                          : 'text-yellow-500'
-                    }`}>
-                      {data.shortTerm.direction.toUpperCase()} ({(data.shortTerm.probability * 100).toFixed(0)}%)
-                    </div>
-                  </div>
-                  {data.shortTerm.targetPrice && (
-                    <div className="text-sm font-medium">
-                      Target: ${data.shortTerm.targetPrice.toLocaleString()}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-2 border rounded flex justify-between items-center">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Medium Term (1-2 weeks)</div>
-                    <div className={`font-medium ${
-                      data.mediumTerm.direction === 'up' 
-                        ? 'text-green-500' 
-                        : data.mediumTerm.direction === 'down'
-                          ? 'text-red-500'
-                          : 'text-yellow-500'
-                    }`}>
-                      {data.mediumTerm.direction.toUpperCase()} ({(data.mediumTerm.probability * 100).toFixed(0)}%)
-                    </div>
-                  </div>
-                  {data.mediumTerm.targetPrice && (
-                    <div className="text-sm font-medium">
-                      Target: ${data.mediumTerm.targetPrice.toLocaleString()}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-2 border rounded flex justify-between items-center">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Long Term (1-3 months)</div>
-                    <div className={`font-medium ${
-                      data.longTerm.direction === 'up' 
-                        ? 'text-green-500' 
-                        : data.longTerm.direction === 'down'
-                          ? 'text-red-500'
-                          : 'text-yellow-500'
-                    }`}>
-                      {data.longTerm.direction.toUpperCase()} ({(data.longTerm.probability * 100).toFixed(0)}%)
-                    </div>
-                  </div>
-                  {data.longTerm.targetPrice && (
-                    <div className="text-sm font-medium">
-                      Target: ${data.longTerm.targetPrice.toLocaleString()}
-                    </div>
-                  )}
-                </div>
+            <div className="space-y-4 bg-muted/50 p-4 rounded-md">
+              <div>
+                <div className="text-sm text-muted-foreground">Simulations</div>
+                <div className="font-medium">10,000</div>
+              </div>
+              
+              <div>
+                <div className="text-sm text-muted-foreground">Historical Period</div>
+                <div className="font-medium">2 Years</div>
+              </div>
+              
+              <div>
+                <div className="text-sm text-muted-foreground">Projection Period</div>
+                <div className="font-medium">30 Days</div>
+              </div>
+              
+              <div>
+                <div className="text-sm text-muted-foreground">Current Position</div>
+                <div className="font-medium">BTC: 1.25</div>
+              </div>
+              
+              <div>
+                <div className="text-sm text-muted-foreground">Position Value</div>
+                <div className="font-medium">$76,556.65</div>
               </div>
             </div>
           </div>
           
-          <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">
-            <div className="flex justify-between">
-              <span>Last updated:</span>
-              <span>{new Date(data.timestamp).toLocaleString()}</span>
+          <div className="col-span-full md:col-span-2 flex flex-col space-y-4">
+            <h3 className="text-md font-medium">Preview</h3>
+            
+            <div className="flex-1 bg-muted/50 p-4 rounded-md flex items-center justify-center flex-col">
+              {analysisType === "monte-carlo" && (
+                <div className="text-center space-y-2">
+                  <LineChart className="h-16 w-16 text-muted-foreground mx-auto" />
+                  <div>Monte Carlo simulation projects multiple price paths to estimate outcome probabilities</div>
+                </div>
+              )}
+              
+              {analysisType === "value-at-risk" && (
+                <div className="text-center space-y-2">
+                  <Activity className="h-16 w-16 text-muted-foreground mx-auto" />
+                  <div>Value at Risk calculates the maximum expected loss at your specified confidence level</div>
+                </div>
+              )}
+              
+              {analysisType === "probability-cone" && (
+                <div className="text-center space-y-2">
+                  <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto" />
+                  <div>Probability Cone shows the range of possible price outcomes with statistical significance</div>
+                </div>
+              )}
+              
+              {analysisType === "regime-analysis" && (
+                <div className="text-center space-y-2">
+                  <Activity className="h-16 w-16 text-muted-foreground mx-auto" />
+                  <div>Market Regime Analysis identifies the current market state and transition probabilities</div>
+                </div>
+              )}
             </div>
+            
+            <Button 
+              onClick={runAnalysis} 
+              disabled={isCalculating} 
+              className="mt-auto"
+            >
+              {isCalculating ? "Calculating..." : "Run Analysis"}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
