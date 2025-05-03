@@ -3,360 +3,391 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUp, ArrowDown, Bell, BellOff, RefreshCw, Search, Plus } from "lucide-react";
-import { CoinOption, WatchlistItem } from '@/types/trading';
-import { toast } from "@/components/ui/use-toast";
+import { WatchlistItem } from '@/types/trading';
+import { Star, Settings, Plus, ChevronUp, ChevronDown, Bell } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
-type SortField = 'name' | 'price' | 'change';
-type SortOrder = 'asc' | 'desc';
-
-const Watchlist = () => {
-  // Sample data
-  const initialWatchlist: WatchlistItem[] = [
+const Watchlist: React.FC = () => {
+  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([
     {
-      id: "1",
-      coinId: "bitcoin",
+      id: "bitcoin",
       name: "Bitcoin",
       symbol: "BTC",
-      price: 61450.23,
-      priceChangePercentage24h: 2.3,
-      addedAt: new Date().toISOString(),
+      price: 50000,
+      priceChange: 1200,
+      priceChangePercentage24h: 2.4,
+      image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
+      isWatched: true,
+      coinId: "bitcoin",
       alertSettings: {
-        highPrice: 65000,
-        lowPrice: 58000,
-        percentageChangeThreshold: 5,
+        priceAbove: 52000,
+        priceBelow: 47000,
+        percentageChange: 5,
         enabled: true
       }
     },
     {
-      id: "2",
-      coinId: "ethereum",
+      id: "ethereum",
       name: "Ethereum",
       symbol: "ETH",
-      price: 3045.67,
-      priceChangePercentage24h: -1.2,
-      addedAt: new Date().toISOString(),
+      price: 3200,
+      priceChange: -100,
+      priceChangePercentage24h: -3.1,
+      image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
+      isWatched: true,
+      coinId: "ethereum",
       alertSettings: {
-        highPrice: 3200,
-        lowPrice: 2800,
-        percentageChangeThreshold: 5,
+        priceAbove: 3500,
+        priceBelow: 2800,
+        percentageChange: 7,
         enabled: true
       }
     },
     {
-      id: "3",
-      coinId: "solana",
+      id: "solana",
       name: "Solana",
       symbol: "SOL",
-      price: 143.22,
+      price: 105,
+      priceChange: 5,
       priceChangePercentage24h: 4.8,
-      addedAt: new Date().toISOString()
+      image: "https://assets.coingecko.com/coins/images/4128/small/solana.png",
+      isWatched: true,
+      coinId: "solana",
+      alertSettings: {
+        priceAbove: 120,
+        priceBelow: 90,
+        percentageChange: 10,
+        enabled: false
+      }
     },
     {
-      id: "4",
-      coinId: "ripple",
-      name: "XRP",
-      symbol: "XRP",
-      price: 0.57,
-      priceChangePercentage24h: 0.9,
-      addedAt: new Date().toISOString()
-    },
-    {
-      id: "5",
-      coinId: "cardano",
+      id: "cardano",
       name: "Cardano",
       symbol: "ADA",
       price: 0.45,
-      priceChangePercentage24h: -2.1,
-      addedAt: new Date().toISOString(),
+      priceChange: 0.01,
+      priceChangePercentage24h: 2.2,
+      image: "https://assets.coingecko.com/coins/images/975/small/cardano.png",
+      isWatched: false,
+      coinId: "cardano",
       alertSettings: {
-        highPrice: 0.55,
-        percentageChangeThreshold: 10,
+        priceAbove: 0.5,
+        priceBelow: 0.4,
+        percentageChange: 8,
+        enabled: false
+      }
+    },
+    {
+      id: "polkadot",
+      name: "Polkadot",
+      symbol: "DOT",
+      price: 6.35,
+      priceChange: 0.25,
+      priceChangePercentage24h: 3.9,
+      image: "https://assets.coingecko.com/coins/images/12171/small/polkadot.png",
+      isWatched: false,
+      coinId: "polkadot",
+      alertSettings: {
+        priceAbove: 7,
+        priceBelow: 5.5,
+        percentageChange: 10,
         enabled: false
       }
     }
-  ];
+  ]);
   
-  const [watchlist, setWatchlist] = useState<WatchlistItem[]>(initialWatchlist);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [loading, setLoading] = useState(false);
-  const [view, setView] = useState<"all" | "alerts">("all");
+  const [showOnlyWatched, setShowOnlyWatched] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedAlerts, setExpandedAlerts] = useState<string[]>([]);
   
-  useEffect(() => {
-    // Simulate initial data loading
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      // You could refresh price data here
-    }, 500);
-  }, []);
-  
-  // Refresh price data with random values
-  const refreshPrices = () => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      const updatedWatchlist = watchlist.map(item => {
-        const priceChange = (Math.random() * 6) - 3; // Random change between -3% and +3%
-        const newPrice = item.price * (1 + (priceChange / 100));
-        
-        // Check for alerts
-        if (item.alertSettings?.enabled) {
-          if (
-            (item.alertSettings.highPrice && newPrice >= item.alertSettings.highPrice) ||
-            (item.alertSettings.lowPrice && newPrice <= item.alertSettings.lowPrice) ||
-            (item.alertSettings.percentageChangeThreshold && 
-             Math.abs(priceChange) >= item.alertSettings.percentageChangeThreshold)
-          ) {
-            // Show toast alert
-            toast({
-              title: "Price Alert",
-              description: `${item.symbol} price ${priceChange > 0 ? "up" : "down"} to $${newPrice.toFixed(2)}`,
-              variant: priceChange > 0 ? "default" : "destructive",
-            });
-          }
-        }
-        
-        return {
-          ...item,
-          price: newPrice,
-          priceChangePercentage24h: priceChange
-        };
-      });
-      
-      setWatchlist(updatedWatchlist);
-      setLoading(false);
-    }, 1000);
-  };
-  
-  // Sort and filter the watchlist
-  const filteredAndSortedWatchlist = React.useMemo(() => {
-    let filtered = watchlist.filter(item => 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      item.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+  const toggleWatch = (id: string) => {
+    setWatchlistItems(items => 
+      items.map(item => 
+        item.id === id ? { ...item, isWatched: !item.isWatched } : item
+      )
     );
     
-    if (view === "alerts") {
-      filtered = filtered.filter(item => item.alertSettings?.enabled);
-    }
-    
-    return filtered.sort((a, b) => {
-      if (sortField === 'name') {
-        return sortOrder === 'asc' 
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      } else if (sortField === 'price') {
-        return sortOrder === 'asc'
-          ? a.price - b.price
-          : b.price - a.price;
-      } else {
-        return sortOrder === 'asc'
-          ? a.priceChangePercentage24h - b.priceChangePercentage24h
-          : b.priceChangePercentage24h - a.priceChangePercentage24h;
-      }
-    });
-  }, [watchlist, searchTerm, sortField, sortOrder, view]);
-  
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
-  };
-  
-  const toggleAlert = (id: string) => {
-    setWatchlist(watchlist.map(item => {
-      if (item.id === id) {
-        if (item.alertSettings) {
-          return {
-            ...item,
-            alertSettings: {
-              ...item.alertSettings,
-              enabled: !item.alertSettings.enabled
-            }
-          };
-        } else {
-          return {
-            ...item,
-            alertSettings: {
-              highPrice: item.price * 1.05,
-              lowPrice: item.price * 0.95,
-              percentageChangeThreshold: 5,
-              enabled: true
-            }
-          };
-        }
-      }
-      return item;
-    }));
-  };
-  
-  const addRandomCoin = () => {
-    const sampleCoins: CoinOption[] = [
-      { id: "polkadot", name: "Polkadot", symbol: "DOT", price: 5.78, value: "polkadot", label: "Polkadot" },
-      { id: "avalanche", name: "Avalanche", symbol: "AVAX", price: 35.67, value: "avalanche", label: "Avalanche" },
-      { id: "chainlink", name: "Chainlink", symbol: "LINK", price: 15.23, value: "chainlink", label: "Chainlink" },
-      { id: "polygon", name: "Polygon", symbol: "MATIC", price: 0.89, value: "polygon", label: "Polygon" },
-      { id: "uniswap", name: "Uniswap", symbol: "UNI", price: 7.45, value: "uniswap", label: "Uniswap" },
-    ];
-    
-    // Find a coin not already in the watchlist
-    const availableCoins = sampleCoins.filter(
-      coin => !watchlist.some(item => item.coinId === coin.id)
-    );
-    
-    if (availableCoins.length === 0) {
+    const item = watchlistItems.find(item => item.id === id);
+    if (item) {
       toast({
-        title: "No more coins available",
-        description: "You've added all available sample coins to your watchlist",
-        variant: "destructive",
+        title: item.isWatched ? "Removed from watchlist" : "Added to watchlist",
+        description: `${item.name} has been ${item.isWatched ? "removed from" : "added to"} your watchlist.`,
+        duration: 3000,
       });
-      return;
+    }
+  };
+  
+  const toggleAlerts = (id: string) => {
+    if (expandedAlerts.includes(id)) {
+      setExpandedAlerts(expandedAlerts.filter(item => item !== id));
+    } else {
+      setExpandedAlerts([...expandedAlerts, id]);
+    }
+  };
+  
+  const updateAlertSetting = (id: string, field: keyof WatchlistItem['alertSettings'], value: number | boolean) => {
+    setWatchlistItems(items => 
+      items.map(item => {
+        if (item.id === id && item.alertSettings) {
+          return { 
+            ...item, 
+            alertSettings: { 
+              ...item.alertSettings, 
+              [field]: value 
+            } 
+          };
+        }
+        return item;
+      })
+    );
+  };
+  
+  const toggleAlertEnabled = (id: string) => {
+    setWatchlistItems(items => 
+      items.map(item => {
+        if (item.id === id && item.alertSettings) {
+          const newStatus = !item.alertSettings.enabled;
+          toast({
+            title: newStatus ? "Alerts enabled" : "Alerts disabled",
+            description: `Price alerts for ${item.name} are now ${newStatus ? "enabled" : "disabled"}.`,
+            duration: 3000,
+          });
+          
+          return { 
+            ...item, 
+            alertSettings: { 
+              ...item.alertSettings, 
+              enabled: newStatus 
+            } 
+          };
+        }
+        return item;
+      })
+    );
+  };
+  
+  const filteredItems = watchlistItems.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          item.symbol.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (showOnlyWatched) {
+      return item.isWatched && matchesSearch;
     }
     
-    const randomCoin = availableCoins[Math.floor(Math.random() * availableCoins.length)];
-    
-    const newItem: WatchlistItem = {
-      id: Date.now().toString(),
-      coinId: randomCoin.id,
-      name: randomCoin.name,
-      symbol: randomCoin.symbol,
-      price: randomCoin.price,
-      priceChangePercentage24h: (Math.random() * 10) - 5, // Random between -5% and +5%
-      addedAt: new Date().toISOString()
+    return matchesSearch;
+  });
+  
+  const handleAddCoin = () => {
+    const newCoin: WatchlistItem = {
+      id: "avalanche",
+      name: "Avalanche",
+      symbol: "AVAX",
+      price: 28.50,
+      priceChange: 1.25,
+      priceChangePercentage24h: 4.3,
+      image: "https://assets.coingecko.com/coins/images/12559/small/avalanche-logo.png",
+      isWatched: true,
+      coinId: "avalanche",
+      alertSettings: {
+        priceAbove: 35,
+        priceBelow: 25,
+        percentageChange: 8,
+        enabled: false
+      }
     };
     
-    setWatchlist([...watchlist, newItem]);
+    setWatchlistItems([...watchlistItems, newCoin]);
     
     toast({
-      title: "Coin Added",
-      description: `${randomCoin.name} has been added to your watchlist`,
+      title: "New coin added",
+      description: `${newCoin.name} has been added to your watchlist.`,
+      duration: 3000,
     });
   };
   
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between py-3">
+    <Card>
+      <CardHeader className="pb-3 flex flex-row justify-between items-center">
         <CardTitle>Watchlist</CardTitle>
-        <div className="flex items-center space-x-2">
-          <Select value={view} onValueChange={(value) => setView(value as "all" | "alerts")}>
-            <SelectTrigger className="h-8 w-[100px]">
-              <SelectValue placeholder="View" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="alerts">Alerts</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={refreshPrices}
-            disabled={loading}
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowOnlyWatched(!showOnlyWatched)}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            {showOnlyWatched ? 'Show All' : 'Show Watched'}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleAddCoin}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Coin
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search coins..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" className="ml-2 whitespace-nowrap" onClick={addRandomCoin}>
-            <Plus className="h-4 w-4 mr-1" /> Add Coin
-          </Button>
+        <div className="mb-4">
+          <Input
+            placeholder="Search coins..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
         </div>
         
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => toggleSort('name')}
-                >
-                  Coin {sortField === 'name' && (
-                    sortOrder === 'asc' ? <ArrowUp className="inline h-4 w-4" /> : <ArrowDown className="inline h-4 w-4" />
-                  )}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer text-right" 
-                  onClick={() => toggleSort('price')}
-                >
-                  Price {sortField === 'price' && (
-                    sortOrder === 'asc' ? <ArrowUp className="inline h-4 w-4" /> : <ArrowDown className="inline h-4 w-4" />
-                  )}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer text-right" 
-                  onClick={() => toggleSort('change')}
-                >
-                  24h Change {sortField === 'change' && (
-                    sortOrder === 'asc' ? <ArrowUp className="inline h-4 w-4" /> : <ArrowDown className="inline h-4 w-4" />
-                  )}
-                </TableHead>
-                <TableHead className="w-[50px]">Alert</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAndSortedWatchlist.length > 0 ? (
-                filteredAndSortedWatchlist.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="font-medium">{item.symbol}</div>
-                      <div className="text-xs text-muted-foreground">{item.name}</div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      ${item.price.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={item.priceChangePercentage24h >= 0 ? "outline" : "destructive"} className={
-                        item.priceChangePercentage24h >= 0 ? "bg-green-500/10 text-green-500 hover:bg-green-500/20" : ""
-                      }>
-                        {item.priceChangePercentage24h >= 0 ? "+" : ""}
+        <div className="space-y-4">
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No coins found matching your criteria
+            </div>
+          ) : (
+            filteredItems.map((item) => (
+              <React.Fragment key={item.id}>
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${item.isWatched ? 'text-yellow-400' : 'text-muted-foreground'}`}
+                      onClick={() => toggleWatch(item.id)}
+                    >
+                      <Star className="h-5 w-5 fill-current" />
+                      <span className="sr-only">
+                        {item.isWatched ? 'Remove from watchlist' : 'Add to watchlist'}
+                      </span>
+                    </Button>
+                    
+                    {item.image && (
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="h-8 w-8 rounded-full"
+                      />
+                    )}
+                    
+                    <div>
+                      <div className="font-semibold flex items-center">
+                        {item.name} 
+                        <span className="text-muted-foreground ml-1">
+                          {item.symbol.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        ${item.price.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: item.price < 1 ? 4 : 2
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <div className="text-right">
+                      <div className={item.priceChangePercentage24h >= 0 ? 'profit' : 'loss'}>
+                        {item.priceChangePercentage24h >= 0 ? '+' : ''}
                         {item.priceChangePercentage24h.toFixed(2)}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8" 
-                        onClick={() => toggleAlert(item.id)}
-                      >
-                        {item.alertSettings?.enabled ? (
-                          <Bell className="h-4 w-4 text-primary" />
-                        ) : (
-                          <BellOff className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
-                    {searchTerm ? "No coins match your search" : "Your watchlist is empty"}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                      </div>
+                      <div className={`text-sm ${item.priceChangePercentage24h >= 0 ? 'profit' : 'loss'}`}>
+                        {item.priceChangePercentage24h >= 0 ? '+' : ''}
+                        ${Math.abs(item.priceChange).toFixed(2)}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${item.alertSettings?.enabled ? 'text-primary' : 'text-muted-foreground'}`}
+                      onClick={() => toggleAlertEnabled(item.id)}
+                    >
+                      <Bell className="h-4 w-4" />
+                      <span className="sr-only">
+                        {item.alertSettings?.enabled ? 'Disable alerts' : 'Enable alerts'}
+                      </span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => toggleAlerts(item.id)}
+                    >
+                      {expandedAlerts.includes(item.id) ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                
+                {expandedAlerts.includes(item.id) && (
+                  <div className="p-3 bg-muted/10 rounded-lg mt-1 mb-3">
+                    <div className="text-sm font-medium mb-2">Alert Settings</div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-muted-foreground">
+                          Price above
+                        </label>
+                        <div className="flex items-center mt-1">
+                          <span className="text-xs mr-1">$</span>
+                          <Input
+                            type="number"
+                            value={item.alertSettings?.priceAbove || 0}
+                            onChange={(e) => updateAlertSetting(
+                              item.id, 
+                              'priceAbove', 
+                              parseFloat(e.target.value) || 0
+                            )}
+                            className="h-7 text-sm"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="text-xs text-muted-foreground">
+                          Price below
+                        </label>
+                        <div className="flex items-center mt-1">
+                          <span className="text-xs mr-1">$</span>
+                          <Input
+                            type="number"
+                            value={item.alertSettings?.priceBelow || 0}
+                            onChange={(e) => updateAlertSetting(
+                              item.id, 
+                              'priceBelow', 
+                              parseFloat(e.target.value) || 0
+                            )}
+                            className="h-7 text-sm"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-2">
+                        <label className="text-xs text-muted-foreground">
+                          % Change threshold
+                        </label>
+                        <div className="flex items-center mt-1">
+                          <Input
+                            type="number"
+                            value={item.alertSettings?.percentageChange || 0}
+                            onChange={(e) => updateAlertSetting(
+                              item.id, 
+                              'percentageChange', 
+                              parseFloat(e.target.value) || 0
+                            )}
+                            className="h-7 text-sm"
+                          />
+                          <span className="text-xs ml-1">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,54 +1,55 @@
 
-import { useState } from "react";
-import "./App.css";
-import "./styles/reset.css"; // Import the reset styles
-import "./styles/themes.css"; // Import the theme styles
-import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
-import { CurrencyProvider } from "./contexts/CurrencyContext";
-import { AiTradingProvider } from "./contexts/AiTradingContext";
-import { Toaster } from "@/components/ui/toaster";
-import Navbar from "./components/Navbar";
-import Dashboard from "./components/Dashboard";
-
-// Create a themed container component that applies theme classes
-const ThemedContainer = ({ children }: { children: React.ReactNode }) => {
-  const { theme, colorScheme } = useTheme();
-  
-  return (
-    <div className={`themed-app min-h-screen flex flex-col bg-background ${theme} ${colorScheme}`}>
-      {children}
-    </div>
-  );
-};
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import { useTheme } from './contexts/ThemeContext';
+import Dashboard from './components/Dashboard';
+import ThemeSwitcher from './components/settings/ThemeSwitcher';
 
 function App() {
+  const { theme, colorScheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Only show UI after component is mounted to avoid hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <ThemeProvider>
-      <CurrencyProvider>
-        <AiTradingProvider>
-          <ThemedContainer>
-            <Navbar />
-            <div className="container mx-auto px-4 sm:px-6 py-6 flex-1 max-w-7xl">
-              <h1 className="text-3xl font-bold mb-6 text-foreground bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Crypto Trading Platform</h1>
-              <Dashboard />
+    <div className={`app themed-app ${theme} ${colorScheme}`}>
+      <header className="themed-container border-b border-border">
+        <div className="container py-4 flex items-center justify-between">
+          <div className="flex items-center">
+            <h1 className="font-bold text-xl">Crypto Trading Platform</h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <ThemeSwitcher />
+          </div>
+        </div>
+      </header>
+      
+      <main className="flex-grow themed-container">
+        <div className="container py-4">
+          <Dashboard />
+        </div>
+      </main>
+      
+      <footer className="themed-container border-t border-border">
+        <div className="container py-3">
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            <div>© 2025 Crypto Trading Platform</div>
+            <div className="flex space-x-4">
+              <a href="#" className="hover:text-foreground">Terms</a>
+              <a href="#" className="hover:text-foreground">Privacy</a>
+              <a href="#" className="hover:text-foreground">Contact</a>
             </div>
-            <footer className="py-6 border-t border-border">
-              <div className="container mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
-                <div className="mb-4 md:mb-0 text-muted-foreground">
-                  CryptoTrader Platform © {new Date().getFullYear()}
-                </div>
-                <div className="flex gap-6">
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Terms</a>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Privacy</a>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Support</a>
-                </div>
-              </div>
-            </footer>
-            <Toaster />
-          </ThemedContainer>
-        </AiTradingProvider>
-      </CurrencyProvider>
-    </ThemeProvider>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
 

@@ -35,12 +35,49 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, widget: Widget) => {
+    e.dataTransfer.setData('widget', JSON.stringify(widget));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetX: number, targetY: number) => {
+    e.preventDefault();
+    const widgetData = e.dataTransfer.getData('widget');
+    if (widgetData && onUpdatePosition) {
+      const widget = JSON.parse(widgetData) as Widget;
+      onUpdatePosition(widget.id, { x: targetX, y: targetY });
+    }
+  };
+
+  // Create a grid with cells for drag and drop
+  const gridCells = [];
+  const maxX = 3; // For a 3-column grid
+  const maxY = 4; // 4 rows
+
+  for (let y = 0; y < maxY; y++) {
+    for (let x = 0; x < maxX; x++) {
+      gridCells.push(
+        <div 
+          key={`cell-${x}-${y}`}
+          className="cell border border-dashed border-gray-200 dark:border-gray-700 min-h-[50px]"
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, x, y)}
+        />
+      );
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {widgets.map((widget) => (
         <Card 
           key={widget.id} 
           className={`${getSizeClass(widget.size)} transition-all`}
+          draggable
+          onDragStart={(e) => handleDragStart(e, widget)}
         >
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <CardTitle className="text-base">{widget.title}</CardTitle>

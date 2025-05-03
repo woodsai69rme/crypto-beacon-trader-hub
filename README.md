@@ -1,84 +1,96 @@
 
-# Advanced Cryptocurrency Trading Platform
+# Crypto Trading Platform
 
-A comprehensive cryptocurrency trading platform with AI-powered trading tools, advanced market analysis, portfolio management, and multi-exchange integration.
+## Overview
+The Crypto Trading Platform is a comprehensive web application that provides traders with powerful tools for cryptocurrency analysis, portfolio management, and AI-powered trading insights. It features a modern responsive UI with multiple theme options and extensive customization capabilities.
 
 ## Features
+- Real-time cryptocurrency price tracking and analysis
+- Customizable dashboard with draggable widgets
+- Advanced technical analysis tools
+- Portfolio tracking and performance metrics
+- AI trading signals and strategies
+- Market correlation analysis
+- Multiple dark theme options (Default, Midnight Tech, Cyber Pulse, Matrix Code)
+- Watchlist with customizable alerts
+- API management and integration
 
-### Trading Features
-- **Enhanced Fake Trading**: Practice crypto trading with real-time price updates
-- **Real-Time Trading**: Live market data and portfolio updates
-- **Multi-Exchange Trading**: Connect and manage multiple exchange accounts
-- **AI Trading Bots**: Automated trading with customizable strategies
-- **Social Trading**: Share and follow trading strategies from other users
+## Screenshots
+![Dashboard](screenshot-dashboard.png)
+![Market Analysis](screenshot-analysis.png)
+![Portfolio View](screenshot-portfolio.png)
 
-### Analysis Tools
-- **Fibonacci Analysis**: Auto-calculated extension and retracement levels
-- **Hyblock Liquidity Map**: Visualization of market liquidity zones
-- **TradingView Chart Integration**: Professional charting platform
-- **Quantitative Analysis**: AI-powered probability analysis for trades
-- **Real-Time Market Correlations**: Asset correlation matrices
-
-### Portfolio Management
-- **Multi-account Management**: Track multiple trading accounts
-- **Performance Metrics**: Detailed portfolio performance analysis
-- **Tax Calculations**: Built-in tax reporting tools
-- **Trading History**: Comprehensive trade history and analysis
-
-### Advanced Features
-- **Local AI Model Integration**: Connect to local machine learning models
-- **Multi-Timeframe Strategy**: Analyze markets across different timeframes
-- **API Management**: Comprehensive API key and usage management
-- **Real-time Alerts**: Price and market condition notifications
-
-## Technical Stack
-
-- **Frontend**: React with TypeScript
+## Tech Stack
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **UI Components**: Shadcn UI
 - **State Management**: React Context API
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Charting**: Recharts with TradingView integration
-- **Data Fetching**: Tanstack Query
-
-## API Integrations
-
-- **CoinGecko**: Market data and coin information
-- **CryptoCompare**: Real-time and historical price data
-- **TradingView**: Charting and technical analysis
-- **Hyblock**: Advanced market analysis
-- **Wintermute**: Algorithmic trading data
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 16+ and npm/yarn
-- Modern browser (Chrome, Firefox, Edge, Safari)
+- Node.js (v16.x or higher)
+- npm (v7.x or higher)
 
 ### Installation
-
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/crypto-trading-platform.git
 cd crypto-trading-platform
 ```
 
 2. Install dependencies:
 ```bash
 npm install
-# or
-yarn install
 ```
 
 3. Start the development server:
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-## Documentation
+4. Open your browser and navigate to `http://localhost:3000`
 
-For comprehensive documentation, please refer to the [DOCUMENTATION.md](./DOCUMENTATION.md) file.
+### Build for Production
+```bash
+npm run build
+```
+
+The built application will be in the `dist` directory.
+
+## Configuration
+
+### Environment Variables
+No environment variables are required for basic operation. API keys for external services are managed through the API Key Management interface within the application.
+
+### Theme Customization
+The platform includes four theme options:
+1. **Default Dark** - Standard dark theme with balanced contrast
+2. **Midnight Tech** - Deep blue tech-inspired theme
+3. **Cyber Pulse** - Vibrant purple cyberpunk style 
+4. **Matrix Code** - Green-tinted hacker aesthetic
+
+Users can change themes through the theme switcher in the top navigation bar.
+
+## Documentation
+Additional documentation is available in the `docs` directory:
+- [User Guide](docs/USER_GUIDE.md) - End-user documentation
+- [Developer Guide](docs/DEV_GUIDE.md) - Technical documentation for developers
+- [API Documentation](docs/API_DOCS.md) - API reference and integration guides
+- [Theme System](docs/THEME_SYSTEM.md) - Documentation for the theming system
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## Acknowledgements
+- [Shadcn UI](https://ui.shadcn.com/) for the UI component library
+- [Recharts](https://recharts.org/) for charting capabilities
+- [Lucide React](https://lucide.dev/) for the icon set

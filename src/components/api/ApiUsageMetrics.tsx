@@ -1,108 +1,168 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { ApiUsageStats } from '@/types/trading';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { ApiUsageStats } from "@/types/trading";
 
 interface ApiUsageMetricsProps {
-  apiUsage: ApiUsageStats[];
-  onRefresh: () => void;
+  usageStats: ApiUsageStats[];
 }
 
-const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ apiUsage, onRefresh }) => {
-  // Format time remaining until reset
-  const formatTimeRemaining = (resetTime: string): string => {
-    if (!resetTime) return 'Unknown';
-    
-    const now = new Date();
-    const reset = new Date(resetTime);
-    const diffMs = reset.getTime() - now.getTime();
-    
-    if (diffMs <= 0) return 'Resetting soon';
-    
-    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (diffHrs > 24) {
-      const days = Math.floor(diffHrs / 24);
-      return `${days} day${days !== 1 ? 's' : ''}`;
-    }
-    
-    return `${diffHrs}h ${diffMins}m`;
+const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ usageStats }) => {
+  // Prepare data for charts
+  const barChartData = usageStats.map(stat => ({
+    name: stat.name,
+    current: stat.currentUsage,
+    max: stat.maxUsage,
+  }));
+
+  const pieChartData = usageStats.map(stat => ({
+    name: stat.name,
+    value: stat.currentUsage || 0,
+    maxValue: stat.maxUsage || 1000, // Avoid division by zero
+    percentage: ((stat.currentUsage || 0) / (stat.maxUsage || 1)) * 100,
+  }));
+
+  // Colors for the pie chart
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  // Format date for display
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString();
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>API Usage Metrics</CardTitle>
-            <CardDescription>Monitor your API consumption and rate limits</CardDescription>
-          </div>
-          <Button variant="outline" size="icon" onClick={onRefresh}>
-            <RefreshCw className="h-4 w-4" />
-            <span className="sr-only">Refresh</span>
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {apiUsage && apiUsage.length > 0 ? (
-          <div className="space-y-6">
-            {apiUsage.map((api) => (
-              <div key={api.service} className="space-y-2">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h4 className="font-semibold">{api.service}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {api.endpoint || 'All endpoints'}
-                    </p>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {usageStats.map((stat) => (
+          <Card key={stat.id}>
+            <CardHeader className="pb-2">
+              <CardTitle>{stat.name}</CardTitle>
+              <CardDescription>
+                {stat.service} API Usage
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm">
+                    <span>Current Usage</span>
+                    <span>{stat.currentUsage} / {stat.maxUsage}</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {api.currentUsage} / {api.maxUsage} calls
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Resets in: {formatTimeRemaining(api.resetTime || '')}
-                    </p>
+                  <div className="h-2 bg-secondary rounded-full mt-1">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        (stat.currentUsage || 0) / (stat.maxUsage || 1) > 0.8 
+                          ? 'bg-red-500'
+                          : (stat.currentUsage || 0) / (stat.maxUsage || 1) > 0.5
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(((stat.currentUsage || 0) / (stat.maxUsage || 1)) * 100, 100)}%` }}
+                    />
                   </div>
                 </div>
                 
-                <Progress 
-                  value={(api.currentUsage / api.maxUsage) * 100} 
-                  className={`h-2 ${api.currentUsage / api.maxUsage > 0.8 ? 'bg-red-100' : 'bg-primary/20'}`}
-                />
-                
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>
-                    {Math.round((api.currentUsage / api.maxUsage) * 100)}% used
-                  </span>
-                  <span>
-                    {api.maxUsage - api.currentUsage} calls remaining
-                  </span>
-                </div>
-                
-                {(api.currentUsage / api.maxUsage) > 0.8 && (
-                  <div className="text-xs text-amber-500 flex items-center gap-1 mt-1">
-                    <span className="rounded-full bg-amber-500/20 p-0.5 w-4 h-4 flex items-center justify-center text-amber-500 font-bold">!</span>
-                    <span>Approaching rate limit, consider reducing request frequency</span>
+                <div className="text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span>Usage Percentage</span>
+                    <span>{stat.usagePercent.toFixed(1)}%</span>
                   </div>
-                )}
+                  <div className="flex justify-between">
+                    <span>Reset Time</span>
+                    <span>{formatDate(stat.resetTime)}</span>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-8 text-center text-muted-foreground">
-            <p>No API usage data available</p>
-            <Button variant="outline" size="sm" className="mt-2" onClick={onRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Metrics
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>API Usage Comparison</CardTitle>
+            <CardDescription>
+              Current usage compared to maximum limits
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={barChartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
+                  <YAxis />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
+                  <Legend />
+                  <Bar dataKey="current" name="Current Usage" fill="#8884d8" />
+                  <Bar dataKey="max" name="Maximum Limit" fill="#82ca9d" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Usage Distribution</CardTitle>
+            <CardDescription>
+              Relative API usage across providers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percentage }) => `${name} (${percentage.toFixed(1)}%)`}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value, name, props) => [`${value} (${props.payload.percentage.toFixed(1)}%)`, name]}
+                    contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)' }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

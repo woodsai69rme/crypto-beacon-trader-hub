@@ -1,260 +1,433 @@
 
-import { useState, useEffect } from "react";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
+import React, { useState, useEffect } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
-  CartesianGrid 
-} from "recharts";
-import { ArrowUp, ArrowDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { fetchCoinHistory } from "../services/cryptoApi";
-import { toast } from "@/components/ui/use-toast";
-import { CryptoChartData } from "@/types/trading";
+  ReferenceLine,
+  Legend,
+  Area,
+  AreaChart
+} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CryptoChartData } from '@/types/trading';
 
 interface EnhancedCryptoChartProps {
   coin: string;
-  coinId?: string;
+  coinId: string;
   color?: string;
+  data?: CryptoChartData;
 }
 
-const EnhancedCryptoChart = ({ 
-  coin, 
-  coinId = "bitcoin", 
-  color = "#F7931A" 
-}: EnhancedCryptoChartProps) => {
-  const [chartData, setChartData] = useState<{ date: string; price: number }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<number>(7); // Default to 7 days
-  const [priceChange, setPriceChange] = useState<{
-    percentage: number;
-    value: number;
-    isPositive: boolean;
-  }>({
-    percentage: 0,
-    value: 0,
-    isPositive: true,
-  });
-
+const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
+  coin,
+  coinId,
+  color = "#4ADE80",
+  data
+}) => {
+  const [timeframe, setTimeframe] = useState<string>("7d");
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartType, setChartType] = useState<'line' | 'area' | 'candle'>('area');
+  
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const data = await fetchCoinHistory(coinId, timeRange);
-        if (data && data.prices) {
-          // Format the data for the chart
-          const formattedData = data.prices.map((item: [number, number]) => {
-            const date = new Date(item[0]);
-            return {
-              date: formatDate(date, timeRange),
-              price: item[1],
-            };
-          });
-
-          setChartData(formattedData);
-
-          // Calculate price change
-          if (formattedData.length > 0) {
-            const firstPrice = formattedData[0].price;
-            const lastPrice = formattedData[formattedData.length - 1].price;
-            const change = lastPrice - firstPrice;
-            const percentage = (change / firstPrice) * 100;
-
-            setPriceChange({
-              percentage,
-              value: change,
-              isPositive: change >= 0,
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch chart data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch chart data",
-          variant: "destructive",
-        });
-
-        // Use mock data as fallback
-        const mockData = generateMockChartData(timeRange);
-        setChartData(mockData);
-        
-        // Calculate mock price change
-        if (mockData.length > 0) {
-          const firstPrice = mockData[0].price;
-          const lastPrice = mockData[mockData.length - 1].price;
-          const change = lastPrice - firstPrice;
-          const percentage = (change / firstPrice) * 100;
-
-          setPriceChange({
-            percentage,
-            value: change,
-            isPositive: change >= 0,
-          });
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [coinId, timeRange]);
-
-  const formatDate = (date: Date, days: number): string => {
-    // Format based on the time range
-    if (days <= 1) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (days <= 30) {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
-    }
-  };
-
-  // Generate mock data in case API fails
-  const generateMockChartData = (days: number) => {
-    const data = [];
-    const now = new Date();
-    const basePrice = 30000 + Math.random() * 10000;
-    const volatility = 0.05; // 5% volatility
-    
-    const points = days <= 1 ? 24 : days; // Hourly for 1 day, daily for others
-    
-    for (let i = points; i >= 0; i--) {
-      const date = new Date(now);
+    if (data) {
+      // Format data from the API into chart format
+      const formattedData = data.time.map((time, index) => ({
+        date: new Date(time).toLocaleDateString(),
+        price: data.price[index],
+        volume: data.volume ? data.volume[index] : undefined
+      }));
       
-      if (days <= 1) {
-        // For 24h view, go back by hours
+      setChartData(formattedData);
+    } else {
+      // Generate mock data if no data is provided
+      generateMockChartData();
+    }
+  }, [data, timeframe]);
+
+  const generateMockChartData = () => {
+    const mockData = [];
+    let basePrice = 30000 + Math.random() * 10000;
+    const now = new Date();
+    const volatility = 0.02; // 2% daily volatility
+    
+    // Generate more or fewer points based on timeframe
+    let days = 30;
+    switch (timeframe) {
+      case '24h': days = 1; break;
+      case '7d': days = 7; break;
+      case '30d': days = 30; break;
+      case '90d': days = 90; break;
+      case '1y': days = 365; break;
+      default: days = 30;
+    }
+    
+    // For timeframes < 1d, generate hourly data
+    const pointsPerDay = timeframe === '24h' ? 24 : 1;
+    const totalPoints = days * pointsPerDay;
+    
+    for (let i = totalPoints; i >= 0; i--) {
+      // Calculate date based on timeframe
+      const date = new Date(now);
+      if (timeframe === '24h') {
         date.setHours(date.getHours() - i);
       } else {
-        // For other views, go back by days
         date.setDate(date.getDate() - i);
       }
       
-      // Random walk price
-      const randomChange = (Math.random() - 0.5) * 2 * volatility;
-      const newPrice = basePrice * (1 + randomChange * (i / points));
+      // Price follows a random walk with some trend
+      const changePercent = (Math.random() - 0.48) * volatility;
+      basePrice = basePrice * (1 + changePercent);
       
-      data.push({
-        date: formatDate(date, days),
-        price: newPrice,
+      // Add some seasonality/patterns for realism
+      const dayOfWeek = date.getDay();
+      const hourOfDay = date.getHours();
+      
+      // Weekend effect
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        basePrice *= 0.995 + Math.random() * 0.01;
+      }
+      
+      // Hour of day effect (for 24h timeframe)
+      if (timeframe === '24h') {
+        // More activity during market hours
+        if (hourOfDay >= 9 && hourOfDay <= 16) {
+          basePrice *= 1 + (Math.random() - 0.5) * 0.005;
+        }
+      }
+      
+      // Generate volume data - higher during price movements
+      const volumeBase = 1000000 + Math.random() * 1000000;
+      const volume = Math.abs(changePercent) > 0.01 
+        ? volumeBase * (1 + Math.abs(changePercent) * 10)
+        : volumeBase;
+        
+      mockData.push({
+        date: timeframe === '24h' 
+          ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : date.toLocaleDateString(),
+        price: basePrice,
+        volume: volume
       });
     }
     
-    return data;
+    setChartData(mockData);
   };
 
-  const timeRangeOptions = [
-    { label: "24H", value: 1 },
-    { label: "7D", value: 7 },
-    { label: "30D", value: 30 },
-    { label: "90D", value: 90 },
-    { label: "1Y", value: 365 },
+  const timeframeOptions = [
+    { value: "24h", label: "24H" },
+    { value: "7d", label: "7D" },
+    { value: "30d", label: "30D" },
+    { value: "90d", label: "90D" },
+    { value: "1y", label: "1Y" },
   ];
 
   const formatTooltipValue = (value: number) => {
-    return `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const formatYAxis = (value: number) => {
+    return `$${value.toLocaleString(undefined, { notation: 'compact', compactDisplay: 'short' })}`;
+  };
+
+  const formatVolumeValue = (value: number) => {
+    return `Vol: $${value.toLocaleString(undefined, { notation: 'compact', compactDisplay: 'short' })}`;
+  };
+
+  // Calculate if the chart is showing a gain or loss
+  const firstPrice = chartData[0]?.price || 0;
+  const lastPrice = chartData[chartData.length - 1]?.price || 0;
+  const priceChange = lastPrice - firstPrice;
+  const priceChangePercent = firstPrice > 0 ? (priceChange / firstPrice) * 100 : 0;
+  const isPositive = priceChange >= 0;
+  const lineColor = isPositive ? color : "#F87171";
+
   return (
-    <div className="crypto-card">
-      <div className="crypto-card-header">
-        <div className="flex flex-col">
-          <h2 className="text-lg font-bold">{coin} Price Chart</h2>
-          {!isLoading && (
-            <div className="mt-1 flex items-center text-sm">
-              <span className="text-muted-foreground">Current Price:</span>
-              <span className="ml-1 font-medium">
-                ${chartData.length > 0 ? chartData[chartData.length - 1].price.toLocaleString() : "0"}
-              </span>
-              <span
-                className={`ml-2 flex items-center text-xs ${
-                  priceChange.isPositive ? "text-crypto-green" : "text-crypto-red"
-                }`}
-              >
-                {priceChange.isPositive ? (
-                  <ArrowUp className="mr-0.5 h-3 w-3" />
-                ) : (
-                  <ArrowDown className="mr-0.5 h-3 w-3" />
-                )}
-                {Math.abs(priceChange.percentage).toFixed(2)}%
-                <span className="ml-1 text-xs text-muted-foreground">
-                  ({timeRangeOptions.find(o => o.value === timeRange)?.label})
-                </span>
+    <Card className="w-full h-full">
+      <CardHeader className="pb-0">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-xl font-bold">{coin}</CardTitle>
+            <div className="mt-1 flex items-center">
+              <span className="text-2xl font-bold">${lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className={`ml-2 ${isPositive ? 'profit' : 'loss'}`}>
+                {isPositive ? '+' : ''}{priceChange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({priceChangePercent.toFixed(2)}%)
               </span>
             </div>
-          )}
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            <div className="flex space-x-1">
+              {timeframeOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={timeframe === option.value ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setTimeframe(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+            
+            <div className="flex space-x-1 justify-end">
+              <Button
+                variant={chartType === 'line' ? "default" : "outline"}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setChartType('line')}
+              >
+                Line
+              </Button>
+              <Button
+                variant={chartType === 'area' ? "default" : "outline"}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setChartType('area')}
+              >
+                Area
+              </Button>
+              <Button
+                variant={chartType === 'candle' ? "default" : "outline"}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setChartType('candle')}
+              >
+                Candle
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex space-x-1">
-          {timeRangeOptions.map((option) => (
-            <Button
-              key={option.value}
-              size="sm"
-              variant={timeRange === option.value ? "default" : "outline"}
-              className="px-2 py-1 text-xs"
-              onClick={() => setTimeRange(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-        </div>
-      ) : (
-        <div className="h-64 mt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id={`colorPrice_${coinId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={color} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333333" />
-              <XAxis 
-                dataKey="date" 
-                tickLine={false} 
-                axisLine={false} 
-                tick={{ fontSize: 10 }} 
-              />
-              <YAxis 
-                domain={['auto', 'auto']} 
-                tickFormatter={(value) => `$${value.toLocaleString()}`} 
-                tickLine={false} 
-                axisLine={false}
-                tick={{ fontSize: 10 }}
-                width={60}
-              />
-              <Tooltip 
-                formatter={formatTooltipValue}
-                contentStyle={{ 
-                  background: '#1E1E1E', 
-                  border: '1px solid #333333',
-                  borderRadius: '4px' 
-                }} 
-              />
-              <Area
-                type="monotone"
-                dataKey="price"
-                stroke={color}
-                fillOpacity={1}
-                fill={`url(#colorPrice_${coinId})`}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </div>
+      </CardHeader>
+      
+      <CardContent className="mt-4">
+        <Tabs defaultValue="price" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="price">Price</TabsTrigger>
+            <TabsTrigger value="volume">Volume</TabsTrigger>
+            <TabsTrigger value="combined">Combined</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="price" className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'area' ? (
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={lineColor} stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor={lineColor} stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12 }} 
+                    tickLine={false}
+                    axisLine={false}
+                    minTickGap={30}
+                  />
+                  <YAxis 
+                    domain={['dataMin - 100', 'dataMax + 100']} 
+                    tick={{ fontSize: 12 }} 
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={formatYAxis}
+                    width={60}
+                  />
+                  <Tooltip 
+                    formatter={formatTooltipValue}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      borderColor: 'var(--border)', 
+                      borderRadius: '0.375rem'
+                    }}
+                    labelStyle={{ color: 'var(--foreground)' }}
+                  />
+                  <ReferenceLine y={firstPrice} stroke="#888" strokeDasharray="3 3" />
+                  <Area 
+                    type="monotone" 
+                    dataKey="price" 
+                    stroke={lineColor} 
+                    fillOpacity={1}
+                    fill="url(#colorPrice)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                </AreaChart>
+              ) : (
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12 }} 
+                    tickLine={false}
+                    axisLine={false}
+                    minTickGap={30}
+                  />
+                  <YAxis 
+                    domain={['dataMin - 100', 'dataMax + 100']} 
+                    tick={{ fontSize: 12 }} 
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={formatYAxis}
+                    width={60}
+                  />
+                  <Tooltip 
+                    formatter={formatTooltipValue}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      borderColor: 'var(--border)', 
+                      borderRadius: '0.375rem'
+                    }}
+                    labelStyle={{ color: 'var(--foreground)' }}
+                  />
+                  <ReferenceLine y={firstPrice} stroke="#888" strokeDasharray="3 3" />
+                  <Line 
+                    type="monotone" 
+                    dataKey="price" 
+                    stroke={lineColor} 
+                    strokeWidth={2} 
+                    dot={false} 
+                    activeDot={{ r: 6 }} 
+                  />
+                </LineChart>
+              )}
+            </ResponsiveContainer>
+          </TabsContent>
+          
+          <TabsContent value="volume" className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12 }} 
+                  tickLine={false}
+                  axisLine={false}
+                  minTickGap={30}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }} 
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `${(value / 1e6).toFixed(1)}M`}
+                  width={60}
+                />
+                <Tooltip 
+                  formatter={formatVolumeValue}
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    borderColor: 'var(--border)', 
+                    borderRadius: '0.375rem'
+                  }}
+                  labelStyle={{ color: 'var(--foreground)' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="volume" 
+                  stroke="#8884d8" 
+                  fillOpacity={1}
+                  fill="url(#colorVolume)"
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </TabsContent>
+          
+          <TabsContent value="combined" className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12 }} 
+                  tickLine={false}
+                  axisLine={false}
+                  minTickGap={30}
+                />
+                <YAxis 
+                  yAxisId="left"
+                  domain={['dataMin - 100', 'dataMax + 100']} 
+                  tick={{ fontSize: 12 }} 
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={formatYAxis}
+                  width={60}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `${(value / 1e6).toFixed(1)}M`}
+                  width={60}
+                />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    if (name === 'price') return formatTooltipValue(value as number);
+                    if (name === 'volume') return formatVolumeValue(value as number);
+                    return value;
+                  }}
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    borderColor: 'var(--border)', 
+                    borderRadius: '0.375rem'
+                  }}
+                  labelStyle={{ color: 'var(--foreground)' }}
+                />
+                <Legend />
+                <Line 
+                  yAxisId="left"
+                  type="monotone" 
+                  dataKey="price" 
+                  name="Price"
+                  stroke={lineColor} 
+                  strokeWidth={2} 
+                  dot={false}
+                  activeDot={{ r: 6 }} 
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="volume" 
+                  name="Volume"
+                  stroke="#8884d8" 
+                  strokeWidth={2} 
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 

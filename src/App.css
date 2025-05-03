@@ -129,11 +129,11 @@
 
 /* Trading specific colors preserved across all themes */
 .profit {
-  color: rgb(74, 222, 128);
+  color: hsl(var(--profit));
 }
 
 .loss {
-  color: rgb(248, 113, 113);
+  color: hsl(var(--loss));
 }
 
 .neutral {
@@ -141,11 +141,11 @@
 }
 
 .bg-profit {
-  background-color: rgba(74, 222, 128, 0.2);
+  background-color: hsla(var(--profit), 0.2);
 }
 
 .bg-loss {
-  background-color: rgba(248, 113, 113, 0.2);
+  background-color: hsla(var(--loss), 0.2);
 }
 
 /* Focus styles for accessibility */

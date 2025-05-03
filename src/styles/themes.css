@@ -1,11 +1,30 @@
 
 /* Base Theme Variables */
 :root {
-  --radius: 0.5rem;
-  --font-sans: 'Inter', sans-serif;
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 98%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+  --radius: 0.75rem;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
-/* Dark Theme (Base) */
 .dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
@@ -26,150 +45,113 @@
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
-/* Light Theme */
-.light {
-  --background: 0 0% 98%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-}
-
-/* Midnight Tech Theme */
+/* Midnight Tech Theme - Dark blue tech-inspired */
 .midnight-tech {
   --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
+  --foreground: 213 31% 91%;
   --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
+  --card-foreground: 213 31% 91%;
   --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
+  --popover-foreground: 213 31% 91%;
   --primary: 217 91% 60%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 217 70% 33%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217 30% 20%;
-  --muted-foreground: 210 40% 80%;
-  --accent: 217 70% 33%;
-  --accent-foreground: 210 40% 98%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 217 19% 27%;
+  --secondary-foreground: 213 31% 91%;
+  --muted: 217 19% 27%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 217 91% 60%;
+  --accent-foreground: 210 20% 98%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217 30% 20%;
-  --input: 217 30% 20%;
-  --ring: 217 91% 60%;
+  --destructive-foreground: 210 20% 98%;
+  --border: 217 19% 27%;
+  --input: 217 19% 27%;
+  --ring: 224 76% 48%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
-/* Cyber Pulse Theme */
+/* Cyber Pulse Theme - Purple cyberpunk style */
 .cyber-pulse {
   --background: 280 50% 10%;
-  --foreground: 290 70% 98%;
+  --foreground: 280 20% 96%;
   --card: 280 50% 10%;
-  --card-foreground: 290 70% 98%;
+  --card-foreground: 280 20% 96%;
   --popover: 280 50% 10%;
-  --popover-foreground: 290 70% 98%;
+  --popover-foreground: 280 20% 96%;
   --primary: 280 75% 60%;
-  --primary-foreground: 290 70% 98%;
-  --secondary: 280 60% 30%;
-  --secondary-foreground: 290 70% 98%;
-  --muted: 280 35% 15%;
-  --muted-foreground: 290 70% 80%;
-  --accent: 280 60% 30%;
-  --accent-foreground: 290 70% 98%;
+  --primary-foreground: 280 50% 10%;
+  --secondary: 280 30% 20%;
+  --secondary-foreground: 280 20% 96%;
+  --muted: 280 30% 20%;
+  --muted-foreground: 280 20% 70%;
+  --accent: 280 75% 60%;
+  --accent-foreground: 280 20% 96%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 290 70% 98%;
-  --border: 280 35% 15%;
-  --input: 280 35% 15%;
+  --destructive-foreground: 280 20% 96%;
+  --border: 280 30% 20%;
+  --input: 280 30% 20%;
   --ring: 280 75% 60%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
-/* Matrix Code Theme */
+/* Matrix Code Theme - Green hacker aesthetic */
 .matrix-code {
   --background: 120 50% 7%;
-  --foreground: 120 80% 90%;
+  --foreground: 120 30% 96%;
   --card: 120 50% 7%;
-  --card-foreground: 120 80% 90%;
+  --card-foreground: 120 30% 96%;
   --popover: 120 50% 7%;
-  --popover-foreground: 120 80% 90%;
+  --popover-foreground: 120 30% 96%;
   --primary: 120 100% 50%;
   --primary-foreground: 120 50% 7%;
-  --secondary: 120 70% 20%;
-  --secondary-foreground: 120 80% 90%;
+  --secondary: 120 30% 15%;
+  --secondary-foreground: 120 30% 96%;
   --muted: 120 30% 15%;
-  --muted-foreground: 120 80% 70%;
-  --accent: 120 70% 20%;
-  --accent-foreground: 120 80% 90%;
+  --muted-foreground: 120 30% 70%;
+  --accent: 120 100% 50%;
+  --accent-foreground: 120 30% 96%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 120 80% 90%;
+  --destructive-foreground: 120 30% 96%;
   --border: 120 30% 15%;
   --input: 120 30% 15%;
   --ring: 120 100% 50%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
-/* Glassmorphism effects */
+/* Glass card styling for each theme */
 .glass-card {
   backdrop-filter: blur(12px);
-  background: rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
 }
 
-.themed-card {
-  @apply bg-card text-card-foreground border border-border rounded-lg;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Theme-specific glass card styles */
+.midnight-tech .glass-card {
+  background-color: rgba(13, 19, 33, 0.7);
+  border-color: rgba(65, 100, 240, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.cyber-pulse .glass-card {
+  background-color: rgba(28, 14, 36, 0.7);
+  border-color: rgba(186, 104, 200, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
+.matrix-code .glass-card {
+  background-color: rgba(8, 20, 8, 0.7);
+  border-color: rgba(50, 205, 50, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--secondary));
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary));
-}
-
-/* Green/Red distinction preserved across themes for trading data */
-.trend-up {
-  color: rgb(74, 222, 128);
-}
-
-.trend-down {
-  color: rgb(248, 113, 113);
-}
-
-.bg-trend-up {
-  background-color: rgba(74, 222, 128, 0.2);
-}
-
-.bg-trend-down {
-  background-color: rgba(248, 113, 113, 0.2);
-}
-
-/* Theme-specific gradient backgrounds */
+/* Background gradient effects for each theme */
 .midnight-tech .gradient-bg {
   background: linear-gradient(135deg, hsla(217, 91%, 60%, 0.05) 0%, hsla(222, 47%, 11%, 0) 100%);
 }
@@ -182,22 +164,39 @@
   background: linear-gradient(135deg, hsla(120, 100%, 50%, 0.05) 0%, hsla(120, 50%, 7%, 0) 100%);
 }
 
-/* Animation for tab transitions */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Matrix Code theme typefaces */
+.matrix-code .data-text {
+  font-family: 'Courier New', monospace;
 }
 
-.tab-content-active {
-  animation: fadeIn 0.3s ease-out forwards;
+/* Animation for numbers in Matrix theme */
+@keyframes numberFlicker {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
 }
 
-/* Card hover effects */
-.interactive-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.matrix-code .number-animation {
+  animation: numberFlicker 2s infinite;
 }
 
-.interactive-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+/* Trading specific colors preserved across all themes */
+.profit {
+  color: hsl(var(--profit));
+}
+
+.loss {
+  color: hsl(var(--loss));
+}
+
+.neutral {
+  color: hsl(var(--muted-foreground));
+}
+
+.bg-profit {
+  background-color: hsla(var(--profit), 0.2);
+}
+
+.bg-loss {
+  background-color: hsla(var(--loss), 0.2);
 }

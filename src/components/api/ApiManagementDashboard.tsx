@@ -1,96 +1,70 @@
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ApiKeyManager from './ApiKeyManager';
-import ApiUsageMetrics from './ApiUsageMetrics';
-import RealTimeApiUsage from './RealTimeApiUsage';
-import EndpointTester from './EndpointTester';
-import { Database, Key, BarChart4, Terminal } from 'lucide-react';
-import { ApiUsageStats } from '@/types/trading';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ApiProviderManagement from "./ApiProviderManagement";
+import ApiUsageMetrics from "./ApiUsageMetrics";
+import RealTimeApiUsage from "./RealTimeApiUsage";
+import { ApiUsageStats } from "@/types/trading";
 
 const ApiManagementDashboard = () => {
-  const [selectedService, setSelectedService] = useState<string>("CoinGecko");
-  const [apiUsage, setApiUsage] = useState<ApiUsageStats[]>([
+  // Mock API usage data
+  const [usageStats, setUsageStats] = useState<ApiUsageStats[]>([
     {
-      service: "CoinGecko",
-      currentUsage: 45,
-      maxUsage: 100,
-      resetTime: "2023-04-27T00:00:00Z",
-      endpoint: "/coins/markets"
+      id: "1",
+      name: "CoinGecko API",
+      service: "Market Data",
+      currentUsage: 4230,
+      maxUsage: 10000,
+      usagePercent: 42.3,
+      limit: 10000,
+      resetTime: "2023-08-31T00:00:00Z"
     },
     {
-      service: "Binance",
-      currentUsage: 120,
-      maxUsage: 1200,
-      resetTime: "2023-04-26T12:00:00Z",
-      endpoint: "/api/v3/ticker"
+      id: "2",
+      name: "Hyblock API",
+      service: "Liquidity Data",
+      currentUsage: 175,
+      maxUsage: 1000,
+      usagePercent: 17.5,
+      limit: 1000,
+      resetTime: "2023-08-31T00:00:00Z"
+    },
+    {
+      id: "3",
+      name: "Alchemy API",
+      service: "Blockchain Data",
+      currentUsage: 56000,
+      maxUsage: 100000,
+      usagePercent: 56,
+      limit: 100000,
+      resetTime: "2023-08-31T00:00:00Z"
     }
   ]);
-  
-  // Handle service selection
-  const handleServiceSelect = (service: string) => {
-    setSelectedService(service);
-  };
-
-  const handleRefreshUsage = () => {
-    // In a real implementation, this would fetch updated API usage from the backend
-    console.log("Refreshing API usage metrics");
-  };
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">API Management Dashboard</CardTitle>
-        <CardDescription>
-          Manage API keys, monitor usage, and test endpoints for all connected services
-        </CardDescription>
+        <CardTitle>API Management</CardTitle>
       </CardHeader>
-      
       <CardContent>
-        <Tabs defaultValue="keys">
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="keys">
-              <Key className="h-4 w-4 mr-2" />
-              API Keys
-            </TabsTrigger>
-            <TabsTrigger value="usage">
-              <BarChart4 className="h-4 w-4 mr-2" />
-              Usage Metrics
-            </TabsTrigger>
-            <TabsTrigger value="realtime">
-              <Database className="h-4 w-4 mr-2" />
-              Real-Time Usage
-            </TabsTrigger>
-            <TabsTrigger value="testing">
-              <Terminal className="h-4 w-4 mr-2" />
-              Endpoint Testing
-            </TabsTrigger>
+        <Tabs defaultValue="providers">
+          <TabsList className="mb-4">
+            <TabsTrigger value="providers">API Providers</TabsTrigger>
+            <TabsTrigger value="usage">Usage Metrics</TabsTrigger>
+            <TabsTrigger value="realtime">Real-time Usage</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="keys">
-            <ApiKeyManager />
+          <TabsContent value="providers">
+            <ApiProviderManagement />
           </TabsContent>
           
           <TabsContent value="usage">
-            <ApiUsageMetrics 
-              apiUsage={apiUsage} 
-              onRefresh={handleRefreshUsage}
-            />
+            <ApiUsageMetrics usageStats={usageStats} />
           </TabsContent>
           
           <TabsContent value="realtime">
-            <RealTimeApiUsage 
-              selectedService={selectedService} 
-              onServiceSelect={handleServiceSelect} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="testing">
-            <EndpointTester 
-              selectedService={selectedService} 
-              onServiceSelect={handleServiceSelect} 
-            />
+            <RealTimeApiUsage usageStats={usageStats} />
           </TabsContent>
         </Tabs>
       </CardContent>
