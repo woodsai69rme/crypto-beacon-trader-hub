@@ -1,235 +1,247 @@
 
-import { CoinOption } from "@/components/trading/types";
+import { CoinOption, CryptoData } from '@/types/trading';
+import { toast } from '@/components/ui/use-toast';
 
-export interface CryptoData {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceChange24h?: number;
-  priceChangePercentage24h?: number;
-  marketCap?: number;
-  volume?: number;
-  image?: string;
-  lastUpdated?: string;
+const API_BASE_URL = "https://api.coingecko.com/api/v3";
+
+export async function fetchCryptoHistoricalData(coinId: string, days: number = 7) {
+  try {
+    // For the demo we'll use mock data instead of real API calls
+    return generateMockHistoricalData(coinId, days);
+  } catch (error) {
+    console.error("Error fetching historical data:", error);
+    toast({
+      title: "API Error",
+      description: "Could not load historical data. Using fallback data.",
+      variant: "destructive"
+    });
+    return generateMockHistoricalData(coinId, days);
+  }
 }
 
-// Function to fetch cryptocurrency data
-export const fetchCryptoData = async (coinId: string): Promise<CryptoData> => {
-  // In a real app, this would connect to a real API
-  // For now, we'll simulate a network request with a delay
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const mockData: CryptoData = {
-        id: coinId,
-        name: getCoinName(coinId),
-        symbol: getCoinSymbol(coinId),
-        price: getMockPrice(coinId),
-        priceChange24h: getMockPriceChange(coinId),
-        priceChangePercentage24h: getMockPercentageChange(coinId),
-        marketCap: getMockMarketCap(coinId),
-        volume: getMockVolume(coinId),
-        image: `https://assets.coingecko.com/coins/images/${getImageId(coinId)}/large/${coinId}.png`,
-        lastUpdated: new Date().toISOString()
-      };
-      resolve(mockData);
-    }, 500);
-  });
-};
+export async function fetchMultipleCryptoData(coinIds: string[]) {
+  try {
+    // For the demo we'll use mock data instead of real API calls
+    return generateMockMultipleCoinData(coinIds);
+  } catch (error) {
+    console.error("Error fetching multiple crypto data:", error);
+    toast({
+      title: "API Error",
+      description: "Could not load crypto data. Using fallback data.",
+      variant: "destructive"
+    });
+    return generateMockMultipleCoinData(coinIds);
+  }
+}
 
-// Function to fetch multiple cryptocurrencies
-export const fetchMultipleCryptoData = async (coinIds: string[]): Promise<CryptoData[]> => {
-  // Simulate network request with a delay
-  return Promise.all(coinIds.map(id => fetchCryptoData(id)));
-};
+export function convertToCoinOptions(data: any[]): CoinOption[] {
+  return data.map(coin => ({
+    id: coin.id,
+    name: coin.name,
+    symbol: coin.symbol.toUpperCase(),
+    price: coin.current_price || 0,
+    priceChange: coin.price_change_24h || 0,
+    changePercent: coin.price_change_percentage_24h || 0,
+    image: coin.image,
+    volume: coin.total_volume || 0,
+    marketCap: coin.market_cap || 0,
+    value: coin.id,
+    label: `${coin.name} (${coin.symbol.toUpperCase()})`
+  }));
+}
 
-// Function to fetch historical data
-export const fetchCryptoHistoricalData = async (
-  coinId: string,
-  days = 7
-): Promise<{ prices: [number, number][]; market_caps: [number, number][]; total_volumes: [number, number][] }> => {
-  // Generate mock historical data
+// Mock data generators
+function generateMockHistoricalData(coinId: string, days: number) {
   const now = Date.now();
   const oneDayMs = 24 * 60 * 60 * 1000;
-  const prices: [number, number][] = [];
-  const market_caps: [number, number][] = [];
-  const total_volumes: [number, number][] = [];
-
-  const basePrice = getMockPrice(coinId);
-  const baseMarketCap = getMockMarketCap(coinId);
-  const baseVolume = getMockVolume(coinId);
-
+  const prices = [];
+  const market_caps = [];
+  const total_volumes = [];
+  
+  // Base values that differ by coin
+  let basePrice = 0;
+  let baseVolume = 0;
+  let baseMarketCap = 0;
+  
+  switch (coinId) {
+    case 'bitcoin':
+      basePrice = 60000;
+      baseVolume = 30000000000;
+      baseMarketCap = 1200000000000;
+      break;
+    case 'ethereum':
+      basePrice = 3000;
+      baseVolume = 15000000000;
+      baseMarketCap = 360000000000;
+      break;
+    case 'solana':
+      basePrice = 120;
+      baseVolume = 3000000000;
+      baseMarketCap = 60000000000;
+      break;
+    default:
+      basePrice = 100;
+      baseVolume = 1000000000;
+      baseMarketCap = 10000000000;
+  }
+  
   // Generate data points for each day
-  for (let i = days; i >= 0; i--) {
-    const timestamp = now - i * oneDayMs;
-    const volatility = 0.05; // 5% daily volatility
+  for (let i = 0; i <= days; i++) {
+    const timestamp = now - (days - i) * oneDayMs;
     
-    // Random walk for price
-    const priceChange = (Math.random() - 0.5) * volatility * basePrice;
-    const marketCapChange = (Math.random() - 0.5) * volatility * baseMarketCap;
-    const volumeChange = (Math.random() - 0.5) * volatility * baseVolume;
+    // Create some price variation
+    const randomVariation = (Math.random() - 0.5) * 0.05; // 5% variation up or down
+    const priceMultiplier = 1 + randomVariation;
+    const volumeMultiplier = 1 + (Math.random() - 0.5) * 0.2; // 20% volume variation
+    const marketCapMultiplier = priceMultiplier * (1 + (Math.random() - 0.5) * 0.02); // Market cap follows price but with some variation
     
-    prices.push([timestamp, basePrice + priceChange]);
-    market_caps.push([timestamp, baseMarketCap + marketCapChange]);
-    total_volumes.push([timestamp, baseVolume + volumeChange]);
+    const dailyPrice = basePrice * priceMultiplier * (1 + (i * 0.01)); // Small uptrend
+    const dailyVolume = baseVolume * volumeMultiplier;
+    const dailyMarketCap = baseMarketCap * marketCapMultiplier * (1 + (i * 0.01)); // Market cap follows price trend
+    
+    prices.push([timestamp, dailyPrice]);
+    total_volumes.push([timestamp, dailyVolume]);
+    market_caps.push([timestamp, dailyMarketCap]);
+  }
+  
+  return {
+    prices,
+    market_caps,
+    total_volumes
+  };
+}
+
+function generateMockMultipleCoinData(coinIds: string[]) {
+  return coinIds.map(coinId => {
+    let price = 0;
+    let priceChange = 0;
+    let marketCap = 0;
+    let volume = 0;
+    let image = "";
+    
+    switch (coinId) {
+      case 'bitcoin':
+        price = 61245.32 + (Math.random() - 0.5) * 1000;
+        priceChange = (Math.random() - 0.3) * 1000;
+        marketCap = 1180000000000;
+        volume = 28000000000;
+        image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png";
+        break;
+      case 'ethereum':
+        price = 3010.45 + (Math.random() - 0.5) * 100;
+        priceChange = (Math.random() - 0.5) * 50;
+        marketCap = 360000000000;
+        volume = 15000000000;
+        image = "https://assets.coingecko.com/coins/images/279/large/ethereum.png";
+        break;
+      case 'solana':
+        price = 121.33 + (Math.random() - 0.5) * 10;
+        priceChange = (Math.random() - 0.4) * 5;
+        marketCap = 90000000000;
+        volume = 5200000000;
+        image = "https://assets.coingecko.com/coins/images/4128/large/solana.png";
+        break;
+      case 'cardano':
+        price = 0.45 + (Math.random() - 0.5) * 0.05;
+        priceChange = (Math.random() - 0.5) * 0.02;
+        marketCap = 24000000000;
+        volume = 890000000;
+        image = "https://assets.coingecko.com/coins/images/975/large/cardano.png";
+        break;
+      case 'ripple':
+      case 'xrp':
+        price = 0.61 + (Math.random() - 0.5) * 0.05;
+        priceChange = (Math.random() - 0.5) * 0.03;
+        marketCap = 32000000000;
+        volume = 2400000000;
+        image = "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png";
+        break;
+      default:
+        price = 10 + (Math.random() * 100);
+        priceChange = (Math.random() - 0.5) * 1;
+        marketCap = 1000000000 * (Math.random() * 10);
+        volume = 100000000 * (Math.random() * 10);
+        image = "";
+    }
+    
+    const changePercent = (priceChange / price) * 100;
+    
+    return {
+      id: coinId,
+      name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+      symbol: coinId.slice(0, 3).toUpperCase(),
+      price,
+      priceChange,
+      changePercent,
+      image,
+      volume,
+      marketCap,
+      value: coinId,
+      label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} (${coinId.slice(0, 3).toUpperCase()})`
+    };
+  });
+}
+
+export async function searchCoins(query: string): Promise<CoinOption[]> {
+  if (!query || query.trim().length < 2) {
+    return [];
   }
 
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({
-        prices,
-        market_caps,
-        total_volumes
-      });
-    }, 500);
-  });
-};
-
-// Helper functions to generate mock data
-function getCoinName(coinId: string): string {
-  const names: Record<string, string> = {
-    bitcoin: "Bitcoin",
-    ethereum: "Ethereum",
-    solana: "Solana",
-    cardano: "Cardano",
-    ripple: "XRP",
-    dogecoin: "Dogecoin",
-    polkadot: "Polkadot"
-  };
-  return names[coinId] || coinId.charAt(0).toUpperCase() + coinId.slice(1);
+  // Mock search results instead of API call
+  const mockCoins: CoinOption[] = [
+    { 
+      id: "bitcoin", 
+      name: "Bitcoin", 
+      symbol: "BTC", 
+      price: 61245.32,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      value: "bitcoin",
+      label: "Bitcoin (BTC)"
+    },
+    { 
+      id: "ethereum", 
+      name: "Ethereum", 
+      symbol: "ETH", 
+      price: 3010.45,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      value: "ethereum",
+      label: "Ethereum (ETH)"
+    },
+    { 
+      id: "solana", 
+      name: "Solana", 
+      symbol: "SOL", 
+      price: 121.33,
+      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+      value: "solana",
+      label: "Solana (SOL)"
+    },
+    { 
+      id: "cardano", 
+      name: "Cardano", 
+      symbol: "ADA", 
+      price: 0.45,
+      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+      value: "cardano",
+      label: "Cardano (ADA)"
+    },
+    { 
+      id: "ripple", 
+      name: "XRP", 
+      symbol: "XRP", 
+      price: 0.61,
+      image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+      value: "ripple",
+      label: "XRP (XRP)"
+    }
+  ];
+  
+  // Filter based on search query
+  const filteredCoins = mockCoins.filter(
+    coin => 
+      coin.name.toLowerCase().includes(query.toLowerCase()) || 
+      coin.symbol.toLowerCase().includes(query.toLowerCase())
+  );
+  
+  return filteredCoins;
 }
-
-function getCoinSymbol(coinId: string): string {
-  const symbols: Record<string, string> = {
-    bitcoin: "BTC",
-    ethereum: "ETH",
-    solana: "SOL",
-    cardano: "ADA",
-    ripple: "XRP",
-    dogecoin: "DOGE",
-    polkadot: "DOT"
-  };
-  return symbols[coinId] || coinId.slice(0, 3).toUpperCase();
-}
-
-function getImageId(coinId: string): string {
-  const imageIds: Record<string, string> = {
-    bitcoin: "1",
-    ethereum: "279",
-    solana: "4128",
-    cardano: "975",
-    ripple: "44",
-    dogecoin: "5",
-    polkadot: "12171"
-  };
-  return imageIds[coinId] || "1";
-}
-
-function getMockPrice(coinId: string): number {
-  const prices: Record<string, number> = {
-    bitcoin: 61245.32,
-    ethereum: 3010.45,
-    solana: 142.87,
-    cardano: 0.45,
-    ripple: 0.57,
-    dogecoin: 0.14,
-    polkadot: 5.98
-  };
-  return prices[coinId] || Math.random() * 1000;
-}
-
-function getMockPriceChange(coinId: string): number {
-  const changes: Record<string, number> = {
-    bitcoin: 1200,
-    ethereum: -120,
-    solana: 3.56,
-    cardano: -0.02,
-    ripple: 0.01,
-    dogecoin: -0.004,
-    polkadot: 0.25
-  };
-  return changes[coinId] || (Math.random() - 0.5) * 100;
-}
-
-function getMockPercentageChange(coinId: string): number {
-  const changes: Record<string, number> = {
-    bitcoin: 2.3,
-    ethereum: -1.5,
-    solana: 3.1,
-    cardano: -2.6,
-    ripple: 1.8,
-    dogecoin: -2.1,
-    polkadot: 4.3
-  };
-  return changes[coinId] || (Math.random() - 0.5) * 10;
-}
-
-function getMockMarketCap(coinId: string): number {
-  const marketCaps: Record<string, number> = {
-    bitcoin: 1180000000000,
-    ethereum: 360000000000,
-    solana: 90000000000,
-    cardano: 24000000000,
-    ripple: 32000000000,
-    dogecoin: 18000000000,
-    polkadot: 7500000000
-  };
-  return marketCaps[coinId] || Math.random() * 10000000000;
-}
-
-function getMockVolume(coinId: string): number {
-  const volumes: Record<string, number> = {
-    bitcoin: 28000000000,
-    ethereum: 15000000000,
-    solana: 5200000000,
-    cardano: 890000000,
-    ripple: 2400000000,
-    dogecoin: 1900000000,
-    polkadot: 320000000
-  };
-  return volumes[coinId] || Math.random() * 1000000000;
-}
-
-// Convert CryptoData to CoinOption format
-export const convertToCoinOption = (cryptoData: CryptoData): CoinOption => {
-  return {
-    id: cryptoData.id,
-    name: cryptoData.name,
-    symbol: cryptoData.symbol,
-    price: cryptoData.price,
-    priceChange: cryptoData.priceChange24h || 0,
-    changePercent: cryptoData.priceChangePercentage24h || 0,
-    image: cryptoData.image || "",
-    volume: cryptoData.volume || 0,
-    marketCap: cryptoData.marketCap || 0,
-    value: cryptoData.symbol,
-    label: `${cryptoData.name} (${cryptoData.symbol})`
-  };
-};
-
-// Convert array of CryptoData to array of CoinOption
-export const convertToCoinOptions = (cryptoDataArray: CryptoData[]): CoinOption[] => {
-  return cryptoDataArray.map(convertToCoinOption);
-};
-
-// Start monitoring prices with periodic updates
-export const startPriceMonitoring = (
-  coinIds: string[],
-  onUpdate: (data: CoinOption[]) => void,
-  interval = 5000
-) => {
-  // Initial fetch
-  fetchMultipleCryptoData(coinIds)
-    .then((data) => onUpdate(convertToCoinOptions(data)))
-    .catch((error) => console.error("Error fetching initial crypto data:", error));
-
-  // Set up interval for continuous updates
-  const timerId = setInterval(() => {
-    fetchMultipleCryptoData(coinIds)
-      .then((data) => onUpdate(convertToCoinOptions(data)))
-      .catch((error) => console.error("Error fetching updated crypto data:", error));
-  }, interval);
-
-  // Return a function to stop the monitoring
-  return () => clearInterval(timerId);
-};

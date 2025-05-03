@@ -8,7 +8,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Line } from 'react-chartjs-2';
 import { fetchCryptoHistoricalData } from '@/services/cryptoService';
 import { Loader2 } from 'lucide-react';
-import { CoinOption, ValueType } from '@/types/trading';
+import { CoinOption } from '@/types/trading';
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, TimeScale);
@@ -130,7 +130,7 @@ const MarketAnalyzer: React.FC<MarketAnalyzerProps> = ({ className }) => {
     }
   };
   
-  const formatValue = (value: ValueType): string => {
+  const formatValue = (value: number | string): string => {
     if (typeof value === 'number') {
       if (value >= 1_000_000_000) {
         return `$${(value / 1_000_000_000).toFixed(2)}B`;
@@ -156,7 +156,7 @@ const MarketAnalyzer: React.FC<MarketAnalyzerProps> = ({ className }) => {
       
       <CardContent>
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Select Cryptocurrency</label>
               <Select
@@ -194,6 +194,17 @@ const MarketAnalyzer: React.FC<MarketAnalyzerProps> = ({ className }) => {
                 </SelectContent>
               </Select>
             </div>
+            
+            <div className="flex items-end">
+              <Button onClick={() => loadChartData()} disabled={isLoading} className="w-full">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : "Analyze"}
+              </Button>
+            </div>
           </div>
           
           <div>
@@ -206,84 +217,86 @@ const MarketAnalyzer: React.FC<MarketAnalyzerProps> = ({ className }) => {
             </Tabs>
           </div>
           
-          <div className="h-[400px] flex justify-center items-center">
+          <div className="h-[400px] flex justify-center items-center bg-card/50 rounded-lg border p-4">
             {isLoading ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                <p className="mt-2">Loading chart data...</p>
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading market data...</p>
               </div>
             ) : chartData ? (
-              <Line 
-                data={chartData} 
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'top' as const,
+              <div className="w-full h-full">
+                <Line
+                  data={chartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'top' as const,
+                      },
+                      tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                      },
                     },
-                    tooltip: {
-                      mode: 'index',
+                    scales: {
+                      x: {
+                        title: {
+                          display: true,
+                          text: 'Date',
+                        },
+                        ticks: {
+                          maxTicksLimit: 8,
+                        },
+                      },
+                      y: {
+                        title: {
+                          display: true,
+                          text: formatValue(1),
+                        },
+                        ticks: {
+                          callback: function(value) {
+                            return formatValue(value as number);
+                          },
+                        },
+                      },
+                    },
+                    interaction: {
+                      mode: 'nearest',
+                      axis: 'x',
                       intersect: false,
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: false,
-                      ticks: {
-                        callback: function(value) {
-                          return formatValue(value);
-                        }
-                      }
-                    }
-                  },
-                  interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
-                  }
-                }} 
-              />
+                    },
+                  }}
+                />
+              </div>
             ) : (
-              <div>No data available</div>
+              <div className="text-center text-muted-foreground">
+                No data available. Please select a cryptocurrency and timeframe.
+              </div>
             )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg bg-card/50 border border-border">
-              <div className="text-sm text-muted-foreground">Current Price</div>
-              <div className="text-xl font-bold">${marketStats.currentPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-              <div className={`text-sm ${marketStats.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {marketStats.priceChange24h >= 0 ? '▲' : '▼'} {marketStats.priceChangePercentage24h.toFixed(2)}%
-              </div>
-            </div>
-            
-            <div className="p-4 rounded-lg bg-card/50 border border-border">
-              <div className="text-sm text-muted-foreground">24h Volume</div>
-              <div className="text-xl font-bold">{formatValue(marketStats.volume24h)}</div>
-            </div>
-            
-            <div className="p-4 rounded-lg bg-card/50 border border-border">
-              <div className="text-sm text-muted-foreground">Market Cap</div>
-              <div className="text-xl font-bold">{formatValue(marketStats.marketCap)}</div>
-            </div>
-          </div>
-          
-          <div className="flex justify-end">
-            <Button 
-              variant="outline" 
-              onClick={loadChartData}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Refreshing...
-                </>
-              ) : (
-                'Refresh Data'
-              )}
-            </Button>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-sm text-muted-foreground">Current Price</div>
+                <div className="text-xl font-bold">{formatValue(marketStats.currentPrice)}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-sm text-muted-foreground">24h Change</div>
+                <div className={`text-xl font-bold ${marketStats.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {formatValue(marketStats.priceChange24h)} ({marketStats.priceChangePercentage24h.toFixed(2)}%)
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-sm text-muted-foreground">Market Cap</div>
+                <div className="text-xl font-bold">{formatValue(marketStats.marketCap)}</div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </CardContent>

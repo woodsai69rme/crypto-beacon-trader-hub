@@ -1,141 +1,160 @@
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
-import WidgetGrid from "./dashboard/widgets/WidgetGrid";
-import WidgetList from "./dashboard/widgets/WidgetList";
-import AddWidgetDialog from "./dashboard/widgets/AddWidgetDialog";
-import { Widget, WidgetType, WidgetSize } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import MultiCoinChart from './charts/MultiCoinChart';
+import CoinComparison from './CoinComparison';
+import AiMarketInsights from './AiMarketInsights';
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { LayoutDashboard, Plus, Settings, TrendingUp } from 'lucide-react';
 
-const CustomizableDashboard = () => {
-  const [isAddingWidget, setIsAddingWidget] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [widgets, setWidgets] = useState<Widget[]>([
+interface DashboardWidget {
+  id: string;
+  title: string;
+  component: React.ReactNode;
+  description: string;
+}
+
+const CustomizableDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const [widgets, setWidgets] = useState<DashboardWidget[]>([
     {
-      id: "portfolio-widget",
-      position: { x: 0, y: 0 },
-      title: "Portfolio Overview",
-      type: "portfolio-summary",
-      size: "medium",
+      id: 'market-insights',
+      title: 'AI Market Insights',
+      component: <AiMarketInsights />,
+      description: 'AI-powered market analysis and predictions'
     },
     {
-      id: "chart-widget",
-      position: { x: 1, y: 0 },
-      title: "Market Chart",
-      type: "price-chart",
-      size: "medium",
+      id: 'multi-chart',
+      title: 'Multi-Coin Charts',
+      component: <MultiCoinChart />,
+      description: 'Compare price charts for multiple cryptocurrencies'
     },
     {
-      id: "watchlist-widget",
-      position: { x: 0, y: 1 },
-      title: "Watchlist",
-      type: "watchlist",
-      size: "small",
-    },
-    {
-      id: "news-widget",
-      position: { x: 1, y: 1 },
-      title: "Crypto News",
-      type: "news",
-      size: "small",
-    },
-    {
-      id: "alerts-widget",
-      position: { x: 0, y: 2 },
-      title: "Price Alerts",
-      type: "alerts",
-      size: "small",
+      id: 'coin-comparison',
+      title: 'Coin Comparison',
+      component: <CoinComparison />,
+      description: 'Compare key metrics across different cryptocurrencies'
     }
   ]);
-  
-  const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
-    // Find the next available position
-    const maxY = Math.max(...widgets.map(w => w.position.y));
+
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
     
-    const newWidget: Widget = {
-      id: `${widget.type}-${Date.now()}`,
-      position: { x: 0, y: maxY + 1 },
-      title: widget.title,
-      type: widget.type,
-      size: widget.size,
-      lastUpdated: new Date().toISOString(),
-      customContent: widget.customContent
-    };
+    const items = Array.from(widgets);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
     
-    setWidgets([...widgets, newWidget]);
-    setIsAddingWidget(false);
-    
-    toast({
-      title: "Widget Added",
-      description: `${widget.title} has been added to your dashboard`
-    });
+    setWidgets(items);
   };
-  
-  const handleRemoveWidget = (id: string) => {
-    setWidgets(widgets.filter(widget => widget.id !== id));
-    
-    toast({
-      title: "Widget Removed",
-      description: "The widget has been removed from your dashboard"
-    });
-  };
-  
-  const handleUpdateWidgetPosition = (id: string, position: { x: number, y: number }) => {
-    setWidgets(widgets.map(widget => 
-      widget.id === id ? { ...widget, position } : widget
-    ));
-  };
-  
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-          >
-            <LayoutGrid className="h-4 w-4 mr-2" />
-            {viewMode === "grid" ? "List View" : "Grid View"}
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsAddingWidget(true)}
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add Widget
-          </Button>
-          
-          <Button variant="outline" size="sm">
-            <Settings2 className="h-4 w-4 mr-2" />
-            Customize
-          </Button>
-        </div>
-      </div>
-      
-      {viewMode === "grid" ? (
-        <WidgetGrid 
-          widgets={widgets} 
-          onRemove={handleRemoveWidget}
-          onUpdatePosition={handleUpdateWidgetPosition}
-        />
-      ) : (
-        <WidgetList 
-          widgets={widgets} 
-          onRemove={handleRemoveWidget} 
-        />
-      )}
-      
-      <AddWidgetDialog 
-        open={isAddingWidget} 
-        onOpenChange={setIsAddingWidget} 
-        onAddWidget={handleAddWidget}
-      />
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            <span>Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="market" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            <span>Market</span>
+          </TabsTrigger>
+          <TabsTrigger value="customize" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span>Customize</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 animate-fade-in">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="widgets">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="space-y-6"
+                >
+                  {widgets.map((widget, index) => (
+                    <Draggable 
+                      key={widget.id} 
+                      draggableId={widget.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="hover-lift"
+                        >
+                          {widget.component}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </TabsContent>
+
+        <TabsContent value="market" className="space-y-6 animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Overview</CardTitle>
+              <CardDescription>
+                View the latest market trends and data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Market overview with detailed stats will be displayed here.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="customize" className="space-y-6 animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customize Dashboard</CardTitle>
+              <CardDescription>
+                Add, remove, and rearrange widgets on your dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b">
+                  <h3 className="font-medium">Available Widgets</h3>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Plus className="h-4 w-4" />
+                    Add Widget
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  {widgets.map((widget) => (
+                    <div 
+                      key={widget.id} 
+                      className="flex justify-between items-center p-3 border rounded-lg hover:bg-accent/50"
+                    >
+                      <div>
+                        <h4 className="font-medium">{widget.title}</h4>
+                        <p className="text-sm text-muted-foreground">{widget.description}</p>
+                      </div>
+                      <Button variant="outline" size="sm">Configure</Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

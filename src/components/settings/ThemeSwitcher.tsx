@@ -10,9 +10,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
@@ -20,12 +17,6 @@ import { cn } from "@/lib/utils";
 
 interface ThemeSwitcherProps {
   className?: string;
-}
-
-interface ThemeOption {
-  value: Theme;
-  label: string;
-  icon: React.ReactNode;
 }
 
 interface ColorSchemeOption {
@@ -38,11 +29,6 @@ interface ColorSchemeOption {
 const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  
-  const themeOptions: ThemeOption[] = [
-    { value: "light", label: "Light", icon: <Sun className="h-4 w-4 mr-2" /> },
-    { value: "dark", label: "Dark", icon: <Moon className="h-4 w-4 mr-2" /> }
-  ];
   
   const colorSchemeOptions: ColorSchemeOption[] = [
     { 
@@ -71,14 +57,6 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
     }
   ];
   
-  const getCurrentThemeLabel = () => {
-    return themeOptions.find(t => t.value === theme)?.label || "System";
-  };
-  
-  const getCurrentColorSchemeLabel = () => {
-    return colorSchemeOptions.find(c => c.value === colorScheme)?.label || "Default";
-  };
-  
   const handleToggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
@@ -92,6 +70,7 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
             size="icon" 
             onClick={handleToggleTheme}
             className="relative"
+            aria-label={`Toggle ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             <span className="sr-only">Toggle theme</span>
@@ -102,36 +81,55 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
               variant="ghost" 
               size="icon" 
               className="relative"
-              aria-label={`Theme: ${getCurrentThemeLabel()}, Style: ${getCurrentColorSchemeLabel()}`}
+              aria-label="Select theme style"
             >
               <Palette className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
         </div>
         
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuLabel>Theme Appearance</DropdownMenuLabel>
           <DropdownMenuSeparator />
           
           <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
-            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground pl-2 pt-2">
-              Theme Mode
-            </DropdownMenuLabel>
-            {themeOptions.map((option) => (
-              <DropdownMenuRadioItem key={option.value} value={option.value} className="cursor-pointer">
-                <div className="flex items-center">
-                  {option.icon}
-                  {option.label}
-                </div>
-              </DropdownMenuRadioItem>
-            ))}
+            <div className="grid grid-cols-2 gap-2 p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start",
+                  theme === "light" && "border-2 border-primary"
+                )}
+                onClick={() => {
+                  setTheme("light");
+                  setIsOpen(false);
+                }}
+              >
+                <Sun className="h-4 w-4 mr-2" />
+                Light
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start",
+                  theme === "dark" && "border-2 border-primary"
+                )}
+                onClick={() => {
+                  setTheme("dark");
+                  setIsOpen(false);
+                }}
+              >
+                <Moon className="h-4 w-4 mr-2" />
+                Dark
+              </Button>
+            </div>
           </DropdownMenuRadioGroup>
           
           <DropdownMenuSeparator />
           
-          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground pl-2 pt-2">
-            Theme Style
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Theme Style</DropdownMenuLabel>
           
           <div className="grid grid-cols-2 gap-2 p-2">
             {colorSchemeOptions.map((option) => (

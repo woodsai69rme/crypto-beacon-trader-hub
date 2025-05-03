@@ -6,12 +6,15 @@ import Dashboard from './components/Dashboard';
 import ThemeSwitcher from './components/settings/ThemeSwitcher';
 import { Toaster } from './components/ui/toaster';
 import { cn } from './lib/utils';
-import { GithubIcon } from 'lucide-react';
+import { GithubIcon, Menu } from 'lucide-react';
 import { Button } from './components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from './components/ui/sheet';
+import { Separator } from './components/ui/separator';
 
 function App() {
   const { theme, colorScheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Only show UI after component is mounted to avoid hydration issues
   useEffect(() => {
@@ -35,12 +38,59 @@ function App() {
             </div>
             <h1 className="font-bold text-xl hidden md:block">Crypto Trading Platform</h1>
           </div>
+          
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
-              <GithubIcon size={16} />
-              <span>Star on GitHub</span>
-            </Button>
-            <ThemeSwitcher />
+            <div className="hidden md:flex items-center space-x-2">
+              <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
+                <GithubIcon size={16} />
+                <span>Star on GitHub</span>
+              </Button>
+              <ThemeSwitcher />
+            </div>
+            
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[80%] sm:w-[380px]">
+                <div className="flex flex-col h-full py-6">
+                  <div className="flex items-center gap-2 mb-8">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                      CT
+                    </div>
+                    <h2 className="font-bold text-lg">Crypto Trading</h2>
+                  </div>
+                  
+                  <nav className="space-y-2 mb-auto">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Dashboard
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Trading
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Market Analysis
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Settings
+                    </Button>
+                  </nav>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="mt-auto flex flex-col gap-4">
+                    <ThemeSwitcher className="self-start" />
+                    <Button variant="outline" size="sm" className="flex items-center gap-2 self-start">
+                      <GithubIcon size={16} />
+                      <span>Star on GitHub</span>
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>

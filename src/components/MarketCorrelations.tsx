@@ -1,439 +1,316 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { CryptoData, CoinOption } from "@/types/trading";
-import CorrelationExplainer from "./MarketCorrelations/CorrelationExplainer";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { CryptoData } from '@/types/trading';
+import { Loader2 } from 'lucide-react';
 
-// Custom Heatmap implementation since recharts doesn't have a built-in Heatmap
-const CustomHeatmap = ({ data, width, height, colorScale }: any) => {
-  const cellWidth = width / data[0].length;
-  const cellHeight = height / data.length;
+// Mock data - in a real app, fetch from API
+const mockCryptoData: CryptoData[] = [
+  {
+    id: "bitcoin", 
+    name: "Bitcoin", 
+    symbol: "BTC", 
+    price: 68500, 
+    price_change_24h: 1250, 
+    price_change_percentage_24h: 1.8, 
+    market_cap: 1334000000000, 
+    volume_24h: 28500000000, 
+    circulating_supply: 19520000
+  },
+  {
+    id: "ethereum", 
+    name: "Ethereum", 
+    symbol: "ETH", 
+    price: 3280, 
+    price_change_24h: -120, 
+    price_change_percentage_24h: -3.5, 
+    market_cap: 394000000000, 
+    volume_24h: 12800000000, 
+    circulating_supply: 120250000
+  },
+  {
+    id: "binancecoin", 
+    name: "BNB", 
+    symbol: "BNB", 
+    price: 580, 
+    price_change_24h: 15, 
+    price_change_percentage_24h: 2.7, 
+    market_cap: 89500000000, 
+    volume_24h: 3200000000, 
+    circulating_supply: 154533650
+  },
+  {
+    id: "solana", 
+    name: "Solana", 
+    symbol: "SOL", 
+    price: 148, 
+    price_change_24h: 8.5, 
+    price_change_percentage_24h: 6.1, 
+    market_cap: 63400000000, 
+    volume_24h: 2900000000, 
+    circulating_supply: 428500000
+  },
+  {
+    id: "cardano", 
+    name: "Cardano", 
+    symbol: "ADA", 
+    price: 0.58, 
+    price_change_24h: 0.03, 
+    price_change_percentage_24h: 5.4, 
+    market_cap: 20300000000, 
+    volume_24h: 850000000, 
+    circulating_supply: 35000000000
+  },
+  {
+    id: "ripple", 
+    name: "XRP", 
+    symbol: "XRP", 
+    price: 0.61, 
+    price_change_24h: -0.02, 
+    price_change_percentage_24h: -3.1, 
+    market_cap: 32500000000, 
+    volume_24h: 1350000000, 
+    circulating_supply: 53200000000
+  }
+];
 
-  return (
-    <svg width={width} height={height}>
-      {data.map((row: any, rowIndex: number) => 
-        row.map((value: number, colIndex: number) => {
-          // Convert correlation value (-1 to 1) to color intensity
-          const colorIntensity = Math.abs(value);
-          const isPositive = value >= 0;
-          const color = isPositive 
-            ? `rgba(0, 128, 0, ${colorIntensity})` 
-            : `rgba(220, 53, 69, ${colorIntensity})`;
-            
-          return (
-            <rect
-              key={`cell-${rowIndex}-${colIndex}`}
-              x={colIndex * cellWidth}
-              y={rowIndex * cellHeight}
-              width={cellWidth}
-              height={cellHeight}
-              fill={color}
-              stroke="#fff"
-              strokeWidth={1}
-            />
-          );
-        })
-      )}
-    </svg>
-  );
-};
+const MarketCorrelations: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [xMetric, setXMetric] = useState<string>("market_cap");
+  const [yMetric, setYMetric] = useState<string>("volume_24h");
+  const [timeframe, setTimeframe] = useState<string>("24h");
+  const [correlationView, setCorrelationView] = useState<string>("scatter");
 
-type TimeRange = '7d' | '30d' | '90d';
-
-interface Correlation {
-  [key: string]: {
-    [key: string]: number;
-  };
-}
-
-// Helper function to convert CoinOption to CryptoData
-const convertCoinOptionToCryptoData = (coin: CoinOption): CryptoData => {
-  return {
-    id: coin.id,
-    symbol: coin.symbol,
-    name: coin.name,
-    image: coin.image || "",
-    current_price: coin.price,
-    market_cap: coin.marketCap || 0,
-    market_cap_rank: coin.rank || 0,
-    fully_diluted_valuation: null,
-    total_volume: coin.volume || 0,
-    high_24h: null,
-    low_24h: null,
-    price_change_24h: coin.priceChange || 0,
-    price_change_percentage_24h: coin.changePercent || 0,
-    market_cap_change_24h: 0,
-    market_cap_change_percentage_24h: 0,
-    circulating_supply: 0,
-    total_supply: null,
-    max_supply: null,
-    ath: null,
-    ath_change_percentage: null,
-    ath_date: null,
-    atl: null,
-    atl_change_percentage: null,
-    atl_date: null,
-    roi: null,
-    last_updated: new Date().toISOString()
-  };
-};
-
-const MarketCorrelations = () => {
-  const [coins, setCoins] = useState<CryptoData[]>([]);
-  const [correlations, setCorrelations] = useState<Correlation>({});
-  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
-  
-  const availableCoins = coins.slice(0, 10);
-  
   useEffect(() => {
-    fetchCoinsAndCorrelations();
-  }, [timeRange]);
-  
-  const fetchCoinsAndCorrelations = async () => {
-    setIsLoading(true);
-    try {
-      // Mock data for coins
-      const mockCoins: CoinOption[] = [
-        { 
-          id: "bitcoin", 
-          name: "Bitcoin", 
-          symbol: "BTC", 
-          price: 61245.32,
-          priceChange: 1200,
-          changePercent: 2.3,
-          image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-          volume: 28000000000,
-          marketCap: 1180000000000,
-          rank: 1,
-          value: "bitcoin",
-          label: "Bitcoin"
-        },
-        { 
-          id: "ethereum", 
-          name: "Ethereum", 
-          symbol: "ETH", 
-          price: 3010.45,
-          priceChange: -120,
-          changePercent: -1.5,
-          image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-          volume: 15000000000,
-          marketCap: 360000000000,
-          rank: 2,
-          value: "ethereum",
-          label: "Ethereum"
-        },
-        { 
-          id: "solana", 
-          name: "Solana", 
-          symbol: "SOL", 
-          price: 121.33,
-          priceChange: 3.56,
-          changePercent: 3.1,
-          image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-          volume: 5200000000,
-          marketCap: 90000000000,
-          rank: 3,
-          value: "solana",
-          label: "Solana"
-        },
-        { 
-          id: "cardano", 
-          name: "Cardano", 
-          symbol: "ADA", 
-          price: 0.45,
-          priceChange: -0.02,
-          changePercent: -2.6,
-          image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
-          volume: 890000000,
-          marketCap: 24000000000,
-          rank: 4,
-          value: "cardano",
-          label: "Cardano"
-        },
-        { 
-          id: "ripple", 
-          name: "XRP", 
-          symbol: "XRP", 
-          price: 0.61,
-          priceChange: 0.01,
-          changePercent: 1.8,
-          image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
-          volume: 2400000000,
-          marketCap: 32000000000,
-          rank: 5,
-          value: "ripple",
-          label: "XRP"
-        },
-        { 
-          id: "dogecoin", 
-          name: "Dogecoin", 
-          symbol: "DOGE", 
-          price: 0.138,
-          priceChange: -0.004,
-          changePercent: -2.1,
-          image: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
-          volume: 1900000000,
-          marketCap: 18000000000,
-          rank: 6,
-          value: "dogecoin",
-          label: "Dogecoin"
-        }
-      ];
-      
-      // Convert CoinOption array to CryptoData array
-      const coinsData = mockCoins.map(coin => convertCoinOptionToCryptoData(coin));
-      setCoins(coinsData);
-      
-      // Generate mock correlation data
-      generateMockCorrelations(coinsData);
-    } catch (error) {
-      console.error("Failed to fetch correlation data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch correlation data",
-        variant: "destructive",
-      });
-    } finally {
+    // Simulate API loading
+    const timer = setTimeout(() => {
       setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getMetricValue = (coin: CryptoData, metric: string) => {
+    switch (metric) {
+      case "market_cap":
+        return coin.market_cap;
+      case "volume_24h":
+        return coin.volume_24h;
+      case "price_change_24h":
+        return coin.price_change_24h;
+      case "price_change_percentage_24h":
+        return coin.price_change_percentage_24h;
+      case "price":
+        return coin.price;
+      default:
+        return 0;
     }
   };
-  
-  const generateMockCorrelations = (coinsData: CryptoData[]) => {
-    const mockCorrelations: Correlation = {};
-    
-    coinsData.forEach((coin1) => {
-      mockCorrelations[coin1.id] = {};
-      coinsData.forEach((coin2) => {
-        if (coin1.id === coin2.id) {
-          mockCorrelations[coin1.id][coin2.id] = 1;
-        } else {
-          // Generate a random correlation value between -1 and 1
-          // In a real app, this would be calculated from price movements
-          const randomCorrelation = (Math.random() * 2 - 1) * (timeRange === '7d' ? 0.8 : timeRange === '30d' ? 0.6 : 0.4);
-          mockCorrelations[coin1.id][coin2.id] = parseFloat(randomCorrelation.toFixed(2));
-        }
-      });
-    });
-    
-    setCorrelations(mockCorrelations);
-  };
-  
-  const getCorrelationColor = (value: number) => {
-    const absValue = Math.abs(value);
-    
-    if (value > 0) {
-      // Green for positive correlations, deeper green for stronger correlation
-      return `rgba(0, 128, 0, ${absValue})`;
-    } else {
-      // Red for negative correlations, deeper red for stronger correlation
-      return `rgba(220, 53, 69, ${absValue})`;
+
+  const formatMetricLabel = (metric: string): string => {
+    switch (metric) {
+      case "market_cap":
+        return "Market Cap (USD)";
+      case "volume_24h":
+        return "24h Volume (USD)";
+      case "price_change_24h":
+        return "24h Price Change (USD)";
+      case "price_change_percentage_24h":
+        return "24h Price Change (%)";
+      case "price":
+        return "Price (USD)";
+      default:
+        return metric;
     }
   };
-  
-  const getCorrelationDescription = (value: number) => {
-    const absValue = Math.abs(value);
-    let strength = "No";
-    let direction = "correlation";
-    
-    if (absValue > 0.7) strength = "Strong";
-    else if (absValue > 0.4) strength = "Moderate";
-    else if (absValue > 0.1) strength = "Weak";
-    
-    if (value > 0) direction = "positive correlation";
-    else if (value < 0) direction = "negative correlation";
-    
-    return `${strength} ${direction}`;
-  };
-  
-  const toggleCoinSelection = (coinId: string) => {
-    if (selectedCoins.includes(coinId)) {
-      setSelectedCoins(selectedCoins.filter(id => id !== coinId));
-    } else {
-      if (selectedCoins.length < 3) {
-        setSelectedCoins([...selectedCoins, coinId]);
-      } else {
-        toast({
-          title: "Selection limit reached",
-          description: "You can select up to 3 coins for detailed analysis",
-        });
-      }
-    }
-  };
-  
+
+  const correlationData = mockCryptoData.map(coin => ({
+    name: coin.name,
+    symbol: coin.symbol,
+    x: getMetricValue(coin, xMetric),
+    y: getMetricValue(coin, yMetric),
+    color: getColorForCoin(coin.symbol)
+  }));
+
+  function getColorForCoin(symbol: string): string {
+    const colorMap: Record<string, string> = {
+      BTC: "#F7931A",
+      ETH: "#627EEA",
+      BNB: "#F3BA2F",
+      SOL: "#00FFA3",
+      ADA: "#0033AD",
+      XRP: "#23292F",
+    };
+    return colorMap[symbol] || "#888888";
+  }
+
+  const correlationMetrics = [
+    { value: "market_cap", label: "Market Cap" },
+    { value: "volume_24h", label: "24h Volume" },
+    { value: "price_change_24h", label: "24h Price Change ($)" },
+    { value: "price_change_percentage_24h", label: "24h Price Change (%)" },
+    { value: "price", label: "Price" }
+  ];
+
   return (
-    <Card className="shadow-md">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle>Market Correlations</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant={timeRange === '7d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('7d')}
-            >
-              7D
-            </Button>
-            <Button 
-              variant={timeRange === '30d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('30d')}
-            >
-              30D
-            </Button>
-            <Button 
-              variant={timeRange === '90d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('90d')}
-            >
-              90D
-            </Button>
-          </div>
-        </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Market Correlations</CardTitle>
+        <CardDescription>
+          Analyze relationships between different market metrics
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="matrix" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
+        <Tabs value={correlationView} onValueChange={setCorrelationView} className="mb-6">
+          <TabsList className="grid grid-cols-2 w-[400px]">
+            <TabsTrigger value="scatter">Scatter Plot</TabsTrigger>
             <TabsTrigger value="matrix">Correlation Matrix</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
           </TabsList>
+        </Tabs>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <label className="text-sm font-medium block mb-2">X-Axis Metric</label>
+            <Select value={xMetric} onValueChange={setXMetric}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {correlationMetrics.map(metric => (
+                  <SelectItem key={metric.value} value={metric.value}>
+                    {metric.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <TabsContent value="matrix" className="space-y-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-[300px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <div className="min-w-[600px]">
-                    <div className="grid grid-cols-[100px_1fr] gap-1">
-                      <div className=""></div>
-                      <div className="grid grid-cols-10">
-                        {availableCoins.map((coin) => (
-                          <div key={`header-${coin.id}`} className="h-10 flex items-center justify-center">
-                            <div className="transform -rotate-45 text-xs font-medium">{coin.symbol}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {availableCoins.map((coin1, index) => (
-                      <div key={`row-${coin1.id}`} className="grid grid-cols-[100px_1fr] gap-1">
-                        <div className="h-10 flex items-center">
-                          <div className="text-xs font-medium">{coin1.symbol}</div>
-                        </div>
-                        <div className="grid grid-cols-10">
-                          {availableCoins.map((coin2) => {
-                            const correlation = correlations[coin1.id]?.[coin2.id] || 0;
-                            return (
-                              <div 
-                                key={`${coin1.id}-${coin2.id}`} 
-                                className="h-10 flex items-center justify-center"
-                                style={{ backgroundColor: getCorrelationColor(correlation) }}
-                                title={`${coin1.symbol} vs ${coin2.symbol}: ${correlation} (${getCorrelationDescription(correlation)})`}
-                              >
-                                <span className="text-xs font-medium text-white drop-shadow-md">
-                                  {correlation.toFixed(2)}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
+          <div>
+            <label className="text-sm font-medium block mb-2">Y-Axis Metric</label>
+            <Select value={yMetric} onValueChange={setYMetric}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {correlationMetrics.map(metric => (
+                  <SelectItem key={metric.value} value={metric.value}>
+                    {metric.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium block mb-2">Timeframe</label>
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="24h">24 Hours</SelectItem>
+                <SelectItem value="7d">7 Days</SelectItem>
+                <SelectItem value="30d">30 Days</SelectItem>
+                <SelectItem value="90d">90 Days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center h-[400px]">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Loading correlation data...</p>
+            </div>
+          </div>
+        ) : (
+          <TabsContent value="scatter" className="mt-0">
+            <div className="h-[400px] w-full bg-card/50 rounded-lg border p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart
+                  margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    type="number" 
+                    dataKey="x" 
+                    name={formatMetricLabel(xMetric)}
+                    label={{ 
+                      value: formatMetricLabel(xMetric), 
+                      position: 'bottom',
+                      offset: 0
+                    }} 
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => {
+                      if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
+                      if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+                      if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+                      return value.toFixed(1);
+                    }}
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="y" 
+                    name={formatMetricLabel(yMetric)}
+                    label={{ 
+                      value: formatMetricLabel(yMetric), 
+                      angle: -90, 
+                      position: 'left',
+                      offset: 10
+                    }}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => {
+                      if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
+                      if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+                      if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+                      return value.toFixed(1);
+                    }}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [
+                      `${typeof value === 'number' ? 
+                        value >= 1000000000 ? 
+                          `$${(value / 1000000000).toFixed(2)}B` : 
+                        value >= 1000000 ? 
+                          `$${(value / 1000000).toFixed(2)}M` : 
+                        value >= 1000 ? 
+                          `$${(value / 1000).toFixed(2)}K` : 
+                          `$${value}` 
+                        : value}`, 
+                      ""
+                    ]}
+                    labelFormatter={(_, data) => {
+                      const point = data[0]?.payload;
+                      return point ? `${point.name} (${point.symbol})` : "";
+                    }}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--background)', 
+                      borderColor: 'var(--border)',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Scatter name="Cryptocurrencies" data={correlationData} fill="#8884d8">
+                    {correlationData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
-                  </div>
-                </div>
-                
-                <div className="flex justify-center gap-8 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 mr-2" style={{ backgroundColor: "rgba(220, 53, 69, 0.8)" }}></div>
-                    <span>Strong negative correlation</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 mr-2" style={{ backgroundColor: "rgba(0, 128, 0, 0.8)" }}></div>
-                    <span>Strong positive correlation</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="analysis">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-2">Selected Assets</h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableCoins.map((coin) => (
-                    <Button
-                      key={coin.id}
-                      variant={selectedCoins.includes(coin.id) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleCoinSelection(coin.id)}
-                    >
-                      {coin.symbol}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              {selectedCoins.length > 0 ? (
-                <div className="space-y-4 pt-4">
-                  <h3 className="font-medium mb-2">Correlation Analysis</h3>
-                  <div className="space-y-3">
-                    {selectedCoins.map((coin1Id) => {
-                      const coin1 = availableCoins.find(c => c.id === coin1Id);
-                      if (!coin1) return null;
-                      
-                      return (
-                        <div key={`analysis-${coin1Id}`} className="p-3 border rounded-md">
-                          <h4 className="font-medium">{coin1.name} ({coin1.symbol})</h4>
-                          <div className="mt-2 space-y-1">
-                            {selectedCoins
-                              .filter(id => id !== coin1Id)
-                              .map(coin2Id => {
-                                const coin2 = availableCoins.find(c => c.id === coin2Id);
-                                if (!coin2) return null;
-                                
-                                const correlation = correlations[coin1Id]?.[coin2Id] || 0;
-                                const correlationDesc = getCorrelationDescription(correlation);
-                                const textColor = correlation > 0.5 ? "text-green-500" : 
-                                                  correlation < -0.5 ? "text-red-500" : 
-                                                  "text-muted-foreground";
-                                
-                                return (
-                                  <div key={`${coin1Id}-${coin2Id}`} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                                    <div className="flex items-center gap-2">
-                                      <span>{coin1.symbol} → {coin2.symbol}:</span>
-                                    </div>
-                                    <span className={textColor + " font-medium"}>
-                                      {correlation.toFixed(2)} ({correlationDesc})
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="pt-4">
-                    <CorrelationExplainer />
-                  </div>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  <p>Select at least one cryptocurrency to view correlation analysis.</p>
-                </div>
-              )}
+                  </Scatter>
+                </ScatterChart>
+              </ResponsiveContainer>
             </div>
           </TabsContent>
-        </Tabs>
+        )}
+        
+        <TabsContent value="matrix" className="mt-0">
+          <div className="text-center p-8 border rounded-lg bg-card/50">
+            <p className="text-muted-foreground">
+              Correlation matrix view will be implemented in a future update.
+            </p>
+          </div>
+        </TabsContent>
       </CardContent>
     </Card>
   );

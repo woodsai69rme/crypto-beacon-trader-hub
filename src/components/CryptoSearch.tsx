@@ -13,24 +13,42 @@ interface CryptoSearchProps {
   onCoinSelect: (coin: CoinOption) => void;
   placeholder?: string;
   className?: string;
+  initialCoin?: CoinOption | null;
 }
 
 const CryptoSearch: React.FC<CryptoSearchProps> = ({
   onCoinSelect,
   placeholder = "Search for coins...",
-  className
+  className,
+  initialCoin = null
 }) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<CoinOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(null);
+  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(initialCoin);
   const searchTimeoutRef = useRef<number | null>(null);
+  
+  // Initialize with default popular coins
+  useEffect(() => {
+    const defaultCoins: CoinOption[] = [
+      { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 69420, value: "bitcoin", label: "Bitcoin (BTC)" },
+      { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3210, value: "ethereum", label: "Ethereum (ETH)" },
+      { id: "solana", name: "Solana", symbol: "SOL", price: 142.5, value: "solana", label: "Solana (SOL)" }
+    ];
+    
+    if (results.length === 0 && !searchTerm) {
+      setResults(defaultCoins);
+    }
+    
+    if (initialCoin && !selectedCoin) {
+      setSelectedCoin(initialCoin);
+    }
+  }, [initialCoin]);
   
   // Search for coins when the search term changes
   useEffect(() => {
     if (searchTerm.trim().length < 2) {
-      setResults([]);
       return;
     }
     
@@ -88,7 +106,7 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({
                     className="w-4 h-4 mr-2 rounded-full"
                   />
                 )}
-                <span>{selectedCoin.name}</span>
+                <span>{selectedCoin.name} ({selectedCoin.symbol})</span>
               </div>
             ) : (
               <span className="text-muted-foreground flex items-center">
@@ -117,8 +135,9 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({
                       key={coin.id}
                       value={coin.id}
                       onSelect={() => handleSelect(coin)}
+                      className="flex items-center cursor-pointer"
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-1">
                         {coin.image && (
                           <img 
                             src={coin.image} 
@@ -127,6 +146,7 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({
                           />
                         )}
                         <span>{coin.name}</span>
+                        <span className="ml-2 text-muted-foreground">({coin.symbol})</span>
                       </div>
                       {selectedCoin?.id === coin.id && (
                         <Check className="ml-auto h-4 w-4 opacity-100" />
