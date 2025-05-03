@@ -1,150 +1,118 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { CryptoData, CoinOption } from "@/types/trading";
-import { fetchTopCoins } from "@/services/cryptoApi";
-import CorrelationHeatmap from "./CorrelationHeatmap";
-import CorrelationAnalysis from "./CorrelationAnalysis";
-import CorrelationExplainer from "./CorrelationExplainer";
-import { generateMockCorrelations } from "./utils";
+import CorrelationHeatmap from './CorrelationHeatmap';
+import CorrelationAnalysis from './CorrelationAnalysis';
+import CorrelationExplainer from './CorrelationExplainer';
+import { CryptoData, CoinOption } from '@/types/trading';
+import { mockCoins } from './mockData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getTrendingCoins } from '@/services/enhancedCryptoApi';
 
-type TimeRange = '7d' | '30d' | '90d';
-
-const MarketCorrelations = () => {
-  const [coins, setCoins] = useState<CryptoData[]>([]);
-  const [correlations, setCorrelations] = useState<Record<string, Record<string, number>>>({});
-  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+const MarketCorrelations: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('heatmap');
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
+  const [data, setData] = useState<CryptoData[]>([]);
+  const [selectedCoins, setSelectedCoins] = useState<string[]>(['bitcoin', 'ethereum', 'binancecoin', 'solana', 'cardano']);
   
   useEffect(() => {
-    fetchCoinsAndCorrelations();
-  }, [timeRange]);
-  
-  const fetchCoinsAndCorrelations = async () => {
-    setIsLoading(true);
-    try {
-      // Fetch top coins
-      const coinsData = await fetchTopCoins(10);
-      
-      // Convert CoinOption[] to CryptoData[]
-      const cryptoDataArray: CryptoData[] = coinsData.map((coin: CoinOption) => ({
-        id: coin.id,
-        symbol: coin.symbol,
-        name: coin.name,
-        image: coin.image || "",
-        price: coin.price,
-        current_price: coin.price,
-        priceChange: coin.priceChange || 0,
-        price_change_24h: coin.priceChange || 0,
-        changePercent: coin.changePercent || 0,
-        price_change_percentage_24h: coin.changePercent || 0,
-        marketCap: coin.marketCap || 0,
-        market_cap: coin.marketCap || 0,
-        market_cap_rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : 0,
-        volume: coin.volume || 0,
-        volume_24h: coin.volume || 0,
-        total_volume: coin.volume || 0,
-        circulating_supply: 0, // Required field, provide a default
-        rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : 0
-      }));
-      
-      setCoins(cryptoDataArray);
-      
-      // Generate mock correlation data for the demo
-      const mockCorrelations = generateMockCorrelations(cryptoDataArray, timeRange);
-      setCorrelations(mockCorrelations);
-    } catch (error) {
-      console.error("Failed to fetch correlation data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch correlation data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const toggleCoinSelection = (coinId: string) => {
-    if (selectedCoins.includes(coinId)) {
-      setSelectedCoins(selectedCoins.filter(id => id !== coinId));
-    } else {
-      if (selectedCoins.length < 3) {
-        setSelectedCoins([...selectedCoins, coinId]);
-      } else {
-        toast({
-          title: "Selection limit reached",
-          description: "You can select up to 3 coins for detailed analysis",
-        });
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // In a real app, fetch real data from API
+        // const response = await fetch('https://api.example.com/crypto/correlations');
+        // const data = await response.json();
+        
+        // For demo, using mock data and converting to expected format
+        const topCoins = await getTrendingCoins();
+        
+        const formattedData: CryptoData[] = topCoins.map(coin => ({
+          id: coin.id,
+          symbol: coin.symbol,
+          name: coin.name,
+          image: coin.image || '',
+          price: coin.price,
+          current_price: coin.price,
+          priceChange: coin.priceChange || 0,
+          price_change_24h: coin.priceChange || 0,
+          changePercent: coin.priceChange || 0,
+          price_change_percentage_24h: coin.priceChange || 0,
+          market_cap: coin.price * 19000000,
+          market_cap_rank: topCoins.findIndex(c => c.id === coin.id) + 1,
+          volume_24h: coin.price * 5000000,
+          total_volume: coin.price * 5000000,
+          circulating_supply: 19000000,
+          rank: topCoins.findIndex(c => c.id === coin.id) + 1
+        }));
+        
+        setData(formattedData);
+      } catch (error) {
+        console.error('Error loading correlation data:', error);
+        setData([]);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+    
+    loadData();
+  }, []);
+
+  const toggleCoin = (coinId: string) => {
+    setSelectedCoins(prev => 
+      prev.includes(coinId) 
+        ? prev.filter(id => id !== coinId) 
+        : [...prev, coinId]
+    );
   };
 
+  const filteredData = data.filter(coin => selectedCoins.includes(coin.id));
+
   return (
-    <Card className="shadow-md">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle>Market Correlations</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant={timeRange === '7d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('7d')}
-            >
-              7D
-            </Button>
-            <Button 
-              variant={timeRange === '30d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('30d')}
-            >
-              30D
-            </Button>
-            <Button 
-              variant={timeRange === '90d' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setTimeRange('90d')}
-            >
-              90D
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <Tabs defaultValue="matrix" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="matrix">Correlation Matrix</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="matrix">
-            <CorrelationHeatmap 
-              coins={coins} 
-              correlations={correlations}
-              isLoading={isLoading}
-            />
-          </TabsContent>
-          
-          <TabsContent value="analysis">
-            <div className="space-y-4">
-              <CorrelationAnalysis
-                coins={coins}
-                correlations={correlations}
-                selectedCoins={selectedCoins}
-                onSelectCoin={toggleCoinSelection}
-              />
-              
-              <CorrelationExplainer />
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">Market Correlations</CardTitle>
+        </CardHeader>
+        
+        <CardContent>
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+              <TabsList>
+                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                <TabsTrigger value="analysis">Analysis</TabsTrigger>
+                <TabsTrigger value="explainer">Explainer</TabsTrigger>
+              </TabsList>
             </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            
+            {isLoading ? (
+              <div className="space-y-4 py-4">
+                <Skeleton className="h-[400px] w-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <TabsContent value="heatmap">
+                  <CorrelationHeatmap data={filteredData} />
+                </TabsContent>
+                
+                <TabsContent value="analysis">
+                  <CorrelationAnalysis data={filteredData} />
+                </TabsContent>
+                
+                <TabsContent value="explainer">
+                  <CorrelationExplainer />
+                </TabsContent>
+              </>
+            )}
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

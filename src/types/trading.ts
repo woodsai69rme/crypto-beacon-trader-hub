@@ -1,144 +1,119 @@
 
+// Generic interfaces
 export interface CoinOption {
   id: string;
-  name: string;
   symbol: string;
+  name: string;
+  image?: string;
   price: number;
   priceChange?: number;
-  changePercent?: number;
-  image?: string;
-  volume?: number;
-  marketCap?: number;
-  value: string;
-  label: string;
+  value?: string;
+  label?: string;
 }
 
-export type ValueType = number | string;
-
-export interface AITradingStrategy {
+export interface Widget {
   id: string;
-  name: string;
-  description: string;
-  type: "trend-following" | "mean-reversion" | "breakout" | "sentiment" | "machine-learning" | "multi-timeframe" | "traditional" | "ai-predictive" | "hybrid";
-  timeframe: string;
-  parameters: any;
-  creator?: string;
-  tags?: string[];
-  riskLevel: "low" | "medium" | "high";
+  type: string;
+  title: string;
+  size?: WidgetSize;
+  position?: { x: number; y: number };
+  data?: any;
+  settings?: any;
 }
 
-export interface AiBotTradingProps {
-  botId: string;
-  strategy: AITradingStrategy;
-  assetPair: string;
-  isActive: boolean;
+export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
+export type WidgetType = 'chart' | 'portfolio' | 'watchlist' | 'news' | 'alerts' | 'analysis';
+
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom' | 'both';
+  speed: number;
+  direction: 'left' | 'right';
+  autoPause: boolean;
 }
 
-export interface RealTimePriceChartProps {
-  coinId: string;
-  selectedCoinId?: string;
-  onSelectCoin?: (coinId: string) => void;
-  availableCoins: CoinOption[];
-  updateInterval?: number;
+export interface SidebarSettings {
+  enabled: boolean;
+  position: 'left' | 'right';
+  defaultCollapsed: boolean;
+  showLabels: boolean;
 }
 
-// Define interfaces for API-related components
-export interface ApiUsageMetricsProps {
-  apiUsage: Array<ApiUsageStats>;
-  onRefresh: () => void;
-}
-
-export interface RealTimeApiUsageProps {
-  selectedService: string;
-  onServiceSelect: (service: any) => void;
-}
-
-// Define interface for crypto data
+// Trading related interfaces
 export interface CryptoData {
   id: string;
-  name: string;
   symbol: string;
+  name: string;
   image?: string;
-  price?: number;
+  price: number;
+  current_price?: number;
   priceChange?: number;
-  changePercent?: number;
-  marketCap?: number;
-  volume?: number;
-  rank?: number;
   price_change_24h: number;
+  changePercent?: number;
   price_change_percentage_24h: number;
   market_cap: number;
   market_cap_rank?: number;
   volume_24h: number;
   total_volume?: number;
   circulating_supply: number;
-  current_price?: number;
+  rank?: number;
 }
 
-// Define chart data interface
-export interface CryptoChartData {
-  prices: [number, number][];
-  market_caps: [number, number][];
-  total_volumes: [number, number][];
+export interface TradingAccount {
+  id: string;
+  name: string;
+  type: 'exchange' | 'wallet' | 'bank';
+  provider: string;
+  balance: number;
+  currency: string;
+  lastUpdated: string;
+  assets?: Asset[];
+  settings?: AccountSettings;
+  isActive: boolean;
 }
 
-// Define ATOTaxCalculation interface
-export interface ATOTaxCalculation {
-  totalIncome: number;
-  taxableIncome: number;
-  taxOwed: number;
-  medicareLevyOwed: number;
-  totalTaxOwed: number;
-  taxRefundOrOwed: number;
-  taxRate: number;
-  effectiveTaxRate: number;
-  year?: number;
-  taxYear?: string;
-  assessableIncome?: number;
-  taxPayable?: number;
-  taxWithheld?: number;
-  medicareLevyPayable?: number;
-  takeHome?: number;
-  effectiveRate?: number;
-  marginalRate?: number;
-  breakdown?: {
-    bracket: string;
-    amount: number;
-    tax: number;
-  }[];
+export interface AccountWithBotsEnabled extends TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  botsEnabled: boolean;
 }
 
-// Define ATOTaxRate interface
-export interface ATOTaxRate {
-  year: number;
-  minIncome: number;
-  maxIncome: number | null;
-  baseAmount: number;
-  marginRate: number;
+interface Asset {
+  id: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  value: number;
 }
 
-// Define ApiEndpoint and ApiProvider interfaces
-export interface ApiEndpoint {
-  id?: string;
-  name?: string;
-  url?: string;
-  path: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  description: string;
-  responseTime?: number;
-  lastUsed?: string;
-  requiresAuth?: boolean;
-  parameters?: ApiParameter[];
-  authentication?: boolean;
-  rateLimit?: string;
+interface AccountSettings {
+  notifications: boolean;
+  autoSync: boolean;
+  apiKeyName?: string;
 }
 
-export interface ApiParameter {
+export interface AITradingStrategy {
+  id: string;
   name: string;
   description: string;
-  required: boolean;
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-  default?: any;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
+  timeframe: string;
+  parameters: any;
+  creator: string;
+  tags: string[];
+  riskLevel: 'low' | 'medium' | 'high';
+  performance?: {
+    totalReturn: number;
+    winRate: number;
+    sharpeRatio: number;
+  };
+  indicators?: string[];
+}
+
+export interface AiBotTradingProps {
+  strategyId?: string;
+  strategyName?: string;
 }
 
 export interface ApiProvider {
@@ -147,145 +122,88 @@ export interface ApiProvider {
   baseUrl: string;
   description: string;
   endpoints: ApiEndpoint[];
-  isActive?: boolean;
-  apiKey?: string;
-  usageLimit?: number;
-  currentUsage?: number;
+  isActive: boolean;
+  apiKey: string;
+  usageLimit: number;
+  currentUsage: number;
   enabled?: boolean;
-  rateLimits?: RateLimit[];
-  website?: string;
-  docs?: string;
-  priority?: number;
   requiresAuth?: boolean;
   authRequired?: boolean;
-  authMethod?: string;
-  apiKeyName?: string;
-  defaultHeaders?: Record<string, string>;
-  tier?: string;
-  rateLimit?: number;
+  website?: string;
+  docs?: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  url: string;
+  path: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  description: string;
+  responseTime: number;
+  lastUsed: string;
+  requiresAuth: boolean;
 }
 
 export interface ApiUsageStats {
-  id?: string;
-  service: string;
-  currentUsage: number;
-  maxUsage: number;
-  resetTime: string;
-  endpoint?: string;
-  costPerCall?: number;
-  remainingBalance?: number;
+  serviceId: string;
+  serviceName: string;
+  totalRequests: number;
+  periodRequests: number;
+  requestsLimit: number;
+  averageResponseTime: number;
+  errorRate: number;
+  costPerRequest?: number;
+  lastRequested: string;
 }
 
-export interface RateLimit {
-  limit: number;
-  per: 'second' | 'minute' | 'hour' | 'day';
-  remaining?: number;
-  reset?: Date;
+export interface WatchlistItem extends CoinOption {
+  isStarred: boolean;
+  addedAt: string;
+  notes?: string;
+  alerts?: PriceAlert[];
 }
 
-export interface Widget {
+interface PriceAlert {
   id: string;
-  position: { x: number; y: number };
-  title: string;
-  type: WidgetType;
-  size: WidgetSize;
-  lastUpdated?: string;
-  customContent?: string;
-  config?: any;
+  condition: 'above' | 'below';
+  price: number;
+  isActive: boolean;
+  createdAt: string;
 }
-
-export type WidgetType = 
-  | "price-chart" 
-  | "portfolio-summary" 
-  | "watchlist" 
-  | "news" 
-  | "alerts" 
-  | "trading" 
-  | "aiTrading" 
-  | "aiAnalysis" 
-  | "custom"
-  | "trade-history"
-  | "market-overview"
-  | "performance-metrics"
-  | "portfolio"
-  | "chart"
-  | "multiExchange"
-  | "education"
-  | "community";
-
-export type WidgetSize = 
-  | "small" 
-  | "medium" 
-  | "large" 
-  | "wide" 
-  | "tall"
-  | "full";
-
-export interface WidgetListProps {
-  widgets: Widget[];
-  onRemove?: (id: string) => void;
-}
-
-export interface WidgetGridProps extends WidgetListProps {
-  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
-}
-
-export type SupportedCurrency = "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "CHF" | "CNY" | "BTC" | "ETH";
 
 export interface Trade {
   id: string;
   coinId: string;
-  coinName: string;
   coinSymbol: string;
   type: 'buy' | 'sell';
   amount: number;
   price: number;
-  totalValue: number;
-  timestamp: string;
-  currency: SupportedCurrency;
-  currentValue?: number;
-  profitLoss?: number;
-  botGenerated?: boolean;
-  strategyId?: string;
-  fees?: number;
-  coin?: string;
-  tags?: string[];
-  result?: 'profit' | 'loss';
-  pnl?: string;
-  pnlPercent?: number;
+  total: number;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+  exchange?: string;
 }
 
-export interface WatchlistItem {
-  id: string;
-  coinId: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceChangePercentage24h: number;
-  addedAt?: string;
-  image?: string;
-  priceChange?: number;
-  isWatched?: boolean; 
-  alertSettings?: {
-    highPrice?: number;
-    lowPrice?: number;
-    percentageChangeThreshold?: number;
-    priceAbove?: number;
-    priceBelow?: number;
-    percentageChange?: number;
-    enabled: boolean;
+export interface ATOTaxCalculation {
+  financialYear: string;
+  taxableIncome: number;
+  capitalGainsIncome: number;
+  taxRate: number;
+  medicareLevyRate: number;
+  taxPayable: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxCredits: number;
+  taxRefundOrOwed: number;
+  incomeTax: number;
+  taxWithheld: number;
+  netCapitalGains: number;
+  assessableIncome: number;
+  bracketInfo?: {
+    bracket: string;
+    rate: string;
   };
-}
-
-// Define EnhancedPortfolioBenchmarking interface
-export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioPerformance: number[];
-  portfolioDates: string[];
-}
-
-export type DashboardTab = "overview" | "portfolio" | "watchlist" | "trading" | "analysis" | "tools";
-
-export interface AlertFrequency {
-  value: string;
-  label: string;
+  capitalGains?: number;
+  CGTDiscount?: number;
 }

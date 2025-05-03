@@ -1,132 +1,192 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import React, { useState } from "react";
+import { Bot, ArrowRight, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { TradingAccount } from "@/types/trading";
 
-interface BotAccountConnectorProps {
-  accounts: TradingAccount[];
-  onAccountSelect: (accountId: string) => void;
-  selectedAccountId: string;
-}
-
+// Define interface needed for this component
 interface AccountWithBotsEnabled extends TradingAccount {
-  allowBots?: boolean;
+  botsEnabled: boolean;
 }
 
-const BotAccountConnector: React.FC<BotAccountConnectorProps> = ({
-  accounts,
-  onAccountSelect,
-  selectedAccountId,
-}) => {
-  const [accountsWithBotSettings, setAccountsWithBotSettings] = useState<AccountWithBotsEnabled[]>([]);
+const mockAccounts: AccountWithBotsEnabled[] = [
+  {
+    id: "acc1",
+    name: "Binance Account",
+    type: "exchange",
+    provider: "Binance",
+    balance: 2540.75,
+    currency: "USD",
+    lastUpdated: "2025-04-30T15:30:00Z",
+    isActive: true,
+    botsEnabled: true
+  },
+  {
+    id: "acc2",
+    name: "Coinbase Pro",
+    type: "exchange",
+    provider: "Coinbase",
+    balance: 1250.50,
+    currency: "USD",
+    lastUpdated: "2025-05-01T09:15:00Z",
+    isActive: true,
+    botsEnabled: false
+  },
+  {
+    id: "acc3",
+    name: "KuCoin Account",
+    type: "exchange",
+    provider: "KuCoin",
+    balance: 780.25,
+    currency: "USD",
+    lastUpdated: "2025-04-29T18:45:00Z",
+    isActive: false,
+    botsEnabled: false
+  }
+];
 
-  useEffect(() => {
-    // Initialize accounts with bot settings
-    setAccountsWithBotSettings(
-      accounts.map((account) => ({
-        ...account,
-        allowBots: account.id === selectedAccountId ? true : false,
-      }))
-    );
-  }, [accounts, selectedAccountId]);
-
-  const handleToggleBots = (accountId: string, allowed: boolean) => {
-    const updatedAccounts = accountsWithBotSettings.map((account) => {
-      if (account.id === accountId) {
-        return { ...account, allowBots: allowed };
-      }
-      return account;
-    });
-
-    setAccountsWithBotSettings(updatedAccounts);
-
-    // If enabling bots for an account, select that account
-    if (allowed) {
-      onAccountSelect(accountId);
-    } else if (accountId === selectedAccountId) {
-      // If disabling the currently selected account, find another enabled one
-      const nextEnabledAccount = updatedAccounts.find(
-        (a) => a.allowBots && a.id !== accountId
-      );
-      if (nextEnabledAccount) {
-        onAccountSelect(nextEnabledAccount.id);
-      } else {
-        onAccountSelect(""); // No enabled accounts
-      }
-    }
+const BotAccountConnector: React.FC = () => {
+  const [accounts, setAccounts] = useState<AccountWithBotsEnabled[]>(mockAccounts);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const toggleBotAccess = (accountId: string) => {
+    setAccounts(accounts.map(account => 
+      account.id === accountId 
+        ? { ...account, botsEnabled: !account.botsEnabled }
+        : account
+    ));
   };
-
+  
+  const refreshAccounts = () => {
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  };
+  
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="space-y-4">
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium mb-2">
-              Select Trading Account for Bots
-            </h3>
-            <Select
-              value={selectedAccountId}
-              onValueChange={onAccountSelect}
-              disabled={!accountsWithBotSettings.some((a) => a.allowBots)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                {accountsWithBotSettings
-                  .filter((a) => a.allowBots)
-                  .map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name} (${account.balance.toFixed(2)})
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              Bot-Enabled Accounts
+            </CardTitle>
+            <CardDescription>
+              Connect your trading accounts to enable AI trading bots
+            </CardDescription>
           </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium mb-2">
-              Account Bot Permissions
-            </h3>
-            {accountsWithBotSettings.map((account) => (
-              <div
+          <Button variant="outline" size="sm" onClick={refreshAccounts} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {accounts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Bot className="h-12 w-12 mb-4 text-muted-foreground" />
+            <p className="text-center text-muted-foreground">
+              No trading accounts connected yet. <br />
+              Connect an account to get started with AI trading bots.
+            </p>
+            <Button className="mt-4">Connect Account</Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {accounts.map(account => (
+              <div 
                 key={account.id}
-                className="flex items-center justify-between py-2 border-b last:border-0"
+                className={`p-4 rounded-lg border ${account.isActive ? 'border-border' : 'border-muted bg-muted/30'}`}
               >
-                <div>
-                  <p className="text-sm font-medium">{account.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Balance: ${account.balance.toFixed(2)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {account.allowBots && (
-                    <Badge variant="outline" className="bg-primary/10">
-                      Bot Enabled
-                    </Badge>
-                  )}
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor={`bot-${account.id}`}>
-                      {account.allowBots ? "Enabled" : "Disabled"}
-                    </Label>
-                    <Switch
-                      id={`bot-${account.id}`}
-                      checked={account.allowBots}
-                      onCheckedChange={(checked) =>
-                        handleToggleBots(account.id, checked)
-                      }
-                    />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${account.isActive ? 'bg-primary/10' : 'bg-muted'}`}>
+                      <img 
+                        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/icon/${account.provider.toLowerCase()}.png`}
+                        alt={account.provider}
+                        className="w-6 h-6"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/icon/generic.png";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <div className="font-medium flex items-center">
+                        {account.name}
+                        {!account.isActive && (
+                          <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Balance: ${account.balance.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    {account.isActive && (
+                      <Button
+                        variant={account.botsEnabled ? "default" : "outline"}
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => toggleBotAccess(account.id)}
+                      >
+                        {account.botsEnabled ? (
+                          <>
+                            <CheckCircle className="h-4 w-4" />
+                            Bot Access Granted
+                          </>
+                        ) : (
+                          <>
+                            Enable Bots
+                            <ArrowRight className="h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
+                
+                {account.botsEnabled && account.isActive && (
+                  <div className="mt-4 p-3 bg-primary/5 rounded-md text-sm">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-medium">Trading Permission Granted</p>
+                        <p className="text-muted-foreground">
+                          AI trading bots can now execute trades on this account. 
+                          You can revoke this permission at any time.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-        </div>
+        )}
       </CardContent>
+      
+      <Separator />
+      
+      <CardFooter className="pt-4">
+        <div className="w-full flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <p className="text-sm text-muted-foreground">
+            Last updated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+          </p>
+          <div className="space-x-2">
+            <Button variant="outline">API Settings</Button>
+            <Button>Connect New Account</Button>
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

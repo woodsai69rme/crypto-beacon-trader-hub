@@ -2,54 +2,61 @@
 import { UseFormReturn } from "react-hook-form";
 
 export interface SettingsFormValues {
-  email: string;
+  theme: "light" | "dark";
+  colorScheme: "default" | "midnight-tech" | "cyber-pulse" | "matrix-code";
+  layout: "default" | "compact" | "traderview" | "professional" | "custom";
   username: string;
   displayName: string;
+  email: string;
   bio: string;
-  darkMode: boolean;
-  language: string;
-  timeZone: string;
-  layout: string;
-  theme: string;
   notifications: {
     email: boolean;
     push: boolean;
-    trading: boolean;
-    marketAlerts: boolean;
-    newFeatures: boolean;
-  };
-  privacy: {
-    publicProfile: boolean;
-    showPortfolio: boolean;
-    shareActivity: boolean;
+    priceAlerts: boolean;
+    marketUpdates: boolean;
+    newsletterAndPromotions: boolean;
   };
   appearance: {
     compactMode: boolean;
     animationsEnabled: boolean;
+    highContrastMode: boolean;
     showTradingHistory: boolean;
     showPortfolioChart: boolean;
-    highContrastMode: boolean;
   };
-  account: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
+  privacy: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
   };
   trading: {
+    defaultOrder: "market" | "limit";
     confirmTradeExecutions: boolean;
     showPriceAlerts: boolean;
-    defaultTradingPair: string;
+    autoSyncExchanges: boolean;
+    tradingViewCharts: boolean;
   };
-  dashboardCustomization: {
-    defaultCurrency: string;
-    defaultTimeframe: string;
-    alertVolume: number;
-    alertFrequency: string;
+  ticker: {
+    enabled: boolean;
+    position: "top" | "bottom" | "both";
+    speed: number;
+    direction: "left" | "right";
+    autoPause: boolean;
   };
+  sidebar: {
+    enabled: boolean;
+    position: "left" | "right";
+    defaultCollapsed: boolean;
+    showLabels: boolean;
+  };
+  language: string;
+  timeZone: string;
+  darkMode: boolean;
+  exportFormat: "CSV" | "JSON" | "PDF";
   dataPrivacy: {
-    shareAnalytics: boolean;
     storeHistory: boolean;
+    anonymizeData: boolean;
+    enableTracking: boolean;
   };
-  exportFormat: string;
 }
 
 export interface SettingsComponentProps {

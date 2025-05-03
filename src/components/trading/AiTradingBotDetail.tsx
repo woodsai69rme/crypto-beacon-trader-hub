@@ -1,361 +1,231 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, PlayCircle, StopCircle, Settings, LineChart, History } from "lucide-react";
+import { Bot, ArrowLeft, RefreshCw, Play, Pause, Settings2, Code, LineChart, History } from "lucide-react";
 import { AiBotTradingProps } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
-import { AVAILABLE_STRATEGIES } from "@/services/aiTradingService";
+import { Separator } from "@/components/ui/separator";
 
-const AiTradingBotDetail: React.FC<AiBotTradingProps> = ({ botId, strategyId, strategyName }) => {
-  const [isRunning, setIsRunning] = useState(false);
-  const [lastActivity, setLastActivity] = useState<string | null>(null);
-  const [lastTrade, setLastTrade] = useState<{type: 'buy' | 'sell', asset: string, amount: number, price: number} | null>(null);
-  const [botPerformance, setBotPerformance] = useState({
-    tradesExecuted: 0,
-    winRate: 0,
-    profit: 0,
-    drawdown: 0
-  });
+interface ExtendedAiBotTradingProps extends AiBotTradingProps {
+  strategyId?: string;
+  strategyName?: string;
+}
 
-  // Find the strategy from available strategies
-  const strategy = AVAILABLE_STRATEGIES.find(s => s.id === strategyId) || {
-    id: strategyId,
-    name: strategyName || "Custom Strategy",
-    description: "A custom trading strategy",
-    type: "custom" as const,
-    timeframe: "1d",
-    parameters: {
-      riskLevel: "medium"
-    }
-  };
-
-  useEffect(() => {
-    // Simulate bot activity
-    if (isRunning) {
-      const interval = setInterval(() => {
-        // Simulate bot analyzing market
-        const actions = [
-          "Analyzing market trends...",
-          "Evaluating support levels...",
-          "Checking resistance levels...",
-          "Calculating moving averages...",
-          "Analyzing RSI indicator...",
-          "Evaluating MACD crossover...",
-          "Checking trading volume...",
-          "Analyzing price action..."
-        ];
-        
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
-        setLastActivity(randomAction);
-        
-        // Occasionally generate a trade (10% chance)
-        if (Math.random() < 0.1) {
-          generateTrade();
-        }
-        
-        // Update performance metrics
-        updatePerformance();
-      }, 3000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [isRunning]);
-  
-  const startBot = () => {
-    setIsRunning(true);
-    toast({
-      title: "Bot Started",
-      description: `${botId} is now actively trading with ${strategy.name} strategy`
-    });
-  };
-  
-  const stopBot = () => {
-    setIsRunning(false);
-    toast({
-      title: "Bot Stopped",
-      description: `${botId} has been deactivated`
-    });
-  };
-  
-  const generateTrade = () => {
-    const tradeType = Math.random() > 0.5 ? 'buy' : 'sell';
-    const assets = ["BTC", "ETH", "SOL", "ADA", "DOT"];
-    const asset = assets[Math.floor(Math.random() * assets.length)];
-    const amount = parseFloat((Math.random() * 0.5).toFixed(4));
-    const price = parseFloat((asset === "BTC" ? 60000 + (Math.random() * 5000) : 
-                              asset === "ETH" ? 3000 + (Math.random() * 500) :
-                              asset === "SOL" ? 100 + (Math.random() * 50) :
-                              asset === "ADA" ? 0.5 + (Math.random() * 0.2) : 
-                              20 + (Math.random() * 5)).toFixed(2));
-    
-    setLastTrade({ type: tradeType, asset, amount, price });
-    setBotPerformance(prev => ({
-      ...prev,
-      tradesExecuted: prev.tradesExecuted + 1
-    }));
-    
-    toast({
-      title: `${tradeType.toUpperCase()} Signal Generated`,
-      description: `${amount} ${asset} at $${price.toFixed(2)}`,
-      variant: tradeType === 'buy' ? "default" : "destructive"
-    });
-  };
-  
-  const updatePerformance = () => {
-    setBotPerformance(prev => {
-      const newWinRate = Math.min(0.8, prev.winRate + (Math.random() * 0.02 - 0.01));
-      const profitChange = Math.random() * 2 - 0.5; // Between -0.5% and +1.5%
-      const newProfit = prev.profit + profitChange;
-      const newDrawdown = Math.max(0, Math.min(30, prev.drawdown + (Math.random() * 0.5 - 0.3)));
-      
-      return {
-        ...prev,
-        winRate: parseFloat(newWinRate.toFixed(2)),
-        profit: parseFloat(newProfit.toFixed(2)),
-        drawdown: parseFloat(newDrawdown.toFixed(2))
-      };
-    });
-  };
-
+const AiTradingBotDetail: React.FC<ExtendedAiBotTradingProps> = ({ strategyId = "bot-1", strategyName = "Mean Reversion ETH" }) => {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
-              {botId} Details
-            </CardTitle>
-            <CardDescription>
-              {strategy.name} - {strategy.description}
-            </CardDescription>
-          </div>
-          <Badge variant={isRunning ? "default" : "outline"} className={isRunning ? "bg-green-500/10 text-green-500" : ""}>
-            {isRunning ? "Active" : "Inactive"}
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            {strategyName}
+          </CardTitle>
+        </div>
+        <div className="flex items-center justify-between">
+          <CardDescription>
+            Bot ID: {strategyId} • Strategy: Mean Reversion • Timeframe: 4h
+          </CardDescription>
+          <Badge variant={Math.random() > 0.5 ? "default" : "secondary"}>
+            {Math.random() > 0.5 ? "Active" : "Inactive"}
           </Badge>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-card/60 p-3 rounded-lg border">
-            <div className="text-xs text-muted-foreground">Trades Executed</div>
-            <div className="font-medium text-lg">{botPerformance.tradesExecuted}</div>
-          </div>
-          <div className="bg-card/60 p-3 rounded-lg border">
-            <div className="text-xs text-muted-foreground">Win Rate</div>
-            <div className="font-medium text-lg">{botPerformance.winRate * 100}%</div>
-          </div>
-          <div className="bg-card/60 p-3 rounded-lg border">
-            <div className="text-xs text-muted-foreground">Profit</div>
-            <div className={`font-medium text-lg ${botPerformance.profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {botPerformance.profit >= 0 ? '+' : ''}{botPerformance.profit}%
-            </div>
-          </div>
-          <div className="bg-card/60 p-3 rounded-lg border">
-            <div className="text-xs text-muted-foreground">Max Drawdown</div>
-            <div className="font-medium text-lg text-amber-500">-{botPerformance.drawdown}%</div>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <Button className="gap-2">
+            <Play className="h-4 w-4" />
+            Start Bot
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            Configure
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh Status
+          </Button>
         </div>
         
-        <Tabs defaultValue="activity">
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Total Return</span>
+                  <span className="font-medium text-crypto-green">+8.4%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Win Rate</span>
+                  <span className="font-medium">68%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Profit Factor</span>
+                  <span className="font-medium">1.7</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Sharpe Ratio</span>
+                  <span className="font-medium">1.2</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Max Drawdown</span>
+                  <span className="font-medium text-crypto-red">-3.8%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Current Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Last Signal</span>
+                  <span className="font-medium text-crypto-green">Buy</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Signal Time</span>
+                  <span className="font-medium">2h ago</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Current Position</span>
+                  <span className="font-medium">Long</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Entry Price</span>
+                  <span className="font-medium">$3,412.50</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Position P/L</span>
+                  <span className="font-medium text-crypto-green">+$28.75 (+0.8%)</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Risk Level</span>
+                  <span className="font-medium">Medium</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Position Size</span>
+                  <span className="font-medium">2% of Account</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Stop Loss</span>
+                  <span className="font-medium">2.5%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Take Profit</span>
+                  <span className="font-medium">4.0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Trailing Stop</span>
+                  <span className="font-medium">Enabled (1.2%)</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Separator />
+        
+        <Tabs defaultValue="chart">
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="chart" className="flex items-center gap-1">
+              <LineChart className="h-4 w-4" />
+              <span className="hidden sm:inline">Performance</span>
+            </TabsTrigger>
+            <TabsTrigger value="trades" className="flex items-center gap-1">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">Trade History</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-1">
+              <Settings2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+            <TabsTrigger value="code" className="flex items-center gap-1">
+              <Code className="h-4 w-4" />
+              <span className="hidden sm:inline">Strategy Code</span>
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="activity" className="space-y-4">
-            <div className="border rounded-lg p-4">
-              <h3 className="font-medium mb-2">Recent Activity</h3>
-              {lastActivity ? (
-                <div className="text-sm space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span>{lastActivity}</span>
-                    <span className="text-xs text-muted-foreground">{new Date().toLocaleTimeString()}</span>
-                  </div>
-                  {lastTrade && (
-                    <div className={`mt-2 p-2 rounded-md ${lastTrade.type === 'buy' ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                      <div className="flex justify-between font-medium">
-                        <span className={lastTrade.type === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                          {lastTrade.type.toUpperCase()}
-                        </span>
-                        <span>{lastTrade.amount} {lastTrade.asset}</span>
-                        <span>${lastTrade.price.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  No recent activity. Start the bot to begin trading.
-                </div>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-2">Strategy Parameters</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type:</span>
-                    <span>{strategy.type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Timeframe:</span>
-                    <span>{strategy.timeframe}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Risk Level:</span>
-                    <span className="capitalize">{strategy.parameters.riskLevel || "Medium"}</span>
+          <TabsContent value="chart">
+            <Card>
+              <CardContent className="p-6">
+                <div className="h-[300px] bg-muted/30 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <LineChart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Performance chart will appear here</p>
+                    <Button variant="outline" className="mt-4">Load Chart</Button>
                   </div>
                 </div>
-              </div>
-              
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-2">Trading Limits</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Max Position Size:</span>
-                    <span>10%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Stop Loss:</span>
-                    <span>5%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Take Profit:</span>
-                    <span>15%</span>
-                  </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="trades">
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="text-base">Recent Trades</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-2">No recent trades to show</p>
+                  <p className="text-sm text-muted-foreground">Trade history will appear here once the bot executes trades</p>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="settings">
-            <div className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-2">Bot Configuration</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Trade Size</div>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="100" 
-                        value="10" 
-                        className="w-full" 
-                        readOnly
-                      />
-                      <span className="text-sm">10%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Risk Level</div>
-                    <select className="w-full border rounded-md p-2 bg-background">
-                      <option value="low">Low</option>
-                      <option value="medium" selected>Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Stop Loss</div>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="20" 
-                        value="5" 
-                        className="w-full" 
-                        readOnly
-                      />
-                      <span className="text-sm">5%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Take Profit</div>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="50" 
-                        value="15" 
-                        className="w-full" 
-                        readOnly
-                      />
-                      <span className="text-sm">15%</span>
-                    </div>
-                  </div>
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="text-base">Strategy Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <Settings2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Settings editor will appear here</p>
+                  <Button variant="outline" className="mt-4">Open Settings</Button>
                 </div>
-                
-                <Button variant="outline" className="w-full mt-4" disabled>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Save Settings
-                </Button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="performance">
-            <div className="border rounded-lg p-4 space-y-4">
-              <h3 className="font-medium">Performance Metrics</h3>
-              
-              <div className="h-60 border rounded-lg flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <LineChart className="h-10 w-10 mx-auto mb-2" />
-                  <div>Performance chart will appear here</div>
-                  <div className="text-xs">Historical data will be displayed as trading continues</div>
+          <TabsContent value="code">
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="text-base">Strategy Code</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <Code className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Strategy code editor will appear here</p>
+                  <Button variant="outline" className="mt-4">View Code</Button>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-2 border rounded-lg">
-                  <div className="text-xs text-muted-foreground">Win Rate</div>
-                  <div className="font-medium">{(botPerformance.winRate * 100).toFixed(1)}%</div>
-                </div>
-                <div className="p-2 border rounded-lg">
-                  <div className="text-xs text-muted-foreground">Profit Factor</div>
-                  <div className="font-medium">1.42</div>
-                </div>
-                <div className="p-2 border rounded-lg">
-                  <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
-                  <div className="font-medium">1.18</div>
-                </div>
-                <div className="p-2 border rounded-lg">
-                  <div className="text-xs text-muted-foreground">Avg Trade</div>
-                  <div className="font-medium">+0.52%</div>
-                </div>
-              </div>
-              
-              <Button variant="outline" className="w-full">
-                <History className="h-4 w-4 mr-2" />
-                View Full Performance History
-              </Button>
-            </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </CardContent>
-      
-      <CardFooter className="border-t pt-4 flex justify-end space-x-2">
-        {isRunning ? (
-          <Button variant="destructive" onClick={stopBot}>
-            <StopCircle className="h-4 w-4 mr-2" />
-            Stop Bot
-          </Button>
-        ) : (
-          <Button onClick={startBot}>
-            <PlayCircle className="h-4 w-4 mr-2" />
-            Start Bot
-          </Button>
-        )}
-      </CardFooter>
     </Card>
   );
 };
