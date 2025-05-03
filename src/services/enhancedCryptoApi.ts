@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { CoinOption, CryptoData } from '../types/trading';
+import { CoinOption, CryptoData, CryptoChartData } from '../types/trading';
 
 const CACHE_EXPIRY = 60 * 1000; // 1 minute
 let coinCache: { data: CoinOption[], timestamp: number } | null = null;
@@ -204,6 +204,56 @@ export const getCoinDetails = async (coinId: string): Promise<CryptoData | null>
   } catch (error) {
     console.error(`Error fetching details for coin ${coinId}:`, error);
     return null;
+  }
+};
+
+// Get mock chart data for coins
+export const fetchCoinChartData = async (
+  coinId: string, 
+  days: number = 7
+): Promise<CryptoChartData> => {
+  try {
+    // In a real app, we would fetch from an API:
+    // const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart`, {
+    //   params: { vs_currency: 'usd', days }
+    // });
+    // return response.data;
+    
+    // Generate mock chart data
+    const prices: [number, number][] = [];
+    const market_caps: [number, number][] = [];
+    const total_volumes: [number, number][] = [];
+    
+    // Find the coin in our mock data to get a base price
+    const coin = topCoins.find(c => c.id === coinId);
+    const basePrice = coin ? coin.price : 10000 + Math.random() * 50000;
+    const baseVolume = basePrice * 10000;
+    const baseCap = basePrice * 19000000;
+    
+    // Generate data points - one per day
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    
+    for (let i = days; i >= 0; i--) {
+      const timestamp = now - (i * oneDayMs);
+      
+      // Create some volatility
+      const volatility = 0.03; // 3% daily volatility
+      const dayChange = (Math.random() * 2 - 1) * volatility;
+      
+      const price = basePrice * (1 + dayChange * (days - i) / days);
+      const volume = baseVolume * (0.8 + Math.random() * 0.4);
+      const cap = baseCap * (1 + dayChange * (days - i) / days);
+      
+      prices.push([timestamp, price]);
+      total_volumes.push([timestamp, volume]);
+      market_caps.push([timestamp, cap]);
+    }
+    
+    return { prices, market_caps, total_volumes };
+  } catch (error) {
+    console.error(`Error fetching chart data for ${coinId}:`, error);
+    return { prices: [] };
   }
 };
 

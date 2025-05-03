@@ -22,7 +22,7 @@ export interface Widget {
 }
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
-export type WidgetType = 'chart' | 'portfolio' | 'watchlist' | 'news' | 'alerts' | 'analysis';
+export type WidgetType = 'chart' | 'portfolio' | 'watchlist' | 'news' | 'alerts' | 'analysis' | 'price-chart' | 'custom';
 
 export interface TickerSettings {
   enabled: boolean;
@@ -37,6 +37,13 @@ export interface SidebarSettings {
   position: 'left' | 'right';
   defaultCollapsed: boolean;
   showLabels: boolean;
+}
+
+// Chart data interfaces
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps?: [number, number][];
+  total_volumes?: [number, number][];
 }
 
 // Trading related interfaces
@@ -131,6 +138,9 @@ export interface ApiProvider {
   authRequired?: boolean;
   website?: string;
   docs?: string;
+  authMethod?: 'header' | 'query';
+  defaultHeaders?: Record<string, string>;
+  apiKeyName?: string;
 }
 
 export interface ApiEndpoint {
@@ -155,6 +165,12 @@ export interface ApiUsageStats {
   errorRate: number;
   costPerRequest?: number;
   lastRequested: string;
+  id?: string;
+  currentUsage?: number;
+  maxUsage?: number;
+  resetTime?: string;
+  endpoint?: string;
+  service?: string;
 }
 
 export interface WatchlistItem extends CoinOption {
@@ -162,9 +178,17 @@ export interface WatchlistItem extends CoinOption {
   addedAt: string;
   notes?: string;
   alerts?: PriceAlert[];
+  coinId?: string;
+  isWatched?: boolean;
+  alertSettings?: {
+    enabled: boolean;
+    price: number;
+    condition: 'above' | 'below';
+  };
+  priceChangePercentage24h?: number;
 }
 
-interface PriceAlert {
+export interface PriceAlert {
   id: string;
   condition: 'above' | 'below';
   price: number;
@@ -183,7 +207,11 @@ export interface Trade {
   date: string;
   status: 'completed' | 'pending' | 'failed';
   exchange?: string;
+  timestamp?: string;
+  totalValue?: number;
 }
+
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
 export interface ATOTaxCalculation {
   financialYear: string;

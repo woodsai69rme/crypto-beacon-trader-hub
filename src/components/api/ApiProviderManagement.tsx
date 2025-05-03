@@ -1,412 +1,455 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Key, Plus, Trash2 } from 'lucide-react';
 import { ApiProvider, ApiEndpoint } from '@/types/trading';
-import { Edit, ExternalLink, Key, Lock, Plus, Trash2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
 
 const ApiProviderManagement: React.FC = () => {
-  // Mock API providers data
-  const [apiProviders, setApiProviders] = useState<ApiProvider[]>([
+  const [activeTab, setActiveTab] = useState("market-data");
+  const [isAddingProvider, setIsAddingProvider] = useState(false);
+  const [isEditingEndpoint, setIsEditingEndpoint] = useState(false);
+  const [newProvider, setNewProvider] = useState<Partial<ApiProvider>>({
+    name: '',
+    description: '',
+    baseUrl: '',
+    apiKey: '',
+    usageLimit: 1000,
+    currentUsage: 0,
+    isActive: true,
+    endpoints: []
+  });
+  
+  // Mock providers for demonstration
+  const [providers, setProviders] = useState<ApiProvider[]>([
     {
-      id: "coingecko",
+      id: "coingecko-1",
       name: "CoinGecko",
       baseUrl: "https://api.coingecko.com/api/v3",
-      description: "Cryptocurrency data provider with free tier.",
+      description: "Comprehensive cryptocurrency data API",
       endpoints: [
         {
-          id: "coingecko-markets",
-          name: "Coin Markets",
+          id: "cg-markets",
+          name: "Markets",
           url: "/coins/markets",
           path: "/coins/markets",
           method: "GET",
-          description: "Get list of coins with market data",
-          responseTime: 450,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
+          description: "Get cryptocurrency prices, market cap, volume, and market related data",
+          responseTime: 245,
+          lastUsed: "2023-05-01T12:30:45Z",
+          requiresAuth: true
         },
         {
-          id: "coingecko-coins",
+          id: "cg-coin",
           name: "Coin Details",
           url: "/coins/{id}",
           path: "/coins/{id}",
           method: "GET",
           description: "Get current data for a coin",
-          responseTime: 380,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
+          responseTime: 187,
+          lastUsed: "2023-05-01T11:22:18Z",
+          requiresAuth: true
         },
         {
-          id: "coingecko-trending",
-          name: "Trending Coins",
-          url: "/search/trending",
-          path: "/search/trending",
+          id: "cg-chart",
+          name: "Market Chart",
+          url: "/coins/{id}/market_chart",
+          path: "/coins/{id}/market_chart",
           method: "GET",
-          description: "Get trending search coins on CoinGecko in the last 24 hours",
-          responseTime: 290,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
-        }
-      ],
-      isActive: true,
-      apiKey: "ck_xxxxxxxxxxx",
-      website: "https://www.coingecko.com",
-      docs: "https://www.coingecko.com/api/documentation",
-      enabled: true,
-      requiresAuth: true,
-      authRequired: true,
-      authMethod: "bearer",
-    },
-    {
-      id: "cryptocompare",
-      name: "CryptoCompare",
-      baseUrl: "https://min-api.cryptocompare.com/data",
-      description: "Real-time crypto data API with advanced features.",
-      endpoints: [
-        {
-          id: "cryptocompare-price",
-          name: "Price Multi",
-          url: "/pricemulti",
-          path: "/pricemulti",
-          method: "GET",
-          description: "Get multiple prices at once",
+          description: "Get historical market data include price, market cap, and 24h volume",
           responseTime: 320,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
-        },
-        {
-          id: "cryptocompare-historical",
-          name: "Historical Data",
-          url: "/histoday",
-          path: "/histoday",
-          method: "GET",
-          description: "Get historical daily OHLCV data",
-          responseTime: 540,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
-        },
-        {
-          id: "cryptocompare-news",
-          name: "News Articles",
-          url: "/v2/news",
-          path: "/v2/news",
-          method: "GET",
-          description: "Get latest crypto news articles",
-          responseTime: 410,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
+          lastUsed: "2023-05-01T10:15:30Z",
+          requiresAuth: true
         }
       ],
       isActive: true,
-      apiKey: "cc_xxxxxxxxxxx",
-      website: "https://www.cryptocompare.com",
-      docs: "https://min-api.cryptocompare.com/documentation",
-      enabled: true,
-      requiresAuth: true,
-      authRequired: true,
-      authMethod: "api_key",
-      apiKeyName: "api_key",
+      apiKey: "CG_API_KEY_REDACTED",
+      usageLimit: 10000,
+      currentUsage: 5243,
+      authMethod: "header",
+      apiKeyName: "X-CG-API-KEY",
+      defaultHeaders: {},
+      enabled: true
     },
     {
-      id: "coinmarketcap",
-      name: "CoinMarketCap",
-      baseUrl: "https://pro-api.coinmarketcap.com/v1",
-      description: "Professional crypto market data API.",
+      id: "binance-1",
+      name: "Binance",
+      baseUrl: "https://api.binance.com/api/v3",
+      description: "Cryptocurrency exchange API",
       endpoints: [
         {
-          id: "coinmarketcap-listings",
-          name: "Listings Latest",
-          url: "/cryptocurrency/listings/latest",
-          path: "/cryptocurrency/listings/latest",
+          id: "bn-ticker",
+          name: "Ticker",
+          url: "/ticker/24hr",
+          path: "/ticker/24hr",
           method: "GET",
-          description: "Get latest listings with market data",
-          responseTime: 620,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
+          description: "24 hour rolling window price change statistics",
+          responseTime: 110,
+          lastUsed: "2023-05-01T13:40:22Z",
+          requiresAuth: true
         },
         {
-          id: "coinmarketcap-quotes",
-          name: "Quote Latest",
-          url: "/cryptocurrency/quotes/latest",
-          path: "/cryptocurrency/quotes/latest",
+          id: "bn-klines",
+          name: "Klines",
+          url: "/klines",
+          path: "/klines",
           method: "GET",
-          description: "Get latest quotes for one or more cryptocurrencies",
-          responseTime: 480,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
+          description: "Kline/candlestick data",
+          responseTime: 165,
+          lastUsed: "2023-05-01T13:25:40Z",
+          requiresAuth: true
         },
         {
-          id: "coinmarketcap-metadata",
-          name: "Metadata",
-          url: "/cryptocurrency/info",
-          path: "/cryptocurrency/info",
+          id: "bn-depth",
+          name: "Order Book",
+          url: "/depth",
+          path: "/depth",
           method: "GET",
-          description: "Get metadata for one or more cryptocurrencies",
-          responseTime: 390,
-          lastUsed: new Date().toISOString(),
-          requiresAuth: true,
+          description: "Order book depth",
+          responseTime: 95,
+          lastUsed: "2023-05-01T13:10:05Z",
+          requiresAuth: true
         }
       ],
-      isActive: false,
-      apiKey: "cmc_xxxxxxxxxxx",
-      website: "https://coinmarketcap.com",
-      docs: "https://coinmarketcap.com/api/documentation/v1/",
-      enabled: false,
-      requiresAuth: true,
-      authRequired: true,
-      authMethod: "api_key",
-      apiKeyName: "X-CMC_PRO_API_KEY",
+      isActive: true,
+      apiKey: "BINANCE_API_KEY_REDACTED",
+      usageLimit: 20000,
+      currentUsage: 8754,
+      authMethod: "query",
+      apiKeyName: "api_key",
+      defaultHeaders: {},
+      enabled: true
+    },
+    {
+      id: "kraken-1",
+      name: "Kraken",
+      baseUrl: "https://api.kraken.com/0",
+      description: "Digital asset exchange API",
+      endpoints: [
+        {
+          id: "kr-ticker",
+          name: "Ticker Information",
+          url: "/public/Ticker",
+          path: "/public/Ticker",
+          method: "GET",
+          description: "Get ticker information",
+          responseTime: 180,
+          lastUsed: "2023-05-01T11:05:15Z",
+          requiresAuth: true
+        },
+        {
+          id: "kr-ohlc",
+          name: "OHLC Data",
+          url: "/public/OHLC",
+          path: "/public/OHLC",
+          method: "GET",
+          description: "Open, high, low, close data",
+          responseTime: 210,
+          lastUsed: "2023-05-01T10:55:30Z",
+          requiresAuth: true
+        },
+        {
+          id: "kr-orderbook",
+          name: "Order Book",
+          url: "/public/Depth",
+          path: "/public/Depth",
+          method: "GET",
+          description: "Market depth",
+          responseTime: 165,
+          lastUsed: "2023-05-01T10:30:20Z",
+          requiresAuth: true
+        }
+      ],
+      isActive: true,
+      apiKey: "KRAKEN_API_KEY_REDACTED",
+      usageLimit: 5000,
+      currentUsage: 2134,
+      authMethod: "header",
+      apiKeyName: "API-Key",
+      defaultHeaders: {},
+      enabled: true
     }
   ]);
-
-  const toggleProviderActive = (providerId: string) => {
-    setApiProviders(providers => 
-      providers.map(provider => 
-        provider.id === providerId 
-          ? { ...provider, isActive: !provider.isActive, enabled: !provider.enabled } 
-          : provider
-      )
-    );
-    
-    const provider = apiProviders.find(p => p.id === providerId);
-    if (provider) {
-      toast({
-        title: `${provider.name} ${provider.isActive ? 'Disabled' : 'Enabled'}`,
-        description: `API provider has been ${provider.isActive ? 'disabled' : 'enabled'}.`,
-        duration: 3000,
+  
+  const handleAddProvider = () => {
+    if (newProvider.name && newProvider.baseUrl) {
+      const provider: ApiProvider = {
+        id: `provider-${Date.now()}`,
+        name: newProvider.name || '',
+        baseUrl: newProvider.baseUrl || '',
+        description: newProvider.description || '',
+        endpoints: [],
+        isActive: true,
+        apiKey: newProvider.apiKey || '',
+        usageLimit: newProvider.usageLimit || 1000,
+        currentUsage: 0,
+        enabled: true
+      };
+      
+      setProviders([...providers, provider]);
+      setIsAddingProvider(false);
+      setNewProvider({
+        name: '',
+        description: '',
+        baseUrl: '',
+        apiKey: ''
       });
     }
   };
   
-  const handleAddEndpoint = (providerId: string) => {
-    // Create a new endpoint
-    const newEndpoint: ApiEndpoint = {
-      id: `new-endpoint-${Date.now()}`,
-      name: "New Endpoint",
-      url: "/new-endpoint",
-      path: "/new-endpoint", // Add path property
-      method: "GET",
-      description: "New API endpoint",
-      responseTime: 0,
-      lastUsed: new Date().toISOString(),
-      requiresAuth: false,
-    };
-    
-    // Add to provider
-    setApiProviders(providers =>
-      providers.map(provider => 
-        provider.id === providerId
-          ? { ...provider, endpoints: [...provider.endpoints, newEndpoint] }
-          : provider
-      )
-    );
-    
-    toast({
-      title: "Endpoint Added",
-      description: "New API endpoint has been added.",
-      duration: 3000,
-    });
-  };
-  
-  const handleAddProvider = () => {
-    // Create a new provider with required properties
-    const newProvider: ApiProvider = {
-      id: `new-provider-${Date.now()}`,
-      name: "New API Provider",
-      baseUrl: "https://api.example.com",
-      description: "Configure this new API provider.",
-      endpoints: [], // Empty endpoints array
-      isActive: true,
-      apiKey: "",
-      enabled: true,
-    };
-    
-    setApiProviders([...apiProviders, newProvider]);
-    
-    toast({
-      title: "Provider Added",
-      description: "New API provider has been added.",
-      duration: 3000,
-    });
-  };
-  
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">API Providers</h2>
-        <Button onClick={handleAddProvider} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Add Provider
-        </Button>
-      </div>
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>API Providers</CardTitle>
+            <CardDescription>
+              Manage your cryptocurrency data providers and endpoints
+            </CardDescription>
+          </div>
+          <Dialog open={isAddingProvider} onOpenChange={setIsAddingProvider}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Provider
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add API Provider</DialogTitle>
+                <DialogDescription>
+                  Enter the details of the new API provider you want to connect.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Provider Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g. CoinGecko"
+                    value={newProvider.name}
+                    onChange={(e) => setNewProvider({...newProvider, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="baseUrl">Base URL</Label>
+                  <Input
+                    id="baseUrl"
+                    placeholder="e.g. https://api.example.com/v1"
+                    value={newProvider.baseUrl}
+                    onChange={(e) => setNewProvider({...newProvider, baseUrl: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    placeholder="Brief description of the API"
+                    value={newProvider.description}
+                    onChange={(e) => setNewProvider({...newProvider, description: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="apiKey">API Key</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="apiKey"
+                      placeholder="Your API key"
+                      type="password"
+                      value={newProvider.apiKey}
+                      onChange={(e) => setNewProvider({...newProvider, apiKey: e.target.value})}
+                    />
+                    <Button variant="outline" size="icon">
+                      <Key className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="usageLimit">Usage Limit</Label>
+                  <Input
+                    id="usageLimit"
+                    type="number"
+                    placeholder="Requests per day"
+                    value={newProvider.usageLimit}
+                    onChange={(e) => setNewProvider({...newProvider, usageLimit: parseInt(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddingProvider(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddProvider}>
+                  Add Provider
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
       
-      <Tabs defaultValue={apiProviders[0]?.id || "coingecko"}>
-        <TabsList className="mb-4 overflow-auto">
-          {apiProviders.map(provider => (
-            <TabsTrigger key={provider.id} value={provider.id} className="flex items-center">
-              {provider.name}
-              {!provider.isActive && <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        
-        {apiProviders.map(provider => (
-          <TabsContent key={provider.id} value={provider.id} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-start">
+      <CardContent>
+        <Tabs defaultValue="market-data" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="market-data">Market Data</TabsTrigger>
+            <TabsTrigger value="trading-apis">Trading APIs</TabsTrigger>
+            <TabsTrigger value="other">Other</TabsTrigger>
+          </TabsList>
+          
+          {/* Market Data Providers */}
+          <TabsContent value="market-data">
+            {providers.filter(p => p.id.includes("coingecko") || p.id.includes("kraken")).map((provider) => (
+              <div key={provider.id} className="mb-6 border rounded-lg p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center">
-                      {provider.name}
-                      {provider.requiresAuth || provider.authRequired ? (
-                        <Lock className="h-4 w-4 ml-2 text-yellow-500" />
-                      ) : null}
-                    </CardTitle>
-                    <CardDescription className="mt-1">{provider.description}</CardDescription>
+                    <h3 className="text-lg font-semibold">{provider.name}</h3>
+                    <p className="text-sm text-muted-foreground">{provider.description}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-muted-foreground">Enabled</span>
+                      <span className="text-sm font-medium">Active</span>
                       <Switch 
                         checked={provider.isActive} 
-                        onCheckedChange={() => toggleProviderActive(provider.id)} 
+                        onCheckedChange={(checked) => {
+                          const updatedProviders = providers.map(p => 
+                            p.id === provider.id ? {...p, isActive: checked} : p
+                          );
+                          setProviders(updatedProviders);
+                        }}
                       />
                     </div>
                   </div>
                 </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium mb-2">API Base URL</h3>
-                    <div className="font-mono text-sm bg-muted p-2 rounded-md">
-                      {provider.baseUrl}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium mb-2">API Key {provider.apiKey ? '(Saved)' : '(Not Set)'}</h3>
-                    <div className="flex items-center gap-2">
-                      <div className="font-mono text-sm bg-muted p-2 rounded-md flex-1">
-                        {provider.apiKey ? '••••••••••••••••' : 'No API key set'}
+                
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Endpoints</h4>
+                  <div className="space-y-2">
+                    {provider.endpoints.map((endpoint) => (
+                      <div key={endpoint.id} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
+                        <div>
+                          <span className="text-sm font-medium">{endpoint.name}</span>
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">{endpoint.method}</span>
+                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.url}</span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span>{endpoint.responseTime}ms</span>
+                          <span className="mx-2">•</span>
+                          <span>Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Key className="h-4 w-4 mr-1" />
-                        {provider.apiKey ? 'Update' : 'Add'}
-                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-between items-center">
+                  <Button variant="ghost" size="sm" onClick={() => setIsEditingEndpoint(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Endpoint
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    <span>{provider.currentUsage} / {provider.usageLimit} requests used</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+          
+          {/* Trading APIs */}
+          <TabsContent value="trading-apis">
+            {providers.filter(p => p.id.includes("binance")).map((provider) => (
+              <div key={provider.id} className="mb-6 border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{provider.name}</h3>
+                    <p className="text-sm text-muted-foreground">{provider.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">Active</span>
+                      <Switch 
+                        checked={provider.isActive} 
+                        onCheckedChange={(checked) => {
+                          const updatedProviders = providers.map(p => 
+                            p.id === provider.id ? {...p, isActive: checked} : p
+                          );
+                          setProviders(updatedProviders);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
                 
-                {(provider.website || provider.docs) && (
-                  <div className="flex gap-4 text-sm">
-                    {provider.website && (
-                      <a 
-                        href={provider.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary flex items-center hover:underline"
-                      >
-                        Website <ExternalLink className="h-3 w-3 ml-1" />
-                      </a>
-                    )}
-                    
-                    {provider.docs && (
-                      <a 
-                        href={provider.docs} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary flex items-center hover:underline"
-                      >
-                        Documentation <ExternalLink className="h-3 w-3 ml-1" />
-                      </a>
-                    )}
-                  </div>
-                )}
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">Endpoints ({provider.endpoints.length})</h3>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleAddEndpoint(provider.id)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Endpoint
-                    </Button>
-                  </div>
-                  
-                  <div className="overflow-auto">
-                    <table className="min-w-full divide-y divide-border">
-                      <thead>
-                        <tr>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold">Endpoint</th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold">Method</th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold hidden md:table-cell">Description</th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold hidden md:table-cell">Last Used</th>
-                          <th className="relative px-3 py-3.5">
-                            <span className="sr-only">Actions</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {provider.endpoints.map((endpoint) => (
-                          <tr key={endpoint.id}>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                              <div className="font-medium">{endpoint.name}</div>
-                              <div className="text-muted-foreground font-mono text-xs">{endpoint.path}</div>
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                              <Badge variant={endpoint.method === "GET" ? "secondary" : "default"}>
-                                {endpoint.method}
-                              </Badge>
-                            </td>
-                            <td className="px-3 py-4 text-sm hidden md:table-cell">
-                              <div className="truncate max-w-xs">{endpoint.description}</div>
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm hidden md:table-cell">
-                              <div className="text-muted-foreground">
-                                {new Date(endpoint.lastUsed).toLocaleString()}
-                              </div>
-                            </td>
-                            <td className="relative whitespace-nowrap px-3 py-4 text-right text-sm font-medium">
-                              <div className="flex justify-end gap-2">
-                                <Button variant="ghost" size="sm">
-                                  <Edit className="h-4 w-4" />
-                                  <span className="sr-only">Edit</span>
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                  <span className="sr-only">Delete</span>
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                        
-                        {provider.endpoints.length === 0 && (
-                          <tr>
-                            <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
-                              No endpoints configured. Add an endpoint to get started.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Endpoints</h4>
+                  <div className="space-y-2">
+                    {provider.endpoints.map((endpoint) => (
+                      <div key={endpoint.id} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
+                        <div>
+                          <span className="text-sm font-medium">{endpoint.name}</span>
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">{endpoint.method}</span>
+                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.url}</span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span>{endpoint.responseTime}ms</span>
+                          <span className="mx-2">•</span>
+                          <span>Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="mt-4 flex justify-between items-center">
+                  <Button variant="ghost" size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Endpoint
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    <span>{provider.currentUsage} / {provider.usageLimit} requests used</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Add provider button */}
+            <Button variant="outline" className="w-full" onClick={() => setIsAddingProvider(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Trading API
+            </Button>
           </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+          
+          {/* Other APIs */}
+          <TabsContent value="other">
+            <div className="flex items-center justify-center h-48 border rounded-lg">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-2">No other APIs configured yet</p>
+                <Button onClick={() => setIsAddingProvider(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add API Provider
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 

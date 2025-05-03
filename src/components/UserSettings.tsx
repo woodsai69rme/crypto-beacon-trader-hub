@@ -31,42 +31,49 @@ const UserSettings: React.FC = () => {
       notifications: {
         email: true,
         push: true,
-        trading: true,
-        marketAlerts: true,
-        newFeatures: false,
+        priceAlerts: true,
+        marketUpdates: true,
+        newsletterAndPromotions: false
       },
       privacy: {
-        publicProfile: true,
-        showPortfolio: false,
-        shareActivity: true,
+        showOnlineStatus: true,
+        sharePortfolio: false,
+        shareTrades: true
       },
       appearance: {
         compactMode: false,
         animationsEnabled: true,
         showTradingHistory: true,
         showPortfolioChart: true,
-        highContrastMode: false,
-      },
-      account: {
-        twoFactorEnabled: false,
-        loginAlerts: true,
+        highContrastMode: false
       },
       trading: {
+        defaultOrder: "market",
         confirmTradeExecutions: true,
         showPriceAlerts: true,
-        defaultTradingPair: "BTC/USD",
+        autoSyncExchanges: true,
+        tradingViewCharts: true
       },
-      dashboardCustomization: {
-        defaultCurrency: "USD",
-        defaultTimeframe: "1d",
-        alertVolume: 50,
-        alertFrequency: "medium",
+      ticker: {
+        enabled: true,
+        position: "top",
+        speed: 40,
+        direction: "left",
+        autoPause: true
+      },
+      sidebar: {
+        enabled: true,
+        position: "left",
+        defaultCollapsed: false,
+        showLabels: true
       },
       dataPrivacy: {
-        shareAnalytics: true,
         storeHistory: true,
+        anonymizeData: false,
+        enableTracking: true
       },
-      exportFormat: "csv",
+      exportFormat: "CSV",
+      colorScheme: "default"
     }
   });
 

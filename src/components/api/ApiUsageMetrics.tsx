@@ -1,70 +1,71 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import { ApiUsageStats } from "@/types/trading";
+import { ApiUsageStats } from '@/types/trading';
 
 interface ApiUsageMetricsProps {
-  apiUsage: ApiUsageStats[];
-  onRefresh: () => void;
+  stats: ApiUsageStats[];
 }
 
-const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ apiUsage, onRefresh }) => {
-  const formatTime = (timeString: string): string => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ stats }) => {
+  if (!stats || stats.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardContent className="pt-6">
+          <div className="text-center p-8">
+            <p className="text-muted-foreground">No API usage data available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>API Usage Metrics</CardTitle>
-            <CardDescription>Monitor your API usage across different services</CardDescription>
-          </div>
-          <Button variant="outline" size="icon" onClick={onRefresh}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
+        <CardTitle>API Usage Metrics</CardTitle>
       </CardHeader>
-      
       <CardContent>
         <div className="space-y-6">
-          {apiUsage.map((api) => (
-            <div key={api.service} className="space-y-2">
+          {stats.map((stat) => (
+            <div key={stat.serviceId} className="space-y-2">
               <div className="flex justify-between">
-                <div className="space-y-0.5">
-                  <div className="text-sm font-medium">{api.service}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {api.endpoint ? api.endpoint : 'All endpoints'}
-                  </div>
+                <div>
+                  <h3 className="font-medium">{stat.serviceName}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {stat.endpoint || 'All endpoints'}
+                  </p>
                 </div>
-                <div className="text-xs text-right">
-                  <div>{api.currentUsage} / {api.maxUsage}</div>
-                  <div className="text-muted-foreground">Resets at {formatTime(api.resetTime)}</div>
+                <div className="text-right">
+                  <p className="font-medium">
+                    {stat.currentUsage !== undefined && stat.maxUsage !== undefined ? 
+                      `${stat.currentUsage} / ${stat.maxUsage}` : 
+                      `${stat.periodRequests} / ${stat.requestsLimit}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.resetTime ? `Resets: ${new Date(stat.resetTime).toLocaleString()}` : 'Current period'}
+                  </p>
                 </div>
               </div>
-              
-              <Progress value={(api.currentUsage / api.maxUsage) * 100} />
+
+              <Progress 
+                value={
+                  stat.currentUsage !== undefined && stat.maxUsage !== undefined ? 
+                    (stat.currentUsage / stat.maxUsage * 100) : 
+                    (stat.periodRequests / stat.requestsLimit * 100)
+                } 
+                className="h-2"
+              />
+
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Response: {stat.averageResponseTime}ms</span>
+                <span>Error Rate: {stat.errorRate}%</span>
+              </div>
             </div>
           ))}
-          
-          {apiUsage.length === 0 && (
-            <div className="py-6 text-center text-muted-foreground">
-              No API usage data available
-            </div>
-          )}
         </div>
       </CardContent>
-      
-      <CardFooter className="border-t pt-4">
-        <div className="text-xs text-muted-foreground">
-          API usage is updated in real-time as requests are made.
-        </div>
-      </CardFooter>
     </Card>
   );
 };

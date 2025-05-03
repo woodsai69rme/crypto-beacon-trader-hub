@@ -1,59 +1,113 @@
 
-import { CryptoData } from "@/types/trading";
+import { CryptoData } from '@/types/trading';
 
-export const generateMockCorrelations = (
-  coins: CryptoData[],
-  timeRange: '7d' | '30d' | '90d'
-) => {
-  // The timeRange parameter can be used to adjust correlation values
-  // In a real implementation, we would fetch historical data for each timeframe
-  
-  const correlationMultiplier = 
-    timeRange === '7d' ? 0.85 : 
-    timeRange === '30d' ? 0.95 : 
-    1; // 90d has strongest correlations in this mock
-    
-  const result: { [key: string]: { [key: string]: number } } = {};
-  
-  coins.forEach((coin1) => {
-    result[coin1.id] = {};
-    
-    coins.forEach((coin2) => {
-      if (coin1.id === coin2.id) {
-        // Perfect correlation with self
-        result[coin1.id][coin2.id] = 1;
-      } else {
-        // Generate a pseudo-random correlation based on the coins' market cap ranks
-        // Similar market cap ranks tend to have higher correlation in reality
-        const marketCapDiff = Math.abs(
-          (coin1.market_cap_rank || 0) - (coin2.market_cap_rank || 0)
-        );
-        
-        // Base correlation - closer ranks have higher correlation
-        const baseCorrelation = 1 - Math.min(marketCapDiff / 20, 0.8);
-        
-        // Add some randomness
-        const randomFactor = (Math.random() * 0.4) - 0.2;
-        
-        // Bitcoin tends to lead the market, so correlate more strongly with it
-        const btcFactor = 
-          (coin1.id === 'bitcoin' || coin2.id === 'bitcoin') ? 0.15 : 0;
-          
-        // Stablecoins should have near-zero or negative correlation with others
-        const stableCoinFactor = 
-          (coin1.symbol === 'USDT' || coin1.symbol === 'USDC' || 
-           coin2.symbol === 'USDT' || coin2.symbol === 'USDC') ? -0.5 : 0;
-           
-        // Calculate final correlation and apply the time range multiplier
-        let correlation = (baseCorrelation + randomFactor + btcFactor + stableCoinFactor) * correlationMultiplier;
-        
-        // Ensure correlation is between -1 and 1
-        correlation = Math.max(-1, Math.min(1, correlation));
-        
-        result[coin1.id][coin2.id] = correlation;
-      }
-    });
-  });
-  
-  return result;
-};
+export const mockCoins: CryptoData[] = [
+  {
+    id: "bitcoin", 
+    name: "Bitcoin", 
+    symbol: "BTC", 
+    image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png", 
+    price: 68500, 
+    price_change_24h: 1250, 
+    price_change_percentage_24h: 1.8, 
+    market_cap: 1334000000000, 
+    volume_24h: 28500000000, 
+    circulating_supply: 19520000,
+    current_price: 68500,
+    priceChange: 1.8,
+    changePercent: 1.8,
+    total_volume: 28500000000,
+    rank: 1,
+    market_cap_rank: 1
+  },
+  {
+    id: "ethereum", 
+    name: "Ethereum", 
+    symbol: "ETH", 
+    image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png", 
+    price: 3280, 
+    price_change_24h: -120, 
+    price_change_percentage_24h: -3.5, 
+    market_cap: 394000000000, 
+    volume_24h: 12800000000, 
+    circulating_supply: 120250000,
+    current_price: 3280,
+    priceChange: -3.5,
+    changePercent: -3.5,
+    total_volume: 12800000000,
+    rank: 2,
+    market_cap_rank: 2
+  },
+  {
+    id: "binancecoin", 
+    name: "BNB", 
+    symbol: "BNB", 
+    image: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png", 
+    price: 580, 
+    price_change_24h: 15, 
+    price_change_percentage_24h: 2.7, 
+    market_cap: 89500000000, 
+    volume_24h: 3200000000, 
+    circulating_supply: 154533650,
+    current_price: 580,
+    priceChange: 2.7,
+    changePercent: 2.7,
+    total_volume: 3200000000,
+    rank: 3,
+    market_cap_rank: 3
+  },
+  {
+    id: "solana", 
+    name: "Solana", 
+    symbol: "SOL", 
+    image: "https://assets.coingecko.com/coins/images/4128/small/solana.png", 
+    price: 148, 
+    price_change_24h: 8.5, 
+    price_change_percentage_24h: 6.1, 
+    market_cap: 63400000000, 
+    volume_24h: 2900000000, 
+    circulating_supply: 428500000,
+    current_price: 148,
+    priceChange: 6.1,
+    changePercent: 6.1,
+    total_volume: 2900000000,
+    rank: 4,
+    market_cap_rank: 4
+  },
+  {
+    id: "cardano", 
+    name: "Cardano", 
+    symbol: "ADA", 
+    image: "https://assets.coingecko.com/coins/images/975/small/cardano.png", 
+    price: 0.58, 
+    price_change_24h: 0.03, 
+    price_change_percentage_24h: 5.4, 
+    market_cap: 20300000000, 
+    volume_24h: 850000000, 
+    circulating_supply: 35000000000,
+    current_price: 0.58,
+    priceChange: 5.4,
+    changePercent: 5.4,
+    total_volume: 850000000,
+    rank: 5,
+    market_cap_rank: 5
+  },
+  {
+    id: "ripple", 
+    name: "XRP", 
+    symbol: "XRP", 
+    image: "https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png", 
+    price: 0.61, 
+    price_change_24h: -0.02, 
+    price_change_percentage_24h: -3.1, 
+    market_cap: 32500000000, 
+    volume_24h: 1350000000, 
+    circulating_supply: 53200000000,
+    current_price: 0.61,
+    priceChange: -3.1,
+    changePercent: -3.1,
+    total_volume: 1350000000,
+    rank: 6,
+    market_cap_rank: 6
+  }
+];
