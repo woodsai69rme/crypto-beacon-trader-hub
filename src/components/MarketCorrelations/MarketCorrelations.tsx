@@ -31,17 +31,26 @@ const MarketCorrelations = () => {
       const coinsData = await fetchTopCoins(10);
       
       // Properly map CoinOption to CryptoData structure
-      const cryptoData = coinsData.map(coin => ({
+      const cryptoData: CryptoData[] = coinsData.map((coin: CoinOption) => ({
         id: coin.id,
         symbol: coin.symbol,
         name: coin.name,
-        image: coin.image || "",
-        price: coin.price || coin.current_price || 0,
-        priceChange: coin.priceChange || coin.price_change_24h || 0,
-        changePercent: coin.changePercent || coin.price_change_percentage_24h || 0,
-        marketCap: coin.marketCap || coin.market_cap || 0,
-        volume: coin.volume || coin.total_volume || 0,
-        rank: coin.rank || coin.market_cap_rank || 0,
+        image: coin.image,
+        // Map to both naming conventions to ensure compatibility
+        price: coin.price,
+        current_price: coin.price,
+        priceChange: coin.priceChange,
+        price_change_24h: coin.priceChange || 0,
+        changePercent: coin.changePercent,
+        price_change_percentage_24h: coin.changePercent || 0,
+        marketCap: coin.marketCap,
+        market_cap: coin.marketCap || 0,
+        market_cap_rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : undefined,
+        volume: coin.volume,
+        volume_24h: coin.volume || 0,
+        total_volume: coin.volume,
+        circulating_supply: 0, // Required field, provide a default
+        rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : undefined
       }));
       
       setCoins(cryptoData);

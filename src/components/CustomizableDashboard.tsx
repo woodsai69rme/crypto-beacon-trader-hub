@@ -90,7 +90,13 @@ const CustomizableDashboard: React.FC = () => {
                           {...provided.dragHandleProps}
                           className="hover-lift"
                         >
-                          {widget.component}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>{widget.title}</CardTitle>
+                              <CardDescription>{widget.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent>{widget.component}</CardContent>
+                          </Card>
                         </div>
                       )}
                     </Draggable>

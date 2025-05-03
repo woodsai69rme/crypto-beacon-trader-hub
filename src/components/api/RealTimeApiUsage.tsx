@@ -1,236 +1,110 @@
 
-import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ApiUsageStats } from "@/types/trading";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { RefreshCw } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
 
 interface RealTimeApiUsageProps {
-  usageStats: ApiUsageStats[];
+  selectedService: string;
+  onServiceSelect: (service: string) => void;
 }
 
-const RealTimeApiUsage: React.FC<RealTimeApiUsageProps> = ({ usageStats }) => {
-  // Mock real-time API call data
-  const [apiCalls, setApiCalls] = useState([
-    {
-      id: "1",
-      service: "CoinGecko API",
-      endpoint: "/api/v3/coins/markets",
-      status: 200,
-      responseTime: 245,
-      timestamp: new Date(Date.now() - 5000).toISOString(),
-    },
-    {
-      id: "2",
-      service: "Hyblock API",
-      endpoint: "/api/v2/liquidity/binance/btcusdt",
-      status: 200,
-      responseTime: 210,
-      timestamp: new Date(Date.now() - 10000).toISOString(),
-    },
-    {
-      id: "3",
-      service: "CoinGecko API",
-      endpoint: "/api/v3/coins/bitcoin",
-      status: 200,
-      responseTime: 185,
-      timestamp: new Date(Date.now() - 15000).toISOString(),
-    },
-  ]);
+// Mock data for demo purposes
+const mockApiUsageHistory: Record<string, {time: string, usage: number}[]> = {
+  "CoinGecko": [
+    { time: "09:00", usage: 10 },
+    { time: "10:00", usage: 15 },
+    { time: "11:00", usage: 25 },
+    { time: "12:00", usage: 30 },
+    { time: "13:00", usage: 28 },
+    { time: "14:00", usage: 35 },
+  ],
+  "CryptoCompare": [
+    { time: "09:00", usage: 5 },
+    { time: "10:00", usage: 12 },
+    { time: "11:00", usage: 18 },
+    { time: "12:00", usage: 15 },
+    { time: "13:00", usage: 22 },
+    { time: "14:00", usage: 28 },
+  ],
+  "CoinMarketCap": [
+    { time: "09:00", usage: 2 },
+    { time: "10:00", usage: 8 },
+    { time: "11:00", usage: 12 },
+    { time: "12:00", usage: 10 },
+    { time: "13:00", usage: 15 },
+    { time: "14:00", usage: 18 },
+  ]
+};
 
-  // Mock chart data for response times
-  const [responseTimeData, setResponseTimeData] = useState<any[]>([]);
+const availableServices = ["CoinGecko", "CryptoCompare", "CoinMarketCap"];
+
+const RealTimeApiUsage: React.FC<RealTimeApiUsageProps> = ({ selectedService, onServiceSelect }) => {
+  const [usageData, setUsageData] = useState<{time: string, usage: number}[]>([]);
 
   useEffect(() => {
-    // Generate mock data for response time chart
-    const now = Date.now();
-    const mockData = [];
-    
-    for (let i = 20; i >= 0; i--) {
-      mockData.push({
-        time: new Date(now - i * 10000).toLocaleTimeString(),
-        'CoinGecko API': Math.random() * 300 + 100,
-        'Hyblock API': Math.random() * 200 + 50,
-        'Alchemy API': Math.random() * 150 + 75,
-      });
-    }
-    
-    setResponseTimeData(mockData);
-    
-    // Set up interval to add new data points
-    const interval = setInterval(() => {
-      const newCall = {
-        id: Date.now().toString(),
-        service: ['CoinGecko API', 'Hyblock API', 'Alchemy API'][Math.floor(Math.random() * 3)],
-        endpoint: ['/markets', '/prices', '/coins/bitcoin', '/orderbook'][Math.floor(Math.random() * 4)],
-        status: Math.random() > 0.9 ? 429 : 200, // Occasionally simulate rate limiting
-        responseTime: Math.random() * 300 + 50,
-        timestamp: new Date().toISOString(),
-      };
-      
-      // Add new API call
-      setApiCalls(prev => [newCall, ...prev.slice(0, 14)]);
-      
-      // Update chart data
-      setResponseTimeData(prev => {
-        const newData = [...prev.slice(1), {
-          time: new Date().toLocaleTimeString(),
-          'CoinGecko API': Math.random() * 300 + 100,
-          'Hyblock API': Math.random() * 200 + 50,
-          'Alchemy API': Math.random() * 150 + 75,
-        }];
-        return newData;
-      });
-      
-      // Show toast for rate limiting
-      if (newCall.status === 429) {
-        toast({
-          title: "API Rate Limit Reached",
-          description: `${newCall.service} returned a 429 status code. Consider reducing request frequency.`,
-          variant: "destructive",
-        });
-      }
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return 'text-green-500';
-    if (status >= 400 && status < 500) return 'text-yellow-500';
-    if (status >= 500) return 'text-red-500';
-    return '';
-  };
-
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString();
-  };
-
-  const handleRefresh = () => {
-    toast({
-      title: "Refreshed",
-      description: "Real-time API usage data has been refreshed.",
-    });
-  };
+    // Update with mock data when selected service changes
+    const data = mockApiUsageHistory[selectedService] || [];
+    setUsageData(data);
+  }, [selectedService]);
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
           <div>
-            <CardTitle>Response Time Monitoring</CardTitle>
-            <CardDescription>Real-time API response times</CardDescription>
+            <CardTitle>Real-Time API Usage</CardTitle>
+            <CardDescription>Track API requests over time</CardDescription>
           </div>
-          <Button size="sm" variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={responseTimeData}>
-                <XAxis 
-                  dataKey="time" 
-                  tick={{ fontSize: 12 }} 
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis 
-                  label={{ value: 'Response Time (ms)', angle: -90, position: 'insideLeft' }} 
-                  tick={{ fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="CoinGecko API" 
-                  stroke="#8884d8" 
-                  strokeWidth={2} 
-                  dot={false} 
-                  activeDot={{ r: 6 }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Hyblock API" 
-                  stroke="#82ca9d" 
-                  strokeWidth={2} 
-                  dot={false} 
-                  activeDot={{ r: 6 }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Alchemy API" 
-                  stroke="#ffc658" 
-                  strokeWidth={2} 
-                  dot={false} 
-                  activeDot={{ r: 6 }} 
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>API Call History</CardTitle>
-          <CardDescription>Recent API calls and their status</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead className="hidden md:table-cell">Endpoint</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Response Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {apiCalls.map((call) => (
-                <TableRow key={call.id}>
-                  <TableCell className="font-mono text-sm">
-                    {formatTime(call.timestamp)}
-                  </TableCell>
-                  <TableCell>{call.service}</TableCell>
-                  <TableCell className="hidden md:table-cell font-mono text-xs">
-                    {call.endpoint}
-                  </TableCell>
-                  <TableCell className={getStatusColor(call.status)}>
-                    {call.status}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {call.responseTime.toFixed(0)} ms
-                  </TableCell>
-                </TableRow>
+          
+          <Select value={selectedService} onValueChange={onServiceSelect}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select service" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableServices.map(service => (
+                <SelectItem key={service} value={service}>{service}</SelectItem>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={usageData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="usage"
+                name="API Calls"
+                stroke="#8884d8"
+                activeDot={{ r: 8 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        
+        {usageData.length === 0 && (
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-muted-foreground">No usage data available for this service</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
