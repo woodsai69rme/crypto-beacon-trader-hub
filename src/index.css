@@ -5,37 +5,37 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
     --radius: 0.5rem;
     
-    /* Crypto-specific dark theme colors */
+    /* Crypto-specific theme colors */
     --crypto-green: 142 70% 45%;
     --crypto-red: 0 85% 60%;
     --crypto-blue: 217 91% 60%;
     --crypto-yellow: 41 96% 61%;
     --crypto-purple: 262 83% 65%;
-    --crypto-dark: 222 47% 11%;
-    --crypto-dark-hover: 223 47% 15%;
-
-    color-scheme: dark;
+    
+    /* Trading specific */
+    --profit: 142 71% 45%;
+    --loss: 358 75% 64%;
   }
 
   /* Dark theme (default) */
@@ -89,102 +89,13 @@
   }
 }
 
-/* Blue theme */
-.blue {
-  --app-bg: #0A192F;
-  --card-bg: #112240;
-  --border-color: #234067;
-  --border-hover: #345078;
-  --text-primary: #E6F1FF;
-  --text-secondary: #8892B0;
-  --input-bg: #1A2D4A;
-  --indicator-bg: #234067;
-  --indicator-border: #345078;
-  --primary: 210 100% 52%;
-  --accent: 210 90% 45%;
-}
-
-/* Purple theme */
-.purple {
-  --app-bg: #13111C;
-  --card-bg: #1E1B2E;
-  --border-color: #2D2B3D;
-  --border-hover: #3D3B4D;
-  --text-primary: #F8F8FD;
-  --text-secondary: #A09CB0;
-  --input-bg: #252336;
-  --indicator-bg: #2D2B3D;
-  --indicator-border: #3D3B4D;
-  --primary: 262 83% 65%;
-  --accent: 280 75% 60%;
-}
-
-/* Green theme */
-.green {
-  --app-bg: #0A1F1B;
-  --card-bg: #0F2922;
-  --border-color: #1E3D36;
-  --border-hover: #2E4D46;
-  --text-primary: #E6FFF8;
-  --text-secondary: #88B0A0;
-  --input-bg: #14332C;
-  --indicator-bg: #1E3D36;
-  --indicator-border: #2E4D46;
-  --primary: 142 70% 45%;
-  --accent: 160 60% 40%;
-}
-
-/* Amber theme */
-.amber {
-  --app-bg: #1F1707;
-  --card-bg: #332211;
-  --border-color: #443322;
-  --border-hover: #554433;
-  --text-primary: #FFF8E6;
-  --text-secondary: #D6B088;
-  --input-bg: #3A2815;
-  --indicator-bg: #443322;
-  --indicator-border: #554433;
-  --primary: 41 96% 61%;
-  --accent: 36 90% 55%;
-}
-
-/* Red theme */
-.red {
-  --app-bg: #1D0E12;
-  --card-bg: #2C151B;
-  --border-color: #3D242A;
-  --border-hover: #4D343A;
-  --text-primary: #FFE6EB;
-  --text-secondary: #C0A0A8;
-  --input-bg: #37191F;
-  --indicator-bg: #3D242A;
-  --indicator-border: #4D343A;
-  --primary: 0 85% 60%;
-  --accent: 350 80% 55%;
-}
-
-/* Slate theme */
-.slate {
-  --app-bg: #0F172A;
-  --card-bg: #1E293B;
-  --border-color: #334155;
-  --border-hover: #475569;
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --input-bg: #273449;
-  --indicator-bg: #334155;
-  --indicator-border: #475569;
-  --primary: 215 25% 27%;
-  --accent: 225 25% 35%;
-}
-
 @layer base {
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -229,6 +140,20 @@
   .chart-tooltip {
     @apply rounded-md border border-border bg-popover p-2 text-xs shadow-md;
   }
+  
+  /* Glass card styles */
+  .glass-card {
+    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-lg;
+  }
+
+  /* Profit/Loss styling */
+  .profit {
+    @apply text-green-500;
+  }
+
+  .loss {
+    @apply text-red-500;
+  }
 }
 
 /* Animation for skeleton loading */
@@ -251,24 +176,10 @@
   background-size: 200% 100%;
 }
 
-/* Default to dark theme */
-:root {
-  color-scheme: dark;
-}
-
-body {
-  @apply bg-crypto-dark text-white;
-}
-
-/* Remove focus outlines for mouse users but keep for keyboard users */
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
 /* Make scrollbars match the theme */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -283,146 +194,21 @@ body {
   @apply bg-muted-foreground;
 }
 
-/* Apply theme colors */
-.themed-app {
-  background-color: var(--app-bg, #1A1F2C);
-  color: var(--text-primary, white);
+/* Glassmorphism for cards */
+.themed-app.midnight-tech .glass-card {
+  background-color: rgba(13, 19, 33, 0.7);
+  border-color: rgba(65, 100, 240, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.themed-card {
-  background-color: var(--card-bg, #222333);
-  border-color: var(--border-color, #333344);
-  color: var(--text-primary, white);
+.themed-app.cyber-pulse .glass-card {
+  background-color: rgba(28, 14, 36, 0.7);
+  border-color: rgba(186, 104, 200, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.themed-text {
-  color: var(--text-primary, white);
-}
-
-.themed-text-secondary {
-  color: var(--text-secondary, #B0B0C0);
-}
-
-/* Fix for input, select and button focus */
-input:focus,
-select:focus,
-textarea:focus,
-button:focus {
-  outline-color: var(--border-hover) !important;
-  box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--border-color) !important;
-}
-
-/* Force dark mode styles for themed elements */
-.bg-card, 
-.bg-background, 
-.bg-popover,
-.bg-white,
-.bg-muted,
-[data-theme="dark"] .bg-card,
-[data-theme="dark"] .bg-background,
-[data-theme="dark"] .bg-popover,
-[data-theme="dark"] .bg-white {
-  background-color: var(--card-bg, #222333) !important;
-  color: var(--text-primary, white) !important;
-}
-
-.border,
-.border-border,
-[data-theme="dark"] .border,
-[data-theme="dark"] .border-border {
-  border-color: var(--border-color, #333344) !important;
-}
-
-.crypto-card {
-  background-color: var(--card-bg, #222333) !important;
-  border-color: var(--border-color, #333344) !important;
-  color: var(--text-primary, white) !important;
-}
-
-/* Force all text to white in dark themes */
-.text-black, 
-.text-foreground,
-.text-card-foreground,
-[data-theme="dark"] .text-black,
-[data-theme="dark"] .text-foreground,
-[data-theme="dark"] .text-card-foreground {
-  color: var(--text-primary, white) !important;
-}
-
-/* Light text styles */
-.text-muted-foreground {
-  color: var(--text-secondary, #B0B0C0) !important;
-}
-
-/* Set all inputs and selects to dark */
-input, 
-select, 
-textarea, 
-button,
-.bg-gray-100,
-[role="combobox"] {
-  background-color: var(--input-bg, #2A2A3A) !important;
-  color: var(--text-primary, white) !important;
-  border-color: var(--border-color, #333344) !important;
-}
-
-/* Key indicators styling */
-.key-indicator {
-  color: var(--text-primary, white) !important;
-  background-color: var(--indicator-bg, #333344) !important;
-  border: 1px solid var(--indicator-border, #444455) !important;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-}
-
-.border-gray-200 {
-  border-color: var(--border-color, #333344) !important;
-}
-
-/* Dark theme for dialogs and popovers */
-[role="dialog"],
-[role="tooltip"],
-[role="menu"],
-[data-state="open"] {
-  background-color: var(--card-bg, #222333) !important;
-  border-color: var(--border-color, #333344) !important;
-  color: var(--text-primary, white) !important;
-}
-
-/* Glassmorphism styles for cards */
-.glass-card {
-  @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-lg;
-}
-
-/* Enhanced animations */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(var(--primary), 0.5);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(var(--primary), 0.8);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Custom scrollbar to match theme */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: var(--app-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--border-hover);
+.themed-app.matrix-code .glass-card {
+  background-color: rgba(8, 20, 8, 0.7);
+  border-color: rgba(50, 205, 50, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

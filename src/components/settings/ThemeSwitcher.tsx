@@ -48,7 +48,7 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
     { 
       value: "default", 
       label: "Default", 
-      description: "Standard elegant dark theme",
+      description: "Standard elegant theme",
       preview: "bg-gradient-to-br from-slate-900 to-slate-800" 
     },
     { 
@@ -72,26 +72,43 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   ];
   
   const getCurrentThemeLabel = () => {
-    return themeOptions.find(t => t.value === theme)?.label || "Dark";
+    return themeOptions.find(t => t.value === theme)?.label || "System";
   };
   
   const getCurrentColorSchemeLabel = () => {
     return colorSchemeOptions.find(c => c.value === colorScheme)?.label || "Default";
   };
   
+  const handleToggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+  
   return (
     <div className={className}>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-        <DropdownMenuTrigger asChild>
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             size="icon" 
+            onClick={handleToggleTheme}
             className="relative"
-            aria-label={`Theme: ${getCurrentThemeLabel()}, Style: ${getCurrentColorSchemeLabel()}`}
           >
-            <Palette className="h-5 w-5" />
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <span className="sr-only">Toggle theme</span>
           </Button>
-        </DropdownMenuTrigger>
+          
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              aria-label={`Theme: ${getCurrentThemeLabel()}, Style: ${getCurrentColorSchemeLabel()}`}
+            >
+              <Palette className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+        </div>
+        
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Appearance</DropdownMenuLabel>
           <DropdownMenuSeparator />

@@ -84,11 +84,11 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({
                 {selectedCoin.image && (
                   <img 
                     src={selectedCoin.image} 
-                    alt={selectedCoin.label} 
+                    alt={selectedCoin.name} 
                     className="w-4 h-4 mr-2 rounded-full"
                   />
                 )}
-                <span>{selectedCoin.label}</span>
+                <span>{selectedCoin.name}</span>
               </div>
             ) : (
               <span className="text-muted-foreground flex items-center">
@@ -114,21 +114,21 @@ const CryptoSearch: React.FC<CryptoSearchProps> = ({
                 <CommandGroup heading="Cryptocurrencies">
                   {results.map(coin => (
                     <CommandItem
-                      key={coin.value}
-                      value={coin.value}
+                      key={coin.id}
+                      value={coin.id}
                       onSelect={() => handleSelect(coin)}
                     >
                       <div className="flex items-center">
                         {coin.image && (
                           <img 
                             src={coin.image} 
-                            alt={coin.label} 
+                            alt={coin.name} 
                             className="w-5 h-5 mr-3 rounded-full"
                           />
                         )}
-                        <span>{coin.label}</span>
+                        <span>{coin.name}</span>
                       </div>
-                      {selectedCoin?.value === coin.value && (
+                      {selectedCoin?.id === coin.id && (
                         <Check className="ml-auto h-4 w-4 opacity-100" />
                       )}
                     </CommandItem>

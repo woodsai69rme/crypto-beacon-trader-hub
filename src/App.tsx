@@ -4,6 +4,10 @@ import './App.css';
 import { useTheme } from './contexts/ThemeContext';
 import Dashboard from './components/Dashboard';
 import ThemeSwitcher from './components/settings/ThemeSwitcher';
+import { Toaster } from './components/ui/toaster';
+import { cn } from './lib/utils';
+import { GithubIcon } from 'lucide-react';
+import { Button } from './components/ui/button';
 
 function App() {
   const { theme, colorScheme } = useTheme();
@@ -19,36 +23,48 @@ function App() {
   }
 
   return (
-    <div className={`app themed-app ${theme} ${colorScheme}`}>
-      <header className="themed-container border-b border-border">
-        <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <h1 className="font-bold text-xl">Crypto Trading Platform</h1>
+    <div className={cn(
+      "app min-h-screen flex flex-col bg-background text-foreground",
+      `themed-app ${theme} ${colorScheme}`
+    )}>
+      <header className="border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container h-16 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+              CT
+            </div>
+            <h1 className="font-bold text-xl hidden md:block">Crypto Trading Platform</h1>
           </div>
           <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
+              <GithubIcon size={16} />
+              <span>Star on GitHub</span>
+            </Button>
             <ThemeSwitcher />
           </div>
         </div>
       </header>
       
-      <main className="flex-grow themed-container">
-        <div className="container py-4">
+      <main className="flex-grow">
+        <div className="container py-6">
           <Dashboard />
         </div>
       </main>
       
-      <footer className="themed-container border-t border-border">
-        <div className="container py-3">
-          <div className="flex justify-between items-center text-sm text-muted-foreground">
+      <footer className="border-t border-border py-4 mt-8">
+        <div className="container">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <div>© 2025 Crypto Trading Platform</div>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-foreground">Terms</a>
-              <a href="#" className="hover:text-foreground">Privacy</a>
-              <a href="#" className="hover:text-foreground">Contact</a>
+              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
             </div>
           </div>
         </div>
       </footer>
+      
+      <Toaster />
     </div>
   );
 }
