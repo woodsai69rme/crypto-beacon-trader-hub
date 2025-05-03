@@ -1,96 +1,83 @@
 
-# Crypto Trading Platform
+# Crypto Beacon Trader Hub
 
-## Overview
-The Crypto Trading Platform is a comprehensive web application that provides traders with powerful tools for cryptocurrency analysis, portfolio management, and AI-powered trading insights. It features a modern responsive UI with multiple theme options and extensive customization capabilities.
+![Crypto Beacon Trader Hub](https://your-logo-link.png)
 
-## Features
-- Real-time cryptocurrency price tracking and analysis
-- Customizable dashboard with draggable widgets
-- Advanced technical analysis tools
-- Portfolio tracking and performance metrics
-- AI trading signals and strategies
-- Market correlation analysis
-- Multiple dark theme options (Default, Midnight Tech, Cyber Pulse, Matrix Code)
-- Watchlist with customizable alerts
-- API management and integration
+A comprehensive cryptocurrency trading and portfolio management platform with advanced analytics, real-time market data, and powerful trading tools.
 
-## Screenshots
-![Dashboard](screenshot-dashboard.png)
-![Market Analysis](screenshot-analysis.png)
-![Portfolio View](screenshot-portfolio.png)
+## 🚀 Features
 
-## Tech Stack
-- **Frontend**: React, TypeScript, Tailwind CSS
-- **UI Components**: Shadcn UI
-- **State Management**: React Context API
-- **Charts**: Recharts
-- **Icons**: Lucide React
+- **Interactive Dashboard**: Customizable dashboard with watchlists, portfolio tracking, and market analytics
+- **Real-Time Data**: Live price updates and market data using multiple crypto APIs
+- **Technical Analysis**: Advanced charting and technical indicators
+- **Portfolio Management**: Track your crypto holdings and performance across exchanges
+- **Market Correlations**: Analyze relationships between different cryptocurrencies
+- **API Management**: Connect and manage multiple cryptocurrency data APIs
+- **Tax Calculation**: Built-in tax reporting and calculation tools
+- **Mobile Responsive**: Fully responsive design for all devices
 
-## Getting Started
+## 🛠️ Quick Start
 
 ### Prerequisites
-- Node.js (v16.x or higher)
-- npm (v7.x or higher)
+
+- Node.js (v16 or higher)
+- npm or yarn
 
 ### Installation
-1. Clone the repository:
+
+1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/crypto-trading-platform.git
-cd crypto-trading-platform
+git clone https://github.com/your-username/crypto-beacon-trader-hub.git
+cd crypto-beacon-trader-hub
 ```
 
-2. Install dependencies:
+2. Install dependencies
 ```bash
 npm install
+# or
+yarn install
 ```
 
-3. Start the development server:
+3. Start the development server
 ```bash
 npm run dev
+# or
+yarn dev
 ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+4. Open your browser and navigate to `http://localhost:5173`
 
-### Build for Production
+## 📦 Build for Production
+
 ```bash
 npm run build
+# or
+yarn build
 ```
 
-The built application will be in the `dist` directory.
+## 🏗️ Tech Stack
 
-## Configuration
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **UI Components**: Shadcn UI
+- **Styling**: Tailwind CSS
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **State Management**: React Context API
+- **Data Fetching**: Native fetch with caching
 
-### Environment Variables
-No environment variables are required for basic operation. API keys for external services are managed through the API Key Management interface within the application.
+## 🌐 Live Demo
 
-### Theme Customization
-The platform includes four theme options:
-1. **Default Dark** - Standard dark theme with balanced contrast
-2. **Midnight Tech** - Deep blue tech-inspired theme
-3. **Cyber Pulse** - Vibrant purple cyberpunk style 
-4. **Matrix Code** - Green-tinted hacker aesthetic
+Check out the live demo: [Crypto Beacon Trader Hub](https://crypto-beacon-trader-hub.lovable.app/)
 
-Users can change themes through the theme switcher in the top navigation bar.
+## 📄 License
 
-## Documentation
-Additional documentation is available in the `docs` directory:
-- [User Guide](docs/USER_GUIDE.md) - End-user documentation
-- [Developer Guide](docs/DEV_GUIDE.md) - Technical documentation for developers
-- [API Documentation](docs/API_DOCS.md) - API reference and integration guides
-- [Theme System](docs/THEME_SYSTEM.md) - Documentation for the theming system
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+## 👥 Contributors
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Lead Developer: [Your Name](https://github.com/your-username)
 
-## Acknowledgements
-- [Shadcn UI](https://ui.shadcn.com/) for the UI component library
-- [Recharts](https://recharts.org/) for charting capabilities
-- [Lucide React](https://lucide.dev/) for the icon set
+## 📞 Support
+
+For support or inquiries, please open an issue or contact: support@example.com

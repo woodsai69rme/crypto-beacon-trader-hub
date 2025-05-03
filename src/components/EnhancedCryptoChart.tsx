@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CryptoChartData } from '@/types/trading';
+import { fetchCoinChartData } from '@/services/enhancedCryptoApi';
 
 interface EnhancedCryptoChartProps {
   coin: string;
@@ -36,20 +37,30 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
   const [chartType, setChartType] = useState<'line' | 'area' | 'candle'>('area');
   
   useEffect(() => {
-    if (data) {
-      // Format data from the API into chart format
-      const formattedData = data.time.map((time, index) => ({
-        date: new Date(time).toLocaleDateString(),
-        price: data.price[index],
-        volume: data.volume ? data.volume[index] : undefined
-      }));
-      
-      setChartData(formattedData);
-    } else {
-      // Generate mock data if no data is provided
-      generateMockChartData();
-    }
-  }, [data, timeframe]);
+    const loadChartData = async () => {
+      try {
+        // Use provided data or fetch new data
+        const chartData = data || await fetchCoinChartData(coinId, parseInt(timeframe.replace('d', '')));
+        
+        // Format data for the chart
+        const formattedData = chartData.prices.map(([timestamp, price], index) => {
+          return {
+            date: new Date(timestamp).toLocaleDateString(),
+            price,
+            volume: chartData.total_volumes ? chartData.total_volumes[index][1] : undefined
+          };
+        });
+        
+        setChartData(formattedData);
+      } catch (error) {
+        console.error("Failed to load chart data:", error);
+        // Generate mock data as fallback
+        generateMockChartData();
+      }
+    };
+    
+    loadChartData();
+  }, [coinId, data, timeframe]);
 
   const generateMockChartData = () => {
     const mockData = [];
@@ -156,7 +167,7 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
             <CardTitle className="text-xl font-bold">{coin}</CardTitle>
             <div className="mt-1 flex items-center">
               <span className="text-2xl font-bold">${lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              <span className={`ml-2 ${isPositive ? 'profit' : 'loss'}`}>
+              <span className={`ml-2 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
                 {isPositive ? '+' : ''}{priceChange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({priceChangePercent.toFixed(2)}%)
               </span>
             </div>
@@ -333,11 +344,11 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
                   tick={{ fontSize: 12 }} 
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `${(value / 1e6).toFixed(1)}M`}
+                  tickFormatter={value => `$${(value/1000000).toFixed(1)}M`}
                   width={60}
                 />
                 <Tooltip 
-                  formatter={formatVolumeValue}
+                  formatter={(value) => [`$${(value as number).toLocaleString()}`, "Volume"]}
                   contentStyle={{ 
                     backgroundColor: 'var(--card)', 
                     borderColor: 'var(--border)', 
@@ -352,6 +363,7 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
                   fillOpacity={1}
                   fill="url(#colorVolume)"
                   strokeWidth={2}
+                  dot={false}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -372,7 +384,7 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
                   minTickGap={30}
                 />
                 <YAxis 
-                  yAxisId="left"
+                  yAxisId="price"
                   domain={['dataMin - 100', 'dataMax + 100']} 
                   tick={{ fontSize: 12 }} 
                   tickLine={false}
@@ -380,20 +392,21 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
                   tickFormatter={formatYAxis}
                   width={60}
                 />
-                <YAxis
-                  yAxisId="right"
+                <YAxis 
+                  yAxisId="volume"
                   orientation="right"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 12 }} 
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `${(value / 1e6).toFixed(1)}M`}
+                  tickFormatter={value => `$${(value/1000000).toFixed(0)}M`}
                   width={60}
                 />
                 <Tooltip 
                   formatter={(value, name) => {
-                    if (name === 'price') return formatTooltipValue(value as number);
-                    if (name === 'volume') return formatVolumeValue(value as number);
-                    return value;
+                    if (name === 'price') {
+                      return [formatTooltipValue(value as number), "Price"];
+                    }
+                    return [`$${(value as number).toLocaleString()}`, "Volume"];
                   }}
                   contentStyle={{ 
                     backgroundColor: 'var(--card)', 
@@ -404,22 +417,23 @@ const EnhancedCryptoChart: React.FC<EnhancedCryptoChartProps> = ({
                 />
                 <Legend />
                 <Line 
-                  yAxisId="left"
+                  yAxisId="price"
                   type="monotone" 
                   dataKey="price" 
                   name="Price"
                   stroke={lineColor} 
                   strokeWidth={2} 
-                  dot={false}
+                  dot={false} 
                   activeDot={{ r: 6 }} 
                 />
                 <Line 
-                  yAxisId="right"
+                  yAxisId="volume"
                   type="monotone" 
                   dataKey="volume" 
                   name="Volume"
                   stroke="#8884d8" 
-                  strokeWidth={2} 
+                  strokeWidth={1}
+                  strokeDasharray="5 5"
                   dot={false}
                 />
               </LineChart>

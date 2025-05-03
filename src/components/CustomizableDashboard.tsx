@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import MultiCoinChart from './charts/MultiCoinChart';
 import CoinComparison from './CoinComparison';
 import AiMarketInsights from './AiMarketInsights';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { LayoutDashboard, Plus, Settings, TrendingUp } from 'lucide-react';
 
 interface DashboardWidget {
@@ -40,14 +39,12 @@ const CustomizableDashboard: React.FC = () => {
     }
   ]);
 
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
-    
-    const items = Array.from(widgets);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    
-    setWidgets(items);
+  const handleMoveWidget = (dragIndex: number, hoverIndex: number) => {
+    const draggedWidget = widgets[dragIndex];
+    const newWidgets = [...widgets];
+    newWidgets.splice(dragIndex, 1);
+    newWidgets.splice(hoverIndex, 0, draggedWidget);
+    setWidgets(newWidgets);
   };
 
   return (
@@ -69,43 +66,22 @@ const CustomizableDashboard: React.FC = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 animate-fade-in">
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="widgets">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-6"
-                >
-                  {widgets.map((widget, index) => (
-                    <Draggable 
-                      key={widget.id} 
-                      draggableId={widget.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="hover-lift"
-                        >
-                          <Card>
-                            <CardHeader>
-                              <CardTitle>{widget.title}</CardTitle>
-                              <CardDescription>{widget.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent>{widget.component}</CardContent>
-                          </Card>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <div className="space-y-6">
+            {widgets.map((widget, index) => (
+              <div
+                key={widget.id}
+                className="hover-lift"
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{widget.title}</CardTitle>
+                    <CardDescription>{widget.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>{widget.component}</CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="market" className="space-y-6 animate-fade-in">

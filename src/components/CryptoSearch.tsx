@@ -1,165 +1,92 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { searchCoins } from "@/services/enhancedCryptoApi";
-import { CoinOption } from "@/types/trading";
+import React, { useState, useEffect } from 'react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { CoinOption } from '@/types/trading';
+import { searchCoins } from '@/services/enhancedCryptoApi';
 
 interface CryptoSearchProps {
-  onCoinSelect: (coin: CoinOption) => void;
+  onSelect: (coin: CoinOption) => void;
   placeholder?: string;
   className?: string;
-  initialCoin?: CoinOption | null;
 }
 
-const CryptoSearch: React.FC<CryptoSearchProps> = ({
-  onCoinSelect,
-  placeholder = "Search for coins...",
-  className,
-  initialCoin = null
+const CryptoSearch: React.FC<CryptoSearchProps> = ({ 
+  onSelect,
+  placeholder = "Search for cryptocurrencies...",
+  className = ""
 }) => {
-  const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<CoinOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(initialCoin);
-  const searchTimeoutRef = useRef<number | null>(null);
-  
-  // Initialize with default popular coins
+
   useEffect(() => {
-    const defaultCoins: CoinOption[] = [
-      { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 69420, value: "bitcoin", label: "Bitcoin (BTC)" },
-      { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3210, value: "ethereum", label: "Ethereum (ETH)" },
-      { id: "solana", name: "Solana", symbol: "SOL", price: 142.5, value: "solana", label: "Solana (SOL)" }
-    ];
-    
-    if (results.length === 0 && !searchTerm) {
-      setResults(defaultCoins);
-    }
-    
-    if (initialCoin && !selectedCoin) {
-      setSelectedCoin(initialCoin);
-    }
-  }, [initialCoin]);
-  
-  // Search for coins when the search term changes
-  useEffect(() => {
-    if (searchTerm.trim().length < 2) {
-      return;
-    }
-    
-    // Clear the timeout if it exists
-    if (searchTimeoutRef.current !== null) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    // Set a new timeout to prevent too many API calls
-    setIsLoading(true);
-    const timeout = window.setTimeout(async () => {
+    const searchForCoins = async () => {
+      if (searchQuery.length < 2) {
+        setResults([]);
+        return;
+      }
+
+      setIsLoading(true);
       try {
-        const searchResults = await searchCoins(searchTerm);
-        setResults(searchResults);
+        const coins = await searchCoins(searchQuery);
+        setResults(coins);
       } catch (error) {
         console.error("Error searching for coins:", error);
         setResults([]);
       } finally {
         setIsLoading(false);
       }
-    }, 300);
-    
-    searchTimeoutRef.current = timeout;
-    
-    // Cleanup the timeout when the component unmounts or the search term changes
-    return () => {
-      if (searchTimeoutRef.current !== null) {
-        clearTimeout(searchTimeoutRef.current);
-      }
     };
-  }, [searchTerm]);
-  
-  const handleSelect = (coin: CoinOption) => {
-    setSelectedCoin(coin);
-    setOpen(false);
-    onCoinSelect(coin);
-  };
-  
+
+    const timeoutId = setTimeout(searchForCoins, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   return (
-    <div className={cn("w-full", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between"
-          >
-            {selectedCoin ? (
-              <div className="flex items-center">
-                {selectedCoin.image && (
-                  <img 
-                    src={selectedCoin.image} 
-                    alt={selectedCoin.name} 
-                    className="w-4 h-4 mr-2 rounded-full"
+    <Command className={`rounded-lg border shadow-md ${className}`}>
+      <CommandInput 
+        placeholder={placeholder} 
+        value={searchQuery}
+        onValueChange={setSearchQuery}
+        className="h-9"
+      />
+      {searchQuery.length > 0 && (
+        <>
+          <CommandEmpty>
+            {isLoading ? "Searching..." : "No cryptocurrencies found."}
+          </CommandEmpty>
+          <CommandGroup heading="Cryptocurrencies">
+            {results.map((coin) => (
+              <CommandItem
+                key={coin.id}
+                value={coin.id}
+                onSelect={() => {
+                  onSelect(coin);
+                  setSearchQuery("");
+                }}
+                className="flex items-center cursor-pointer hover:bg-accent"
+              >
+                {coin.image && (
+                  <img
+                    src={coin.image}
+                    alt={coin.name}
+                    className="w-5 h-5 rounded-full mr-2"
                   />
                 )}
-                <span>{selectedCoin.name} ({selectedCoin.symbol})</span>
-              </div>
-            ) : (
-              <span className="text-muted-foreground flex items-center">
-                <Search className="mr-2 h-4 w-4" />
-                {placeholder}
-              </span>
-            )}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-full p-0" style={{ width: "var(--radix-popper-anchor-width)" }}>
-          <Command>
-            <CommandInput 
-              placeholder={placeholder}
-              value={searchTerm}
-              onValueChange={setSearchTerm}
-            />
-            <CommandList>
-              <CommandEmpty>
-                {isLoading ? 'Searching...' : 'No coins found.'}
-              </CommandEmpty>
-              {results.length > 0 && (
-                <CommandGroup heading="Cryptocurrencies">
-                  {results.map(coin => (
-                    <CommandItem
-                      key={coin.id}
-                      value={coin.id}
-                      onSelect={() => handleSelect(coin)}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <div className="flex items-center flex-1">
-                        {coin.image && (
-                          <img 
-                            src={coin.image} 
-                            alt={coin.name} 
-                            className="w-5 h-5 mr-3 rounded-full"
-                          />
-                        )}
-                        <span>{coin.name}</span>
-                        <span className="ml-2 text-muted-foreground">({coin.symbol})</span>
-                      </div>
-                      {selectedCoin?.id === coin.id && (
-                        <Check className="ml-auto h-4 w-4 opacity-100" />
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+                <span className="font-medium">{coin.name}</span>
+                <span className="ml-2 text-muted-foreground">({coin.symbol})</span>
+                <span className="ml-auto font-mono">
+                  ${coin.price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 6,
+                  })}
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </>
+      )}
+    </Command>
   );
 };
 

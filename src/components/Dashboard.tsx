@@ -1,61 +1,62 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
-import CustomizableDashboard from './CustomizableDashboard';
-import MarketCorrelations from './MarketCorrelations';
-import FakeTrading from './FakeTrading';
-import ApiManagementDashboard from './api/ApiManagementDashboard';
-import { LayoutDashboard, TrendingUp, BarChartHorizontal, Settings } from 'lucide-react';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardTabList from "./dashboard/DashboardTabList";
+import DashboardOverview from "./dashboard/DashboardOverview";
+import DashboardPortfolio from "./dashboard/DashboardPortfolio";
+import DashboardWatchlist from "./dashboard/DashboardWatchlist";
+import DashboardTrading from "./dashboard/DashboardTrading";
+import DashboardAnalysis from "./dashboard/DashboardAnalysis";
+import DashboardTools from "./dashboard/DashboardTools";
+import { useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 
-const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+export type DashboardTab = "overview" | "portfolio" | "watchlist" | "trading" | "analysis" | "tools";
 
+interface DashboardProps {
+  initialTab?: DashboardTab;
+}
+
+const Dashboard = ({ initialTab = "overview" }: DashboardProps) => {
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+  
+  useEffect(() => {
+    // Simulate data loading
+    const timer = setTimeout(() => {
+      toast({
+        title: "Dashboard updated",
+        description: "Latest market data has been loaded.",
+      });
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as DashboardTab);
+  };
+  
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Trading Dashboard</h1>
-        <p className="text-muted-foreground">
-          Monitor your portfolio, analyze market trends, and execute trades all in one place.
-        </p>
-      </div>
-
-      <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-4 md:w-[600px] w-full">
-          <TabsTrigger value="dashboard" className="flex items-center justify-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </TabsTrigger>
-          <TabsTrigger value="trading" className="flex items-center justify-center gap-2">
-            <BarChartHorizontal className="h-4 w-4" />
-            <span className="hidden sm:inline">Trading</span>
-          </TabsTrigger>
-          <TabsTrigger value="correlations" className="flex items-center justify-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Correlations</span>
-          </TabsTrigger>
-          <TabsTrigger value="api" className="flex items-center justify-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">API</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6 animate-fade-in">
-          <CustomizableDashboard />
-        </TabsContent>
-
-        <TabsContent value="trading" className="space-y-6 animate-fade-in">
-          <FakeTrading />
-        </TabsContent>
-
-        <TabsContent value="correlations" className="space-y-6 animate-fade-in">
-          <MarketCorrelations />
-        </TabsContent>
-
-        <TabsContent value="api" className="space-y-6 animate-fade-in">
-          <ApiManagementDashboard />
-        </TabsContent>
-      </Tabs>
+    <div className="container mx-auto py-8 px-4">
+      <Card className="bg-card shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold">Crypto Dashboard</CardTitle>
+          <CardDescription>
+            Your comprehensive crypto trading platform and portfolio manager
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <DashboardTabList activeTab={activeTab} onTabChange={handleTabChange} />
+          
+          {activeTab === "overview" && <DashboardOverview />}
+          {activeTab === "portfolio" && <DashboardPortfolio />}
+          {activeTab === "watchlist" && <DashboardWatchlist />}
+          {activeTab === "trading" && <DashboardTrading />}
+          {activeTab === "analysis" && <DashboardAnalysis />}
+          {activeTab === "tools" && <DashboardTools />}
+        </CardContent>
+      </Card>
     </div>
   );
 };

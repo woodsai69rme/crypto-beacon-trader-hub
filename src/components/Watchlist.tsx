@@ -11,6 +11,7 @@ const Watchlist: React.FC = () => {
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([
     {
       id: "bitcoin",
+      coinId: "bitcoin",
       name: "Bitcoin",
       symbol: "BTC",
       price: 50000,
@@ -18,8 +19,10 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 2.4,
       image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
       isWatched: true,
-      coinId: "bitcoin",
       alertSettings: {
+        highPrice: 52000,
+        lowPrice: 47000,
+        percentageChangeThreshold: 5,
         priceAbove: 52000,
         priceBelow: 47000,
         percentageChange: 5,
@@ -28,6 +31,7 @@ const Watchlist: React.FC = () => {
     },
     {
       id: "ethereum",
+      coinId: "ethereum",
       name: "Ethereum",
       symbol: "ETH",
       price: 3200,
@@ -35,8 +39,10 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: -3.1,
       image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
       isWatched: true,
-      coinId: "ethereum",
       alertSettings: {
+        highPrice: 3500,
+        lowPrice: 2800,
+        percentageChangeThreshold: 7,
         priceAbove: 3500,
         priceBelow: 2800,
         percentageChange: 7,
@@ -45,6 +51,7 @@ const Watchlist: React.FC = () => {
     },
     {
       id: "solana",
+      coinId: "solana",
       name: "Solana",
       symbol: "SOL",
       price: 105,
@@ -52,8 +59,10 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 4.8,
       image: "https://assets.coingecko.com/coins/images/4128/small/solana.png",
       isWatched: true,
-      coinId: "solana",
       alertSettings: {
+        highPrice: 120,
+        lowPrice: 90,
+        percentageChangeThreshold: 10,
         priceAbove: 120,
         priceBelow: 90,
         percentageChange: 10,
@@ -62,6 +71,7 @@ const Watchlist: React.FC = () => {
     },
     {
       id: "cardano",
+      coinId: "cardano",
       name: "Cardano",
       symbol: "ADA",
       price: 0.45,
@@ -69,8 +79,10 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 2.2,
       image: "https://assets.coingecko.com/coins/images/975/small/cardano.png",
       isWatched: false,
-      coinId: "cardano",
       alertSettings: {
+        highPrice: 0.5,
+        lowPrice: 0.4,
+        percentageChangeThreshold: 8,
         priceAbove: 0.5,
         priceBelow: 0.4,
         percentageChange: 8,
@@ -79,6 +91,7 @@ const Watchlist: React.FC = () => {
     },
     {
       id: "polkadot",
+      coinId: "polkadot",
       name: "Polkadot",
       symbol: "DOT",
       price: 6.35,
@@ -86,8 +99,10 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 3.9,
       image: "https://assets.coingecko.com/coins/images/12171/small/polkadot.png",
       isWatched: false,
-      coinId: "polkadot",
       alertSettings: {
+        highPrice: 7,
+        lowPrice: 5.5,
+        percentageChangeThreshold: 10,
         priceAbove: 7,
         priceBelow: 5.5,
         percentageChange: 10,
@@ -180,6 +195,7 @@ const Watchlist: React.FC = () => {
   const handleAddCoin = () => {
     const newCoin: WatchlistItem = {
       id: "avalanche",
+      coinId: "avalanche",
       name: "Avalanche",
       symbol: "AVAX",
       price: 28.50,
@@ -187,8 +203,10 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 4.3,
       image: "https://assets.coingecko.com/coins/images/12559/small/avalanche-logo.png",
       isWatched: true,
-      coinId: "avalanche",
       alertSettings: {
+        highPrice: 35,
+        lowPrice: 25,
+        percentageChangeThreshold: 8,
         priceAbove: 35,
         priceBelow: 25,
         percentageChange: 8,
@@ -285,13 +303,13 @@ const Watchlist: React.FC = () => {
                   
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
-                      <div className={item.priceChangePercentage24h >= 0 ? 'profit' : 'loss'}>
+                      <div className={`text-${item.priceChangePercentage24h >= 0 ? 'green' : 'red'}-500`}>
                         {item.priceChangePercentage24h >= 0 ? '+' : ''}
                         {item.priceChangePercentage24h.toFixed(2)}%
                       </div>
-                      <div className={`text-sm ${item.priceChangePercentage24h >= 0 ? 'profit' : 'loss'}`}>
-                        {item.priceChangePercentage24h >= 0 ? '+' : ''}
-                        ${Math.abs(item.priceChange).toFixed(2)}
+                      <div className={`text-sm text-${item.priceChangePercentage24h >= 0 ? 'green' : 'red'}-500`}>
+                        {item.priceChange && item.priceChange >= 0 ? '+' : ''}
+                        ${Math.abs(item.priceChange || 0).toFixed(2)}
                       </div>
                     </div>
                     
@@ -334,10 +352,10 @@ const Watchlist: React.FC = () => {
                           <span className="text-xs mr-1">$</span>
                           <Input
                             type="number"
-                            value={item.alertSettings?.priceAbove || 0}
+                            value={item.alertSettings?.highPrice || 0}
                             onChange={(e) => updateAlertSetting(
                               item.id, 
-                              'priceAbove', 
+                              'highPrice', 
                               parseFloat(e.target.value) || 0
                             )}
                             className="h-7 text-sm"
@@ -353,10 +371,10 @@ const Watchlist: React.FC = () => {
                           <span className="text-xs mr-1">$</span>
                           <Input
                             type="number"
-                            value={item.alertSettings?.priceBelow || 0}
+                            value={item.alertSettings?.lowPrice || 0}
                             onChange={(e) => updateAlertSetting(
                               item.id, 
-                              'priceBelow', 
+                              'lowPrice', 
                               parseFloat(e.target.value) || 0
                             )}
                             className="h-7 text-sm"
@@ -371,10 +389,10 @@ const Watchlist: React.FC = () => {
                         <div className="flex items-center mt-1">
                           <Input
                             type="number"
-                            value={item.alertSettings?.percentageChange || 0}
+                            value={item.alertSettings?.percentageChangeThreshold || 0}
                             onChange={(e) => updateAlertSetting(
                               item.id, 
-                              'percentageChange', 
+                              'percentageChangeThreshold', 
                               parseFloat(e.target.value) || 0
                             )}
                             className="h-7 text-sm"

@@ -27,36 +27,35 @@ const MarketCorrelations = () => {
   const fetchCoinsAndCorrelations = async () => {
     setIsLoading(true);
     try {
-      // Fetch and convert CoinOption[] to CryptoData[]
+      // Fetch top coins
       const coinsData = await fetchTopCoins(10);
       
-      // Properly map CoinOption to CryptoData structure
-      const cryptoData: CryptoData[] = coinsData.map((coin: CoinOption) => ({
+      // Convert CoinOption[] to CryptoData[]
+      const cryptoDataArray: CryptoData[] = coinsData.map((coin: CoinOption) => ({
         id: coin.id,
         symbol: coin.symbol,
         name: coin.name,
-        image: coin.image,
-        // Map to both naming conventions to ensure compatibility
+        image: coin.image || "",
         price: coin.price,
         current_price: coin.price,
-        priceChange: coin.priceChange,
+        priceChange: coin.priceChange || 0,
         price_change_24h: coin.priceChange || 0,
-        changePercent: coin.changePercent,
+        changePercent: coin.changePercent || 0,
         price_change_percentage_24h: coin.changePercent || 0,
-        marketCap: coin.marketCap,
+        marketCap: coin.marketCap || 0,
         market_cap: coin.marketCap || 0,
-        market_cap_rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : undefined,
-        volume: coin.volume,
+        market_cap_rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : 0,
+        volume: coin.volume || 0,
         volume_24h: coin.volume || 0,
-        total_volume: coin.volume,
+        total_volume: coin.volume || 0,
         circulating_supply: 0, // Required field, provide a default
-        rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : undefined
+        rank: coin.marketCap ? Math.floor(coin.marketCap / 1000000000) : 0
       }));
       
-      setCoins(cryptoData);
+      setCoins(cryptoDataArray);
       
       // Generate mock correlation data for the demo
-      const mockCorrelations = generateMockCorrelations(cryptoData, timeRange);
+      const mockCorrelations = generateMockCorrelations(cryptoDataArray, timeRange);
       setCorrelations(mockCorrelations);
     } catch (error) {
       console.error("Failed to fetch correlation data:", error);

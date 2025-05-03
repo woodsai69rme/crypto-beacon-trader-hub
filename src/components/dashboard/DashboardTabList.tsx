@@ -2,7 +2,7 @@
 import React from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import type { DashboardTab } from "../Dashboard";
+import { DashboardTab } from "../Dashboard";
 
 interface DashboardTabListProps {
   activeTab: DashboardTab;

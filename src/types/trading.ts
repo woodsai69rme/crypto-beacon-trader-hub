@@ -92,13 +92,36 @@ export interface ATOTaxCalculation {
   taxRefundOrOwed: number;
   taxRate: number;
   effectiveTaxRate: number;
+  year?: number;
+  taxYear?: string;
+  assessableIncome?: number;
+  taxPayable?: number;
+  taxWithheld?: number;
+  medicareLevyPayable?: number;
+  takeHome?: number;
+  effectiveRate?: number;
+  marginalRate?: number;
+  breakdown?: {
+    bracket: string;
+    amount: number;
+    tax: number;
+  }[];
+}
+
+// Define ATOTaxRate interface
+export interface ATOTaxRate {
+  year: number;
+  minIncome: number;
+  maxIncome: number | null;
+  baseAmount: number;
+  marginRate: number;
 }
 
 // Define ApiEndpoint and ApiProvider interfaces
 export interface ApiEndpoint {
-  id: string;
-  name: string;
-  url: string;
+  id?: string;
+  name?: string;
+  url?: string;
   path: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
   description: string;
@@ -143,6 +166,7 @@ export interface ApiProvider {
 }
 
 export interface ApiUsageStats {
+  id?: string;
   service: string;
   currentUsage: number;
   maxUsage: number;
@@ -238,11 +262,30 @@ export interface WatchlistItem {
   symbol: string;
   price: number;
   priceChangePercentage24h: number;
-  addedAt: string;
+  addedAt?: string;
+  image?: string;
+  priceChange?: number;
+  isWatched?: boolean; 
   alertSettings?: {
     highPrice?: number;
     lowPrice?: number;
     percentageChangeThreshold?: number;
+    priceAbove?: number;
+    priceBelow?: number;
+    percentageChange?: number;
     enabled: boolean;
   };
+}
+
+// Define EnhancedPortfolioBenchmarking interface
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
+export type DashboardTab = "overview" | "portfolio" | "watchlist" | "trading" | "analysis" | "tools";
+
+export interface AlertFrequency {
+  value: string;
+  label: string;
 }

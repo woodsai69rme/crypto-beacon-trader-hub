@@ -1,81 +1,95 @@
 
 # Changelog
 
-All notable changes to the Crypto Trading Platform will be documented in this file.
+All notable changes to the Crypto Beacon Trader Hub will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - 2025-05-03
 
-### Added
-- Initial public release of Crypto Trading Platform
-- Customizable dashboard with draggable widgets
-- Portfolio tracking and management
-- Real-time cryptocurrency price data
-- Technical analysis tools
-- Market correlation analysis
-- API management system
-- Multiple theme options:
-  - Default dark theme
-  - Midnight Tech theme
-  - Cyber Pulse theme
-  - Matrix Code theme
-- Watchlist with price alerts
-- AI trading signals and strategies
-- Enhanced crypto charts with multiple views
-- Transaction history tracking
-- User customization preferences
+### 🚀 Initial Release
 
-### Changed
-- Complete overhaul of UI/UX from beta version
-- Improved performance for large datasets
-- Enhanced mobile responsiveness
-- Optimized API data fetching
-
-### Fixed
-- Type errors in various components
-- Widget positioning issues on small screens
-- API usage metrics display for certain providers
-- Theme persistence between sessions
-- Chart rendering in different time zones
+#### Added
+- Complete dashboard with customizable layouts
+- Portfolio management with tracking and performance metrics
+- Watchlist with real-time price updates and alerts
+- Market correlation analysis tools
+- Advanced crypto charting with multiple timeframes
+- API management system with usage tracking
+- Tax calculation tools
+- Mobile-responsive design
+- Dark/light mode toggle
+- Multiple data provider support
+- Real-time price updates
+- Historical charting with multiple visualization options
+- User preferences and settings
 
 ## [0.9.0] - 2025-04-15
 
-### Added
-- Beta release for selected testers
+### 🧪 Beta Release
+
+#### Added
 - Core dashboard functionality
 - Basic portfolio tracking
-- Preliminary theme system
-- Initial API integrations
-- Basic watchlist features
+- Watchlist features
+- Market data display
+- Preliminary API management
+- Initial chart implementations
+- Mobile responsive layout
 
-### Known Issues
-- Some TypeScript errors in components
-- Inconsistent theme application
-- Limited mobile optimization
-- Performance issues with large datasets
+#### Fixed
+- Performance issues with large portfolios
+- Chart rendering on mobile devices
+- Data synchronization between views
 
 ## [0.8.0] - 2025-03-20
 
-### Added
-- Alpha release for internal testing
-- Proof of concept for widget system
-- Basic charting capabilities
-- Simple theming system
+### 🔬 Alpha Release
 
-## Upcoming Features
+#### Added
+- Dashboard prototype
+- Basic market data
+- Simplified portfolio view
+- Limited watchlist functionality
+- Preliminary API connections
+- Single chart type support
 
-### Planned for v1.1.0 (Q3 2025)
-- Native mobile applications
-- Social trading features
-- Enhanced portfolio analytics
-- Additional API integrations
-- Advanced backtesting engine
+#### Known Issues
+- Performance optimization needed
+- Limited mobile responsiveness
+- Occasional data refresh issues
+- Incomplete API provider integrations
 
-### Planned for v1.2.0 (Q4 2025)
-- Machine learning model customization
-- Direct exchange integration
-- Institutional-grade tools
-- Advanced collaboration features
-- White-label solutions
+## [0.7.0] - 2025-02-10
+
+### 🛠️ Internal Development Build
+
+#### Added
+- Basic application structure
+- Component library integration
+- Data fetching services
+- Authentication framework
+- Core market data APIs
+
+## Future Planned Releases
+
+## [1.1.0] - Planned for 2025-06-15
+
+### Planned Additions
+- Enhanced AI market insights
+- Advanced portfolio analytics
+- Additional technical indicators
+- Exchange direct integration
+- Improved mobile experience
+- Community and social features
+
+## [1.2.0] - Planned for 2025-08-01
+
+### Planned Additions
+- Automated trading strategies
+- Backtesting capabilities
+- Enhanced tax optimization tools
+- Multiple portfolio management
+- Additional API providers
+- Advanced market correlation tools

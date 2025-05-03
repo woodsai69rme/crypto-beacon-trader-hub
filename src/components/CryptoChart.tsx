@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CryptoChartData } from '@/types/trading';
+import { fetchCoinChartData } from '@/services/enhancedCryptoApi';
 
 interface CryptoChartProps {
   symbol: string;
@@ -37,9 +38,9 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
   useEffect(() => {
     if (data) {
       // Map the data to the format expected by the chart
-      const formattedData = data.time.map((time, index) => ({
-        date: new Date(time).toLocaleDateString(),
-        price: data.price[index]
+      const formattedData = data.prices.map((pricePoint) => ({
+        date: new Date(pricePoint[0]).toLocaleDateString(),
+        price: pricePoint[1]
       }));
       
       setChartData(formattedData);
@@ -99,7 +100,16 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
                 <SelectValue placeholder="Timeframe" />
               </SelectTrigger>
               <SelectContent>
-                {timeframes.map((tf) => (
+                {[
+                  { value: "1h", label: "1H" },
+                  { value: "24h", label: "24H" },
+                  { value: "1d", label: "1D" },
+                  { value: "7d", label: "7D" },
+                  { value: "30d", label: "30D" },
+                  { value: "90d", label: "90D" },
+                  { value: "1y", label: "1Y" },
+                  { value: "all", label: "All" },
+                ].map((tf) => (
                   <SelectItem key={tf.value} value={tf.value}>
                     {tf.label}
                   </SelectItem>
@@ -129,11 +139,11 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
                 tick={{ fontSize: 12 }} 
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={formatYAxis}
+                tickFormatter={(value) => `$${value.toLocaleString(undefined, { notation: 'compact', compactDisplay: 'short' })}`}
                 width={60}
               />
               <Tooltip 
-                formatter={formatTooltipValue}
+                formatter={(value) => [`$${(value as number).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Price"]}
                 contentStyle={{ 
                   backgroundColor: 'var(--card)', 
                   borderColor: 'var(--border)', 
