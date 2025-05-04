@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 export interface ExchangeCredentials {
@@ -250,6 +249,21 @@ export const supportedExchanges: Exchange[] = [
       futuresTrading: false,
       stakingSupport: true,
       apiRateLimit: 600,
+      websocketSupport: true
+    },
+    connectionStatus: 'disconnected'
+  },
+  {
+    id: 'deribit',
+    name: 'Deribit',
+    website: 'https://deribit.com',
+    apiDocs: 'https://docs.deribit.com/',
+    supportedFeatures: {
+      spotTrading: false,
+      marginTrading: true,
+      futuresTrading: true,
+      stakingSupport: false,
+      apiRateLimit: 300,
       websocketSupport: true
     },
     connectionStatus: 'disconnected'

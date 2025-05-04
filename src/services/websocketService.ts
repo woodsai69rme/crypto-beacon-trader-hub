@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 type WebSocketListener = (data: any) => void;
@@ -54,6 +53,18 @@ class WebSocketService {
     this.exchanges.set('kraken', {
       name: 'Kraken',
       url: 'wss://ws.kraken.com',
+      connected: false,
+      socket: null,
+      subscriptions: [],
+      reconnectAttempts: 0,
+      maxReconnectAttempts: 5,
+      reconnectDelay: 3000,
+      lastPingTime: Date.now()
+    });
+    
+    this.exchanges.set('deribit', {
+      name: 'Deribit',
+      url: 'wss://www.deribit.com/ws/api/v2',
       connected: false,
       socket: null,
       subscriptions: [],
@@ -291,6 +302,11 @@ class WebSocketService {
         // Kraken uses the pair name directly in most cases
         return `${topic}:${symbol}`;
         
+      case 'deribit':
+        // Deribit uses uppercase symbols with underscores
+        formattedSymbol = symbol.toUpperCase().replace('/', '-');
+        return `${topic}.${formattedSymbol}`;
+        
       default:
         return `${topic}_${formattedSymbol}`;
     }
@@ -329,6 +345,17 @@ class WebSocketService {
             name: subscription.topic.split(':')[0]
           },
           pair: [subscription.topic.split(':')[1]]
+        };
+        break;
+        
+      case 'deribit':
+        message = {
+          jsonrpc: "2.0",
+          id: Date.now(),
+          method: "public/subscribe",
+          params: {
+            channels: [subscription.topic]
+          }
         };
         break;
         
@@ -379,6 +406,17 @@ class WebSocketService {
             name: subscription.topic.split(':')[0]
           },
           pair: [subscription.topic.split(':')[1]]
+        };
+        break;
+        
+      case 'deribit':
+        message = {
+          jsonrpc: "2.0",
+          id: Date.now(),
+          method: "public/unsubscribe",
+          params: {
+            channels: [subscription.topic]
+          }
         };
         break;
         
@@ -434,6 +472,14 @@ class WebSocketService {
           const pair = data[data.length - 1];
           topic = `${channelName}:${pair}`;
           messageData = data[1];
+        }
+        break;
+        
+      case 'deribit':
+        // Deribit has "method" field for subscriptions
+        if (data.method === "subscription" && data.params?.channel) {
+          topic = data.params.channel;
+          messageData = data.params.data;
         }
         break;
         
@@ -525,6 +571,14 @@ class WebSocketService {
                   
                 case 'kraken':
                   exchange.socket.send(JSON.stringify({ name: 'ping' }));
+                  break;
+                  
+                case 'deribit':
+                  exchange.socket.send(JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: Date.now(),
+                    method: "public/ping"
+                  }));
                   break;
                   
                 default:
