@@ -23,8 +23,8 @@ export interface Widget {
   lastUpdated?: string;
 }
 
-export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
-export type WidgetType = 'chart' | 'portfolio' | 'watchlist' | 'news' | 'alerts' | 'analysis' | 'price-chart' | 'custom';
+export type WidgetSize = 'small' | 'medium' | 'large' | 'custom' | 'wide' | 'tall' | 'full';
+export type WidgetType = 'chart' | 'portfolio' | 'watchlist' | 'news' | 'alerts' | 'analysis' | 'price-chart' | 'custom' | 'portfolio-summary' | 'aiTrading' | 'aiAnalysis' | 'trading' | 'trade-history' | 'market-overview' | 'performance-metrics';
 
 export interface TickerSettings {
   enabled: boolean;
@@ -123,6 +123,7 @@ export interface AITradingStrategy {
 export interface AiBotTradingProps {
   strategyId?: string;
   strategyName?: string;
+  botId?: string;
 }
 
 export interface ApiProvider {
@@ -212,14 +213,31 @@ export interface Trade {
   amount: number;
   price: number;
   total: number;
-  date: string;
-  status: 'completed' | 'pending' | 'failed';
+  date?: string;
+  status?: 'completed' | 'pending' | 'failed';
   exchange?: string;
   timestamp?: string;
   totalValue?: number;
+  coinName?: string;
+  profitLoss?: number;
+  currentValue?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+  currency?: SupportedCurrency;
+  tags?: string[];
+  result?: 'profit' | 'loss';
+  pnl?: string;
+  pnlPercent?: number;
 }
 
-export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
+export interface TaxHarvestTrade extends Trade {
+  coinName: string;
+  profitLoss: number;
+  currentValue: number;
+  tags: string[];
+}
+
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY' | 'BTC' | 'ETH';
 
 export interface ATOTaxCalculation {
   financialYear: string;
@@ -242,6 +260,21 @@ export interface ATOTaxCalculation {
   };
   capitalGains?: number;
   CGTDiscount?: number;
+  year?: number;
+  taxYear?: string;
+  incomeBracket?: string;
+  effectiveTaxRate?: number;
+  effectiveRate?: number;
+  marginalRate?: number;
+  takeHome?: number;
+  medicareLevyPayable?: number;
+  income?: number;
+  breakdown?: {
+    bracket: string;
+    amount: number;
+    tax: number;
+  }[];
+  deductions?: number;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
@@ -277,6 +310,27 @@ export interface DataPrivacySettings {
   shareAnalytics?: boolean;
 }
 
+export interface AccountSettings {
+  twoFactorEnabled?: boolean;
+  loginAlerts?: boolean;
+}
+
+export interface TradingSettings {
+  defaultOrder?: "market" | "limit";
+  confirmTradeExecutions?: boolean;
+  showPriceAlerts?: boolean;
+  autoSyncExchanges?: boolean;
+  tradingViewCharts?: boolean;
+  defaultTradingPair?: string;
+}
+
+export interface DashboardCustomizationSettings {
+  defaultCurrency?: string;
+  defaultTimeframe?: string;
+  alertVolume?: number;
+  alertFrequency?: string;
+}
+
 export interface SettingsFormValues {
   theme?: string;
   colorScheme?: string;
@@ -294,14 +348,7 @@ export interface SettingsFormValues {
     showPortfolioChart: boolean;
   };
   privacy?: PrivacySettings;
-  trading?: {
-    defaultOrder?: "market" | "limit";
-    confirmTradeExecutions?: boolean;
-    showPriceAlerts?: boolean;
-    autoSyncExchanges?: boolean;
-    tradingViewCharts?: boolean;
-    defaultTradingPair?: string;
-  };
+  trading?: TradingSettings;
   ticker?: {
     enabled: boolean;
     position: 'top' | 'bottom' | 'both';
@@ -318,16 +365,13 @@ export interface SettingsFormValues {
   language?: string;
   timeZone?: string;
   darkMode?: boolean;
-  exportFormat?: string;
+  exportFormat?: "CSV" | "JSON" | "PDF";
   dataPrivacy?: DataPrivacySettings;
-  account?: {
-    twoFactorEnabled?: boolean;
-    loginAlerts?: boolean;
-  };
-  dashboardCustomization?: {
-    defaultCurrency?: string;
-    defaultTimeframe?: string;
-    alertVolume?: number;
-    alertFrequency?: string;
-  };
+  account?: AccountSettings;
+  dashboardCustomization?: DashboardCustomizationSettings;
+}
+
+export interface SettingsFooterProps {
+  isSaving: boolean;
+  onReset: () => void;
 }

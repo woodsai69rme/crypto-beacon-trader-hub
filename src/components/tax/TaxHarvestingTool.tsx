@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, XCircle } from "lucide-react";
-import { CoinOption, Trade } from "@/types/trading";
+import { CoinOption, TaxHarvestTrade } from "@/types/trading";
 
 // Extended Trade type that includes tags
 interface TaxHarvestTrade extends Trade {
@@ -18,12 +17,12 @@ const TaxHarvestingTool: React.FC = () => {
     {
       id: "1",
       coinId: "bitcoin",
-      coinName: "Bitcoin",
       coinSymbol: "BTC",
       type: "buy",
       amount: 0.5,
       price: 42000,
-      totalValue: 21000,
+      total: 21000,
+      coinName: "Bitcoin",
       timestamp: "2023-01-15T00:00:00Z",
       currency: "USD",
       currentValue: 30000,
@@ -33,12 +32,12 @@ const TaxHarvestingTool: React.FC = () => {
     {
       id: "2",
       coinId: "ethereum",
-      coinName: "Ethereum",
       coinSymbol: "ETH",
       type: "buy",
       amount: 5,
       price: 2800,
-      totalValue: 14000,
+      total: 14000,
+      coinName: "Ethereum",
       timestamp: "2023-02-10T00:00:00Z",
       currency: "USD",
       currentValue: 15000,
@@ -48,12 +47,12 @@ const TaxHarvestingTool: React.FC = () => {
     {
       id: "3",
       coinId: "solana",
-      coinName: "Solana",
       coinSymbol: "SOL",
       type: "buy",
       amount: 50,
       price: 120,
-      totalValue: 6000,
+      total: 6000,
+      coinName: "Solana",
       timestamp: "2023-06-20T00:00:00Z",
       currency: "USD",
       currentValue: 5500,
@@ -63,12 +62,12 @@ const TaxHarvestingTool: React.FC = () => {
     {
       id: "4",
       coinId: "cardano",
-      coinName: "Cardano",
       coinSymbol: "ADA",
       type: "buy",
       amount: 2000,
       price: 0.55,
-      totalValue: 1100,
+      total: 1100,
+      coinName: "Cardano",
       timestamp: "2023-08-05T00:00:00Z",
       currency: "USD",
       currentValue: 900,
@@ -128,7 +127,7 @@ const TaxHarvestingTool: React.FC = () => {
       type: isBuy ? 'buy' : 'sell',
       amount,
       price,
-      totalValue,
+      total: totalValue,
       timestamp: date.toISOString(),
       currency: "USD",
       currentValue,

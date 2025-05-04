@@ -136,6 +136,7 @@ const defaultValues: SettingsFormValues = {
 const Settings = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = React.useState("general");
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
@@ -143,14 +144,27 @@ const Settings = () => {
   });
 
   function onSubmit(data: SettingsFormValues) {
+    setIsSaving(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated.",
+      });
+      console.log("Settings updated:", data);
+      
+      // In a real app, save to localStorage or API
+      localStorage.setItem("userSettings", JSON.stringify(data));
+    }, 1000);
+  }
+  
+  function handleReset() {
+    form.reset();
     toast({
-      title: "Settings saved",
-      description: "Your preferences have been updated.",
+      title: "Settings reset",
+      description: "Your preferences have been reset to defaults.",
     });
-    console.log("Settings updated:", data);
-    
-    // In a real app, save to localStorage or API
-    localStorage.setItem("userSettings", JSON.stringify(data));
   }
 
   React.useEffect(() => {
@@ -223,7 +237,7 @@ const Settings = () => {
         </form>
       </Form>
       
-      <SettingsFooter />
+      <SettingsFooter isSaving={isSaving} onReset={handleReset} />
     </div>
   );
 };

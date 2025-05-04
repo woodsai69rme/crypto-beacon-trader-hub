@@ -63,7 +63,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value as boolean}
+                  checked={Boolean(field.value)}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -82,7 +82,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value as boolean}
+                  checked={Boolean(field.value)}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -101,7 +101,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value as boolean}
+                  checked={Boolean(field.value)}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>

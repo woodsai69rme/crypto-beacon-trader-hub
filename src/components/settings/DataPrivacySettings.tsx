@@ -23,7 +23,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
         <div className="space-y-4">
           <FormField
             control={form.control}
-            name="privacy.publicProfile"
+            name="privacy.showOnlineStatus"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
@@ -34,7 +34,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value as boolean}
+                    checked={Boolean(field.value)}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -55,7 +55,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value as boolean}
+                    checked={Boolean(field.value)}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -76,7 +76,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value as boolean}
+                    checked={Boolean(field.value)}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -92,7 +92,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
         <div className="space-y-4">
           <FormField
             control={form.control}
-            name="dataPrivacy.shareAnalytics"
+            name="dataPrivacy.enableTracking"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
@@ -103,7 +103,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value as boolean}
+                    checked={Boolean(field.value)}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -124,7 +124,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value as boolean}
+                    checked={Boolean(field.value)}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>

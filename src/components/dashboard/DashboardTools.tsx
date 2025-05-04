@@ -48,7 +48,6 @@ const DashboardTools = () => {
         showOnlineStatus: true,
         sharePortfolio: false,
         shareTrades: false,
-        publicProfile: true,
       },
       appearance: {
         compactMode: false,
@@ -65,7 +64,6 @@ const DashboardTools = () => {
         confirmTradeExecutions: true,
         showPriceAlerts: true,
         defaultOrder: "market",
-        defaultTradingPair: "BTC/USD",
       },
       dashboardCustomization: {
         defaultCurrency: "USD",
@@ -76,7 +74,6 @@ const DashboardTools = () => {
       dataPrivacy: {
         storeHistory: true,
         enableTracking: true,
-        shareAnalytics: true,
       },
       exportFormat: "CSV",
     }

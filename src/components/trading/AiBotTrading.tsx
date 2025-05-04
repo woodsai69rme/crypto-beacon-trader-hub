@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,9 @@ const sampleStrategies: AITradingStrategy[] = [
       stopLossPct: 3
     },
     riskLevel: "medium",
-    indicators: ["MA", "Volume", "MACD"]
+    indicators: ["MA", "Volume", "MACD"],
+    creator: "System",
+    tags: ["trend", "momentum", "popular"]
   },
   {
     id: "mean-reversion",
@@ -41,7 +42,9 @@ const sampleStrategies: AITradingStrategy[] = [
       stopLossPct: 2
     },
     riskLevel: "medium",
-    indicators: ["RSI", "Bollinger Bands"]
+    indicators: ["RSI", "Bollinger Bands"],
+    creator: "System",
+    tags: ["mean-reversion", "oscillators"]
   },
   {
     id: "ai-sentiment",
@@ -57,7 +60,9 @@ const sampleStrategies: AITradingStrategy[] = [
       stopLossPct: 5
     },
     riskLevel: "high",
-    indicators: ["Sentiment Score", "News Analysis", "Social Media Index"]
+    indicators: ["Sentiment Score", "News Analysis", "Social Media Index"],
+    creator: "AI Lab",
+    tags: ["ai", "sentiment", "news"]
   }
 ];
 
