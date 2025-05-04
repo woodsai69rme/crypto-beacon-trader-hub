@@ -54,7 +54,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="notifications.trading"
+          name="notifications.priceAlerts"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
@@ -63,7 +63,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value}
+                  checked={field.value as boolean}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -73,7 +73,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="notifications.marketAlerts"
+          name="notifications.marketUpdates"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
@@ -82,7 +82,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value}
+                  checked={field.value as boolean}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -92,7 +92,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="notifications.newFeatures"
+          name="notifications.newsletterAndPromotions"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
@@ -101,7 +101,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value}
+                  checked={field.value as boolean}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>

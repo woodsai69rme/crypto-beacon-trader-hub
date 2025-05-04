@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,14 +18,20 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 2.4,
       image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
       isWatched: true,
+      isStarred: true,
+      addedAt: new Date().toISOString(),
+      value: "bitcoin",
+      label: "Bitcoin",
       alertSettings: {
-        highPrice: 52000,
-        lowPrice: 47000,
-        percentageChangeThreshold: 5,
+        enabled: true,
         priceAbove: 52000,
         priceBelow: 47000,
         percentageChange: 5,
-        enabled: true
+        price: 50000,
+        condition: 'above',
+        highPrice: 52000,
+        lowPrice: 47000,
+        percentageChangeThreshold: 5
       }
     },
     {
@@ -39,14 +44,20 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: -3.1,
       image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
       isWatched: true,
+      isStarred: true,
+      addedAt: new Date().toISOString(),
+      value: "ethereum",
+      label: "Ethereum",
       alertSettings: {
-        highPrice: 3500,
-        lowPrice: 2800,
-        percentageChangeThreshold: 7,
+        enabled: true,
         priceAbove: 3500,
         priceBelow: 2800,
         percentageChange: 7,
-        enabled: true
+        price: 3200,
+        condition: 'above',
+        highPrice: 3500,
+        lowPrice: 2800,
+        percentageChangeThreshold: 7
       }
     },
     {
@@ -59,14 +70,20 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 4.8,
       image: "https://assets.coingecko.com/coins/images/4128/small/solana.png",
       isWatched: true,
+      isStarred: true,
+      addedAt: new Date().toISOString(),
+      value: "solana",
+      label: "Solana",
       alertSettings: {
-        highPrice: 120,
-        lowPrice: 90,
-        percentageChangeThreshold: 10,
+        enabled: false,
         priceAbove: 120,
         priceBelow: 90,
         percentageChange: 10,
-        enabled: false
+        price: 105,
+        condition: 'above',
+        highPrice: 120,
+        lowPrice: 90,
+        percentageChangeThreshold: 10
       }
     },
     {
@@ -79,14 +96,20 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 2.2,
       image: "https://assets.coingecko.com/coins/images/975/small/cardano.png",
       isWatched: false,
+      isStarred: false,
+      addedAt: new Date().toISOString(),
+      value: "cardano",
+      label: "Cardano",
       alertSettings: {
-        highPrice: 0.5,
-        lowPrice: 0.4,
-        percentageChangeThreshold: 8,
+        enabled: false,
         priceAbove: 0.5,
         priceBelow: 0.4,
         percentageChange: 8,
-        enabled: false
+        price: 0.45,
+        condition: 'above',
+        highPrice: 0.5,
+        lowPrice: 0.4,
+        percentageChangeThreshold: 8
       }
     },
     {
@@ -99,14 +122,20 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 3.9,
       image: "https://assets.coingecko.com/coins/images/12171/small/polkadot.png",
       isWatched: false,
+      isStarred: false,
+      addedAt: new Date().toISOString(),
+      value: "polkadot",
+      label: "Polkadot",
       alertSettings: {
-        highPrice: 7,
-        lowPrice: 5.5,
-        percentageChangeThreshold: 10,
+        enabled: false,
         priceAbove: 7,
         priceBelow: 5.5,
         percentageChange: 10,
-        enabled: false
+        price: 6.35,
+        condition: 'above',
+        highPrice: 7,
+        lowPrice: 5.5,
+        percentageChangeThreshold: 10
       }
     }
   ]);
@@ -140,7 +169,7 @@ const Watchlist: React.FC = () => {
     }
   };
   
-  const updateAlertSetting = (id: string, field: keyof WatchlistItem['alertSettings'], value: number | boolean) => {
+  const updateAlertSetting = (id: string, field: string, value: number | boolean) => {
     setWatchlistItems(items => 
       items.map(item => {
         if (item.id === id && item.alertSettings) {
@@ -203,14 +232,20 @@ const Watchlist: React.FC = () => {
       priceChangePercentage24h: 4.3,
       image: "https://assets.coingecko.com/coins/images/12559/small/avalanche-logo.png",
       isWatched: true,
+      isStarred: true,
+      addedAt: new Date().toISOString(),
+      value: "avalanche",
+      label: "Avalanche",
       alertSettings: {
-        highPrice: 35,
-        lowPrice: 25,
-        percentageChangeThreshold: 8,
+        enabled: false,
         priceAbove: 35,
         priceBelow: 25,
         percentageChange: 8,
-        enabled: false
+        price: 28.50,
+        condition: 'above',
+        highPrice: 35,
+        lowPrice: 25,
+        percentageChangeThreshold: 8
       }
     };
     

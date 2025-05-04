@@ -40,7 +40,7 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({
       {widgets.map((widget) => (
         <Card 
           key={widget.id} 
-          className={`${getSizeClass(widget.size)} transition-all`}
+          className={`${getSizeClass(widget.size || 'small')} transition-all`}
         >
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <CardTitle className="text-base">{widget.title}</CardTitle>

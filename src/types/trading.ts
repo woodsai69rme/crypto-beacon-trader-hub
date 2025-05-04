@@ -19,6 +19,8 @@ export interface Widget {
   position?: { x: number; y: number };
   data?: any;
   settings?: any;
+  customContent?: string;
+  lastUpdated?: string;
 }
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
@@ -182,8 +184,14 @@ export interface WatchlistItem extends CoinOption {
   isWatched?: boolean;
   alertSettings?: {
     enabled: boolean;
-    price: number;
-    condition: 'above' | 'below';
+    highPrice?: number;
+    lowPrice?: number;
+    percentageChangeThreshold?: number;
+    priceAbove?: number;
+    priceBelow?: number;
+    percentageChange?: number;
+    condition?: 'above' | 'below';
+    price?: number;
   };
   priceChangePercentage24h?: number;
 }
@@ -234,4 +242,92 @@ export interface ATOTaxCalculation {
   };
   capitalGains?: number;
   CGTDiscount?: number;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
+// Add missing notifications structure for settings forms
+export interface NotificationsSettings {
+  email: boolean;
+  push: boolean;
+  priceAlerts?: boolean;
+  trading?: boolean;
+  marketAlerts?: boolean;
+  newFeatures?: boolean;
+  marketUpdates?: boolean;
+  newsletterAndPromotions?: boolean;
+}
+
+export interface PrivacySettings {
+  showOnlineStatus?: boolean;
+  sharePortfolio?: boolean;
+  shareTrades?: boolean;
+  publicProfile?: boolean;
+  showPortfolio?: boolean;
+  shareActivity?: boolean;
+}
+
+export interface DataPrivacySettings {
+  storeHistory?: boolean;
+  anonymizeData?: boolean;
+  enableTracking?: boolean;
+  shareAnalytics?: boolean;
+}
+
+export interface SettingsFormValues {
+  theme?: string;
+  colorScheme?: string;
+  layout?: string;
+  username?: string;
+  displayName?: string;
+  email?: string;
+  bio?: string;
+  notifications?: NotificationsSettings;
+  appearance?: {
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+    showTradingHistory: boolean;
+    showPortfolioChart: boolean;
+  };
+  privacy?: PrivacySettings;
+  trading?: {
+    defaultOrder?: "market" | "limit";
+    confirmTradeExecutions?: boolean;
+    showPriceAlerts?: boolean;
+    autoSyncExchanges?: boolean;
+    tradingViewCharts?: boolean;
+    defaultTradingPair?: string;
+  };
+  ticker?: {
+    enabled: boolean;
+    position: 'top' | 'bottom' | 'both';
+    speed: number;
+    direction: 'left' | 'right';
+    autoPause: boolean;
+  };
+  sidebar?: {
+    enabled: boolean;
+    position: 'left' | 'right';
+    defaultCollapsed: boolean;
+    showLabels: boolean;
+  };
+  language?: string;
+  timeZone?: string;
+  darkMode?: boolean;
+  exportFormat?: string;
+  dataPrivacy?: DataPrivacySettings;
+  account?: {
+    twoFactorEnabled?: boolean;
+    loginAlerts?: boolean;
+  };
+  dashboardCustomization?: {
+    defaultCurrency?: string;
+    defaultTimeframe?: string;
+    alertVolume?: number;
+    alertFrequency?: string;
+  };
 }

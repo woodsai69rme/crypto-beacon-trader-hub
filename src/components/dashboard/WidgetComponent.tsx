@@ -14,7 +14,7 @@ const WidgetComponent: React.FC<WidgetComponentProps> = ({ widget, onRemove }) =
   const renderWidgetContent = () => {
     switch (widget.type) {
       case 'custom':
-        return <div dangerouslySetInnerHTML={{ __html: widget.customContent || '' }} />;
+        return widget.customContent ? <div dangerouslySetInnerHTML={{ __html: widget.customContent }} /> : <div>Custom Widget</div>;
       case 'price-chart':
         return <div>Price Chart Widget</div>;
       case 'portfolio-summary':

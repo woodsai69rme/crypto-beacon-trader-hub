@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
@@ -51,7 +50,7 @@ const CustomizableDashboard = () => {
   
   const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
     // Find the next available position
-    const maxY = Math.max(...widgets.map(w => w.position.y));
+    const maxY = Math.max(...widgets.map(w => w.position?.y || 0));
     
     const newWidget: Widget = {
       id: `${widget.type}-${Date.now()}`,
@@ -59,7 +58,6 @@ const CustomizableDashboard = () => {
       title: widget.title,
       type: widget.type,
       size: widget.size,
-      lastUpdated: new Date().toISOString(),
       customContent: widget.customContent
     };
     

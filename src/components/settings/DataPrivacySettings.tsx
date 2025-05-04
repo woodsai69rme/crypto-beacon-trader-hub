@@ -34,7 +34,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value as boolean}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -44,7 +44,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           
           <FormField
             control={form.control}
-            name="privacy.showPortfolio"
+            name="privacy.sharePortfolio"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
@@ -55,7 +55,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value as boolean}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -65,7 +65,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           
           <FormField
             control={form.control}
-            name="privacy.shareActivity"
+            name="privacy.shareTrades"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
@@ -76,7 +76,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value as boolean}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -103,7 +103,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value as boolean}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -124,7 +124,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value as boolean}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -151,9 +151,9 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="json">JSON</SelectItem>
-                    <SelectItem value="csv">CSV</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="JSON">JSON</SelectItem>
+                    <SelectItem value="CSV">CSV</SelectItem>
+                    <SelectItem value="PDF">PDF</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

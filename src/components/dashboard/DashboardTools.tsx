@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,14 +40,15 @@ const DashboardTools = () => {
       notifications: {
         email: true,
         push: true,
-        trading: true,
-        marketAlerts: true,
-        newFeatures: false,
+        priceAlerts: true,
+        marketUpdates: false,
+        newsletterAndPromotions: false,
       },
       privacy: {
+        showOnlineStatus: true,
+        sharePortfolio: false,
+        shareTrades: false,
         publicProfile: true,
-        showPortfolio: false,
-        shareActivity: true,
       },
       appearance: {
         compactMode: false,
@@ -64,6 +64,7 @@ const DashboardTools = () => {
       trading: {
         confirmTradeExecutions: true,
         showPriceAlerts: true,
+        defaultOrder: "market",
         defaultTradingPair: "BTC/USD",
       },
       dashboardCustomization: {
@@ -73,10 +74,11 @@ const DashboardTools = () => {
         alertFrequency: "medium",
       },
       dataPrivacy: {
-        shareAnalytics: true,
         storeHistory: true,
+        enableTracking: true,
+        shareAnalytics: true,
       },
-      exportFormat: "csv",
+      exportFormat: "CSV",
     }
   });
 
