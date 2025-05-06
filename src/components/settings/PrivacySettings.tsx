@@ -74,7 +74,7 @@ const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="account.twoFactorEnabled"
+          name="security.twoFactorEnabled"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
@@ -93,7 +93,7 @@ const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="account.loginAlerts"
+          name="security.loginAlerts"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
