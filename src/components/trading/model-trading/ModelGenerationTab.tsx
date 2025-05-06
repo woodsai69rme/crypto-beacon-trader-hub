@@ -1,153 +1,147 @@
 
 import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
+import { toast } from "@/components/ui/use-toast";
+import { Brain, Loader2 } from "lucide-react";
+import { ModelGenerationTabProps } from "./types";
 import { LocalModel } from "./types";
-import { Spinner } from "@/components/ui/spinner";
 
-interface ModelGenerationTabProps {
-  onModelGenerated: (model: LocalModel) => void;
-}
-
-export const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({ 
-  onModelGenerated 
+const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({
+  onModelGenerated,
 }) => {
   const [modelName, setModelName] = useState("");
   const [modelType, setModelType] = useState<"prediction" | "sentiment" | "trading" | "analysis">("prediction");
+  const [modelEndpoint, setModelEndpoint] = useState("http://localhost:8000");
   const [modelDescription, setModelDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  
-  const generateModel = () => {
-    if (!modelName) return;
-    
-    setIsGenerating(true);
-    setProgress(0);
-    
-    // Simulate model generation with progress updates
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        const newProgress = prev + Math.random() * 10;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          
-          // Generate the model once progress hits 100%
-          setTimeout(() => {
-            const newModel: LocalModel = {
-              id: `model-${Date.now()}`,
-              name: modelName,
-              description: modelDescription || `Auto-generated ${modelType} model`,
-              endpoint: `http://localhost:8000/models/${modelName.toLowerCase().replace(/\s+/g, "-")}`,
-              type: modelType,
-              isConnected: false
-            };
-            
-            onModelGenerated(newModel);
-            
-            // Reset the form
-            setModelName("");
-            setModelType("prediction");
-            setModelDescription("");
-            setIsGenerating(false);
-            setProgress(0);
-          }, 500);
-          
-          return 100;
-        }
-        return newProgress;
+
+  const handleGenerate = () => {
+    if (!modelName || !modelEndpoint) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
-    }, 200);
+      return;
+    }
+
+    setIsGenerating(true);
+
+    // Simulate model generation
+    setTimeout(() => {
+      const newModel: LocalModel = {
+        id: `model-${Date.now()}`,
+        name: modelName,
+        type: modelType,
+        endpoint: modelEndpoint,
+        description: modelDescription,
+        isConnected: false,
+        performance: {
+          accuracy: Math.random() * 20 + 70, // 70-90%
+          returns: Math.random() * 30 - 5, // -5% to 25%
+          sharpeRatio: Math.random() * 2 + 0.5, // 0.5-2.5
+          maxDrawdown: Math.random() * 15 + 5, // 5-20%
+        },
+      };
+
+      onModelGenerated(newModel);
+      
+      toast({
+        title: "Model Created",
+        description: `${modelName} has been successfully created and is ready to connect`,
+      });
+
+      // Reset form
+      setModelName("");
+      setModelType("prediction");
+      setModelEndpoint("http://localhost:8000");
+      setModelDescription("");
+      setIsGenerating(false);
+    }, 2000);
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium mb-4">Generate New AI Model</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          Create a new AI model with our automated generation system. 
-          Define your requirements below and our system will build and optimize a model for you.
-        </p>
-      </div>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">Model Name</label>
-          <Input
-            value={modelName}
-            onChange={e => setModelName(e.target.value)}
-            placeholder="e.g. Bitcoin Price Predictor"
-            disabled={isGenerating}
-            className="mt-1"
-          />
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium">Model Type</label>
-          <Select
-            value={modelType}
-            onValueChange={value => setModelType(value as "prediction" | "sentiment" | "trading" | "analysis")}
-            disabled={isGenerating}
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select model type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="prediction">Price Prediction</SelectItem>
-              <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
-              <SelectItem value="trading">Trading Bot</SelectItem>
-              <SelectItem value="analysis">Market Analysis</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium">Model Description</label>
-          <Textarea
-            value={modelDescription}
-            onChange={e => setModelDescription(e.target.value)}
-            placeholder="Describe what you want this model to do..."
-            disabled={isGenerating}
-            className="mt-1"
-            rows={4}
-          />
-        </div>
-        
-        {isGenerating && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Generating model...</span>
-              <span>{Math.round(progress)}%</span>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="modelName">Model Name</Label>
+              <Input
+                id="modelName"
+                placeholder="Bitcoin Price Predictor"
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+              />
             </div>
-            <Progress value={progress} />
-            <div className="text-xs text-muted-foreground">
-              {progress < 20 && "Preparing training data..."}
-              {progress >= 20 && progress < 40 && "Configuring model architecture..."}
-              {progress >= 40 && progress < 60 && "Training model..."}
-              {progress >= 60 && progress < 80 && "Validating model performance..."}
-              {progress >= 80 && progress < 100 && "Finalizing and saving model..."}
-              {progress >= 100 && "Model generation complete!"}
+
+            <div>
+              <Label htmlFor="modelType">Model Type</Label>
+              <Select value={modelType} onValueChange={(value: any) => setModelType(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select model type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="prediction">Price Prediction</SelectItem>
+                  <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
+                  <SelectItem value="trading">Trading Strategy</SelectItem>
+                  <SelectItem value="analysis">Market Analysis</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            <div>
+              <Label htmlFor="modelEndpoint">Endpoint URL</Label>
+              <Input
+                id="modelEndpoint"
+                placeholder="http://localhost:8000"
+                value={modelEndpoint}
+                onChange={(e) => setModelEndpoint(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="modelDescription">Description (Optional)</Label>
+              <Textarea
+                id="modelDescription"
+                placeholder="Describe your model's function and architecture..."
+                value={modelDescription}
+                onChange={(e) => setModelDescription(e.target.value)}
+              />
+            </div>
+
+            <Button
+              className="w-full gap-2"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating Model...
+                </>
+              ) : (
+                <>
+                  <Brain className="h-4 w-4" />
+                  Generate Model
+                </>
+              )}
+            </Button>
           </div>
-        )}
-        
-        <Button
-          onClick={generateModel}
-          disabled={isGenerating || !modelName}
-          className="w-full"
-        >
-          {isGenerating ? (
-            <>
-              <Spinner size="sm" className="mr-2" />
-              Generating Model...
-            </>
-          ) : (
-            "Generate Model"
-          )}
-        </Button>
+        </CardContent>
+      </Card>
+
+      <div className="text-sm text-muted-foreground">
+        <p className="mb-2">Model Generation creates a new model configuration that can connect to your local MCP server.</p>
+        <p>For advanced model configuration and custom architecture, please consult the MCP server documentation.</p>
       </div>
     </div>
   );
 };
+
+export default ModelGenerationTab;

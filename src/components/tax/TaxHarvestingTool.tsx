@@ -5,15 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, XCircle } from "lucide-react";
-import { CoinOption, TaxHarvestTrade } from "@/types/trading";
+import { CoinOption, Trade } from "@/types/trading";
 
-// Extended Trade type that includes tags
-interface TaxHarvestTrade extends Trade {
+// Use a different name for the local interface to avoid conflict
+interface TaxHarvestTradeItem extends Trade {
   tags?: string[];
 }
 
 const TaxHarvestingTool: React.FC = () => {
-  const [trades, setTrades] = useState<TaxHarvestTrade[]>([
+  const [trades, setTrades] = useState<TaxHarvestTradeItem[]>([
     {
       id: "1",
       coinId: "bitcoin",
@@ -22,6 +22,7 @@ const TaxHarvestingTool: React.FC = () => {
       amount: 0.5,
       price: 42000,
       total: 21000,
+      totalValue: 21000,
       coinName: "Bitcoin",
       timestamp: "2023-01-15T00:00:00Z",
       currency: "USD",
@@ -37,6 +38,7 @@ const TaxHarvestingTool: React.FC = () => {
       amount: 5,
       price: 2800,
       total: 14000,
+      totalValue: 14000,
       coinName: "Ethereum",
       timestamp: "2023-02-10T00:00:00Z",
       currency: "USD",
@@ -52,6 +54,7 @@ const TaxHarvestingTool: React.FC = () => {
       amount: 50,
       price: 120,
       total: 6000,
+      totalValue: 6000,
       coinName: "Solana",
       timestamp: "2023-06-20T00:00:00Z",
       currency: "USD",
@@ -67,6 +70,7 @@ const TaxHarvestingTool: React.FC = () => {
       amount: 2000,
       price: 0.55,
       total: 1100,
+      totalValue: 1100,
       coinName: "Cardano",
       timestamp: "2023-08-05T00:00:00Z",
       currency: "USD",
@@ -119,7 +123,7 @@ const TaxHarvestingTool: React.FC = () => {
       tags.push("harvest-candidate");
     }
     
-    const newTrade: TaxHarvestTrade = {
+    const newTrade: TaxHarvestTradeItem = {
       id: Date.now().toString(),
       coinId: randomCoin.id,
       coinName: randomCoin.name,
@@ -128,6 +132,7 @@ const TaxHarvestingTool: React.FC = () => {
       amount,
       price,
       total: totalValue,
+      totalValue,
       timestamp: date.toISOString(),
       currency: "USD",
       currentValue,

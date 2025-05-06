@@ -17,47 +17,24 @@ export interface LocalModel {
 
 export interface ModelListProps {
   models: LocalModel[];
-  onSelect?: (model: LocalModel) => void;
-  onConnect?: (model: LocalModel) => void;
-  onDisconnect?: (modelId: string) => void;
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
 }
 
-// Add any additional model-specific types here
-export interface ModelPerformanceMetrics {
-  accuracy: number;
-  returns: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
+export interface ModelRunningTabProps {
+  selectedModel: LocalModel;
+  isRunning: boolean;
+  onStartModel: (model: LocalModel) => void;
+  onStopModel: () => void;
 }
 
-export interface ModelTrainingConfig {
-  epochs: number;
-  batchSize: number;
-  learningRate: number;
-  validationSplit: number;
+export interface ModelConnectionTabProps {
+  models: LocalModel[];
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
 }
 
-export interface ModelTrainingProgress {
-  currentEpoch: number;
-  totalEpochs: number;
-  accuracy: number;
-  loss: number;
-  status: 'idle' | 'training' | 'completed' | 'failed';
-  error?: string;
-}
-
-export interface ModelPrediction {
-  timestamp: string;
-  predictedPrice: number;
-  actualPrice?: number;
-  direction: 'up' | 'down' | 'neutral';
-  confidence: number;
-}
-
-export interface ModelConnection {
-  id: string;
-  status: 'connected' | 'disconnected' | 'error';
-  lastConnected?: string;
-  endpoint: string;
-  latency?: number;
+export interface ModelGenerationTabProps {
+  onModelGenerated: (model: LocalModel) => void;
 }

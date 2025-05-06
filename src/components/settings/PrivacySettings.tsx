@@ -1,28 +1,38 @@
+import React from 'react';
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
+import { UseFormReturn } from 'react-hook-form';
+import { SettingsFormValues } from '@/types/trading';
 
-import React from "react";
-import { Switch } from "@/components/ui/switch";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { SettingsComponentProps } from "./types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+interface PrivacySettingsProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
 
-const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
+const PrivacySettings: React.FC<PrivacySettingsProps> = ({ form }) => {
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Privacy</h3>
+        <p className="text-sm text-muted-foreground">
+          Manage how your profile and activity is shown to others
+        </p>
+      </div>
+      
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Profile Privacy</h3>
-        
         <FormField
           control={form.control}
           name="privacy.showOnlineStatus"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Public Profile</FormLabel>
-                <FormDescription>Make your profile visible to other users</FormDescription>
+                <FormLabel>Online Status</FormLabel>
+                <FormDescription>
+                  Show others when you're online and active
+                </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={Boolean(field.value)}
+                  checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -34,14 +44,16 @@ const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           control={form.control}
           name="privacy.sharePortfolio"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Show Portfolio</FormLabel>
-                <FormDescription>Display your portfolio holdings to others</FormDescription>
+                <FormLabel>Share Portfolio</FormLabel>
+                <FormDescription>
+                  Allow others to view your portfolio performance
+                </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={Boolean(field.value)}
+                  checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -53,37 +65,37 @@ const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           control={form.control}
           name="privacy.shareTrades"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Share Activity</FormLabel>
-                <FormDescription>Allow others to see your trading activity</FormDescription>
+                <FormLabel>Share Trades</FormLabel>
+                <FormDescription>
+                  Allow others to see your trading activity
+                </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={Boolean(field.value)}
+                  checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
             </FormItem>
           )}
         />
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Data & Security</h3>
         
         <FormField
           control={form.control}
-          name="security.twoFactorEnabled"
+          name="account.twoFactorEnabled"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>Two-Factor Authentication</FormLabel>
-                <FormDescription>Add an extra layer of security to your account</FormDescription>
+                <FormDescription>
+                  Add an extra layer of security to your account
+                </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={Boolean(field.value)}
+                  checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -93,82 +105,21 @@ const PrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="security.loginAlerts"
+          name="account.loginAlerts"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>Login Alerts</FormLabel>
-                <FormDescription>Get notified of new logins to your account</FormDescription>
+                <FormDescription>
+                  Receive notifications for new login attempts
+                </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={Boolean(field.value)}
+                  checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="dataPrivacy.enableTracking"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Share Analytics</FormLabel>
-                <FormDescription>Help improve the platform with anonymous usage data</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={Boolean(field.value)}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="dataPrivacy.storeHistory"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Store History</FormLabel>
-                <FormDescription>Keep record of your trading and browsing history</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={Boolean(field.value)}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="exportFormat"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Data Export Format</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select export format" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CSV">CSV</SelectItem>
-                  <SelectItem value="JSON">JSON</SelectItem>
-                  <SelectItem value="PDF">PDF</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Format for exporting your data and reports
-              </FormDescription>
             </FormItem>
           )}
         />

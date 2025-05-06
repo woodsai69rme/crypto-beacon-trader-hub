@@ -1,4 +1,3 @@
-
 // Generic interfaces
 export interface CoinOption {
   id: string;

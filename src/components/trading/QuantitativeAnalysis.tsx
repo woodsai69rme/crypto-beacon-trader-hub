@@ -1,10 +1,8 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { LineChart, BarChart, BarChart2, TrendingUp, ArrowDownUp, Calculator } from "lucide-react";
-import { QuantitativeAnalysisProps } from '@/types/trading';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { QuantitativeAnalysisProps } from './types/analysis';
+import { TrendingUp, TrendingDown, MinusCircle } from "lucide-react";
 
 const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
   symbol = "BTC/USD",

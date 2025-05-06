@@ -1,172 +1,282 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { BellRing } from 'lucide-react';
-import { CoinOption } from './types';
-import { fetchCryptoData } from "@/services/cryptoService";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Check, ChevronsUpDown, AlertTriangle, Bell, BellOff } from "lucide-react";
+import { CoinOption } from '@/components/trading/types';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { CalendarIcon } from "@radix-ui/react-icons"
 
-interface RealTimeAlertsProps {
-  // Add props if needed
+interface AssetAlertSettings {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number;
+  alertEnabled: boolean;
+  alertThreshold: number;
+  lastAlerted: string | null;
 }
 
-const RealTimeAlerts: React.FC<RealTimeAlertsProps> = () => {
-  const [marketData, setMarketData] = useState<CoinOption[]>([]);
-  const [alerts, setAlerts] = useState<{
-    id: string;
-    coin: string;
-    type: 'price' | 'volatility' | 'volume' | 'trend';
-    message: string;
-    severity: 'info' | 'warning' | 'critical';
-    timestamp: Date;
-  }[]>([]);
-  
-  // Fetch crypto data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await fetchCryptoData();
-        // Convert to CoinOption format
-        const formattedData: CoinOption[] = data.map(coin => ({
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol.toUpperCase(),
-          price: coin.current_price,
-          image: coin.image,
-          priceChange: coin.price_change_24h,
-          changePercent: coin.price_change_percentage_24h,
-          volume: coin.total_volume,
-          marketCap: coin.market_cap,
-          value: coin.id,
-          label: `${coin.name} (${coin.symbol.toUpperCase()})`
-        }));
-        
-        setMarketData(formattedData);
-        
-        // Generate mock alerts
-        generateMockAlerts(formattedData);
-      } catch (error) {
-        console.error("Error fetching crypto data:", error);
-      }
-    };
-    
-    fetchData();
-    
-    // Set up interval to update data
-    const interval = setInterval(() => {
-      fetchData();
-    }, 60000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  const generateMockAlerts = (coins: CoinOption[]) => {
-    if (coins.length === 0) return;
-    
-    const mockAlertTypes = [
-      { type: 'price', message: 'Price increased by more than 5% in the last hour' },
-      { type: 'price', message: 'Price dropped by more than 3% in the last hour' },
-      { type: 'volatility', message: 'Unusual volatility detected' },
-      { type: 'volume', message: 'Trading volume spiked by 150%' },
-      { type: 'trend', message: 'Possible trend reversal detected' },
-      { type: 'price', message: 'Price approaching resistance level' },
-      { type: 'price', message: 'Price approaching support level' }
-    ];
-    
-    // Generate 3-7 random alerts
-    const alertCount = Math.floor(Math.random() * 5) + 3;
-    const newAlerts = [];
-    
-    for (let i = 0; i < alertCount; i++) {
-      const randomCoin = coins[Math.floor(Math.random() * coins.length)];
-      const randomAlert = mockAlertTypes[Math.floor(Math.random() * mockAlertTypes.length)];
-      const randomSeverity = Math.random() < 0.2 ? 'critical' : Math.random() < 0.5 ? 'warning' : 'info';
-      
-      // Create a random time in the past 24 hours
-      const randomTime = new Date();
-      randomTime.setHours(randomTime.getHours() - Math.floor(Math.random() * 24));
-      
-      newAlerts.push({
-        id: `alert-${i}-${Date.now()}`,
-        coin: randomCoin.symbol,
-        type: randomAlert.type as 'price' | 'volatility' | 'volume' | 'trend',
-        message: randomAlert.message,
-        severity: randomSeverity as 'info' | 'warning' | 'critical',
-        timestamp: randomTime
-      });
+const RealTimeAlerts: React.FC = () => {
+  const [assets, setAssets] = useState<AssetAlertSettings[]>([
+    {
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      price: 58352.12,
+      priceChange: 1245.32,
+      changePercent: 2.18,
+      volume: 48941516789,
+      marketCap: 1143349097968,
+      alertEnabled: true,
+      alertThreshold: 5,
+      lastAlerted: null
+    },
+    {
+      id: "ethereum",
+      name: "Ethereum",
+      symbol: "ETH",
+      price: 3105.78,
+      priceChange: 65.43,
+      changePercent: 2.15,
+      volume: 21891456789,
+      marketCap: 373952067386,
+      alertEnabled: false,
+      alertThreshold: 3,
+      lastAlerted: null
+    },
+    {
+      id: "cardano",
+      name: "Cardano",
+      symbol: "ADA",
+      price: 0.45,
+      priceChange: -0.01,
+      changePercent: -2.17,
+      volume: 467891234,
+      marketCap: 15893456789,
+      alertEnabled: true,
+      alertThreshold: 7,
+      lastAlerted: null
+    },
+    {
+      id: "solana",
+      name: "Solana",
+      symbol: "SOL",
+      price: 152.37,
+      priceChange: 5.23,
+      changePercent: 3.55,
+      volume: 3578912345,
+      marketCap: 67891234567,
+      alertEnabled: false,
+      alertThreshold: 4,
+      lastAlerted: null
     }
+  ]);
+  
+  const [coinData, setCoinData] = useState<CoinOption[]>([
+    {
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      price: 58352.12,
+      priceChange: 1245.32,
+      changePercent: 2.18,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      volume: 48941516789,
+      marketCap: 1143349097968,
+      value: "bitcoin",
+      label: "Bitcoin (BTC)"
+    },
+    {
+      id: "ethereum",
+      name: "Ethereum",
+      symbol: "ETH",
+      price: 3105.78,
+      priceChange: 65.43,
+      changePercent: 2.15,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      volume: 21891456789,
+      marketCap: 373952067386,
+      value: "ethereum",
+      label: "Ethereum (ETH)"
+    },
+    {
+      id: "cardano",
+      name: "Cardano",
+      symbol: "ADA",
+      price: 0.45,
+      priceChange: -0.01,
+      changePercent: -2.17,
+      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+      volume: 467891234,
+      marketCap: 15893456789,
+      value: "cardano",
+      label: "Cardano (ADA)"
+    },
+    {
+      id: "solana",
+      name: "Solana",
+      symbol: "SOL",
+      price: 152.37,
+      priceChange: 5.23,
+      changePercent: 3.55,
+      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+      volume: 3578912345,
+      marketCap: 67891234567,
+      value: "solana",
+      label: "Solana (SOL)"
+    }
+  ]);
+  
+  const [alertFrequency, setAlertFrequency] = useState<number>(60);
+  const [nextAlertCheck, setNextAlertCheck] = useState<Date>(new Date(Date.now() + alertFrequency * 1000));
+  const [isGlobalAlertsEnabled, setIsGlobalAlertsEnabled] = useState<boolean>(true);
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateAssets();
+      setNextAlertCheck(new Date(Date.now() + alertFrequency * 1000));
+    }, alertFrequency * 1000);
     
-    // Sort by time (newest first)
-    newAlerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    
-    setAlerts(newAlerts);
+    return () => clearInterval(intervalId);
+  }, [assets, alertFrequency]);
+  
+  const updateAssets = () => {
+    const updatedAssets = assets.map(asset => {
+      const updatedCoin = coinData.find(coin => coin.id === asset.id);
+      if (updatedCoin) {
+        return {
+          ...asset,
+          price: updatedCoin.price,
+          priceChange: updatedCoin.priceChange,
+          changePercent: updatedCoin.changePercent,
+          volume: updatedCoin.volume,
+          marketCap: updatedCoin.marketCap
+        };
+      }
+      return asset;
+    });
+    setAssets(updatedAssets);
   };
   
-  const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const toggleAlert = (id: string) => {
+    const updatedAssets = assets.map(asset =>
+      asset.id === id ? { ...asset, alertEnabled: !asset.alertEnabled } : asset
+    );
+    setAssets(updatedAssets);
   };
-
+  
+  const setThreshold = (id: string, value: number) => {
+    const updatedAssets = assets.map(asset =>
+      asset.id === id ? { ...asset, alertThreshold: value } : asset
+    );
+    setAssets(updatedAssets);
+  };
+  
+  const toggleGlobalAlerts = () => {
+    setIsGlobalAlertsEnabled(!isGlobalAlertsEnabled);
+  };
+  
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <BellRing className="h-5 w-5" />
-              Real-Time Market Alerts
-            </CardTitle>
-            <CardDescription>
-              Automated alerts based on market conditions
-            </CardDescription>
-          </div>
-          
-          {alerts.length > 0 && (
-            <Badge variant="outline" className="text-xs">
-              {alerts.length} alerts
-            </Badge>
-          )}
-        </div>
+        <CardTitle>Real-Time Alerts</CardTitle>
+        <CardDescription>
+          Configure real-time alerts for your favorite cryptocurrencies
+        </CardDescription>
       </CardHeader>
       
-      <CardContent>
-        {alerts.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No market alerts at this time</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {alerts.map(alert => (
-              <div key={alert.id} className="border border-border rounded-md p-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      className={
-                        alert.severity === 'critical' ? 'bg-red-500' : 
-                        alert.severity === 'warning' ? 'bg-amber-500' : 
-                        'bg-blue-500'
-                      }
-                    >
-                      {alert.severity}
-                    </Badge>
-                    <span className="font-medium">{alert.coin}</span>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="global-alerts">Global Alerts</Label>
+          <Switch 
+            id="global-alerts"
+            checked={isGlobalAlertsEnabled}
+            onCheckedChange={toggleGlobalAlerts}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <Label>Alert Frequency ({alertFrequency} seconds)</Label>
+          <Slider
+            defaultValue={[alertFrequency]}
+            max={300}
+            step={30}
+            onValueChange={(value) => setAlertFrequency(value[0])}
+          />
+        </div>
+        
+        <div className="text-sm text-muted-foreground">
+          Next alert check: {nextAlertCheck.toLocaleTimeString()}
+        </div>
+        
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Asset</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Change</TableHead>
+              <TableHead>Volume</TableHead>
+              <TableHead className="text-right">Alerts</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assets.map((asset) => (
+              <TableRow key={asset.id}>
+                <TableCell className="font-medium">{asset.name} ({asset.symbol})</TableCell>
+                <TableCell>${asset.price.toFixed(2)}</TableCell>
+                <TableCell className={asset.priceChange > 0 ? "text-green-500" : "text-red-500"}>
+                  {asset.priceChange > 0 && "+"}${asset.priceChange.toFixed(2)} ({asset.changePercent.toFixed(2)}%)
+                </TableCell>
+                <TableCell>${(asset.volume / 1000000000).toFixed(2)}B</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end space-x-2">
+                    <Switch
+                      id={`alert-${asset.id}`}
+                      checked={asset.alertEnabled}
+                      onCheckedChange={() => toggleAlert(asset.id)}
+                      disabled={!isGlobalAlertsEnabled}
+                    />
+                    <Label htmlFor={`alert-${asset.id}`} className="text-right">
+                      {asset.alertEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                    </Label>
                   </div>
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {alert.type}
-                  </Badge>
-                </div>
-                
-                <p className="mt-2 text-sm">{alert.message}</p>
-                
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {formatTime(alert.timestamp)}
-                </div>
-              </div>
+                </TableCell>
+              </TableRow>
             ))}
-          </div>
-        )}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

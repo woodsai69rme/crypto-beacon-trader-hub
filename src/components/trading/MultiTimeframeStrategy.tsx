@@ -1,13 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowRight, Clock, Settings2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { ExtendedTradingTimeframe } from '@/types/trading';
+import { Badge } from "@/components/ui/badge";
+import { Clock, BarChart4, TrendingUp, Eye } from "lucide-react";
+import { ExtendedTradingTimeframe, tradingTimeframes } from './types/timeframes';
 
 interface MultiTimeframeStrategyProps {
   onStrategyChange?: (strategy: any) => void;
@@ -15,48 +12,7 @@ interface MultiTimeframeStrategyProps {
 
 const MultiTimeframeStrategy: React.FC<MultiTimeframeStrategyProps> = ({ onStrategyChange }) => {
   // Define possible timeframes
-  const availableTimeframes: ExtendedTradingTimeframe[] = [
-    { 
-      value: "5m", 
-      label: "5 Minutes",
-      chartPeriod: "1D",
-      interval: "5m",
-      dataPoints: 288,
-      description: "Short-term scalping and quick trades"
-    },
-    { 
-      value: "15m", 
-      label: "15 Minutes",
-      chartPeriod: "3D",
-      interval: "15m",
-      dataPoints: 288,
-      description: "Short-term trading with reduced noise"
-    },
-    { 
-      value: "1h", 
-      label: "1 Hour",
-      chartPeriod: "7D",
-      interval: "1h",
-      dataPoints: 168,
-      description: "Intraday trading with trend consideration"
-    },
-    { 
-      value: "4h", 
-      label: "4 Hours",
-      chartPeriod: "30D",
-      interval: "4h",
-      dataPoints: 180,
-      description: "Medium-term trends and swing trading"
-    },
-    { 
-      value: "1d", 
-      label: "1 Day",
-      chartPeriod: "90D",
-      interval: "1d",
-      dataPoints: 90,
-      description: "Long-term trends and position trading"
-    },
-  ];
+  const availableTimeframes: ExtendedTradingTimeframe[] = tradingTimeframes;
 
   // State for selected timeframes
   const [selectedTimeframes, setSelectedTimeframes] = useState<{

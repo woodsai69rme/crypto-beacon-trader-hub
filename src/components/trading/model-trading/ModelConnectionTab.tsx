@@ -1,134 +1,89 @@
 
-import React, { useState } from "react";
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Link2, Power, Settings, AlertTriangle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { LocalModel } from "./types";
-import { toast } from "@/components/ui/use-toast";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plug, PlugOff, Clock, Server } from "lucide-react";
+import { ModelConnectionTabProps } from "./types";
 
-interface ModelConnectionTabProps {
-  models: LocalModel[];
-  onConnect: (model: LocalModel) => void;
-  onDisconnect: (modelId: string) => void;
-}
-
-export const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({
+const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({
   models,
   onConnect,
   onDisconnect,
 }) => {
-  const [testingModelId, setTestingModelId] = useState<string | null>(null);
-  
-  const testConnection = async (model: LocalModel) => {
-    setTestingModelId(model.id);
-    
-    try {
-      // Simulate API call to test connection
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simulate a successful connection
-      toast({
-        title: "Connection Successful",
-        description: `Successfully connected to ${model.name}`,
-      });
-      
-      onConnect(model);
-    } catch (error) {
-      console.error("Connection error:", error);
-      toast({
-        title: "Connection Failed",
-        description: "Could not establish connection to the AI model",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingModelId(null);
-    }
-  };
-
   return (
-    <div className="space-y-4">
-      {models.length === 0 ? (
-        <div className="text-center p-8 border rounded-md bg-muted/50">
-          <AlertTriangle className="mx-auto h-10 w-10 text-amber-500 mb-2" />
-          <h3 className="text-lg font-semibold mb-1">No Models Available</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            There are no AI models available to connect. Please generate or add a model.
-          </p>
-          <Button variant="outline">Add Model</Button>
-        </div>
-      ) : models.map(model => (
-        <Card key={model.id} className={`${model.isConnected ? 'border-primary/50' : ''}`}>
-          <CardHeader className="pb-2">
-            <div className="flex justify-between">
-              <div>
-                <CardTitle className="text-lg flex items-center">
-                  {model.name}
-                  {model.isConnected && (
-                    <Badge variant="outline" className="ml-2 bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20">
-                      Connected
-                    </Badge>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  {model.type.charAt(0).toUpperCase() + model.type.slice(1)} Model
-                </CardDescription>
-              </div>
-              {model.isConnected && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => onDisconnect(model.id)}
-                  className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  <Power className="h-4 w-4 mr-1" />
-                  Disconnect
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="text-sm text-muted-foreground">
-              {model.description && (
-                <p className="mb-1">{model.description}</p>
-              )}
-              {model.endpoint && (
-                <p className="font-mono text-xs truncate">
-                  Endpoint: {model.endpoint}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="pt-1">
-            {model.isConnected ? (
-              <Button variant="outline" size="sm" className="w-full">
-                <Settings className="h-4 w-4 mr-1" />
-                Configure
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                size="sm"
-                className="w-full"
-                onClick={() => testConnection(model)}
-                disabled={testingModelId === model.id}
-              >
-                {testingModelId === model.id ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-1"></div>
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Link2 className="h-4 w-4 mr-1" />
-                    Connect
-                  </>
-                )}
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      ))}
+    <div>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {models.map((model) => (
+                <TableRow key={model.id}>
+                  <TableCell>
+                    <div className="font-medium">{model.name}</div>
+                    <div className="text-xs text-muted-foreground flex items-center mt-1">
+                      <Server className="h-3 w-3 mr-1" />
+                      {model.endpoint}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
+                      {model.type.charAt(0).toUpperCase() + model.type.slice(1)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <div className={`w-2 h-2 rounded-full mr-2 ${model.isConnected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <span className="text-sm">{model.isConnected ? 'Connected' : 'Offline'}</span>
+                    </div>
+                    {model.lastUsed && model.isConnected && (
+                      <div className="text-xs text-muted-foreground flex items-center mt-1">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Last sync: {new Date(model.lastUsed).toLocaleTimeString()}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {model.isConnected ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => onDisconnect(model.id)}
+                      >
+                        <PlugOff className="h-4 w-4" />
+                        Disconnect
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => onConnect(model)}
+                      >
+                        <Plug className="h-4 w-4" />
+                        Connect
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
+      <div className="mt-4 text-sm text-muted-foreground">
+        <p>Connect to your local MCP (Model Control Protocol) servers to leverage local AI models for trading analysis and predictions, without sending your data to external services.</p>
+      </div>
     </div>
   );
 };

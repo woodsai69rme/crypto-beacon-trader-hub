@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { convertToCoinOptions, fetchCryptoHistoricalData, fetchMultipleCryptoData } from '@/services/cryptoService';
+import { fetchCoinHistory, convertToCoinOptions, fetchMultipleCryptoData } from '@/services/cryptoService';
 import { CoinOption, RealTimePriceChartProps } from '@/types/trading';
 import { Loader2, RefreshCw } from 'lucide-react';
 
@@ -30,7 +30,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
     setIsLoading(true);
     
     try {
-      const data = await fetchCryptoHistoricalData(coinId, parseInt(timeframe));
+      const data = await fetchCoinHistory(coinId, parseInt(timeframe));
       
       // Format data for chart
       const timestamps = data.prices.map((item: [number, number]) => {
