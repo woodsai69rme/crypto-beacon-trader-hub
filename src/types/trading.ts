@@ -171,3 +171,229 @@ export interface SettingsFormValues {
   dataPrivacy: DataPrivacySettings;
   exportFormat: string;
 }
+
+export interface Trade {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  total: number;
+  timestamp: string;
+  currency: string;
+  botGenerated?: boolean;
+  strategyId?: string;
+}
+
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  initialBalance: number;
+  currency: string;
+  trades: Trade[];
+  createdAt: string;
+  lastModified?: string;
+}
+
+export interface TaxHarvestTrade {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  currentValue: number;
+  timestamp: string;
+  profitLoss: number;
+}
+
+export type TaxHarvestTradeItem = TaxHarvestTrade;
+
+export interface TradingFormProps {
+  onSubmit: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+  availableBalance: number;
+  selectedCoin: CoinOption;
+}
+
+export interface RealTimePriceChartProps {
+  coinId: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins?: CoinOption[];
+  timeframe?: string;
+  height?: number | string;
+  showControls?: boolean;
+  updateInterval?: number;
+}
+
+export interface QuantitativeAnalysisProps {
+  coinId: string;
+  timeframe?: string;
+}
+
+export interface ExtendedTradingTimeframe {
+  id: string;
+  label: string;
+  value: string;
+  duration: number;
+  candleCount: number;
+  description: string;
+}
+
+export interface TradingSignal {
+  id: string;
+  type: 'buy' | 'sell' | 'hold';
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  price: number;
+  confidence: number;
+  description: string;
+  timestamp: string;
+  source: string;
+  parameters?: Record<string, any>;
+}
+
+export interface StrategyShare {
+  id: string;
+  name: string;
+  description: string;
+  userId: string;
+  userName: string;
+  performance: {
+    roi: number;
+    winRate: number;
+    sharpeRatio: number;
+  };
+  popularity: number;
+  timestamp: string;
+  tags: string[];
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect?: (model: LocalModel) => void;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
+}
+
+// Add the missing interfaces from build errors
+export interface CryptoChartData {
+  id: string;
+  name: string;
+  symbol: string;
+  priceData: {
+    timestamp: string;
+    price: number;
+  }[];
+  currentPrice: number;
+  changePercent24h: number;
+  marketCap: number;
+  volume24h: number;
+}
+
+export interface CryptoData {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange: number;
+  priceChangePercentage: number;
+  marketCap: number;
+  volume: number;
+  circulatingSupply: number;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  description: string;
+  baseUrl: string;
+  documentation: string;
+  endpoints: ApiEndpoint[];
+  isActive: boolean;
+  requiresAuth: boolean;
+  authType: 'apiKey' | 'oauth' | 'none';
+  category: 'market' | 'exchange' | 'analytics' | 'other';
+  icon?: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  description: string;
+  requiresAuth: boolean;
+  parameters: ApiParameter[];
+  rateLimit: {
+    requests: number;
+    period: string;
+  };
+  responseExample: string;
+}
+
+export interface ApiParameter {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+  defaultValue?: any;
+}
+
+export interface ApiUsageStats {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  totalRequests: number;
+  periodRequests: number;
+  requestsLimit: number;
+  averageResponseTime: number;
+  errorRate: number;
+  lastRequested: string;
+  currentUsage: number;
+  maxUsage: number;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioId: string;
+  timeframe: string;
+  benchmarks: string[];
+}
+
+export interface ATOTaxCalculation {
+  id: string;
+  financialYear: string;
+  totalGains: number;
+  totalLosses: number;
+  netGain: number;
+  taxRate: number;
+  estimatedTax: number;
+  transactions: TaxHarvestTrade[];
+  discountApplied: boolean;
+  discountAmount?: number;
+  dateCalculated: string;
+}
+
