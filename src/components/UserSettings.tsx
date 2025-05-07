@@ -1,22 +1,11 @@
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
-import { toast } from "@/components/ui/use-toast";
+import Settings from "./settings/Settings";
+import { SettingsFormValues } from "./settings/types";
 
-import { SettingsFormValues } from "@/components/settings/types";
-import SettingsTabs from "@/components/settings/SettingsTabs";
-import SettingsFooter from "@/components/settings/SettingsFooter";
-import GeneralSettings from "@/components/settings/GeneralSettings";
-import NotificationSettings from "@/components/settings/NotificationSettings";
-import PrivacySettings from "@/components/settings/PrivacySettings";
-import AppearanceSettings from "@/components/settings/AppearanceSettings";
-
-const UserSettings: React.FC = () => {
-  const [activeTab, setActiveTab] = React.useState("general");
-  const [isSaving, setIsSaving] = React.useState(false);
-
+const UserSettings = () => {
   const form = useForm<SettingsFormValues>({
     defaultValues: {
       email: "user@example.com",
@@ -28,114 +17,56 @@ const UserSettings: React.FC = () => {
       timeZone: "UTC",
       layout: "default",
       theme: "dark",
+      colorScheme: "default",
       notifications: {
         email: true,
         push: true,
         priceAlerts: true,
-        marketUpdates: true,
-        newsletterAndPromotions: false
+        marketUpdates: false,
+        newsletterAndPromotions: false,
       },
       privacy: {
         showOnlineStatus: true,
         sharePortfolio: false,
-        shareTrades: true
+        shareTrades: false,
       },
       appearance: {
         compactMode: false,
         animationsEnabled: true,
         showTradingHistory: true,
         showPortfolioChart: true,
-        highContrastMode: false
+        highContrastMode: false,
+      },
+      account: {
+        twoFactorEnabled: false,
+        loginAlerts: true,
       },
       trading: {
-        defaultOrder: "market",
         confirmTradeExecutions: true,
         showPriceAlerts: true,
-        autoSyncExchanges: true,
-        tradingViewCharts: true
+        defaultOrder: "market",
       },
-      ticker: {
-        enabled: true,
-        position: "top",
-        speed: 40,
-        direction: "left",
-        autoPause: true
-      },
-      sidebar: {
-        enabled: true,
-        position: "left",
-        defaultCollapsed: false,
-        showLabels: true
+      dashboardCustomization: {
+        defaultCurrency: "USD",
+        defaultTimeframe: "1d",
+        alertVolume: 50,
+        alertFrequency: "medium",
       },
       dataPrivacy: {
         storeHistory: true,
-        anonymizeData: false,
-        enableTracking: true
+        enableTracking: true,
       },
       exportFormat: "CSV",
-      colorScheme: "default"
     }
   });
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Settings updated",
-      description: "Your settings have been updated successfully.",
-    });
-    
-    setIsSaving(false);
-  });
-
-  const handleReset = () => {
-    form.reset();
-    toast({
-      title: "Settings reset",
-      description: "Your settings have been reset to defaults.",
-    });
-  };
-
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle>User Settings</CardTitle>
-        <CardDescription>
-          Configure your account settings and preferences
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab}>
-          <SettingsTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          
-          <form onSubmit={handleSubmit} className="mt-6">
-            <TabsContent value="general">
-              <GeneralSettings form={form} />
-            </TabsContent>
-            
-            <TabsContent value="notifications">
-              <NotificationSettings form={form} />
-            </TabsContent>
-            
-            <TabsContent value="privacy">
-              <PrivacySettings form={form} />
-            </TabsContent>
-            
-            <TabsContent value="appearance">
-              <AppearanceSettings form={form} />
-            </TabsContent>
-            
-            <CardFooter className="flex px-0 pt-6">
-              <SettingsFooter isSaving={isSaving} onReset={handleReset} />
-            </CardFooter>
-          </form>
-        </Tabs>
+        <Settings form={form} />
       </CardContent>
     </Card>
   );

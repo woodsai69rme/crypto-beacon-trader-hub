@@ -1,214 +1,152 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, Square, Activity, LineChart, Cpu } from "lucide-react";
-import { ModelRunningTabProps } from "./types";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { LocalModel, ModelRunningTabProps } from './types';
+import { AlertCircle, Play, Square, Bot } from "lucide-react";
 
-const ModelRunningTab: React.FC<ModelRunningTabProps> = ({
+const ModelRunningTab: React.FC<ModelRunningTabProps> = ({ 
   selectedModel,
   isRunning,
   onStartModel,
-  onStopModel,
+  onStopModel
 }) => {
-  const [cpuUsage, setCpuUsage] = useState(0);
-  const [memoryUsage, setMemoryUsage] = useState(0);
-  const [processedData, setProcessedData] = useState(0);
-  const [modelMetrics, setModelMetrics] = useState({
-    accuracy: 0,
-    precision: 0,
-    recall: 0,
-    f1Score: 0,
-  });
-  const [activeTab, setActiveTab] = useState("metrics");
+  const [timeframe, setTimeframe] = useState<string>("1h");
+  const [dataPoints, setDataPoints] = useState<string>("100");
+  const [predictionHorizon, setPredictionHorizon] = useState<string>("24h");
 
-  // Simulate model metrics and resource usage updates
-  useEffect(() => {
-    if (isRunning) {
-      const interval = setInterval(() => {
-        setCpuUsage(Math.min(Math.random() * 40 + 30, 100)); // 30-70% range
-        setMemoryUsage(Math.min(Math.random() * 30 + 40, 100)); // 40-70% range
-        setProcessedData(prev => Math.min(prev + Math.random() * 5, 100));
-        
-        setModelMetrics({
-          accuracy: Math.min(Math.random() * 10 + modelMetrics.accuracy, 95),
-          precision: Math.min(Math.random() * 5 + modelMetrics.precision, 90),
-          recall: Math.min(Math.random() * 8 + modelMetrics.recall, 85),
-          f1Score: Math.min(Math.random() * 7 + modelMetrics.f1Score, 88),
-        });
-      }, 1500);
-      
-      return () => clearInterval(interval);
-    } else {
-      // Reset progress if model is stopped
-      setProcessedData(0);
-    }
-  }, [isRunning, modelMetrics]);
+  if (!selectedModel) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>No model selected</AlertTitle>
+        <AlertDescription>
+          Please connect to a model in the Connect tab before running predictions
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h3 className="text-lg font-medium">{selectedModel.name}</h3>
-              <p className="text-sm text-muted-foreground">{selectedModel.endpoint}</p>
-              <div className="flex items-center mt-1">
-                <div className={`w-2 h-2 rounded-full mr-2 ${isRunning ? 'bg-green-500' : 'bg-amber-500'}`}></div>
-                <span className="text-sm">{isRunning ? 'Running' : 'Ready'}</span>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${selectedModel.isConnected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <div>
+                <div className="font-medium">{selectedModel.name}</div>
+                <div className="text-xs text-muted-foreground">Type: {selectedModel.type}</div>
               </div>
             </div>
-            
-            <div className="flex gap-2">
-              {!isRunning ? (
-                <Button 
-                  variant="default" 
-                  className="gap-1"
-                  onClick={() => onStartModel(selectedModel)}
-                >
-                  <Play className="h-4 w-4" />
-                  Start Model
-                </Button>
-              ) : (
-                <Button 
-                  variant="destructive" 
-                  className="gap-1"
-                  onClick={onStopModel}
-                >
-                  <Square className="h-4 w-4" />
-                  Stop
-                </Button>
-              )}
-            </div>
+            <Badge variant={isRunning ? "default" : "outline"}>
+              {isRunning ? "Running" : "Idle"}
+            </Badge>
           </div>
-          
-          {isRunning && (
-            <div className="mt-4">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Processing Data</span>
-                <span>{Math.round(processedData)}%</span>
+
+          {!selectedModel.isConnected ? (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Model not connected</AlertTitle>
+              <AlertDescription>
+                Connect the model in the Connect tab before running it
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Timeframe</label>
+                  <Select value={timeframe} onValueChange={setTimeframe}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5m">5 minutes</SelectItem>
+                      <SelectItem value="15m">15 minutes</SelectItem>
+                      <SelectItem value="1h">1 hour</SelectItem>
+                      <SelectItem value="4h">4 hours</SelectItem>
+                      <SelectItem value="1d">1 day</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Data Points</label>
+                  <Select value={dataPoints} onValueChange={setDataPoints}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="200">200</SelectItem>
+                      <SelectItem value="500">500</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Prediction Horizon</label>
+                  <Select value={predictionHorizon} onValueChange={setPredictionHorizon}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6h">6 hours</SelectItem>
+                      <SelectItem value="12h">12 hours</SelectItem>
+                      <SelectItem value="24h">24 hours</SelectItem>
+                      <SelectItem value="48h">48 hours</SelectItem>
+                      <SelectItem value="7d">7 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <Progress value={processedData} />
+
+              <div className="flex justify-center pt-4">
+                {isRunning ? (
+                  <Button variant="destructive" onClick={onStopModel}>
+                    <Square className="h-4 w-4 mr-2" />
+                    Stop Model
+                  </Button>
+                ) : (
+                  <Button onClick={() => onStartModel(selectedModel)}>
+                    <Bot className="h-4 w-4 mr-2" />
+                    Run Model
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
-      
-      <Tabs defaultValue="metrics" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="metrics">
-            <Activity className="h-4 w-4 mr-2" />
-            Metrics
-          </TabsTrigger>
-          <TabsTrigger value="resources">
-            <Cpu className="h-4 w-4 mr-2" />
-            Resources
-          </TabsTrigger>
-          <TabsTrigger value="output">
-            <LineChart className="h-4 w-4 mr-2" />
-            Output
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="metrics">
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Accuracy</span>
-                  <span>{modelMetrics.accuracy.toFixed(2)}%</span>
+
+      {isRunning && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="animate-pulse">
+                <div className="font-medium">Model is running...</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Analyzing data and generating predictions
                 </div>
-                <Progress value={modelMetrics.accuracy} />
               </div>
               
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Precision</span>
-                  <span>{modelMetrics.precision.toFixed(2)}%</span>
-                </div>
-                <Progress value={modelMetrics.precision} />
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Recall</span>
-                  <span>{modelMetrics.recall.toFixed(2)}%</span>
-                </div>
-                <Progress value={modelMetrics.recall} />
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>F1 Score</span>
-                  <span>{modelMetrics.f1Score.toFixed(2)}%</span>
-                </div>
-                <Progress value={modelMetrics.f1Score} />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="resources">
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>CPU Usage</span>
-                  <span>{cpuUsage.toFixed(1)}%</span>
-                </div>
-                <Progress value={cpuUsage} className={cpuUsage > 80 ? "bg-red-200" : ""} />
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Memory Usage</span>
-                  <span>{memoryUsage.toFixed(1)}%</span>
-                </div>
-                <Progress value={memoryUsage} className={memoryUsage > 80 ? "bg-red-200" : ""} />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="bg-muted p-3 rounded-md">
-                  <div className="text-sm text-muted-foreground">Threads</div>
-                  <div className="text-xl font-medium">{isRunning ? Math.floor(Math.random() * 4) + 2 : 0}</div>
-                </div>
-                
-                <div className="bg-muted p-3 rounded-md">
-                  <div className="text-sm text-muted-foreground">Batch Size</div>
-                  <div className="text-xl font-medium">{isRunning ? 32 : 0}</div>
+              <div className="mt-4 flex justify-center">
+                <div className="h-2 w-full max-w-md bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary" 
+                    style={{ width: `${Math.floor(Math.random() * 100)}%` }}
+                  ></div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="output">
-          <Card>
-            <CardContent className="pt-6">
-              {isRunning ? (
-                <div className="bg-black text-green-400 p-4 rounded-md font-mono text-sm h-[200px] overflow-y-auto">
-                  <div>[INFO] Model initialized successfully</div>
-                  <div>[INFO] Loading historical data...</div>
-                  <div>[INFO] Processing batch 1/10</div>
-                  <div>[INFO] Processing batch 2/10</div>
-                  <div>[INFO] Processing batch 3/10</div>
-                  <div>[INFO] Market trend analysis: Neutral</div>
-                  <div>[INFO] Signal strength: 0.68</div>
-                  <div>[INFO] Processing volume indicators</div>
-                  <div>[INFO] Analyzing price patterns</div>
-                  <div>[INFO] Machine learning prediction confidence: {(Math.random() * 20 + 70).toFixed(2)}%</div>
-                </div>
-              ) : (
-                <div className="text-center p-10 text-muted-foreground">
-                  <p>Model is not running. Start the model to see output.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

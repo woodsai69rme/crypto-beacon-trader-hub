@@ -1,89 +1,95 @@
 
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plug, PlugOff, Clock, Server } from "lucide-react";
-import { ModelConnectionTabProps } from "./types";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check, X, Plug, Power } from "lucide-react";
+import { LocalModel, ModelConnectionTabProps } from './types';
 
-const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({
-  models,
-  onConnect,
-  onDisconnect,
-}) => {
+const ModelConnectionTab: React.FC<ModelConnectionTabProps> = ({ models, onConnect, onDisconnect }) => {
   return (
-    <div>
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {models.map((model) => (
-                <TableRow key={model.id}>
-                  <TableCell>
-                    <div className="font-medium">{model.name}</div>
-                    <div className="text-xs text-muted-foreground flex items-center mt-1">
-                      <Server className="h-3 w-3 mr-1" />
-                      {model.endpoint}
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground mb-2">
+        Connect to your local AI models to generate trading strategies
+      </div>
+
+      {models.length === 0 ? (
+        <div className="text-center py-8 border rounded-lg">
+          <Plug className="mx-auto h-8 w-8 text-muted-foreground" />
+          <p className="mt-2 text-muted-foreground">No models available</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {models.map(model => (
+            <Card key={model.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${model.isConnected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div>
+                      <div className="font-medium">{model.name}</div>
+                      <div className="text-xs text-muted-foreground">Endpoint: {model.endpoint}</div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
-                      {model.type.charAt(0).toUpperCase() + model.type.slice(1)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${model.isConnected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      <span className="text-sm">{model.isConnected ? 'Connected' : 'Offline'}</span>
-                    </div>
-                    {model.lastUsed && model.isConnected && (
-                      <div className="text-xs text-muted-foreground flex items-center mt-1">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Last sync: {new Date(model.lastUsed).toLocaleTimeString()}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </div>
+                  <div className="flex items-center space-x-2">
                     {model.isConnected ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1"
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
                         onClick={() => onDisconnect(model.id)}
                       >
-                        <PlugOff className="h-4 w-4" />
+                        <Power className="h-4 w-4 mr-1" />
                         Disconnect
                       </Button>
                     ) : (
-                      <Button
-                        variant="default"
+                      <Button 
+                        variant="outline" 
                         size="sm"
-                        className="gap-1"
                         onClick={() => onConnect(model)}
                       >
-                        <Plug className="h-4 w-4" />
+                        <Plug className="h-4 w-4 mr-1" />
                         Connect
                       </Button>
                     )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      
-      <div className="mt-4 text-sm text-muted-foreground">
-        <p>Connect to your local MCP (Model Control Protocol) servers to leverage local AI models for trading analysis and predictions, without sending your data to external services.</p>
-      </div>
+                  </div>
+                </div>
+
+                {model.description && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {model.description}
+                  </div>
+                )}
+
+                {model.performance && (
+                  <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <div className="text-muted-foreground">Accuracy</div>
+                      <div>{(model.performance.accuracy * 100).toFixed(1)}%</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Returns</div>
+                      <div>{model.performance.returns.toFixed(1)}%</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Sharpe</div>
+                      <div>{model.performance.sharpeRatio.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Max DD</div>
+                      <div>{model.performance.maxDrawdown.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                )}
+
+                {model.lastUsed && (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Last used: {new Date(model.lastUsed).toLocaleString()}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,31 +1,28 @@
 
-import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { LocalModel, ModelGenerationTabProps } from "./types";
 import { toast } from "@/components/ui/use-toast";
-import { Brain, Loader2 } from "lucide-react";
-import { ModelGenerationTabProps } from "./types";
-import { LocalModel } from "./types";
+import { Bot, Loader2 } from "lucide-react";
 
-const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({
-  onModelGenerated,
-}) => {
-  const [modelName, setModelName] = useState("");
+const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({ onModelGenerated }) => {
+  const [modelName, setModelName] = useState<string>("");
+  const [modelEndpoint, setModelEndpoint] = useState<string>("http://localhost:8000");
   const [modelType, setModelType] = useState<"prediction" | "sentiment" | "trading" | "analysis">("prediction");
-  const [modelEndpoint, setModelEndpoint] = useState("http://localhost:8000");
-  const [modelDescription, setModelDescription] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [modelDescription, setModelDescription] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const handleGenerate = () => {
     if (!modelName || !modelEndpoint) {
       toast({
-        title: "Missing Fields",
-        description: "Please fill in all required fields",
-        variant: "destructive",
+        title: "Missing Information",
+        description: "Please provide both model name and endpoint",
+        variant: "destructive"
       });
       return;
     }
@@ -37,110 +34,114 @@ const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({
       const newModel: LocalModel = {
         id: `model-${Date.now()}`,
         name: modelName,
-        type: modelType,
         endpoint: modelEndpoint,
-        description: modelDescription,
+        type: modelType,
         isConnected: false,
+        description: modelDescription,
         performance: {
-          accuracy: Math.random() * 20 + 70, // 70-90%
-          returns: Math.random() * 30 - 5, // -5% to 25%
-          sharpeRatio: Math.random() * 2 + 0.5, // 0.5-2.5
-          maxDrawdown: Math.random() * 15 + 5, // 5-20%
-        },
+          accuracy: 0.65 + Math.random() * 0.2,
+          returns: 10 + Math.random() * 20,
+          sharpeRatio: 1 + Math.random() * 1,
+          maxDrawdown: 10 + Math.random() * 10
+        }
       };
 
       onModelGenerated(newModel);
       
       toast({
-        title: "Model Created",
-        description: `${modelName} has been successfully created and is ready to connect`,
+        title: "Model Generated",
+        description: `Successfully created ${modelName} model`
       });
 
-      // Reset form
-      setModelName("");
-      setModelType("prediction");
-      setModelEndpoint("http://localhost:8000");
-      setModelDescription("");
       setIsGenerating(false);
+      resetForm();
     }, 2000);
   };
 
+  const resetForm = () => {
+    setModelName("");
+    setModelEndpoint("http://localhost:8000");
+    setModelType("prediction");
+    setModelDescription("");
+  };
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="modelName">Model Name</Label>
+    <Card>
+      <CardContent className="pt-6 space-y-4">
+        <div className="text-sm text-muted-foreground mb-2">
+          Generate new AI trading models by defining their parameters below
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="model-name">Model Name</Label>
               <Input
-                id="modelName"
-                placeholder="Bitcoin Price Predictor"
+                id="model-name"
                 value={modelName}
                 onChange={(e) => setModelName(e.target.value)}
+                placeholder="Price Predictor v1"
               />
             </div>
 
-            <div>
-              <Label htmlFor="modelType">Model Type</Label>
-              <Select value={modelType} onValueChange={(value: any) => setModelType(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select model type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="prediction">Price Prediction</SelectItem>
-                  <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
-                  <SelectItem value="trading">Trading Strategy</SelectItem>
-                  <SelectItem value="analysis">Market Analysis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="modelEndpoint">Endpoint URL</Label>
+            <div className="space-y-2">
+              <Label htmlFor="model-endpoint">Model Endpoint</Label>
               <Input
-                id="modelEndpoint"
-                placeholder="http://localhost:8000"
+                id="model-endpoint"
                 value={modelEndpoint}
                 onChange={(e) => setModelEndpoint(e.target.value)}
+                placeholder="http://localhost:8000"
               />
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="modelDescription">Description (Optional)</Label>
-              <Textarea
-                id="modelDescription"
-                placeholder="Describe your model's function and architecture..."
-                value={modelDescription}
-                onChange={(e) => setModelDescription(e.target.value)}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="model-type">Model Type</Label>
+            <Select value={modelType} onValueChange={(value) => setModelType(value as any)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="prediction">Price Prediction</SelectItem>
+                <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
+                <SelectItem value="trading">Trading Strategy</SelectItem>
+                <SelectItem value="analysis">Market Analysis</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <Button
-              className="w-full gap-2"
-              onClick={handleGenerate}
+          <div className="space-y-2">
+            <Label htmlFor="model-description">Description (Optional)</Label>
+            <Textarea
+              id="model-description"
+              value={modelDescription}
+              onChange={(e) => setModelDescription(e.target.value)}
+              placeholder="Describe the model's purpose and functionality..."
+            />
+          </div>
+
+          <div className="pt-2">
+            <Button 
+              onClick={handleGenerate} 
               disabled={isGenerating}
+              className="w-full"
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Generating Model...
                 </>
               ) : (
                 <>
-                  <Brain className="h-4 w-4" />
+                  <Bot className="h-4 w-4 mr-2" />
                   Generate Model
                 </>
               )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="text-sm text-muted-foreground">
-        <p className="mb-2">Model Generation creates a new model configuration that can connect to your local MCP server.</p>
-        <p>For advanced model configuration and custom architecture, please consult the MCP server documentation.</p>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,146 +1,122 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ModelConnectionTab } from "./model-trading/ModelConnectionTab";
-import { ModelGenerationTab } from "./model-trading/ModelGenerationTab";
+import { LocalModel } from "./model-trading/types";
+import ModelConnectionTab from "./model-trading/ModelConnectionTab";
+import ModelGenerationTab from "./model-trading/ModelGenerationTab";
 import ModelRunningTab from "./model-trading/ModelRunningTab";
-import { toast } from "@/components/ui/use-toast";
-import { LocalModel } from "./model-trading/types"; // Import from the local types file
 
 const LocalModelTrading: React.FC = () => {
   const [models, setModels] = useState<LocalModel[]>([
     {
-      id: "model-1",
-      name: "Bitcoin Price Predictor",
-      description: "Predicts BTC price movements using LSTM",
-      endpoint: "http://localhost:8000/predict/btc",
+      id: "local-model-1",
+      name: "BTC Price Predictor",
+      endpoint: "http://localhost:8000",
       type: "prediction",
-      isConnected: false
+      isConnected: false,
+      description: "Predicts BTC price movements based on historical patterns",
+      performance: {
+        accuracy: 0.73,
+        returns: 21.5,
+        sharpeRatio: 1.8,
+        maxDrawdown: 12.4
+      }
     },
     {
-      id: "model-2",
+      id: "local-model-2",
       name: "Market Sentiment Analyzer",
-      description: "Analyzes market sentiment from news sources",
-      endpoint: "http://localhost:8000/analyze/sentiment",
+      endpoint: "http://localhost:8001",
       type: "sentiment",
-      isConnected: false
+      isConnected: false,
+      description: "Analyzes market sentiment from social media and news sources",
+      performance: {
+        accuracy: 0.68,
+        returns: 15.2,
+        sharpeRatio: 1.4,
+        maxDrawdown: 14.8
+      }
     }
   ]);
   
   const [selectedModel, setSelectedModel] = useState<LocalModel | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("connect");
   const [isRunning, setIsRunning] = useState<boolean>(false);
   
-  const connectModel = (model: LocalModel) => {
-    const updatedModels = models.map(m => {
-      if (m.id === model.id) {
-        return { ...m, isConnected: true, lastUsed: new Date().toISOString() };
-      }
-      return m;
-    });
-    
-    setModels(updatedModels);
-    setSelectedModel({ ...model, isConnected: true, lastUsed: new Date().toISOString() });
-    
-    toast({
-      title: "Model Connected",
-      description: `${model.name} is now connected and ready for use`
-    });
-    
-    setActiveTab("run");
+  const handleSelectModel = (model: LocalModel) => {
+    setSelectedModel(model);
   };
   
-  const disconnectModel = (modelId: string) => {
-    const updatedModels = models.map(m => {
-      if (m.id === modelId) {
-        return { ...m, isConnected: false };
-      }
-      return m;
-    });
+  const handleConnectModel = (model: LocalModel) => {
+    setModels(prevModels => 
+      prevModels.map(m => 
+        m.id === model.id 
+          ? { ...m, isConnected: true, lastUsed: new Date().toISOString() } 
+          : m
+      )
+    );
+  };
+  
+  const handleDisconnectModel = (modelId: string) => {
+    setModels(prevModels => 
+      prevModels.map(m => 
+        m.id === modelId 
+          ? { ...m, isConnected: false } 
+          : m
+      )
+    );
     
-    setModels(updatedModels);
-    
-    if (selectedModel && selectedModel.id === modelId) {
-      setSelectedModel({ ...selectedModel, isConnected: false });
+    if (selectedModel?.id === modelId) {
       setIsRunning(false);
     }
-    
-    toast({
-      title: "Model Disconnected",
-      description: "The AI model has been disconnected"
-    });
   };
   
-  const addModel = (model: LocalModel) => {
-    setModels([...models, { ...model, isConnected: false }]);
-    
-    toast({
-      title: "Model Added",
-      description: `${model.name} has been added to your local models`
-    });
-  };
-  
-  const startModel = (model: LocalModel) => {
+  const handleStartModel = (model: LocalModel) => {
     setIsRunning(true);
-    toast({
-      title: "Model Started",
-      description: `${model.name} is now running and processing data`
-    });
   };
   
-  const stopModel = () => {
+  const handleStopModel = () => {
     setIsRunning(false);
-    toast({
-      title: "Model Stopped",
-      description: "The model has been stopped"
-    });
   };
-
+  
+  const handleModelGenerated = (model: LocalModel) => {
+    setModels(prevModels => [...prevModels, model]);
+  };
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Local AI Model Trading</CardTitle>
-        <CardDescription>
-          Connect your local AI models for trading predictions and analysis
-        </CardDescription>
+        <CardTitle>Local Model Trading</CardTitle>
       </CardHeader>
       
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="connect">Connect Model</TabsTrigger>
-            <TabsTrigger value="run">Run Model</TabsTrigger>
-            <TabsTrigger value="generate">Generate Model</TabsTrigger>
+        <Tabs defaultValue="connect">
+          <TabsList className="grid grid-cols-3">
+            <TabsTrigger value="connect">Connect Models</TabsTrigger>
+            <TabsTrigger value="run">Run Models</TabsTrigger>
+            <TabsTrigger value="generate">Generate Models</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="connect">
+          <TabsContent value="connect" className="space-y-4 mt-4">
             <ModelConnectionTab 
               models={models}
-              onConnect={connectModel}
-              onDisconnect={disconnectModel}
+              onConnect={handleConnectModel}
+              onDisconnect={handleDisconnectModel}
             />
           </TabsContent>
           
-          <TabsContent value="run">
-            {selectedModel && selectedModel.isConnected ? (
-              <ModelRunningTab 
-                selectedModel={selectedModel}
-                isRunning={isRunning}
-                onStartModel={startModel}
-                onStopModel={stopModel}
-              />
-            ) : (
-              <div className="text-center p-6">
-                <p className="text-muted-foreground">
-                  Please connect a model first to run predictions
-                </p>
-              </div>
-            )}
+          <TabsContent value="run" className="space-y-4 mt-4">
+            <ModelRunningTab 
+              selectedModel={selectedModel || (models.length > 0 ? models[0] : null)}
+              isRunning={isRunning}
+              onStartModel={handleStartModel}
+              onStopModel={handleStopModel}
+            />
           </TabsContent>
           
-          <TabsContent value="generate">
-            <ModelGenerationTab onModelGenerated={addModel} />
+          <TabsContent value="generate" className="space-y-4 mt-4">
+            <ModelGenerationTab 
+              onModelGenerated={handleModelGenerated}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

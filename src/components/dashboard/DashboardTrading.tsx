@@ -2,7 +2,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyManagement from "../ApiKeyManagement";
-import EnhancedFakeTrading from "../trading/EnhancedFakeTrading";
+import { EnhancedFakeTrading } from "../trading/EnhancedFakeTrading";
 import AiTradingBots from "../trading/AiTradingBots";
 import AiTradingDashboard from "../trading/AiTradingDashboard";
 import AiTradingMcp from "../trading/AiTradingMcp"; 

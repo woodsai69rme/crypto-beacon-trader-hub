@@ -1,48 +1,60 @@
 
 import React from "react";
-import { Switch } from "@/components/ui/switch";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { SettingsComponentProps } from "./types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTheme } from "@/contexts/ThemeContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Moon } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
+import { SettingsFormValues } from "./types";
 
-const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
-  
+interface AppearanceSettingsProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
+
+const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ form }) => {
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Theme</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Moon className="h-5 w-5" />
+          Appearance
+        </CardTitle>
+        <CardDescription>
+          Customize how the application looks and feels
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="theme"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Base Theme</FormLabel>
-                <Select 
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setTheme(value as "light" | "dark");
-                  }} 
-                  defaultValue={theme}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a theme" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="dark">Dark (Default)</SelectItem>
-                    <SelectItem value="light">Light</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormLabel>Theme</FormLabel>
                 <FormDescription>
-                  Choose your preferred base theme
+                  Select the theme for the application
                 </FormDescription>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="light" />
+                    </FormControl>
+                    <FormLabel className="cursor-pointer">Light</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="dark" />
+                    </FormControl>
+                    <FormLabel className="cursor-pointer">Dark</FormLabel>
+                  </FormItem>
+                </RadioGroup>
               </FormItem>
             )}
           />
@@ -53,244 +65,93 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Color Scheme</FormLabel>
-                <Select 
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setColorScheme(value as any);
-                  }} 
-                  defaultValue={colorScheme}
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
                 >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a color scheme" />
-                    </SelectTrigger>
-                  </FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select color scheme" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="default">Default</SelectItem>
                     <SelectItem value="midnight-tech">Midnight Tech</SelectItem>
                     <SelectItem value="cyber-pulse">Cyber Pulse</SelectItem>
                     <SelectItem value="matrix-code">Matrix Code</SelectItem>
+                    <SelectItem value="golden-sunset">Golden Sunset</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Choose your preferred color scheme
+                  The color scheme affects the accent colors of the UI
                 </FormDescription>
               </FormItem>
             )}
           />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-          <Card className="overflow-hidden border-2 hover:border-primary cursor-pointer transition-all" 
-                onClick={() => setColorScheme("default")}>
-            <div className="h-20 bg-card"></div>
-            <CardContent className="p-3 text-center">
-              <p className="text-sm font-medium">Default</p>
-              {colorScheme === "default" && (
-                <div className="mt-1 text-xs text-primary">Current selection</div>
-              )}
-            </CardContent>
-          </Card>
           
-          <Card className="overflow-hidden border-2 hover:border-primary cursor-pointer transition-all" 
-                onClick={() => setColorScheme("midnight-tech")}>
-            <div className="h-20 bg-gradient-to-br from-[#0F172A] to-[#1E293B]"></div>
-            <CardContent className="p-3 text-center">
-              <p className="text-sm font-medium">Midnight Tech</p>
-              {colorScheme === "midnight-tech" && (
-                <div className="mt-1 text-xs text-primary">Current selection</div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border-2 hover:border-primary cursor-pointer transition-all" 
-                onClick={() => setColorScheme("cyber-pulse")}>
-            <div className="h-20 bg-gradient-to-br from-[#13111C] to-[#1E1B2E]"></div>
-            <CardContent className="p-3 text-center">
-              <p className="text-sm font-medium">Cyber Pulse</p>
-              {colorScheme === "cyber-pulse" && (
-                <div className="mt-1 text-xs text-primary">Current selection</div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border-2 hover:border-primary cursor-pointer transition-all" 
-                onClick={() => setColorScheme("matrix-code")}>
-            <div className="h-20 bg-gradient-to-br from-[#0A1F1B] to-[#0F2922]"></div>
-            <CardContent className="p-3 text-center">
-              <p className="text-sm font-medium">Matrix Code</p>
-              {colorScheme === "matrix-code" && (
-                <div className="mt-1 text-xs text-primary">Current selection</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        <FormField
-          control={form.control}
-          name="appearance.compactMode"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4 mt-6">
-              <div className="space-y-0.5">
-                <FormLabel>Compact Mode</FormLabel>
-                <FormDescription>Use a more dense layout to fit more content</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.animationsEnabled"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Enable Animations</FormLabel>
-                <FormDescription>Toggle UI animations and transitions</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.highContrastMode"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>High Contrast Mode</FormLabel>
-                <FormDescription>Increase contrast for better visibility</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Trading Interface</h3>
-        
-        <FormField
-          control={form.control}
-          name="layout"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dashboard Layout</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormField
+            control={form.control}
+            name="appearance.compactMode"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Compact Mode</FormLabel>
+                  <FormDescription>
+                    Use a more compact layout for the interface
+                  </FormDescription>
+                </div>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select layout" />
-                  </SelectTrigger>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="compact">Compact</SelectItem>
-                  <SelectItem value="traderview">TradingView Style</SelectItem>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Organize your dashboard modules
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.showTradingHistory"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Trading History</FormLabel>
-                <FormDescription>Display your recent trades on the dashboard</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="appearance.showPortfolioChart"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Portfolio Chart</FormLabel>
-                <FormDescription>Display portfolio performance chart on the dashboard</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="trading.confirmTradeExecutions"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Confirm Trade Executions</FormLabel>
-                <FormDescription>Show confirmation dialog before executing trades</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="trading.showPriceAlerts"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Price Alerts</FormLabel>
-                <FormDescription>Display price alert notifications on the trading interface</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="appearance.animationsEnabled"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Enable Animations</FormLabel>
+                  <FormDescription>
+                    Show animations in the user interface
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="appearance.highContrastMode"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>High Contrast Mode</FormLabel>
+                  <FormDescription>
+                    Increase contrast for better visibility
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

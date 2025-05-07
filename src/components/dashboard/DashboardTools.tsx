@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,6 +38,7 @@ const DashboardTools = () => {
       timeZone: "UTC",
       layout: "default",
       theme: "dark",
+      colorScheme: "default",
       notifications: {
         email: true,
         push: true,

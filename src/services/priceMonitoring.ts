@@ -1,100 +1,111 @@
 
-import { CoinOption } from '@/types/trading';
+import { CoinOption } from "@/components/trading/EnhancedFakeTrading";
 
-// Mock function to simulate real-time price updates
-export function startPriceMonitoring(
+// Mock price monitoring service to simulate price updates
+export const startPriceMonitoring = (
   coinIds: string[],
   onUpdate: (coins: CoinOption[]) => void,
-  interval: number = 5000
-) {
-  // Initial coins data
-  let coins: CoinOption[] = coinIds.map(coinId => {
-    let basePrice = 0;
-    let symbol = "";
-    let name = "";
-    let image = "";
-    
-    switch (coinId) {
-      case 'bitcoin':
-        basePrice = 69420;
-        symbol = "BTC";
-        name = "Bitcoin";
-        image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png";
-        break;
-      case 'ethereum':
-        basePrice = 3210;
-        symbol = "ETH";
-        name = "Ethereum";
-        image = "https://assets.coingecko.com/coins/images/279/large/ethereum.png";
-        break;
-      case 'solana':
-        basePrice = 142.5;
-        symbol = "SOL";
-        name = "Solana";
-        image = "https://assets.coingecko.com/coins/images/4128/large/solana.png";
-        break;
-      case 'cardano':
-        basePrice = 0.45;
-        symbol = "ADA";
-        name = "Cardano";
-        image = "https://assets.coingecko.com/coins/images/975/large/cardano.png";
-        break;
-      case 'ripple':
-      case 'xrp':
-        basePrice = 0.61;
-        symbol = "XRP";
-        name = "XRP";
-        image = "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png";
-        break;
-      case 'dogecoin':
-        basePrice = 0.138;
-        symbol = "DOGE";
-        name = "Dogecoin";
-        image = "https://assets.coingecko.com/coins/images/5/large/dogecoin.png";
-        break;
-      default:
-        basePrice = 10;
-        symbol = coinId.slice(0, 3).toUpperCase();
-        name = coinId.charAt(0).toUpperCase() + coinId.slice(1);
-        image = "";
-    }
-    
-    return {
-      id: coinId,
-      name,
-      symbol,
-      price: basePrice,
-      priceChange: 0,
-      changePercent: 0,
-      image,
-      volume: basePrice * 1000000,
-      marketCap: basePrice * 10000000,
-      value: coinId,
-      label: `${name} (${symbol})`
-    };
-  });
-
-  // Start the update interval
-  const intervalId = setInterval(() => {
-    // Update each coin with a slight random price movement
-    coins = coins.map(coin => {
-      // Price movement: random between -0.8% and +1% biased slightly upward
-      const movement = (Math.random() * 1.8 - 0.8) / 100;
-      const newPrice = coin.price * (1 + movement);
+  intervalMs: number = 5000
+): (() => void) => {
+  // Function to generate random price updates
+  const generatePriceUpdates = (ids: string[]): CoinOption[] => {
+    return ids.map(id => {
+      // Base values for different coins
+      let basePrice = 0;
+      let symbol = '';
+      let name = '';
+      let image = '';
+      let volume = 0;
+      let marketCap = 0;
+      
+      switch (id) {
+        case 'bitcoin':
+          basePrice = 58000;
+          symbol = 'BTC';
+          name = 'Bitcoin';
+          image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png";
+          volume = 48941516789;
+          marketCap = 1143349097968;
+          break;
+        case 'ethereum':
+          basePrice = 3100;
+          symbol = 'ETH';
+          name = 'Ethereum';
+          image = "https://assets.coingecko.com/coins/images/279/large/ethereum.png";
+          volume = 21891456789;
+          marketCap = 373952067386;
+          break;
+        case 'solana':
+          basePrice = 150;
+          symbol = 'SOL';
+          name = 'Solana';
+          image = "https://assets.coingecko.com/coins/images/4128/large/solana.png";
+          volume = 3578912345;
+          marketCap = 67891234567;
+          break;
+        case 'cardano':
+          basePrice = 0.45;
+          symbol = 'ADA';
+          name = 'Cardano';
+          image = "https://assets.coingecko.com/coins/images/975/large/cardano.png";
+          volume = 467891234;
+          marketCap = 15893456789;
+          break;
+        case 'ripple':
+          basePrice = 0.61;
+          symbol = 'XRP';
+          name = 'XRP';
+          image = "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png";
+          volume = 2400000000;
+          marketCap = 32000000000;
+          break;
+        case 'dogecoin':
+          basePrice = 0.13;
+          symbol = 'DOGE';
+          name = 'Dogecoin';
+          image = "https://assets.coingecko.com/coins/images/5/large/dogecoin.png";
+          volume = 1900000000;
+          marketCap = 18000000000;
+          break;
+        default:
+          basePrice = 100;
+          symbol = 'UNKNOWN';
+          name = 'Unknown Coin';
+          image = "";
+          volume = 1000000;
+          marketCap = 10000000;
+      }
+      
+      // Generate random price change (between -2% and +2%)
+      const randomChange = (Math.random() * 4 - 2) / 100;
+      const price = basePrice * (1 + randomChange);
+      const priceChange = basePrice * randomChange;
+      const changePercent = randomChange * 100;
       
       return {
-        ...coin,
-        price: newPrice,
-        priceChange: newPrice - coin.price,
-        changePercent: movement * 100
+        id,
+        name,
+        symbol,
+        price,
+        priceChange,
+        changePercent,
+        image,
+        volume,
+        marketCap,
+        value: id,
+        label: `${name} (${symbol})`
       };
     });
-    
-    onUpdate(coins);
-  }, interval);
+  };
   
-  // Return function to stop monitoring
+  // Set up interval for price updates
+  const intervalId = setInterval(() => {
+    const updatedCoins = generatePriceUpdates(coinIds);
+    onUpdate(updatedCoins);
+  }, intervalMs);
+  
+  // Return a cleanup function
   return () => {
     clearInterval(intervalId);
   };
-}
+};

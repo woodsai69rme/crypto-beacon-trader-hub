@@ -1,69 +1,99 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { LocalModel, ModelListProps } from './model-trading/types';
-import { Plug, PlugOff } from "lucide-react";
 
-const LocalAiModels: React.FC<ModelListProps> = ({ models, onSelect, onConnect, onDisconnect }) => {
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Bot, Plug, Plus, Power } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+
+interface ModelConnection {
+  id: string;
+  name: string;
+  status: 'connected' | 'disconnected';
+  type: string;
+  endpoint: string;
+  lastActive?: string;
+}
+
+const LocalAiModels: React.FC = () => {
+  const models: ModelConnection[] = [
+    {
+      id: 'model-1',
+      name: 'Local Price Predictor',
+      status: 'disconnected',
+      type: 'price-prediction',
+      endpoint: 'http://localhost:8000'
+    },
+    {
+      id: 'model-2',
+      name: 'Sentiment Analysis Model',
+      status: 'connected',
+      type: 'sentiment',
+      endpoint: 'http://localhost:8001',
+      lastActive: '2023-06-15T14:30:00Z'
+    }
+  ];
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Local AI Models</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="h-5 w-5" />
+          Local AI Models
+        </CardTitle>
         <CardDescription>
-          Connect to your locally hosted AI models for trading analysis
+          Connect to your local AI models for private model inference
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Available Models</h3>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Model
+            </Button>
+          </div>
           
-          <TableBody>
-            {models.map((model) => (
-              <TableRow key={model.id}>
-                <TableCell>
-                  <div className="font-medium">{model.name}</div>
-                  <div className="text-sm text-muted-foreground">{model.description}</div>
-                </TableCell>
-                
-                <TableCell>
-                  <Badge variant="secondary">{model.type}</Badge>
-                </TableCell>
-                
-                <TableCell>
-                  {model.isConnected ? (
-                    <div className="text-green-500">Connected</div>
-                  ) : (
-                    <div className="text-red-500">Disconnected</div>
+          <div className="space-y-2">
+            {models.map(model => (
+              <div 
+                key={model.id}
+                className="border rounded-md p-3 flex items-center justify-between"
+              >
+                <div>
+                  <div className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full mr-2 ${
+                      model.status === 'connected' ? 'bg-green-500' : 'bg-gray-300'
+                    }`}></div>
+                    <span className="font-medium">{model.name}</span>
+                    <Badge variant="outline" className="ml-2">{model.type}</Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Endpoint: {model.endpoint}
+                  </div>
+                  {model.lastActive && (
+                    <div className="text-xs text-muted-foreground">
+                      Last active: {new Date(model.lastActive).toLocaleString()}
+                    </div>
                   )}
-                </TableCell>
+                </div>
                 
-                <TableCell className="text-right">
-                  {model.isConnected ? (
-                    <Button variant="outline" size="sm" onClick={() => onDisconnect && onDisconnect(model.id)}>
-                      <PlugOff className="h-4 w-4 mr-2" />
-                      Disconnect
-                    </Button>
-                  ) : (
-                    <Button size="sm" onClick={() => onConnect && onConnect(model)}>
-                      <Plug className="h-4 w-4 mr-2" />
-                      Connect
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
+                {model.status === 'connected' ? (
+                  <Button variant="outline" size="sm">
+                    <Power className="h-4 w-4 mr-2" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button size="sm">
+                    <Plug className="h-4 w-4 mr-2" />
+                    Connect
+                  </Button>
+                )}
+              </div>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

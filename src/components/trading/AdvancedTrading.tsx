@@ -1,63 +1,83 @@
 
-import React from "react";
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTheme } from "@/contexts/ThemeContext";
-import FibonacciAnalysis from "./FibonacciAnalysis";
-import HyblockLiquidityMap from "./HyblockLiquidityMap";
-import TradingViewChart from "./TradingViewChart";
-import QuantitativeAnalysis from "./QuantitativeAnalysis";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BaseQuantitativeAnalysis from './BaseQuantitativeAnalysis';
 
-interface AdvancedTradingProps {
-  className?: string;
-}
+const AdvancedTrading: React.FC = () => {
+  const [selectedCoin, setSelectedCoin] = useState<string>("bitcoin");
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>("1d");
 
-const AdvancedTrading: React.FC<AdvancedTradingProps> = ({ className }) => {
-  const isMobile = useIsMobile();
-  const { theme } = useTheme();
-  
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader>
-        <CardTitle>Advanced Trading Tools</CardTitle>
+        <CardTitle>Advanced Trading</CardTitle>
         <CardDescription>
-          Professional-grade analysis tools for advanced traders
+          Professional-grade trading tools and analysis
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Tabs defaultValue="fibonacci">
-          <TabsList className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} mb-4`}>
-            <TabsTrigger value="fibonacci">Fibonacci</TabsTrigger>
-            <TabsTrigger value="hyblock">Hyblock</TabsTrigger>
-            <TabsTrigger value="tradingview">TradingView</TabsTrigger>
-            <TabsTrigger value="quantitative">Probability</TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-1 gap-6">
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="w-full md:w-auto">
+              <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Select coin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                  <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                  <SelectItem value="solana">Solana (SOL)</SelectItem>
+                  <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="w-full md:w-auto">
+              <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Select timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15m">15 minutes</SelectItem>
+                  <SelectItem value="1h">1 hour</SelectItem>
+                  <SelectItem value="4h">4 hours</SelectItem>
+                  <SelectItem value="1d">1 day</SelectItem>
+                  <SelectItem value="1w">1 week</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          <TabsContent value="fibonacci">
-            <FibonacciAnalysis />
-          </TabsContent>
-          
-          <TabsContent value="hyblock">
-            <HyblockLiquidityMap />
-          </TabsContent>
-          
-          <TabsContent value="tradingview">
-            <TradingViewChart 
-              symbol="BTCUSD" 
-              interval="240" 
-              theme={theme === "dark" ? "dark" : "light"}
-              style="candles"
-              studies={["RSI@tv-basicstudies", "MACD@tv-basicstudies", "MASimple@tv-basicstudies"]}
-              height={550}
-            />
-          </TabsContent>
-          
-          <TabsContent value="quantitative">
-            <QuantitativeAnalysis />
-          </TabsContent>
-        </Tabs>
+          <Tabs defaultValue="technical">
+            <TabsList className="grid grid-cols-3 mb-6">
+              <TabsTrigger value="technical">Technical</TabsTrigger>
+              <TabsTrigger value="quantitative">Quantitative</TabsTrigger>
+              <TabsTrigger value="fundamental">Fundamental</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="technical" className="space-y-6">
+              <div className="text-center py-12">
+                <p>Technical analysis tools will appear here</p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="quantitative" className="space-y-6">
+              <BaseQuantitativeAnalysis 
+                coinId={selectedCoin} 
+                timeframe={selectedTimeframe}
+              />
+            </TabsContent>
+            
+            <TabsContent value="fundamental" className="space-y-6">
+              <div className="text-center py-12">
+                <p>Fundamental analysis data will appear here</p>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,30 +1,26 @@
 
-import React from "react";
-import { Check, AlertCircle } from "lucide-react";
+import React from 'react';
+import { Badge } from "@/components/ui/badge";
+import { Server } from "lucide-react";
 
 interface ServerStatusProps {
   activeServerId: string | null;
 }
 
-const ServerStatus = ({ activeServerId }: ServerStatusProps) => {
+const ServerStatus: React.FC<ServerStatusProps> = ({ activeServerId }) => {
   return (
-    <div className="border-t flex justify-between pt-4 text-xs text-muted-foreground">
-      <div className="flex items-center gap-1">
-        {activeServerId ? (
-          <>
-            <Check className="h-3 w-3 text-green-500" />
-            <span>Connected to MCP network</span>
-          </>
-        ) : (
-          <>
-            <AlertCircle className="h-3 w-3 text-amber-500" />
-            <span>No MCP connection</span>
-          </>
-        )}
-      </div>
-      <div>
-        MCP Protocol v2.1
-      </div>
+    <div className="flex items-center gap-2 text-sm">
+      <Server className="h-4 w-4" />
+      <span>Server Status:</span>
+      {activeServerId ? (
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+          Connected
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+          Disconnected
+        </Badge>
+      )}
     </div>
   );
 };
