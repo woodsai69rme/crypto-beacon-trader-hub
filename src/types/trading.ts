@@ -1,289 +1,186 @@
 
-export interface CoinOption {
+// Basic types
+export interface User {
   id: string;
   name: string;
+  email: string;
+  avatar?: string;
+}
+
+export interface CryptoData {
+  id: string;
   symbol: string;
+  name: string;
+  image: string;
   price: number;
   priceChange: number;
   changePercent: number;
-  image: string;
-  volume: number;
+  priceChangePercentage: number;
   marketCap: number;
-  value: string;
-  label: string;
+  volume: number;
+  circulatingSupply: number;
+  rank?: number;
+  current_price?: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+  market_cap?: number;
+  volume_24h?: number;
 }
 
-export interface Widget {
-  id: string;
-  position?: { x: number, y: number };
-  title: string;
-  type: WidgetType;
-  size: WidgetSize;
-  customContent?: string;
-}
-
-export type WidgetType = 
-  'price-chart' | 
-  'portfolio-summary' | 
-  'watchlist' | 
-  'news' | 
-  'alerts' | 
-  'trading' | 
-  'aiTrading' | 
-  'aiAnalysis' | 
-  'custom';
-
-export type WidgetSize = 'small' | 'medium' | 'large';
-
-export interface AITradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  timeframe: string;
-  parameters: Record<string, any>;
-}
-
-export interface StrategyParameter {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  value: any;
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: string[];
-}
-
-export interface BacktestResult {
-  startDate: string;
-  endDate: string;
-  initialBalance: number;
-  finalBalance: number;
-  profit: number;
-  profitPercentage: number;
-  maxDrawdown: number;
-  winRate: number;
-  trades: BacktestTrade[];
-  sharpeRatio: number;
-  profitFactor: number;
-  averageProfit: number;
-  averageLoss: number;
-  initialCapital: number;
-  finalCapital: number;
-  totalReturn: number;
-  totalTrades: number;
-  winningTrades: number;
-  losingTrades: number;
-  sortinoRatio: number;
-}
-
-export interface BacktestTrade {
-  id: string;
-  timestamp: string;
-  date: string;
-  type: string;
-  price: number;
-  amount: number;
-  total: number;
-  profit: number;
-  profitPercentage: number;
-}
-
-export interface OptimizationResult {
-  strategyId: string;
-  parameterValues: Record<string, any>;
-  performance: {
-    profit: number;
-    profitPercentage: number;
-    maxDrawdown: number;
-    winRate: number;
-    sharpeRatio: number;
-    profitFactor: number;
-    totalReturn: number;
-  };
-  improvement: number;
-}
-
-export interface NotificationsSettings {
-  email: boolean;
-  push: boolean;
-  priceAlerts: boolean;
-  marketUpdates: boolean;
-  newsletterAndPromotions: boolean;
-}
-
-export interface PrivacySettings {
-  showOnlineStatus: boolean;
-  sharePortfolio: boolean;
-  shareTrades: boolean;
-}
-
-export interface AppearanceSettings {
-  compactMode: boolean;
-  animationsEnabled: boolean;
-  showTradingHistory: boolean;
-  showPortfolioChart: boolean;
-  highContrastMode: boolean;
-}
-
-export interface AccountSettings {
-  twoFactorEnabled: boolean;
-  loginAlerts: boolean;
-}
-
-export interface TradingSettings {
-  confirmTradeExecutions: boolean;
-  showPriceAlerts: boolean;
-  defaultOrder: "market" | "limit" | "stop";
-}
-
-export interface DashboardCustomizationSettings {
-  defaultCurrency: string;
-  defaultTimeframe: string;
-  alertVolume: number;
-  alertFrequency: "low" | "medium" | "high";
-}
-
-export interface DataPrivacySettings {
-  storeHistory: boolean;
-  enableTracking: boolean;
-}
-
-export interface SettingsFormValues {
-  email: string;
-  username: string;
-  displayName: string;
-  bio: string;
-  darkMode: boolean;
-  language: string;
-  timeZone: string;
-  layout: string;
-  theme: "light" | "dark";
-  colorScheme: string;
-  notifications: NotificationsSettings;
-  privacy: PrivacySettings;
-  appearance: AppearanceSettings;
-  account: AccountSettings;
-  trading: TradingSettings;
-  dashboardCustomization: DashboardCustomizationSettings;
-  dataPrivacy: DataPrivacySettings;
-  exportFormat: string;
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
 }
 
 export interface Trade {
   id: string;
   coinId: string;
-  coinName: string;
   coinSymbol: string;
-  type: 'buy' | 'sell';
+  type: "buy" | "sell";
   amount: number;
   price: number;
-  totalValue: number;
   total: number;
   timestamp: string;
-  currency: string;
-  botGenerated?: boolean;
-  strategyId?: string;
+  status: "completed" | "pending" | "failed";
 }
 
-export interface TradingAccount {
+export interface PriceAlert {
   id: string;
-  name: string;
-  balance: number;
-  initialBalance: number;
-  currency: string;
-  trades: Trade[];
+  coinId: string;
+  coinSymbol: string;
+  price: number;
+  condition: "above" | "below";
+  triggered: boolean;
   createdAt: string;
-  lastModified?: string;
 }
 
-export interface TaxHarvestTrade {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  type: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  totalValue: number;
-  currentValue: number;
-  timestamp: string;
-  profitLoss: number;
-}
-
-export type TaxHarvestTradeItem = TaxHarvestTrade;
-
-export interface TradingFormProps {
-  onSubmit: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
-  availableBalance: number;
-  selectedCoin: CoinOption;
-}
-
-export interface RealTimePriceChartProps {
-  coinId: string;
-  selectedCoinId?: string;
-  onSelectCoin?: (coinId: string) => void;
-  availableCoins?: CoinOption[];
-  timeframe?: string;
-  height?: number | string;
-  showControls?: boolean;
-  updateInterval?: number;
-}
-
-export interface QuantitativeAnalysisProps {
-  coinId: string;
-  timeframe?: string;
-}
-
-export interface ExtendedTradingTimeframe {
-  id: string;
-  label: string;
-  value: string;
-  duration: number;
-  candleCount: number;
-  description: string;
-}
-
-export interface TradingSignal {
-  id: string;
-  type: 'buy' | 'sell' | 'hold';
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  price: number;
-  confidence: number;
-  description: string;
-  timestamp: string;
-  source: string;
-  parameters?: Record<string, any>;
-}
-
-export interface StrategyShare {
+export interface Portfolio {
   id: string;
   name: string;
-  description: string;
-  userId: string;
-  userName: string;
+  totalValue: number;
+  assets: PortfolioAsset[];
   performance: {
-    roi: number;
-    winRate: number;
-    sharpeRatio: number;
+    daily: number;
+    weekly: number;
+    monthly: number;
+    allTime: number;
   };
-  popularity: number;
-  timestamp: string;
-  tags: string[];
+}
+
+export interface PortfolioAsset {
+  coinId: string;
+  coinSymbol: string;
+  coinName: string;
+  amount: number;
+  averageBuyPrice: number;
+  currentPrice: number;
+  value: number;
+  allocation: number;
+  profit: number;
+  profitPercentage: number;
+}
+
+export interface TradingPair {
+  baseAsset: string;
+  quoteAsset: string;
+  price: number;
+  volume: number;
+  change: number;
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  sentiment?: "positive" | "neutral" | "negative";
+  categories: string[];
+  relatedAssets: string[];
+}
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  position?: {
+    x: number;
+    y: number;
+  };
+  size: WidgetSize;
+  customContent?: string;
+}
+
+export type WidgetType = 
+  | "price-chart" 
+  | "portfolio-summary" 
+  | "watchlist" 
+  | "news" 
+  | "alerts" 
+  | "trading" 
+  | "aiTrading" 
+  | "aiAnalysis" 
+  | "custom";
+
+export type WidgetSize = "small" | "medium" | "large" | "full";
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description?: string;
+  endpoints: ApiEndpoint[];
+  isActive: boolean;
+  enabled?: boolean;
+  apiKey?: string;
+  apiSecret?: string;
+  usageLimit?: number;
+  currentUsage?: number;
+  authMethod?: string;
+  apiKeyName?: string;
+  defaultHeaders?: Record<string, string>;
+  website?: string;
+  docs?: string;
+  authRequired?: boolean;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  url?: string;
+  method: string;
+  description?: string;
+  requiresAuth?: boolean;
+  responseTime?: number;
+  lastUsed?: string;
+  parameters?: ApiParameter[];
+}
+
+export interface ApiParameter {
+  name: string;
+  type: string;
+  required: boolean;
+  description?: string;
+}
+
+export interface ApiUsageStats {
+  service: string;
+  currentUsage: number;
+  maxUsage: number;
+  endpoint?: string;
+  resetTime?: string;
 }
 
 export interface LocalModel {
   id: string;
   name: string;
   endpoint: string;
-  type: "prediction" | "sentiment" | "trading" | "analysis";
+  type: string;
   isConnected: boolean;
-  lastUsed?: string;
   description?: string;
+  lastUsed?: string;
   performance?: {
     accuracy: number;
     returns: number;
@@ -292,108 +189,55 @@ export interface LocalModel {
   };
 }
 
-export interface ModelListProps {
-  models: LocalModel[];
-  onSelect?: (model: LocalModel) => void;
-  onConnect?: (model: LocalModel) => void;
-  onDisconnect?: (modelId: string) => void;
-}
-
-// Add the missing interfaces from build errors
-export interface CryptoChartData {
-  id: string;
-  name: string;
-  symbol: string;
-  priceData: {
-    timestamp: string;
-    price: number;
-  }[];
-  currentPrice: number;
-  changePercent24h: number;
-  marketCap: number;
-  volume24h: number;
-}
-
-export interface CryptoData {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceChange: number;
-  priceChangePercentage: number;
-  marketCap: number;
-  volume: number;
-  circulatingSupply: number;
-}
-
-export interface ApiProvider {
-  id: string;
-  name: string;
-  description: string;
-  baseUrl: string;
-  documentation: string;
-  endpoints: ApiEndpoint[];
-  isActive: boolean;
-  requiresAuth: boolean;
-  authType: 'apiKey' | 'oauth' | 'none';
-  category: 'market' | 'exchange' | 'analytics' | 'other';
-  icon?: string;
-}
-
-export interface ApiEndpoint {
-  id: string;
-  name: string;
-  path: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  description: string;
-  requiresAuth: boolean;
-  parameters: ApiParameter[];
-  rateLimit: {
-    requests: number;
-    period: string;
+export interface SettingsData {
+  notifications: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+    priceAlerts?: boolean;
   };
-  responseExample: string;
+  tradingPreferences: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  display: {
+    theme: string;
+    chartType: string;
+    currency: string;
+    timeFormat: string;
+  };
+  security: {
+    twoFactor: boolean;
+    sessionTimeout: number;
+    apiKeyVisibility: boolean;
+  };
 }
 
-export interface ApiParameter {
-  name: string;
-  type: string;
-  required: boolean;
-  description: string;
-  defaultValue?: any;
+// Create a detachable analytics dashboard component
+export interface LiveAnalyticsDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
 }
 
-export interface ApiUsageStats {
-  id: string;
-  serviceId: string;
-  serviceName: string;
-  totalRequests: number;
-  periodRequests: number;
-  requestsLimit: number;
-  averageResponseTime: number;
-  errorRate: number;
-  lastRequested: string;
-  currentUsage: number;
-  maxUsage: number;
+export interface DetachableDashboardProps {
+  isDetached: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
 }
 
+// Additional interface for the EnhancedPortfolioBenchmarking component
 export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioId: string;
-  timeframe: string;
-  benchmarks: string[];
+  portfolioPerformance?: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    yearly: number;
+    allTime: number;
+  };
 }
-
-export interface ATOTaxCalculation {
-  id: string;
-  financialYear: string;
-  totalGains: number;
-  totalLosses: number;
-  netGain: number;
-  taxRate: number;
-  estimatedTax: number;
-  transactions: TaxHarvestTrade[];
-  discountApplied: boolean;
-  discountAmount?: number;
-  dateCalculated: string;
-}
-

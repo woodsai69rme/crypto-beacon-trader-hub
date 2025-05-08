@@ -36,7 +36,7 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
   const [chartData, setChartData] = useState<{ date: string; price: number }[]>([]);
   
   useEffect(() => {
-    if (data) {
+    if (data && data.prices) {
       // Map the data to the format expected by the chart
       const formattedData = data.prices.map((pricePoint) => ({
         date: new Date(pricePoint[0]).toLocaleDateString(),
@@ -100,16 +100,7 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
                 <SelectValue placeholder="Timeframe" />
               </SelectTrigger>
               <SelectContent>
-                {[
-                  { value: "1h", label: "1H" },
-                  { value: "24h", label: "24H" },
-                  { value: "1d", label: "1D" },
-                  { value: "7d", label: "7D" },
-                  { value: "30d", label: "30D" },
-                  { value: "90d", label: "90D" },
-                  { value: "1y", label: "1Y" },
-                  { value: "all", label: "All" },
-                ].map((tf) => (
+                {timeframes.map((tf) => (
                   <SelectItem key={tf.value} value={tf.value}>
                     {tf.label}
                   </SelectItem>

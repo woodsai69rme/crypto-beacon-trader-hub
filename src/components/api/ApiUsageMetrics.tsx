@@ -2,68 +2,52 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ApiUsageStats } from '@/types/trading';
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { ApiUsageStats } from "@/types/trading";
 
 interface ApiUsageMetricsProps {
-  stats: ApiUsageStats[];
+  data: ApiUsageStats[];
+  onRefresh: () => void;
 }
 
-const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ stats }) => {
-  if (!stats || stats.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardContent className="pt-6">
-          <div className="text-center p-8">
-            <p className="text-muted-foreground">No API usage data available</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ data, onRefresh }) => {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>API Usage Metrics</CardTitle>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-md font-medium">API Usage Metrics</CardTitle>
+        <Button variant="ghost" size="sm" onClick={onRefresh}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </CardHeader>
+      
       <CardContent>
-        <div className="space-y-6">
-          {stats.map((stat) => (
-            <div key={stat.serviceId} className="space-y-2">
-              <div className="flex justify-between">
-                <div>
-                  <h3 className="font-medium">{stat.serviceName}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {stat.endpoint || 'All endpoints'}
-                  </p>
+        <div className="space-y-4">
+          {data.map((item, index) => {
+            const usagePercentage = (item.currentUsage / item.maxUsage) * 100;
+            
+            return (
+              <div key={index} className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">{item.service}</span>
+                  <span className="text-muted-foreground">
+                    {item.currentUsage} / {item.maxUsage} requests
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">
-                    {stat.currentUsage !== undefined && stat.maxUsage !== undefined ? 
-                      `${stat.currentUsage} / ${stat.maxUsage}` : 
-                      `${stat.periodRequests} / ${stat.requestsLimit}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {stat.resetTime ? `Resets: ${new Date(stat.resetTime).toLocaleString()}` : 'Current period'}
-                  </p>
+                
+                <Progress 
+                  value={usagePercentage} 
+                  className={`h-2 ${usagePercentage > 80 ? 'bg-red-200' : 'bg-slate-200'}`}
+                />
+                
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  {item.endpoint && <span>Endpoint: {item.endpoint}</span>}
+                  {item.resetTime && <span>Resets: {item.resetTime}</span>}
                 </div>
               </div>
-
-              <Progress 
-                value={
-                  stat.currentUsage !== undefined && stat.maxUsage !== undefined ? 
-                    (stat.currentUsage / stat.maxUsage * 100) : 
-                    (stat.periodRequests / stat.requestsLimit * 100)
-                } 
-                className="h-2"
-              />
-
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Response: {stat.averageResponseTime}ms</span>
-                <span>Error Rate: {stat.errorRate}%</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
