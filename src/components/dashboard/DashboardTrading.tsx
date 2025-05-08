@@ -15,6 +15,7 @@ import ExchangeIntegration from "../trading/ExchangeIntegration";
 import MultiTimeframeStrategy from "../trading/MultiTimeframeStrategy";
 import AdvancedTrading from "../trading/AdvancedTrading";
 import AiTradingDetailedDashboard from "../trading/AiTradingDetailedDashboard";
+import LiveAnalyticsDashboard from "../analytics/LiveAnalyticsDashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -31,6 +32,7 @@ const DashboardTrading = () => {
           <TabsTrigger value="detailed-ai">Detailed AI</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
           <TabsTrigger value="mcp">MCP Trading</TabsTrigger>
+          <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
           {!isMobile && <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>}
           {!isMobile && <TabsTrigger value="analysis">Analysis</TabsTrigger>}
           {!isMobile && <TabsTrigger value="social">Social</TabsTrigger>}
@@ -70,6 +72,10 @@ const DashboardTrading = () => {
         
         <TabsContent value="mcp" className="animate-fade-in">
           <AiTradingMcp />
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="animate-fade-in">
+          <LiveAnalyticsDashboard refreshInterval={10000} />
         </TabsContent>
         
         <TabsContent value="multi-exchange" className="animate-fade-in">

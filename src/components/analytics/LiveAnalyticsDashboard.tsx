@@ -7,8 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Maximize2, Minimize2, RefreshCw, Clock, BarChart2, LineChart, PieChart, TrendingUp, TrendingDown } from "lucide-react";
-import { CoinOption } from "@/types/trading";
+import { CoinOption } from '@/types/trading';
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from '@/components/ui/use-toast';
 
 // Mock data for demonstration
 const mockCryptoData: CoinOption[] = [
@@ -142,6 +143,12 @@ const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
     setTimeout(() => {
       setLastUpdated(new Date());
       setRefreshing(false);
+      // Show toast notification for refresh
+      toast({
+        title: "Dashboard Updated",
+        description: `Last updated at ${new Date().toLocaleTimeString()}`,
+        duration: 3000,
+      });
     }, 1000);
   };
   

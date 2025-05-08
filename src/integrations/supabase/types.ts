@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          asset_id: string | null
+          condition: Json
+          created_at: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          notification_channels: string[] | null
+          recurring: boolean | null
+          status: string
+          symbol: string | null
+          triggered_at: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          asset_id?: string | null
+          condition: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          notification_channels?: string[] | null
+          recurring?: boolean | null
+          status?: string
+          symbol?: string | null
+          triggered_at?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string | null
+          condition?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          notification_channels?: string[] | null
+          recurring?: boolean | null
+          status?: string
+          symbol?: string | null
+          triggered_at?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       games: {
         Row: {
           assets: Json | null

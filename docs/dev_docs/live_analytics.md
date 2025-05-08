@@ -149,7 +149,7 @@ The Live Analytics Dashboard has comprehensive test coverage:
 
 1. **Unit Tests**: Testing individual component rendering and logic
 2. **Integration Tests**: Testing component interaction and data flow
-3. **Performance Tests**: Ensuring efficient rendering with large datasets
+3. **Performance Tests**: Testing efficient rendering with large datasets
 4. **Mock Services**: WebSocket and API services are mocked for reliable testing
 
 ## Known Limitations

@@ -11,7 +11,7 @@ The Live Analytics Dashboard is a powerful tool that provides real-time market d
 
 The Live Analytics Dashboard can be accessed in two ways:
 
-1. **From the Trading Interface**: Click the "Show Analytics" button in the AI Trading Bots section.
+1. **From the Trading Interface**: Click the "Analytics" tab in the main trading dashboard.
 2. **From the Dashboard**: Add the "Live Analytics" widget to your dashboard.
 
 ### Dashboard Layout
