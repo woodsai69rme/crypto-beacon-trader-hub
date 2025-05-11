@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CoinOption } from "@/types/trading";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface PriceTickerProps {
   coins: CoinOption[];
@@ -12,6 +13,21 @@ interface PriceTickerProps {
   className?: string;
   variant?: 'default' | 'minimal';
 }
+
+// Define CSS keyframes for the ticker animation
+const tickerLeftKeyframes = `
+@keyframes ticker-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+`;
+
+const tickerRightKeyframes = `
+@keyframes ticker-right {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+`;
 
 const PriceTicker: React.FC<PriceTickerProps> = ({ 
   coins, 
@@ -23,6 +39,27 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
   const tickerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [currentDirection, setCurrentDirection] = useState<'left' | 'right'>(direction);
+  
+  // Add keyframes to document head
+  useEffect(() => {
+    // Create style element if it doesn't exist yet
+    let styleElement = document.getElementById('ticker-keyframes');
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = 'ticker-keyframes';
+      document.head.appendChild(styleElement);
+    }
+    
+    // Set the keyframes
+    styleElement.textContent = tickerLeftKeyframes + tickerRightKeyframes;
+    
+    return () => {
+      // Clean up
+      if (styleElement && document.head.contains(styleElement)) {
+        document.head.removeChild(styleElement);
+      }
+    };
+  }, []);
   
   useEffect(() => {
     if (!tickerRef.current || coins.length === 0 || isPaused) return;
@@ -102,12 +139,17 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
                 <img 
                   src={coin.image} 
                   alt={coin.name} 
-                  className="w-5 h-5 mr-2 rounded-full"
+                  className="w-5 h-5 mr-2 rounded-full flex-shrink-0"
                 />
               )}
-              <span className="font-medium">{coin.symbol.toUpperCase()}</span>
-              <span className="mx-1 text-muted-foreground">/</span>
-              <span className="font-mono">
+              <div className="flex items-center">
+                <span className="font-medium mr-1.5 whitespace-nowrap">{coin.symbol.toUpperCase()}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline-block">
+                  ({coin.name})
+                </span>
+              </div>
+              <span className="mx-2 text-muted-foreground">/</span>
+              <span className="font-mono truncate">
                 ${coin.price.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 6
@@ -115,7 +157,7 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
               </span>
               {/* Percentage change */}
               <span className={cn(
-                "ml-2 text-sm",
+                "ml-2 text-sm whitespace-nowrap",
                 coin.priceChange > 0 ? "text-crypto-green" : "text-crypto-red"
               )}>
                 {coin.priceChange > 0 ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}
