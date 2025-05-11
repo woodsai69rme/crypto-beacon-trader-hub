@@ -3,9 +3,9 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Moon } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
@@ -14,11 +14,13 @@ interface AppearanceSettingsProps {
 }
 
 const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ form }) => {
+  const hasAppearanceField = !!form.getValues().appearance;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Moon className="h-5 w-5" />
+          <Settings2 className="h-5 w-5" />
           Appearance
         </CardTitle>
         <CardDescription>
@@ -34,121 +36,118 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ form }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Theme</FormLabel>
-                <FormDescription>
-                  Select the theme for the application
-                </FormDescription>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="grid grid-cols-2 gap-4"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="light" />
-                    </FormControl>
-                    <FormLabel className="cursor-pointer">Light</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="dark" />
-                    </FormControl>
-                    <FormLabel className="cursor-pointer">Dark</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="colorScheme"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Color Scheme</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select color scheme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="midnight-tech">Midnight Tech</SelectItem>
-                    <SelectItem value="cyber-pulse">Cyber Pulse</SelectItem>
-                    <SelectItem value="matrix-code">Matrix Code</SelectItem>
-                    <SelectItem value="golden-sunset">Golden Sunset</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  The color scheme affects the accent colors of the UI
-                </FormDescription>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="appearance.compactMode"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Compact Mode</FormLabel>
-                  <FormDescription>
-                    Use a more compact layout for the interface
-                  </FormDescription>
-                </div>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    <div>
+                      <RadioGroupItem value="light" id="light" className="sr-only" />
+                      <Label
+                        htmlFor="light"
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                      >
+                        <div className="mb-2 h-6 w-6 rounded-full bg-[#eaeaea] border border-[#ddd]" />
+                        Light
+                      </Label>
+                    </div>
+                    <div>
+                      <RadioGroupItem value="dark" id="dark" className="sr-only" />
+                      <Label
+                        htmlFor="dark"
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                      >
+                        <div className="mb-2 h-6 w-6 rounded-full bg-[#262626] border border-[#333]" />
+                        Dark
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </FormControl>
               </FormItem>
             )}
           />
-          
-          <FormField
-            control={form.control}
-            name="appearance.animationsEnabled"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Enable Animations</FormLabel>
-                  <FormDescription>
-                    Show animations in the user interface
-                  </FormDescription>
+
+          {hasAppearanceField && 'colorScheme' in form.getValues().appearance! && (
+            <FormItem className="space-y-2">
+              <FormLabel>Color Scheme</FormLabel>
+              <RadioGroup
+                value={form.getValues().appearance?.colorScheme || "default"}
+                onValueChange={(value) => form.setValue('appearance.colorScheme', value)}
+                className="grid grid-cols-3 gap-2"
+              >
+                <div>
+                  <RadioGroupItem value="default" id="default" className="sr-only" />
+                  <Label
+                    htmlFor="default"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                  >
+                    <div className="mb-1 h-4 w-4 rounded-full bg-[#8b5cf6]" />
+                    Default
+                  </Label>
                 </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="appearance.highContrastMode"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>High Contrast Mode</FormLabel>
-                  <FormDescription>
-                    Increase contrast for better visibility
-                  </FormDescription>
+                <div>
+                  <RadioGroupItem value="blue" id="blue" className="sr-only" />
+                  <Label
+                    htmlFor="blue"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                  >
+                    <div className="mb-1 h-4 w-4 rounded-full bg-[#3b82f6]" />
+                    Blue
+                  </Label>
                 </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+                <div>
+                  <RadioGroupItem value="green" id="green" className="sr-only" />
+                  <Label
+                    htmlFor="green"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                  >
+                    <div className="mb-1 h-4 w-4 rounded-full bg-[#10b981]" />
+                    Green
+                  </Label>
+                </div>
+              </RadioGroup>
+            </FormItem>
+          )}
+
+          {hasAppearanceField && 'compactMode' in form.getValues().appearance! && (
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="font-medium">Compact Mode</Label>
+                <p className="text-xs text-muted-foreground">Use a more compact user interface</p>
+              </div>
+              <Switch
+                checked={!!form.getValues().appearance?.compactMode}
+                onCheckedChange={(checked) => form.setValue('appearance.compactMode', checked)}
+              />
+            </div>
+          )}
+
+          {hasAppearanceField && 'animationsEnabled' in form.getValues().appearance! && (
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="font-medium">Enable Animations</Label>
+                <p className="text-xs text-muted-foreground">Show animations throughout the interface</p>
+              </div>
+              <Switch
+                checked={!!form.getValues().appearance?.animationsEnabled}
+                onCheckedChange={(checked) => form.setValue('appearance.animationsEnabled', checked)}
+              />
+            </div>
+          )}
+
+          {hasAppearanceField && 'highContrastMode' in form.getValues().appearance! && (
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="font-medium">High Contrast Mode</Label>
+                <p className="text-xs text-muted-foreground">Increase contrast for better visibility</p>
+              </div>
+              <Switch
+                checked={!!form.getValues().appearance?.highContrastMode}
+                onCheckedChange={(checked) => form.setValue('appearance.highContrastMode', checked)}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

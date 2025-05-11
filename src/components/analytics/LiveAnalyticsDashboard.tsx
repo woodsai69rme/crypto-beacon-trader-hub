@@ -1,18 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Maximize2, Minimize2, RefreshCw, Bookmark, BookmarkPlus } from "lucide-react";
-import { CoinOption } from '../trading/types';
-import { LiveAnalyticsDashboardProps } from "@/types/trading";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Maximize2, BarChart2, RefreshCw } from 'lucide-react';
+import { LiveAnalyticsDashboardProps, CoinOption } from '@/types/trading';
 import LivePriceMetrics from './LivePriceMetrics';
-import LiveMarketDepth from './LiveMarketDepth';
-import LiveTradingSignals from './LiveTradingSignals';
-import LiveActivityFeed from './LiveActivityFeed';
-import LiveTechnicalIndicators from './LiveTechnicalIndicators';
+import ApiUsageMetrics from '../api/ApiUsageMetrics';
+import RealTimeApiUsage from '../api/RealTimeApiUsage';
+import MarketCorrelations from '../MarketCorrelations/MarketCorrelations';
+import DetachedAiTradingDashboard from './DetachedAiTradingDashboard';
+import { mockCryptoData } from '../MarketCorrelations/mockData';
 
 const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
   initialCoinId = "bitcoin",
@@ -21,244 +20,184 @@ const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
   onAlertTriggered,
   darkMode
 }) => {
-  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId);
   const [isDetached, setIsDetached] = useState<boolean>(false);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>("prices");
+  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<string>("overview");
-  const [watchlist, setWatchlist] = useState<string[]>(["bitcoin", "ethereum", "solana"]);
-
-  // Sample coin options for the dashboard
-  const coinOptions: CoinOption[] = [
-    { 
-      id: "bitcoin", 
-      name: "Bitcoin", 
-      symbol: "BTC", 
-      price: 61245.32, 
-      priceChange: 1245.32, 
-      changePercent: 2.18, 
-      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-      volume: 48941516789,
-      marketCap: 1143349097968,
-      value: "bitcoin",
-      label: "Bitcoin (BTC)"
+  const [apiUsageStats, setApiUsageStats] = useState<any[]>([
+    {
+      service: "CoinGecko",
+      currentUsage: 421,
+      maxUsage: 500,
+      endpoint: "/coins/markets",
+      resetTime: "1 hour"
     },
-    { 
-      id: "ethereum", 
-      name: "Ethereum", 
-      symbol: "ETH", 
-      price: 3105.78, 
-      priceChange: 65.43, 
-      changePercent: 2.15, 
-      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-      volume: 21891456789,
-      marketCap: 373952067386,
-      value: "ethereum",
-      label: "Ethereum (ETH)"
+    {
+      service: "CryptoCompare",
+      currentUsage: 8750,
+      maxUsage: 10000,
+      endpoint: "/data/pricemultifull",
+      resetTime: "24 hours"
     },
-    { 
-      id: "solana", 
-      name: "Solana", 
-      symbol: "SOL", 
-      price: 152.37, 
-      priceChange: 5.23, 
-      changePercent: 3.55, 
-      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-      volume: 3578912345,
-      marketCap: 67891234567,
-      value: "solana",
-      label: "Solana (SOL)"
+    {
+      service: "NewsAPI",
+      currentUsage: 89,
+      maxUsage: 100,
+      endpoint: "/v2/everything",
+      resetTime: "12 hours"
     }
-  ];
+  ]);
+  
+  // Find the selected coin from mock data
+  const selectedCoin: CoinOption = mockCryptoData.find(
+    coin => coin.id === selectedCoinId
+  ) as unknown as CoinOption || {
+    id: "bitcoin",
+    symbol: "btc",
+    name: "Bitcoin",
+    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    price: 61245.32,
+    priceChange: 1245.32,
+    changePercent: 2.3,
+    volume: 28000000000,
+    marketCap: 1180000000000,
+    value: "bitcoin",
+    label: "Bitcoin"
+  };
 
-  // Simulate data refresh
+  // Effect for periodic data refreshing
   useEffect(() => {
     const intervalId = setInterval(() => {
       refreshData();
     }, refreshInterval);
-
+    
     return () => clearInterval(intervalId);
   }, [refreshInterval]);
-
+  
+  // Function to refresh all data
   const refreshData = () => {
-    setIsRefreshing(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      setLastUpdated(new Date());
-      setIsRefreshing(false);
-    }, 500);
+    // In a real application, this would fetch fresh data from APIs
+    setLastUpdated(new Date());
+    
+    // Simulate API usage changes
+    setApiUsageStats(prev => prev.map(stat => ({
+      ...stat,
+      currentUsage: Math.min(stat.maxUsage, stat.currentUsage + Math.floor(Math.random() * 10))
+    })));
+  };
+  
+  // Handle coin selection change
+  const handleCoinChange = (coinId: string) => {
+    setSelectedCoinId(coinId);
   };
 
-  const toggleDetachMode = () => {
-    setIsDetached(!isDetached);
-  };
-
-  const toggleInWatchlist = () => {
-    if (watchlist.includes(selectedCoinId)) {
-      setWatchlist(watchlist.filter(id => id !== selectedCoinId));
-    } else {
-      setWatchlist([...watchlist, selectedCoinId]);
-    }
-  };
-
-  const selectedCoin = coinOptions.find(coin => coin.id === selectedCoinId) || coinOptions[0];
-
+  // Dashboard content
   const dashboardContent = (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-6">
+      {/* Controls row */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="prices">Price Metrics</TabsTrigger>
+            <TabsTrigger value="api">API Usage</TabsTrigger>
+            <TabsTrigger value="correlations">Correlations</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
         <div className="flex items-center gap-2">
-          <Select value={selectedCoinId} onValueChange={setSelectedCoinId}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select asset" />
+          <Select value={selectedCoinId} onValueChange={handleCoinChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Select coin" />
             </SelectTrigger>
             <SelectContent>
-              {coinOptions.map(coin => (
-                <SelectItem key={coin.id} value={coin.id} className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <img 
-                      src={coin.image} 
-                      alt={coin.symbol} 
-                      className="h-4 w-4 rounded-full" 
-                    />
-                    {coin.name} ({coin.symbol})
-                  </div>
+              {mockCryptoData.map(coin => (
+                <SelectItem key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol.toUpperCase()})
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={refreshData}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleInWatchlist}
-          >
-            {watchlist.includes(selectedCoinId) ? (
-              <Bookmark className="h-4 w-4" />
-            ) : (
-              <BookmarkPlus className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-muted-foreground">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={toggleDetachMode}
-            className="h-8 w-8"
-          >
-            {isDetached ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
-            )}
+          <Button variant="outline" size="icon" onClick={refreshData}>
+            <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
-
-      <LivePriceMetrics 
-        coin={selectedCoin} 
-        lastUpdated={lastUpdated} 
-      />
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="indicators">Indicators</TabsTrigger>
-          <TabsTrigger value="orderbook">Order Book</TabsTrigger>
-          <TabsTrigger value="signals">Signals</TabsTrigger>
-        </TabsList>
+      {/* Content based on active tab */}
+      <TabsContent value="prices" className="m-0">
+        <LivePriceMetrics 
+          coin={selectedCoin as CoinOption}
+          lastUpdated={lastUpdated}
+        />
+      </TabsContent>
+      
+      <TabsContent value="api" className="m-0 space-y-6">
+        <ApiUsageMetrics 
+          data={apiUsageStats}
+          onRefresh={refreshData}
+        />
         
-        <TabsContent value="overview" className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <LiveMarketDepth coinId={selectedCoinId} symbol={selectedCoin.symbol} />
-            <LiveActivityFeed coinId={selectedCoinId} />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="indicators" className="mt-4">
-          <LiveTechnicalIndicators coinId={selectedCoinId} />
-        </TabsContent>
-        
-        <TabsContent value="orderbook" className="mt-4">
-          <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-md">
-            <p className="text-muted-foreground">Order book visualization will appear here</p>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="signals" className="mt-4">
-          <LiveTradingSignals coinId={selectedCoinId} />
-        </TabsContent>
-      </Tabs>
+        {showDetailedView && (
+          <RealTimeApiUsage />
+        )}
+      </TabsContent>
+      
+      <TabsContent value="correlations" className="m-0">
+        <MarketCorrelations />
+      </TabsContent>
+      
+      <div className="text-xs text-muted-foreground text-right">
+        Last updated: {lastUpdated.toLocaleTimeString()}
+      </div>
     </div>
   );
 
-  // If detached, render in a dialog
-  if (isDetached) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Live Analytics</CardTitle>
-          <CardDescription>
-            Dashboard is currently in detached mode
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Button onClick={toggleDetachMode}>
-            Return to Embedded View
-          </Button>
-          
-          <Dialog open={isDetached} onOpenChange={setIsDetached} modal={false}>
-            <DialogContent className="max-w-5xl h-[90vh] p-4 overflow-auto">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle>Live Analytics Dashboard</CardTitle>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={toggleDetachMode}
-                  >
-                    <Minimize2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                {dashboardContent}
-              </div>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Default embedded view
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Live Analytics Dashboard</CardTitle>
-            <CardDescription>
-              Real-time market data and signals
-            </CardDescription>
+    <>
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart2 className="h-5 w-5" />
+                Live Analytics Dashboard
+              </CardTitle>
+              <CardDescription>
+                Real-time market metrics and API usage monitoring
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="icon" onClick={() => setIsDetached(true)}>
+              <Maximize2 className="h-4 w-4" />
+            </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
+        </CardHeader>
+        
+        <CardContent>
+          {dashboardContent}
+        </CardContent>
+        
+        <CardFooter className="text-sm text-muted-foreground">
+          <div className="flex justify-between w-full items-center">
+            <div>
+              {apiUsageStats.some(stat => stat.currentUsage / stat.maxUsage > 0.9) && (
+                <span className="text-red-500 font-medium">⚠️ API rate limit warning</span>
+              )}
+            </div>
+            <Button variant="link" size="sm" className="p-0" onClick={() => setIsDetached(true)}>
+              Open in detached mode
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+      
+      <DetachedAiTradingDashboard
+        isDetached={isDetached}
+        onClose={() => setIsDetached(false)}
+      >
         {dashboardContent}
-      </CardContent>
-    </Card>
+      </DetachedAiTradingDashboard>
+    </>
   );
 };
 

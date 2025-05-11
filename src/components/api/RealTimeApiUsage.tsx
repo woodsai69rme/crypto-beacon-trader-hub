@@ -8,6 +8,7 @@ import { ApiUsageStats } from '@/types/trading';
 const RealTimeApiUsage: React.FC = () => {
   const [apiUsage, setApiUsage] = useState<ApiUsageStats[]>([
     {
+      service: "CoinGecko",
       serviceId: "coingecko-1",
       serviceName: "CoinGecko",
       totalRequests: 5243,
@@ -16,11 +17,11 @@ const RealTimeApiUsage: React.FC = () => {
       averageResponseTime: 247,
       errorRate: 0.5,
       lastRequested: "2023-05-01T12:34:56Z",
-      id: "1",
       currentUsage: 243,
       maxUsage: 10000
     },
     {
+      service: "Binance",
       serviceId: "binance-1",
       serviceName: "Binance",
       totalRequests: 8754,
@@ -29,11 +30,11 @@ const RealTimeApiUsage: React.FC = () => {
       averageResponseTime: 124,
       errorRate: 0.2,
       lastRequested: "2023-05-01T13:45:12Z",
-      id: "2",
       currentUsage: 754,
       maxUsage: 20000
     },
     {
+      service: "Kraken",
       serviceId: "kraken-1",
       serviceName: "Kraken",
       totalRequests: 2134,
@@ -42,7 +43,6 @@ const RealTimeApiUsage: React.FC = () => {
       averageResponseTime: 189,
       errorRate: 1.2,
       lastRequested: "2023-05-01T11:22:33Z",
-      id: "3",
       currentUsage: 134,
       maxUsage: 5000
     }
@@ -53,10 +53,10 @@ const RealTimeApiUsage: React.FC = () => {
     const interval = setInterval(() => {
       setApiUsage(prev => prev.map(api => ({
         ...api,
-        periodRequests: api.periodRequests + Math.floor(Math.random() * 5),
-        totalRequests: api.totalRequests + Math.floor(Math.random() * 5),
-        currentUsage: (api.currentUsage || 0) + Math.floor(Math.random() * 5),
-        averageResponseTime: api.averageResponseTime + (Math.random() * 10 - 5),
+        periodRequests: (api.periodRequests || 0) + Math.floor(Math.random() * 5),
+        totalRequests: (api.totalRequests || 0) + Math.floor(Math.random() * 5),
+        currentUsage: api.currentUsage + Math.floor(Math.random() * 5),
+        averageResponseTime: (api.averageResponseTime || 0) + (Math.random() * 10 - 5),
         lastRequested: new Date().toISOString()
       })));
     }, 5000);
@@ -65,7 +65,7 @@ const RealTimeApiUsage: React.FC = () => {
   }, []);
   
   const getStatusBadge = (api: ApiUsageStats) => {
-    const usage = (api.currentUsage || api.periodRequests) / (api.maxUsage || api.requestsLimit) * 100;
+    const usage = api.currentUsage / api.maxUsage * 100;
     
     if (usage > 90) return <Badge variant="destructive">Critical</Badge>;
     if (usage > 75) return <Badge variant="warning">Warning</Badge>;
@@ -80,35 +80,35 @@ const RealTimeApiUsage: React.FC = () => {
       <CardContent>
         <div className="space-y-6">
           {apiUsage.map((api) => (
-            <div key={api.serviceId} className="space-y-2">
+            <div key={api.service} className="space-y-2">
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-medium flex items-center">
-                    {api.serviceName} 
+                    {api.serviceName || api.service} 
                     <span className="ml-2">{getStatusBadge(api)}</span>
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Last request: {new Date(api.lastRequested).toLocaleTimeString()}
+                    Last request: {new Date(api.lastRequested || new Date()).toLocaleTimeString()}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium">
-                    {(api.currentUsage || api.periodRequests)} / {(api.maxUsage || api.requestsLimit)}
+                    {api.currentUsage} / {api.maxUsage}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {api.errorRate.toFixed(1)}% error rate
+                    {(api.errorRate || 0).toFixed(1)}% error rate
                   </p>
                 </div>
               </div>
               
               <Progress 
-                value={(api.currentUsage || api.periodRequests) / (api.maxUsage || api.requestsLimit) * 100} 
+                value={api.currentUsage / api.maxUsage * 100} 
                 className="h-2" 
               />
               
               <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Total: {api.totalRequests.toLocaleString()} requests</span>
-                <span>Avg: {api.averageResponseTime.toFixed(0)}ms</span>
+                <span>Total: {(api.totalRequests || 0).toLocaleString()} requests</span>
+                <span>Avg: {(api.averageResponseTime || 0).toFixed(0)}ms</span>
               </div>
             </div>
           ))}

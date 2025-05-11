@@ -7,6 +7,23 @@ export interface User {
   avatar?: string;
 }
 
+export interface CoinOption {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  image: string;
+  volume: number;
+  marketCap: number;
+  value: string;
+  label: string;
+  priceAUD?: number;
+  priceEUR?: number;
+  priceGBP?: number;
+}
+
 export interface CryptoData {
   id: string;
   symbol: string;
@@ -37,12 +54,17 @@ export interface Trade {
   id: string;
   coinId: string;
   coinSymbol: string;
+  coinName?: string;
   type: "buy" | "sell";
   amount: number;
   price: number;
   total: number;
+  totalValue: number; // Added this field to fix the error
   timestamp: string;
-  status: "completed" | "pending" | "failed";
+  status?: "completed" | "pending" | "failed";
+  currency?: string;
+  botGenerated?: boolean;
+  strategyId?: string;
 }
 
 export interface PriceAlert {
@@ -139,6 +161,7 @@ export interface ApiProvider {
   currentUsage?: number;
   authMethod?: string;
   apiKeyName?: string;
+  requiresAuth?: boolean; // Added for MobileOptimizedApiProvider
   defaultHeaders?: Record<string, string>;
   website?: string;
   docs?: string;
@@ -167,10 +190,18 @@ export interface ApiParameter {
 
 export interface ApiUsageStats {
   service: string;
+  serviceId?: string; // Added for compatibility
+  serviceName?: string; // Added for compatibility
   currentUsage: number;
   maxUsage: number;
   endpoint?: string;
   resetTime?: string;
+  totalRequests?: number; // Added for RealTimeApiUsage
+  periodRequests?: number; // Added for RealTimeApiUsage
+  requestsLimit?: number; // Added for RealTimeApiUsage
+  averageResponseTime?: number; // Added for RealTimeApiUsage
+  errorRate?: number; // Added for RealTimeApiUsage
+  lastRequested?: string; // Added for RealTimeApiUsage
 }
 
 export interface LocalModel {
@@ -196,7 +227,9 @@ export interface SettingsData {
     trades: boolean;
     pricing: boolean;
     news: boolean;
-    priceAlerts?: boolean;
+    priceAlerts?: boolean; // Added for compatibility
+    marketUpdates?: boolean; // Added for NotificationSettings component
+    newsletterAndPromotions?: boolean; // Added for NotificationSettings component
   };
   tradingPreferences: {
     autoConfirm: boolean;
@@ -213,6 +246,20 @@ export interface SettingsData {
     twoFactor: boolean;
     sessionTimeout: number;
     apiKeyVisibility: boolean;
+  };
+  appearance?: {
+    compactMode?: boolean;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
+    colorScheme?: string;
+  };
+  privacy?: {
+    showOnlineStatus?: boolean;
+    sharePortfolio?: boolean;
+    shareTrades?: boolean;
+  };
+  account?: {
+    twoFactorEnabled?: boolean;
   };
 }
 
@@ -240,4 +287,49 @@ export interface EnhancedPortfolioBenchmarkingProps {
     yearly: number;
     allTime: number;
   };
+}
+
+export type SupportedCurrency = "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CHF";
+
+export interface SettingsFormValues {
+  email: string;
+  username: string;
+  displayName: string;
+  bio?: string;
+  profilePicture?: string;
+  theme: string;
+  colorScheme?: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+    priceAlerts?: boolean;
+    marketUpdates?: boolean;
+    newsletterAndPromotions?: boolean;
+  };
+  tradingPreferences: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  appearance?: {
+    compactMode?: boolean;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
+    colorScheme?: string;
+  };
+  privacy?: {
+    showOnlineStatus?: boolean;
+    sharePortfolio?: boolean;
+    shareTrades?: boolean;
+  };
+  account?: {
+    twoFactorEnabled?: boolean;
+  };
+}
+
+export interface SettingsComponentProps {
+  form: import("react-hook-form").UseFormReturn<SettingsFormValues>;
 }
