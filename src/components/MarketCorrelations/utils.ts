@@ -62,16 +62,43 @@ export function calculateCorrelation(x: number[], y: number[]): number {
 export function findStrongestCorrelations(
   correlationMatrix: Record<string, Record<string, number>>,
   coinId: string,
-  cryptoData: CryptoData[],
+  cryptoData: {
+    id: string;
+    name: string;
+    symbol: string;
+    price?: number;
+    image?: string;
+    marketCap?: number;
+    volume?: number;
+    changePercent?: number;
+  }[],
   limit = 5
-): { coin: CryptoData; correlation: number }[] {
+): { coin: { 
+    id: string;
+    name: string;
+    symbol: string;
+    price?: number;
+    image?: string;
+    marketCap?: number;
+    volume?: number;
+    changePercent?: number;
+  }; correlation: number }[] {
   const coinCorrelations = correlationMatrix[coinId];
   if (!coinCorrelations) return [];
   
   const coinMap = cryptoData.reduce((map, coin) => {
     map[coin.id] = coin;
     return map;
-  }, {} as Record<string, CryptoData>);
+  }, {} as Record<string, {
+    id: string;
+    name: string;
+    symbol: string;
+    price?: number;
+    image?: string;
+    marketCap?: number;
+    volume?: number;
+    changePercent?: number;
+  }>);
   
   return Object.entries(coinCorrelations)
     .filter(([id]) => id !== coinId && coinMap[id])

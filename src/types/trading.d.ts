@@ -1,4 +1,3 @@
-
 // Common interfaces
 export interface CoinOption {
   id: string;
@@ -57,6 +56,7 @@ export interface TradingAccount {
   connected?: boolean;
   isActive?: boolean;
   provider?: string;
+  trades?: Trade[];
 }
 
 export interface AccountWithBotsEnabled {
@@ -89,6 +89,7 @@ export interface AITradingStrategy extends TradingStrategy {
   confidenceThreshold: number;
   riskLevel: 'low' | 'medium' | 'high';
   maxDrawdown: number;
+  type?: string;
 }
 
 export interface ApiProvider {
@@ -145,8 +146,8 @@ export interface AiBotTradingProps {
 }
 
 export interface QuantitativeAnalysisProps {
-  symbol?: string;
-  timeframe?: string;
+  symbol: string;
+  timeframe: string;
   depth?: number;
   onResultsCalculated?: (results: any) => void;
 }

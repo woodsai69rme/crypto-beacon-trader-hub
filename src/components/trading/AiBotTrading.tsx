@@ -1,11 +1,21 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Bot, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Bot, TrendingUp, ChevronDown, ChevronUp, Settings, Play, Pause, Trash } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import { CoinOption } from '@/types/trading';
-import { AiBotTradingProps } from '@/types/trading';
+
+// Define necessary types from scratch
+interface AiBotTradingProps {
+  botId?: string;
+  strategyId?: string;
+  strategyName?: string;
+}
 
 interface TradingBot {
   id: string;
@@ -131,7 +141,7 @@ const availableCoins: CoinOption[] = [
   }
 ];
 
-const AiBotTrading = () => {
+const AiBotTrading: React.FC<AiBotTradingProps> = () => {
   const [activeBots, setActiveBots] = useState<TradingBot[]>([
     {
       id: "bot-1",
@@ -189,7 +199,7 @@ const AiBotTrading = () => {
         amount,
         price: randomCoin.price,
         totalValue,
-        total: totalValue, // Add this line to fix the error
+        total: totalValue,
         timestamp: new Date().toISOString(),
         currency: "USD" as const,
         botGenerated: true,
@@ -322,7 +332,7 @@ const AiBotTrading = () => {
                         deleteBot(bot.id);
                       }}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -350,6 +360,7 @@ const AiBotTrading = () => {
                     <Label htmlFor="bot-name">Bot Name</Label>
                     <input
                       id="bot-name"
+                      className="w-full p-2 border rounded"
                       value={selectedBotData.name}
                       onChange={(e) => {
                         const updatedBots = activeBots.map(b => 
@@ -357,32 +368,16 @@ const AiBotTrading = () => {
                         );
                         setActiveBots(updatedBots);
                       }}
-                      className="w-full p-2 border rounded-md"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bot-description">Description</Label>
-                    <textarea
-                      id="bot-description"
-                      value={selectedBotData.description}
-                      onChange={(e) => {
-                        const updatedBots = activeBots.map(b => 
-                          b.id === selectedBot ? {...b, description: e.target.value} : b
-                        );
-                        setActiveBots(updatedBots);
-                      }}
-                      className="w-full p-2 border rounded-md h-20"
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="strategy">Trading Strategy</Label>
                     <Select 
-                      value={selectedStrategy || ""} 
-                      onValueChange={setSelectedStrategy}
+                      value={selectedStrategy || ''} 
+                      onValueChange={(value) => setSelectedStrategy(value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="strategy">
                         <SelectValue placeholder="Select a strategy" />
                       </SelectTrigger>
                       <SelectContent>
@@ -395,108 +390,148 @@ const AiBotTrading = () => {
                     </Select>
                     
                     {selectedStrategy && (
-                      <div className="text-xs text-muted-foreground">
+                      <div className="mt-2 text-sm text-muted-foreground">
                         {tradingStrategies.find(s => s.id === selectedStrategy)?.description}
                       </div>
                     )}
                   </div>
                   
-                  <div className="pt-4">
-                    {selectedBotData.isRunning ? (
-                      <Button 
-                        variant="destructive" 
-                        className="w-full"
-                        onClick={() => stopBot(selectedBotData.id)}
-                      >
-                        <Pause className="h-4 w-4 mr-2" />
-                        Stop Bot
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full"
-                        disabled={!selectedStrategy}
-                        onClick={() => {
-                          if (selectedStrategy) {
-                            startBot(selectedBotData.id, selectedStrategy);
-                          }
-                        }}
-                      >
-                        <Play className="h-4 w-4 mr-2" />
-                        Start Bot
-                      </Button>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="active" className="cursor-pointer">Bot Status</Label>
+                    <div className="flex items-center space-x-2">
+                      {selectedBotData.isRunning ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => stopBot(selectedBotData.id)}
+                          className="flex items-center"
+                        >
+                          <Pause className="h-4 w-4 mr-1" />
+                          Stop Bot
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (selectedStrategy) {
+                              startBot(selectedBotData.id, selectedStrategy);
+                            } else {
+                              toast({
+                                title: "Strategy Required",
+                                description: "Please select a trading strategy first",
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          className="flex items-center"
+                          disabled={!selectedStrategy}
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          Start Bot
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t">
+                    <Button variant="outline" size="sm" className="flex items-center">
+                      <Settings className="h-4 w-4 mr-1" />
+                      Advanced Settings
+                    </Button>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="text-center py-8">
-                <Settings className="h-8 w-8 mx-auto text-muted-foreground" />
-                <p className="mt-2 text-muted-foreground">Select a bot to configure</p>
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Select a bot from the list</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Or create a new bot to get started
+                  </p>
+                </div>
               </div>
             )}
           </div>
           
           {/* Bot Performance Panel */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Performance</h3>
-            
             {selectedBotData ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Trades Executed</div>
-                    <div className="text-2xl font-bold">{selectedBotData.stats.tradesExecuted}</div>
+              <>
+                <h3 className="text-lg font-medium">Bot Performance</h3>
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <Badge variant={selectedBotData.isRunning ? "default" : "outline"}>
+                      {selectedBotData.isRunning ? "Active" : "Inactive"}
+                    </Badge>
                   </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Profit/Loss</div>
-                    <div className={`text-2xl font-bold ${
-                      selectedBotData.stats.profitLoss >= 0 ? 'text-green-500' : 'text-red-500'
-                    }`}>
-                      {selectedBotData.stats.profitLoss >= 0 ? '+' : ''}
-                      ${selectedBotData.stats.profitLoss.toFixed(2)}
+                  
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Trades Executed</span>
+                      <span className="font-medium">{selectedBotData.stats.tradesExecuted}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Profit/Loss</span>
+                      <span className={`font-medium ${selectedBotData.stats.profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        ${Math.abs(selectedBotData.stats.profitLoss).toFixed(2)}
+                        {selectedBotData.stats.profitLoss >= 0 ? ' profit' : ' loss'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Last Trade</span>
+                      <span className="font-medium">
+                        {selectedBotData.lastTrade 
+                          ? new Date(selectedBotData.lastTrade).toLocaleTimeString() 
+                          : 'No trades yet'}
+                      </span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Recent Activity</div>
-                  <div className="border rounded-md p-2 max-h-36 overflow-y-auto">
-                    {tradeHistory
-                      .filter(trade => trade.botGenerated && selectedBotData)
-                      .slice(0, 5)
-                      .map(trade => (
-                        <div key={trade.id} className="text-xs border-b py-1 last:border-0">
-                          <div className="flex justify-between">
-                            <span>{trade.type.toUpperCase()} {trade.amount} {trade.coinSymbol}</span>
-                            <span>${trade.price.toFixed(2)}</span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {new Date(trade.timestamp).toLocaleString()}
-                          </div>
-                        </div>
-                      ))
-                    }
-                    
-                    {(!tradeHistory.some(trade => trade.botGenerated) || !selectedBotData) && (
-                      <div className="text-xs text-muted-foreground text-center py-2">
-                        No recent activity
-                      </div>
-                    )}
+                <div className="border rounded-lg p-4 mt-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium">Recent Trades</h4>
                   </div>
-                </div>
-                
-                <div className="text-xs text-muted-foreground">
-                  {selectedBotData.lastTrade ? (
-                    <div>Last trade: {new Date(selectedBotData.lastTrade).toLocaleString()}</div>
+                  
+                  {tradeHistory.filter(t => t.strategyId === selectedStrategy).length > 0 ? (
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                      {tradeHistory
+                        .filter(t => t.strategyId === selectedStrategy)
+                        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                        .map((trade) => (
+                          <div key={trade.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                            <div>
+                              <div className="font-medium">{trade.coinSymbol}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(trade.timestamp).toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`font-medium ${trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}`}>
+                                {trade.type === 'buy' ? 'Buy' : 'Sell'} {trade.amount} {trade.coinSymbol}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                ${trade.price} per coin
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
                   ) : (
-                    <div>No trades executed yet</div>
+                    <div className="text-center py-6">
+                      <p className="text-sm text-muted-foreground">
+                        No trades executed yet
+                      </p>
+                    </div>
                   )}
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="text-center py-8">
-                <BarChart2 className="h-8 w-8 mx-auto text-muted-foreground" />
-                <p className="mt-2 text-muted-foreground">Select a bot to view performance</p>
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Select a bot to view performance</p>
+                </div>
               </div>
             )}
           </div>

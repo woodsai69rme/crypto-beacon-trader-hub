@@ -1,134 +1,120 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ApiProvider } from '@/types/trading';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Check, AlertTriangle, Server, X } from 'lucide-react';
+
+interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description?: string;
+  enabled: boolean;
+  requiresAuth: boolean; // Use this property instead of authRequired
+  apiKey?: string;
+  status?: 'online' | 'offline' | 'degraded';
+  currentUsage?: number;
+  maxUsage?: number;
+  resetTime?: string;
+}
 
 interface MobileOptimizedApiProviderProps {
   provider: ApiProvider;
-  onToggle: (providerId: string, isActive: boolean) => void;
-  onEdit: (providerId: string) => void;
+  onToggle: (id: string, enabled: boolean) => void;
+  onConfigure: (id: string) => void;
 }
 
-const MobileOptimizedApiProvider: React.FC<MobileOptimizedApiProviderProps> = ({
-  provider,
-  onToggle,
-  onEdit
+const MobileOptimizedApiProvider: React.FC<MobileOptimizedApiProviderProps> = ({ 
+  provider, 
+  onToggle, 
+  onConfigure 
 }) => {
-  const usagePercentage = (provider.currentUsage / provider.maxUsage) * 100;
-  const usageStatus = usagePercentage > 90 
-    ? 'danger' 
-    : usagePercentage > 70 
-      ? 'warning' 
-      : 'success';
-  
-  // Formats reset time to be more readable
-  const formatResetTime = (resetTime: string) => {
-    try {
-      const date = new Date(resetTime);
-      const now = new Date();
-      
-      // If it's today, just show the time
-      if (date.toDateString() === now.toDateString()) {
-        return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-      }
-      
-      // If it's tomorrow
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      if (date.toDateString() === tomorrow.toDateString()) {
-        return `Tomorrow at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-      }
-      
-      // Otherwise show date and time
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
-      return resetTime;
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'online': return 'bg-green-500';
+      case 'offline': return 'bg-red-500';
+      case 'degraded': return 'bg-yellow-500';
+      default: return 'bg-gray-300';
     }
   };
   
-  const isAuthenticated = provider.requiresAuth || provider.authRequired;
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'online': return <Check className="h-4 w-4" />;
+      case 'offline': return <X className="h-4 w-4" />;
+      case 'degraded': return <AlertTriangle className="h-4 w-4" />;
+      default: return null;
+    }
+  };
   
   return (
-    <Card className={`border-l-4 ${
-      !provider.isActive ? 'border-l-gray-300' : 
-      provider.status === 'online' ? 'border-l-green-500' : 
-      provider.status === 'degraded' ? 'border-l-yellow-500' : 
-      'border-l-red-500'
-    }`}>
+    <Card className="mb-4">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base font-medium flex items-center">
-            {provider.name}
-            <Badge 
-              variant={provider.status === 'online' ? 'outline' : 'destructive'} 
-              className="ml-2 text-xs"
-            >
-              {provider.status}
-            </Badge>
+          <CardTitle className="text-base flex items-center">
+            <Server className="h-4 w-4 mr-2" /> {provider.name}
           </CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onToggle(provider.id, !provider.isActive)}
-            className={provider.isActive ? "text-green-600" : "text-gray-400"}
-          >
-            {provider.isActive ? "Enabled" : "Disabled"}
-          </Button>
+          <Switch checked={provider.enabled} onCheckedChange={(checked) => onToggle(provider.id, checked)} />
         </div>
       </CardHeader>
-      
-      <CardContent className="space-y-4 pt-0">
-        <div className="flex justify-between items-center text-xs text-muted-foreground">
-          <div>
-            <span>Endpoint: </span>
-            <code className="bg-muted px-1 rounded text-xs">{provider.endpoint}</code>
-          </div>
-          
-          {isAuthenticated && (
-            <Badge variant="secondary" className="text-xs">
-              Auth Required
-            </Badge>
+      <CardContent className="pt-0">
+        <div className="flex flex-col space-y-2 text-sm">
+          {provider.description && (
+            <p className="text-muted-foreground">{provider.description}</p>
           )}
-        </div>
-        
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span>API Usage</span>
-            <span className={`
-              ${usageStatus === 'danger' ? 'text-red-600' : 
-                usageStatus === 'warning' ? 'text-yellow-600' : 
-                'text-green-600'}
-            `}>
-              {provider.currentUsage}/{provider.maxUsage} requests
-            </span>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Authentication:</span>
+            <span>{provider.requiresAuth ? 'Required' : 'Not Required'}</span>
           </div>
           
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full ${
-                usageStatus === 'danger' ? 'bg-red-600' : 
-                usageStatus === 'warning' ? 'bg-yellow-500' : 
-                'bg-green-600'
-              }`}
-              style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-            />
-          </div>
+          {provider.status && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Status:</span>
+              <Badge className={getStatusColor(provider.status)}>
+                <span className="flex items-center">
+                  {getStatusIcon(provider.status)} <span className="ml-1">{provider.status}</span>
+                </span>
+              </Badge>
+            </div>
+          )}
           
-          <div className="text-xs text-muted-foreground mt-1">
-            Resets: {formatResetTime(provider.resetTime)}
-          </div>
-        </div>
-        
-        <div className="pt-2">
+          {provider.currentUsage !== undefined && provider.maxUsage !== undefined && (
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">API Usage:</span>
+                <span>{provider.currentUsage}/{provider.maxUsage}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                <div 
+                  className={`h-1.5 rounded-full ${
+                    (provider.currentUsage / provider.maxUsage) > 0.8 
+                      ? 'bg-red-500' 
+                      : (provider.currentUsage / provider.maxUsage) > 0.6 
+                      ? 'bg-yellow-500' 
+                      : 'bg-green-500'
+                  }`} 
+                  style={{ width: `${(provider.currentUsage / provider.maxUsage) * 100}%` }}
+                />
+              </div>
+              {provider.resetTime && (
+                <div className="text-xs text-right text-muted-foreground">
+                  Reset: {provider.resetTime}
+                </div>
+              )}
+            </div>
+          )}
+          
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full text-xs"
-            onClick={() => onEdit(provider.id)}
+            className="mt-2 w-full" 
+            onClick={() => onConfigure(provider.id)}
+            disabled={!provider.enabled}
           >
-            Configure
+            {provider.apiKey ? 'Configure API Key' : 'Add API Key'}
           </Button>
         </div>
       </CardContent>
