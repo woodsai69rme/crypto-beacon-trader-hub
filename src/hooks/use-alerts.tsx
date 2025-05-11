@@ -1,101 +1,103 @@
 
-import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { useState, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from '@/components/ui/use-toast';
+import { PriceAlertFormData } from '@/components/widgets/AlertComponents/AlertTypes';
 
 export interface Alert {
   id: string;
-  type: string;
-  message: string;
-  timestamp: Date;
-  coinId?: string;
-  price?: number;
-  condition?: {
-    type: 'price' | 'volume' | 'market_cap' | 'change_percentage';
-    value: number;
-    operator: '>' | '<' | '=' | '>=' | '<=';
-    timeframe?: string;
-  };
-  status: 'active' | 'triggered' | 'expired';
-  read: boolean;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  createdAt: string;
+  enabled: boolean;
+  notifyVia: string[];
 }
 
-export const useAlerts = () => {
+const useAlerts = () => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
   
-  useEffect(() => {
-    // Calculate unread count whenever alerts change
-    setUnreadCount(alerts.filter(a => !a.read).length);
-  }, [alerts]);
-  
-  const addAlert = (alert: Omit<Alert, 'id' | 'timestamp' | 'read'>) => {
+  const addAlert = useCallback((formData: PriceAlertFormData) => {
     const newAlert: Alert = {
-      ...alert,
-      id: `alert-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      timestamp: new Date(),
-      read: false
+      ...formData,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
     };
     
-    setAlerts(prev => [...prev, newAlert]);
+    setAlerts((currentAlerts) => [...currentAlerts, newAlert]);
+    
     toast({
-      title: "Alert Created",
-      description: `New ${alert.type} alert has been created.`
+      title: 'Alert Created',
+      description: `You will be notified when ${formData.coinSymbol} is ${formData.isAbove ? 'above' : 'below'} $${formData.targetPrice.toLocaleString()}`,
     });
     
     return newAlert;
-  };
+  }, []);
   
-  const markAsRead = (alertId: string) => {
-    setAlerts(prev =>
-      prev.map(alert =>
-        alert.id === alertId ? { ...alert, read: true } : alert
-      )
-    );
-  };
+  const removeAlert = useCallback((id: string) => {
+    setAlerts((currentAlerts) => currentAlerts.filter((alert) => alert.id !== id));
+    
+    toast({
+      title: 'Alert Removed',
+      description: 'The price alert has been removed',
+    });
+  }, []);
   
-  const markAllAsRead = () => {
-    setAlerts(prev =>
-      prev.map(alert => ({ ...alert, read: true }))
-    );
-    setUnreadCount(0);
-  };
-  
-  const removeAlert = (alertId: string) => {
-    setAlerts(prev => prev.filter(alert => alert.id !== alertId));
-  };
-  
-  const triggerAlert = (alertId: string, currentPrice: number) => {
-    setAlerts(prev =>
-      prev.map(alert =>
-        alert.id === alertId
-          ? {
-              ...alert,
-              status: 'triggered',
-              message: `Alert triggered: ${alert.condition?.type} ${alert.condition?.operator} ${alert.condition?.value} (Current: ${currentPrice})`,
-              read: false
-            }
+  const toggleAlert = useCallback((id: string) => {
+    setAlerts((currentAlerts) => 
+      currentAlerts.map((alert) => 
+        alert.id === id 
+          ? { ...alert, enabled: !alert.enabled } 
           : alert
       )
     );
+  }, []);
+  
+  const checkAlerts = useCallback((coinId: string, currentPrice: number) => {
+    const triggeredAlerts: Alert[] = [];
     
-    const alert = alerts.find(a => a.id === alertId);
-    if (alert) {
-      toast({
-        title: "Alert Triggered",
-        description: `${alert.type} alert for ${alert.coinId} has been triggered.`,
-        variant: "destructive"
+    setAlerts((currentAlerts) => {
+      const updatedAlerts = currentAlerts.map((alert) => {
+        if (
+          alert.coinId === coinId && 
+          alert.enabled && 
+          ((alert.isAbove && currentPrice >= alert.targetPrice) || 
+           (!alert.isAbove && currentPrice <= alert.targetPrice))
+        ) {
+          triggeredAlerts.push(alert);
+          
+          // If not recurring, disable the alert
+          if (!alert.recurring) {
+            return { ...alert, enabled: false };
+          }
+        }
+        return alert;
       });
-    }
-  };
+      
+      return updatedAlerts;
+    });
+    
+    // Display notifications for triggered alerts
+    triggeredAlerts.forEach((alert) => {
+      toast({
+        title: 'Price Alert Triggered',
+        description: `${alert.coinName} is now ${alert.isAbove ? 'above' : 'below'} $${alert.targetPrice.toLocaleString()}`,
+        variant: 'destructive',
+      });
+    });
+    
+    return triggeredAlerts;
+  }, []);
   
   return {
     alerts,
-    unreadCount,
     addAlert,
-    markAsRead,
-    markAllAsRead,
     removeAlert,
-    triggerAlert
+    toggleAlert,
+    checkAlerts
   };
 };
 

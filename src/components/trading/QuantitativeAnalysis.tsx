@@ -1,358 +1,414 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  TrendingUp, 
-  LineChart, 
-  BarChart3, 
-  Network, 
-  ArrowUp, 
-  ArrowDown,
-  Loader2
-} from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { QuantitativeAnalysisProps } from '@/types/trading';
 
-interface AnalysisData {
-  correlations: {
-    value: string;
-    description: string;
-  }[];
-  momentum: {
-    rsi: number;
-    macd: number;
-    adx: number;
-  }[];
-  volatility: {
-    atr: number;
-    bbWidth: number;
-    historicalVol: number;
-  }[];
-  efficiency: {
-    value: string;
-  }[];
-}
-
-interface TrendIndicators {
+interface TrendIndicator {
   rsi: number;
   macd: number;
   adx: number;
-  interpretation?: string;
+  interpretation?: {
+    rsi: string;
+    macd: string;
+    adx: string;
+    overall: string;
+  };
 }
 
-interface VolatilityIndicators {
+interface VolatilityIndicator {
   atr: number;
   bbWidth: number;
   historicalVol: number;
-  interpretation?: string;
+  interpretation?: {
+    atr: string;
+    bbWidth: string;
+    historicalVol: string;
+    overall: string;
+  };
 }
 
-const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
-  symbol = "BTC/USD", 
+const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({
+  symbol = "BTC",
   timeframe = "1d",
-  depth = 20,
-  onResultsCalculated
+  depth = 14
 }) => {
-  const [activeTab, setActiveTab] = useState<string>('correlation');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
-  
-  useEffect(() => {
-    // Simulate fetching and processing data
-    const fetchData = async () => {
-      setIsLoading(true);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock data for demonstration
-      const mockAnalysisData: AnalysisData = {
-        correlations: [
-          { value: "0.85", description: "Strong positive correlation with ETH" },
-          { value: "0.62", description: "Moderate correlation with tech stocks" },
-          { value: "-0.30", description: "Slight inverse correlation with USD" }
-        ],
-        momentum: [
-          { rsi: 68, macd: 42, adx: 35 }
-        ],
-        volatility: [
-          { atr: 2800, bbWidth: 0.05, historicalVol: 0.6 }
-        ],
-        efficiency: [
-          { value: "High" }
-        ]
-      };
-      
-      setAnalysisData(mockAnalysisData);
-      setIsLoading(false);
-    };
-    
-    fetchData();
-  }, [symbol, timeframe]);
-  
-  const renderLoadingState = () => (
-    <div className="flex flex-col items-center justify-center h-64">
-      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      <p className="mt-2 text-muted-foreground">Analyzing market data...</p>
-    </div>
-  );
-  
-  const renderCorrelationTab = () => {
-    if (isLoading) {
-      return renderLoadingState();
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(symbol);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>(timeframe);
+  const [selectedDepth, setSelectedDepth] = useState<number>(depth);
+
+  // Mock data for trend indicators
+  const trendIndicators: TrendIndicator = {
+    rsi: 62.4,
+    macd: 1.35,
+    adx: 24.8,
+    interpretation: {
+      rsi: "Bullish but approaching overbought conditions",
+      macd: "Positive momentum with recent crossover",
+      adx: "Moderate trend strength developing",
+      overall: "Cautiously bullish, monitor for potential reversal"
     }
-    
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Market Correlation</h3>
-            <p className="text-sm text-muted-foreground mb-2">Relationship with broader market</p>
-            <div className="text-3xl font-bold">
-              {analysisData?.correlations?.[0]?.value || 'N/A'}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {analysisData?.correlations?.[0]?.description || 'No correlation data available'}
-            </p>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Sector Correlation</h3>
-            <p className="text-sm text-muted-foreground mb-2">Relationship with sector peers</p>
-            <div className="text-3xl font-bold">
-              {analysisData?.correlations?.[1]?.value || 'N/A'}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {analysisData?.correlations?.[1]?.description || 'No correlation data available'}
-            </p>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Inverse Correlation</h3>
-            <p className="text-sm text-muted-foreground mb-2">Strongest negative relationship</p>
-            <div className="text-3xl font-bold">
-              {analysisData?.correlations?.[2]?.value || 'N/A'}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {analysisData?.correlations?.[2]?.description || 'No correlation data available'}
-            </p>
-          </Card>
-        </div>
-        
-        {/* Correlation Matrix Visualization */}
-        <Card className="p-4">
-          <h3 className="font-medium text-lg mb-3">Correlation Matrix</h3>
-          <div className="h-64 border rounded flex items-center justify-center">
-            Correlation matrix visualization would be rendered here
-          </div>
-        </Card>
-      </div>
-    );
   };
 
-  const renderMomentumTab = () => {
-    if (isLoading) {
-      return renderLoadingState();
+  // Mock data for volatility indicators
+  const volatilityIndicators: VolatilityIndicator = {
+    atr: 1240,
+    bbWidth: 4.2,
+    historicalVol: 58.3,
+    interpretation: {
+      atr: "High daily price movement, indicating volatile conditions",
+      bbWidth: "Expanded bands suggest increased volatility",
+      historicalVol: "Above average volatility compared to 30-day baseline",
+      overall: "Increased volatility regime, suggesting possible large price movements"
     }
-    
-    const momentumData = analysisData?.momentum || [];
-    
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">RSI (14)</h3>
-            <p className="text-sm text-muted-foreground mb-2">Relative Strength Index</p>
-            <div className="text-3xl font-bold">
-              {momentumData[0]?.rsi || 'N/A'}
-            </div>
-            <div className={`text-sm ${
-              momentumData[0]?.rsi < 30 ? 'text-red-500' : 
-              momentumData[0]?.rsi > 70 ? 'text-green-500' : 
-              'text-muted-foreground'
-            }`}>
-              {momentumData[0]?.rsi < 30 ? 'Oversold' : 
-               momentumData[0]?.rsi > 70 ? 'Overbought' : 
-               'Neutral'}
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">MACD</h3>
-            <p className="text-sm text-muted-foreground mb-2">Moving Average Convergence Divergence</p>
-            <div className="text-3xl font-bold">
-              {momentumData[0]?.macd || 'N/A'}
-            </div>
-            <div className={`text-sm ${
-              (momentumData[0]?.macd || 0) > 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {(momentumData[0]?.macd || 0) > 0 ? 'Bullish' : 'Bearish'}
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">ADX</h3>
-            <p className="text-sm text-muted-foreground mb-2">Average Directional Index</p>
-            <div className="text-3xl font-bold">
-              {momentumData[0]?.adx || 'N/A'}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {(momentumData[0]?.adx || 0) > 25 ? 'Strong Trend' : 'Weak Trend'}
-            </div>
-          </Card>
-        </div>
-        
-        <Card className="p-4">
-          <h3 className="font-medium text-lg mb-2">Momentum Interpretation</h3>
-          <div className="text-sm space-y-2">
-            <p>{momentumData[0]?.interpretation || 'No momentum interpretation available'}</p>
-          </div>
-        </Card>
-      </div>
-    );
   };
 
-  const renderVolatilityTab = () => {
-    if (isLoading) {
-      return renderLoadingState();
-    }
-    
-    const volatilityData = analysisData?.volatility || [];
-    
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">ATR (14)</h3>
-            <p className="text-sm text-muted-foreground mb-2">Average True Range</p>
-            <div className="text-3xl font-bold">
-              {volatilityData[0]?.atr || 'N/A'}
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Bollinger Width</h3>
-            <p className="text-sm text-muted-foreground mb-2">Band expansion/contraction</p>
-            <div className="text-3xl font-bold">
-              {volatilityData[0]?.bbWidth || 'N/A'}
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Historical Vol</h3>
-            <p className="text-sm text-muted-foreground mb-2">30-day standard deviation</p>
-            <div className="text-3xl font-bold">
-              {volatilityData[0]?.historicalVol || 'N/A'}%
-            </div>
-          </Card>
-        </div>
-        
-        <Card className="p-4">
-          <h3 className="font-medium text-lg mb-2">Volatility Interpretation</h3>
-          <div className="text-sm space-y-2">
-            <p>{volatilityData[0]?.interpretation || 'No volatility interpretation available'}</p>
-          </div>
-        </Card>
-      </div>
-    );
-  };
+  // Mock data for price patterns
+  const pricePatterns = [
+    { name: "Double Bottom", probability: 78, significance: "High" },
+    { name: "Bull Flag", probability: 65, significance: "Medium" },
+    { name: "Support Level", probability: 82, significance: "High" }
+  ];
 
-  const renderEfficiencyTab = () => {
-    if (isLoading) {
-      return renderLoadingState();
-    }
-    
-    // Add a check and default value for efficiency data
-    const efficiencyData = analysisData?.efficiency || [];
-    
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Market Efficiency</h3>
-            <p className="text-sm text-muted-foreground mb-2">Price movement efficiency</p>
-            <div className="text-3xl font-bold">
-              {efficiencyData[0]?.value || 'N/A'}
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <h3 className="font-medium text-lg">Randomness Test</h3>
-            <p className="text-sm text-muted-foreground mb-2">Pattern predictability</p>
-            <div className="text-3xl font-bold">
-              {efficiencyData[1]?.value || 'N/A'}
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
-  };
-
-  const calculateTrendIndicators = (): TrendIndicators => {
-    const rsi = Math.floor(Math.random() * 100);
-    const macd = Math.floor(Math.random() * 200) - 100;
-    const adx = Math.floor(Math.random() * 50);
-    
+  // Mock data for historical price
+  const historicalData = Array.from({ length: 30 }, (_, i) => {
+    const basePrice = 58000;
+    const randomWalk = Math.random() > 0.5 ? 1 : -1;
+    const volatility = Math.random() * 1000;
     return {
-      rsi,
-      macd,
-      adx,
-      interpretation: `RSI ${rsi < 30 ? 'oversold' : rsi > 70 ? 'overbought' : 'neutral'}, MACD ${macd > 0 ? 'bullish' : 'bearish'}, ADX ${adx > 25 ? 'strong' : 'weak'} trend`
+      date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+      price: basePrice + (i * randomWalk * 100) + (randomWalk * volatility),
+      ma20: basePrice + (i * 80),
+      ma50: basePrice + (i * 50),
     };
-  };
-  
-  const calculateVolatilityIndicators = (): VolatilityIndicators => {
-    const atr = Math.random() * 5000;
-    const bbWidth = Math.random() * 0.1;
-    const historicalVol = Math.random();
-    
-    return {
-      atr,
-      bbWidth,
-      historicalVol,
-      interpretation: `ATR: ${atr.toFixed(2)}, BB Width: ${bbWidth.toFixed(2)}, Volatility: ${historicalVol < 0.5 ? 'Low' : historicalVol > 1.5 ? 'High' : 'Moderate'}`
-    };
-  };
+  });
+
+  // Calculate support and resistance levels
+  const prices = historicalData.map(d => d.price);
+  const maxPrice = Math.max(...prices);
+  const minPrice = Math.min(...prices);
+  const resistanceLevel = maxPrice - (maxPrice - minPrice) * 0.2;
+  const supportLevel = minPrice + (maxPrice - minPrice) * 0.2;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-medium">Quantitative Analysis: {symbol}</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>Quantitative Analysis</CardTitle>
+        <CardDescription>
+          Advanced technical indicators and statistical analysis
+        </CardDescription>
+        <div className="flex flex-wrap gap-3 mt-4">
+          <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Symbol" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="BTC">BTC</SelectItem>
+              <SelectItem value="ETH">ETH</SelectItem>
+              <SelectItem value="SOL">SOL</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1h">1 Hour</SelectItem>
+              <SelectItem value="4h">4 Hours</SelectItem>
+              <SelectItem value="1d">1 Day</SelectItem>
+              <SelectItem value="1w">1 Week</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedDepth.toString()} onValueChange={(value) => setSelectedDepth(parseInt(value))}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Depth" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="14">14 Periods</SelectItem>
+              <SelectItem value="21">21 Periods</SelectItem>
+              <SelectItem value="50">50 Periods</SelectItem>
+              <SelectItem value="200">200 Periods</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
-      
+
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4">
-            <TabsTrigger value="correlation">
-              <Network className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Correlation</span>
-            </TabsTrigger>
-            <TabsTrigger value="momentum">
-              <LineChart className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Momentum</span>
-            </TabsTrigger>
-            <TabsTrigger value="volatility">
-              <BarChart3 className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Volatility</span>
-            </TabsTrigger>
-            <TabsTrigger value="efficiency">
-              Efficiency
-            </TabsTrigger>
+        <Tabs defaultValue="trend">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="trend">Trend Analysis</TabsTrigger>
+            <TabsTrigger value="volatility">Volatility</TabsTrigger>
+            <TabsTrigger value="patterns">Price Patterns</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="correlation">
-            {renderCorrelationTab()}
+
+          <TabsContent value="trend" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">RSI (14)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">{trendIndicators.rsi.toFixed(1)}</div>
+                  <div className="mt-2 h-2 rounded bg-gray-200">
+                    <div 
+                      className={`h-full rounded ${trendIndicators.rsi > 70 ? 'bg-red-500' : trendIndicators.rsi < 30 ? 'bg-green-500' : 'bg-yellow-500'}`} 
+                      style={{ width: `${trendIndicators.rsi}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Oversold (30)</span>
+                    <span>Neutral</span>
+                    <span>Overbought (70)</span>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    {trendIndicators.interpretation?.rsi}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">MACD</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">{trendIndicators.macd > 0 ? "+" : ""}{trendIndicators.macd.toFixed(2)}</div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className={`w-4 h-4 rounded-full ${trendIndicators.macd > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-sm">{trendIndicators.macd > 0 ? 'Bullish' : 'Bearish'} Signal</span>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    {trendIndicators.interpretation?.macd}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">ADX (14)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">{trendIndicators.adx.toFixed(1)}</div>
+                  <div className="mt-2 h-2 rounded bg-gray-200">
+                    <div 
+                      className={`h-full rounded ${trendIndicators.adx > 50 ? 'bg-green-500' : trendIndicators.adx > 25 ? 'bg-yellow-500' : 'bg-gray-400'}`} 
+                      style={{ width: `${Math.min(100, trendIndicators.adx * 2)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Weak (0-25)</span>
+                    <span>Strong (25-50)</span>
+                    <span>V. Strong (50+)</span>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    {trendIndicators.interpretation?.adx}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Price Action with Moving Averages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={historicalData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} domain={['dataMin - 1000', 'dataMax + 1000']} />
+                      <Tooltip formatter={(value: any) => [`$${value.toLocaleString()}`, ""]} />
+                      <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="ma20" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
+                      <Line type="monotone" dataKey="ma50" stroke="#8b5cf6" strokeWidth={1.5} dot={false} />
+                      <ReferenceLine y={resistanceLevel} stroke="#ef4444" strokeDasharray="3 3" />
+                      <ReferenceLine y={supportLevel} stroke="#22c55e" strokeDasharray="3 3" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap gap-4 justify-center mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#10b981]" />
+                    <span className="text-xs">Price</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#3b82f6]" />
+                    <span className="text-xs">20 MA</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#8b5cf6]" />
+                    <span className="text-xs">50 MA</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-0.5 bg-[#ef4444]" style={{ width: '12px' }} />
+                    <span className="text-xs">Resistance</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-0.5 bg-[#22c55e]" style={{ width: '12px' }} />
+                    <span className="text-xs">Support</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="mt-4 border rounded-md p-4">
+              <h3 className="text-base font-medium mb-2">Trend Analysis Summary</h3>
+              <p className="text-sm text-muted-foreground">
+                {trendIndicators.interpretation?.overall}
+              </p>
+            </div>
           </TabsContent>
-          
-          <TabsContent value="momentum">
-            {renderMomentumTab()}
+
+          <TabsContent value="volatility" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">ATR (14)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">${volatilityIndicators.atr.toFixed(0)}</div>
+                  <div className="mt-2 h-2 rounded bg-gray-200">
+                    <div 
+                      className="h-full rounded bg-blue-500" 
+                      style={{ width: '70%' }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Low</span>
+                    <span>Average</span>
+                    <span>High</span>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    {volatilityIndicators.interpretation?.atr}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Bollinger Band Width</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">{volatilityIndicators.bbWidth.toFixed(1)}</div>
+                  <div className="mt-2 h-2 rounded bg-gray-200">
+                    <div 
+                      className="h-full rounded bg-purple-500" 
+                      style={{ width: `${Math.min(100, volatilityIndicators.bbWidth * 18)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Narrow</span>
+                    <span>Average</span>
+                    <span>Wide</span>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    {volatilityIndicators.interpretation?.bbWidth}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Historical Volatility</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">{volatilityIndicators.historicalVol.toFixed(1)}%</div>
+                  <div className="mt-2 h-2 rounded bg-gray-200">
+                    <div 
+                      className="h-full rounded bg-orange-500" 
+                      style={{ width: `${Math.min(100, volatilityIndicators.historicalVol * 1.2)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>30d Low</span>
+                    <span>30d Avg</span>
+                    <span>30d High</span>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    {volatilityIndicators.interpretation?.historicalVol}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-4 border rounded-md p-4">
+              <h3 className="text-base font-medium mb-2">Volatility Summary</h3>
+              <p className="text-sm text-muted-foreground">
+                {volatilityIndicators.interpretation?.overall}
+              </p>
+            </div>
           </TabsContent>
-          
-          <TabsContent value="volatility">
-            {renderVolatilityTab()}
-          </TabsContent>
-          
-          <TabsContent value="efficiency">
-            {renderEfficiencyTab()}
+
+          <TabsContent value="patterns" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Detected Patterns</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {pricePatterns.map((pattern, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium">{pattern.name}</div>
+                          <div className="text-xs text-muted-foreground">Significance: {pattern.significance}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">{pattern.probability}%</div>
+                          <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
+                            <div 
+                              className={`h-full rounded-full ${pattern.probability > 75 ? 'bg-green-500' : pattern.probability > 50 ? 'bg-yellow-500' : 'bg-red-500'}`} 
+                              style={{ width: `${pattern.probability}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Support & Resistance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Major Resistance</div>
+                      <div className="font-mono text-lg">${(maxPrice + 500).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Minor Resistance</div>
+                      <div className="font-mono text-lg">${resistanceLevel.toLocaleString()}</div>
+                    </div>
+                    <div className="my-2 border-t border-dashed pt-2">
+                      <div className="text-sm">Current Price</div>
+                      <div className="font-mono text-lg font-bold">${historicalData[historicalData.length - 1].price.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Minor Support</div>
+                      <div className="font-mono text-lg">${supportLevel.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Major Support</div>
+                      <div className="font-mono text-lg">${(minPrice - 500).toLocaleString()}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-4 border rounded-md p-4">
+              <h3 className="text-base font-medium mb-2">Pattern Analysis Summary</h3>
+              <p className="text-sm text-muted-foreground">
+                Multiple bullish patterns detected with high probability, indicating potential for upward price movement. The double bottom pattern with 78% probability is most significant. Key support and resistance levels are defining a trading range.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>

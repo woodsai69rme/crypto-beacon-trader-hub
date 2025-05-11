@@ -1,141 +1,174 @@
 
-import React, { useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
 import { CryptoData } from '@/types/trading';
 
 interface PriceCorrelationChartProps {
-  historicalPrices: Record<string, number[]>;
   selectedCoin: CryptoData;
   coins: CryptoData[];
+  historicalPrices: Record<string, number[]>;
   onCoinSelect: (coin: CryptoData) => void;
 }
 
 export const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({
-  historicalPrices,
   selectedCoin,
   coins,
+  historicalPrices,
   onCoinSelect
 }) => {
-  const [comparisonCoins, setComparisonCoins] = useState<string[]>(['ethereum']);
-  
-  const addComparisonCoin = (coinId: string) => {
-    if (!comparisonCoins.includes(coinId)) {
-      setComparisonCoins([...comparisonCoins, coinId]);
+  const [displayCoins, setDisplayCoins] = useState<string[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+
+  // Colors for different coin lines
+  const coinColors: Record<string, string> = {
+    bitcoin: '#F7931A',
+    ethereum: '#627EEA',
+    cardano: '#3CC8C8',
+    solana: '#00FFA3',
+    binancecoin: '#F3BA2F'
+  };
+
+  // Initialize with the selected coin
+  useEffect(() => {
+    if (selectedCoin && !displayCoins.includes(selectedCoin.id)) {
+      setDisplayCoins([selectedCoin.id]);
+    }
+  }, [selectedCoin]);
+
+  // Update chart data when display coins change
+  useEffect(() => {
+    if (Object.keys(historicalPrices).length === 0 || displayCoins.length === 0) return;
+
+    // Prepare data for the chart
+    const data = [];
+    const maxLength = Math.max(...displayCoins.map(coinId => historicalPrices[coinId]?.length || 0));
+
+    for (let i = 0; i < maxLength; i++) {
+      const dataPoint: any = { day: i + 1 };
+
+      displayCoins.forEach(coinId => {
+        // Get prices and normalize to percentage change from day 0
+        const prices = historicalPrices[coinId];
+        if (prices && i < prices.length) {
+          const basePrice = prices[0];
+          const normalizedPrice = ((prices[i] - basePrice) / basePrice) * 100;
+          dataPoint[coinId] = normalizedPrice;
+        }
+      });
+
+      data.push(dataPoint);
+    }
+
+    setChartData(data);
+  }, [displayCoins, historicalPrices]);
+
+  const toggleCoin = (coinId: string) => {
+    setDisplayCoins(prev => 
+      prev.includes(coinId) 
+        ? prev.filter(id => id !== coinId)
+        : [...prev, coinId]
+    );
+  };
+
+  const handleLegendClick = (coinId: string) => {
+    const coin = coins.find(c => c.id === coinId);
+    if (coin) {
+      onCoinSelect(coin);
     }
   };
-  
-  const removeComparisonCoin = (coinId: string) => {
-    setComparisonCoins(comparisonCoins.filter(id => id !== coinId));
-  };
-  
-  // Generate labels for x-axis (days)
-  const labels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
-  
-  // Generate chart data
-  const chartData = {
-    labels,
-    datasets: [
-      // Selected coin dataset
-      {
-        label: selectedCoin.name,
-        data: historicalPrices[selectedCoin.id] || [],
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.1)',
-        borderWidth: 2,
-        tension: 0.1
-      },
-      // Comparison coin datasets
-      ...comparisonCoins.map((coinId, index) => {
-        const coin = coins.find(c => c.id === coinId);
-        const colorSet = [
-          { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.1)' }, // Red
-          { border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.1)' }, // Blue
-          { border: 'rgb(255, 206, 86)', background: 'rgba(255, 206, 86, 0.1)' }, // Yellow
-          { border: 'rgb(153, 102, 255)', background: 'rgba(153, 102, 255, 0.1)' }, // Purple
-          { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.1)' }  // Orange
-        ];
-        
-        return {
-          label: coin?.name || coinId,
-          data: historicalPrices[coinId] || [],
-          borderColor: colorSet[index % colorSet.length].border,
-          backgroundColor: colorSet[index % colorSet.length].background,
-          borderWidth: 2,
-          tension: 0.1
-        };
-      })
-    ]
-  };
-  
-  const options = {
-    responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: `Price Correlation with ${selectedCoin.name}`
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: false
-      }
-    }
-  };
-  
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-4 items-center">
+        {coins.map(coin => (
+          <div key={coin.id} className="flex items-center space-x-2">
+            <Checkbox 
+              id={`coin-${coin.id}`}
+              checked={displayCoins.includes(coin.id)}
+              onCheckedChange={() => toggleCoin(coin.id)}
+              style={{ accentColor: coinColors[coin.id] || '#888' }}
+            />
+            <Label 
+              htmlFor={`coin-${coin.id}`}
+              className="cursor-pointer"
+              onClick={() => handleLegendClick(coin.id)}
+            >
+              {coin.symbol}
+            </Label>
+          </div>
+        ))}
+      </div>
+
       <Card>
-        <CardContent className="pt-6">
-          <Line data={chartData} options={options} />
+        <CardHeader className="pb-0">
+          <CardTitle className="text-base">Price Movement Correlation (% Change)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 20,
+                  right: 30,
+                  left: 20,
+                  bottom: 20,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="day" label={{ value: 'Days', position: 'bottom', offset: -10 }} />
+                <YAxis 
+                  label={{ value: 'Price Change %', angle: -90, position: 'left' }}
+                  domain={['auto', 'auto']}
+                />
+                <Tooltip
+                  formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
+                  labelFormatter={(label) => `Day ${label}`}
+                />
+                <Legend 
+                  verticalAlign="top" 
+                  align="right"
+                  onClick={(e) => handleLegendClick(e.dataKey)}
+                />
+                <ReferenceLine y={0} stroke="#888" strokeDasharray="3 3" />
+                
+                {displayCoins.map(coinId => {
+                  const coin = coins.find(c => c.id === coinId);
+                  return (
+                    <Line
+                      key={coinId}
+                      type="monotone"
+                      dataKey={coinId}
+                      name={coin?.symbol || coinId}
+                      stroke={coinColors[coinId] || '#888'}
+                      activeDot={{ r: 6 }}
+                      strokeWidth={coinId === selectedCoin.id ? 2.5 : 1.5}
+                    />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="mt-4 text-sm text-muted-foreground">
+            <p>Chart shows normalized price movement as percentage change from day 0.</p>
+            <p>Select coins to compare and click on legend items to focus on a specific asset.</p>
+          </div>
         </CardContent>
       </Card>
-      
-      <div className="flex flex-wrap gap-2 items-center">
-        <span className="text-sm font-medium">Compare with:</span>
-        <Select
-          onValueChange={addComparisonCoin}
-          value=""
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Add coin..." />
-          </SelectTrigger>
-          <SelectContent>
-            {coins
-              .filter(coin => coin.id !== selectedCoin.id && !comparisonCoins.includes(coin.id))
-              .map(coin => (
-                <SelectItem key={coin.id} value={coin.id}>
-                  {coin.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-        
-        <div className="flex flex-wrap gap-2 mt-2">
-          {comparisonCoins.map(coinId => {
-            const coin = coins.find(c => c.id === coinId);
-            return (
-              <div
-                key={coinId}
-                className="px-2 py-1 rounded-full bg-secondary text-xs flex items-center gap-1"
-              >
-                <span>{coin?.name}</span>
-                <button
-                  className="ml-1 hover:text-destructive"
-                  onClick={() => removeComparisonCoin(coinId)}
-                >
-                  ✕
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -145,7 +146,7 @@ Tax Refund/Owed: $${Math.abs(calculation.taxRefundOrOwed).toLocaleString()} ${ca
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="space-y-4" content={null}>
+      <CardContent className="space-y-4">
         <div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4 grid w-full grid-cols-2">

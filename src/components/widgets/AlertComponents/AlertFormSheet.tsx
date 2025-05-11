@@ -1,159 +1,139 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { COIN_OPTIONS, PriceAlertFormData } from './AlertTypes';
+import { fetchCoinOptions } from '@/services/cryptoApi';
+import { AlertFormSheetProps, PriceAlertFormData } from './AlertTypes';
+import { CoinOption } from '@/types/trading';
 
-export interface AlertFormSheetProps {
-  onFormChange: (formData: PriceAlertFormData) => void;
-  onSubmit: () => void;
-}
+export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ 
+  onFormChange, 
+  onSubmit, 
+  initialData 
+}) => {
+  const [coins, setCoins] = useState<CoinOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState<PriceAlertFormData>(initialData || {
+    coinId: 'bitcoin',
+    coinName: 'Bitcoin',
+    coinSymbol: 'BTC',
+    targetPrice: 0,
+    isAbove: true,
+    recurring: false,
+    percentageChange: 0,
+    enabled: true,
+    notifyVia: ['app']
+  });
 
-export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ onFormChange, onSubmit }) => {
-  const [alertType, setAlertType] = useState<'price' | 'volume' | 'technical'>('price');
-  const [coinId, setCoinId] = useState<string>('bitcoin');
-  const [targetPrice, setTargetPrice] = useState<string>('');
-  const [isAbove, setIsAbove] = useState<boolean>(true);
-  const [notificationChannels, setNotificationChannels] = useState<string[]>(['app']);
-
-  // Update parent component with form data
-  const updateFormData = () => {
-    if (!coinId || !COIN_OPTIONS[coinId]) return;
-    
-    const formData: PriceAlertFormData = {
-      coinId,
-      coinName: COIN_OPTIONS[coinId].name,
-      coinSymbol: COIN_OPTIONS[coinId].symbol,
-      targetPrice: parseFloat(targetPrice) || 0,
-      isAbove,
-      recurring: false,
-      percentageChange: 0,
-      enabled: true,
-      notifyVia: notificationChannels.map(c => c as "app" | "email" | "push")
+  useEffect(() => {
+    const loadCoins = async () => {
+      try {
+        const options = await fetchCoinOptions();
+        setCoins(options);
+        
+        // Set initial price if a coin is selected
+        if (formData.coinId) {
+          const selectedCoin = options.find(c => c.id === formData.coinId);
+          if (selectedCoin && formData.targetPrice === 0) {
+            updateFormData('targetPrice', selectedCoin.price);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load coins:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    onFormChange(formData);
+
+    loadCoins();
+  }, []);
+  
+  const updateFormData = (field: keyof PriceAlertFormData, value: any) => {
+    const updatedData = { ...formData, [field]: value };
+    setFormData(updatedData);
+    onFormChange(updatedData);
   };
-
-  // Update form data whenever any input changes
-  React.useEffect(() => {
-    updateFormData();
-  }, [coinId, targetPrice, isAbove, notificationChannels, alertType]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit();
+  
+  const handleCoinChange = (coinId: string) => {
+    const selectedCoin = coins.find(c => c.id === coinId);
+    if (selectedCoin) {
+      updateFormData('coinId', coinId);
+      updateFormData('coinName', selectedCoin.name);
+      updateFormData('coinSymbol', selectedCoin.symbol);
+      updateFormData('targetPrice', selectedCoin.price);
+    }
   };
-
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Tabs defaultValue="price" onValueChange={(value) => setAlertType(value as any)}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="price">Price Alert</TabsTrigger>
-          <TabsTrigger value="volume">Volume Alert</TabsTrigger>
-          <TabsTrigger value="technical">Technical</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="price" className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="coin">Coin</Label>
-            <Select value={coinId} onValueChange={setCoinId}>
-              <SelectTrigger id="coin">
-                <SelectValue placeholder="Select coin" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(COIN_OPTIONS).map(([key, coin]) => (
-                  <SelectItem key={key} value={key}>
-                    {coin.name} ({coin.symbol})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="condition">Condition</Label>
-            <RadioGroup value={isAbove ? "above" : "below"} onValueChange={(v) => setIsAbove(v === "above")}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="above" id="above" />
-                <Label htmlFor="above">Price goes above</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="below" id="below" />
-                <Label htmlFor="below">Price goes below</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="price">Target Price (USD)</Label>
-            <Input
-              id="price"
-              type="number"
-              placeholder="Enter target price"
-              value={targetPrice}
-              onChange={(e) => setTargetPrice(e.target.value)}
-              step="0.01"
-              min="0"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Notification Method</Label>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="notify-app" 
-                  checked={notificationChannels.includes('app')}
-                  onCheckedChange={(checked) => {
-                    setNotificationChannels(prev => 
-                      checked 
-                        ? [...prev, 'app'] 
-                        : prev.filter(c => c !== 'app')
-                    );
-                  }}
-                />
-                <Label htmlFor="notify-app">In-app notification</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="notify-email" 
-                  checked={notificationChannels.includes('email')}
-                  onCheckedChange={(checked) => {
-                    setNotificationChannels(prev => 
-                      checked 
-                        ? [...prev, 'email'] 
-                        : prev.filter(c => c !== 'email')
-                    );
-                  }}
-                />
-                <Label htmlFor="notify-email">Email notification</Label>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="volume" className="space-y-4">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Volume alerts coming soon</p>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="technical" className="space-y-4">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Technical alerts coming soon</p>
-          </div>
-        </TabsContent>
-      </Tabs>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Create Price Alert</h3>
       
-      <Button type="submit" className="w-full">Create Alert</Button>
-    </form>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="coin">Cryptocurrency</Label>
+          <Select
+            value={formData.coinId}
+            onValueChange={handleCoinChange}
+            disabled={loading}
+          >
+            <SelectTrigger id="coin">
+              <SelectValue placeholder="Select a coin" />
+            </SelectTrigger>
+            <SelectContent>
+              {coins.map((coin) => (
+                <SelectItem key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="price-condition">Condition</Label>
+          <RadioGroup
+            value={formData.isAbove ? "above" : "below"}
+            onValueChange={(value) => updateFormData('isAbove', value === "above")}
+            className="flex gap-4"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="above" id="above" />
+              <Label htmlFor="above">Price Above</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="below" id="below" />
+              <Label htmlFor="below">Price Below</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="target-price">Target Price (USD)</Label>
+          <Input
+            id="target-price"
+            type="number"
+            value={formData.targetPrice}
+            onChange={(e) => updateFormData('targetPrice', parseFloat(e.target.value) || 0)}
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={formData.recurring}
+            onCheckedChange={(checked) => updateFormData('recurring', checked)}
+            id="recurring"
+          />
+          <Label htmlFor="recurring">Recurring Alert</Label>
+        </div>
+        
+        <Button onClick={onSubmit} className="w-full">
+          Create Alert
+        </Button>
+      </div>
+    </div>
   );
 };
-
-export default AlertFormSheet;

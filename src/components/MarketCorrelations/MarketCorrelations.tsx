@@ -59,10 +59,8 @@ const MarketCorrelations: React.FC = () => {
             
             <TabsContent value="analysis">
               <CorrelationAnalysis 
-                correlationMatrix={correlationMatrix}
-                selectedCoin={selectedCoin}
-                coins={mockCryptoData}
-                onCoinSelect={handleCoinSelect}
+                initialCoinId={selectedCoin.id}
+                timeframe="7d"
               />
             </TabsContent>
           </Tabs>

@@ -29,9 +29,20 @@ ChartJS.register(
 interface CorrelationAnalysisProps {
   initialCoinId?: string;
   timeframe?: string;
+  correlationMatrix?: Record<string, Record<string, number>>;
+  selectedCoin?: CryptoData;
+  coins?: CryptoData[];
+  onCoinSelect?: (coin: CryptoData) => void;
 }
 
-const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId = "bitcoin", timeframe = "7d" }) => {
+const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ 
+  initialCoinId = "bitcoin", 
+  timeframe = "7d",
+  correlationMatrix,
+  selectedCoin,
+  coins: externalCoins,
+  onCoinSelect
+}) => {
   const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId);
   const [coins, setCoins] = useState<CoinOption[]>([]);
   const [correlationData, setCorrelationData] = useState<any>(null);
@@ -51,7 +62,7 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
     setIsLoading(true);
     try {
       const data = await fetchCoinMarketData();
-      setCoins(data.map(coin => ({
+      const coinOptions: CoinOption[] = data.map(coin => ({
         id: coin.id,
         name: coin.name,
         symbol: coin.symbol,
@@ -60,9 +71,11 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
         image: coin.image,
         marketCap: coin.marketCap,
         volume: coin.volume,
+        changePercent: coin.changePercent || 0,
         value: coin.id,
         label: `${coin.name} (${coin.symbol})`
-      })));
+      }));
+      setCoins(coinOptions);
     } catch (error) {
       console.error("Failed to load coins:", error);
     } finally {
@@ -87,11 +100,11 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
         name: coin.name,
         symbol: coin.symbol,
         price: coin.price,
-        priceChange: coin.priceChange || 0, // Ensure priceChange exists
+        priceChange: coin.priceChange || 0,
         image: coin.image,
         marketCap: coin.marketCap,
         volume: coin.volume,
-        changePercent: coin.changePercent || 0 // Add default value for changePercent
+        changePercent: coin.changePercent || 0
       }));
 
       const labels = formattedData.map(coin => coin.name);
@@ -118,6 +131,19 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
     }
   };
 
+  // Handle external coin selection if provided
+  const handleCoinChange = (coinId: string) => {
+    setSelectedCoinId(coinId);
+    
+    // If external handler and coin data are provided
+    if (onCoinSelect && externalCoins) {
+      const selectedCoin = externalCoins.find(c => c.id === coinId);
+      if (selectedCoin) {
+        onCoinSelect(selectedCoin);
+      }
+    }
+  };
+
   const options = {
     responsive: true,
     plugins: {
@@ -139,7 +165,7 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
       </CardHeader>
       <CardContent>
         <div className="flex flex-col space-y-4">
-          <Select value={selectedCoinId} onValueChange={setSelectedCoinId}>
+          <Select value={selectedCoinId} onValueChange={handleCoinChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a coin" />
             </SelectTrigger>
@@ -153,11 +179,11 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
           </Select>
 
           {isLoading ? (
-            <div>Loading...</div>
+            <div className="py-12 text-center">Loading...</div>
           ) : correlationData ? (
             <Line options={options} data={correlationData} />
           ) : (
-            <div>No data available.</div>
+            <div className="py-12 text-center">No data available.</div>
           )}
         </div>
       </CardContent>

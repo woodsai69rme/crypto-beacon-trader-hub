@@ -1,4 +1,3 @@
-import { AlertFrequency } from "@/types/alerts";
 
 export interface PriceAlertFormData {
   coinId: string;
@@ -7,41 +6,26 @@ export interface PriceAlertFormData {
   targetPrice: number;
   isAbove: boolean;
   recurring: boolean;
-  percentageChange: number;
+  percentageChange?: number;
   enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
+  notifyVia: string[];
 }
 
-export interface VolumeAlertFormData {
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  volumeThreshold: number;
-  frequency: AlertFrequency;
-  enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
-}
-
-export interface TechnicalAlertFormData {
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  indicator: string;
-  condition: string;
-  value: number;
-  enabled: boolean;
-}
-
-export type CoinOption = {
+export interface Alert {
   id: string;
-  name: string;
-  symbol: string;
-};
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  createdAt: string;
+  enabled: boolean;
+  notifyVia: string[];
+}
 
-export const COIN_OPTIONS: Record<string, CoinOption> = {
-  bitcoin: { id: "bitcoin", name: "Bitcoin", symbol: "BTC" },
-  ethereum: { id: "ethereum", name: "Ethereum", symbol: "ETH" },
-  solana: { id: "solana", name: "Solana", symbol: "SOL" },
-  cardano: { id: "cardano", name: "Cardano", symbol: "ADA" },
-  ripple: { id: "ripple", name: "XRP", symbol: "XRP" }
-};
+export interface AlertFormSheetProps {
+  onFormChange: (data: PriceAlertFormData) => void;
+  onSubmit: () => void;
+  initialData?: PriceAlertFormData;
+}
