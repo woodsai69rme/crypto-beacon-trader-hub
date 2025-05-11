@@ -1,183 +1,193 @@
-
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { ChevronUp, ChevronDown, BarChart2, PieChart } from "lucide-react";
-
-interface PerformanceData {
-  date: string;
-  value: number;
-  btcValue: number;
-  ethValue: number;
-}
-
-const mockPerformanceData: PerformanceData[] = [
-  { date: "Jan", value: 10000, btcValue: 10000, ethValue: 10000 },
-  { date: "Feb", value: 11200, btcValue: 12000, ethValue: 10800 },
-  { date: "Mar", value: 10800, btcValue: 11500, ethValue: 10200 },
-  { date: "Apr", value: 12500, btcValue: 13000, ethValue: 11500 },
-  { date: "May", value: 14000, btcValue: 12000, ethValue: 13000 },
-  { date: "Jun", value: 13500, btcValue: 12800, ethValue: 13500 },
-  { date: "Jul", value: 15000, btcValue: 14000, ethValue: 14800 },
-];
-
-interface PortfolioHolding {
-  coinId: string;
-  symbol: string;
-  name: string;
-  amount: number;
-  value: number;
-  allocation: number;
-  performance: number;
-}
-
-const mockHoldings: PortfolioHolding[] = [
-  { coinId: "bitcoin", symbol: "BTC", name: "Bitcoin", amount: 0.05, value: 4500, allocation: 30, performance: 5.2 },
-  { coinId: "ethereum", symbol: "ETH", name: "Ethereum", amount: 1.2, value: 3600, allocation: 24, performance: -2.1 },
-  { coinId: "solana", symbol: "SOL", name: "Solana", amount: 15, value: 1950, allocation: 13, performance: 12.4 },
-  { coinId: "cardano", symbol: "ADA", name: "Cardano", amount: 2000, value: 1200, allocation: 8, performance: 0.5 },
-  { coinId: "ripple", symbol: "XRP", name: "XRP", amount: 2500, value: 1500, allocation: 10, performance: -1.8 },
-  { coinId: "polkadot", symbol: "DOT", name: "Polkadot", amount: 75, value: 1200, allocation: 8, performance: 3.2 },
-  { coinId: "dogecoin", symbol: "DOGE", name: "Dogecoin", amount: 5000, value: 690, allocation: 4.6, performance: 2.5 },
-];
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ArrowUp, ArrowDown, Percent, TrendingUp } from 'lucide-react';
 
 const RealTimePortfolioPerformance: React.FC = () => {
-  const [timeframe, setTimeframe] = useState<string>("7d");
-  const [portfolioValue, setPortfolioValue] = useState<number>(15000);
-  const [initialValue, setInitialValue] = useState<number>(10000);
-  const [portfolioPerformance, setPortfolioPerformance] = useState<number>(50);
-  const [performanceType, setPerformanceType] = useState<string>("percent");
+  const [portfolioValue, setPortfolioValue] = useState<number>(10000);
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [timeframe, setTimeframe] = useState<string>("1D");
   
-  const portfolioChange = portfolioValue - initialValue;
-  const portfolioChangePercent = (portfolioChange / initialValue) * 100;
-  const displayPerformance = performanceType === "currency" 
-    ? `$${portfolioChange.toFixed(2)}` 
-    : `${portfolioChangePercent.toFixed(2)}%`;
-
+  useEffect(() => {
+    // Generate initial historical data based on selected timeframe
+    generateHistoricalData(timeframe);
+    
+    // Set up interval for real-time updates
+    const intervalId = setInterval(() => {
+      // Generate a small random price change (-0.5% to +0.5%)
+      const change = (Math.random() * 1 - 0.5) / 100;
+      
+      setPortfolioValue(prev => {
+        const newValue = prev * (1 + change);
+        return newValue;
+      });
+      
+      // Add new data point
+      setPerformanceData(prev => {
+        const lastPoint = prev[prev.length - 1];
+        if (!lastPoint) return prev;
+        
+        const now = new Date();
+        const timeString = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        // Add new point and keep last 60 points
+        return [
+          ...prev,
+          {
+            time: timeString,
+            value: portfolioValue
+          }
+        ].slice(-60);
+      });
+    }, 5000); // Update every 5 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [timeframe]);
+  
+  // Generate historical performance data based on timeframe
+  const generateHistoricalData = (tf: string) => {
+    const data: any[] = [];
+    const now = new Date();
+    const startValue = 10000; // Starting portfolio value
+    
+    let totalPoints: number;
+    let interval: number;
+    
+    switch (tf) {
+      case '1H':
+        totalPoints = 60; // One point per minute
+        interval = 60 * 1000; // 1 minute in milliseconds
+        break;
+      case '1D':
+        totalPoints = 24; // One point per hour
+        interval = 60 * 60 * 1000; // 1 hour in milliseconds
+        break;
+      case '1W':
+        totalPoints = 7; // One point per day
+        interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        break;
+      case '1M':
+        totalPoints = 30; // One point per day
+        interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        break;
+      default:
+        totalPoints = 24;
+        interval = 60 * 60 * 1000;
+    }
+    
+    let currentValue = startValue;
+    
+    for (let i = totalPoints - 1; i >= 0; i--) {
+      const pointTime = new Date(now.getTime() - (i * interval));
+      let timeString: string;
+      
+      if (tf === '1H') {
+        timeString = `${pointTime.getHours()}:${String(pointTime.getMinutes()).padStart(2, '0')}`;
+      } else if (tf === '1D') {
+        timeString = `${pointTime.getHours()}:00`;
+      } else {
+        timeString = pointTime.toLocaleDateString();
+      }
+      
+      // Generate a small random change for each interval
+      const change = (Math.random() * 0.04 - 0.02); // -2% to 2%
+      currentValue = currentValue * (1 + change);
+      
+      data.push({
+        time: timeString,
+        value: currentValue
+      });
+    }
+    
+    setPerformanceData(data);
+    setPortfolioValue(currentValue);
+  };
+  
+  // Calculate performance metrics
+  const calculateMetrics = () => {
+    if (performanceData.length < 2) return { change: 0, changePercent: 0 };
+    
+    const startValue = performanceData[0].value;
+    const currentValue = performanceData[performanceData.length - 1].value;
+    const change = currentValue - startValue;
+    const changePercent = (change / startValue) * 100;
+    
+    return {
+      change,
+      changePercent
+    };
+  };
+  
+  const metrics = calculateMetrics();
+  const isPositive = metrics.change >= 0;
+  
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between">
-          <div>
-            <CardTitle>Portfolio Performance</CardTitle>
-            <CardDescription>
-              Real-time tracking of your portfolio performance
-            </CardDescription>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Portfolio Performance
+          </CardTitle>
+          <Tabs value={timeframe} onValueChange={(value) => {
+            setTimeframe(value);
+            generateHistoricalData(value);
+          }}>
+            <TabsList>
+              <TabsTrigger value="1H">1H</TabsTrigger>
+              <TabsTrigger value="1D">1D</TabsTrigger>
+              <TabsTrigger value="1W">1W</TabsTrigger>
+              <TabsTrigger value="1M">1M</TabsTrigger>
+            </TabsList>
           </div>
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="24h">24h</SelectItem>
-              <SelectItem value="7d">7d</SelectItem>
-              <SelectItem value="30d">30d</SelectItem>
-              <SelectItem value="90d">90d</SelectItem>
-              <SelectItem value="1y">1y</SelectItem>
-              <SelectItem value="all">All</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="text-sm text-muted-foreground">Portfolio Value</div>
-            <div className="text-2xl font-bold">${portfolioValue.toFixed(2)}</div>
-          </div>
-          
-          <div className="text-right">
-            <div className="text-sm text-muted-foreground">Performance ({timeframe})</div>
-            <div className={`text-xl font-bold flex items-center justify-end ${portfolioChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {portfolioChange >= 0 ? (
-                <ChevronUp className="h-4 w-4 mr-1" />
-              ) : (
-                <ChevronDown className="h-4 w-4 mr-1" />
-              )}
-              {displayPerformance}
-            </div>
-          </div>
-        </div>
+        </CardHeader>
         
-        <Tabs defaultValue="chart" className="w-full">
-          <TabsList className="grid grid-cols-2">
-            <TabsTrigger value="chart">
-              <BarChart2 className="h-4 w-4 mr-2" />
-              Chart
-            </TabsTrigger>
-            <TabsTrigger value="holdings">
-              <PieChart className="h-4 w-4 mr-2" />
-              Holdings
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="chart" className="pt-4">
-            <div className="h-[300px]">
+        <CardContent>
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 border rounded-md">
+                <div className="text-sm text-muted-foreground">Current Value</div>
+                <div className="text-2xl font-bold">${portfolioValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+              </div>
+              
+              <div className="p-4 border rounded-md">
+                <div className="text-sm text-muted-foreground">Performance</div>
+                <div className={`text-xl font-bold flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                  {isPositive ? <ArrowUp className="h-4 w-4 mr-1" /> : <ArrowDown className="h-4 w-4 mr-1" />}
+                  ${Math.abs(metrics.change).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  <span className="text-sm ml-1 flex items-center">
+                    <Percent className="h-3 w-3" />
+                    {Math.abs(metrics.changePercent).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockPerformanceData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <LineChart
+                  data={performanceData}
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                  <XAxis dataKey="time" />
+                  <YAxis domain={['auto', 'auto']} />
+                  <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Value']} />
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    name="Portfolio" 
-                    stroke="#8884d8" 
+                    stroke={isPositive ? "#10b981" : "#ef4444"} 
+                    dot={false}
                     strokeWidth={2}
-                    dot={false} 
-                    activeDot={{ r: 8 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="btcValue" 
-                    name="Bitcoin" 
-                    stroke="#ff8c00" 
-                    strokeWidth={1.5}
-                    strokeDasharray="5 5" 
-                    dot={false}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="ethValue" 
-                    name="Ethereum" 
-                    stroke="#82ca9d" 
-                    strokeWidth={1.5}
-                    strokeDasharray="3 3" 
-                    dot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="holdings" className="pt-4">
-            <div className="space-y-2">
-              {mockHoldings.map((holding) => (
-                <div key={holding.coinId} className="flex items-center justify-between border-b pb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="font-medium">{holding.symbol}</div>
-                    <div className="text-sm text-muted-foreground">{holding.name}</div>
-                  </div>
-                  <div className="space-y-1 text-right">
-                    <div className="font-medium">${holding.value.toFixed(2)}</div>
-                    <div className="text-xs text-muted-foreground">{holding.amount} {holding.symbol}</div>
-                    <div className={`text-xs ${holding.performance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {holding.performance >= 0 ? '↑' : '↓'} {Math.abs(holding.performance)}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default RealTimePortfolioPerformance;
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+  
+  export default RealTimePortfolioPerformance;

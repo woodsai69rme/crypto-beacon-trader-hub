@@ -1,111 +1,89 @@
 
-import { CoinOption } from "@/components/trading/EnhancedFakeTrading";
+import { CoinOption } from '@/types/trading';
 
-// Mock price monitoring service to simulate price updates
+type PriceUpdateCallback = (updatedCoins: CoinOption[]) => void;
+
+// Mock function to simulate price updates from different providers
+const fetchPriceUpdates = async (coinIds: string[]): Promise<CoinOption[]> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  // Generate mock price updates
+  return coinIds.map(coinId => {
+    // Generate small random price changes
+    const priceChange = (Math.random() * 2 - 1) * 100; // Between -100 and 100
+    const basePrice = coinId === 'bitcoin' ? 60000 : 
+                      coinId === 'ethereum' ? 3000 :
+                      coinId === 'solana' ? 120 : 
+                      coinId === 'cardano' ? 0.45 :
+                      coinId === 'ripple' ? 0.6 : 
+                      coinId === 'dogecoin' ? 0.14 : 500;
+    
+    const price = basePrice + priceChange;
+    const changePercent = (priceChange / basePrice) * 100;
+    
+    return {
+      id: coinId,
+      name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+      symbol: coinId.substring(0, 3).toUpperCase(),
+      price,
+      priceChange,
+      changePercent,
+      image: `https://example.com/images/${coinId}.png`,
+      volume: Math.random() * 1000000000,
+      marketCap: price * (Math.random() * 100000000 + 10000000),
+      value: coinId,
+      label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} (${coinId.substring(0, 3).toUpperCase()})`
+    };
+  });
+};
+
 export const startPriceMonitoring = (
   coinIds: string[],
-  onUpdate: (coins: CoinOption[]) => void,
-  intervalMs: number = 5000
+  onPriceUpdate: PriceUpdateCallback,
+  interval: number = 10000 // Default 10 seconds
 ): (() => void) => {
-  // Function to generate random price updates
-  const generatePriceUpdates = (ids: string[]): CoinOption[] => {
-    return ids.map(id => {
-      // Base values for different coins
-      let basePrice = 0;
-      let symbol = '';
-      let name = '';
-      let image = '';
-      let volume = 0;
-      let marketCap = 0;
+  // Initial fetch
+  fetchPriceUpdates(coinIds).then(onPriceUpdate);
+  
+  // Set up interval for continuous updates
+  const intervalId = setInterval(async () => {
+    try {
+      const updatedCoins = await fetchPriceUpdates(coinIds);
+      onPriceUpdate(updatedCoins);
+    } catch (error) {
+      console.error("Error fetching price updates:", error);
+    }
+  }, interval);
+  
+  // Return function to stop monitoring
+  return () => clearInterval(intervalId);
+};
+
+export const setupPriceAlerts = (
+  coinId: string,
+  targetPrice: number,
+  condition: 'above' | 'below',
+  onTrigger: (coinId: string, price: number) => void
+): (() => void) => {
+  // Set up interval to check price against target
+  const intervalId = setInterval(async () => {
+    try {
+      const [updatedCoin] = await fetchPriceUpdates([coinId]);
+      const currentPrice = updatedCoin.price;
       
-      switch (id) {
-        case 'bitcoin':
-          basePrice = 58000;
-          symbol = 'BTC';
-          name = 'Bitcoin';
-          image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png";
-          volume = 48941516789;
-          marketCap = 1143349097968;
-          break;
-        case 'ethereum':
-          basePrice = 3100;
-          symbol = 'ETH';
-          name = 'Ethereum';
-          image = "https://assets.coingecko.com/coins/images/279/large/ethereum.png";
-          volume = 21891456789;
-          marketCap = 373952067386;
-          break;
-        case 'solana':
-          basePrice = 150;
-          symbol = 'SOL';
-          name = 'Solana';
-          image = "https://assets.coingecko.com/coins/images/4128/large/solana.png";
-          volume = 3578912345;
-          marketCap = 67891234567;
-          break;
-        case 'cardano':
-          basePrice = 0.45;
-          symbol = 'ADA';
-          name = 'Cardano';
-          image = "https://assets.coingecko.com/coins/images/975/large/cardano.png";
-          volume = 467891234;
-          marketCap = 15893456789;
-          break;
-        case 'ripple':
-          basePrice = 0.61;
-          symbol = 'XRP';
-          name = 'XRP';
-          image = "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png";
-          volume = 2400000000;
-          marketCap = 32000000000;
-          break;
-        case 'dogecoin':
-          basePrice = 0.13;
-          symbol = 'DOGE';
-          name = 'Dogecoin';
-          image = "https://assets.coingecko.com/coins/images/5/large/dogecoin.png";
-          volume = 1900000000;
-          marketCap = 18000000000;
-          break;
-        default:
-          basePrice = 100;
-          symbol = 'UNKNOWN';
-          name = 'Unknown Coin';
-          image = "";
-          volume = 1000000;
-          marketCap = 10000000;
+      if (condition === 'above' && currentPrice > targetPrice) {
+        onTrigger(coinId, currentPrice);
+        clearInterval(intervalId); // Alert fired, stop monitoring
+      } else if (condition === 'below' && currentPrice < targetPrice) {
+        onTrigger(coinId, currentPrice);
+        clearInterval(intervalId); // Alert fired, stop monitoring
       }
-      
-      // Generate random price change (between -2% and +2%)
-      const randomChange = (Math.random() * 4 - 2) / 100;
-      const price = basePrice * (1 + randomChange);
-      const priceChange = basePrice * randomChange;
-      const changePercent = randomChange * 100;
-      
-      return {
-        id,
-        name,
-        symbol,
-        price,
-        priceChange,
-        changePercent,
-        image,
-        volume,
-        marketCap,
-        value: id,
-        label: `${name} (${symbol})`
-      };
-    });
-  };
+    } catch (error) {
+      console.error("Error checking price alerts:", error);
+    }
+  }, 5000); // Check every 5 seconds
   
-  // Set up interval for price updates
-  const intervalId = setInterval(() => {
-    const updatedCoins = generatePriceUpdates(coinIds);
-    onUpdate(updatedCoins);
-  }, intervalMs);
-  
-  // Return a cleanup function
-  return () => {
-    clearInterval(intervalId);
-  };
+  // Return function to cancel the alert
+  return () => clearInterval(intervalId);
 };

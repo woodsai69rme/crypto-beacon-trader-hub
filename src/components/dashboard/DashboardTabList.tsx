@@ -1,60 +1,43 @@
 
-import React from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { DashboardTab } from "../Dashboard";
+import React from 'react';
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { DashboardTabProps } from './DashboardTab';
 
 interface DashboardTabListProps {
-  activeTab: DashboardTab;
-  onTabChange?: (value: string) => void;
+  tabs: DashboardTabProps[];
+  mobileTabLimit?: number;
 }
 
-const DashboardTabList = ({ activeTab, onTabChange }: DashboardTabListProps) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
+const DashboardTabList: React.FC<DashboardTabListProps> = ({ 
+  tabs,
+  mobileTabLimit = 4
+}) => {
+  const isMobile = useIsMobile();
+  
+  const visibleTabs = isMobile 
+    ? tabs.slice(0, mobileTabLimit)
+    : tabs;
+  
+  const hiddenTabs = isMobile 
+    ? tabs.slice(mobileTabLimit)
+    : [];
   
   return (
-    <div className="mb-6 overflow-x-auto">
-      <Tabs value={activeTab} onValueChange={(value) => onTabChange && onTabChange(value)}>
-        <TabsList className={`bg-crypto-dark-card ${isMobile ? "w-max" : ""}`}>
-          <TabsTrigger 
-            value="overview"
-            data-state={activeTab === "overview" ? "active" : "inactive"}
-          >
-            Overview
-          </TabsTrigger>
-          <TabsTrigger 
-            value="portfolio"
-            data-state={activeTab === "portfolio" ? "active" : "inactive"}
-          >
-            Portfolio
-          </TabsTrigger>
-          <TabsTrigger 
-            value="watchlist"
-            data-state={activeTab === "watchlist" ? "active" : "inactive"}
-          >
-            Watchlist
-          </TabsTrigger>
-          <TabsTrigger 
-            value="trading"
-            data-state={activeTab === "trading" ? "active" : "inactive"}
-          >
-            Trading
-          </TabsTrigger>
-          <TabsTrigger 
-            value="analysis"
-            data-state={activeTab === "analysis" ? "active" : "inactive"}
-          >
-            Analysis
-          </TabsTrigger>
-          <TabsTrigger 
-            value="tools"
-            data-state={activeTab === "tools" ? "active" : "inactive"}
-          >
-            Tools
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-    </div>
+    <TabsList className={`grid ${isMobile ? `grid-cols-${mobileTabLimit}` : `grid-cols-${tabs.length}`} mb-6`}>
+      {visibleTabs.map(tab => (
+        <TabsTrigger key={tab.id} value={tab.id}>
+          <div className="flex items-center gap-2">
+            {tab.icon}
+            <span>{tab.label}</span>
+          </div>
+        </TabsTrigger>
+      ))}
+      
+      {isMobile && hiddenTabs.length > 0 && (
+        <TabsTrigger value="more">More</TabsTrigger>
+      )}
+    </TabsList>
   );
 };
 

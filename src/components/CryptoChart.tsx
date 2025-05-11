@@ -1,159 +1,91 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { CryptoChartData } from '@/types/trading';
-import { fetchCoinChartData } from '@/services/enhancedCryptoApi';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LoaderCircle } from 'lucide-react';
+
+// This function should be created in the API service
+const fetchCoinChartData = async (coinId: string, days: number = 7) => {
+  // Simulate fetching data
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Generate dummy data for now
+  const data = [];
+  const now = new Date();
+  for (let i = days; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(now.getDate() - i);
+    
+    data.push({
+      date: date.toLocaleDateString(),
+      price: 20000 + Math.random() * 10000
+    });
+  }
+  
+  return data;
+};
 
 interface CryptoChartProps {
-  symbol: string;
-  color?: string;
-  data?: CryptoChartData;
+  coinId: string;
+  days?: number;
+  height?: number | string;
 }
 
-const CryptoChart: React.FC<CryptoChartProps> = ({
-  symbol,
-  color = "#4ADE80",
-  data
+const CryptoChart: React.FC<CryptoChartProps> = ({ 
+  coinId, 
+  days = 7,
+  height = 300 
 }) => {
-  const [timeframe, setTimeframe] = useState<string>("1d");
-  const [chartData, setChartData] = useState<{ date: string; price: number }[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (data && data.prices) {
-      // Map the data to the format expected by the chart
-      const formattedData = data.prices.map((pricePoint) => ({
-        date: new Date(pricePoint[0]).toLocaleDateString(),
-        price: pricePoint[1]
-      }));
-      
-      setChartData(formattedData);
-    } else {
-      // Generate mock data if no data is provided
-      const mockData = [];
-      const basePrice = 30000 + Math.random() * 10000;
-      const now = new Date();
-      
-      for (let i = 30; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        mockData.push({
-          date: date.toLocaleDateString(),
-          price: basePrice + Math.random() * 5000 - 2500
-        });
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchCoinChartData(coinId, days);
+        setChartData(data);
+      } catch (error) {
+        console.error("Failed to load chart data:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setChartData(mockData);
-    }
-  }, [data, timeframe]);
-
-  const timeframes = [
-    { value: "1h", label: "1H" },
-    { value: "24h", label: "24H" },
-    { value: "1d", label: "1D" },
-    { value: "7d", label: "7D" },
-    { value: "30d", label: "30D" },
-    { value: "90d", label: "90D" },
-    { value: "1y", label: "1Y" },
-    { value: "all", label: "All" },
-  ];
-
-  const formatTooltipValue = (value: number) => {
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const formatYAxis = (value: number) => {
-    return `$${value.toLocaleString(undefined, { notation: 'compact', compactDisplay: 'short' })}`;
-  };
-
-  // Calculate if the chart is showing a gain or loss
-  const firstPrice = chartData[0]?.price || 0;
-  const lastPrice = chartData[chartData.length - 1]?.price || 0;
-  const priceChange = lastPrice - firstPrice;
-  const isPositive = priceChange >= 0;
-  const lineColor = isPositive ? color : "#F87171";
-
+    };
+    
+    loadData();
+  }, [coinId, days]);
+  
   return (
-    <Card className="w-full h-96 overflow-hidden">
-      <CardHeader className="pb-0">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold">{symbol} Price Chart</CardTitle>
-          <div className="flex items-center space-x-2">
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-20 h-8">
-                <SelectValue placeholder="Timeframe" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeframes.map((tf) => (
-                  <SelectItem key={tf.value} value={tf.value}>
-                    {tf.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Price Chart</CardTitle>
       </CardHeader>
-      <CardContent className="p-0 h-full">
-        <div className="h-full w-full p-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }} 
-                tickLine={false}
-                axisLine={false}
-                minTickGap={30}
-              />
-              <YAxis 
-                domain={['dataMin - 100', 'dataMax + 100']} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `$${value.toLocaleString(undefined, { notation: 'compact', compactDisplay: 'short' })}`}
-                width={60}
-              />
-              <Tooltip 
-                formatter={(value) => [`$${(value as number).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Price"]}
-                contentStyle={{ 
-                  backgroundColor: 'var(--card)', 
-                  borderColor: 'var(--border)', 
-                  borderRadius: '0.375rem'
-                }}
-                labelStyle={{ color: 'var(--foreground)' }}
-              />
-              <ReferenceLine y={firstPrice} stroke="#888" strokeDasharray="3 3" />
-              <Line 
-                type="monotone" 
-                dataKey="price" 
-                stroke={lineColor} 
-                strokeWidth={2} 
-                dot={false} 
-                activeDot={{ r: 6 }} 
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      <CardContent>
+        {loading ? (
+          <div className="flex justify-center items-center" style={{ height }}>
+            <LoaderCircle className="animate-spin h-8 w-8 text-primary" />
+          </div>
+        ) : (
+          <div style={{ height }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#8884d8" 
+                  activeDot={{ r: 8 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

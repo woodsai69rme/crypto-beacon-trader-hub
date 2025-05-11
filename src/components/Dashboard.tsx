@@ -7,6 +7,7 @@ import TradingDashboard from './TradingDashboard';
 import AnalysisDashboard from './AnalysisDashboard';
 import UtilityDashboard from './UtilityDashboard';
 import LiveAnalyticsDashboard from './analytics/LiveAnalyticsDashboard';
+import RealTrading from './trading/RealTrading';
 
 const Dashboard = () => {
   return (
@@ -16,6 +17,7 @@ const Dashboard = () => {
           <TabsTrigger value="market">Market</TabsTrigger>
           <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
           <TabsTrigger value="trading">Trading</TabsTrigger>
+          <TabsTrigger value="realtrading">Real Trading</TabsTrigger>
           <TabsTrigger value="analysis">Analysis</TabsTrigger>
           <TabsTrigger value="tools">Tools</TabsTrigger>
           <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
@@ -31,6 +33,10 @@ const Dashboard = () => {
         
         <TabsContent value="trading" className="p-0 border-none">
           <TradingDashboard />
+        </TabsContent>
+        
+        <TabsContent value="realtrading" className="p-0 border-none">
+          <RealTrading />
         </TabsContent>
         
         <TabsContent value="analysis" className="p-0 border-none">

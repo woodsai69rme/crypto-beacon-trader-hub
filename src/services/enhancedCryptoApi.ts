@@ -1,188 +1,116 @@
 
-import { CoinOption } from "@/types/trading";
-import { mockCryptoData } from "@/components/MarketCorrelations/mockData";
+import { CoinOption, CryptoData } from '@/types/trading';
 
-// Get trending coins (simulated)
-export const getTrendingCoins = async (): Promise<CoinOption[]> => {
-  // In a real app, this would fetch from an API
-  // For now, we'll use the mock data
-  const sortedByVolume = [...mockCryptoData]
-    .sort((a, b) => b.volume - a.volume)
-    .slice(0, 6)
-    .map(coin => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol,
-      price: coin.price,
-      priceChange: coin.priceChange,
-      changePercent: coin.changePercent,
-      image: coin.image,
-      volume: coin.volume,
-      marketCap: coin.marketCap,
-      value: coin.id,
-      label: coin.name
-    }));
+// Fetches basic data for a list of coins
+export const fetchCryptoPrices = async (coinIds: string[] = ['bitcoin', 'ethereum', 'solana']): Promise<CryptoData[]> => {
+  try {
+    // In a real implementation, this would call an external API
+    // For now, we'll return mock data
+    const mockData = coinIds.map(id => {
+      const basePrice = id === 'bitcoin' ? 60000 : 
+                        id === 'ethereum' ? 3000 : 
+                        id === 'solana' ? 120 : 
+                        id === 'cardano' ? 0.45 : 
+                        id === 'ripple' ? 0.6 : 
+                        id === 'dogecoin' ? 0.14 : 500;
+                        
+      const priceChange = Math.random() > 0.5 ? basePrice * 0.02 : -basePrice * 0.01;
+      const changePercent = (priceChange / basePrice) * 100;
+      
+      return {
+        id,
+        symbol: id.substring(0, 3).toUpperCase(),
+        name: id.charAt(0).toUpperCase() + id.slice(1),
+        image: `https://example.com/images/${id}.png`,
+        price: basePrice,
+        priceChange,
+        changePercent,
+        priceChangePercentage: changePercent,
+        marketCap: basePrice * (Math.random() * 100000000 + 10000000),
+        volume: Math.random() * 1000000000,
+        circulatingSupply: Math.random() * 100000000
+      };
+    });
     
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  return sortedByVolume;
+    return mockData;
+  } catch (error) {
+    console.error("Error fetching crypto prices:", error);
+    throw error;
+  }
 };
 
-// Get latest news (simulated)
-export const getLatestNews = async (): Promise<any[]> => {
-  // In a real app, this would fetch from a news API
-  const mockNews = [
-    {
-      id: "1",
-      title: "Bitcoin Surges Past $61,000 as Institutional Adoption Grows",
-      source: "CryptoNews",
-      publishedAt: new Date().toISOString()
-    },
-    {
-      id: "2",
-      title: "Ethereum 2.0 Upgrade on Track for Q3 Release",
-      source: "BlockchainReport",
-      publishedAt: new Date().toISOString()
-    },
-    {
-      id: "3",
-      title: "Major Bank Announces Cryptocurrency Custody Services",
-      source: "FinanceDaily",
-      publishedAt: new Date().toISOString()
-    },
-    {
-      id: "4",
-      title: "New Regulatory Framework for Digital Assets Proposed",
-      source: "CryptoInsider",
-      publishedAt: new Date().toISOString()
-    },
-    {
-      id: "5",
-      title: "DeFi Market Cap Exceeds $100 Billion for First Time",
-      source: "DeFiPulse",
-      publishedAt: new Date().toISOString()
+// Fetch chart data for a specific coin
+export const fetchCoinChartData = async (coinId: string, days: number = 7): Promise<any[]> => {
+  try {
+    // Generate mock chart data
+    const data = [];
+    const now = new Date();
+    const basePrice = coinId === 'bitcoin' ? 60000 : 
+                      coinId === 'ethereum' ? 3000 : 
+                      coinId === 'solana' ? 120 : 500;
+                      
+    for (let i = days; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(now.getDate() - i);
+      
+      // Generate a somewhat realistic price progression
+      const volatility = 0.03; // 3% daily volatility
+      const dayVariation = (Math.random() * 2 - 1) * volatility;
+      const price = basePrice * (1 + dayVariation);
+      
+      data.push({
+        date: date.toLocaleDateString(),
+        price
+      });
     }
-  ];
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return mockNews;
-};
-
-// Search for coins by name or symbol
-export const searchCoins = async (query: string): Promise<CoinOption[]> => {
-  // In a real app, this would call an API endpoint
-  // For now, we'll filter the mock data
-  const normalizedQuery = query.toLowerCase();
-  
-  const filteredCoins = mockCryptoData
-    .filter(coin => 
-      coin.name.toLowerCase().includes(normalizedQuery) || 
-      coin.symbol.toLowerCase().includes(normalizedQuery)
-    )
-    .map(coin => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol,
-      price: coin.price,
-      priceChange: coin.priceChange,
-      changePercent: coin.changePercent,
-      image: coin.image,
-      volume: coin.volume,
-      marketCap: coin.marketCap,
-      value: coin.id,
-      label: coin.name
-    }));
     
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
-  return filteredCoins;
-};
-
-// Get historical price data for a specific coin
-export const getCoinHistory = async (coinId: string, days: number = 30): Promise<any> => {
-  // In a real app, this would fetch from an API
-  // For now, we'll generate mock historical data
-  const dataPoints = days;
-  const historyData: [number, number][] = [];
-  
-  let basePrice = 0;
-  
-  // Set different base prices based on coin
-  if (coinId === 'bitcoin') {
-    basePrice = 60000;
-  } else if (coinId === 'ethereum') {
-    basePrice = 3000;
-  } else if (coinId === 'binancecoin') {
-    basePrice = 500;
-  } else {
-    basePrice = 100;
+    return data;
+  } catch (error) {
+    console.error("Error fetching coin chart data:", error);
+    throw error;
   }
-  
-  // Generate historical price points with some volatility
-  const now = Date.now();
-  const oneDayMs = 86400000; // 24 hours in milliseconds
-  
-  for (let i = dataPoints; i >= 0; i--) {
-    const timestamp = now - (i * oneDayMs);
-    const randomFactor = 0.05; // 5% maximum price movement per day
-    const priceChange = (Math.random() * 2 - 1) * randomFactor * basePrice;
-    basePrice += priceChange;
-    historyData.push([timestamp, Math.max(0, basePrice)]);
+};
+
+// Convert API data to CoinOption format
+export const convertToCoinOptions = (cryptoData: CryptoData[]): CoinOption[] => {
+  return cryptoData.map(coin => ({
+    id: coin.id,
+    name: coin.name,
+    symbol: coin.symbol,
+    price: coin.price,
+    priceChange: coin.priceChange,
+    changePercent: coin.changePercent,
+    image: coin.image,
+    volume: coin.volume,
+    marketCap: coin.marketCap,
+    value: coin.id,
+    label: `${coin.name} (${coin.symbol})`
+  }));
+};
+
+// Fetch multiple crypto data
+export const fetchMultipleCryptoData = async (coinIds: string[]): Promise<CryptoData[]> => {
+  try {
+    return await fetchCryptoPrices(coinIds);
+  } catch (error) {
+    console.error("Error fetching multiple crypto data:", error);
+    throw error;
   }
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return {
-    prices: historyData,
-    market_caps: historyData.map(([time, price]) => [time, price * 1000000 * (Math.random() * 0.2 + 0.9)]),
-    total_volumes: historyData.map(([time, price]) => [time, price * 10000 * (Math.random() * 0.5 + 0.5)])
-  };
 };
 
-// Get API usage statistics
-export const getApiUsageStats = async (): Promise<any[]> => {
-  // In a real app, this would fetch from an API management service
-  // For now, we'll return mock data
-  const mockApiStats = [
-    {
-      service: "CoinGecko",
-      currentUsage: Math.floor(Math.random() * 450) + 50,
-      maxUsage: 500,
-      endpoint: "/coins/markets",
-      resetTime: "1 hour"
-    },
-    {
-      service: "CryptoCompare",
-      currentUsage: Math.floor(Math.random() * 8500) + 1000,
-      maxUsage: 10000,
-      endpoint: "/data/pricemultifull",
-      resetTime: "24 hours"
-    },
-    {
-      service: "NewsAPI",
-      currentUsage: Math.floor(Math.random() * 80) + 10,
-      maxUsage: 100,
-      endpoint: "/v2/everything",
-      resetTime: "12 hours"
-    }
-  ];
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  return mockApiStats;
-};
-
-// Export the full API
-export default {
-  getTrendingCoins,
-  getLatestNews,
-  searchCoins,
-  getCoinHistory,
-  getApiUsageStats
+// Market summary data
+export const fetchMarketSummary = async (): Promise<any> => {
+  try {
+    // In a real implementation, this would call an API
+    return {
+      totalMarketCap: 2345678901234,
+      totalVolume: 123456789012,
+      btcDominance: 43.2,
+      activeCryptocurrencies: 12345,
+      markets: 678
+    };
+  } catch (error) {
+    console.error("Error fetching market summary:", error);
+    throw error;
+  }
 };
