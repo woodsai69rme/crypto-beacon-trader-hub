@@ -1,146 +1,132 @@
+import { v4 as uuidv4 } from 'uuid';
+import { AITradingStrategy, TradingAccount, Trade } from "@/types/trading";
 
-import { AITradingStrategy, Trade, TradingAccount } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
+// Mock function to simulate fetching AI trading strategies
+export const fetchAITradingStrategies = async (): Promise<AITradingStrategy[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const strategies: AITradingStrategy[] = [
+        {
+          id: uuidv4(),
+          name: "Trend Following",
+          description: "Trades based on identified trends in the market.",
+          timeframe: "4h",
+          indicators: ["MACD", "RSI"],
+          parameters: {
+            macd_fast_period: 12,
+            macd_slow_period: 26,
+            rsi_oversold: 30,
+            rsi_overbought: 70,
+          },
+          performance: {
+            winRate: 0.65,
+            profitFactor: 1.8,
+            sharpeRatio: 1.2,
+          },
+          aiModel: "trend_model_v1",
+          confidenceThreshold: 0.75,
+          riskLevel: "medium",
+          maxDrawdown: 0.10,
+          type: "AI",
+          creator: "System",
+          tags: ["trend", "momentum"],
+        },
+        {
+          id: uuidv4(),
+          name: "Mean Reversion",
+          description: "Trades based on deviations from the mean price.",
+          timeframe: "1h",
+          indicators: ["Bollinger Bands", "RSI"],
+          parameters: {
+            bb_period: 20,
+            rsi_oversold: 25,
+            rsi_overbought: 75,
+          },
+          performance: {
+            winRate: 0.70,
+            profitFactor: 1.5,
+            sharpeRatio: 0.9,
+          },
+          aiModel: "mean_reversion_v1",
+          confidenceThreshold: 0.80,
+          riskLevel: "low",
+          maxDrawdown: 0.05,
+          type: "AI",
+          creator: "System",
+          tags: ["mean reversion", "volatility"],
+        },
+      ];
+      resolve(strategies);
+    }, 500);
+  });
+};
 
-interface AIAnalysisResult {
-  recommendation: 'buy' | 'sell' | 'hold';
-  confidence: number;
-  reasoning: string;
-  suggestedAmount?: number;
-  riskLevel: 'low' | 'medium' | 'high';
-}
+// Mock function to simulate fetching trading accounts
+export const fetchTradingAccounts = async (): Promise<TradingAccount[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const accounts: TradingAccount[] = [
+        {
+          id: uuidv4(),
+          name: "Binance Account",
+          exchange: "Binance",
+          balance: 5000,
+          currency: "USD",
+          connected: true,
+          isActive: true,
+          provider: "Binance",
+          type: "Real",
+          createdAt: new Date().toISOString(),
+          lastModified: new Date().toISOString(),
+        },
+        {
+          id: uuidv4(),
+          name: "Coinbase Account",
+          exchange: "Coinbase",
+          balance: 3000,
+          currency: "USD",
+          connected: false,
+          isActive: false,
+          provider: "Coinbase",
+          type: "Real",
+          createdAt: new Date().toISOString(),
+          lastModified: new Date().toISOString(),
+        },
+      ];
+      resolve(accounts);
+    }, 500);
+  });
+};
 
-export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
-  {
-    id: 'trend-following-ai',
-    name: 'AI Trend Following',
-    description: 'Uses machine learning to identify and follow market trends',
-    type: 'trend-following',
-    timeframe: '1d',
-    parameters: {
-      riskLevel: 'medium',
-      backtestResults: {
-        winRate: 0.68,
-        profitFactor: 1.85,
-        sharpeRatio: 1.42,
-        drawdown: 15,
-        returns: 45
-      }
-    }
-  },
-  {
-    id: 'mean-reversion-ai',
-    name: 'AI Mean Reversion',
-    description: 'Identifies overbought and oversold conditions using AI',
-    type: 'mean-reversion',
-    timeframe: '4h',
-    parameters: {
-      riskLevel: 'medium',
-      backtestResults: {
-        winRate: 0.72,
-        profitFactor: 1.95,
-        sharpeRatio: 1.65,
-        drawdown: 12,
-        returns: 52
-      }
-    }
-  },
-  {
-    id: 'sentiment-analysis',
-    name: 'AI Sentiment Trading',
-    description: 'Analyzes market sentiment using NLP',
-    type: 'custom',
-    timeframe: '1d',
-    parameters: {
-      strategyType: 'sentiment',
-      riskLevel: 'high',
-      backtestResults: {
-        winRate: 0.65,
-        profitFactor: 2.1,
-        sharpeRatio: 1.38,
-        drawdown: 22,
-        returns: 75
-      }
-    }
-  }
-];
-
-export async function analyzeMarketConditions(
-  strategy: AITradingStrategy,
+// Mock function to simulate executing an AI trade
+export const executeAiTrade = async (
+  strategyId: string,
   coinId: string,
-  historicalData: any[]
-): Promise<AIAnalysisResult> {
-  // Simulate AI analysis
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const random = Math.random();
-  const confidence = 0.5 + (Math.random() * 0.4); // 50-90% confidence
-  const riskLevel = strategy.parameters.riskLevel as 'low' | 'medium' | 'high';
-  
-  return {
-    recommendation: random > 0.6 ? 'buy' : random > 0.3 ? 'hold' : 'sell',
-    confidence,
-    reasoning: `Analysis based on ${strategy.type} strategy shows favorable conditions`,
-    suggestedAmount: Math.random() * 0.5, // 0-0.5 units
-    riskLevel
-  };
-}
-
-export async function executeAITrade(
-  strategy: AITradingStrategy,
-  account: TradingAccount,
-  coinData: { id: string; price: number; name: string; symbol: string },
-  analysis: AIAnalysisResult
-): Promise<Trade | null> {
-  try {
-    if (analysis.recommendation === 'hold') {
-      toast({
-        title: "AI Analysis Result",
-        description: "Current market conditions suggest holding position",
-      });
-      return null;
-    }
-
-    const tradeAmount = analysis.suggestedAmount || 0.1;
-    const totalValue = tradeAmount * coinData.price;
-
-    if (analysis.recommendation === 'buy' && account.balance < totalValue) {
-      toast({
-        title: "Insufficient Balance",
-        description: "Cannot execute buy trade due to insufficient funds",
-        variant: "destructive"
-      });
-      return null;
-    }
-
-    const trade: Trade = {
-      id: `ai-trade-${Date.now()}`,
-      coinId: coinData.id,
-      coinName: coinData.name,
-      coinSymbol: coinData.symbol,
-      type: analysis.recommendation,
-      amount: tradeAmount,
-      price: coinData.price,
-      totalValue,
-      timestamp: new Date().toISOString(),
-      currency: "USD",
-      botGenerated: true,
-      strategyId: strategy.id
-    };
-
-    toast({
-      title: "AI Trade Executed",
-      description: `${analysis.recommendation.toUpperCase()} ${tradeAmount} ${coinData.symbol} at $${coinData.price}`,
-    });
-
-    return trade;
-  } catch (error) {
-    console.error("Error executing AI trade:", error);
-    toast({
-      title: "Trade Error",
-      description: "Failed to execute AI trade",
-      variant: "destructive"
-    });
-    return null;
-  }
-}
+  amount: number,
+  price: number,
+  coinName: string,
+  coinSymbol: string,
+  type: 'buy' | 'sell'
+): Promise<Trade> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const tradeId = uuidv4();
+      const trade: Trade = {
+        id: tradeId,
+        coinId,
+        coinName,
+        coinSymbol,
+        type,
+        amount,
+        price,
+        totalValue: amount * price,
+        total: amount * price,
+        timestamp: new Date().toISOString(),
+        currency: 'USD',
+        botGenerated: true,
+        strategyId
+      };
+      resolve(trade);
+    }, 500);
+  });
+};

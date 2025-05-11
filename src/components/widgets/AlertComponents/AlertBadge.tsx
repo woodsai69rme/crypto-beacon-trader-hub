@@ -12,7 +12,7 @@ export const AlertBadge: React.FC<AlertBadgeProps> = ({ count, className }) => {
   
   return (
     <span className={cn(
-      "absolute -top-1 -right-1 min-w-4 h-4 text-[10px] flex items-center justify-center rounded-full bg-destructive text-white px-1",
+      "absolute -top-1 -right-1 min-w-4 h-4 text-[10px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground px-1",
       className
     )}>
       {count > 9 ? '9+' : count}

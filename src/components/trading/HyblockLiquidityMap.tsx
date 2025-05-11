@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -74,7 +73,7 @@ const HyblockLiquidityMap: React.FC<HyblockLiquidityMapProps> = ({
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="p-0" content={null}>
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <div className="text-sm font-medium mb-2">Symbol</div>

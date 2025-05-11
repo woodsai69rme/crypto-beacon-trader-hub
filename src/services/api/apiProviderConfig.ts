@@ -1,4 +1,3 @@
-
 import { ApiProvider } from "@/types/trading";
 
 // Default API providers configuration
@@ -15,16 +14,20 @@ const defaultProviders: ApiProvider[] = [
     requiresAuth: false,
     endpoints: [
       {
+        id: "markets",
+        name: "Markets",
         path: "/coins/markets",
         method: "GET",
-        description: "Get cryptocurrency prices and market data",
-        requiresAuth: false,
+        description: "Get list of coins with market data",
+        requiresAuth: false
       },
       {
+        id: "coin",
+        name: "Coin Details",
         path: "/coins/{id}",
         method: "GET",
-        description: "Get current data for a specific coin",
-        requiresAuth: false,
+        description: "Get current data for a coin",
+        requiresAuth: false
       },
     ],
     priority: 1,

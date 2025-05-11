@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bot, TrendingUp, ChevronDown, ChevronUp, Settings, Play, Pause, Trash } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { CoinOption } from '@/types/trading';
+import { Label } from "@/components/ui/label";
 
 // Define necessary types from scratch
 interface AiTradingProps {

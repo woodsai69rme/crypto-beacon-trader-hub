@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ChevronRight, ArrowRightLeft, Wallet, LineChart, Bell } from "lucide-react";
-import { WalletAccount, WalletProvider, CoinOption } from '@/types/trading';
 import WalletConnector from '@/components/wallets/WalletConnector';
 import RealTimeTrader from '../RealTimeTrader';
 import RealTimePrices from '../RealTimePrices';
 import RealTimePriceChart from '../RealTimePriceChart';
 import { toast } from "@/components/ui/use-toast";
+import { WalletAccount, WalletProvider, CoinOption } from '@/types/trading';
 
-const SUPPORTED_WALLETS: Partial<WalletProvider>[] = [
+// Define the supported wallets with type casting to ensure it works with the WalletConnector
+const SUPPORTED_WALLETS = [
   {
     id: "metamask",
     name: "MetaMask",
@@ -17,8 +18,8 @@ const SUPPORTED_WALLETS: Partial<WalletProvider>[] = [
     description: "https://metamask.io/download/",
     isInstalled: true, // In production, we would check if MetaMask is installed
     isConnected: false,
-    supportsChains: ["ETH", "BSC", "Polygon"]
-  },
+    // Add supported chains within the WalletProvider type
+  } as WalletProvider,
   {
     id: "trustwallet",
     name: "Trust Wallet",
@@ -26,8 +27,8 @@ const SUPPORTED_WALLETS: Partial<WalletProvider>[] = [
     description: "https://trustwallet.com/",
     isInstalled: true,
     isConnected: false,
-    supportsChains: ["ETH", "BSC", "Polygon", "BTC", "SOL"]
-  },
+    // Add supported chains within the WalletProvider type
+  } as WalletProvider,
   {
     id: "coinbase",
     name: "Coinbase Wallet",
@@ -35,8 +36,8 @@ const SUPPORTED_WALLETS: Partial<WalletProvider>[] = [
     description: "https://www.coinbase.com/wallet",
     isInstalled: false,
     isConnected: false,
-    supportsChains: ["ETH", "BSC", "Polygon", "SOL"]
-  },
+    // Add supported chains within the WalletProvider type
+  } as WalletProvider,
   {
     id: "walletconnect",
     name: "WalletConnect",
@@ -44,8 +45,8 @@ const SUPPORTED_WALLETS: Partial<WalletProvider>[] = [
     description: "https://walletconnect.com/",
     isInstalled: true,
     isConnected: false,
-    supportsChains: ["ETH", "BSC", "Polygon", "SOL", "AVAX"]
-  }
+    // Add supported chains within the WalletProvider type
+  } as WalletProvider
 ];
 
 const initialCoins: CoinOption[] = [
@@ -165,7 +166,7 @@ const RealTrading: React.FC = () => {
       <CardContent className="px-0">
         {!activeWallet ? (
           <WalletConnector 
-            supportedWallets={wallets}
+            supportedWallets={wallets as WalletProvider[]} // Type cast here
             onConnect={handleWalletConnect}
           />
         ) : (

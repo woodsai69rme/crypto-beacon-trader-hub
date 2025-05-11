@@ -1,7 +1,6 @@
-
-import { Trade, TradingAccount } from "@/types/trading";
+import { TradingAccount, Trade } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
-import { SupportedCurrency } from "@/components/trading/TradingStats";
+import { SupportedCurrency } from "@/types/trading";
 
 interface PortfolioRecommendation {
   suggestedTrades: Trade[];
@@ -81,3 +80,33 @@ export async function optimizePortfolio(
     });
   }
 }
+
+export const suggestRebalancing = (account: TradingAccount): Trade[] => {
+  const targetAllocation = 50; // Example target allocation
+  const needsRebalancing = account.assets?.some(asset => {
+    const currentAllocation = (asset.value / (account.balance || 1)) * 100;
+    return Math.abs(currentAllocation - targetAllocation) > 5;
+  });
+
+  if (!needsRebalancing) return [];
+
+  const trades = account.assets?.map(asset => {
+    const currentAllocation = (asset.value / (account.balance || 1)) * 100;
+    const targetValue = (targetAllocation / 100) * (account.balance || 0);
+    const valueAdjustment = targetValue - (asset.value || 0);
+    
+    return {
+      id: `rebalance-${Date.now()}`,
+      coinId: asset.coin || '',
+      type: asset.action as 'buy' | 'sell',
+      amount: valueAdjustment,
+      price: asset.price,
+      timestamp: new Date().toISOString(),
+      total: valueAdjustment * asset.price,
+      botGenerated: true,
+      strategyId: 'portfolio-rebalance'
+    };
+  }) || [];
+
+  return trades;
+};

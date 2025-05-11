@@ -1,4 +1,3 @@
-
 import { CryptoData, CryptoChartData } from "@/types/trading";
 
 // Mock data for cryptocurrencies
@@ -168,3 +167,24 @@ export const fetchTopCoins = async (limit: number = 10): Promise<CryptoData[]> =
 
 // Export CryptoChartData type for proper usage
 export type { CryptoChartData } from '@/types/trading';
+
+// Fix any incorrect property keys in api calls
+const fetchCoinMarketData = async (): Promise<CryptoData[]> => {
+  // In a real app, this would call an API
+  // For now, return mock data
+  const data = getMockCryptoData();
+  
+  // Make sure to use the right property names
+  return data.map((coin: any) => ({
+    id: coin.id,
+    name: coin.name,
+    symbol: coin.symbol.toUpperCase(),
+    price: coin.current_price,
+    priceChange: coin.price_change_24h || 0,
+    changePercent: coin.price_change_percentage_24h,
+    image: coin.image,
+    volume: coin.total_volume,
+    marketCap: coin.market_cap,
+    rank: coin.market_cap_rank
+  }));
+};

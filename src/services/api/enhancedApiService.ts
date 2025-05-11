@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 import { apiProviderManager } from "./apiProviderConfig";
 import { ApiProvider } from "@/types/trading";
@@ -229,6 +228,25 @@ export async function getHistoricalData(
     throw error;
   }
 }
+
+// Add missing methods to the apiProviderManager
+const getPriorityProvider = () => {
+  const availableProviders = apiProviderManager.getAllProviders().filter(p => p.enabled);
+  
+  if (availableProviders.length === 0) {
+    throw new Error("No enabled API providers available");
+  }
+  
+  return availableProviders.sort((a, b) => (a.priority || 0) - (b.priority || 0))[0];
+};
+
+const getEnabledProviders = () => {
+  return apiProviderManager.getAllProviders().filter(p => p.enabled);
+};
+
+// Attach these methods to the apiProviderManager
+apiProviderManager.getPriorityProvider = getPriorityProvider;
+apiProviderManager.getEnabledProviders = getEnabledProviders;
 
 // Export the API provider manager
 export { apiProviderManager };

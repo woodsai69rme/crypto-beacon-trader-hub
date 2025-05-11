@@ -32,6 +32,20 @@ interface AnalysisData {
   }[];
 }
 
+interface TrendIndicators {
+  rsi: number;
+  macd: number;
+  adx: number;
+  interpretation?: string;
+}
+
+interface VolatilityIndicators {
+  atr: number;
+  bbWidth: number;
+  historicalVol: number;
+  interpretation?: string;
+}
+
 const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
   symbol = "BTC/USD", 
   timeframe = "1d",
@@ -271,6 +285,32 @@ const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({
         </div>
       </div>
     );
+  };
+
+  const calculateTrendIndicators = (): TrendIndicators => {
+    const rsi = Math.floor(Math.random() * 100);
+    const macd = Math.floor(Math.random() * 200) - 100;
+    const adx = Math.floor(Math.random() * 50);
+    
+    return {
+      rsi,
+      macd,
+      adx,
+      interpretation: `RSI ${rsi < 30 ? 'oversold' : rsi > 70 ? 'overbought' : 'neutral'}, MACD ${macd > 0 ? 'bullish' : 'bearish'}, ADX ${adx > 25 ? 'strong' : 'weak'} trend`
+    };
+  };
+  
+  const calculateVolatilityIndicators = (): VolatilityIndicators => {
+    const atr = Math.random() * 5000;
+    const bbWidth = Math.random() * 0.1;
+    const historicalVol = Math.random();
+    
+    return {
+      atr,
+      bbWidth,
+      historicalVol,
+      interpretation: `ATR: ${atr.toFixed(2)}, BB Width: ${bbWidth.toFixed(2)}, Volatility: ${historicalVol < 0.5 ? 'Low' : historicalVol > 1.5 ? 'High' : 'Moderate'}`
+    };
   };
 
   return (

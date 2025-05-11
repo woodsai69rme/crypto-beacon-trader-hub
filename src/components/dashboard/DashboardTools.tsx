@@ -7,6 +7,32 @@ import TaxCalculator from "../TaxCalculator";
 import UtilityDashboard from "../UtilityDashboard";
 import { ExternalLink, MessageSquare, Calculator, Wrench } from "lucide-react";
 
+// Mock trades data for TaxCalculator
+const mockTrades = [
+  {
+    id: "trade-1",
+    coinId: "bitcoin",
+    type: "buy",
+    amount: 0.5,
+    price: 40000,
+    timestamp: new Date(2023, 1, 15).toISOString(),
+    total: 20000,
+    coinName: "Bitcoin",
+    coinSymbol: "BTC",
+  },
+  {
+    id: "trade-2",
+    coinId: "ethereum",
+    type: "sell",
+    amount: 2,
+    price: 3000,
+    timestamp: new Date(2023, 4, 20).toISOString(),
+    total: 6000,
+    coinName: "Ethereum",
+    coinSymbol: "ETH",
+  }
+];
+
 const DashboardTools = () => {
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -30,7 +56,7 @@ const DashboardTools = () => {
         <TabsContent value="calculator" className="animate-fade-in">
           <Card>
             <CardContent className="pt-6">
-              <TaxCalculator />
+              <TaxCalculator trades={mockTrades} />
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,4 +1,3 @@
-
 // Common interfaces
 export interface CoinOption {
   id: string;
@@ -123,6 +122,119 @@ export interface AITradingStrategy extends TradingStrategy {
   confidenceThreshold: number;
   riskLevel: 'low' | 'medium' | 'high';
   maxDrawdown: number;
+}
+
+// Adding missing TradingAccount interface
+export interface TradingAccount {
+  id: string;
+  name: string;
+  exchange?: string;
+  apiKey?: string;
+  apiSecret?: string;
+  balance?: number;
+  initialBalance?: number;
+  currency?: string;
+  connected?: boolean;
+  isActive?: boolean;
+  provider?: string;
+  trades?: Trade[];
+  createdAt?: string;
+  lastModified?: string;
+  type?: string;
+  lastUpdated?: string;
+  assets?: {
+    id: string;
+    symbol: string;
+    name: string;
+    amount: number;
+    value: number;
+  }[];
+}
+
+// Adding missing QuantitativeAnalysisProps interface
+export interface QuantitativeAnalysisProps {
+  symbol: string;
+  timeframe: string;
+  depth?: number;
+  onResultsCalculated?: (results: any) => void;
+}
+
+// Adding missing TradingFormProps interface
+export interface TradingFormProps {
+  balance: number;
+  availableCoins: CoinOption[];
+  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
+  conversionRate: number;
+  trades?: Trade[];
+}
+
+// Adding missing AiBotTradingProps interface
+export interface AiBotTradingProps {
+  accounts?: TradingAccount[];
+  strategies?: AITradingStrategy[];
+  botId?: string;
+  strategyId?: string;
+  strategyName?: string;
+}
+
+// Adding missing TickerSettings and SidebarSettings interfaces
+export interface TickerSettings {
+  enabled: boolean;
+  position: string;
+  speed: number;
+  direction: string;
+  autoPause: boolean;
+}
+
+export interface SidebarSettings {
+  enabled: boolean;
+  position: string;
+  collapsed: boolean;
+  autoHide: boolean;
+}
+
+// Adding missing ATOTaxCalculation interface
+export interface ATOTaxCalculation {
+  financialYear: string;
+  taxableIncome: number;
+  capitalGainsIncome: number;
+  taxRate: number;
+  medicareLevyRate: number;
+  taxPayable: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxCredits: number;
+  taxRefundOrOwed: number;
+  incomeTax: number;
+  taxWithheld: number;
+  netCapitalGains: number;
+  assessableIncome: number;
+  bracketInfo: {
+    bracket: string;
+    rate: string;
+  };
+  capitalGains: number;
+  CGTDiscount: number;
+  trades?: {
+    id: string;
+    asset: string;
+    acquiredDate: Date;
+    disposedDate: Date;
+    costBase: number;
+    proceedsOfDisposal: number;
+    gainOrLoss: number;
+    isLongTerm: boolean;
+  }[];
+}
+
+// Adding missing CryptoChartData interface
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
 }
 
 export interface ApiProvider {
