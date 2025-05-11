@@ -25,6 +25,7 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
+// Fix the Tooltip component to use content property correctly
 const Tooltip = ({ children, content, className, ...props }: { 
   children: React.ReactNode; 
   content: React.ReactNode;

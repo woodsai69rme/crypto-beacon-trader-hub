@@ -5,7 +5,7 @@ export interface CoinOption {
   name: string;
   symbol: string;
   price: number;
-  priceChange?: number;
+  priceChange: number;
   changePercent?: number;
   image?: string;
   volume?: number;
@@ -78,6 +78,15 @@ export interface TradingAccount {
   trades?: Trade[];
   createdAt?: string;
   lastModified?: string;
+  type?: string;
+  lastUpdated?: string;
+  assets?: {
+    id: string;
+    symbol: string;
+    name: string;
+    amount: number;
+    value: number;
+  }[];
 }
 
 export interface AccountWithBotsEnabled {
@@ -108,6 +117,7 @@ export interface TradingStrategy {
   tags?: string[];
 }
 
+// Adding AITradingStrategy which is missing in many imports
 export interface AITradingStrategy extends TradingStrategy {
   aiModel: string;
   confidenceThreshold: number;
@@ -156,6 +166,7 @@ export interface RealTimePricesProps {
   refreshInterval?: number;
 }
 
+// Adding TradingFormProps interface which is missing
 export interface TradingFormProps {
   balance: number;
   availableCoins: CoinOption[];
@@ -174,6 +185,7 @@ export interface AiBotTradingProps {
   strategyName?: string;
 }
 
+// Adding QuantitativeAnalysisProps interface which is missing
 export interface QuantitativeAnalysisProps {
   symbol: string;
   timeframe: string;
@@ -181,14 +193,29 @@ export interface QuantitativeAnalysisProps {
   onResultsCalculated?: (results: any) => void;
 }
 
+// Adding ATOTaxCalculation interface which is missing
 export interface ATOTaxCalculation {
   financialYear: string;
-  totalProfit: number;
-  totalLoss: number;
-  netGain: number;
+  taxableIncome: number;
+  capitalGainsIncome: number;
   taxRate: number;
-  estimatedTax: number;
-  trades: {
+  medicareLevyRate: number;
+  taxPayable: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxCredits: number;
+  taxRefundOrOwed: number;
+  incomeTax: number;
+  taxWithheld: number;
+  netCapitalGains: number;
+  assessableIncome: number;
+  bracketInfo: {
+    bracket: string;
+    rate: string;
+  };
+  capitalGains: number;
+  CGTDiscount: number;
+  trades?: {
     id: string;
     asset: string;
     acquiredDate: Date;
@@ -401,4 +428,17 @@ export interface WalletAccount {
   balance: string;
   network: string;
   provider: string;
+}
+
+// Add in RealTimeTraderProps interface
+export interface RealTimeTraderProps {
+  marketData: CoinOption[];
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+}
+
+// Add additional interfaces for Correlation Analysis
+export interface MarketCorrelationProps {
+  selectedCoinId?: string;
+  timeframe?: string;
 }

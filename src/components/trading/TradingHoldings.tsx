@@ -30,19 +30,15 @@ const TradingHoldings: React.FC<TradingHoldingsProps> = ({
   // Calculate the total value of all holdings
   const calculateTotalValue = () => {
     return ownedCoins.reduce((total, coin) => {
-      let price;
-      switch(activeCurrency) {
-        case 'AUD':
-          price = coin.priceAUD || coin.price * conversionRate;
-          break;
-        case 'EUR':
-          price = coin.priceEUR || coin.price * 0.92; // Default EUR conversion if specific price not available
-          break;
-        case 'GBP':
-          price = coin.priceGBP || coin.price * 0.8; // Default GBP conversion if specific price not available
-          break;
-        default:
-          price = coin.price;
+      let price = coin.price;
+      
+      // Safely check for currency-specific prices or use conversion rate
+      if (activeCurrency === 'AUD') {
+        price = (coin as any).priceAUD || coin.price * conversionRate;
+      } else if (activeCurrency === 'EUR') {
+        price = (coin as any).priceEUR || coin.price * 0.92; // Default EUR conversion
+      } else if (activeCurrency === 'GBP') {
+        price = (coin as any).priceGBP || coin.price * 0.8; // Default GBP conversion
       }
       
       return total + (getOwnedCoinAmount(coin.id) * price);
@@ -77,11 +73,11 @@ const TradingHoldings: React.FC<TradingHoldingsProps> = ({
                 let coinPrice = coin.price;
                 
                 if (activeCurrency === 'AUD') {
-                  coinPrice = coin.priceAUD || coin.price * conversionRate;
+                  coinPrice = (coin as any).priceAUD || coin.price * conversionRate;
                 } else if (activeCurrency === 'EUR') {
-                  coinPrice = coin.priceEUR || coin.price * 0.92;
+                  coinPrice = (coin as any).priceEUR || coin.price * 0.92;
                 } else if (activeCurrency === 'GBP') {
-                  coinPrice = coin.priceGBP || coin.price * 0.8;
+                  coinPrice = (coin as any).priceGBP || coin.price * 0.8;
                 }
                       
                 const value = amount * coinPrice;

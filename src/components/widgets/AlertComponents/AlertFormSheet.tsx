@@ -1,114 +1,119 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
+
+import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
-import { COIN_OPTIONS } from "./AlertTypes";
-import { PriceAlert } from "@/types/alerts";
-import { validateFormFields } from "@/utils/formValidation";
-import { handleError } from "@/utils/errorHandling";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertFormData } from '@/hooks/use-alert-form';
+import { COIN_OPTIONS } from './AlertTypes';
 
-type AlertFormData = Omit<PriceAlert, 'id' | 'createdAt'>;
-
-interface AlertFormProps {
+interface AlertFormSheetProps {
   formData: AlertFormData;
-  onFormChange: (data: AlertFormData) => void;
+  onFormChange: (formData: AlertFormData) => void;
   onSubmit: () => void;
 }
 
-export const AlertFormSheet: React.FC<AlertFormProps> = ({
-  formData,
-  onFormChange,
-  onSubmit,
+export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ 
+  formData, 
+  onFormChange, 
+  onSubmit 
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const isValid = validateFormFields(formData, [
-        "coinId",
-        "coinName",
-        "coinSymbol",
-        "targetPrice"
-      ]);
-      
-      if (!isValid) {
-        return;
-      }
-
-      if (formData.targetPrice <= 0) {
-        handleError("Price target must be greater than 0", "warning", "Price Alert");
-        return;
-      }
-
-      onSubmit();
-    } catch (error) {
-      handleError(error, "error", "Price Alert");
-    }
+  const handleChange = (field: keyof AlertFormData, value: any) => {
+    onFormChange({
+      ...formData,
+      [field]: value
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-      <div className="flex flex-col space-y-2">
-        <Label className="text-sm font-medium">Coin</Label>
-        <select
-          className="rounded border border-border bg-background px-2 py-1 text-foreground"
-          value={formData.coinId}
-          onChange={(e) => {
-            const selectedCoin = COIN_OPTIONS[e.target.value];
-            onFormChange({
-              ...formData,
-              coinId: selectedCoin.id,
-              coinName: selectedCoin.name,
-              coinSymbol: selectedCoin.symbol
-            });
-          }}
-        >
-          {Object.values(COIN_OPTIONS).map((coin) => (
-            <option key={coin.id} value={coin.id}>
-              {coin.name} ({coin.symbol})
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="space-y-4 mt-6">
+      <h3 className="text-sm font-medium">Create Price Alert</h3>
       
-      <div className="flex flex-col space-y-2">
-        <Label className="text-sm font-medium">Alert me when price is</Label>
-        <div className="flex items-center space-x-2">
-          <select
-            className="rounded border border-border bg-background px-2 py-1 text-foreground"
-            value={formData.isAbove ? "above" : "below"}
-            onChange={(e) => onFormChange({ 
-              ...formData, 
-              isAbove: e.target.value === "above"
-            })}
+      <div className="grid gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="coin-select">Select Coin</Label>
+          <Select 
+            value={formData.coinId}
+            onValueChange={(value) => {
+              const coin = COIN_OPTIONS[value];
+              if (coin) {
+                handleChange('coinId', coin.id);
+                handleChange('coinName', coin.name);
+                handleChange('coinSymbol', coin.symbol);
+              }
+            }}
           >
-            <option value="above">Above</option>
-            <option value="below">Below</option>
-          </select>
-          <div className="flex-1">
-            <div className="relative">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-              <Input
-                type="number"
-                min="0"
-                className="pl-6"
-                value={formData.targetPrice || ""}
-                onChange={(e) => onFormChange({ 
-                  ...formData, 
-                  targetPrice: parseFloat(e.target.value) || 0 
-                })}
-                placeholder="Enter price"
-              />
+            <SelectTrigger id="coin-select">
+              <SelectValue placeholder="Select a coin" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(COIN_OPTIONS).map((coin) => (
+                <SelectItem key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="alert-price">Alert Price (USD)</Label>
+          <Input 
+            id="alert-price"
+            type="number" 
+            value={formData.targetPrice || ''} 
+            onChange={(e) => handleChange('targetPrice', parseFloat(e.target.value))}
+            placeholder="Enter price"
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Alert Condition</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                type="button"
+                variant={formData.isAbove ? "default" : "outline"}
+                onClick={() => handleChange('isAbove', true)}
+                className="w-full"
+              >
+                Above
+              </Button>
+              <Button 
+                type="button"
+                variant={!formData.isAbove ? "default" : "outline"}
+                onClick={() => handleChange('isAbove', false)}
+                className="w-full"
+              >
+                Below
+              </Button>
             </div>
           </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="recurring-alert">Recurring</Label>
+              <Switch 
+                id="recurring-alert" 
+                checked={formData.recurring} 
+                onCheckedChange={(value) => handleChange('recurring', value)} 
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Trigger every time the condition is met
+            </p>
+          </div>
         </div>
+        
+        <Button 
+          type="button" 
+          className="w-full" 
+          onClick={onSubmit}
+        >
+          Create Alert
+        </Button>
       </div>
-      
-      <Button type="submit" className="w-full">
-        <Plus className="mr-1 h-4 w-4" />
-        Add Alert
-      </Button>
-    </form>
+    </div>
   );
 };

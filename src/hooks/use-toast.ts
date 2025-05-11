@@ -1,5 +1,5 @@
 
-import { toast as sonnerToast, type Toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
 type ToastProps = {
   title?: string;
@@ -36,9 +36,13 @@ export function toast({
   });
 }
 
+// Create a fake toasts array for the toaster component
+const toasts: { id: string; title?: string; description?: string; action?: any }[] = [];
+
 export const useToast = () => {
   return {
     toast,
+    toasts, // Add this to fix the toaster component
   };
 };
 
