@@ -1,8 +1,8 @@
 
-import { LocalModel } from '@/types/trading';
+import type { LocalModel } from '@/types/trading';
 
 // Re-export the LocalModel type
-export { LocalModel };
+export type { LocalModel };
 
 export interface ModelConnectionTabProps {
   models: LocalModel[];

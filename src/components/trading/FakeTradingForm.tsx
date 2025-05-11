@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
+import { Trade } from '@/types/trading';
 
 interface FakeTradingFormProps {
-  onAddTrade: (trade: any) => void;
+  onAddTrade: (trade: Trade) => void;
+  advancedMode?: boolean;
 }
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedMode = false }) => {
   const [asset, setAsset] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -30,15 +32,23 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
       return;
     }
     
-    const newTrade = {
+    const priceValue = parseFloat(price);
+    const quantityValue = parseFloat(quantity);
+    const totalValue = priceValue * quantityValue;
+    
+    const newTrade: Trade = {
       id: `trade-${Date.now()}`,
-      asset,
-      price: parseFloat(price),
-      quantity: parseFloat(quantity),
+      coinId: asset,
+      coinName: asset === 'BTC' ? 'Bitcoin' : 
+               asset === 'ETH' ? 'Ethereum' :
+               asset === 'SOL' ? 'Solana' : 'Cardano',
+      coinSymbol: asset,
       type,
-      // Convert string date to Date object (using string here to fix the error in the original component)
-      date: tradeDate,
-      timestamp: new Date(tradeDate).getTime()
+      amount: quantityValue,
+      price: priceValue,
+      total: totalValue,
+      timestamp: tradeDate,
+      fee: totalValue * 0.001 // Add 0.1% fee
     };
     
     onAddTrade(newTrade);
@@ -126,6 +136,36 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
           Sell
         </Button>
       </div>
+      
+      {advancedMode && (
+        <div className="space-y-2 pt-2 border-t">
+          <p className="text-sm font-medium">Advanced Settings</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="fee" className="text-xs">Fee (%)</Label>
+              <Input
+                id="fee"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue="0.1"
+                disabled
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="slippage" className="text-xs">Slippage (%)</Label>
+              <Input
+                id="slippage"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue="0.5"
+                disabled
+              />
+            </div>
+          </div>
+        </div>
+      )}
       
       <Button type="submit" className="w-full">
         Add Trade

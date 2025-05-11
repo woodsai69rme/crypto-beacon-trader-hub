@@ -3,35 +3,86 @@ import { toast } from "@/components/ui/use-toast";
 
 export type ErrorLevel = "error" | "warning" | "info";
 
+interface ErrorOptions {
+  level?: ErrorLevel;
+  context?: string;
+  retry?: boolean;
+  retryFn?: () => void;
+  details?: Record<string, any>;
+  showToast?: boolean;
+  toastTitle?: string;
+  logToConsole?: boolean;
+}
+
 /**
- * Handles and processes errors consistently across the application
+ * Enhanced error handling function with configurable options
  * @param error The error object or message
- * @param level The severity level
- * @param context Optional context information about where the error occurred
+ * @param options Configuration options for error handling
  * @returns The original error for chaining
  */
-export const handleError = (error: unknown, level: ErrorLevel = "error", context?: string) => {
-  const message = error instanceof Error ? error.message : String(error);
-  const contextPrefix = context ? `[${context}] ` : "";
+export const handleError = (
+  error: unknown,
+  options: ErrorOptions = {}
+) => {
+  const {
+    level = "error",
+    context,
+    retry = false,
+    retryFn,
+    details,
+    showToast = true,
+    toastTitle,
+    logToConsole = true
+  } = options;
   
-  // Log to console for debugging
-  if (level === "error") {
-    console.error(`${contextPrefix}${message}`, error);
-  } else if (level === "warning") {
-    console.warn(`${contextPrefix}${message}`, error);
-  } else {
-    console.info(`${contextPrefix}${message}`, error);
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const contextPrefix = context ? `[${context}] ` : "";
+  const fullMessage = `${contextPrefix}${errorMessage}`;
+  
+  // Log to console for debugging if enabled
+  if (logToConsole) {
+    if (level === "error") {
+      console.error(fullMessage, { error, ...details });
+    } else if (level === "warning") {
+      console.warn(fullMessage, { error, ...details });
+    } else {
+      console.info(fullMessage, { error, ...details });
+    }
   }
   
-  // Show user-facing toast notification
-  toast({
-    title: level === "error" ? "An error occurred" : level === "warning" ? "Warning" : "Information",
-    description: `${contextPrefix}${message}`,
-    variant: level === "error" ? "destructive" : "default",
-  });
+  // Show user-facing toast notification if enabled
+  if (showToast) {
+    toast({
+      title: toastTitle || (level === "error" ? "Error" : level === "warning" ? "Warning" : "Information"),
+      description: fullMessage,
+      variant: level === "error" ? "destructive" : "default",
+      action: retry && retryFn ? {
+        label: "Retry",
+        onClick: retryFn
+      } : undefined
+    });
+  }
   
   return error;
 };
+
+/**
+ * Tries to execute a function with error handling
+ * @param fn The function to execute
+ * @param options Error handling options
+ * @returns The result of the function or undefined if it fails
+ */
+export async function tryCatch<T>(
+  fn: () => Promise<T>,
+  options: ErrorOptions = {}
+): Promise<T | undefined> {
+  try {
+    return await fn();
+  } catch (error) {
+    handleError(error, options);
+    return undefined;
+  }
+}
 
 /**
  * Validates that all required fields are present in a data object
@@ -68,13 +119,12 @@ export const handleValidationError = (
     const context = formName ? `${formName} Form` : "Form Validation";
     const message = `Missing required fields: ${validationResult.missing.join(", ")}`;
     
-    toast({
-      title: "Validation Error",
-      description: message,
-      variant: "destructive",
+    handleError(new Error(message), {
+      level: "warning",
+      context,
+      toastTitle: "Validation Error"
     });
     
-    console.warn(`[${context}] ${message}`);
     return true;
   }
   
