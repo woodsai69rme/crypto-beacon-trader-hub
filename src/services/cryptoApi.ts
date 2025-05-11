@@ -1,3 +1,4 @@
+
 import { CryptoData, CryptoChartData } from "@/types/trading";
 
 // Mock data for cryptocurrencies
@@ -168,8 +169,8 @@ export const fetchTopCoins = async (limit: number = 10): Promise<CryptoData[]> =
 // Export CryptoChartData type for proper usage
 export type { CryptoChartData } from '@/types/trading';
 
-// Fix any incorrect property keys in api calls
-const fetchCoinMarketData = async (): Promise<CryptoData[]> => {
+// Export the fetchCoinMarketData function that was previously only declared
+export const fetchCoinMarketData = async (): Promise<CryptoData[]> => {
   // In a real app, this would call an API
   // For now, return mock data
   const data = getMockCryptoData();

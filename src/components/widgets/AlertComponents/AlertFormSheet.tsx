@@ -1,233 +1,159 @@
-import React, { useState } from 'react';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { AlertTriangle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { COIN_OPTIONS, PriceAlertFormData } from './AlertTypes';
 
-const formSchema = z.object({
-  type: z.enum(['price', 'volume', 'market_cap', 'change_percentage']),
-  symbol: z.string().min(1, {
-    message: "Cryptocurrency symbol is required.",
-  }),
-  value: z.number().min(0, {
-    message: "Value must be a positive number.",
-  }),
-  operator: z.enum(['>', '<', '=', '>=', '<=']),
-  timeframe: z.string().optional(),
-  enabled: z.boolean().default(true),
-});
-
-interface AlertFormSheetProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  onSubmit: (data: z.infer<typeof formSchema>) => void;
+export interface AlertFormSheetProps {
+  onFormChange: (formData: PriceAlertFormData) => void;
+  onSubmit: () => void;
 }
 
-export function AlertFormSheet({ open, setOpen, onSubmit }: AlertFormSheetProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      type: "price",
-      symbol: "",
-      value: 0,
-      operator: ">",
-      timeframe: "1h",
-      enabled: true,
-    },
-  });
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ onFormChange, onSubmit }) => {
+  const [alertType, setAlertType] = useState<'price' | 'volume' | 'technical'>('price');
+  const [coinId, setCoinId] = useState<string>('bitcoin');
+  const [targetPrice, setTargetPrice] = useState<string>('');
+  const [isAbove, setIsAbove] = useState<boolean>(true);
+  const [notificationChannels, setNotificationChannels] = useState<string[]>(['app']);
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      onSubmit(values);
-      toast({
-        title: "Alert Created",
-        description: `${values.type} alert for ${values.symbol} has been created.`,
-        variant: "default"
-      });
-      setOpen(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create alert. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Update parent component with form data
+  const updateFormData = () => {
+    if (!coinId || !COIN_OPTIONS[coinId]) return;
+    
+    const formData: PriceAlertFormData = {
+      coinId,
+      coinName: COIN_OPTIONS[coinId].name,
+      coinSymbol: COIN_OPTIONS[coinId].symbol,
+      targetPrice: parseFloat(targetPrice) || 0,
+      isAbove,
+      recurring: false,
+      percentageChange: 0,
+      enabled: true,
+      notifyVia: notificationChannels.map(c => c as "app" | "email" | "push")
+    };
+    
+    onFormChange(formData);
   };
-  
-  const cancelAlert = () => {
-    setOpen(false);
-    toast({
-      title: "Alert Cancelled",
-      description: "Alert creation was cancelled.",
-      variant: "default"
-    });
+
+  // Update form data whenever any input changes
+  React.useEffect(() => {
+    updateFormData();
+  }, [coinId, targetPrice, isAbove, notificationChannels, alertType]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit();
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent className="sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>Create New Alert</SheetTitle>
-          <SheetDescription>
-            Set up custom alerts to track cryptocurrency prices, volume, and
-            market cap.
-          </SheetDescription>
-        </SheetHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="symbol"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cryptocurrency Symbol</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., BTC" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Enter the symbol of the cryptocurrency you want to track.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Tabs defaultValue="price" onValueChange={(value) => setAlertType(value as any)}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="price">Price Alert</TabsTrigger>
+          <TabsTrigger value="volume">Volume Alert</TabsTrigger>
+          <TabsTrigger value="technical">Technical</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="price" className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="coin">Coin</Label>
+            <Select value={coinId} onValueChange={setCoinId}>
+              <SelectTrigger id="coin">
+                <SelectValue placeholder="Select coin" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(COIN_OPTIONS).map(([key, coin]) => (
+                  <SelectItem key={key} value={key}>
+                    {coin.name} ({coin.symbol})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="condition">Condition</Label>
+            <RadioGroup value={isAbove ? "above" : "below"} onValueChange={(v) => setIsAbove(v === "above")}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="above" id="above" />
+                <Label htmlFor="above">Price goes above</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="below" id="below" />
+                <Label htmlFor="below">Price goes below</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="price">Target Price (USD)</Label>
+            <Input
+              id="price"
+              type="number"
+              placeholder="Enter target price"
+              value={targetPrice}
+              onChange={(e) => setTargetPrice(e.target.value)}
+              step="0.01"
+              min="0"
             />
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Alert Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an alert type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="price">Price</SelectItem>
-                      <SelectItem value="volume">Volume</SelectItem>
-                      <SelectItem value="market_cap">Market Cap</SelectItem>
-                      <SelectItem value="change_percentage">Change Percentage</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Choose the type of metric you want to track.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="operator"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Operator</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an operator" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value=">">Greater Than</SelectItem>
-                      <SelectItem value="<">Less Than</SelectItem>
-                      <SelectItem value="=">Equal To</SelectItem>
-                      <SelectItem value=">=">Greater Than or Equal To</SelectItem>
-                      <SelectItem value="<=">Less Than or Equal To</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Choose the operator for your alert condition.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="value"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Value</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 40000" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Enter the value for your alert condition.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="timeframe"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Timeframe (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 1h" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Specify a timeframe for change percentage alerts (e.g., 1h, 24h).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="enabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Alert Enabled</FormLabel>
-                    <FormDescription>
-                      Enable or disable this alert.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={cancelAlert}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Alert"}
-              </Button>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Notification Method</Label>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="notify-app" 
+                  checked={notificationChannels.includes('app')}
+                  onCheckedChange={(checked) => {
+                    setNotificationChannels(prev => 
+                      checked 
+                        ? [...prev, 'app'] 
+                        : prev.filter(c => c !== 'app')
+                    );
+                  }}
+                />
+                <Label htmlFor="notify-app">In-app notification</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="notify-email" 
+                  checked={notificationChannels.includes('email')}
+                  onCheckedChange={(checked) => {
+                    setNotificationChannels(prev => 
+                      checked 
+                        ? [...prev, 'email'] 
+                        : prev.filter(c => c !== 'email')
+                    );
+                  }}
+                />
+                <Label htmlFor="notify-email">Email notification</Label>
+              </div>
             </div>
-          </form>
-        </Form>
-      </SheetContent>
-    </Sheet>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="volume" className="space-y-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Volume alerts coming soon</p>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="technical" className="space-y-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Technical alerts coming soon</p>
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      <Button type="submit" className="w-full">Create Alert</Button>
+    </form>
   );
-}
+};
+
+export default AlertFormSheet;

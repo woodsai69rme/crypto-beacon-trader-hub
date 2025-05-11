@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -80,24 +81,21 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ initialCoinId
         return;
       }
 
-      const formatCoinData = (coins: CoinOption[]): CryptoData[] => {
-        return coins.map(coin => ({
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol,
-          price: coin.price,
-          priceChange: coin.priceChange || 0, // Add priceChange with fallback
-          image: coin.image,
-          marketCap: coin.marketCap,
-          volume: coin.volume,
-          changePercent: coin.changePercent
-        }));
-      };
-      
-      const formattedData = formatCoinData(coins);
+      // Ensure we have priceChange for each coin to satisfy TypeScript
+      const formattedData: CryptoData[] = coins.map(coin => ({
+        id: coin.id,
+        name: coin.name,
+        symbol: coin.symbol,
+        price: coin.price,
+        priceChange: coin.priceChange || 0, // Ensure priceChange exists
+        image: coin.image,
+        marketCap: coin.marketCap,
+        volume: coin.volume,
+        changePercent: coin.changePercent || 0 // Add default value for changePercent
+      }));
 
       const labels = formattedData.map(coin => coin.name);
-      const prices = formattedData.map(coin => coin.price);
+      const prices = formattedData.map(coin => coin.price || 0);
 
       const chartData = {
         labels,

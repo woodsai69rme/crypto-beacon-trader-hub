@@ -6,9 +6,10 @@ import AiChatInterface from "../ai/AiChatInterface";
 import TaxCalculator from "../TaxCalculator";
 import UtilityDashboard from "../UtilityDashboard";
 import { ExternalLink, MessageSquare, Calculator, Wrench } from "lucide-react";
+import { Trade } from "@/types/trading";
 
 // Mock trades data for TaxCalculator
-const mockTrades = [
+const mockTrades: Trade[] = [
   {
     id: "trade-1",
     coinId: "bitcoin",
@@ -19,6 +20,8 @@ const mockTrades = [
     total: 20000,
     coinName: "Bitcoin",
     coinSymbol: "BTC",
+    totalValue: 20000,
+    currency: "USD"
   },
   {
     id: "trade-2",
@@ -30,6 +33,8 @@ const mockTrades = [
     total: 6000,
     coinName: "Ethereum",
     coinSymbol: "ETH",
+    totalValue: 6000,
+    currency: "USD"
   }
 ];
 
