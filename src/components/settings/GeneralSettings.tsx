@@ -26,7 +26,7 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="username" {...field} />
+                  <Input placeholder="username" {...field} value={field.value as string || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -47,7 +47,7 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="email@example.com" {...field} />
+                  <Input placeholder="email@example.com" {...field} value={field.value as string || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -61,7 +61,7 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Display Name" {...field} />
+                  <Input placeholder="Display Name" {...field} value={field.value as string || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -75,7 +75,7 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Language</FormLabel>
                 <FormControl>
-                  <Input placeholder="English" {...field} />
+                  <Input placeholder="English" {...field} value={field.value as string || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -1,33 +1,38 @@
 
 import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SettingsComponentProps } from "./types";
-import { Card, CardContent } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { SettingsComponentProps } from "./types";
+import { Gauge } from "lucide-react";
 
 const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Ticker Settings</h3>
-        
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Gauge className="h-5 w-5" />
+          Ticker Settings
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
         <FormField
           control={form.control}
           name="ticker.enabled"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">
-                <FormLabel>Enable Tickers</FormLabel>
-                <FormDescription>Show live price and news tickers</FormDescription>
+                <FormLabel>Enable Ticker</FormLabel>
+                <FormDescription>Show real-time price ticker on the interface</FormDescription>
               </div>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+                <Switch 
+                  checked={field.value as boolean} 
+                  onCheckedChange={field.onChange} 
                 />
               </FormControl>
             </FormItem>
@@ -40,20 +45,21 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Ticker Position</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select ticker position" />
-                  </SelectTrigger>
-                </FormControl>
+              <Select 
+                value={field.value as string} 
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="top">Top Only</SelectItem>
-                  <SelectItem value="bottom">Bottom Only</SelectItem>
+                  <SelectItem value="top">Top</SelectItem>
+                  <SelectItem value="bottom">Bottom</SelectItem>
                   <SelectItem value="both">Top and Bottom</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
-                Choose where to display price tickers
+                Choose where you want the ticker to appear
               </FormDescription>
             </FormItem>
           )}
@@ -65,23 +71,21 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Ticker Speed</FormLabel>
-              <div className="flex items-center space-x-2">
-                <FormControl>
-                  <Slider
-                    defaultValue={[field.value]}
-                    min={10}
-                    max={100}
-                    step={5}
-                    onValueChange={(values) => field.onChange(values[0])}
-                  />
-                </FormControl>
-                <div className="w-12 text-center">
-                  <span className="text-sm">{field.value}</span>
-                </div>
+              <FormControl>
+                <Slider
+                  min={1}
+                  max={10}
+                  step={1}
+                  value={[field.value as number]}
+                  onValueChange={(value) => field.onChange(value[0])}
+                  className="py-4"
+                />
+              </FormControl>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Slow</span>
+                <span>Medium</span>
+                <span>Fast</span>
               </div>
-              <FormDescription>
-                Set how fast the tickers move (lower is faster)
-              </FormDescription>
             </FormItem>
           )}
         />
@@ -90,27 +94,28 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           control={form.control}
           name="ticker.direction"
           render={({ field }) => (
-            <FormItem className="space-y-3">
+            <FormItem>
               <FormLabel>Ticker Direction</FormLabel>
               <FormControl>
-                <RadioGroup
+                <RadioGroup 
+                  value={field.value as string} 
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex space-x-1"
+                  className="flex space-x-4"
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="left" id="left" />
-                    <Label htmlFor="left">Left</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="right" id="right" />
-                    <Label htmlFor="right">Right</Label>
-                  </div>
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="ltr" />
+                    </FormControl>
+                    <FormLabel className="cursor-pointer">Left to Right</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="rtl" />
+                    </FormControl>
+                    <FormLabel className="cursor-pointer">Right to Left</FormLabel>
+                  </FormItem>
                 </RadioGroup>
               </FormControl>
-              <FormDescription>
-                Direction of ticker scrolling
-              </FormDescription>
             </FormItem>
           )}
         />
@@ -119,140 +124,22 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           control={form.control}
           name="ticker.autoPause"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">
-                <FormLabel>Auto-pause on Hover</FormLabel>
-                <FormDescription>Pause ticker when mouse hovers over it</FormDescription>
+                <FormLabel>Auto-Pause on Hover</FormLabel>
+                <FormDescription>Pause ticker when hovering over prices</FormDescription>
               </div>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+                <Switch 
+                  checked={field.value as boolean} 
+                  onCheckedChange={field.onChange} 
                 />
               </FormControl>
             </FormItem>
           )}
         />
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Sidebar Settings</h3>
-        
-        <FormField
-          control={form.control}
-          name="sidebar.enabled"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Enable Sidebar</FormLabel>
-                <FormDescription>Show information sidebar</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="sidebar.position"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sidebar Position</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sidebar position" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="left">Left Side</SelectItem>
-                  <SelectItem value="right">Right Side</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Choose which side to display the sidebar
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="sidebar.defaultCollapsed"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Default Collapsed State</FormLabel>
-                <FormDescription>Start with sidebar collapsed</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="sidebar.showLabels"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel>Show Labels when Collapsed</FormLabel>
-                <FormDescription>Display tooltips when hovering icons in collapsed sidebar</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-        <Card className="overflow-hidden">
-          <div className="p-4 bg-primary/10">
-            <h4 className="text-sm font-medium">Ticker Preview</h4>
-          </div>
-          <CardContent className="p-3">
-            <div className="h-8 bg-primary/5 animate-pulse-slow rounded flex items-center px-3">
-              <div className="w-4 h-4 rounded-full bg-primary/20 mr-2"></div>
-              <div className="h-3 w-16 bg-primary/20 rounded"></div>
-              <div className="h-3 w-3 bg-transparent mx-2"></div>
-              <div className="h-3 w-24 bg-primary/10 rounded"></div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="overflow-hidden">
-          <div className="p-4 bg-primary/10">
-            <h4 className="text-sm font-medium">Sidebar Preview</h4>
-          </div>
-          <CardContent className="p-3">
-            <div className="flex gap-2">
-              <div className="w-10 h-32 bg-primary/5 rounded border border-primary/10"></div>
-              <div className="flex-1 h-32 flex flex-col gap-2 py-1">
-                <div className="h-6 w-3/4 bg-primary/10 rounded"></div>
-                <div className="h-3 w-full bg-primary/5 rounded"></div>
-                <div className="h-3 w-5/6 bg-primary/5 rounded"></div>
-                <div className="h-3 w-4/6 bg-primary/5 rounded"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

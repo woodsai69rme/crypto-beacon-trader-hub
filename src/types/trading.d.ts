@@ -1,4 +1,3 @@
-
 export interface CoinOption {
   id: string;
   name: string;
@@ -228,13 +227,29 @@ export interface ApiEndpoint {
 
 export interface ApiUsageStats {
   service: string;
+  provider?: string;
   currentUsage: number;
   maxUsage: number;
   endpoint?: string;
   resetTime?: string;
-  provider?: string;
+  
+  // Adding missing properties reported in errors
+  requestCount?: number;
+  successCount?: number;
+  errorCount?: number;
+  avgResponseTime?: number;
+  lastUsed?: string;
+  serviceName?: string;
+  serviceId?: string;
+  totalRequests?: number;
+  periodRequests?: number;
+  requestsLimit?: number;
+  averageResponseTime?: number;
+  errorRate?: number;
+  lastRequested?: string;
 }
 
+// Add missing interface for EnhancedPortfolioBenchmarking
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance?: {
     daily: number;

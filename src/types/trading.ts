@@ -1,4 +1,3 @@
-
 /**
  * Type definitions for the trading components and functionality
  */
@@ -171,35 +170,28 @@ export interface TradingStrategy {
 export interface ApiProvider {
   id: string;
   name: string;
+  baseUrl: string;
+  description?: string;
   currentUsage: number;
   maxUsage: number;
   resetTime: string;
   endpoint: string;
-  status: 'ok' | 'warning' | 'critical';
-  description?: string;
-  enabled?: boolean;
-  apiKey?: string;
-  usageLimit?: number;
-  requiresAuth?: boolean;
-  authRequired?: boolean;
-  baseUrl?: string;
-  endpoints?: ApiEndpoint[];
-  isActive?: boolean;
+  status: string;
   website?: string;
   docs?: string;
+  endpoints?: ApiEndpoint[];
+  isActive: boolean;
+  apiKey?: string;
+  usageLimit: number;
+  authMethod?: string;
+  apiKeyName?: string;
+  defaultHeaders?: Record<string, string>;
+  enabled?: boolean;
+  requiresAuth?: boolean;
 }
 
 // API usage metrics
 export interface ApiUsageMetrics {
-  provider: string;
-  currentUsage: number;
-  limit: number;
-  resetTime: string;
-  endpoint: string;
-}
-
-// API usage stats
-export interface ApiUsageStats {
   provider: string;
   endpoint: string;
   requestCount: number;
@@ -219,6 +211,31 @@ export interface ApiUsageStats {
   currentUsage: number;
   maxUsage: number;
   resetTime?: string;
+}
+
+// API usage stats
+export interface ApiUsageStats {
+  service: string;
+  provider?: string;
+  currentUsage: number;
+  maxUsage: number;
+  endpoint?: string;
+  resetTime?: string;
+  
+  // Adding missing properties reported in errors
+  requestCount?: number;
+  successCount?: number;
+  errorCount?: number;
+  avgResponseTime?: number;
+  lastUsed?: string;
+  serviceName?: string;
+  serviceId?: string;
+  totalRequests?: number;
+  periodRequests?: number;
+  requestsLimit?: number;
+  averageResponseTime?: number;
+  errorRate?: number;
+  lastRequested?: string;
 }
 
 // Portfolio asset
@@ -327,4 +344,117 @@ export interface ModelListProps {
   onSelect?: (model: LocalModel) => void;
   onConnect?: (model: LocalModel) => void;
   onDisconnect?: (modelId: string) => void;
+}
+
+// Add missing interface for EnhancedPortfolioBenchmarking
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance?: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    yearly: number;
+    allTime: number;
+  };
+}
+
+// Adding missing interfaces for settings components
+export interface SettingsComponentProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
+
+export interface SettingsFormValues {
+  username?: string;
+  displayName?: string;
+  email?: string;
+  theme?: string;
+  bio?: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+  };
+  tradingPreferences: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+}
+import { UseFormReturn } from "react-hook-form";
+
+export interface SettingsFormValues {
+  username?: string;
+  displayName?: string;
+  email?: string;
+  theme?: string;
+  bio?: string;
+  language?: string; // Added language field
+  notifications: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+  };
+  tradingPreferences: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+  ticker?: { // Added ticker settings
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
+  };
+  sidebar?: { // Added sidebar settings
+    enabled: boolean;
+    position: string;
+    collapsed: boolean;
+    autoHide: boolean;
+  };
+}
+
+export interface SettingsComponentProps {
+  form: UseFormReturn<SettingsFormValues>;
+  onSave?: (values: Partial<SettingsFormValues>) => void; // Added onSave
+  defaultValues?: Partial<SettingsFormValues>; // Added defaultValues
 }

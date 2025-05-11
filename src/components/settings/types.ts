@@ -7,6 +7,7 @@ export interface SettingsFormValues {
   email?: string;
   theme?: string;
   bio?: string;
+  language?: string; // Added language field
   notifications: {
     email: boolean;
     push: boolean;
@@ -37,8 +38,23 @@ export interface SettingsFormValues {
     animationsEnabled: boolean;
     highContrastMode: boolean;
   };
+  ticker?: { // Added ticker settings
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
+  };
+  sidebar?: { // Added sidebar settings
+    enabled: boolean;
+    position: string;
+    collapsed: boolean;
+    autoHide: boolean;
+  };
 }
 
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
+  onSave?: (values: Partial<SettingsFormValues>) => void; // Added onSave
+  defaultValues?: Partial<SettingsFormValues>; // Added defaultValues
 }

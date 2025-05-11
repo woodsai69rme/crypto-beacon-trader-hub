@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -105,10 +106,10 @@ const RealTimeApiUsage: React.FC = () => {
               tick={{ fontSize: 10 }}
               tickLine={false}
               minTickGap={50}
-              tick={(props) => {
-                const { x, y, payload } = props;
+              tick={props => {
+                const { x, y, payload, index } = props;
                 // Only show every 3rd tick to avoid crowding
-                if (props.index % 3 !== 0) return null;
+                if (index % 3 !== 0) return null;
                 
                 return (
                   <g transform={`translate(${x},${y})`}>

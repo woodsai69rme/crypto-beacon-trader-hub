@@ -1,6 +1,7 @@
 
 import { CryptoData } from '@/types/trading';
 
+// Make sure to properly export mockCryptoData with the export keyword
 export const mockCryptoData: CryptoData[] = [
   {
     id: 'bitcoin',
@@ -99,5 +100,3 @@ export const generateCorrelationMatrix = (historicalPrices: Record<string, numbe
   
   return matrix;
 };
-
-// Create settings type file
