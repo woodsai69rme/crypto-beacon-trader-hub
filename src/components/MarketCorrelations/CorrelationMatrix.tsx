@@ -158,27 +158,8 @@ const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({
   
   // Render a correlation cell with appropriate coloring
   const renderCorrelationCell = (correlation: number) => {
-    let color: string;
-    let textColor = 'text-white';
-    
-    // Use the utility function or calculate color directly if not available
-    if (typeof getCorrelationColor === 'function') {
-      color = getCorrelationColor(correlation);
-    } else {
-      // Fallback calculation
-      if (correlation > 0) {
-        const intensity = Math.round(correlation * 200) + 55;
-        color = `rgb(0, 0, ${intensity})`;
-      } else {
-        const intensity = Math.round(-correlation * 200) + 55;
-        color = `rgb(${intensity}, 0, 0)`;
-      }
-      
-      // If light color, use dark text
-      if (Math.abs(correlation) < 0.3) {
-        textColor = 'text-gray-800';
-      }
-    }
+    const color = getCorrelationColor(correlation);
+    const textColor = Math.abs(correlation) < 0.3 ? 'text-gray-800' : 'text-white';
     
     return (
       <div 

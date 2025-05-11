@@ -1,5 +1,19 @@
 
-import { CryptoData } from '@/types/trading';
+/**
+ * Generates color based on correlation value
+ * @param correlation Value between -1 and 1
+ * @returns CSS color string
+ */
+export function getCorrelationColor(correlation: number): string {
+  // Red for negative correlation, blue for positive
+  if (correlation > 0) {
+    const intensity = Math.round(correlation * 200) + 55;
+    return `rgb(0, 0, ${intensity})`;
+  } else {
+    const intensity = Math.round(-correlation * 200) + 55;
+    return `rgb(${intensity}, 0, 0)`;
+  }
+}
 
 /**
  * Calculates Pearson correlation coefficient between two arrays of numbers
@@ -40,22 +54,6 @@ export function calculateCorrelation(x: number[], y: number[]): number {
   }
   
   return covariance / denominator;
-}
-
-/**
- * Generates color based on correlation value
- * @param correlation Value between -1 and 1
- * @returns CSS color string
- */
-export function getCorrelationColor(correlation: number): string {
-  // Red for negative correlation, blue for positive
-  if (correlation > 0) {
-    const intensity = Math.round(correlation * 200) + 55;
-    return `rgb(0, 0, ${intensity})`;
-  } else {
-    const intensity = Math.round(-correlation * 200) + 55;
-    return `rgb(${intensity}, 0, 0)`;
-  }
 }
 
 /**

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { CorrelationMatrix } from './CorrelationMatrix';
+import CorrelationMatrix from './CorrelationMatrix';
 import { PriceCorrelationChart } from './PriceCorrelationChart';
 import { CorrelationAnalysis } from './CorrelationAnalysis';
 import { mockCryptoData, generateHistoricalPrices, generateCorrelationMatrix } from './mockData';
