@@ -46,8 +46,8 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
       type,
       amount: quantityValue,
       price: priceValue,
+      total: totalValue,
       totalValue: totalValue,
-      total: totalValue, // For backward compatibility
       timestamp: tradeDate,
       currency: "USD",
       fees: totalValue * 0.001 

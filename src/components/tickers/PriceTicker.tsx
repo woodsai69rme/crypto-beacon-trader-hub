@@ -14,21 +14,6 @@ interface PriceTickerProps {
   variant?: 'default' | 'minimal';
 }
 
-// Define CSS keyframes for the ticker animation
-const tickerLeftKeyframes = `
-@keyframes ticker-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
-}
-`;
-
-const tickerRightKeyframes = `
-@keyframes ticker-right {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(0); }
-}
-`;
-
 const PriceTicker: React.FC<PriceTickerProps> = ({ 
   coins, 
   speed = 30, 
@@ -40,44 +25,30 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [currentDirection, setCurrentDirection] = useState<'left' | 'right'>(direction);
   
-  // Add keyframes to document head
-  useEffect(() => {
-    // Create style element if it doesn't exist yet
-    let styleElement = document.getElementById('ticker-keyframes');
-    if (!styleElement) {
-      styleElement = document.createElement('style');
-      styleElement.id = 'ticker-keyframes';
-      document.head.appendChild(styleElement);
-    }
-    
-    // Set the keyframes
-    styleElement.textContent = tickerLeftKeyframes + tickerRightKeyframes;
-    
-    return () => {
-      // Clean up
-      if (styleElement && document.head.contains(styleElement)) {
-        document.head.removeChild(styleElement);
-      }
-    };
-  }, []);
-  
   useEffect(() => {
     if (!tickerRef.current || coins.length === 0 || isPaused) return;
     
     const tickerContent = tickerRef.current;
-    const animationName = `ticker-${currentDirection}`;
     
-    // Reset animation
-    tickerContent.style.animation = 'none';
-    tickerContent.offsetHeight; // Trigger reflow
+    // Remove any existing animation classes
+    tickerContent.classList.remove('animate-left', 'animate-right', 'paused');
+    
+    // Add the appropriate animation class based on direction
+    tickerContent.classList.add(currentDirection === 'left' ? 'animate-left' : 'animate-right');
     
     // Apply animation with dynamic speed
     const animationDuration = `${coins.length * speed}s`;
-    tickerContent.style.animation = `${animationName} ${animationDuration} linear infinite`;
+    tickerContent.style.animationDuration = animationDuration;
+    
+    // Add paused class if needed
+    if (isPaused) {
+      tickerContent.classList.add('paused');
+    }
     
     return () => {
       if (tickerContent) {
-        tickerContent.style.animation = 'none';
+        tickerContent.classList.remove('animate-left', 'animate-right', 'paused');
+        tickerContent.style.animationDuration = '';
       }
     };
   }, [coins, speed, isPaused, currentDirection]);
@@ -101,30 +72,33 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
     )}>
       {variant === 'default' && (
         <div className="absolute top-1/2 left-2 z-10 -translate-y-1/2 space-x-1 flex opacity-70 hover:opacity-100 transition-opacity">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-            onClick={togglePause}
-          >
-            {isPaused ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-            onClick={changeDirection}
-          >
-            {currentDirection === 'left' ? 
-              <ArrowUp className="h-4 w-4 rotate-90" /> : 
-              <ArrowUp className="h-4 w-4 -rotate-90" />}
-          </Button>
+          <Tooltip content={isPaused ? "Resume" : "Pause"}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
+              onClick={togglePause}
+            >
+              {isPaused ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
+            </Button>
+          </Tooltip>
+          <Tooltip content={`Direction: ${currentDirection === 'left' ? 'Left' : 'Right'}`}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
+              onClick={changeDirection}
+            >
+              {currentDirection === 'left' ? 
+                <ArrowUp className="h-4 w-4 rotate-90" /> : 
+                <ArrowUp className="h-4 w-4 -rotate-90" />}
+            </Button>
+          </Tooltip>
         </div>
       )}
       
       <div className={cn(
-        "ticker-container whitespace-nowrap h-full flex items-center",
-        isPaused && "animation-paused"
+        "ticker-container whitespace-nowrap h-full flex items-center"
       )}>
         <div 
           ref={tickerRef}
