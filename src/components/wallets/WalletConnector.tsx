@@ -13,9 +13,6 @@ const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supported
     setConnecting(wallet.id);
     
     try {
-      // Simulated wallet connection
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       // Check if wallet extension is installed
       if (!wallet.isInstalled) {
         window.open(wallet.description, '_blank');
@@ -28,7 +25,10 @@ const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supported
         return;
       }
       
-      // Mock account data - in a real implementation this would use the wallet's API
+      // Simulate wallet connection - in a real app, this would use the wallet's API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock account data - in a real implementation this would come from the wallet
       const mockAccount: WalletAccount = {
         address: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
         balance: (Math.random() * 10).toFixed(4),

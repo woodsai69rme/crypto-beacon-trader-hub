@@ -1,156 +1,112 @@
 
 # Crypto Trading Platform User Guide
 
-Welcome to our Crypto Trading Platform! This guide will help you understand all the features and get the most out of your experience.
+## Getting Started
 
-## Table of Contents
-1. [Dashboard](#dashboard)
-2. [Market Data](#market-data)
-3. [Trading](#trading)
-4. [Portfolio Management](#portfolio-management)
-5. [AI Trading Models](#ai-trading-models)
-6. [Settings](#settings)
-7. [Tax Calculations](#tax-calculations)
-8. [API Configuration](#api-configuration)
+Welcome to the Crypto Trading Platform, your comprehensive solution for cryptocurrency trading, analysis, and portfolio management. This guide will help you navigate the platform effectively.
 
-## Dashboard
+### Dashboard Overview
 
-The dashboard provides an overview of your trading activity, portfolio performance, and market trends. You'll find:
+The dashboard provides real-time information across multiple areas:
+- Trading data with live price updates
+- Portfolio performance tracking
+- Market analysis tools
+- API usage monitoring
 
-- **Market Overview**: Top cryptocurrencies with current prices and 24-hour changes
-- **Your Portfolio**: Current value and performance metrics
-- **Recent Transactions**: Your latest buys and sells
-- **Watchlist**: Cryptocurrencies you're monitoring
-- **News Feed**: Latest industry news and updates
+### Navigation
 
-### Customizing Your Dashboard
+The platform is organized into several main sections:
+1. **Trading Dashboard**: Execute trades and monitor market prices
+2. **Portfolio**: Track your assets and performance
+3. **Analysis**: Access technical and AI-powered market analysis
+4. **Tools**: Utilities for trading and portfolio management
 
-Click on the "Customize" button in the top-right corner to add, remove, or rearrange dashboard widgets.
+## Key Features
 
-## Market Data
+### Real-Time Trading
 
-The Markets section provides detailed information about cryptocurrencies:
+The trading interface provides:
+- Live price updates for major cryptocurrencies
+- Interactive price charts with multiple timeframes (1H, 1D, 1W, 1M)
+- Buy/sell execution interface
+- Market price indicators
+- Wallet connection for real trading
 
-- **Price Charts**: Interactive charts with multiple timeframes (1D, 1W, 1M, 3M, YTD)
-- **Market Details**: Volume, market cap, supply information
-- **Order Book**: Current buy and sell orders
-- **Market Correlations**: See how different cryptocurrencies relate to each other
+#### How to Trade:
+1. Connect your wallet using the wallet connector
+2. Select a cryptocurrency pair
+3. Choose buy or sell
+4. Enter the amount
+5. Click execute to complete the transaction
 
-### Using Market Correlations
+### Wallet Integration
 
-The Market Correlations tool helps you understand how different cryptocurrencies move in relation to each other:
+Connect your cryptocurrency wallets securely:
+- Supported wallets include MetaMask, Trust Wallet, Coinbase Wallet, and WalletConnect
+- Your private keys never leave your device
+- Transaction signing happens locally for maximum security
 
-1. Select timeframe (7D, 30D, 90D)
-2. View the correlation matrix (green for positive correlations, red for negative)
-3. Select specific coins for detailed analysis
-4. Use these insights for diversification and trading strategies
+#### Connecting Your Wallet:
+1. Navigate to the Trading tab
+2. Click "Connect Wallet"
+3. Select your wallet provider
+4. Follow the wallet-specific instructions to connect
 
-## Trading
+### Portfolio Management
 
-Execute trades quickly and efficiently:
+Track and manage your cryptocurrency investments:
+- Real-time portfolio valuation
+- Performance metrics with visual indicators
+- Historical performance charts
+- Asset allocation breakdown
 
-- **Spot Trading**: Buy and sell cryptocurrencies at market price
-- **Limit Orders**: Set specific price targets for buys and sells
-- **Stop-Loss Orders**: Automatically sell when prices drop to specified levels
-- **Take-Profit Orders**: Automatically sell when prices rise to specified levels
+### Analysis Tools
 
-### Order Types
+Make informed trading decisions with:
+- Technical analysis indicators
+- Market correlation visualization
+- Risk assessment tools
+- AI-powered market insights
+- Sentiment analysis
 
-1. **Market Order**: Buy or sell immediately at current market price
-2. **Limit Order**: Set a specific price at which to buy or sell
-3. **Stop Order**: Place a market order when price reaches a specific level
-4. **Stop-Limit Order**: Place a limit order when price reaches a specific level
+### AI Trading Features
 
-## Portfolio Management
+Leverage artificial intelligence for trading:
+- AI trading dashboard with strategy selection
+- Automated trading bots
+- Performance analytics
+- Backtesting capabilities
+- Market prediction models
 
-Track and manage your investments:
+### Live Analytics Dashboard
 
-- **Holdings Overview**: Total value, allocation, and performance metrics
-- **Transaction History**: Complete record of your trading activity
-- **Performance Analysis**: Historical returns compared to benchmarks
-- **Tax Reports**: Generate reports for tax filing purposes
+Monitor key metrics in real-time:
+- Detachable dashboard for multi-monitor setups
+- Customizable metrics display
+- API usage monitoring
+- Real-time price and volume data
 
-### Portfolio Benchmarking
+## Settings and Customization
 
-Compare your portfolio's performance against benchmarks like Bitcoin, Ethereum, and the S&P 500:
+Personalize your experience:
+- Toggle between light and dark modes
+- Configure notification preferences
+- Set up API connections
+- Customize dashboard layouts
 
-1. Select your comparison benchmarks
-2. Choose the timeframe for analysis
-3. View comparative performance charts
-4. Identify outperforming or underperforming assets
+## Security Best Practices
 
-## AI Trading Models
+To keep your assets safe:
+- Never share your private keys or wallet seed phrases
+- Use hardware wallets when possible
+- Enable two-factor authentication
+- Regularly review connected applications
+- Monitor for suspicious activity
 
-Let AI help optimize your trading strategy:
+## Additional Resources
 
-- **Predefined Models**: Choose from various AI strategies
-- **Custom Models**: Create your own AI trading models
-- **Backtesting**: Test strategies against historical data
-- **Live Trading**: Deploy AI models for automated trading
+- Check the API Documentation for integration options
+- Visit the Developer Guide for technical details
+- Refer to Troubleshooting Guide for common issues
 
-### Starting a Trading Model
-
-1. Navigate to the AI Trading section
-2. Select a strategy (AI Price Prediction, Sentiment Analysis, etc.)
-3. Choose cryptocurrencies to trade
-4. Configure risk parameters
-5. Start the model and monitor performance
-
-## Settings
-
-Customize the platform to suit your preferences:
-
-- **General**: Language, timezone, display options
-- **Appearance**: Theme, color scheme, layout options
-- **Notifications**: Configure alerts and update preferences
-- **Trading**: Default settings for trades and orders
-- **Data**: Configure data sources and refresh intervals
-- **Security**: Two-factor authentication, session settings
-
-### Theme Settings
-
-Our platform offers multiple themes and color schemes:
-
-1. Choose between Dark and Light modes
-2. Select from color schemes: Default, Blue, Purple, Green, Amber
-3. Customize font family and size
-4. Adjust border radius for UI elements
-
-## Tax Calculations
-
-Our ATO Tax Calculator helps Australian users estimate crypto tax obligations:
-
-1. Enter your assessable income
-2. Add capital gains from cryptocurrency trading
-3. Specify holding periods (under/over 12 months)
-4. Include applicable deductions
-5. Enter tax withheld amounts
-6. Get an estimate of refunds or amounts owing
-
-## API Configuration
-
-Connect to cryptocurrency data providers:
-
-- **Multiple Providers**: CoinGecko, CryptoCompare, and more
-- **API Keys**: Enter your API keys for higher rate limits
-- **Customize Endpoints**: Configure specific endpoints for data fetching
-- **Fallback Options**: Set up backup data sources
-
-### Managing API Providers
-
-1. Navigate to API Provider Management
-2. Enable or disable specific providers
-3. Set provider priority (which ones to try first)
-4. Enter API keys for authenticated access
-5. View API status and rate limit information
-
-## Need Help?
-
-If you have any questions or issues:
-
-- Check our FAQ section
-- Contact support through the Help menu
-- Join our community forum for discussions and tips
-- Watch tutorial videos in our Learning Center
-
-Enjoy using the platform!
+We're continuously improving the platform based on user feedback. For assistance, please contact our support team.

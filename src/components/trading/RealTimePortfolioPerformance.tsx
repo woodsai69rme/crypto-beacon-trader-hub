@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -140,54 +141,55 @@ const RealTimePortfolioPerformance: React.FC = () => {
               <TabsTrigger value="1W">1W</TabsTrigger>
               <TabsTrigger value="1M">1M</TabsTrigger>
             </TabsList>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 border rounded-md">
-                <div className="text-sm text-muted-foreground">Current Value</div>
-                <div className="text-2xl font-bold">${portfolioValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <div className="text-sm text-muted-foreground">Performance</div>
-                <div className={`text-xl font-bold flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                  {isPositive ? <ArrowUp className="h-4 w-4 mr-1" /> : <ArrowDown className="h-4 w-4 mr-1" />}
-                  ${Math.abs(metrics.change).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                  <span className="text-sm ml-1 flex items-center">
-                    <Percent className="h-3 w-3" />
-                    {Math.abs(metrics.changePercent).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+          </Tabs>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 border rounded-md">
+              <div className="text-sm text-muted-foreground">Current Value</div>
+              <div className="text-2xl font-bold">${portfolioValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
             </div>
             
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={performanceData}
-                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="time" />
-                  <YAxis domain={['auto', 'auto']} />
-                  <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Value']} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke={isPositive ? "#10b981" : "#ef4444"} 
-                    dot={false}
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="p-4 border rounded-md">
+              <div className="text-sm text-muted-foreground">Performance</div>
+              <div className={`text-xl font-bold flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                {isPositive ? <ArrowUp className="h-4 w-4 mr-1" /> : <ArrowDown className="h-4 w-4 mr-1" />}
+                ${Math.abs(metrics.change).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                <span className="text-sm ml-1 flex items-center">
+                  <Percent className="h-3 w-3" />
+                  {Math.abs(metrics.changePercent).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    );
-  };
-  
-  export default RealTimePortfolioPerformance;
+          
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={performanceData}
+                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="time" />
+                <YAxis domain={['auto', 'auto']} />
+                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Value']} />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke={isPositive ? "#10b981" : "#ef4444"} 
+                  dot={false}
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default RealTimePortfolioPerformance;
