@@ -1,5 +1,25 @@
 
-import { CoinOption, CryptoData } from '@/types/trading';
+import { CoinOption } from '@/types/trading';
+
+// Define CryptoData type to fix related errors
+export interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  image?: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  priceChangePercentage: number;
+  marketCap?: number;
+  volume?: number;
+  circulatingSupply?: number;
+  current_price?: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+  total_volume?: number;
+  market_cap?: number;
+}
 
 // Fetches basic data for a list of coins
 export const fetchCryptoPrices = async (coinIds: string[] = ['bitcoin', 'ethereum', 'solana']): Promise<CryptoData[]> => {
@@ -28,7 +48,13 @@ export const fetchCryptoPrices = async (coinIds: string[] = ['bitcoin', 'ethereu
         priceChangePercentage: changePercent,
         marketCap: basePrice * (Math.random() * 100000000 + 10000000),
         volume: Math.random() * 1000000000,
-        circulatingSupply: Math.random() * 100000000
+        circulatingSupply: Math.random() * 100000000,
+        // Adding these properties for compatibility with various component usages
+        current_price: basePrice,
+        price_change_24h: priceChange,
+        price_change_percentage_24h: changePercent,
+        total_volume: Math.random() * 1000000000,
+        market_cap: basePrice * (Math.random() * 100000000 + 10000000)
       };
     });
     
@@ -112,5 +138,76 @@ export const fetchMarketSummary = async (): Promise<any> => {
   } catch (error) {
     console.error("Error fetching market summary:", error);
     throw error;
+  }
+};
+
+// Add the missing exports that App.tsx is trying to import
+export const getTrendingCoins = async (): Promise<CoinOption[]> => {
+  try {
+    const coins = await fetchCryptoPrices(['bitcoin', 'ethereum', 'solana', 'cardano', 'ripple', 'dogecoin']);
+    return convertToCoinOptions(coins);
+  } catch (error) {
+    console.error("Error fetching trending coins:", error);
+    return [];
+  }
+};
+
+export const getLatestNews = async (): Promise<any[]> => {
+  try {
+    // Mock news data
+    return [
+      {
+        id: '1',
+        title: 'Bitcoin Reaches New All-Time High',
+        source: 'CryptoNews',
+        timestamp: new Date().toISOString(),
+        url: '#',
+        summary: 'Bitcoin has reached a new all-time high price amid growing institutional interest.'
+      },
+      {
+        id: '2',
+        title: 'Ethereum 2.0 Update Coming Soon',
+        source: 'BlockchainDaily',
+        timestamp: new Date().toISOString(),
+        url: '#',
+        summary: 'Ethereum developers announce that the 2.0 upgrade is on schedule for release next month.'
+      },
+      {
+        id: '3',
+        title: 'Solana Ecosystem Growth Continues',
+        source: 'CoinDesk',
+        timestamp: new Date().toISOString(),
+        url: '#',
+        summary: 'The Solana ecosystem sees continued growth with new projects and increased adoption.'
+      },
+      {
+        id: '4',
+        title: 'Regulatory Developments in Crypto Markets',
+        source: 'CryptoRegulation',
+        timestamp: new Date().toISOString(),
+        url: '#',
+        summary: 'New regulatory frameworks for cryptocurrency being considered by major economies.'
+      }
+    ];
+  } catch (error) {
+    console.error("Error fetching latest news:", error);
+    return [];
+  }
+};
+
+// Function to search for coins based on a query string
+export const searchCoins = async (query: string): Promise<CoinOption[]> => {
+  try {
+    // In a real implementation, this would call an API with the search query
+    // For now, we'll just filter our mock data
+    const allCoins = await fetchCryptoPrices(['bitcoin', 'ethereum', 'solana', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'avalanche', 'chainlink', 'uniswap']);
+    const filteredCoins = allCoins.filter(coin => 
+      coin.name.toLowerCase().includes(query.toLowerCase()) || 
+      coin.symbol.toLowerCase().includes(query.toLowerCase())
+    );
+    return convertToCoinOptions(filteredCoins);
+  } catch (error) {
+    console.error("Error searching coins:", error);
+    return [];
   }
 };

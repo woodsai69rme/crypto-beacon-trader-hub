@@ -59,6 +59,25 @@ export interface WalletProvider {
   description: string;
   isInstalled: boolean;
   isConnected: boolean;
+  enabled?: boolean;
+  apiKey?: string;
+  usageLimit?: number;
+  requiresAuth?: boolean;
+  authRequired?: boolean;
+  baseUrl?: string;
+  endpoints?: ApiEndpoint[];
+  isActive?: boolean;
+}
+
+// API endpoint information
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  parameters?: any[];
+  requiresAuth: boolean;
+  description: string;
 }
 
 // Wallet account details
@@ -132,6 +151,15 @@ export interface ApiProvider {
   resetTime: string;
   endpoint: string;
   status: 'ok' | 'warning' | 'critical';
+  description?: string;
+  enabled?: boolean;
+  apiKey?: string;
+  usageLimit?: number;
+  requiresAuth?: boolean;
+  authRequired?: boolean;
+  baseUrl?: string;
+  endpoints?: ApiEndpoint[];
+  isActive?: boolean;
 }
 
 // API usage metrics
@@ -141,6 +169,17 @@ export interface ApiUsageMetrics {
   limit: number;
   resetTime: string;
   endpoint: string;
+}
+
+// API usage stats
+export interface ApiUsageStats {
+  provider: string;
+  endpoint: string;
+  requestCount: number;
+  successCount: number;
+  errorCount: number;
+  avgResponseTime: number;
+  lastUsed: string;
 }
 
 // Portfolio asset
@@ -168,4 +207,36 @@ export interface PortfolioPerformance {
     timestamp: Date;
     value: number;
   }[];
+}
+
+// Currency types
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
+
+// Trade definition
+export interface Trade {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  timestamp: string;
+  currency: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+  fees?: number;
+  coin?: string;
+  total: number;
+}
+
+// Detachable dashboard props
+export interface DetachableDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  onClose?: () => void;
+  darkMode?: boolean;
 }
