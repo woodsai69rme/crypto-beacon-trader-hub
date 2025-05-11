@@ -1,7 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,12 +8,13 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend,
+  Legend
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { fetchCoinMarketData } from '@/services/cryptoApi';
 import { CoinOption, CryptoData } from '@/types/trading';
 
+// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,124 +26,143 @@ ChartJS.register(
 );
 
 interface CorrelationAnalysisProps {
-  initialCoinId?: string;
-  timeframe?: string;
-  correlationMatrix?: Record<string, Record<string, number>>;
-  selectedCoin?: CryptoData;
-  coins?: CryptoData[];
-  onCoinSelect?: (coin: CryptoData) => void;
+  baseCoinId: string;
+  compareCoinIds: string[];
+  timeframe: number; // days
 }
 
-const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ 
-  initialCoinId = "bitcoin", 
-  timeframe = "7d",
-  correlationMatrix,
-  selectedCoin,
-  coins: externalCoins,
-  onCoinSelect
+export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ 
+  baseCoinId,
+  compareCoinIds,
+  timeframe
 }) => {
-  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId);
-  const [coins, setCoins] = useState<CoinOption[]>([]);
-  const [correlationData, setCorrelationData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [correlationData, setCorrelationData] = useState<{
+    baseCoin: { dates: string[], prices: number[] },
+    comparedCoins: Record<string, { dates: string[], prices: number[], correlation: number }>
+  }>({
+    baseCoin: { dates: [], prices: [] },
+    comparedCoins: {}
+  });
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
-    loadCoins();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCoinId) {
-      loadCorrelationData(selectedCoinId);
-    }
-  }, [selectedCoinId, timeframe]);
-
-  const loadCoins = async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchCoinMarketData();
-      const coinOptions: CoinOption[] = data.map(coin => ({
-        id: coin.id,
-        name: coin.name,
-        symbol: coin.symbol,
-        price: coin.price || 0,
-        priceChange: coin.priceChange || 0,
-        image: coin.image,
-        marketCap: coin.marketCap,
-        volume: coin.volume,
-        changePercent: coin.changePercent || 0,
-        value: coin.id,
-        label: `${coin.name} (${coin.symbol})`
-      }));
-      setCoins(coinOptions);
-    } catch (error) {
-      console.error("Failed to load coins:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadCorrelationData = async (coinId: string) => {
-    setIsLoading(true);
-    try {
-      const data = await fetchCoinMarketData();
-      const selectedCoin = data.find(coin => coin.id === coinId);
-
-      if (!selectedCoin) {
-        console.error("Selected coin not found");
-        return;
-      }
-
-      // Ensure we have priceChange for each coin to satisfy TypeScript
-      const formattedData: CryptoData[] = coins.map(coin => ({
-        id: coin.id,
-        name: coin.name,
-        symbol: coin.symbol,
-        price: coin.price,
-        priceChange: coin.priceChange || 0,
-        image: coin.image,
-        marketCap: coin.marketCap,
-        volume: coin.volume,
-        changePercent: coin.changePercent || 0
-      }));
-
-      const labels = formattedData.map(coin => coin.name);
-      const prices = formattedData.map(coin => coin.price || 0);
-
-      const chartData = {
-        labels,
-        datasets: [
-          {
-            label: 'Price Correlation',
-            data: prices,
-            fill: false,
-            backgroundColor: 'rgb(75, 192, 192)',
-            borderColor: 'rgba(75, 192, 192, 0.2)',
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch base coin data
+        const baseCoinData = await fetchCoinMarketData(baseCoinId, timeframe);
+        
+        // Convert timestamps to readable dates
+        const baseDates = baseCoinData.timestamps.map(ts => 
+          new Date(ts).toLocaleDateString()
+        );
+        
+        // Initialize result object
+        const result = {
+          baseCoin: {
+            dates: baseDates,
+            prices: baseCoinData.prices
           },
-        ],
-      };
-
-      setCorrelationData(chartData);
-    } catch (error) {
-      console.error("Failed to load correlation data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle external coin selection if provided
-  const handleCoinChange = (coinId: string) => {
-    setSelectedCoinId(coinId);
-    
-    // If external handler and coin data are provided
-    if (onCoinSelect && externalCoins) {
-      const selectedCoin = externalCoins.find(c => c.id === coinId);
-      if (selectedCoin) {
-        onCoinSelect(selectedCoin);
+          comparedCoins: {} as Record<string, { dates: string[], prices: number[], correlation: number }>
+        };
+        
+        // Fetch data for all comparison coins
+        await Promise.all(compareCoinIds.map(async (coinId) => {
+          const coinData = await fetchCoinMarketData(coinId, timeframe);
+          
+          // Convert timestamps to dates
+          const dates = coinData.timestamps.map(ts => 
+            new Date(ts).toLocaleDateString()
+          );
+          
+          // Calculate correlation coefficient with base coin
+          const correlation = calculateCorrelation(
+            baseCoinData.prices,
+            coinData.prices
+          );
+          
+          result.comparedCoins[coinId] = {
+            dates,
+            prices: coinData.prices,
+            correlation
+          };
+        }));
+        
+        setCorrelationData(result);
+      } catch (err) {
+        console.error('Error fetching correlation data:', err);
+        setError('Failed to fetch correlation data. Please try again.');
+      } finally {
+        setLoading(false);
       }
+    };
+    
+    if (baseCoinId && compareCoinIds.length > 0) {
+      fetchData();
     }
+  }, [baseCoinId, compareCoinIds, timeframe]);
+  
+  // Function to calculate Pearson correlation coefficient
+  const calculateCorrelation = (array1: number[], array2: number[]): number => {
+    // Use the shorter array length to avoid index errors
+    const length = Math.min(array1.length, array2.length);
+    
+    if (length < 2) return 0;
+    
+    // Calculate means
+    let sum1 = 0, sum2 = 0;
+    
+    for (let i = 0; i < length; i++) {
+      sum1 += array1[i];
+      sum2 += array2[i];
+    }
+    
+    const mean1 = sum1 / length;
+    const mean2 = sum2 / length;
+    
+    // Calculate correlation
+    let numerator = 0;
+    let denominator1 = 0;
+    let denominator2 = 0;
+    
+    for (let i = 0; i < length; i++) {
+      const diff1 = array1[i] - mean1;
+      const diff2 = array2[i] - mean2;
+      
+      numerator += diff1 * diff2;
+      denominator1 += diff1 * diff1;
+      denominator2 += diff2 * diff2;
+    }
+    
+    if (denominator1 === 0 || denominator2 === 0) return 0;
+    
+    return numerator / Math.sqrt(denominator1 * denominator2);
   };
-
-  const options = {
+  
+  // Prepare chart data
+  const chartData = {
+    labels: correlationData.baseCoin.dates,
+    datasets: [
+      {
+        label: `${baseCoinId.toUpperCase()}`,
+        data: correlationData.baseCoin.prices,
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1
+      },
+      ...Object.entries(correlationData.comparedCoins).map(([coinId, data], index) => ({
+        label: `${coinId.toUpperCase()} (r=${data.correlation.toFixed(2)})`,
+        data: data.prices,
+        borderColor: `rgb(${255 - (index * 30)}, ${100 + (index * 30)}, ${150})`,
+        backgroundColor: `rgba(${255 - (index * 30)}, ${100 + (index * 30)}, ${150}, 0.2)`,
+        tension: 0.1
+      }))
+    ]
+  };
+  
+  const chartOptions = {
     responsive: true,
     plugins: {
       legend: {
@@ -152,42 +170,72 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
       },
       title: {
         display: true,
-        text: 'Price Correlation Chart',
+        text: `Price Correlation with ${baseCoinId.toUpperCase()}`
       },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.dataset.label || '';
+            if (label) {
+              return `${label}: $${context.parsed.y.toFixed(2)}`;
+            }
+            return `$${context.parsed.y.toFixed(2)}`;
+          }
+        }
+      }
     },
+    scales: {
+      y: {
+        ticks: {
+          callback: function(value: any) {
+            return '$' + value;
+          }
+        }
+      }
+    }
   };
-
+  
+  if (loading) {
+    return <div>Loading correlation data...</div>;
+  }
+  
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Market Correlations</CardTitle>
-        <CardDescription>Analyze price correlations between cryptocurrencies</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col space-y-4">
-          <Select value={selectedCoinId} onValueChange={handleCoinChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a coin" />
-            </SelectTrigger>
-            <SelectContent>
-              {coins.map((coin) => (
-                <SelectItem key={coin.id} value={coin.id}>
-                  {coin.name} ({coin.symbol})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {isLoading ? (
-            <div className="py-12 text-center">Loading...</div>
-          ) : correlationData ? (
-            <Line options={options} data={correlationData} />
-          ) : (
-            <div className="py-12 text-center">No data available.</div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="correlation-analysis">
+      <h3 className="text-lg font-medium mb-4">Price Correlation Analysis</h3>
+      <div className="h-80">
+        <Line data={chartData} options={chartOptions} />
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Object.entries(correlationData.comparedCoins).map(([coinId, data]) => (
+          <div key={coinId} className="border rounded p-4">
+            <div className="flex justify-between items-center">
+              <h4 className="font-medium">{coinId.toUpperCase()}</h4>
+              <div 
+                className={`font-bold ${
+                  data.correlation > 0.7 ? 'text-green-600' : 
+                  data.correlation < -0.7 ? 'text-red-600' : 
+                  data.correlation > 0.3 ? 'text-green-400' : 
+                  data.correlation < -0.3 ? 'text-red-400' : 'text-gray-500'
+                }`}
+              >
+                r = {data.correlation.toFixed(2)}
+              </div>
+            </div>
+            <p className="text-sm mt-2">
+              {data.correlation > 0.7 ? 'Strong positive correlation' : 
+               data.correlation < -0.7 ? 'Strong negative correlation' : 
+               data.correlation > 0.3 ? 'Moderate positive correlation' : 
+               data.correlation < -0.3 ? 'Moderate negative correlation' : 
+               'Weak or no correlation'}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

@@ -1,4 +1,3 @@
-
 /**
  * Type definitions for the trading components and functionality
  */
@@ -514,4 +513,14 @@ export interface SidebarSettings {
   position: string;
   collapsed: boolean;
   autoHide: boolean;
+}
+
+// Add the BacktestResult type to include it in the exported types
+export interface BacktestResult {
+  returns: number;
+  winRate: number;
+  trades: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  tradeHistory: Trade[];
 }

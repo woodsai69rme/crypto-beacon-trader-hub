@@ -1,137 +1,226 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { EnhancedPortfolioBenchmarkingProps } from '@/types/trading';
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EnhancedPortfolioBenchmarkingProps } from "@/types/trading";
 
-const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({ portfolioPerformance }) => {
-  const defaultPerformance = {
-    daily: 2.5,
-    weekly: 8.3,
-    monthly: 15.2,
-    yearly: 42.1,
-    allTime: 75.4
-  };
-  
-  const performance = portfolioPerformance || defaultPerformance;
-  
-  // Generate mock comparison data
-  const generateComparisonData = () => {
-    const data = [];
-    const now = new Date();
-    
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      
-      // Portfolio performance starts at base 100 and adds some randomness plus overall trend
-      const portfolioBase = 100 + (30 - i) * (performance.monthly / 30);
-      const portfolioValue = portfolioBase + (Math.random() * 2 - 1);
-      
-      // S&P and Bitcoin correlate somewhat but with different volatility
-      const spValue = 100 + (30 - i) * (performance.monthly / 45) + (Math.random() * 1 - 0.5);
-      const btcValue = 100 + (30 - i) * (performance.monthly / 25) + (Math.random() * 4 - 2);
-      
-      data.push({
-        date: date.toLocaleDateString(),
-        portfolio: parseFloat(portfolioValue.toFixed(2)),
-        sp500: parseFloat(spValue.toFixed(2)),
-        bitcoin: parseFloat(btcValue.toFixed(2))
-      });
+const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({
+  portfolioPerformance,
+  portfolioDates,
+  daily = 0,
+  weekly = 0,
+  monthly = 0,
+  yearly = 0,
+  allTime = 0
+}) => {
+  // This function safely gets a metric value regardless of whether portfolioPerformance
+  // is an object or we're using the direct props
+  const getMetric = (metric: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'allTime'): number => {
+    if (!portfolioPerformance || Array.isArray(portfolioPerformance)) {
+      // If no portfolio performance data or it's an array, use the direct props
+      switch (metric) {
+        case 'daily': return daily;
+        case 'weekly': return weekly;
+        case 'monthly': return monthly;
+        case 'yearly': return yearly;
+        case 'allTime': return allTime;
+        default: return 0;
+      }
+    } else {
+      // Handle object case
+      return portfolioPerformance[metric] || 0;
     }
-    
-    return data;
+  };
+
+  // Get performance metrics safely
+  const dailyPerformance = getMetric('daily');
+  const weeklyPerformance = getMetric('weekly');
+  const monthlyPerformance = getMetric('monthly');
+  const yearlyPerformance = getMetric('yearly');
+  const allTimePerformance = getMetric('allTime');
+  
+  // Helper function to add +/- sign and color
+  const formatPerformance = (value: number): { text: string, color: string } => {
+    const text = value >= 0 ? `+${value.toFixed(2)}%` : `${value.toFixed(2)}%`;
+    const color = value >= 0 ? 'text-green-600' : 'text-red-600';
+    return { text, color };
   };
   
-  const benchmarkData = generateComparisonData();
+  // Format all performance metrics
+  const dailyFormatted = formatPerformance(dailyPerformance);
+  const weeklyFormatted = formatPerformance(weeklyPerformance);
+  const monthlyFormatted = formatPerformance(monthlyPerformance);
+  const yearlyFormatted = formatPerformance(yearlyPerformance);
+  const allTimeFormatted = formatPerformance(allTimePerformance);
+  
+  // Mock data for benchmarks - these would normally come from API/props
+  const benchmarks = [
+    { name: 'S&P 500', daily: -0.2, weekly: 0.8, monthly: 2.5, yearly: 15.6, allTime: 210.5 },
+    { name: 'Nasdaq', daily: -0.4, weekly: 1.2, monthly: 3.1, yearly: 18.9, allTime: 285.2 },
+    { name: 'Bitcoin', daily: 1.5, weekly: -3.2, monthly: 12.8, yearly: 45.7, allTime: 540.3 }
+  ];
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Portfolio Benchmarking</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 text-center mb-4">
-          <div>
-            <div className="text-sm text-muted-foreground">Portfolio</div>
-            <div className="text-lg font-bold text-green-500">+{performance.monthly.toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">30 days</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">S&P 500</div>
-            <div className="text-lg font-bold">{(performance.monthly * 0.65).toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">30 days</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">Bitcoin</div>
-            <div className="text-lg font-bold">{(performance.monthly * 1.2).toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">30 days</div>
-          </div>
-        </div>
+    <Card className="w-full">
+      <CardContent className="p-5">
+        <h3 className="text-lg font-medium mb-4">Portfolio Benchmarking</h3>
         
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={benchmarkData}
-              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 10 }}
-                tickLine={false}
-                minTickGap={20}
-              />
-              <YAxis 
-                tickFormatter={(value) => `${value}`}
-                tick={{ fontSize: 10 }}
-                domain={['dataMin - 5', 'dataMax + 5']}
-              />
-              <Tooltip 
-                formatter={(value) => [`${value}`, '']}
-                labelFormatter={(label) => `Date: ${label}`}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="portfolio" 
-                name="Your Portfolio" 
-                stroke="#4ADE80" 
-                dot={false}
-                strokeWidth={2}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="sp500" 
-                name="S&P 500" 
-                stroke="#94A3B8" 
-                dot={false}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="bitcoin" 
-                name="Bitcoin" 
-                stroke="#F59E0B" 
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 text-center mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-6">
           <div className="p-3 border rounded-md">
-            <div className="text-sm font-medium">vs. S&P 500</div>
-            <div className={`text-lg font-bold ${performance.monthly > performance.monthly * 0.65 ? 'text-green-500' : 'text-red-500'}`}>
-              {performance.monthly > performance.monthly * 0.65 ? '+' : ''}{(performance.monthly - performance.monthly * 0.65).toFixed(1)}%
+            <div className="text-sm text-muted-foreground">Daily</div>
+            <div className={`text-lg font-semibold ${dailyFormatted.color}`}>
+              {dailyFormatted.text}
             </div>
           </div>
           <div className="p-3 border rounded-md">
-            <div className="text-sm font-medium">vs. Bitcoin</div>
-            <div className={`text-lg font-bold ${performance.monthly > performance.monthly * 1.2 ? 'text-green-500' : 'text-red-500'}`}>
-              {performance.monthly > performance.monthly * 1.2 ? '+' : ''}{(performance.monthly - performance.monthly * 1.2).toFixed(1)}%
+            <div className="text-sm text-muted-foreground">Weekly</div>
+            <div className={`text-lg font-semibold ${weeklyFormatted.color}`}>
+              {weeklyFormatted.text}
+            </div>
+          </div>
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Monthly</div>
+            <div className={`text-lg font-semibold ${monthlyFormatted.color}`}>
+              {monthlyFormatted.text}
+            </div>
+          </div>
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">Yearly</div>
+            <div className={`text-lg font-semibold ${yearlyFormatted.color}`}>
+              {yearlyFormatted.text}
+            </div>
+          </div>
+          <div className="p-3 border rounded-md">
+            <div className="text-sm text-muted-foreground">All Time</div>
+            <div className={`text-lg font-semibold ${allTimeFormatted.color}`}>
+              {allTimeFormatted.text}
             </div>
           </div>
         </div>
+        
+        <Tabs defaultValue="comparison">
+          <TabsList className="grid grid-cols-2">
+            <TabsTrigger value="comparison">Benchmark Comparison</TabsTrigger>
+            <TabsTrigger value="details">Detailed Analysis</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="comparison" className="mt-4">
+            <div className="space-y-4">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left pb-2">Benchmark</th>
+                    <th className="text-right pb-2">Daily</th>
+                    <th className="text-right pb-2">Monthly</th>
+                    <th className="text-right pb-2">Yearly</th>
+                    <th className="text-right pb-2">Relative Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-3 font-medium">Your Portfolio</td>
+                    <td className={`text-right ${dailyFormatted.color}`}>
+                      {dailyFormatted.text}
+                    </td>
+                    <td className={`text-right ${monthlyFormatted.color}`}>
+                      {monthlyFormatted.text}
+                    </td>
+                    <td className={`text-right ${yearlyFormatted.color}`}>
+                      {yearlyFormatted.text}
+                    </td>
+                    <td className="text-right">—</td>
+                  </tr>
+                  
+                  {benchmarks.map((benchmark) => {
+                    const dailyDiff = dailyPerformance - benchmark.daily;
+                    const monthlyDiff = monthlyPerformance - benchmark.monthly;
+                    const yearlyDiff = yearlyPerformance - benchmark.yearly;
+                    
+                    const dailyDiffFormatted = formatPerformance(dailyDiff);
+                    const monthlyDiffFormatted = formatPerformance(monthlyDiff);
+                    const yearlyDiffFormatted = formatPerformance(yearlyDiff);
+                    
+                    return (
+                      <tr key={benchmark.name} className="border-b">
+                        <td className="py-3">{benchmark.name}</td>
+                        <td className={`text-right ${formatPerformance(benchmark.daily).color}`}>
+                          {formatPerformance(benchmark.daily).text}
+                        </td>
+                        <td className={`text-right ${formatPerformance(benchmark.monthly).color}`}>
+                          {formatPerformance(benchmark.monthly).text}
+                        </td>
+                        <td className={`text-right ${formatPerformance(benchmark.yearly).color}`}>
+                          {formatPerformance(benchmark.yearly).text}
+                        </td>
+                        <td className={`text-right ${yearlyDiffFormatted.color}`}>
+                          {yearlyDiffFormatted.text}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="details" className="mt-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="border p-4 rounded-md">
+                  <h4 className="font-medium mb-2">Portfolio Alpha</h4>
+                  <div className="flex justify-between">
+                    <span>vs. S&P 500</span>
+                    <span className={formatPerformance(yearlyPerformance - benchmarks[0].yearly).color}>
+                      {formatPerformance(yearlyPerformance - benchmarks[0].yearly).text}
+                    </span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>vs. Crypto Index</span>
+                    <span className={formatPerformance(yearlyPerformance - benchmarks[2].yearly).color}>
+                      {formatPerformance(yearlyPerformance - benchmarks[2].yearly).text}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="border p-4 rounded-md">
+                  <h4 className="font-medium mb-2">Performance Metrics</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
+                      <div className="font-medium">1.2</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Max Drawdown</div>
+                      <div className="font-medium">-15.4%</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Sortino Ratio</div>
+                      <div className="font-medium">1.5</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Volatility</div>
+                      <div className="font-medium">22.8%</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border p-4 rounded-md">
+                  <h4 className="font-medium mb-2">Correlation Analysis</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="text-sm text-muted-foreground">S&P 500 Correlation</div>
+                      <div className="font-medium">0.45</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Bitcoin Correlation</div>
+                      <div className="font-medium">0.78</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
