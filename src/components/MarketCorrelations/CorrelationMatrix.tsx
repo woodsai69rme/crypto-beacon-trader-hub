@@ -1,111 +1,92 @@
 
 import React from 'react';
+import { Card } from "@/components/ui/card";
 import { CryptoData } from '@/types/trading';
-import { Card } from '@/components/ui/card';
+import { getCorrelationColor } from './utils';
 
 interface CorrelationMatrixProps {
-  data: CryptoData[];
+  correlationMatrix: Record<string, Record<string, number>>;
+  cryptoData: CryptoData[];
+  onSelectCell?: (coin1: string, coin2: string) => void;
 }
 
-interface CorrelationCell {
-  coin1: string;
-  coin2: string;
-  value: number;
-}
-
-const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({ data }) => {
-  // Generate mock correlation data
-  // In a real app, this would be calculated from price histories
-  const generateCorrelationData = (): CorrelationCell[] => {
-    const correlations: CorrelationCell[] = [];
-    
-    // We only need the top 5 coins for this visualization
-    const topCoins = data.slice(0, 5);
-    
-    // Create a matrix of correlations
-    for (let i = 0; i < topCoins.length; i++) {
-      for (let j = i; j < topCoins.length; j++) {
-        // If same coin, correlation is 1
-        if (i === j) {
-          correlations.push({
-            coin1: topCoins[i].symbol.toUpperCase(),
-            coin2: topCoins[j].symbol.toUpperCase(),
-            value: 1
-          });
-        } else {
-          // Generate a mock correlation value
-          // In real app, this would be calculated from price data
-          const baseValue = i === 0 && j === 1 ? 0.85 : Math.random(); // BTC-ETH is usually highly correlated
-          const correlation = Math.round((0.3 + baseValue * 0.7) * 100) / 100;
-          
-          correlations.push({
-            coin1: topCoins[i].symbol.toUpperCase(),
-            coin2: topCoins[j].symbol.toUpperCase(),
-            value: correlation
-          });
-          
-          correlations.push({
-            coin1: topCoins[j].symbol.toUpperCase(),
-            coin2: topCoins[i].symbol.toUpperCase(),
-            value: correlation
-          });
-        }
-      }
+const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({
+  correlationMatrix,
+  cryptoData,
+  onSelectCell
+}) => {
+  // Get the ordered list of coin IDs from the cryptoData
+  const coinIds = cryptoData.map(coin => coin.id);
+  
+  // Create a map of coin IDs to symbols for the axis labels
+  const coinSymbolMap = cryptoData.reduce((map, coin) => {
+    map[coin.id] = coin.symbol.toUpperCase();
+    return map;
+  }, {} as Record<string, string>);
+  
+  const handleCellClick = (coin1: string, coin2: string) => {
+    if (onSelectCell && coin1 !== coin2) {
+      onSelectCell(coin1, coin2);
     }
-    
-    return correlations;
-  };
-  
-  const correlationData = generateCorrelationData();
-  const uniqueCoins = Array.from(new Set(correlationData.map(item => item.coin1))).sort();
-  
-  const getCellClass = (value: number) => {
-    if (value === 1) return 'bg-primary/20';
-    if (value >= 0.8) return 'bg-green-500/80';
-    if (value >= 0.6) return 'bg-green-500/60';
-    if (value >= 0.4) return 'bg-green-500/40';
-    if (value >= 0.2) return 'bg-green-500/20';
-    if (value >= 0) return 'bg-green-500/10';
-    if (value >= -0.2) return 'bg-red-500/10';
-    if (value >= -0.4) return 'bg-red-500/20';
-    if (value >= -0.6) return 'bg-red-500/40';
-    if (value >= -0.8) return 'bg-red-500/60';
-    return 'bg-red-500/80';
   };
   
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th className="p-2 text-left">Asset</th>
-            {uniqueCoins.map(coin => (
-              <th key={coin} className="p-2 text-center">{coin}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {uniqueCoins.map(coin1 => (
-            <tr key={coin1}>
-              <td className="p-2 font-medium">{coin1}</td>
-              {uniqueCoins.map(coin2 => {
-                const cell = correlationData.find(
-                  item => item.coin1 === coin1 && item.coin2 === coin2
-                );
-                return (
-                  <td 
-                    key={`${coin1}-${coin2}`} 
-                    className={`p-2 text-center ${getCellClass(cell?.value || 0)}`}
-                  >
-                    {cell ? cell.value.toFixed(2) : 'N/A'}
-                  </td>
-                );
-              })}
+    <Card className="p-4 overflow-auto">
+      <div className="text-center font-medium mb-4">Correlation Matrix</div>
+      
+      <div className="relative min-w-max">
+        <table className="border-collapse">
+          <thead>
+            <tr>
+              <th className="p-2 font-normal text-muted-foreground"></th>
+              {coinIds.map(coinId => (
+                <th key={coinId} className="p-2 font-normal text-muted-foreground">
+                  {coinSymbolMap[coinId]}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {coinIds.map(coin1 => (
+              <tr key={coin1}>
+                <td className="p-2 font-normal text-muted-foreground">
+                  {coinSymbolMap[coin1]}
+                </td>
+                {coinIds.map(coin2 => {
+                  const correlation = correlationMatrix[coin1]?.[coin2] || 0;
+                  return (
+                    <td
+                      key={coin2}
+                      className={`p-0 text-center ${coin1 !== coin2 ? 'cursor-pointer hover:opacity-80' : ''}`}
+                      onClick={() => handleCellClick(coin1, coin2)}
+                      title={`${coinSymbolMap[coin1]} to ${coinSymbolMap[coin2]}: ${(correlation * 100).toFixed(2)}%`}
+                    >
+                      <div
+                        className="w-10 h-10 flex items-center justify-center text-xs text-white"
+                        style={{
+                          backgroundColor: getCorrelationColor(correlation),
+                          opacity: coin1 === coin2 ? 0.7 : 1
+                        }}
+                      >
+                        {(correlation * 100).toFixed(0)}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        
+        <div className="mt-4 flex justify-center items-center gap-1 text-xs text-muted-foreground">
+          <div className="w-3 h-3" style={{ backgroundColor: getCorrelationColor(-1) }}></div>
+          <span>-100%</span>
+          <div className="w-16 h-3 bg-gradient-to-r from-red-700 via-neutral-500 to-blue-700"></div>
+          <span>+100%</span>
+          <div className="w-3 h-3" style={{ backgroundColor: getCorrelationColor(1) }}></div>
+        </div>
+      </div>
+    </Card>
   );
 };
 

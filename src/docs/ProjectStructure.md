@@ -1,137 +1,189 @@
 
-# Project Structure
+# Lovable Trading Platform Project Structure
 
-This document outlines the structure and organization of the Crypto Trading Platform codebase.
+This document provides an overview of the project structure and organization of the Lovable Trading Platform codebase.
 
 ## Directory Structure
 
 ```
 src/
-├── components/           # React components
-│   ├── api/              # API-related components
-│   │   ├── ApiUsageMetrics.tsx
-│   │   ├── RealTimeApiUsage.tsx
-│   │   └── ApiManagementDashboard.tsx
-│   │
-│   ├── analytics/        # Analytics components
-│   │   ├── LiveAnalyticsDashboard.tsx
-│   │   ├── LivePriceMetrics.tsx
-│   │   └── DetachedAiTradingDashboard.tsx
-│   │
-│   ├── dashboard/        # Dashboard components
-│   │   ├── DashboardTab.tsx
-│   │   ├── DashboardOverview.tsx
-│   │   ├── DashboardPortfolio.tsx
-│   │   ├── DashboardTrading.tsx
-│   │   ├── DashboardAnalysis.tsx
-│   │   ├── DashboardTools.tsx
-│   │   └── DashboardWatchlist.tsx
-│   │
-│   ├── settings/         # Settings components
-│   │   ├── Settings.tsx
-│   │   ├── NotificationSettings.tsx
-│   │   ├── AppearanceSettings.tsx
-│   │   ├── PrivacySettings.tsx
-│   │   └── TradingSettings.tsx
-│   │
-│   ├── trading/          # Trading components
-│   │   ├── RealTimeTrading.tsx
-│   │   ├── RealTimePriceChart.tsx
-│   │   ├── RealTimePrices.tsx
-│   │   ├── RealTimeTrader.tsx
-│   │   ├── RealTimePortfolioPerformance.tsx
-│   │   ├── AiTradingBots.tsx
-│   │   ├── AiTradingDashboard.tsx
-│   │   └── AiTradingMcp.tsx
-│   │
-│   ├── wallets/          # Wallet components
-│   │   ├── WalletConnector.tsx
-│   │   └── WalletDetails.tsx
-│   │
-│   ├── ui/               # UI components (shadcn)
-│   │
-│   ├── AnalysisDashboard.tsx
-│   ├── PortfolioDashboard.tsx
-│   ├── TradingDashboard.tsx
-│   └── UtilityDashboard.tsx
-│
-├── docs/                 # Documentation
+├── components/           # UI components organized by feature
+│   ├── analytics/        # Analytics-related components
+│   ├── api/              # API management components
+│   ├── dashboard/        # Dashboard and widget components
+│   │   └── widgets/      # Individual widget implementations
+│   ├── MarketCorrelations/ # Market correlation visualization
+│   ├── settings/         # Settings and configuration components
+│   ├── tickers/          # Price and news ticker components
+│   ├── trading/          # Trading interface components
+│   │   └── model-trading/ # Local model trading components
+│   └── ui/               # Shadcn UI components
+├── contexts/             # React Context providers
+│   ├── ThemeContext.tsx  # Theme management
+│   └── UIContext.tsx     # UI state management
+├── docs/                 # Documentation files
+│   ├── ApiDocumentation.md
+│   ├── DEPLOYMENT.md
+│   ├── DeveloperGuide.md
 │   ├── FeatureChecklist.md
 │   ├── UserGuide.md
-│   ├── DeveloperGuide.md
-│   ├── APIDocumentation.md
-│   └── ProjectStructure.md
-│
+│   └── features/         # Feature-specific documentation
 ├── hooks/                # Custom React hooks
+│   ├── use-crypto-data.ts
 │   ├── use-mobile.ts
-│   └── use-theme.ts
-│
-├── pages/                # Page components
-│   ├── Index.tsx
-│   └── Auth.tsx
-│
-├── services/             # API services
-│   ├── cryptoService.ts
-│   └── priceMonitoring.ts
-│
-└── types/                # TypeScript type definitions
-    ├── trading.ts
-    └── settings.ts
+│   └── use-trading-portfolio.ts
+├── lib/                  # Utility functions and libraries
+│   └── utils.ts          # Common utilities
+├── services/             # API service functions
+│   ├── api.ts            # Core API functions
+│   └── enhancedCryptoApi.ts # Cryptocurrency data API
+├── types/                # TypeScript type definitions
+│   └── trading.ts        # Trading-related types
+├── App.tsx               # Main application component
+└── index.tsx             # Application entry point
 ```
 
-## Component Organization
+## Key Components Overview
 
-The codebase follows a modular component structure:
+### Dashboard Components
+- `Dashboard.tsx`: Main dashboard container with tab navigation
+- `CustomizableDashboard.tsx`: Dashboard with customizable widgets
+- `WidgetGrid.tsx`: Grid layout for dashboard widgets
+- `WidgetList.tsx`: List layout for dashboard widgets on mobile
 
-### Core Components
+### Trading Components
+- `RealTrading.tsx`: Real trading interface
+- `EnhancedFakeTrading.tsx`: Simulated trading interface
+- `TradingChart.tsx`: Interactive price charts
+- `OrderBook.tsx`: Market depth visualization
+- `WalletConnection.tsx`: Wallet integration component
 
-- **Dashboard Components**: Main dashboard views for different functionality areas
-- **Trading Components**: Real-time trading interfaces and cryptocurrency data
-- **Analytics Components**: Data visualization and analysis tools
-- **Settings Components**: User preferences and configuration interfaces
-- **Wallet Components**: Cryptocurrency wallet connection and management
+### Analytics Components
+- `LiveAnalyticsDashboard.tsx`: Real-time analytics
+- `DetachedAiTradingDashboard.tsx`: Detachable AI dashboard
+- `ApiUsageMetrics.tsx`: API usage monitoring
+- `MarketCorrelations.tsx`: Market correlation analysis
 
-### UI Components
+### API-related Components
+- `ApiProviderManagement.tsx`: Manage API providers
+- `RealTimeApiUsage.tsx`: Monitor API usage in real time
+- `MobileOptimizedApiProvider.tsx`: Mobile view for API providers
 
-All UI components are built using the shadcn/ui library, which provides a consistent design system based on Radix UI and Tailwind CSS.
+### Settings Components
+- `ThemeSwitcher.tsx`: Theme toggle component
+- `SettingsForm.tsx`: User settings form
 
-### Custom Hooks
+### Model Trading Components
+- `LocalModelTrading.tsx`: Local AI model trading
+- `ModelConnectionTab.tsx`: Connect to local models
+- `ModelRunningTab.tsx`: Run and monitor models
+- `ModelGenerationTab.tsx`: Generate new models
 
-- **useIsMobile**: Detects and responds to mobile screen sizes
-- **useTheme**: Manages theme state (light/dark mode)
+## Type Definitions
 
-## State Management
+### Core Types
+- `CoinOption`: Cryptocurrency data type
+- `Trade`: Trading transaction details
+- `ApiProvider`: API provider configuration
+- `WalletProvider`: Wallet provider details
 
-The application uses a combination of:
+### Component Props Types
+- `RealTimePriceChartProps`: Props for price chart
+- `WalletConnectionProps`: Props for wallet connection
+- `DetachableDashboardProps`: Props for detachable dashboards
 
-1. **Local Component State**: Using React's `useState` hook for component-specific state
-2. **Custom Hooks**: For shared state logic
-3. **Context API**: For global state that needs to be accessed across multiple components
-4. **URL State**: For persisting selected views and filters in the URL
+### Widget System Types
+- `Widget`: Widget configuration type
+- `WidgetType`: Available widget types
+- `WidgetSize`: Size options for widgets
 
-## Naming Conventions
+## Context Providers
 
-The codebase follows these naming conventions:
+### ThemeContext
+Manages application theme (light/dark mode)
 
-- **Files & Components**: PascalCase for component names (e.g., `RealTimeTrading.tsx`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useMobile.ts`)
-- **Services**: camelCase (e.g., `priceMonitoring.ts`)
-- **Types**: PascalCase for interfaces and types (e.g., `WalletProvider`)
+### UIContext
+Manages global UI state:
+- Ticker settings
+- Sidebar configuration
+- Notification preferences
 
-## Code Organization Principles
+## Custom Hooks
 
-1. **Component Composition**: Complex UI elements are composed from smaller, reusable components
-2. **Single Responsibility**: Each component has a focused purpose
-3. **Type Safety**: Comprehensive TypeScript types for all components and functions
-4. **Error Handling**: Centralized error handling with meaningful user feedback
-5. **Responsive Design**: All components adapt to different screen sizes
+### useCryptoData
+Fetches and manages cryptocurrency data with:
+- Configurable refresh intervals
+- Filtering options
+- Error handling
 
-## Optimization Techniques
+### useIsMobile
+Detects mobile devices for responsive layouts
 
-1. **Code Splitting**: Components are organized for easy code splitting
-2. **Memoization**: React.memo and useMemo for expensive calculations
-3. **Virtualization**: For rendering large data sets efficiently
-4. **Lazy Loading**: For non-critical components
-5. **Debouncing**: For search inputs and other frequent user interactions
+### useTradingPortfolio
+Manages portfolio state with:
+- Holdings calculation
+- Performance metrics
+- Allocation percentages
 
-This structure allows for maintainable, scalable development while keeping the codebase organized and easy to navigate.
+## Services
+
+### enhancedCryptoApi
+Provides cryptocurrency data:
+- Price information
+- Historical data
+- Market statistics
+
+### api
+Core API functionality:
+- API request handling
+- Error processing
+- Response transformation
+
+## Development Workflow
+
+### Adding New Features
+1. Define types in `types/trading.ts`
+2. Create service functions if API integration is needed
+3. Implement React components
+4. Add to relevant parent components or navigation
+
+### Component Development Pattern
+Components generally follow this pattern:
+- Define TypeScript interface for props
+- Implement the component as a functional component
+- Export as default
+
+Example:
+```tsx
+import React from 'react';
+import { SomeProps } from '@/types/trading';
+
+const SomeComponent: React.FC<SomeProps> = ({ prop1, prop2 }) => {
+  // Implementation
+  return (
+    <div>
+      {/* Component JSX */}
+    </div>
+  );
+};
+
+export default SomeComponent;
+```
+
+## Build and Deployment
+
+The project uses:
+- React with TypeScript
+- Tailwind CSS for styling
+- Shadcn/UI component library
+- Recharts for data visualization
+
+See `DEPLOYMENT.md` for detailed deployment instructions.
+
+## Documentation
+
+- `UserGuide.md`: End-user documentation
+- `DeveloperGuide.md`: Developer reference
+- `ApiDocumentation.md`: API integration details
+- `DEPLOYMENT.md`: Deployment instructions
+- `FeatureChecklist.md`: Feature implementation status

@@ -29,6 +29,10 @@ const ApiProviderManagement: React.FC = () => {
     apiKey: '',
     usageLimit: 1000,
     currentUsage: 0,
+    maxUsage: 1000,
+    resetTime: new Date().toISOString(),
+    endpoint: '',
+    status: 'ok',
     isActive: true,
     endpoints: []
   });
@@ -40,14 +44,21 @@ const ApiProviderManagement: React.FC = () => {
       name: "CoinGecko",
       baseUrl: "https://api.coingecko.com/api/v3",
       description: "Comprehensive cryptocurrency data API",
+      currentUsage: 5243,
+      maxUsage: 10000,
+      resetTime: "2023-05-02T00:00:00Z",
+      endpoint: "coins/markets",
+      status: "ok",
+      website: "https://www.coingecko.com",
+      docs: "https://www.coingecko.com/api/documentation",
       endpoints: [
         {
           id: "cg-markets",
           name: "Markets",
-          url: "/coins/markets",
           path: "/coins/markets",
           method: "GET",
           description: "Get cryptocurrency prices, market cap, volume, and market related data",
+          url: "/coins/markets",
           responseTime: 245,
           lastUsed: "2023-05-01T12:30:45Z",
           requiresAuth: true
@@ -55,10 +66,10 @@ const ApiProviderManagement: React.FC = () => {
         {
           id: "cg-coin",
           name: "Coin Details",
-          url: "/coins/{id}",
           path: "/coins/{id}",
           method: "GET",
           description: "Get current data for a coin",
+          url: "/coins/{id}",
           responseTime: 187,
           lastUsed: "2023-05-01T11:22:18Z",
           requiresAuth: true
@@ -66,10 +77,10 @@ const ApiProviderManagement: React.FC = () => {
         {
           id: "cg-chart",
           name: "Market Chart",
-          url: "/coins/{id}/market_chart",
           path: "/coins/{id}/market_chart",
           method: "GET",
           description: "Get historical market data include price, market cap, and 24h volume",
+          url: "/coins/{id}/market_chart",
           responseTime: 320,
           lastUsed: "2023-05-01T10:15:30Z",
           requiresAuth: true
@@ -78,7 +89,6 @@ const ApiProviderManagement: React.FC = () => {
       isActive: true,
       apiKey: "CG_API_KEY_REDACTED",
       usageLimit: 10000,
-      currentUsage: 5243,
       authMethod: "header",
       apiKeyName: "X-CG-API-KEY",
       defaultHeaders: {},
@@ -89,14 +99,21 @@ const ApiProviderManagement: React.FC = () => {
       name: "Binance",
       baseUrl: "https://api.binance.com/api/v3",
       description: "Cryptocurrency exchange API",
+      currentUsage: 8754,
+      maxUsage: 20000,
+      resetTime: "2023-05-02T00:00:00Z",
+      endpoint: "ticker/24hr",
+      status: "ok",
+      website: "https://www.binance.com",
+      docs: "https://binance-docs.github.io/apidocs/",
       endpoints: [
         {
           id: "bn-ticker",
           name: "Ticker",
-          url: "/ticker/24hr",
           path: "/ticker/24hr",
           method: "GET",
           description: "24 hour rolling window price change statistics",
+          url: "/ticker/24hr",
           responseTime: 110,
           lastUsed: "2023-05-01T13:40:22Z",
           requiresAuth: true
@@ -104,10 +121,10 @@ const ApiProviderManagement: React.FC = () => {
         {
           id: "bn-klines",
           name: "Klines",
-          url: "/klines",
           path: "/klines",
           method: "GET",
           description: "Kline/candlestick data",
+          url: "/klines",
           responseTime: 165,
           lastUsed: "2023-05-01T13:25:40Z",
           requiresAuth: true
@@ -115,10 +132,10 @@ const ApiProviderManagement: React.FC = () => {
         {
           id: "bn-depth",
           name: "Order Book",
-          url: "/depth",
           path: "/depth",
           method: "GET",
           description: "Order book depth",
+          url: "/depth",
           responseTime: 95,
           lastUsed: "2023-05-01T13:10:05Z",
           requiresAuth: true
@@ -127,7 +144,6 @@ const ApiProviderManagement: React.FC = () => {
       isActive: true,
       apiKey: "BINANCE_API_KEY_REDACTED",
       usageLimit: 20000,
-      currentUsage: 8754,
       authMethod: "query",
       apiKeyName: "api_key",
       defaultHeaders: {},
@@ -138,14 +154,21 @@ const ApiProviderManagement: React.FC = () => {
       name: "Kraken",
       baseUrl: "https://api.kraken.com/0",
       description: "Digital asset exchange API",
+      currentUsage: 2134,
+      maxUsage: 5000,
+      resetTime: "2023-05-02T00:00:00Z",
+      endpoint: "public/Ticker",
+      status: "ok",
+      website: "https://www.kraken.com",
+      docs: "https://docs.kraken.com/rest/",
       endpoints: [
         {
           id: "kr-ticker",
           name: "Ticker Information",
-          url: "/public/Ticker",
           path: "/public/Ticker",
           method: "GET",
           description: "Get ticker information",
+          url: "/public/Ticker",
           responseTime: 180,
           lastUsed: "2023-05-01T11:05:15Z",
           requiresAuth: true
@@ -153,10 +176,10 @@ const ApiProviderManagement: React.FC = () => {
         {
           id: "kr-ohlc",
           name: "OHLC Data",
-          url: "/public/OHLC",
           path: "/public/OHLC",
           method: "GET",
           description: "Open, high, low, close data",
+          url: "/public/OHLC",
           responseTime: 210,
           lastUsed: "2023-05-01T10:55:30Z",
           requiresAuth: true
@@ -164,10 +187,10 @@ const ApiProviderManagement: React.FC = () => {
         {
           id: "kr-orderbook",
           name: "Order Book",
-          url: "/public/Depth",
           path: "/public/Depth",
           method: "GET",
           description: "Market depth",
+          url: "/public/Depth",
           responseTime: 165,
           lastUsed: "2023-05-01T10:30:20Z",
           requiresAuth: true
@@ -176,7 +199,6 @@ const ApiProviderManagement: React.FC = () => {
       isActive: true,
       apiKey: "KRAKEN_API_KEY_REDACTED",
       usageLimit: 5000,
-      currentUsage: 2134,
       authMethod: "header",
       apiKeyName: "API-Key",
       defaultHeaders: {},
@@ -191,11 +213,15 @@ const ApiProviderManagement: React.FC = () => {
         name: newProvider.name || '',
         baseUrl: newProvider.baseUrl || '',
         description: newProvider.description || '',
+        currentUsage: 0, 
+        maxUsage: newProvider.usageLimit || 1000,
+        resetTime: new Date().toISOString(),
+        endpoint: '',
+        status: 'ok',
         endpoints: [],
         isActive: true,
         apiKey: newProvider.apiKey || '',
         usageLimit: newProvider.usageLimit || 1000,
-        currentUsage: 0,
         enabled: true
       };
       
@@ -337,13 +363,13 @@ const ApiProviderManagement: React.FC = () => {
                 <div className="mt-4">
                   <h4 className="text-sm font-medium mb-2">Endpoints</h4>
                   <div className="space-y-2">
-                    {provider.endpoints.map((endpoint) => (
+                    {provider.endpoints?.map((endpoint) => (
                       <div key={endpoint.id} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
                         <div>
                           <span className="text-sm font-medium">{endpoint.name}</span>
                           <div className="flex items-center mt-1">
                             <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">{endpoint.method}</span>
-                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.url}</span>
+                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.path}</span>
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -362,7 +388,7 @@ const ApiProviderManagement: React.FC = () => {
                     Add Endpoint
                   </Button>
                   <div className="text-xs text-muted-foreground">
-                    <span>{provider.currentUsage} / {provider.usageLimit} requests used</span>
+                    <span>{provider.currentUsage} / {provider.maxUsage} requests used</span>
                   </div>
                 </div>
               </div>
@@ -397,13 +423,13 @@ const ApiProviderManagement: React.FC = () => {
                 <div className="mt-4">
                   <h4 className="text-sm font-medium mb-2">Endpoints</h4>
                   <div className="space-y-2">
-                    {provider.endpoints.map((endpoint) => (
+                    {provider.endpoints?.map((endpoint) => (
                       <div key={endpoint.id} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
                         <div>
                           <span className="text-sm font-medium">{endpoint.name}</span>
                           <div className="flex items-center mt-1">
                             <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">{endpoint.method}</span>
-                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.url}</span>
+                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.path}</span>
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -422,7 +448,7 @@ const ApiProviderManagement: React.FC = () => {
                     Add Endpoint
                   </Button>
                   <div className="text-xs text-muted-foreground">
-                    <span>{provider.currentUsage} / {provider.usageLimit} requests used</span>
+                    <span>{provider.currentUsage} / {provider.maxUsage} requests used</span>
                   </div>
                 </div>
               </div>

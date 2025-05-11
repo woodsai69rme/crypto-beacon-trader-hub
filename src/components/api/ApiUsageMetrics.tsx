@@ -30,7 +30,7 @@ const ApiUsageMetrics: React.FC<ApiUsageMetricsProps> = ({ data, onRefresh }) =>
             return (
               <div key={index} className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">{item.service}</span>
+                  <span className="font-medium">{item.service || item.provider}</span>
                   <span className="text-muted-foreground">
                     {item.currentUsage} / {item.maxUsage} requests
                   </span>

@@ -1,208 +1,236 @@
 
-# Crypto Trading Platform Developer Guide
+# Developer Guide for Lovable Trading Platform
 
 ## Architecture Overview
 
-The Crypto Trading Platform is built with a modern React/TypeScript stack, focusing on component reusability, type safety, and responsive design. The application follows a client-side architecture with modular components and custom hooks for state management.
+The Lovable Trading Platform is built using a modern front-end stack with a component-based architecture designed for scalability, maintainability, and performance.
 
-### Tech Stack
+### Technology Stack
 
-- **Framework**: React 18 with TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Charting**: Recharts
+- **Framework**: React with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **State Management**: React hooks and context
+- **Data Fetching**: Tanstack Query (React Query)
+- **Charting**: Recharts for data visualization
 - **Icons**: Lucide React
-- **Form Handling**: React Hook Form
 
-## Project Structure
+### Project Structure
 
 ```
 src/
-├── components/         # UI components
-│   ├── api/            # API-related components
-│   ├── analytics/      # Analytics components
-│   ├── dashboard/      # Dashboard components
-│   ├── settings/       # Settings components
-│   ├── trading/        # Trading components
-│   └── ui/             # UI components (shadcn)
-├── docs/               # Documentation
-├── hooks/              # Custom React hooks
-├── pages/              # Page components
-├── services/           # API services
-├── types/              # TypeScript type definitions
-└── integrations/       # Third-party integrations
+├── components/     # UI components
+│   ├── api/        # API-related components
+│   ├── analytics/  # Analytics components
+│   ├── dashboard/  # Dashboard components
+│   ├── trading/    # Trading components
+│   ├── ui/         # Shadcn UI components
+│   └── ...
+├── contexts/       # React context providers
+├── hooks/          # Custom React hooks
+├── lib/            # Utility functions
+├── services/       # API services
+├── types/          # TypeScript type definitions
+└── docs/           # Documentation
 ```
 
-## Core Components
+## Component Design Philosophy
+
+The platform follows these key principles:
+
+1. **Component Reusability**: Components are designed to be reusable across different parts of the application
+2. **Separation of Concerns**: Each component has a single responsibility
+3. **Composition over Inheritance**: Complex UIs are built by composing smaller components
+4. **Type Safety**: TypeScript is used throughout for type checking and better developer experience
+
+## Key Components
 
 ### Dashboard Components
 
-- **TradingDashboard**: Main trading interface with real-time market data
-- **PortfolioDashboard**: Portfolio management and tracking
-- **AnalysisDashboard**: Technical and fundamental analysis tools
-- **UtilityDashboard**: Tools and utilities for traders
+The dashboard is built using a widget-based system with these key components:
+
+- `Dashboard`: Main container component that manages the layout
+- `WidgetGrid`: Manages the grid layout of widgets
+- `Widget`: Base widget component that renders different widget types
+- `CustomizableDashboard`: Allows users to add, remove, and position widgets
 
 ### Trading Components
 
-- **RealTimeTrading**: Live trading interface with market data
-- **RealTimePriceChart**: Interactive price chart with multiple timeframes
-- **RealTimePrices**: Live price tracking for multiple cryptocurrencies
-- **RealTimeTrader**: Buy/sell execution interface
-- **RealTimePortfolioPerformance**: Portfolio performance tracking
+Trading functionality is implemented through:
 
-### Wallet Integration
+- `RealTimeTrader`: Main trading interface
+- `TradingChart`: Interactive price chart with indicators
+- `OrderBook`: Displays market depth
+- `WalletConnection`: Handles wallet integration
+- `TradingForm`: Form for executing trades
 
-- **WalletConnector**: Interface for connecting cryptocurrency wallets
-- Supports multiple wallet providers (MetaMask, Trust Wallet, etc.)
-- Secure transaction signing
+### API Integration Components
+
+API management is handled by:
+
+- `ApiProviderManagement`: Manages API provider configuration
+- `ApiUsageMetrics`: Displays API usage statistics
+- `RealTimeApiUsage`: Real-time monitoring of API calls
 
 ### Analytics Components
 
-- **LiveAnalyticsDashboard**: Real-time analytics dashboard
-- **LivePriceMetrics**: Live price and market metrics
-- **ApiUsageMetrics**: Monitoring API usage and rate limits
-- **DetachedAiTradingDashboard**: Floating dashboard for multi-monitor setups
+Advanced analytics are provided through:
+
+- `LiveAnalyticsDashboard`: Real-time analytics dashboard
+- `DetachableDashboard`: Detachable version for multi-monitor setups
+- `MarketCorrelations`: Market correlation visualization
+- `AiTradingDashboard`: AI-powered trading interface
+
+## Working with APIs
+
+### Adding a New API Provider
+
+To add support for a new API provider:
+
+1. Extend the `ApiProvider` interface in `types/trading.ts`
+2. Create service functions in a dedicated file under `services/`
+3. Update `ApiProviderManagement` component to include the new provider
+4. Add required authentication and endpoint configuration
+5. Implement rate limiting and usage tracking
+
+Example service implementation:
+
+```typescript
+import { ApiProvider } from '@/types/trading';
+
+export const fetchDataFromNewProvider = async (endpoint: string, params: any) => {
+  const apiKey = getApiKey('new-provider');
+  const url = buildUrl('new-provider', endpoint, params);
+  
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  
+  return response.json();
+};
+```
+
+### API Usage Tracking
+
+API calls are tracked using:
+
+- Request counting per endpoint
+- Rate limit monitoring
+- Usage metrics visualization
 
 ## State Management
 
-The application uses React hooks for state management, with custom hooks encapsulating domain-specific logic:
+The application uses a combination of:
 
-- **useIsMobile**: Responsive design hook for mobile detection
-- **usePriceData**: Hook for managing real-time price data
-- **useWallet**: Wallet connection and state management
-- **useApiUsage**: Tracking API usage and rate limits
+- React Context for global state
+- React Query for server state
+- React useState and useReducer for component state
+- Custom hooks for shared logic
 
-## Development Guidelines
+### Core Context Providers
 
-### Component Pattern
-
-Components follow a consistent pattern:
-
-```typescript
-import React from 'react';
-import { ComponentProps } from '@/types/componentTypes';
-
-const ComponentName: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
-  // Component logic
-  
-  return (
-    // JSX
-  );
-};
-
-export default ComponentName;
-```
-
-### Type Safety
-
-All components and functions have proper TypeScript types:
-
-```typescript
-// Example type definition
-export interface CoinOption {
-  id: string;
-  symbol: string;
-  name: string;
-  price: number;
-  priceChange: number;
-  changePercent: number;
-  image?: string;
-  volume?: number;
-  marketCap?: number;
-  value: string;
-  label: string;
-}
-```
-
-### Responsive Design
-
-All components are designed to be responsive:
-
-```typescript
-// Import the useIsMobile hook
-import { useIsMobile } from '@/hooks/use-mobile';
-
-const Component = () => {
-  const isMobile = useIsMobile();
-  
-  return (
-    <div className={isMobile ? 'mobile-layout' : 'desktop-layout'}>
-      {/* Responsive content */}
-    </div>
-  );
-};
-```
-
-## API Integration
-
-### Service Pattern
-
-API integrations follow a service pattern:
-
-```typescript
-// Example API service
-export const cryptoService = {
-  fetchCoinHistory: async (coinId, days) => {
-    // Fetch logic
-    return data;
-  },
-  
-  fetchMultipleCryptoData: async (coinIds) => {
-    // Fetch logic
-    return data;
-  }
-};
-```
+- `ThemeContext`: Manages theme settings
+- `UIContext`: Manages UI state
+- `CryptoDataContext`: Provides cryptocurrency data
+- `WalletContext`: Manages wallet connections
 
 ## Adding New Features
 
-1. **Plan Component Structure**: Determine which components are needed
-2. **Create Types**: Define TypeScript interfaces for props and state
-3. **Implement Components**: Create new components or extend existing ones
-4. **Add to Dashboard**: Integrate with the appropriate dashboard
-5. **Test Thoroughly**: Ensure responsive behavior and error handling
+### Creating a New Widget
+
+To add a new widget type:
+
+1. Add the new widget type to the `WidgetType` enum in `types/trading.ts`
+2. Create a new component for the widget content
+3. Update `WidgetComponent` to render the new widget type
+4. Add the widget to the available options in `AddWidgetDialog`
+
+### Implementing a New Chart Type
+
+To add a new visualization:
+
+1. Create a new component using Recharts
+2. Define the data structure and props interface
+3. Implement data transformation logic
+4. Add to the appropriate parent component
+
+## Testing
+
+### Component Testing
+
+Components should be tested using:
+
+- Unit tests for business logic
+- Component tests with React Testing Library
+- Snapshot tests for UI stability
+
+### Performance Testing
+
+Monitor and optimize performance:
+
+- Use React DevTools Profiler
+- Watch for unnecessary re-renders
+- Implement memoization where beneficial
+- Virtualize long lists
 
 ## Best Practices
 
-- **Keep Components Focused**: Each component should have a single responsibility
-- **Prefer Composition**: Compose complex UIs from smaller components
-- **Consistent Naming**: Follow established naming conventions
-- **Use TypeScript**: Leverage type safety for all components and functions
-- **Error Handling**: Implement proper error handling for API calls and user interactions
-- **Responsive Design**: Test on multiple screen sizes
-- **Performance**: Use React.memo, useMemo, and useCallback for optimization
+### Code Style
 
-## Building and Testing
+- Use functional components with hooks
+- Prefer named exports
+- Group related files in feature folders
+- Use explicit return types for functions
+- Document complex logic with comments
 
-```bash
-# Install dependencies
-npm install
+### Performance Optimization
 
-# Run development server
-npm run dev
+- Memoize expensive calculations
+- Use virtualization for long lists
+- Implement lazy loading for components
+- Optimize re-renders with React.memo and useMemo
+- Use windowing techniques for large datasets
 
-# Build for production
-npm run build
+### Accessibility
 
-# Preview production build
-npm run preview
-```
+- Ensure all interactive elements are keyboard accessible
+- Use semantic HTML elements
+- Include proper ARIA attributes
+- Maintain sufficient color contrast
+- Test with screen readers
 
-## Troubleshooting
+### Error Handling
 
-Common issues and solutions:
+- Implement error boundaries for component failures
+- Use try/catch for API calls
+- Display user-friendly error messages
+- Log errors for debugging
+- Gracefully degrade functionality when services are unavailable
 
-1. **API Rate Limiting**: Monitor rate limits in the API Dashboard
-2. **Wallet Connection Issues**: Check browser console for errors
-3. **Chart Rendering Problems**: Verify data format and properties
+## Deployment
 
-## Future Development
+The platform can be deployed using:
 
-Areas for enhancement:
+- Static hosting (Netlify, Vercel)
+- Docker containers
+- Traditional web servers
 
-1. **DeFi Integration**: Connect to DeFi protocols
-2. **Advanced AI Models**: Implement more sophisticated trading models
-3. **Mobile Applications**: Develop native mobile apps
-4. **Decentralized Exchange Integration**: Add DEX support
+Refer to the Deployment Guide for detailed instructions.
 
-This guide is continually updated as the platform evolves.
+## Contributing
+
+When contributing to the codebase:
+
+1. Follow the established code style
+2. Write tests for new functionality
+3. Update documentation
+4. Ensure accessibility requirements are met
+5. Test across different browsers and devices
+
+This developer guide provides a high-level overview of the platform's architecture and development practices. For more detailed information, refer to specific component documentation and code comments.

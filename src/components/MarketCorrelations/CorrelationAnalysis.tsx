@@ -1,94 +1,137 @@
 
-import React from 'react';
-import { 
-  ScatterChart, 
-  Scatter, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  Cell
-} from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { CryptoData } from '@/types/trading';
+import { findStrongestCorrelations } from './utils';
 
-const CorrelationAnalysis: React.FC<{ data: CryptoData[] }> = ({ data }) => {
-  // Extract market cap and volume data for scatter plot
-  const scatterData = data.map(coin => ({
-    name: coin.name,
-    marketCap: coin.marketCap || 0,
-    volume: coin.volume || 0,
-    price: coin.price,
-    symbol: coin.symbol,
-    changePercent: coin.changePercent
-  }));
+interface CorrelationAnalysisProps {
+  correlationMatrix: Record<string, Record<string, number>>;
+  cryptoData: CryptoData[];
+  selectedCoinId: string;
+  onSelectPair?: (coin1: string, coin2: string) => void;
+}
 
-  // Colors for the scatter points based on price change percentage
-  const getPointColor = (changePercent: number) => {
-    if (changePercent > 2) return '#4ADE80';
-    if (changePercent > 0) return '#34D399';
-    if (changePercent > -2) return '#F87171';
-    return '#EF4444';
-  };
-
-  // Format numbers to be more readable
-  const formatValue = (value: number) => {
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
-    if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
-    return `$${value.toFixed(2)}`;
-  };
-
-  // Custom tooltip to show additional information
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-background border rounded-md shadow-lg p-3 text-xs">
-          <p className="font-bold">{data.name} ({data.symbol})</p>
-          <p className="text-muted-foreground">Market Cap: {formatValue(data.marketCap)}</p>
-          <p className="text-muted-foreground">Volume: {formatValue(data.volume)}</p>
-          <p className="text-muted-foreground">Price: ${data.price.toFixed(2)}</p>
-          <p className={data.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}>
-            Change: {data.changePercent >= 0 ? '+' : ''}{data.changePercent.toFixed(2)}%
-          </p>
-        </div>
+const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
+  correlationMatrix,
+  cryptoData,
+  selectedCoinId,
+  onSelectPair
+}) => {
+  const [positiveCorrelations, setPositiveCorrelations] = useState<{ coin: CryptoData; correlation: number }[]>([]);
+  const [negativeCorrelations, setNegativeCorrelations] = useState<{ coin: CryptoData; correlation: number }[]>([]);
+  
+  useEffect(() => {
+    if (selectedCoinId && correlationMatrix) {
+      const allCorrelations = findStrongestCorrelations(correlationMatrix, selectedCoinId, cryptoData, 10);
+      
+      setPositiveCorrelations(
+        allCorrelations
+          .filter(item => item.correlation > 0)
+          .sort((a, b) => b.correlation - a.correlation)
+          .slice(0, 5)
+      );
+      
+      setNegativeCorrelations(
+        allCorrelations
+          .filter(item => item.correlation < 0)
+          .sort((a, b) => a.correlation - b.correlation)
+          .slice(0, 5)
       );
     }
-    return null;
+  }, [selectedCoinId, correlationMatrix, cryptoData]);
+  
+  const handleSelectRow = (compareId: string) => {
+    if (onSelectPair) {
+      onSelectPair(selectedCoinId, compareId);
+    }
   };
-
+  
+  const selectedCoin = cryptoData.find(coin => coin.id === selectedCoinId);
+  
+  if (!selectedCoin) {
+    return null;
+  }
+  
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <ScatterChart
-          margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-          <XAxis 
-            type="number" 
-            dataKey="marketCap" 
-            name="Market Cap" 
-            domain={['auto', 'auto']}
-            tickFormatter={formatValue}
-            label={{ value: 'Market Cap', position: 'insideBottom', offset: -10 }}
-          />
-          <YAxis 
-            type="number" 
-            dataKey="volume" 
-            name="Volume" 
-            tickFormatter={formatValue}
-            label={{ value: 'Volume (24h)', angle: -90, position: 'insideLeft' }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Scatter name="Coins" data={scatterData} fill="#8884d8">
-            {scatterData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getPointColor(entry.changePercent)} />
-            ))}
-          </Scatter>
-        </ScatterChart>
-      </ResponsiveContainer>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          Correlation Analysis: {selectedCoin.name} ({selectedCoin.symbol.toUpperCase()})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {positiveCorrelations.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium mb-2">Strongest Positive Correlations</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Asset</TableHead>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead className="text-right">Correlation</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {positiveCorrelations.map(({ coin, correlation }) => (
+                    <TableRow 
+                      key={coin.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleSelectRow(coin.id)}
+                    >
+                      <TableCell className="font-medium">{coin.name}</TableCell>
+                      <TableCell>{coin.symbol.toUpperCase()}</TableCell>
+                      <TableCell className="text-right text-green-600">
+                        +{(correlation * 100).toFixed(1)}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          
+          {negativeCorrelations.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium mb-2">Strongest Negative Correlations</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Asset</TableHead>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead className="text-right">Correlation</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {negativeCorrelations.map(({ coin, correlation }) => (
+                    <TableRow 
+                      key={coin.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleSelectRow(coin.id)}
+                    >
+                      <TableCell className="font-medium">{coin.name}</TableCell>
+                      <TableCell>{coin.symbol.toUpperCase()}</TableCell>
+                      <TableCell className="text-right text-red-600">
+                        {(correlation * 100).toFixed(1)}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

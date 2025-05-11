@@ -1,37 +1,30 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { WidgetType, WidgetSize } from '@/types/trading';
 
 interface AddWidgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddWidget: (widget: {
-    title: string;
-    type: WidgetType;
-    size: WidgetSize;
-    customContent?: string;
-  }) => void;
+  onAddWidget: (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => void;
 }
 
 const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ 
   open, 
-  onOpenChange,
-  onAddWidget
+  onOpenChange, 
+  onAddWidget 
 }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<WidgetType>('price-chart');
   const [size, setSize] = useState<WidgetSize>('medium');
   const [customContent, setCustomContent] = useState('');
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = () => {
     onAddWidget({
       title,
       type,
@@ -45,80 +38,82 @@ const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({
     setSize('medium');
     setCustomContent('');
   };
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Widget</DialogTitle>
-          <DialogDescription>
-            Add a new widget to your dashboard
-          </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="widget-title">Widget Title</Label>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Widget Title</Label>
             <Input 
-              id="widget-title" 
+              id="title" 
               value={title} 
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter widget title"
-              required
+              placeholder="Enter widget title" 
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="widget-type">Widget Type</Label>
-            <Select value={type} onValueChange={(value) => setType(value as WidgetType)}>
-              <SelectTrigger>
-                <SelectValue />
+          <div className="grid gap-2">
+            <Label htmlFor="type">Widget Type</Label>
+            <Select value={type} onValueChange={v => setType(v as WidgetType)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select widget type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="price-chart">Price Chart</SelectItem>
                 <SelectItem value="portfolio-summary">Portfolio Summary</SelectItem>
                 <SelectItem value="watchlist">Watchlist</SelectItem>
-                <SelectItem value="news">News Feed</SelectItem>
+                <SelectItem value="news">News</SelectItem>
                 <SelectItem value="alerts">Price Alerts</SelectItem>
-                <SelectItem value="trading">Trading Panel</SelectItem>
+                <SelectItem value="trading">Trading Interface</SelectItem>
                 <SelectItem value="aiTrading">AI Trading</SelectItem>
                 <SelectItem value="aiAnalysis">AI Analysis</SelectItem>
-                <SelectItem value="custom">Custom Widget</SelectItem>
+                <SelectItem value="custom">Custom Content</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="widget-size">Widget Size</Label>
-            <Select value={size} onValueChange={(value) => setSize(value as WidgetSize)}>
-              <SelectTrigger>
-                <SelectValue />
+          <div className="grid gap-2">
+            <Label htmlFor="size">Widget Size</Label>
+            <Select value={size} onValueChange={v => setSize(v as WidgetSize)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select widget size" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="small">Small</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="large">Large</SelectItem>
+                <SelectItem value="flexible">Flexible</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           {type === 'custom' && (
-            <div className="space-y-2">
-              <Label htmlFor="custom-content">Custom Content</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="customContent">Custom Content</Label>
               <Textarea 
-                id="custom-content" 
+                id="customContent" 
                 value={customContent} 
                 onChange={(e) => setCustomContent(e.target.value)}
-                placeholder="Enter custom HTML content or description"
-                rows={4}
+                placeholder="Enter custom HTML or component markup" 
+                rows={5}
               />
             </div>
           )}
-          
-          <DialogFooter>
-            <Button type="submit">Add Widget</Button>
-          </DialogFooter>
-        </form>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="submit" onClick={handleSubmit} disabled={!title}>
+            Add Widget
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

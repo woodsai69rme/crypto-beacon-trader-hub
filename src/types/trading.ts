@@ -18,6 +18,26 @@ export interface CoinOption {
   label: string;
 }
 
+// Cryptocurrency data type from API
+export interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  image?: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  priceChangePercentage?: number;
+  marketCap?: number;
+  volume?: number;
+  circulatingSupply?: number;
+  current_price?: number;
+  price_change_24h?: number;
+  price_change_percentage_24h?: number;
+  total_volume?: number;
+  market_cap?: number;
+}
+
 // Props for the RealTimePriceChart component
 export interface RealTimePriceChartProps {
   coinId: string;
@@ -67,6 +87,8 @@ export interface WalletProvider {
   baseUrl?: string;
   endpoints?: ApiEndpoint[];
   isActive?: boolean;
+  website?: string;
+  docs?: string;
 }
 
 // API endpoint information
@@ -78,6 +100,9 @@ export interface ApiEndpoint {
   parameters?: any[];
   requiresAuth: boolean;
   description: string;
+  url?: string;
+  responseTime?: number;
+  lastUsed?: string;
 }
 
 // Wallet account details
@@ -160,6 +185,8 @@ export interface ApiProvider {
   baseUrl?: string;
   endpoints?: ApiEndpoint[];
   isActive?: boolean;
+  website?: string;
+  docs?: string;
 }
 
 // API usage metrics
@@ -180,6 +207,18 @@ export interface ApiUsageStats {
   errorCount: number;
   avgResponseTime: number;
   lastUsed: string;
+  service?: string;
+  serviceName?: string;
+  serviceId?: string;
+  totalRequests?: number;
+  periodRequests?: number;
+  requestsLimit?: number;
+  averageResponseTime?: number;
+  errorRate?: number;
+  lastRequested?: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime?: string;
 }
 
 // Portfolio asset
@@ -239,4 +278,53 @@ export interface DetachableDashboardProps {
   refreshInterval?: number;
   onClose?: () => void;
   darkMode?: boolean;
+  isDetached?: boolean;
+  children?: React.ReactNode;
+}
+
+// Widget related interfaces
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  size?: WidgetSize;
+  position?: { x: number; y: number };
+  customContent?: string;
+}
+
+export type WidgetType = 
+  | 'price-chart'
+  | 'portfolio-summary'
+  | 'watchlist'
+  | 'news'
+  | 'alerts'
+  | 'trading'
+  | 'aiTrading'
+  | 'aiAnalysis'
+  | 'custom';
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'flexible';
+
+// Local model types
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect?: (model: LocalModel) => void;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
 }

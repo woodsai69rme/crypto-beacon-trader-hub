@@ -1,138 +1,121 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+  CartesianGrid
+} from "recharts";
+import { Button } from "@/components/ui/button";
 import { CryptoData } from '@/types/trading';
 
 interface PriceCorrelationChartProps {
-  data: CryptoData[];
+  coin1: CryptoData;
+  coin2: CryptoData;
+  historicalPrices: Record<string, number[]>;
+  days?: number;
+  correlation: number;
 }
 
-const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({ data }) => {
-  // Generate mock historical price data
-  // In a real app, this would come from an API
-  const generateHistoricalData = () => {
-    const days = 30;
-    const result = [];
-    
-    // Only use the top 5 coins for clarity
-    const topCoins = data.slice(0, 5);
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
+const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({
+  coin1,
+  coin2,
+  historicalPrices,
+  days = 30,
+  correlation
+}) => {
+  const [chartData, setChartData] = useState<any[]>([]);
+  
+  useEffect(() => {
+    if (historicalPrices && coin1 && coin2) {
+      const prices1 = historicalPrices[coin1.id];
+      const prices2 = historicalPrices[coin2.id];
       
-      const entry: any = {
-        date: date.toLocaleDateString(),
-      };
+      if (!prices1 || !prices2) return;
       
-      topCoins.forEach(coin => {
-        const symbol = coin.symbol.toUpperCase();
-        
-        // Start with the current price
-        let basePrice = coin.price;
-        
-        // Adjust for historical data (simplified model)
-        // In real app, this would be actual historical data
-        if (i === 0) {
-          // Current price
-          entry[symbol] = basePrice;
-        } else {
-          // Generate price variations based on trends
-          // This creates somewhat correlated price movements for visualization
-          const trendFactor = coin.changePercent > 0 ? 1 : -1;
-          const dayVariation = (Math.random() * 0.03 - 0.01) + (0.005 * trendFactor);
-          
-          // Bitcoin influences other coins (simplified correlation model)
-          const btcEffect = symbol === 'BTC' ? 0 : (Math.random() * 0.01) * (topCoins[0].changePercent > 0 ? 1 : -1);
-          
-          // Calculate historical price
-          const historicalPrice = basePrice / (1 + ((days - i) * (dayVariation + btcEffect) / days));
-          entry[symbol] = parseFloat(historicalPrice.toFixed(2));
-        }
-      });
+      const data = [];
       
-      result.push(entry);
+      // Normalize the price series for better visualization
+      const maxPrice1 = Math.max(...prices1);
+      const maxPrice2 = Math.max(...prices2);
+      
+      for (let i = 0; i < Math.min(prices1.length, prices2.length); i++) {
+        data.push({
+          day: i + 1,
+          [coin1.symbol]: prices1[i] / maxPrice1 * 100, // Scale to percentage of max
+          [coin2.symbol]: prices2[i] / maxPrice2 * 100  // Scale to percentage of max
+        });
+      }
+      
+      setChartData(data);
     }
-    
-    return result;
-  };
-  
-  const historicalData = generateHistoricalData();
-  
-  // Generate normalized data for better visualization
-  const normalizeData = (data: any[]) => {
-    const symbols = Object.keys(data[0]).filter(key => key !== 'date');
-    const firstValues: {[key: string]: number} = {};
-    
-    // Get the first value for each coin
-    symbols.forEach(symbol => {
-      firstValues[symbol] = data[0][symbol];
-    });
-    
-    // Normalize all values as percentage change from first day
-    return data.map(day => {
-      const normalizedDay: any = { date: day.date };
-      
-      symbols.forEach(symbol => {
-        normalizedDay[symbol] = ((day[symbol] / firstValues[symbol]) - 1) * 100;
-      });
-      
-      return normalizedDay;
-    });
-  };
-  
-  const normalizedData = normalizeData(historicalData);
-  
-  // Get a color for each coin
-  const getColor = (index: number) => {
-    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE'];
-    return colors[index % colors.length];
-  };
+  }, [coin1, coin2, historicalPrices]);
   
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={normalizedData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-          <XAxis 
-            dataKey="date" 
-            minTickGap={20} 
-          />
-          <YAxis 
-            label={{ value: '% Change', angle: -90, position: 'insideLeft', dx: -10 }}
-            tickFormatter={(value) => `${value.toFixed(0)}%`}
-          />
-          <Tooltip 
-            formatter={(value: any) => [`${value.toFixed(2)}%`, '']}
-            labelFormatter={(label) => `Date: ${label}`}
-          />
-          <Legend />
-          {data.slice(0, 5).map((coin, index) => (
-            <Line
-              key={coin.symbol}
-              type="monotone"
-              dataKey={coin.symbol.toUpperCase()}
-              name={`${coin.name} (${coin.symbol.toUpperCase()})`}
-              stroke={getColor(index)}
-              dot={false}
-              activeDot={{ r: 8 }}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">
+            Price Correlation: {coin1.symbol.toUpperCase()} vs {coin2.symbol.toUpperCase()}
+          </CardTitle>
+          
+          <div className="text-sm font-medium">
+            Correlation: 
+            <span 
+              className={
+                correlation > 0.7 ? "text-green-500" :
+                correlation > 0.3 ? "text-blue-500" :
+                correlation > -0.3 ? "text-gray-500" :
+                correlation > -0.7 ? "text-amber-500" :
+                "text-red-500"
+              }
+            > 
+              {(correlation * 100).toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="day" 
+                label={{ value: 'Days', position: 'insideBottom', offset: -5 }} 
+              />
+              <YAxis label={{ value: 'Normalized Price (%)', angle: -90, position: 'insideLeft' }} />
+              <Tooltip 
+                formatter={(value: number) => [`${value.toFixed(2)}%`, '']} 
+                labelFormatter={(day) => `Day ${day}`}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey={coin1.symbol} 
+                stroke="#3b82f6" 
+                name={`${coin1.name} (${coin1.symbol.toUpperCase()})`} 
+                dot={false} 
+                strokeWidth={2}
+              />
+              <Line 
+                type="monotone" 
+                dataKey={coin2.symbol} 
+                stroke="#ef4444" 
+                name={`${coin2.name} (${coin2.symbol.toUpperCase()})`} 
+                dot={false} 
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

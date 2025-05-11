@@ -1,93 +1,129 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from "lucide-react";
-import CorrelationAnalysis from './CorrelationAnalysis';
-import CorrelationMatrix from './CorrelationMatrix';
-import PriceCorrelationChart from './PriceCorrelationChart';
-import { mockCryptoData } from './mockData';
 import { CryptoData } from '@/types/trading';
+import { mockCorrelationData, generateHistoricalPrices, generateCorrelationMatrix } from './mockData';
+import CorrelationMatrix from './CorrelationMatrix';
+import CorrelationHeatmap from './CorrelationHeatmap';
+import PriceCorrelationChart from './PriceCorrelationChart';
+import CorrelationAnalysis from './CorrelationAnalysis';
 
 const MarketCorrelations: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('scatter');
-  const [timeframe, setTimeframe] = useState<string>('7d');
-  const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
+  const [cryptoData] = useState<CryptoData[]>(mockCorrelationData);
+  const [selectedCoinId, setSelectedCoinId] = useState<string>('bitcoin');
+  const [comparedCoinId, setComparedCoinId] = useState<string>('ethereum');
+  const [historicalPrices, setHistoricalPrices] = useState<Record<string, number[]>>({});
+  const [correlationMatrix, setCorrelationMatrix] = useState<Record<string, Record<string, number>>>({});
+  const [activeTab, setActiveTab] = useState<string>('analysis');
   
   useEffect(() => {
-    // In a real app, this would fetch data from an API
-    // For now, we'll use mock data
-    const formattedData: CryptoData[] = mockCryptoData.map(coin => ({
-      id: coin.id,
-      symbol: coin.symbol,
-      name: coin.name,
-      image: coin.image,
-      price: coin.price,
-      priceChange: coin.priceChange,
-      changePercent: coin.changePercent,
-      priceChangePercentage: coin.changePercent, // Map to correct property
-      marketCap: coin.marketCap,
-      volume: coin.volume,
-      circulatingSupply: coin.circulatingSupply || 0,
-      rank: coin.rank
-    }));
+    const histPrices = generateHistoricalPrices(cryptoData, 30);
+    setHistoricalPrices(histPrices);
     
-    setCryptoData(formattedData);
-  }, [timeframe]);
+    const corrMatrix = generateCorrelationMatrix(histPrices);
+    setCorrelationMatrix(corrMatrix);
+  }, [cryptoData]);
+  
+  const handleSelectPair = (coin1: string, coin2: string) => {
+    setSelectedCoinId(coin1);
+    setComparedCoinId(coin2);
+    setActiveTab('chart');
+  };
+  
+  const selectedCoin = cryptoData.find(c => c.id === selectedCoinId);
+  const comparedCoin = cryptoData.find(c => c.id === comparedCoinId);
+  const correlation = correlationMatrix[selectedCoinId]?.[comparedCoinId] || 0;
+  
+  if (!selectedCoin || !comparedCoin) {
+    return <div>Loading correlation data...</div>;
+  }
   
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Link className="h-5 w-5" />
           Market Correlations
         </CardTitle>
-        <CardDescription>Analyze correlations between different markets</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between items-center mb-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-4 md:space-y-0">
             <TabsList>
-              <TabsTrigger value="scatter">Scatter Plot</TabsTrigger>
-              <TabsTrigger value="matrix">Correlation Matrix</TabsTrigger>
-              <TabsTrigger value="price">Price Correlation</TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
+              <TabsTrigger value="matrix">Matrix</TabsTrigger>
+              <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+              <TabsTrigger value="chart">Chart</TabsTrigger>
             </TabsList>
-          </Tabs>
+            
+            <div className="flex flex-row space-x-2">
+              <Select value={selectedCoinId} onValueChange={setSelectedCoinId}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Select Asset" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cryptoData.map(coin => (
+                    <SelectItem key={coin.id} value={coin.id}>
+                      {coin.symbol.toUpperCase()} - {coin.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {activeTab === 'chart' && (
+                <Select value={comparedCoinId} onValueChange={setComparedCoinId}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Compare with" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cryptoData
+                      .filter(coin => coin.id !== selectedCoinId)
+                      .map(coin => (
+                        <SelectItem key={coin.id} value={coin.id}>
+                          {coin.symbol.toUpperCase()} - {coin.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
           
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="24h">24 Hours</SelectItem>
-              <SelectItem value="7d">7 Days</SelectItem>
-              <SelectItem value="30d">30 Days</SelectItem>
-              <SelectItem value="90d">90 Days</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <TabsContent value="scatter" className="mt-0">
-          <CorrelationAnalysis data={cryptoData} />
-          <div className="text-xs text-muted-foreground text-center mt-4">
-            Scatter plot shows relationship between market cap and trading volume
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="matrix" className="mt-0">
-          <CorrelationMatrix data={cryptoData} />
-          <div className="text-xs text-muted-foreground text-center mt-4">
-            Correlation matrix shows price movement relationships between assets
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="price" className="mt-0">
-          <PriceCorrelationChart data={cryptoData} />
-          <div className="text-xs text-muted-foreground text-center mt-4">
-            Price correlation chart shows how prices move together over time
-          </div>
-        </TabsContent>
+          <TabsContent value="analysis">
+            <CorrelationAnalysis 
+              correlationMatrix={correlationMatrix} 
+              cryptoData={cryptoData} 
+              selectedCoinId={selectedCoinId}
+              onSelectPair={handleSelectPair}
+            />
+          </TabsContent>
+          
+          <TabsContent value="matrix">
+            <CorrelationMatrix 
+              correlationMatrix={correlationMatrix} 
+              cryptoData={cryptoData}
+              onSelectCell={handleSelectPair}
+            />
+          </TabsContent>
+          
+          <TabsContent value="heatmap">
+            <CorrelationHeatmap 
+              correlationMatrix={correlationMatrix} 
+              cryptoData={cryptoData}
+              onSelectPair={handleSelectPair}
+            />
+          </TabsContent>
+          
+          <TabsContent value="chart">
+            <PriceCorrelationChart 
+              coin1={selectedCoin} 
+              coin2={comparedCoin} 
+              historicalPrices={historicalPrices} 
+              correlation={correlation}
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
