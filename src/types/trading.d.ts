@@ -271,3 +271,58 @@ export interface CryptoData {
   marketCap?: number;
   volume?: number;
 }
+
+export interface StrategyParameter {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'number' | 'boolean' | 'string' | 'select' | 'range';
+  default: any;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: { value: string; label: string }[];
+}
+
+export interface BacktestResult {
+  profit: number;
+  profitPercentage: number;
+  drawdown: number;
+  maxDrawdown: number;
+  winRate: number;
+  winningTrades: number;
+  losingTrades: number;
+  totalTrades: number;
+  sharpeRatio: number;
+  profitFactor: number;
+  trades: {
+    id: string;
+    date: string;
+    type: 'buy' | 'sell';
+    price: number;
+    amount: number;
+    profit: number;
+  }[];
+}
+
+export interface OptimizationResult {
+  improvement: number;
+  parameterValues: Record<string, any>;
+  performance: {
+    profit: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+    winRate: number;
+  };
+}
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  size: WidgetSize;
+  customContent?: string;
+}
+
+export type WidgetType = 'price-chart' | 'portfolio-summary' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis' | 'custom';
+export type WidgetSize = 'small' | 'medium' | 'large';

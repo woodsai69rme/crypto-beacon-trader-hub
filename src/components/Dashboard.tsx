@@ -8,19 +8,56 @@ import AnalysisDashboard from './AnalysisDashboard';
 import UtilityDashboard from './UtilityDashboard';
 import LiveAnalyticsDashboard from './analytics/LiveAnalyticsDashboard';
 import RealTrading from './trading/RealTrading';
+import CustomizableDashboard from './dashboard/CustomizableDashboard';
+import Documentation from './documentation/Documentation';
+import StrategyBuilder from './trading/StrategyBuilder';
+import { Bot, Book, Code, Layout, LineChart, BarChart4, Table2, Gauge, Wallet, Globe } from 'lucide-react';
 
 const Dashboard = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="market" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="market">Market</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-          <TabsTrigger value="trading">Trading</TabsTrigger>
-          <TabsTrigger value="realtrading">Real Trading</TabsTrigger>
-          <TabsTrigger value="analysis">Analysis</TabsTrigger>
-          <TabsTrigger value="tools">Tools</TabsTrigger>
-          <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10">
+          <TabsTrigger value="market" className="flex items-center gap-1">
+            <Globe className="h-4 w-4" />
+            <span className="hidden md:inline">Market</span>
+          </TabsTrigger>
+          <TabsTrigger value="portfolio" className="flex items-center gap-1">
+            <Wallet className="h-4 w-4" />
+            <span className="hidden md:inline">Portfolio</span>
+          </TabsTrigger>
+          <TabsTrigger value="trading" className="flex items-center gap-1">
+            <Table2 className="h-4 w-4" />
+            <span className="hidden md:inline">Trading</span>
+          </TabsTrigger>
+          <TabsTrigger value="realtrading" className="flex items-center gap-1">
+            <LineChart className="h-4 w-4" />
+            <span className="hidden md:inline">Real Trading</span>
+          </TabsTrigger>
+          <TabsTrigger value="analysis" className="flex items-center gap-1">
+            <BarChart4 className="h-4 w-4" />
+            <span className="hidden md:inline">Analysis</span>
+          </TabsTrigger>
+          <TabsTrigger value="tools" className="flex items-center gap-1">
+            <Gauge className="h-4 w-4" />
+            <span className="hidden md:inline">Tools</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-1">
+            <LineChart className="h-4 w-4" />
+            <span className="hidden md:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="strategy" className="flex items-center gap-1">
+            <Bot className="h-4 w-4" />
+            <span className="hidden md:inline">AI Strategy</span>
+          </TabsTrigger>
+          <TabsTrigger value="customize" className="flex items-center gap-1">
+            <Layout className="h-4 w-4" />
+            <span className="hidden md:inline">Customize</span>
+          </TabsTrigger>
+          <TabsTrigger value="docs" className="flex items-center gap-1">
+            <Book className="h-4 w-4" />
+            <span className="hidden md:inline">Docs</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="market" className="p-0 border-none">
@@ -51,6 +88,18 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 gap-6">
             <LiveAnalyticsDashboard showDetailedView={true} />
           </div>
+        </TabsContent>
+        
+        <TabsContent value="strategy" className="p-0 border-none">
+          <StrategyBuilder />
+        </TabsContent>
+        
+        <TabsContent value="customize" className="p-0 border-none">
+          <CustomizableDashboard />
+        </TabsContent>
+        
+        <TabsContent value="docs" className="p-0 border-none">
+          <Documentation />
         </TabsContent>
       </Tabs>
     </div>
