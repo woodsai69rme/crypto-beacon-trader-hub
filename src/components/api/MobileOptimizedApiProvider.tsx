@@ -1,129 +1,136 @@
-
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ApiProvider } from '@/types/trading';
-import { CheckCircle2, ExternalLink, Info, Key, Lock, Shield, XCircle } from 'lucide-react';
 
 interface MobileOptimizedApiProviderProps {
   provider: ApiProvider;
-  onToggle: (id: string, enabled: boolean) => void;
+  onToggle: (providerId: string, isActive: boolean) => void;
+  onEdit: (providerId: string) => void;
 }
 
 const MobileOptimizedApiProvider: React.FC<MobileOptimizedApiProviderProps> = ({
   provider,
-  onToggle
+  onToggle,
+  onEdit
 }) => {
-  const handleToggle = () => {
-    onToggle(provider.id, !(provider.enabled ?? false));
+  const usagePercentage = (provider.currentUsage / provider.maxUsage) * 100;
+  const usageStatus = usagePercentage > 90 
+    ? 'danger' 
+    : usagePercentage > 70 
+      ? 'warning' 
+      : 'success';
+  
+  // Formats reset time to be more readable
+  const formatResetTime = (resetTime: string) => {
+    try {
+      const date = new Date(resetTime);
+      const now = new Date();
+      
+      // If it's today, just show the time
+      if (date.toDateString() === now.toDateString()) {
+        return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+      
+      // If it's tomorrow
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      if (date.toDateString() === tomorrow.toDateString()) {
+        return `Tomorrow at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+      
+      // Otherwise show date and time
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return resetTime;
+    }
   };
   
-  // Calculate appropriate badge color based on provider status
-  const getBadgeVariant = () => {
-    if (provider.enabled) return "default";
-    return "secondary";
-  };
+  const isAuthenticated = provider.requiresAuth;
   
   return (
-    <Card className="w-full">
+    <Card className={`border-l-4 ${
+      !provider.isActive ? 'border-l-gray-300' : 
+      provider.status === 'online' ? 'border-l-green-500' : 
+      provider.status === 'degraded' ? 'border-l-yellow-500' : 
+      'border-l-red-500'
+    }`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <CardTitle className="text-lg font-semibold">{provider.name}</CardTitle>
-          </div>
-          <Badge variant={getBadgeVariant()}>
-            {provider.enabled ? "Enabled" : "Disabled"}
-          </Badge>
+          <CardTitle className="text-base font-medium flex items-center">
+            {provider.name}
+            <Badge 
+              variant={provider.status === 'online' ? 'outline' : 'destructive'} 
+              className="ml-2 text-xs"
+            >
+              {provider.status}
+            </Badge>
+          </CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => onToggle(provider.id, !provider.isActive)}
+            className={provider.isActive ? "text-green-600" : "text-gray-400"}
+          >
+            {provider.isActive ? "Enabled" : "Disabled"}
+          </Button>
         </div>
-        <CardDescription className="line-clamp-2">
-          {provider.description}
-        </CardDescription>
       </CardHeader>
       
-      <CardContent className="pb-2">
-        <div className="grid grid-cols-1 gap-3 text-sm">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Shield className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>Authentication</span>
-            </div>
-            {provider.requiresAuth || provider.authRequired ? (
-              <div className="flex items-center text-amber-500">
-                <Lock className="h-4 w-4 mr-1" />
-                <span>Required</span>
-              </div>
-            ) : (
-              <div className="flex items-center text-green-500">
-                <CheckCircle2 className="h-4 w-4 mr-1" />
-                <span>Optional</span>
-              </div>
-            )}
+      <CardContent className="space-y-4 pt-0">
+        <div className="flex justify-between items-center text-xs text-muted-foreground">
+          <div>
+            <span>Endpoint: </span>
+            <code className="bg-muted px-1 rounded text-xs">{provider.endpoint}</code>
           </div>
           
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Key className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>API Key Status</span>
-            </div>
-            {provider.apiKey ? (
-              <div className="flex items-center text-green-500">
-                <CheckCircle2 className="h-4 w-4 mr-1" />
-                <span>Configured</span>
-              </div>
-            ) : (
-              <div className="flex items-center text-amber-500">
-                <Info className="h-4 w-4 mr-1" />
-                <span>Not Set</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Info className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>Endpoints</span>
-            </div>
-            <span>{provider.endpoints?.length || 0} available</span>
-          </div>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex justify-between pt-2">
-        <div className="flex items-center space-x-2 text-sm">
-          <Switch 
-            checked={provider.enabled ?? false}
-            onCheckedChange={handleToggle}
-            aria-label={`${provider.enabled ? 'Disable' : 'Enable'} ${provider.name}`}
-          />
-          <span>Enable API</span>
+          {isAuthenticated && (
+            <Badge variant="secondary" className="text-xs">
+              Auth Required
+            </Badge>
+          )}
         </div>
         
-        <div className="flex space-x-2">
-          {provider.website && (
-            <Button variant="outline" size="sm" asChild className="h-8">
-              <a href={provider.website} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                Site
-              </a>
-            </Button>
-          )}
+        <div>
+          <div className="flex justify-between text-xs mb-1">
+            <span>API Usage</span>
+            <span className={`
+              ${usageStatus === 'danger' ? 'text-red-600' : 
+                usageStatus === 'warning' ? 'text-yellow-600' : 
+                'text-green-600'}
+            `}>
+              {provider.currentUsage}/{provider.maxUsage} requests
+            </span>
+          </div>
           
-          {provider.docs && (
-            <Button variant="outline" size="sm" asChild className="h-8">
-              <a href={provider.docs} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                Docs
-              </a>
-            </Button>
-          )}
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className={`h-full rounded-full ${
+                usageStatus === 'danger' ? 'bg-red-600' : 
+                usageStatus === 'warning' ? 'bg-yellow-500' : 
+                'bg-green-600'
+              }`}
+              style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+            />
+          </div>
           
-          <Button variant="default" size="sm" className="h-8">
+          <div className="text-xs text-muted-foreground mt-1">
+            Resets: {formatResetTime(provider.resetTime)}
+          </div>
+        </div>
+        
+        <div className="pt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full text-xs"
+            onClick={() => onEdit(provider.id)}
+          >
             Configure
           </Button>
         </div>
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 };

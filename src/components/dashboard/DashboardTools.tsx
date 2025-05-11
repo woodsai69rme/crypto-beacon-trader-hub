@@ -1,254 +1,323 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings2, BellRing, Eye, Key } from 'lucide-react';
-import { SettingsComponentProps, SettingsFormValues } from '@/components/settings/types';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
-const DashboardTools: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("notifications");
-  
-  const handleSaveSettings = (values: Partial<SettingsFormValues>) => {
-    console.log("Saving settings:", values);
-    // Here you would typically save these settings to a user's profile
-  };
-  
+// Add useForm hook for TickerSettings
+import { useForm } from "react-hook-form";
+import { SettingsFormValues } from "@/types/trading";
+
+const TickerSettings: React.FC<{
+  form: any;
+  onSave: (values: Partial<SettingsFormValues>) => void;
+  defaultValues: Partial<SettingsFormValues>;
+}> = ({ form, onSave, defaultValues }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5" />
-          Dashboard Tools
-        </CardTitle>
+        <CardTitle>Ticker Settings</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="notifications">
-              <BellRing className="h-4 w-4 mr-2" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="api-keys">
-              <Key className="h-4 w-4 mr-2" />
-              API Keys
-            </TabsTrigger>
-            <TabsTrigger value="appearance">
-              <Eye className="h-4 w-4 mr-2" />
-              Appearance
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="notifications">
-            <NotificationSettings 
-              onSave={handleSaveSettings}
-              defaultValues={{
-                notifications: {
-                  email: true,
-                  push: true,
-                  trades: true,
-                  pricing: true,
-                  news: false
-                }
-              }}
+      
+      <CardContent className="space-y-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="ticker.enabled"
+              defaultValue={defaultValues?.ticker?.enabled ?? true}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Enable Ticker</FormLabel>
+                    <FormDescription>Show real-time prices in a ticker.</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-          </TabsContent>
-          
-          <TabsContent value="api-keys">
-            <ApiKeySettings />
-          </TabsContent>
-          
-          <TabsContent value="appearance">
-            <AppearanceSettings />
-          </TabsContent>
-        </Tabs>
+            
+            <FormField
+              control={form.control}
+              name="ticker.position"
+              defaultValue={defaultValues?.ticker?.position ?? "top"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ticker Position</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a position" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="top">Top</SelectItem>
+                      <SelectItem value="bottom">Bottom</SelectItem>
+                      <SelectItem value="both">Both</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="ticker.speed"
+              defaultValue={defaultValues?.ticker?.speed ?? 50}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ticker Speed</FormLabel>
+                  <FormControl>
+                    <Slider
+                      defaultValue={[field.value]}
+                      max={100}
+                      step={1}
+                      onValueChange={(value) => field.onChange(value[0])}
+                    />
+                  </FormControl>
+                  <FormDescription>Adjust the speed of the ticker.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="ticker.direction"
+              defaultValue={defaultValues?.ticker?.direction ?? "left"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ticker Direction</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a direction" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="left">Left</SelectItem>
+                      <SelectItem value="right">Right</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="ticker.autoPause"
+              defaultValue={defaultValues?.ticker?.autoPause ?? false}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Auto Pause on Hover</FormLabel>
+                    <FormDescription>Pause the ticker when the mouse hovers over it.</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit">Save Settings</Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
 };
 
-const NotificationSettings: React.FC<SettingsComponentProps> = ({ onSave, defaultValues }) => {
-  const [notifications, setNotifications] = useState(defaultValues?.notifications || {
-    email: true,
-    push: true,
-    trades: true,
-    pricing: true,
-    news: false
+const SidebarSettings: React.FC<{
+  form: any;
+  onSave: (values: Partial<SettingsFormValues>) => void;
+  defaultValues: Partial<SettingsFormValues>;
+}> = ({ form, onSave, defaultValues }) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Sidebar Settings</CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="sidebar.enabled"
+              defaultValue={defaultValues?.sidebar?.enabled ?? true}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Enable Sidebar</FormLabel>
+                    <FormDescription>Show or hide the sidebar.</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="sidebar.position"
+              defaultValue={defaultValues?.sidebar?.position ?? "left"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sidebar Position</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a position" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="left">Left</SelectItem>
+                      <SelectItem value="right">Right</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="sidebar.collapsed"
+              defaultValue={defaultValues?.sidebar?.collapsed ?? false}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Start Collapsed</FormLabel>
+                    <FormDescription>Start the sidebar in a collapsed state.</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="sidebar.autoHide"
+              defaultValue={defaultValues?.sidebar?.autoHide ?? false}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Auto Hide on Mobile</FormLabel>
+                    <FormDescription>Automatically hide the sidebar on mobile devices.</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit">Save Settings</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+};
+
+const DashboardTools: React.FC = () => {
+  // Create a form for ticker settings
+  const tickerSettingsForm = useForm<SettingsFormValues>({
+    defaultValues: {
+      notifications: {
+        email: true,
+        push: true,
+        trades: true,
+        pricing: true,
+        news: false,
+      },
+      tradingPreferences: {
+        autoConfirm: false,
+        showAdvanced: true,
+        defaultAsset: "BTC"
+      }
+    }
   });
   
-  const handleToggle = (key: string, value: boolean) => {
-    const updated = { ...notifications, [key]: value };
-    setNotifications(updated);
-    
-    if (onSave) {
-      onSave({ notifications: updated });
+  const sidebarSettingsForm = useForm<SettingsFormValues>({
+    defaultValues: {
+      sidebar: {
+        enabled: true,
+        position: "left",
+        collapsed: false,
+        autoHide: true,
+      }
     }
-  };
+  });
   
   return (
-    <div className="space-y-4">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="email">Email Notifications</Label>
-            <div className="text-xs text-muted-foreground">
-              Receive important updates via email
-            </div>
-          </div>
-          <Switch 
-            id="email"
-            checked={notifications.email}
-            onCheckedChange={(checked) => handleToggle('email', checked)}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="push">Push Notifications</Label>
-            <div className="text-xs text-muted-foreground">
-              Receive alerts on your device
-            </div>
-          </div>
-          <Switch 
-            id="push"
-            checked={notifications.push}
-            onCheckedChange={(checked) => handleToggle('push', checked)}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="trades">Trade Alerts</Label>
-            <div className="text-xs text-muted-foreground">
-              Get notified about trade execution and orders
-            </div>
-          </div>
-          <Switch 
-            id="trades"
-            checked={notifications.trades}
-            onCheckedChange={(checked) => handleToggle('trades', checked)}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="pricing">Price Alerts</Label>
-            <div className="text-xs text-muted-foreground">
-              Receive alerts when prices reach your targets
-            </div>
-          </div>
-          <Switch 
-            id="pricing"
-            checked={notifications.pricing}
-            onCheckedChange={(checked) => handleToggle('pricing', checked)}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="news">News Alerts</Label>
-            <div className="text-xs text-muted-foreground">
-              Get notifications about important market news
-            </div>
-          </div>
-          <Switch 
-            id="news"
-            checked={notifications.news}
-            onCheckedChange={(checked) => handleToggle('news', checked)}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ApiKeySettings: React.FC = () => {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="apiKey">CoinGecko API Key</Label>
-        <div className="flex">
-          <Input id="apiKey" type="password" value="••••••••••••••••" readOnly className="flex-1" />
-          <Button variant="outline" className="ml-2">Update</Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Last updated: 3 days ago
-        </p>
-      </div>
+    <div className="space-y-6">
+      <TickerSettings 
+        form={tickerSettingsForm}
+        onSave={(values) => {
+          console.log("Ticker settings updated", values);
+          toast({
+            title: "Settings Updated",
+            description: "Ticker settings have been updated successfully"
+          });
+        }} 
+        defaultValues={{
+          notifications: {
+            email: true,
+            push: true,
+            trades: true,
+            pricing: true,
+            news: false,
+          }
+        }}
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="apiKey2">Binance API Key</Label>
-        <div className="flex">
-          <Input id="apiKey2" type="password" value="••••••••••••••••" readOnly className="flex-1" />
-          <Button variant="outline" className="ml-2">Update</Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Last updated: 1 week ago
-        </p>
-      </div>
-      
-      <div className="mt-4">
-        <Button variant="outline" className="w-full">
-          <Key className="h-4 w-4 mr-2" />
-          Add New API Key
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const AppearanceSettings: React.FC = () => {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Theme</Label>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="border rounded p-3 cursor-pointer hover:bg-accent flex flex-col items-center">
-            <div className="w-full h-10 bg-background border rounded mb-2"></div>
-            <span className="text-xs">Light</span>
-          </div>
-          <div className="border rounded p-3 cursor-pointer hover:bg-accent flex flex-col items-center">
-            <div className="w-full h-10 bg-slate-800 border rounded mb-2"></div>
-            <span className="text-xs">Dark</span>
-          </div>
-          <div className="border rounded p-3 cursor-pointer hover:bg-accent flex flex-col items-center">
-            <div className="w-full h-10 bg-gradient-to-r from-white to-slate-800 border rounded mb-2"></div>
-            <span className="text-xs">System</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Dashboard Layout</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="border rounded p-3 cursor-pointer hover:bg-accent flex flex-col items-center">
-            <div className="w-full h-10 flex mb-2">
-              <div className="flex-1 bg-muted rounded-l"></div>
-              <div className="flex-[3] bg-slate-100 dark:bg-slate-800 rounded-r"></div>
-            </div>
-            <span className="text-xs">Sidebar Left</span>
-          </div>
-          <div className="border rounded p-3 cursor-pointer hover:bg-accent flex flex-col items-center">
-            <div className="w-full h-10 flex mb-2">
-              <div className="flex-[3] bg-slate-100 dark:bg-slate-800 rounded-l"></div>
-              <div className="flex-1 bg-muted rounded-r"></div>
-            </div>
-            <span className="text-xs">Sidebar Right</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Font Size</Label>
-        <div className="flex items-center">
-          <span className="text-xs mr-2">A</span>
-          <Input type="range" min="80" max="120" defaultValue="100" className="w-full" />
-          <span className="text-base ml-2">A</span>
-        </div>
-      </div>
+      <SidebarSettings
+        form={sidebarSettingsForm}
+        onSave={(values) => {
+          console.log("Sidebar settings updated", values);
+          toast({
+            title: "Settings Updated",
+            description: "Sidebar settings have been updated successfully"
+          });
+        }}
+        defaultValues={{
+          sidebar: {
+            enabled: true,
+            position: "left",
+            collapsed: false,
+            autoHide: true,
+          }
+        }}
+      />
     </div>
   );
 };

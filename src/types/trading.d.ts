@@ -1,3 +1,4 @@
+
 export interface CoinOption {
   id: string;
   name: string;
@@ -5,9 +6,9 @@ export interface CoinOption {
   price: number;
   priceChange: number;
   changePercent: number; // Added this missing property
-  image: string;
-  volume: number;
-  marketCap: number;
+  image?: string;
+  volume?: number;
+  marketCap?: number;
   value: string;
   label: string;
 }
@@ -23,9 +24,11 @@ export interface Trade {
   totalValue: number;
   total: number; // Added for compatibility
   timestamp: string;
-  currency: string;
+  currency: SupportedCurrency;
   botGenerated?: boolean;
   strategyId?: string;
+  fees?: number; // Added fees field
+  coin?: string; // Added coin field
 }
 
 export interface TradingAccount {
@@ -33,10 +36,22 @@ export interface TradingAccount {
   name: string;
   balance: number;
   initialBalance: number;
-  currency: string;
+  currency: SupportedCurrency;
   trades: Trade[];
   createdAt: string;
   lastModified?: string;
+  provider?: string; // Added provider field
+  isActive?: boolean; // Added isActive field
+}
+
+export interface AccountWithBotsEnabled {
+  id: string; // Explicitly defining id for BotAccountConnector
+  name: string; // Explicitly defining name field
+  balance: number; // Explicitly defining balance field
+  isActive: boolean; // Explicitly defining isActive field
+  provider: string; // Explicitly defining provider field
+  currency: SupportedCurrency;
+  trades: Trade[];
 }
 
 export interface TaxHarvestTrade {
@@ -53,6 +68,18 @@ export interface TaxHarvestTrade {
   profitLoss: number;
 }
 
+export interface ATOTaxCalculation {
+  financialYear: string;
+  income: number;
+  capitalGains: number;
+  shortTermGains: number;
+  longTermGains: number;
+  discountedGains: number;
+  taxOwed: number;
+  taxRate: number;
+  transactions: TaxHarvestTrade[];
+}
+
 export interface TradingFormProps {
   onSubmit: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
   availableBalance: number;
@@ -60,55 +87,64 @@ export interface TradingFormProps {
 }
 
 export interface RealTimePriceChartProps {
-  coinId: string;
+  coinId?: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins?: CoinOption[];
   timeframe?: string;
   height?: number | string;
   showControls?: boolean;
+  showVolume?: boolean;
 }
 
 export interface QuantitativeAnalysisProps {
-  coinId: string;
+  symbol?: string;
   timeframe?: string;
+  depth?: number;
+  onResultsCalculated?: (results: any) => void;
 }
 
 export interface ExtendedTradingTimeframe {
   id: string;
   label: string;
   value: string;
-  duration: number;
-  candleCount: number;
   description: string;
+  candleCount?: number;
+  defaultIndicators?: string[];
 }
 
 export interface TradingSignal {
   id: string;
   type: 'buy' | 'sell' | 'hold';
   coinId: string;
-  coinName: string;
-  coinSymbol: string;
   price: number;
   confidence: number;
-  description: string;
+  description?: string;
   timestamp: string;
   source: string;
+  reason?: string;
   parameters?: Record<string, any>;
 }
 
 export interface StrategyShare {
   id: string;
-  name: string;
-  description: string;
+  strategyId: string;
+  strategyName: string;
   userId: string;
   userName: string;
+  description: string;
   performance: {
-    roi: number;
     winRate: number;
-    sharpeRatio: number;
+    returns: number;
+    trades: number;
   };
   popularity: number;
   timestamp: string;
   tags: string[];
+  likes: number;
 }
+
+export type OrderType = 'market' | 'limit' | 'stop' | 'stop_limit' | 'trailing_stop';
 
 export interface LocalModel {
   id: string;
@@ -133,9 +169,40 @@ export interface ModelListProps {
   onDisconnect?: (modelId: string) => void;
 }
 
+// Renaming AITradingStrategy to TradingStrategy to match existing usages
+export interface TradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
+  timeframe: string;
+  parameters: any;
+  riskLevel?: string;
+  indicators?: string[];
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    sharpeRatio?: number;
+    trades?: number;
+    profitLoss?: number;
+    drawdown?: number;
+    returns?: number;
+  };
+  creator?: string;
+  tags?: string[];
+}
+
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
 // Adding missing interfaces for settings components
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
+  onSave?: (values: Partial<SettingsFormValues>) => void;
+  defaultValues?: Partial<SettingsFormValues>;
 }
 
 export interface SettingsFormValues {
@@ -144,6 +211,7 @@ export interface SettingsFormValues {
   email?: string;
   theme?: string;
   bio?: string;
+  language?: string;
   notifications: {
     email: boolean;
     push: boolean;
@@ -174,8 +242,22 @@ export interface SettingsFormValues {
     animationsEnabled: boolean;
     highContrastMode: boolean;
   };
+  ticker?: {
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
+  };
+  sidebar?: {
+    enabled: boolean;
+    position: string;
+    collapsed: boolean;
+    autoHide: boolean;
+  };
 }
 
+// Adding missing interfaces for LiveAnalyticsDashboard
 export interface LiveAnalyticsDashboardProps {
   initialCoinId?: string;
   refreshInterval?: number;
@@ -211,6 +293,7 @@ export interface ApiProvider {
   defaultHeaders?: Record<string, string>;
   enabled?: boolean;
   requiresAuth?: boolean;
+  authRequired?: boolean; // Adding missing authRequired property
 }
 
 export interface ApiEndpoint {
@@ -326,3 +409,7 @@ export interface Widget {
 
 export type WidgetType = 'price-chart' | 'portfolio-summary' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis' | 'custom';
 export type WidgetSize = 'small' | 'medium' | 'large';
+
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
+
+import { UseFormReturn } from "react-hook-form";

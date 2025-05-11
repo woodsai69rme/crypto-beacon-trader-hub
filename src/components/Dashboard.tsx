@@ -9,8 +9,6 @@ import UtilityDashboard from './UtilityDashboard';
 import LiveAnalyticsDashboard from './analytics/LiveAnalyticsDashboard';
 import RealTrading from './trading/RealTrading';
 import CustomizableDashboard from './dashboard/CustomizableDashboard';
-import Documentation from './documentation/Documentation';
-import StrategyBuilder from './trading/StrategyBuilder';
 import { Bot, Book, Code, Layout, LineChart, BarChart4, Table2, Gauge, Wallet, Globe } from 'lucide-react';
 
 const Dashboard = () => {
@@ -45,10 +43,6 @@ const Dashboard = () => {
           <TabsTrigger value="analytics" className="flex items-center gap-1">
             <LineChart className="h-4 w-4" />
             <span className="hidden md:inline">Analytics</span>
-          </TabsTrigger>
-          <TabsTrigger value="strategy" className="flex items-center gap-1">
-            <Bot className="h-4 w-4" />
-            <span className="hidden md:inline">AI Strategy</span>
           </TabsTrigger>
           <TabsTrigger value="customize" className="flex items-center gap-1">
             <Layout className="h-4 w-4" />
@@ -90,16 +84,17 @@ const Dashboard = () => {
           </div>
         </TabsContent>
         
-        <TabsContent value="strategy" className="p-0 border-none">
-          <StrategyBuilder />
-        </TabsContent>
-        
         <TabsContent value="customize" className="p-0 border-none">
           <CustomizableDashboard />
         </TabsContent>
         
         <TabsContent value="docs" className="p-0 border-none">
-          <Documentation />
+          <div className="p-4 text-center">
+            <h2 className="text-2xl font-bold mb-4">Documentation</h2>
+            <p className="text-muted-foreground">
+              Documentation section is currently under construction. Check back soon for detailed guides and API references.
+            </p>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

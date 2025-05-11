@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LocalModel } from "./model-trading/types";
+import { LocalModel } from '@/types/trading';
 import ModelConnectionTab from "./model-trading/ModelConnectionTab";
 import ModelGenerationTab from "./model-trading/ModelGenerationTab";
 import ModelRunningTab from "./model-trading/ModelRunningTab";

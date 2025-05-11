@@ -1,186 +1,320 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { ArrowUpDown } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { TradeOrder, OrderType } from '@/types/trading';
+import { toast } from "@/components/ui/use-toast";
 
-interface FakeTradingFormProps {
-  advancedMode?: boolean;
-}
+const formSchema = z.object({
+  orderType: z.enum(['market', 'limit', 'stop', 'stop_limit', 'trailing_stop']),
+  side: z.enum(['buy', 'sell']),
+  amount: z.number().min(0.00000001, { message: "Amount must be greater than 0" }),
+  price: z.number().min(0.00000001, { message: "Price must be greater than 0" }),
+  limitPrice: z.number().optional(),
+  stopPrice: z.number().optional(),
+  trailingAmount: z.number().optional(),
+});
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ advancedMode = false }) => {
-  const { toast } = useToast();
-  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
-  const [orderSide, setOrderSide] = useState<'buy' | 'sell'>('buy');
-  const [amount, setAmount] = useState<string>('');
-  const [price, setPrice] = useState<string>('');
-  const [stopPrice, setStopPrice] = useState<string>('');
-  const [leverage, setLeverage] = useState<string>('1');
-  const [currentPrice] = useState<number>(61245.32);
+const FakeTradingForm: React.FC<{ advancedMode?: boolean }> = ({ advancedMode }) => {
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("USD");
+  const [isPercentage, setIsPercentage] = useState<boolean>(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    toast({
-      title: `${orderSide.toUpperCase()} order placed`,
-      description: `${orderType.toUpperCase()} order for ${amount} BTC at ${orderType === 'market' ? 'market price' : `$${price}`}`,
-      variant: orderSide === 'buy' ? 'default' : 'destructive',
-    });
-    
-    // Reset form
-    setAmount('');
-    setPrice('');
-    setStopPrice('');
-  };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      orderType: "market",
+      side: "buy",
+      amount: 0,
+      price: 0,
+      limitPrice: 0,
+      stopPrice: 0,
+      trailingAmount: 0,
+    },
+  });
+  
+  const { watch, setValue } = form;
+  const orderType = watch("orderType");
+  const side = watch("side");
+  const amount = watch("amount");
+  const price = watch("price");
   
   const calculateTotal = () => {
-    const amountNum = parseFloat(amount) || 0;
-    const priceNum = orderType === 'market' ? currentPrice : (parseFloat(price) || 0);
-    return (amountNum * priceNum).toFixed(2);
+    const total = amount * price;
+    return total.toFixed(2);
   };
   
-  const handlePercentageClick = (percentage: number) => {
-    // Simulate having 1 BTC available
-    const maxAmount = orderSide === 'buy' ? 100000 / currentPrice : 1;
-    setAmount((maxAmount * percentage / 100).toFixed(4));
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const newOrder: TradeOrder = {
+      id: `order-${Date.now()}`,
+      type: values.orderType,
+      side: values.side,
+      coinId: "bitcoin",
+      symbol: "BTC",
+      amount: values.amount,
+      price: values.price,
+      total: amount * price,
+      timestamp: new Date(),
+      status: "open",
+    };
+    
+    console.log(newOrder);
+    
+    toast({
+      title: "Order Submitted",
+      description: `Your ${values.side} order for ${values.amount} BTC at ${values.price} ${selectedCurrency} has been placed.`,
+    });
   };
+
+  // Fix the order type comparison issue by updating the OrderType type and using proper comparison
+const renderOrderTypeSpecificFields = () => {
+  if (orderType === "limit") {
+    // Limit order fields
+    return (
+      <div className="space-y-4 mt-4">
+        <FormField
+          control={form.control}
+          name="limitPrice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Limit Price ({selectedCurrency})</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="0.00" 
+                  {...field} 
+                  onChange={(e) => {
+                    field.onChange(parseFloat(e.target.value));
+                    calculateTotal();
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    );
+  } else if (orderType === "stop" || orderType === "stop_limit" || orderType === "trailing_stop") {
+    // Stop order fields
+    return (
+      <div className="space-y-4 mt-4">
+        <FormField
+          control={form.control}
+          name="stopPrice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Stop Price ({selectedCurrency})</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="0.00" 
+                  {...field} 
+                  onChange={(e) => {
+                    field.onChange(parseFloat(e.target.value));
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        {orderType === "stop_limit" && (
+          <FormField
+            control={form.control}
+            name="limitPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Limit Price ({selectedCurrency})</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(parseFloat(e.target.value));
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
+        {orderType === "trailing_stop" && (
+          <FormField
+            control={form.control}
+            name="trailingAmount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Trailing Amount ({isPercentage ? '%' : selectedCurrency})</FormLabel>
+                <div className="flex space-x-2">
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="0.00" 
+                      className="flex-1"
+                      {...field} 
+                      onChange={(e) => {
+                        field.onChange(parseFloat(e.target.value));
+                      }}
+                    />
+                  </FormControl>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsPercentage(!isPercentage)}
+                  >
+                    {isPercentage ? '%' : selectedCurrency}
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+      </div>
+    );
+  }
+  
+  return null; // Market orders have no extra fields
+};
   
   return (
-    <Card className="border shadow-sm">
-      <CardContent className="p-4">
-        <Tabs defaultValue={orderSide}>
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="buy" onClick={() => setOrderSide('buy')} className="data-[state=active]:bg-green-500 data-[state=active]:text-white">Buy BTC</TabsTrigger>
-            <TabsTrigger value="sell" onClick={() => setOrderSide('sell')} className="data-[state=active]:bg-red-500 data-[state=active]:text-white">Sell BTC</TabsTrigger>
-          </TabsList>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <Card className="w-full">
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Label>Order Type</Label>
-              <Select value={orderType} onValueChange={(value) => setOrderType(value as 'market' | 'limit')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Order Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="market">Market</SelectItem>
-                  <SelectItem value="limit">Limit</SelectItem>
-                  {advancedMode && <SelectItem value="stop">Stop</SelectItem>}
-                  {advancedMode && <SelectItem value="stop_limit">Stop Limit</SelectItem>}
-                  {advancedMode && <SelectItem value="trailing_stop">Trailing Stop</SelectItem>}
-                </SelectContent>
-              </Select>
+              <FormItem>
+                <FormLabel>Order Type</FormLabel>
+                <FormControl>
+                  <Select onValueChange={(value) => setValue("orderType", value as OrderType)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select order type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="market">Market Order</SelectItem>
+                      <SelectItem value="limit">Limit Order</SelectItem>
+                      <SelectItem value="stop">Stop Order</SelectItem>
+                      <SelectItem value="stop_limit">Stop Limit Order</SelectItem>
+                      <SelectItem value="trailing_stop">Trailing Stop Order</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </div>
             
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label>Amount (BTC)</Label>
-                <div className="flex gap-1">
-                  <Button type="button" size="sm" variant="outline" className="h-5 w-8 text-xs" onClick={() => handlePercentageClick(25)}>25%</Button>
-                  <Button type="button" size="sm" variant="outline" className="h-5 w-8 text-xs" onClick={() => handlePercentageClick(50)}>50%</Button>
-                  <Button type="button" size="sm" variant="outline" className="h-5 w-8 text-xs" onClick={() => handlePercentageClick(75)}>75%</Button>
-                  <Button type="button" size="sm" variant="outline" className="h-5 w-8 text-xs" onClick={() => handlePercentageClick(100)}>Max</Button>
+              <FormItem>
+                <FormLabel>Side</FormLabel>
+                <FormControl>
+                  <RadioGroup 
+                    onValueChange={(value) => setValue("side", value as "buy" | "sell")} 
+                    className="flex space-x-2"
+                  >
+                    <FormItem>
+                      <RadioGroupItem value="buy" id="side-buy" />
+                      <FormLabel htmlFor="side-buy">Buy</FormLabel>
+                    </FormItem>
+                    <FormItem>
+                      <RadioGroupItem value="sell" id="side-sell" />
+                      <FormLabel htmlFor="side-sell">Sell</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </div>
+            
+            <div className="space-y-2">
+              <FormItem>
+                <FormLabel>Amount (BTC)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    {...form.register("amount", {
+                      onChange: (e) => {
+                        setValue("amount", parseFloat(e.target.value));
+                        calculateTotal();
+                      },
+                    })}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </div>
+            
+            <div className="space-y-2">
+              <FormItem>
+                <FormLabel>Price ({selectedCurrency})</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    {...form.register("price", {
+                      onChange: (e) => {
+                        setValue("price", parseFloat(e.target.value));
+                        calculateTotal();
+                      },
+                    })}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </div>
+            
+            {renderOrderTypeSpecificFields()}
+            
+            <div className="space-y-2">
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <FormControl>
+                  <Select onValueChange={setSelectedCurrency}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </div>
+            
+            <div className="border-t pt-4 mt-4">
+              <div className="flex justify-between items-center">
+                <div className="text-sm font-medium">
+                  Total:
+                </div>
+                <div className="text-lg font-bold">
+                  {calculateTotal()} {selectedCurrency}
                 </div>
               </div>
-              <Input 
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                step="0.001"
-                min="0"
-                placeholder="0.00"
-                required
-              />
             </div>
             
-            {orderType !== 'market' && (
-              <div className="space-y-2">
-                <Label>Price (USD)</Label>
-                <Input 
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  step="0.01"
-                  min="0"
-                  placeholder={currentPrice.toString()}
-                  required={orderType !== 'market'}
-                />
-              </div>
-            )}
-            
-            {(advancedMode && (orderType === 'stop' || orderType === 'stop_limit' || orderType === 'trailing_stop')) && (
-              <div className="space-y-2">
-                <Label>Stop Price (USD)</Label>
-                <Input 
-                  type="number"
-                  value={stopPrice}
-                  onChange={(e) => setStopPrice(e.target.value)}
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  required={orderType === 'stop' || orderType === 'stop_limit'}
-                />
-              </div>
-            )}
-            
-            {advancedMode && (
-              <div className="space-y-2">
-                <Label>Leverage</Label>
-                <Select value={leverage} onValueChange={setLeverage}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Leverage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1x</SelectItem>
-                    <SelectItem value="2">2x</SelectItem>
-                    <SelectItem value="5">5x</SelectItem>
-                    <SelectItem value="10">10x</SelectItem>
-                    <SelectItem value="25">25x</SelectItem>
-                    <SelectItem value="50">50x</SelectItem>
-                    <SelectItem value="100">100x</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <div className="flex justify-between items-center text-sm">
-              <span>Available:</span>
-              <span className="font-medium">
-                {orderSide === 'buy' ? '$100,000.00' : '1.00000 BTC'}
-              </span>
-            </div>
-            
-            <div className="flex justify-between items-center text-sm">
-              <span>Total:</span>
-              <span className="font-medium">${calculateTotal()}</span>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className={`w-full ${orderSide === 'buy' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
-            >
-              {orderSide === 'buy' ? 'Buy BTC' : 'Sell BTC'}
-            </Button>
-            
-            {advancedMode && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full mt-2 flex items-center justify-center"
-                onClick={() => {
-                  setOrderSide(orderSide === 'buy' ? 'sell' : 'buy');
-                }}
-              >
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                Switch to {orderSide === 'buy' ? 'Sell' : 'Buy'}
-              </Button>
-            )}
+            <Button type="submit">Place Order</Button>
           </form>
-        </Tabs>
+        </Form>
       </CardContent>
     </Card>
   );

@@ -83,16 +83,62 @@ const TaxHarvestingTool: React.FC = () => {
   const [harvestingYear, setHarvestingYear] = useState<string>("2023");
   const [harvestThreshold, setHarvestThreshold] = useState<number>(1000);
   
+  // Fix the coinOptions array with missing properties
+  const coinOptions: CoinOption[] = [
+    {
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      price: 55000,
+      priceChange: 1200,
+      changePercent: 2.3,
+      value: "bitcoin",
+      label: "Bitcoin (BTC)"
+    },
+    {
+      id: "ethereum",
+      name: "Ethereum", 
+      symbol: "ETH",
+      price: 2650,
+      priceChange: 75,
+      changePercent: 2.9,
+      value: "ethereum",
+      label: "Ethereum (ETH)"
+    },
+    {
+      id: "solana",
+      name: "Solana",
+      symbol: "SOL",
+      price: 118,
+      priceChange: 3.5,
+      changePercent: 3.1,
+      value: "solana",
+      label: "Solana (SOL)"
+    },
+    {
+      id: "cardano",
+      name: "Cardano",
+      symbol: "ADA",
+      price: 0.45,
+      priceChange: 0.02,
+      changePercent: 4.7,
+      value: "cardano",
+      label: "Cardano (ADA)"
+    },
+    {
+      id: "ripple",
+      name: "Ripple",
+      symbol: "XRP",
+      price: 0.58,
+      priceChange: -0.01,
+      changePercent: -1.5,
+      value: "ripple",
+      label: "Ripple (XRP)"
+    }
+  ];
+  
   const addMockTrade = () => {
-    const mockCoins: CoinOption[] = [
-      { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 60000, value: "bitcoin", label: "Bitcoin" },
-      { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3000, value: "ethereum", label: "Ethereum" },
-      { id: "solana", name: "Solana", symbol: "SOL", price: 110, value: "solana", label: "Solana" },
-      { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45, value: "cardano", label: "Cardano" },
-      { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.12, value: "dogecoin", label: "Dogecoin" }
-    ];
-    
-    const randomCoin = mockCoins[Math.floor(Math.random() * mockCoins.length)];
+    const randomCoin = coinOptions[Math.floor(Math.random() * coinOptions.length)];
     const isBuy = Math.random() > 0.3;
     const amount = parseFloat((Math.random() * 10).toFixed(2));
     const priceVariation = (Math.random() * 0.2) - 0.1; // -10% to +10%

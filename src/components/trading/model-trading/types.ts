@@ -1,6 +1,9 @@
 
 import { LocalModel } from '@/types/trading';
 
+// Re-export the LocalModel type
+export { LocalModel };
+
 export interface ModelConnectionTabProps {
   models: LocalModel[];
   onConnect: (model: LocalModel) => void;

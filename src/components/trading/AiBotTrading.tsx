@@ -1,13 +1,11 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/use-toast";
-import { Bot, Play, Pause, BarChart2, Settings, Trash2 } from "lucide-react";
-import { CoinOption } from "./EnhancedFakeTrading";
+import { Switch } from "@/components/ui/switch";
+import { Bot, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { CoinOption } from '@/types/trading';
+import { AiBotTradingProps } from '@/types/trading';
 
 interface TradingBot {
   id: string;

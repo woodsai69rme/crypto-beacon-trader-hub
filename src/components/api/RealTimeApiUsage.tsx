@@ -106,7 +106,7 @@ const RealTimeApiUsage: React.FC = () => {
               tick={{ fontSize: 10 }}
               tickLine={false}
               minTickGap={50}
-              tick={props => {
+              tick={(props) => {
                 const { x, y, payload, index } = props;
                 // Only show every 3rd tick to avoid crowding
                 if (index % 3 !== 0) return null;
