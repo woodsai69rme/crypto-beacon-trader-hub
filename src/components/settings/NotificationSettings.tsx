@@ -68,74 +68,68 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => 
             )}
           />
           
-          {form.getValues().notifications && 'priceAlerts' in form.getValues().notifications && (
-            <FormField
-              control={form.control}
-              name="notifications.priceAlerts"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between">
-                  <div className="space-y-0.5">
-                    <FormLabel>Price Alerts</FormLabel>
-                    <FormDescription>
-                      Get notified when prices hit your targets
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="notifications.trades"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Trading Notifications</FormLabel>
+                  <FormDescription>
+                    Get notified about your trades
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          {form.getValues().notifications && 'marketUpdates' in form.getValues().notifications && (
-            <FormField
-              control={form.control}
-              name="notifications.marketUpdates"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between">
-                  <div className="space-y-0.5">
-                    <FormLabel>Market Updates</FormLabel>
-                    <FormDescription>
-                      Regular updates on market conditions
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="notifications.pricing"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Price Alerts</FormLabel>
+                  <FormDescription>
+                    Get notified about significant price changes
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          {form.getValues().notifications && 'newsletterAndPromotions' in form.getValues().notifications && (
-            <FormField
-              control={form.control}
-              name="notifications.newsletterAndPromotions"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between">
-                  <div className="space-y-0.5">
-                    <FormLabel>Newsletter & Promotions</FormLabel>
-                    <FormDescription>
-                      Receive news and promotional content
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="notifications.news"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>News Alerts</FormLabel>
+                  <FormDescription>
+                    Receive important news about your assets
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
       </CardContent>
     </Card>

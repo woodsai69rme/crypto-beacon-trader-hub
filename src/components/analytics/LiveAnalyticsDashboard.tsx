@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Maximize2, BarChart2, RefreshCw } from 'lucide-react';
-import { LiveAnalyticsDashboardProps, CoinOption } from '@/types/trading';
+import { LiveAnalyticsDashboardProps, CoinOption, ApiUsageStats } from '@/types/trading';
 import LivePriceMetrics from './LivePriceMetrics';
 import ApiUsageMetrics from '../api/ApiUsageMetrics';
 import RealTimeApiUsage from '../api/RealTimeApiUsage';
 import MarketCorrelations from '../MarketCorrelations/MarketCorrelations';
-import DetachedAiTradingDashboard from './DetachedAiTradingDashboard';
+import DetachedAiTradingDashboard from '../trading/DetachedAiTradingDashboard';
 import { mockCryptoData } from '../MarketCorrelations/mockData';
 
 const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
@@ -24,7 +24,7 @@ const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<string>("prices");
   const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [apiUsageStats, setApiUsageStats] = useState<any[]>([
+  const [apiUsageStats, setApiUsageStats] = useState<ApiUsageStats[]>([
     {
       service: "CoinGecko",
       currentUsage: 421,

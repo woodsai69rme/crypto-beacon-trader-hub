@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Sliders } from "lucide-react";
-import { SettingsComponentProps } from "@/types/trading";
+import { SettingsComponentProps } from "./types";
 
 const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (

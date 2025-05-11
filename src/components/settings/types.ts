@@ -1,15 +1,12 @@
 
-export interface SettingsComponentProps {
-  onSave?: (values: any) => void;
-  defaultValues?: any;
-  className?: string;
-}
+import { UseFormReturn } from "react-hook-form";
 
 export interface SettingsFormValues {
-  displayName: string;
-  email: string;
-  profilePicture?: string;
-  theme: 'light' | 'dark' | 'system';
+  username?: string;
+  displayName?: string;
+  email?: string;
+  theme?: string;
+  bio?: string;
   notifications: {
     email: boolean;
     push: boolean;
@@ -22,4 +19,26 @@ export interface SettingsFormValues {
     showAdvanced: boolean;
     defaultAsset: string;
   };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+}
+
+export interface SettingsComponentProps {
+  form: UseFormReturn<SettingsFormValues>;
 }

@@ -1,142 +1,154 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { ApiUsageStats } from '@/types/trading';
+
+interface ApiUsagePoint {
+  timestamp: string;
+  requests: number;
+  endpoint: string;
+}
 
 const RealTimeApiUsage: React.FC = () => {
-  const [apiUsage, setApiUsage] = useState<ApiUsageStats[]>([
-    {
-      provider: "CoinGecko",
-      service: "CoinGecko",
-      serviceId: "coingecko-1",
-      serviceName: "CoinGecko",
-      totalRequests: 5243,
-      periodRequests: 243,
-      requestsLimit: 10000,
-      averageResponseTime: 247,
-      errorRate: 0.5,
-      lastRequested: "2023-05-01T12:34:56Z",
-      currentUsage: 243,
-      maxUsage: 10000,
-      endpoint: "coins/markets",
-      requestCount: 5243,
-      successCount: 5200,
-      errorCount: 43,
-      avgResponseTime: 247,
-      lastUsed: "2023-05-01T12:34:56Z"
-    },
-    {
-      provider: "Binance",
-      service: "Binance",
-      serviceId: "binance-1",
-      serviceName: "Binance",
-      totalRequests: 8754,
-      periodRequests: 754,
-      requestsLimit: 20000,
-      averageResponseTime: 124,
-      errorRate: 0.2,
-      lastRequested: "2023-05-01T13:45:12Z",
-      currentUsage: 754,
-      maxUsage: 20000,
-      endpoint: "ticker/24hr",
-      requestCount: 8754,
-      successCount: 8720,
-      errorCount: 34,
-      avgResponseTime: 124,
-      lastUsed: "2023-05-01T13:45:12Z"
-    },
-    {
-      provider: "Kraken",
-      service: "Kraken",
-      serviceId: "kraken-1",
-      serviceName: "Kraken",
-      totalRequests: 2134,
-      periodRequests: 134,
-      requestsLimit: 5000,
-      averageResponseTime: 189,
-      errorRate: 1.2,
-      lastRequested: "2023-05-01T11:22:33Z",
-      currentUsage: 134,
-      maxUsage: 5000,
-      endpoint: "public/Ticker",
-      requestCount: 2134,
-      successCount: 2110,
-      errorCount: 24,
-      avgResponseTime: 189,
-      lastUsed: "2023-05-01T11:22:33Z"
-    }
-  ]);
+  const [usageData, setUsageData] = useState<ApiUsagePoint[]>([]);
   
-  // Simulate real-time API usage updates
+  // Generate mock usage data on component mount and every few seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      setApiUsage(prev => prev.map(api => ({
-        ...api,
-        periodRequests: (api.periodRequests || 0) + Math.floor(Math.random() * 5),
-        totalRequests: (api.totalRequests || 0) + Math.floor(Math.random() * 5),
-        requestCount: (api.requestCount || 0) + Math.floor(Math.random() * 5),
-        currentUsage: api.currentUsage + Math.floor(Math.random() * 5),
-        averageResponseTime: (api.averageResponseTime || 0) + (Math.random() * 10 - 5),
-        avgResponseTime: (api.avgResponseTime || 0) + (Math.random() * 10 - 5),
-        lastRequested: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
-      })));
-    }, 5000);
+    // Initial data generation
+    generateInitialData();
     
-    return () => clearInterval(interval);
+    // Set up interval for real-time updates
+    const intervalId = setInterval(() => {
+      addDataPoint();
+    }, 3000);
+    
+    return () => clearInterval(intervalId);
   }, []);
   
-  const getStatusBadge = (api: ApiUsageStats) => {
-    const usage = api.currentUsage / api.maxUsage * 100;
+  // Generate some initial historical data
+  const generateInitialData = () => {
+    const initialData: ApiUsagePoint[] = [];
+    const now = new Date();
     
-    if (usage > 90) return <Badge variant="destructive">Critical</Badge>;
-    if (usage > 75) return <Badge variant="warning">Warning</Badge>;
-    return <Badge variant="outline">Healthy</Badge>;
+    // Generate data points for the past 20 minutes
+    for (let i = 20; i > 0; i--) {
+      const timestamp = new Date(now.getTime() - i * 60000).toLocaleTimeString();
+      const requests = Math.floor(Math.random() * 20) + 5;
+      const endpoint = getRandomEndpoint();
+      
+      initialData.push({
+        timestamp,
+        requests,
+        endpoint
+      });
+    }
+    
+    setUsageData(initialData);
+  };
+  
+  // Add a new data point
+  const addDataPoint = () => {
+    const timestamp = new Date().toLocaleTimeString();
+    const requests = Math.floor(Math.random() * 20) + 5;
+    const endpoint = getRandomEndpoint();
+    
+    setUsageData(prevData => {
+      // Keep only the last 20 data points
+      const newData = [...prevData.slice(-19), { timestamp, requests, endpoint }];
+      return newData;
+    });
+  };
+  
+  // Helper function to get a random endpoint for mock data
+  const getRandomEndpoint = () => {
+    const endpoints = [
+      '/coins/markets',
+      '/market_chart',
+      '/exchanges',
+      '/coins/list',
+      '/simple/price'
+    ];
+    
+    return endpoints[Math.floor(Math.random() * endpoints.length)];
+  };
+  
+  // Calculate current requests per minute
+  const calculateRequestsPerMinute = () => {
+    if (usageData.length === 0) return 0;
+    
+    const totalRequests = usageData.reduce((total, point) => total + point.requests, 0);
+    return Math.round(totalRequests / usageData.length * 60 / 3); // Adjust for 3-second intervals
   };
   
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Real-Time API Usage</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {apiUsage.map((api) => (
-            <div key={api.service} className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium flex items-center">
-                    {api.serviceName || api.service} 
-                    <span className="ml-2">{getStatusBadge(api)}</span>
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Last request: {new Date(api.lastRequested || api.lastUsed || new Date()).toLocaleTimeString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">
-                    {api.currentUsage} / {api.maxUsage}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {(api.errorRate || 0).toFixed(1)}% error rate
-                  </p>
-                </div>
-              </div>
-              
-              <Progress 
-                value={api.currentUsage / api.maxUsage * 100} 
-                className="h-2" 
-              />
-              
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Total: {(api.totalRequests || api.requestCount || 0).toLocaleString()} requests</span>
-                <span>Avg: {(api.averageResponseTime || api.avgResponseTime || 0).toFixed(0)}ms</span>
-              </div>
-            </div>
-          ))}
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-md font-medium">Real-Time API Usage</CardTitle>
+          <div className="flex items-center mt-1">
+            <Badge variant="outline" className="mr-2">
+              {calculateRequestsPerMinute()} requests/min
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Last updated: {usageData.length > 0 ? usageData[usageData.length - 1].timestamp : 'N/A'}
+            </span>
+          </div>
         </div>
+      </CardHeader>
+      
+      <CardContent className="h-60">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={usageData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+            <XAxis
+              dataKey="timestamp"
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+              minTickGap={50}
+              tick={(props) => {
+                const { x, y, payload } = props;
+                // Only show every 3rd tick to avoid crowding
+                if (props.index % 3 !== 0) return null;
+                
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text
+                      x={0}
+                      y={0}
+                      dy={16}
+                      textAnchor="middle"
+                      fill="#888"
+                      fontSize={10}
+                    >
+                      {payload.value}
+                    </text>
+                  </g>
+                );
+              }}
+            />
+            <YAxis
+              width={30}
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              formatter={(value) => [`${value} requests`, 'API Requests']}
+              itemStyle={{ fontSize: 12 }}
+              labelStyle={{ fontSize: 12, fontWeight: 'bold' }}
+              contentStyle={{ border: '1px solid #ccc', borderRadius: '4px', background: '#fff' }}
+            />
+            <Line
+              type="monotone"
+              dataKey="requests"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+              isAnimationActive={true}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );

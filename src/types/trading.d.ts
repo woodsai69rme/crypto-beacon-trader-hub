@@ -133,3 +133,126 @@ export interface ModelListProps {
   onConnect?: (model: LocalModel) => void;
   onDisconnect?: (modelId: string) => void;
 }
+
+// Adding missing interfaces for settings components
+export interface SettingsComponentProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
+
+export interface SettingsFormValues {
+  username?: string;
+  displayName?: string;
+  email?: string;
+  theme?: string;
+  bio?: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+  };
+  tradingPreferences: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+}
+
+export interface LiveAnalyticsDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
+}
+
+export interface DetachableDashboardProps {
+  onClose: () => void;
+  isDetached?: boolean;
+  children?: React.ReactNode;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description?: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime: string;
+  endpoint: string;
+  status: string;
+  website?: string;
+  docs?: string;
+  endpoints?: ApiEndpoint[];
+  isActive: boolean;
+  apiKey?: string;
+  usageLimit: number;
+  authMethod?: string;
+  apiKeyName?: string;
+  defaultHeaders?: Record<string, string>;
+  enabled?: boolean;
+  requiresAuth?: boolean;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  description?: string;
+  url: string;
+  responseTime?: number;
+  lastUsed?: string;
+  requiresAuth?: boolean;
+}
+
+export interface ApiUsageStats {
+  service: string;
+  currentUsage: number;
+  maxUsage: number;
+  endpoint?: string;
+  resetTime?: string;
+  provider?: string;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance?: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    yearly: number;
+    allTime: number;
+  };
+}
+
+export interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  image?: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  marketCap?: number;
+  volume?: number;
+}

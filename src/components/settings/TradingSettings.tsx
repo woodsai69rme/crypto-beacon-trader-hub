@@ -5,23 +5,18 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart2 } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "./types";
+import { SettingsComponentProps } from "./types";
 
-interface TradingSettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const TradingSettings: React.FC<TradingSettingsProps> = ({ form }) => {
+const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BarChart2 className="h-5 w-5" />
-          Trading Settings
+          Trading Preferences
         </CardTitle>
         <CardDescription>
-          Configure your trading preferences
+          Configure your trading preferences and settings
         </CardDescription>
       </CardHeader>
       
@@ -29,13 +24,13 @@ const TradingSettings: React.FC<TradingSettingsProps> = ({ form }) => {
         <div className="space-y-4">
           <FormField
             control={form.control}
-            name="trading.confirmTradeExecutions"
+            name="tradingPreferences.autoConfirm"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div className="space-y-0.5">
-                  <FormLabel>Confirm Trade Executions</FormLabel>
+                  <FormLabel>Auto Confirm Orders</FormLabel>
                   <FormDescription>
-                    Show a confirmation dialog before executing trades
+                    Skip confirmation dialogs for orders
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -50,13 +45,13 @@ const TradingSettings: React.FC<TradingSettingsProps> = ({ form }) => {
           
           <FormField
             control={form.control}
-            name="trading.showPriceAlerts"
+            name="tradingPreferences.showAdvanced"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div className="space-y-0.5">
-                  <FormLabel>Show Price Alerts</FormLabel>
+                  <FormLabel>Show Advanced Features</FormLabel>
                   <FormDescription>
-                    Display price alerts on the trading interface
+                    Display advanced trading options and analytics
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -71,25 +66,29 @@ const TradingSettings: React.FC<TradingSettingsProps> = ({ form }) => {
           
           <FormField
             control={form.control}
-            name="trading.defaultOrder"
+            name="tradingPreferences.defaultAsset"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Default Order Type</FormLabel>
+                <FormLabel>Default Asset</FormLabel>
                 <Select
-                  value={field.value}
                   onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select order type" />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select default asset" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
-                    <SelectItem value="market">Market</SelectItem>
-                    <SelectItem value="limit">Limit</SelectItem>
-                    <SelectItem value="stop">Stop</SelectItem>
+                    <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                    <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                    <SelectItem value="solana">Solana (SOL)</SelectItem>
+                    <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                    <SelectItem value="ripple">Ripple (XRP)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  The default order type when creating new trades
+                  Asset to show by default in trading views
                 </FormDescription>
               </FormItem>
             )}
