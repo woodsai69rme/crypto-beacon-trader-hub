@@ -1,8 +1,9 @@
 
 import { AITradingStrategy, BacktestResult, OptimizationResult } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
 
-// Default strategy parameters
+/**
+ * Default strategy parameters for new strategies
+ */
 export const DEFAULT_STRATEGY_PARAMETERS = {
   period: 14,
   threshold: 70,
@@ -14,7 +15,7 @@ export const DEFAULT_STRATEGY_PARAMETERS = {
 };
 
 /**
- * Create a new trading strategy
+ * Creates a new custom trading strategy
  */
 export const createCustomStrategy = (
   name: string,
@@ -23,33 +24,49 @@ export const createCustomStrategy = (
   timeframe: string,
   parameters: Record<string, any>
 ): AITradingStrategy => {
-  // Generate a unique ID
-  const id = `strategy-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  
-  // Create the strategy object
-  const strategy: AITradingStrategy = {
-    id,
+  return {
+    id: `strategy-${Date.now()}`,
     name,
     description,
     type: type as any,
     timeframe,
     parameters,
-    indicators: getIndicatorsForStrategy(parameters)
+    riskLevel: calculateRiskLevel(parameters),
+    creator: 'user',
+    tags: generateTags(type, parameters)
   };
-  
-  // Save to localStorage for persistence
-  try {
-    const strategies = JSON.parse(localStorage.getItem('trading-strategies') || '[]');
-    localStorage.setItem('trading-strategies', JSON.stringify([...strategies, strategy]));
-  } catch (err) {
-    console.error('Failed to save strategy to localStorage', err);
-  }
-  
-  return strategy;
 };
 
 /**
- * Run a backtest on a strategy
+ * Calculate risk level based on strategy parameters
+ */
+const calculateRiskLevel = (parameters: Record<string, any>): string => {
+  const { stopLoss, takeProfit } = parameters;
+  
+  if (stopLoss >= 5) return 'high';
+  if (stopLoss >= 3) return 'medium';
+  return 'low';
+};
+
+/**
+ * Generate relevant tags for the strategy
+ */
+const generateTags = (type: string, parameters: Record<string, any>): string[] => {
+  const tags = [type];
+  
+  if (parameters.indicator) {
+    tags.push(parameters.indicator);
+  }
+  
+  if (parameters.useVolume) {
+    tags.push('volume');
+  }
+  
+  return tags;
+};
+
+/**
+ * Run a backtest of the strategy against historical data
  */
 export const runBacktest = async (
   strategy: AITradingStrategy,
@@ -58,263 +75,165 @@ export const runBacktest = async (
   initialBalance: number,
   symbol: string
 ): Promise<BacktestResult> => {
-  // In a real app, this would call an API or run a simulation
-  // For demo, we'll generate simulated results
-  try {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Generate simulated trades
-    const trades = generateSimulatedTrades(strategy, startDate, endDate, symbol);
-    
-    // Calculate performance metrics
-    const profit = calculateProfit(trades);
-    const profitPercentage = (profit / initialBalance) * 100;
-    const { drawdown, maxDrawdown } = calculateDrawdown(trades, initialBalance);
-    const { winningTrades, losingTrades } = countWinningLosingTrades(trades);
-    const winRate = winningTrades / (winningTrades + losingTrades);
-    const profitFactor = calculateProfitFactor(trades);
-    const sharpeRatio = calculateSharpeRatio(trades);
-    
-    return {
-      profit,
-      profitPercentage,
-      drawdown,
-      maxDrawdown,
-      winRate,
-      winningTrades,
-      losingTrades,
-      totalTrades: trades.length,
-      sharpeRatio,
-      profitFactor,
-      trades
-    };
-  } catch (error) {
-    console.error('Backtest failed:', error);
-    throw new Error('Failed to run backtest');
-  }
+  // In a real app, this would call a backend service to run the backtest
+  // For this demo, simulate a backtest with mock results
+  await simulateBacktestDelay();
+  
+  const profit = calculateMockProfit(strategy);
+  const profitPercentage = (profit / initialBalance) * 100;
+  const winRate = 0.5 + (Math.random() * 0.3); // 50-80% win rate
+  const totalTrades = 30 + Math.floor(Math.random() * 50); // 30-80 trades
+  const winningTrades = Math.floor(totalTrades * winRate);
+  const maxDrawdown = 5 + Math.random() * 10; // 5-15% drawdown
+  const sharpeRatio = 0.8 + Math.random() * 1.5; // 0.8-2.3 Sharpe ratio
+  const profitFactor = 1 + Math.random() * 2; // 1-3 profit factor
+  
+  // Generate mock trades
+  const trades = generateMockTrades(totalTrades, winRate, startDate, endDate, symbol);
+  
+  return {
+    profit,
+    profitPercentage,
+    winRate,
+    winningTrades,
+    totalTrades,
+    maxDrawdown,
+    sharpeRatio,
+    profitFactor,
+    trades
+  };
 };
 
 /**
- * Optimize strategy parameters
+ * Run optimization to find better strategy parameters
  */
 export const optimizeStrategy = async (
   strategy: AITradingStrategy,
-  parameterRanges: { id: string; min: number; max: number; step: number }[],
-  optimizationTarget: 'profitFactor' | 'sharpeRatio' | 'profit' | 'drawdown'
+  parameterRanges: Array<{ id: string; min: number; max: number; step: number }>,
+  target: 'profitFactor' | 'sharpeRatio' | 'profit' | 'drawdown'
 ): Promise<OptimizationResult> => {
   // In a real app, this would run multiple backtests with different parameters
-  try {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Generate optimized parameters
-    const optimizedParams = { ...strategy.parameters };
-    
-    // Make some improvements to parameters
-    parameterRanges.forEach(param => {
-      // For demo, we'll just pick a "better" value
-      const currentValue = optimizedParams[param.id] || param.min;
-      const range = param.max - param.min;
-      const change = Math.random() * range * 0.2; // Up to 20% change
+  // For this demo, simulate an optimization with mock results
+  await simulateOptimizationDelay();
+  
+  const originalParameters = strategy.parameters;
+  const optimizedParameters = { ...originalParameters };
+  
+  // Simulate finding better parameters
+  parameterRanges.forEach(param => {
+    if (param.id in originalParameters) {
+      // Generate a value in the range that's different from the original
+      let newValue;
+      do {
+        const steps = Math.floor((param.max - param.min) / param.step);
+        const randomSteps = Math.floor(Math.random() * steps);
+        newValue = param.min + (randomSteps * param.step);
+      } while (newValue === originalParameters[param.id]);
       
-      // Randomly increase or decrease
-      if (Math.random() > 0.5) {
-        optimizedParams[param.id] = Math.min(param.max, currentValue + change);
-      } else {
-        optimizedParams[param.id] = Math.max(param.min, currentValue - change);
-      }
-      
-      // Round to step if needed
-      if (param.step) {
-        optimizedParams[param.id] = Math.round(optimizedParams[param.id] / param.step) * param.step;
-      }
-    });
-    
-    // Generate fake improvement metrics
-    const improvement = Math.random() * 15 + 5; // 5-20% improvement
-    
-    return {
-      improvement,
-      parameterValues: optimizedParams,
-      performance: {
-        profit: 12.5,
-        maxDrawdown: 7.8,
-        sharpeRatio: 1.85,
-        winRate: 0.68
-      }
-    };
-  } catch (error) {
-    console.error('Optimization failed:', error);
-    throw new Error('Failed to optimize strategy');
-  }
+      optimizedParameters[param.id] = newValue;
+    }
+  });
+  
+  // Calculate improvement percentage
+  const improvement = 5 + Math.random() * 25; // 5-30% improvement
+  
+  // Simulate performance metrics with the new parameters
+  const performance = {
+    profit: 15 + Math.random() * 15, // 15-30% profit
+    maxDrawdown: 2 + Math.random() * 8, // 2-10% drawdown
+    sharpeRatio: 1.2 + Math.random() * 1.5, // 1.2-2.7 Sharpe
+    winRate: 0.6 + Math.random() * 0.25 // 60-85% win rate
+  };
+  
+  return {
+    parameterValues: optimizedParameters,
+    improvement,
+    performance
+  };
 };
 
-// Helper Functions
-
-const getIndicatorsForStrategy = (parameters: Record<string, any>): string[] => {
-  const indicators: string[] = [];
-  
-  // Add indicators based on strategy parameters
-  if (parameters.indicator) {
-    indicators.push(parameters.indicator);
-  }
-  
-  if (parameters.useVolume) {
-    indicators.push('volume');
-  }
-  
-  // Add some default indicators
-  indicators.push('sma');
-  
-  return indicators;
+/**
+ * Helper functions for simulation
+ */
+const simulateBacktestDelay = (): Promise<void> => {
+  return new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
 };
 
-const generateSimulatedTrades = (
-  strategy: AITradingStrategy,
+const simulateOptimizationDelay = (): Promise<void> => {
+  return new Promise(resolve => setTimeout(resolve, 2500 + Math.random() * 1500));
+};
+
+const calculateMockProfit = (strategy: AITradingStrategy): number => {
+  // Base profit on strategy type and parameters
+  let baseProfitPercentage = 0;
+  
+  switch (strategy.type) {
+    case 'trend-following':
+      baseProfitPercentage = 12;
+      break;
+    case 'mean-reversion':
+      baseProfitPercentage = 10;
+      break;
+    case 'breakout':
+      baseProfitPercentage = 15;
+      break;
+    case 'sentiment':
+      baseProfitPercentage = 8;
+      break;
+    case 'machine-learning':
+      baseProfitPercentage = 18;
+      break;
+    default:
+      baseProfitPercentage = 10;
+  }
+  
+  // Add some randomness
+  const profitVariation = (Math.random() * 15) - 5; // -5% to +10%
+  const finalProfitPercentage = baseProfitPercentage + profitVariation;
+  
+  return finalProfitPercentage;
+};
+
+const generateMockTrades = (
+  count: number,
+  winRate: number,
   startDate: string,
   endDate: string,
   symbol: string
 ) => {
   const trades = [];
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
-  const dayMs = 86400000; // Milliseconds in a day
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const timeSpan = end.getTime() - start.getTime();
   
-  // Determine avg price based on symbol
-  let basePrice = 30000; // Default for BTC/USD
-  if (symbol.includes('ETH')) basePrice = 2000;
-  if (symbol.includes('SOL')) basePrice = 100;
-  if (symbol.includes('ADA')) basePrice = 0.5;
+  const basePrice = 50000; // Base price for BTC/USD
   
-  // Generate a series of trades
-  let currentDate = start;
-  let position = null;
-  let tradeId = 1;
-  
-  while (currentDate < end) {
-    const date = new Date(currentDate);
-    const dateStr = date.toISOString().split('T')[0];
+  for (let i = 0; i < count; i++) {
+    const isWin = Math.random() < winRate;
+    const tradeTime = new Date(start.getTime() + (Math.random() * timeSpan));
+    const type = Math.random() > 0.5 ? 'buy' : 'sell';
+    const price = basePrice * (1 + ((Math.random() * 0.2) - 0.1)); // ±10% from base price
+    const amount = 0.1 + (Math.random() * 0.4); // 0.1-0.5 BTC
     
-    // Skip weekends if the strategy doesn't allow weekend trading
-    if (!strategy.parameters.allowWeekendTrading && (date.getDay() === 0 || date.getDay() === 6)) {
-      currentDate += dayMs;
-      continue;
-    }
+    // Profit is positive for winners, negative for losers
+    const profitPercentage = isWin 
+      ? 1 + (Math.random() * 5) 
+      : -1 * (Math.random() * 3);
     
-    // Simulate price with some randomness
-    const volatility = 0.02; // 2% daily volatility
-    const priceChange = basePrice * (Math.random() * volatility * 2 - volatility);
-    basePrice += priceChange;
+    const profit = (price * amount) * (profitPercentage / 100);
     
-    // Decide whether to make a trade
-    const tradeChance = Math.random();
-    
-    if (position === null && tradeChance > 0.7) {
-      // Open position
-      position = {
-        entryPrice: basePrice,
-        amount: 1,
-        entryDate: dateStr
-      };
-      
-      trades.push({
-        id: `trade-${tradeId++}`,
-        date: dateStr,
-        type: 'buy',
-        price: basePrice,
-        amount: 1,
-        profit: 0
-      });
-    } else if (position !== null && tradeChance > 0.8) {
-      // Close position
-      const profit = (basePrice - position.entryPrice) * position.amount;
-      
-      trades.push({
-        id: `trade-${tradeId++}`,
-        date: dateStr,
-        type: 'sell',
-        price: basePrice,
-        amount: position.amount,
-        profit
-      });
-      
-      position = null;
-    }
-    
-    currentDate += dayMs;
+    trades.push({
+      id: `trade-${i}`,
+      date: tradeTime.toISOString().split('T')[0],
+      type,
+      price,
+      amount,
+      profit
+    });
   }
   
+  // Sort by date
+  trades.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
   return trades;
-};
-
-const calculateProfit = (trades: any[]): number => {
-  return trades.reduce((total, trade) => total + (trade.profit || 0), 0);
-};
-
-const calculateDrawdown = (trades: any[], initialBalance: number): { drawdown: number; maxDrawdown: number } => {
-  let balance = initialBalance;
-  let peak = initialBalance;
-  let maxDrawdown = 0;
-  
-  trades.forEach(trade => {
-    balance += (trade.profit || 0);
-    
-    if (balance > peak) {
-      peak = balance;
-    }
-    
-    const drawdown = ((peak - balance) / peak) * 100;
-    maxDrawdown = Math.max(maxDrawdown, drawdown);
-  });
-  
-  return {
-    drawdown: ((peak - balance) / peak) * 100,
-    maxDrawdown
-  };
-};
-
-const countWinningLosingTrades = (trades: any[]): { winningTrades: number; losingTrades: number } => {
-  let winning = 0;
-  let losing = 0;
-  
-  trades.forEach(trade => {
-    if (trade.type === 'sell') {
-      if (trade.profit > 0) winning++;
-      else if (trade.profit < 0) losing++;
-    }
-  });
-  
-  return { winningTrades: winning, losingTrades: losing };
-};
-
-const calculateProfitFactor = (trades: any[]): number => {
-  let grossProfit = 0;
-  let grossLoss = 0;
-  
-  trades.forEach(trade => {
-    if (trade.profit > 0) grossProfit += trade.profit;
-    else if (trade.profit < 0) grossLoss += Math.abs(trade.profit);
-  });
-  
-  return grossLoss === 0 ? grossProfit : grossProfit / grossLoss;
-};
-
-const calculateSharpeRatio = (trades: any[]): number => {
-  // Simplified Sharpe Ratio calculation for demo
-  if (trades.length === 0) return 0;
-  
-  const returns = trades
-    .filter(t => t.type === 'sell')
-    .map(t => t.profit);
-  
-  const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-  
-  if (avgReturn === 0) return 0;
-  
-  const stdDev = Math.sqrt(
-    returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length
-  );
-  
-  return stdDev === 0 ? 0 : avgReturn / stdDev;
 };

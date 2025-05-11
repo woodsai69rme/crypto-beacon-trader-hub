@@ -1,29 +1,32 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { QuantitativeAnalysisProps } from './types/analysis';
-import { TrendingUp, TrendingDown, MinusCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  LineChart, 
+  BarChart2, 
+  ArrowDownUp,
+  Calculator 
+} from "lucide-react";
+import { QuantitativeAnalysisProps } from "@/types/trading";
 
 const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
-  symbol = "BTC/USD",
-  timeframe = "1D",
+  symbol = "BTC/USD", 
+  timeframe = "1d",
+  depth = 20,
   onResultsCalculated
 }) => {
-  const [activeTab, setActiveTab] = useState('momentum');
-  const [isCalculating, setIsCalculating] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('correlation');
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [results, setResults] = useState<{
     momentum: any[];
     volatility: any[];
     trends: any[];
     correlations: any[];
     summary: any;
-  }>({
-    momentum: [],
-    volatility: [],
-    trends: [],
-    correlations: [],
-    summary: null
-  });
+  } | null>(null);
 
   // Simulate calculation of quantitative indicators
   const calculateIndicators = () => {
@@ -102,192 +105,180 @@ const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({
     calculateIndicators();
   }, []);
   
+  // Mock function to update data periodically
+  const updateMockData = () => {
+    // This would be replaced with real data in a production app
+    if (results) {
+      const updatedResults = {...results};
+      
+      // Make small random changes to the data
+      updatedResults.momentum[0].value = +(results.momentum[0].value + (Math.random() * 2 - 1)).toFixed(1);
+      updatedResults.volatility[0].value = `${(parseFloat(results.volatility[0].value) + (Math.random() * 0.3 - 0.15)).toFixed(1)}%`;
+      updatedResults.summary.confidence = Math.min(100, Math.max(0, results.summary.confidence + Math.floor(Math.random() * 5 - 2)));
+      
+      setResults(updatedResults);
+    }
+  };
+  
+  // Perform analysis when parameters change
+  useEffect(() => {
+    // Load initial analysis
+    if (!results) {
+      calculateIndicators();
+    }
+    
+    // This is just for demo/mock purposes
+    const interval = setInterval(() => {
+      if (!isCalculating) {
+        updateMockData();
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [symbol, timeframe, activeTab, results, isCalculating]);
+  
+  // Helper function to perform analysis
+  const performAnalysis = () => {
+    calculateIndicators();
+  };
+  
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
-          <div>
-            <CardTitle className="text-xl flex items-center">
-              <Calculator className="mr-2 h-5 w-5 text-primary" />
-              Quantitative Analysis
-            </CardTitle>
-            <CardDescription>
-              {symbol} • {timeframe} Timeframe
-            </CardDescription>
-          </div>
-          
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-medium">Quantitative Analysis: {symbol}</CardTitle>
+        <div className="flex items-center space-x-2">
           <Button 
             variant="outline" 
-            size="sm" 
-            onClick={calculateIndicators}
+            size="sm"
+            onClick={performAnalysis}
             disabled={isCalculating}
           >
-            {isCalculating ? 'Calculating...' : 'Recalculate'}
+            <Calculator className="h-4 w-4 mr-1" />
+            Calculate
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {/* Export logic */}}
+          >
+            Export Results
           </Button>
         </div>
       </CardHeader>
       
       <CardContent>
-        {isCalculating ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-              <p className="mt-4 text-sm text-muted-foreground">Calculating indicators...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="bg-muted/50">
-                <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Overall Signal</div>
-                  <div className="text-xl font-bold mt-1">
-                    {results.summary?.overallSignal}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-muted/50">
-                <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Confidence</div>
-                  <div className="text-xl font-bold mt-1">
-                    {results.summary?.confidence}%
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-muted/50 md:col-span-2">
-                <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Recommendation</div>
-                  <div className="text-sm font-medium mt-1">
-                    {results.summary?.recommendation}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4">
-                <TabsTrigger value="momentum">
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  <span className="hidden md:inline">Momentum</span>
-                </TabsTrigger>
-                <TabsTrigger value="volatility">
-                  <ArrowDownUp className="h-4 w-4 mr-1" />
-                  <span className="hidden md:inline">Volatility</span>
-                </TabsTrigger>
-                <TabsTrigger value="trends">
-                  <LineChart className="h-4 w-4 mr-1" />
-                  <span className="hidden md:inline">Trends</span>
-                </TabsTrigger>
-                <TabsTrigger value="correlations">
-                  <BarChart2 className="h-4 w-4 mr-1" />
-                  <span className="hidden md:inline">Correlations</span>
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="momentum">
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-medium">Momentum Indicators</h3>
-                  <div className="space-y-2">
-                    {results.momentum.map((indicator, index) => (
-                      <div key={index} className="p-3 bg-muted/50 rounded-md">
-                        <div className="flex justify-between">
-                          <div className="font-medium">{indicator.name}</div>
-                          <div className="font-mono">{indicator.value}</div>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {indicator.interpretation}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4">
+            <TabsTrigger value="correlation">
+              <ArrowDownUp className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Correlation</span>
+            </TabsTrigger>
+            <TabsTrigger value="momentum">
+              <LineChart className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Momentum</span>
+            </TabsTrigger>
+            <TabsTrigger value="volatility">
+              <BarChart2 className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Volatility</span>
+            </TabsTrigger>
+            <TabsTrigger value="efficiency">
+              Efficiency
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="correlation">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Correlation analysis content */}
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Correlation Analysis</h3>
+                <div className="text-sm text-muted-foreground">
+                  {/* Correlation metrics */}
+                  <p>BTC ↔ ETH: {results?.correlation?.btcEth?.toFixed(2) || 'Loading...'}</p>
+                  <p>BTC ↔ SOL: {results?.correlation?.btcSol?.toFixed(2) || 'Loading...'}</p>
+                  <p>ETH ↔ SOL: {results?.correlation?.ethSol?.toFixed(2) || 'Loading...'}</p>
                 </div>
-              </TabsContent>
+              </div>
               
-              <TabsContent value="volatility">
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-medium">Volatility Indicators</h3>
-                  <div className="space-y-2">
-                    {results.volatility.map((indicator, index) => (
-                      <div key={index} className="p-3 bg-muted/50 rounded-md">
-                        <div className="flex justify-between">
-                          <div className="font-medium">{indicator.name}</div>
-                          <div className="font-mono">{indicator.value}</div>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {indicator.interpretation}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="trends">
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-medium">Trend Indicators</h3>
-                  <div className="space-y-2">
-                    {results.trends.map((indicator, index) => (
-                      <div key={index} className="p-3 bg-muted/50 rounded-md">
-                        <div className="flex justify-between">
-                          <div className="font-medium">{indicator.name}</div>
-                          <div className="font-mono">{indicator.value}</div>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {indicator.interpretation}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="correlations">
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-medium">Correlation Analysis</h3>
-                  <div className="space-y-2">
-                    {results.correlations.map((indicator, index) => (
-                      <div key={index} className="p-3 bg-muted/50 rounded-md">
-                        <div className="flex justify-between">
-                          <div className="font-medium">{indicator.name}</div>
-                          <div className="font-mono">{indicator.value}</div>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {indicator.interpretation}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            <div className="mt-6 pt-4 border-t">
-              <h3 className="text-lg font-medium mb-2">Key Insights</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-green-500 mb-2">Strengths</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    {results.summary?.keyStrengths.map((strength, index) => (
-                      <li key={index}>{strength}</li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-red-500 mb-2">Weaknesses</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    {results.summary?.keyWeaknesses.map((weakness, index) => (
-                      <li key={index}>{weakness}</li>
-                    ))}
-                  </ul>
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
+                <div className="text-xs text-muted-foreground">
+                  {/* Correlation interpretation */}
+                  <p>Strong positive correlation between BTC and ETH indicates market-wide sentiment affecting major cryptocurrencies similarly.</p>
                 </div>
               </div>
             </div>
-          </>
-        )}
+          </TabsContent>
+          
+          <TabsContent value="momentum">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Momentum analysis content */}
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Momentum Indicators</h3>
+                <div className="text-sm text-muted-foreground">
+                  {/* Momentum metrics */}
+                  <p>RSI (14): {results?.momentum?.rsi?.toFixed(2) || 'Loading...'}</p>
+                  <p>MACD: {results?.momentum?.macd?.toFixed(2) || 'Loading...'}</p>
+                  <p>ADX: {results?.momentum?.adx?.toFixed(2) || 'Loading...'}</p>
+                </div>
+              </div>
+              
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
+                <div className="text-xs text-muted-foreground">
+                  {/* Momentum interpretation */}
+                  <p>Current RSI suggests {results?.momentum?.interpretation || 'neutral'} conditions, with potential reversal points at key levels.</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="volatility">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Volatility analysis content */}
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Volatility Metrics</h3>
+                <div className="text-sm text-muted-foreground">
+                  {/* Volatility metrics */}
+                  <p>ATR (14): {results?.volatility?.atr?.toFixed(2) || 'Loading...'}</p>
+                  <p>Bollinger Width: {results?.volatility?.bbWidth?.toFixed(2) || 'Loading...'}</p>
+                  <p>Historical Vol: {results?.volatility?.historicalVol?.toFixed(2) + '%' || 'Loading...'}</p>
+                </div>
+              </div>
+              
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
+                <div className="text-xs text-muted-foreground">
+                  {/* Volatility interpretation */}
+                  <p>Volatility is currently {results?.volatility?.interpretation || 'moderate'} compared to 30-day average, suggesting potential for increased price movement.</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="efficiency">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Market efficiency content */}
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Market Efficiency Ratio</h3>
+                <div className="text-sm text-muted-foreground">
+                  {/* Efficiency metrics */}
+                  <p>EMR: {results?.efficiency?.emr?.toFixed(2) || 'Loading...'}</p>
+                  <p>Hurst Exponent: {results?.efficiency?.hurst?.toFixed(2) || 'Loading...'}</p>
+                  <p>Fractal Dimension: {results?.efficiency?.fractalDim?.toFixed(2) || 'Loading...'}</p>
+                </div>
+              </div>
+              
+              <div className="bg-muted rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
+                <div className="text-xs text-muted-foreground">
+                  {/* Efficiency interpretation */}
+                  <p>Current market efficiency metrics suggest the market is trending with moderate directional bias.</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

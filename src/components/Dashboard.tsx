@@ -52,6 +52,10 @@ const Dashboard = () => {
             <Book className="h-4 w-4" />
             <span className="hidden md:inline">Docs</span>
           </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-1">
+            <Bot className="h-4 w-4" />
+            <span className="hidden md:inline">AI</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="market" className="p-0 border-none">
@@ -93,6 +97,15 @@ const Dashboard = () => {
             <h2 className="text-2xl font-bold mb-4">Documentation</h2>
             <p className="text-muted-foreground">
               Documentation section is currently under construction. Check back soon for detailed guides and API references.
+            </p>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="ai" className="p-0 border-none">
+          <div className="p-4 text-center">
+            <h2 className="text-2xl font-bold mb-4">AI Trading Features</h2>
+            <p className="text-muted-foreground">
+              AI trading features including strategy building, backtesting, and optimization are coming soon.
             </p>
           </div>
         </TabsContent>

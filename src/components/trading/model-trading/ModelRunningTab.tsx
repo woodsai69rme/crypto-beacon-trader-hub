@@ -1,223 +1,190 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelRunningTabProps } from './types';
-import { Play, Square, BarChart3, Settings, FileJson } from 'lucide-react';
-import { LocalModel } from '@/types/trading';
+import { Badge } from "@/components/ui/badge";
+import { ModelPerformance } from './ModelPerformance';
+import { ModelConfiguration } from './ModelConfiguration';
+import { toast } from "@/components/ui/use-toast";
 
-const ModelRunningTab: React.FC<ModelRunningTabProps> = ({ 
-  selectedModel, 
+const ModelRunningTab: React.FC<ModelRunningTabProps> = ({
+  selectedModel,
   isRunning,
   onStartModel,
   onStopModel
 }) => {
-  const [modelOutput, setModelOutput] = useState<string>("");
-  const [processedItems, setProcessedItems] = useState<number>(0);
-  const [totalItems, setTotalItems] = useState<number>(100);
-  const [activeTab, setActiveTab] = useState<string>("output");
+  const [logs, setLogs] = useState<string[]>([]);
   
-  useEffect(() => {
-    if (isRunning) {
-      // Simulate model processing
-      const interval = setInterval(() => {
-        setProcessedItems(prev => {
-          const newValue = prev + 1 + Math.floor(Math.random() * 3);
-          if (newValue >= totalItems) {
-            clearInterval(interval);
-            return totalItems;
-          }
-          return newValue;
-        });
-        
-        // Add model output
-        setModelOutput(prev => {
-          const timestampStr = new Date().toISOString().split('T')[1].split('.')[0];
-          const messages = [
-            `[${timestampStr}] Analyzing market data for ${selectedModel?.name}...`,
-            `[${timestampStr}] Detected pattern: Double Bottom on BTC/USD`,
-            `[${timestampStr}] Signal: Long BTC/USD (confidence: 67%)`,
-            `[${timestampStr}] Calculating risk parameters...`,
-            `[${timestampStr}] Warning: High volatility detected`,
-            `[${timestampStr}] Processing order book data...`
-          ];
-          
-          return prev + "\n" + messages[Math.floor(Math.random() * messages.length)];
-        });
-      }, 500);
-      
-      return () => clearInterval(interval);
-    } else {
-      // Reset when stopped
-      if (processedItems === totalItems) {
-        setModelOutput(prev => prev + "\n\n[INFO] Model execution completed successfully.\n");
-      }
+  const handleStartModel = () => {
+    if (!selectedModel) {
+      toast({
+        title: "No Model Selected",
+        description: "Please select a model to run",
+        variant: "destructive"
+      });
+      return;
     }
-  }, [isRunning, selectedModel]);
+    
+    if (!selectedModel.isConnected) {
+      toast({
+        title: "Model Not Connected",
+        description: "Please connect to the model first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onStartModel(selectedModel);
+    
+    // Add log entries
+    setLogs(prev => [
+      `[${new Date().toLocaleTimeString()}] Starting model: ${selectedModel.name}`,
+      `[${new Date().toLocaleTimeString()}] Initializing model parameters`,
+      `[${new Date().toLocaleTimeString()}] Model running`,
+      ...prev
+    ]);
+    
+    // Simulate periodic log updates
+    const logInterval = setInterval(() => {
+      if (!isRunning) {
+        clearInterval(logInterval);
+        return;
+      }
+      
+      const actions = [
+        "Analyzing market data",
+        "Processing price patterns",
+        "Evaluating sentiment signals",
+        "Running prediction algorithm",
+        "Updating model state",
+        "Calculating confidence scores"
+      ];
+      
+      const randomAction = actions[Math.floor(Math.random() * actions.length)];
+      
+      setLogs(prev => [
+        `[${new Date().toLocaleTimeString()}] ${randomAction}`,
+        ...prev.slice(0, 19) // Keep only the last 20 logs
+      ]);
+    }, 5000);
+    
+    return () => clearInterval(logInterval);
+  };
   
-  if (!selectedModel) {
-    return (
-      <div className="text-center p-6 border rounded-lg">
-        <p className="text-muted-foreground">No model selected. Please connect to a model first.</p>
-      </div>
-    );
-  }
+  const handleStopModel = () => {
+    onStopModel();
+    
+    setLogs(prev => [
+      `[${new Date().toLocaleTimeString()}] Stopping model: ${selectedModel?.name}`,
+      `[${new Date().toLocaleTimeString()}] Saving model state`,
+      `[${new Date().toLocaleTimeString()}] Model stopped`,
+      ...prev
+    ]);
+  };
   
-  const completionPercentage = Math.round((processedItems / totalItems) * 100);
+  const handleSaveConfig = (config: Record<string, any>) => {
+    toast({
+      title: "Configuration Updated",
+      description: "Model configuration has been updated"
+    });
+    
+    setLogs(prev => [
+      `[${new Date().toLocaleTimeString()}] Configuration updated`,
+      `[${new Date().toLocaleTimeString()}] Parameters saved`,
+      ...prev
+    ]);
+  };
   
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-lg">Running: {selectedModel.name}</CardTitle>
-            <div>
-              {isRunning ? (
-                <Button variant="destructive" size="sm" onClick={onStopModel}>
-                  <Square className="h-4 w-4 mr-2" />
-                  Stop Model
-                </Button>
-              ) : (
-                <Button variant="default" size="sm" onClick={() => onStartModel(selectedModel)}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Model
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1 text-sm">
-                <span>Processing</span>
-                <span>{completionPercentage}%</span>
-              </div>
-              <Progress value={completionPercentage} />
-            </div>
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="output">Output</TabsTrigger>
-                <TabsTrigger value="config">Configuration</TabsTrigger>
-                <TabsTrigger value="results">Results</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="output" className="mt-0">
-                <div className="bg-muted rounded-md p-2 h-[300px] overflow-auto font-mono text-xs whitespace-pre">
-                  {modelOutput || "Model not started yet. Press 'Start Model' to begin processing."}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="config" className="mt-0">
-                <div className="bg-muted rounded-md p-4 h-[300px] overflow-auto">
-                  <h3 className="text-sm font-medium mb-2 flex items-center">
-                    <Settings className="h-4 w-4 mr-1" />
-                    Model Configuration
-                  </h3>
-                  
-                  <div className="space-y-4 text-sm">
-                    <div>
-                      <span className="font-medium">Type:</span> {selectedModel.type}
-                    </div>
-                    <div>
-                      <span className="font-medium">Endpoint:</span> {selectedModel.endpoint}
-                    </div>
-                    <div>
-                      <span className="font-medium">Parameters:</span>
-                      <div className="ml-4 mt-1 text-xs">
-                        <div>timeframe: 1h</div>
-                        <div>lookback_period: 30 days</div>
-                        <div>leverage: 1.0</div>
-                        <div>risk_tolerance: medium</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="results" className="mt-0">
-                <div className="bg-muted rounded-md p-4 h-[300px] overflow-auto">
-                  <h3 className="text-sm font-medium mb-2 flex items-center">
-                    <BarChart3 className="h-4 w-4 mr-1" />
-                    Results Summary
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-background rounded p-2">
-                        <div className="text-xs text-muted-foreground">Prediction Accuracy</div>
-                        <div className="text-lg font-bold">
-                          {selectedModel.performance?.accuracy ? 
-                            `${(selectedModel.performance.accuracy * 100).toFixed(1)}%` : 
-                            'N/A'}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-background rounded p-2">
-                        <div className="text-xs text-muted-foreground">Return Rate</div>
-                        <div className="text-lg font-bold text-green-500">
-                          {selectedModel.performance?.returns ? 
-                            `+${selectedModel.performance.returns.toFixed(1)}%` : 
-                            'N/A'}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-background rounded p-2">
-                        <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
-                        <div className="text-lg font-bold">
-                          {selectedModel.performance?.sharpeRatio ? 
-                            selectedModel.performance.sharpeRatio.toFixed(2) : 
-                            'N/A'}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-background rounded p-2">
-                        <div className="text-xs text-muted-foreground">Max Drawdown</div>
-                        <div className="text-lg font-bold text-red-500">
-                          {selectedModel.performance?.maxDrawdown ? 
-                            `-${selectedModel.performance.maxDrawdown.toFixed(1)}%` : 
-                            'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-xs text-center text-muted-foreground">
-                      {isRunning ? 
-                        'Model is running. Results will update in real-time.' : 
-                        'Start the model to see real-time performance metrics.'}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {isRunning && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <FileJson className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="text-lg font-medium">Latest Signal</h3>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {new Date().toLocaleTimeString()}
-              </div>
-            </div>
-            
-            <div className="border rounded-md p-3">
-              <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      {selectedModel ? (
+        <>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <div className="font-medium">BUY BTC/USD</div>
-                  <div className="text-xs text-muted-foreground">Signal Confidence: 76%</div>
+                  <h3 className="text-lg font-medium">{selectedModel.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedModel.description}</p>
                 </div>
-                <Button size="sm" variant="outline">Apply</Button>
+                <Badge variant={selectedModel.isConnected ? "default" : "secondary"}>
+                  {selectedModel.isConnected ? "Connected" : "Disconnected"}
+                </Badge>
               </div>
+              
+              <div className="flex justify-between items-center">
+                <div className="space-x-2">
+                  {!isRunning ? (
+                    <Button 
+                      onClick={handleStartModel}
+                      disabled={!selectedModel.isConnected}
+                    >
+                      Start Model
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="destructive"
+                      onClick={handleStopModel}
+                    >
+                      Stop Model
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Status:</span>{" "}
+                  <span className={isRunning ? "text-green-500" : "text-muted-foreground"}>
+                    {isRunning ? "Running" : "Idle"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ModelPerformance 
+              model={selectedModel}
+              isRunning={isRunning}
+            />
+            
+            <ModelConfiguration 
+              onSaveConfig={handleSaveConfig}
+              defaultConfig={{
+                confidenceThreshold: 0.7,
+                updateInterval: 5,
+                enableLogging: true
+              }}
+            />
+          </div>
+          
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium mb-4">Model Logs</h3>
+              
+              <div className="bg-muted rounded-md p-4 h-60 overflow-y-auto font-mono text-xs">
+                {logs.length > 0 ? (
+                  logs.map((log, index) => (
+                    <div key={index} className="py-1">
+                      {log}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground">
+                    No logs available. Start the model to see logs.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No model selected</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Connect to a model in the "Connect Models" tab first
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Form,
@@ -19,7 +20,7 @@ import { TradeOrder, OrderType } from '@/types/trading';
 import { toast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
-  orderType: z.enum(['market', 'limit', 'stop', 'stop_limit', 'trailing_stop']),
+  orderType: z.enum(['market', 'limit', 'stop', 'stop-limit', 'trailing_stop']),
   side: z.enum(['buy', 'sell']),
   amount: z.number().min(0.00000001, { message: "Amount must be greater than 0" }),
   price: z.number().min(0.00000001, { message: "Price must be greater than 0" }),
@@ -59,14 +60,14 @@ const FakeTradingForm: React.FC<{ advancedMode?: boolean }> = ({ advancedMode })
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const newOrder: TradeOrder = {
       id: `order-${Date.now()}`,
-      type: values.orderType,
+      type: values.orderType as OrderType,
       side: values.side,
       coinId: "bitcoin",
       symbol: "BTC",
       amount: values.amount,
       price: values.price,
       total: amount * price,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       status: "open",
     };
     
@@ -78,67 +79,45 @@ const FakeTradingForm: React.FC<{ advancedMode?: boolean }> = ({ advancedMode })
     });
   };
 
-  // Fix the order type comparison issue by updating the OrderType type and using proper comparison
-const renderOrderTypeSpecificFields = () => {
-  if (orderType === "limit") {
-    // Limit order fields
-    return (
-      <div className="space-y-4 mt-4">
-        <FormField
-          control={form.control}
-          name="limitPrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Limit Price ({selectedCurrency})</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
-                  {...field} 
-                  onChange={(e) => {
-                    field.onChange(parseFloat(e.target.value));
-                    calculateTotal();
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    );
-  } else if (orderType === "stop" || orderType === "stop_limit" || orderType === "trailing_stop") {
-    // Stop order fields
-    return (
-      <div className="space-y-4 mt-4">
-        <FormField
-          control={form.control}
-          name="stopPrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Stop Price ({selectedCurrency})</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
-                  {...field} 
-                  onChange={(e) => {
-                    field.onChange(parseFloat(e.target.value));
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {orderType === "stop_limit" && (
+  // Fixed order type comparison
+  const renderOrderTypeSpecificFields = () => {
+    if (orderType === "limit") {
+      // Limit order fields
+      return (
+        <div className="space-y-4 mt-4">
           <FormField
             control={form.control}
             name="limitPrice"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Limit Price ({selectedCurrency})</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(parseFloat(e.target.value));
+                      calculateTotal();
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      );
+    } else if (orderType === "stop" || orderType === "stop-limit" || orderType === "trailing_stop") {
+      // Stop order fields
+      return (
+        <div className="space-y-4 mt-4">
+          <FormField
+            control={form.control}
+            name="stopPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stop Price ({selectedCurrency})</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -153,46 +132,68 @@ const renderOrderTypeSpecificFields = () => {
               </FormItem>
             )}
           />
-        )}
-        
-        {orderType === "trailing_stop" && (
-          <FormField
-            control={form.control}
-            name="trailingAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Trailing Amount ({isPercentage ? '%' : selectedCurrency})</FormLabel>
-                <div className="flex space-x-2">
+          
+          {orderType === "stop-limit" && (
+            <FormField
+              control={form.control}
+              name="limitPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Limit Price ({selectedCurrency})</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       placeholder="0.00" 
-                      className="flex-1"
                       {...field} 
                       onChange={(e) => {
                         field.onChange(parseFloat(e.target.value));
                       }}
                     />
                   </FormControl>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsPercentage(!isPercentage)}
-                  >
-                    {isPercentage ? '%' : selectedCurrency}
-                  </Button>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-      </div>
-    );
-  }
-  
-  return null; // Market orders have no extra fields
-};
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          
+          {orderType === "trailing_stop" && (
+            <FormField
+              control={form.control}
+              name="trailingAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Trailing Amount ({isPercentage ? '%' : selectedCurrency})</FormLabel>
+                  <div className="flex space-x-2">
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="0.00" 
+                        className="flex-1"
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(parseFloat(e.target.value));
+                        }}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsPercentage(!isPercentage)}
+                    >
+                      {isPercentage ? '%' : selectedCurrency}
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+      );
+    }
+    
+    return null; // Market orders have no extra fields
+  };
   
   return (
     <Card className="w-full">
@@ -203,7 +204,7 @@ const renderOrderTypeSpecificFields = () => {
               <FormItem>
                 <FormLabel>Order Type</FormLabel>
                 <FormControl>
-                  <Select onValueChange={(value) => setValue("orderType", value as OrderType)}>
+                  <Select onValueChange={(value) => setValue("orderType", value as any)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select order type" />
                     </SelectTrigger>
@@ -211,7 +212,7 @@ const renderOrderTypeSpecificFields = () => {
                       <SelectItem value="market">Market Order</SelectItem>
                       <SelectItem value="limit">Limit Order</SelectItem>
                       <SelectItem value="stop">Stop Order</SelectItem>
-                      <SelectItem value="stop_limit">Stop Limit Order</SelectItem>
+                      <SelectItem value="stop-limit">Stop Limit Order</SelectItem>
                       <SelectItem value="trailing_stop">Trailing Stop Order</SelectItem>
                     </SelectContent>
                   </Select>
@@ -228,11 +229,11 @@ const renderOrderTypeSpecificFields = () => {
                     onValueChange={(value) => setValue("side", value as "buy" | "sell")} 
                     className="flex space-x-2"
                   >
-                    <FormItem>
+                    <FormItem className="flex items-center space-x-1">
                       <RadioGroupItem value="buy" id="side-buy" />
                       <FormLabel htmlFor="side-buy">Buy</FormLabel>
                     </FormItem>
-                    <FormItem>
+                    <FormItem className="flex items-center space-x-1">
                       <RadioGroupItem value="sell" id="side-sell" />
                       <FormLabel htmlFor="side-sell">Sell</FormLabel>
                     </FormItem>
@@ -286,7 +287,7 @@ const renderOrderTypeSpecificFields = () => {
               <FormItem>
                 <FormLabel>Currency</FormLabel>
                 <FormControl>
-                  <Select onValueChange={setSelectedCurrency}>
+                  <Select onValueChange={setSelectedCurrency} defaultValue="USD">
                     <SelectTrigger>
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>

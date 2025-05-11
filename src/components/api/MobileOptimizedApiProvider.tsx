@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +48,7 @@ const MobileOptimizedApiProvider: React.FC<MobileOptimizedApiProviderProps> = ({
     }
   };
   
-  const isAuthenticated = provider.requiresAuth;
+  const isAuthenticated = provider.requiresAuth || provider.authRequired;
   
   return (
     <Card className={`border-l-4 ${

@@ -5,7 +5,7 @@ export interface CoinOption {
   symbol: string;
   price: number;
   priceChange: number;
-  changePercent: number; // Added this missing property
+  changePercent: number;
   image?: string;
   volume?: number;
   marketCap?: number;
@@ -22,36 +22,36 @@ export interface Trade {
   amount: number;
   price: number;
   totalValue: number;
-  total: number; // Added for compatibility
+  total: number;
   timestamp: string;
   currency: SupportedCurrency;
   botGenerated?: boolean;
   strategyId?: string;
-  fees?: number; // Added fees field
-  coin?: string; // Added coin field
+  fees?: number;
+  coin?: string;
 }
 
 export interface TradingAccount {
   id: string;
   name: string;
   balance: number;
-  initialBalance: number;
+  initialBalance?: number;
   currency: SupportedCurrency;
-  trades: Trade[];
-  createdAt: string;
+  trades?: Trade[];
+  createdAt?: string;
   lastModified?: string;
-  provider?: string; // Added provider field
-  isActive?: boolean; // Added isActive field
+  provider?: string;
+  isActive?: boolean;
+  type?: string;
 }
 
-export interface AccountWithBotsEnabled {
-  id: string; // Explicitly defining id for BotAccountConnector
-  name: string; // Explicitly defining name field
-  balance: number; // Explicitly defining balance field
-  isActive: boolean; // Explicitly defining isActive field
-  provider: string; // Explicitly defining provider field
-  currency: SupportedCurrency;
-  trades: Trade[];
+export interface AccountWithBotsEnabled extends TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  isActive: boolean;
+  provider: string;
+  botsEnabled: boolean;
 }
 
 export interface TaxHarvestTrade {
@@ -94,7 +94,6 @@ export interface RealTimePriceChartProps {
   timeframe?: string;
   height?: number | string;
   showControls?: boolean;
-  showVolume?: boolean;
 }
 
 export interface QuantitativeAnalysisProps {
@@ -144,7 +143,7 @@ export interface StrategyShare {
   likes: number;
 }
 
-export type OrderType = 'market' | 'limit' | 'stop' | 'stop_limit' | 'trailing_stop';
+export type OrderType = 'market' | 'limit' | 'stop' | 'stop-limit' | 'trailing_stop';
 
 export interface LocalModel {
   id: string;
@@ -169,15 +168,16 @@ export interface ModelListProps {
   onDisconnect?: (modelId: string) => void;
 }
 
-// Renaming AITradingStrategy to TradingStrategy to match existing usages
-export interface TradingStrategy {
+export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'momentum' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
   timeframe: string;
   parameters: any;
   riskLevel?: string;
+  creator?: string;
+  tags?: string[];
   indicators?: string[];
   performance?: {
     winRate?: number;
@@ -188,17 +188,14 @@ export interface TradingStrategy {
     drawdown?: number;
     returns?: number;
   };
-  creator?: string;
-  tags?: string[];
 }
 
 export interface AiBotTradingProps {
-  botId: string;
-  strategyId: string;
-  strategyName: string;
+  botId?: string;
+  strategyId?: string;
+  strategyName?: string;
 }
 
-// Adding missing interfaces for settings components
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
   onSave?: (values: Partial<SettingsFormValues>) => void;
@@ -257,7 +254,6 @@ export interface SettingsFormValues {
   };
 }
 
-// Adding missing interfaces for LiveAnalyticsDashboard
 export interface LiveAnalyticsDashboardProps {
   initialCoinId?: string;
   refreshInterval?: number;
@@ -293,7 +289,7 @@ export interface ApiProvider {
   defaultHeaders?: Record<string, string>;
   enabled?: boolean;
   requiresAuth?: boolean;
-  authRequired?: boolean; // Adding missing authRequired property
+  authRequired?: boolean;
 }
 
 export interface ApiEndpoint {
@@ -315,8 +311,6 @@ export interface ApiUsageStats {
   maxUsage: number;
   endpoint?: string;
   resetTime?: string;
-  
-  // Adding missing properties reported in errors
   requestCount?: number;
   successCount?: number;
   errorCount?: number;
@@ -332,14 +326,52 @@ export interface ApiUsageStats {
   lastRequested?: string;
 }
 
-// Add missing interface for EnhancedPortfolioBenchmarking
 export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioPerformance?: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    yearly: number;
-    allTime: number;
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+}
+
+export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
+
+export interface StrategyParameter {
+  id: string;
+  name: string;
+  description: string;
+  type: 'number' | 'boolean' | 'string' | 'select';
+  defaultValue: any;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: Array<{ value: string; label: string }>;
+}
+
+export interface BacktestResult {
+  profit: number;
+  profitPercentage: number;
+  winRate: number;
+  winningTrades: number;
+  totalTrades: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  profitFactor: number;
+  trades: Array<{
+    id: string;
+    date: string;
+    type: 'buy' | 'sell';
+    price: number;
+    amount: number;
+    profit: number;
+  }>;
+}
+
+export interface OptimizationResult {
+  parameterValues: Record<string, any>;
+  improvement: number;
+  performance: {
+    profit: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+    winRate: number;
   };
 }
 
@@ -347,56 +379,11 @@ export interface CryptoData {
   id: string;
   symbol: string;
   name: string;
-  image?: string;
   price: number;
   priceChange: number;
   changePercent: number;
-  marketCap?: number;
-  volume?: number;
-}
-
-export interface StrategyParameter {
-  id: string;
-  name: string;
-  description?: string;
-  type: 'number' | 'boolean' | 'string' | 'select' | 'range';
-  default: any;
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: { value: string; label: string }[];
-}
-
-export interface BacktestResult {
-  profit: number;
-  profitPercentage: number;
-  drawdown: number;
-  maxDrawdown: number;
-  winRate: number;
-  winningTrades: number;
-  losingTrades: number;
-  totalTrades: number;
-  sharpeRatio: number;
-  profitFactor: number;
-  trades: {
-    id: string;
-    date: string;
-    type: 'buy' | 'sell';
-    price: number;
-    amount: number;
-    profit: number;
-  }[];
-}
-
-export interface OptimizationResult {
-  improvement: number;
-  parameterValues: Record<string, any>;
-  performance: {
-    profit: number;
-    maxDrawdown: number;
-    sharpeRatio: number;
-    winRate: number;
-  };
+  marketCap: number;
+  volume: number;
 }
 
 export interface Widget {
@@ -407,9 +394,17 @@ export interface Widget {
   customContent?: string;
 }
 
-export type WidgetType = 'price-chart' | 'portfolio-summary' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis' | 'custom';
-export type WidgetSize = 'small' | 'medium' | 'large';
+export type WidgetType = 
+  'price-chart' | 
+  'portfolio-summary' | 
+  'watchlist' | 
+  'news' | 
+  'alerts' | 
+  'trading' | 
+  'aiTrading' | 
+  'aiAnalysis' | 
+  'custom';
 
-export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
+export type WidgetSize = 'small' | 'medium' | 'large';
 
 import { UseFormReturn } from "react-hook-form";

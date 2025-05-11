@@ -1,158 +1,121 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ModelGenerationTabProps } from './types';
-import { LocalModel } from '@/types/trading';
-import { Bot, Database, Plus } from 'lucide-react';
+import { LocalModel, ModelGenerationTabProps } from './types';
+import { toast } from "@/components/ui/use-toast";
 
-const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({ onModelGenerated }) => {
-  const [name, setName] = useState("");
-  const [endpoint, setEndpoint] = useState("http://localhost:8000");
-  const [type, setType] = useState<"prediction" | "sentiment" | "trading" | "analysis">("prediction");
-  const [description, setDescription] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+const ModelGenerationTab: React.FC<ModelGenerationTabProps> = ({
+  onModelGenerated
+}) => {
+  const [modelName, setModelName] = useState<string>('');
+  const [modelEndpoint, setModelEndpoint] = useState<string>('http://localhost:8000');
+  const [modelType, setModelType] = useState<'prediction' | 'sentiment' | 'trading' | 'analysis'>('prediction');
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
-  const handleGenerate = () => {
+  const handleGenerateModel = () => {
+    if (!modelName) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide a name for your model",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     
-    // Simulate model generation
+    // Simulate model generation process
     setTimeout(() => {
       const newModel: LocalModel = {
-        id: `local-model-${Date.now()}`,
-        name,
-        endpoint,
-        type,
-        description,
+        id: `model-${Date.now()}`,
+        name: modelName,
+        endpoint: modelEndpoint,
+        type: modelType,
         isConnected: false,
+        description: `Generated ${modelType} model for cryptocurrency trading`,
         performance: {
           accuracy: 0.65 + Math.random() * 0.2,
-          returns: 15 + Math.random() * 20,
-          sharpeRatio: 1.2 + Math.random() * 1.0,
-          maxDrawdown: 10 + Math.random() * 10
+          returns: 10 + Math.random() * 15,
+          sharpeRatio: 1.0 + Math.random() * 1.0,
+          maxDrawdown: 8 + Math.random() * 10
         }
       };
       
       onModelGenerated(newModel);
-      setIsGenerating(false);
+      
+      toast({
+        title: "Model Generated",
+        description: `${modelName} has been successfully generated`
+      });
       
       // Reset form
-      setName("");
-      setEndpoint("http://localhost:8000");
-      setType("prediction");
-      setDescription("");
+      setModelName('');
+      setModelEndpoint('http://localhost:8000');
+      setModelType('prediction');
+      setIsGenerating(false);
     }, 2000);
   };
   
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Generate New Model</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <Card>
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium">Generate New Model</h3>
+          
           <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <Label htmlFor="name">Model Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="Enter a name for your model" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="endpoint">Local Endpoint</Label>
-                <Input 
-                  id="endpoint" 
-                  placeholder="http://localhost:8000" 
-                  value={endpoint}
-                  onChange={(e) => setEndpoint(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="type">Model Type</Label>
-                <Select 
-                  value={type} 
-                  onValueChange={(value: "prediction" | "sentiment" | "trading" | "analysis") => setType(value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select model type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="prediction">Price Prediction</SelectItem>
-                    <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
-                    <SelectItem value="trading">Trading Algorithm</SelectItem>
-                    <SelectItem value="analysis">Market Analysis</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  placeholder="Describe your model's purpose and functionality" 
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                />
-              </div>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="model-name">Model Name</Label>
+              <Input 
+                id="model-name" 
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+                placeholder="e.g., BTC Price Predictor"
+              />
+            </div>
+            
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="model-endpoint">Local Endpoint</Label>
+              <Input 
+                id="model-endpoint" 
+                value={modelEndpoint}
+                onChange={(e) => setModelEndpoint(e.target.value)}
+                placeholder="http://localhost:8000" 
+              />
+            </div>
+            
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="model-type">Model Type</Label>
+              <Select 
+                value={modelType}
+                onValueChange={(value: 'prediction' | 'sentiment' | 'trading' | 'analysis') => setModelType(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select model type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="prediction">Price Prediction</SelectItem>
+                  <SelectItem value="sentiment">Sentiment Analysis</SelectItem>
+                  <SelectItem value="trading">Trading Strategy</SelectItem>
+                  <SelectItem value="analysis">Market Analysis</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <Button 
-              className="w-full" 
-              onClick={handleGenerate}
-              disabled={isGenerating || !name || !endpoint}
+              onClick={handleGenerateModel}
+              disabled={isGenerating}
+              className="mt-4"
             >
-              {isGenerating ? (
-                <>Generating Model...</>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Generate Model
-                </>
-              )}
+              {isGenerating ? 'Generating...' : 'Generate Model'}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center mb-4">
-              <Bot className="h-5 w-5 mr-2 text-primary" />
-              <h3 className="text-lg font-medium">Model Generation</h3>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Generate models to predict market movements or analyze sentiment. 
-              Models run locally on your device or on your network.
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center mb-4">
-              <Database className="h-5 w-5 mr-2 text-primary" />
-              <h3 className="text-lg font-medium">Data Requirements</h3>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Local models require access to market data. Ensure your local endpoint 
-              has access to historical and real-time data sources.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
