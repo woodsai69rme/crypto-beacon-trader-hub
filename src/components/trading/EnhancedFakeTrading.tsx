@@ -16,16 +16,16 @@ const EnhancedFakeTrading: React.FC = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Trading Interface</CardTitle>
+    <Card className="w-full glass-card backdrop-blur-lg border-border shadow-lg">
+      <CardHeader className="border-b border-border/40">
+        <CardTitle className="text-primary text-xl font-semibold">Trading Interface</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 md:p-6">
         <Tabs defaultValue="standard" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="standard">Standard</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
+          <TabsList className="grid grid-cols-3 mb-6 bg-muted/50">
+            <TabsTrigger value="standard" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Standard</TabsTrigger>
+            <TabsTrigger value="advanced" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Advanced</TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Analysis</TabsTrigger>
           </TabsList>
           
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">

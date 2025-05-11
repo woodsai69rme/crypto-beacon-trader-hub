@@ -1,10 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Base variables */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -33,6 +33,12 @@
     --crypto-yellow: 41 96% 61%;
     --crypto-purple: 262 83% 65%;
     
+    /* RGB values for animations */
+    --primary-rgb: 262 83 58;
+    --background-rgb: 0 0 100;
+    --muted-rgb: 220 14 96;
+    --accent-rgb: 220 14 96;
+    
     /* Trading specific */
     --profit: 142 71% 45%;
     --loss: 358 75% 64%;
@@ -40,6 +46,7 @@
 
   /* Dark theme (default) */
   .dark {
+    /* Base variables */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -61,6 +68,12 @@
     --ring: 240 4.9% 83.9%;
 
     color-scheme: dark;
+    
+    /* RGB values for animations */
+    --primary-rgb: 0 0 98;
+    --background-rgb: 240 10 4;
+    --muted-rgb: 240 4 16;
+    --accent-rgb: 240 4 16;
   }
   
   /* Light theme */
@@ -86,6 +99,12 @@
     --ring: 262.1 83.3% 57.8%;
 
     color-scheme: light;
+    
+    /* RGB values for animations */
+    --primary-rgb: 262 83 58;
+    --background-rgb: 0 0 100;
+    --muted-rgb: 220 14 96;
+    --accent-rgb: 220 14 96;
   }
 }
 
@@ -101,58 +120,43 @@
 }
 
 @layer components {
-  .crypto-card {
-    @apply rounded-lg border border-border bg-card p-4 shadow-sm;
-  }
-
-  .crypto-card-header {
-    @apply mb-4 flex items-center justify-between;
-  }
-  
-  /* Enhanced card with animation */
-  .crypto-card-animated {
-    @apply transition-all duration-300 ease-in-out hover:shadow-md hover:scale-[1.01];
-  }
-  
-  /* Gradient text for headings */
-  .gradient-text {
-    @apply bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent;
-  }
-  
-  /* Status indicators */
-  .status-indicator {
-    @apply inline-block h-2 w-2 rounded-full;
-  }
-  
-  .status-indicator-success {
-    @apply bg-green-500;
-  }
-  
-  .status-indicator-warning {
-    @apply bg-yellow-500;
-  }
-  
-  .status-indicator-error {
-    @apply bg-red-500;
-  }
-  
-  /* Chart tooltip */
-  .chart-tooltip {
-    @apply rounded-md border border-border bg-popover p-2 text-xs shadow-md;
-  }
-  
-  /* Glass card styles */
+  /* Enhanced glass card styles */
   .glass-card {
-    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-lg;
+    @apply backdrop-blur-md bg-background/10 border border-border/40 shadow-lg transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply bg-background/20 border-border/60;
+  }
+  
+  /* Theme-specific glass card styles */
+  .midnight-tech .glass-card {
+    @apply bg-[rgba(13,19,33,0.7)] border-[rgba(65,100,240,0.2)] shadow-[0_4px_12px_rgba(0,0,0,0.3)];
   }
 
-  /* Profit/Loss styling */
-  .profit {
-    @apply text-green-500;
+  .cyber-pulse .glass-card {
+    @apply bg-[rgba(28,14,36,0.7)] border-[rgba(186,104,200,0.2)] shadow-[0_4px_12px_rgba(0,0,0,0.3)];
   }
 
-  .loss {
-    @apply text-red-500;
+  .matrix-code .glass-card {
+    @apply bg-[rgba(8,20,8,0.7)] border-[rgba(50,205,50,0.2)] shadow-[0_4px_12px_rgba(0,0,0,0.3)];
+  }
+  
+  /* Add premium styles for trading components */
+  .trading-card {
+    @apply glass-card p-4 rounded-lg;
+  }
+  
+  .cyber-pulse .trading-card {
+    @apply bg-gradient-to-br from-purple-950/50 to-violet-900/30;
+  }
+  
+  .midnight-tech .trading-card {
+    @apply bg-gradient-to-br from-blue-950/50 to-indigo-950/30;
+  }
+  
+  .matrix-code .trading-card {
+    @apply bg-gradient-to-br from-emerald-950/50 to-green-900/30;
   }
 }
 
@@ -211,4 +215,65 @@
   background-color: rgba(8, 20, 8, 0.7);
   border-color: rgba(50, 205, 50, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Trading specific colors preserved across all themes */
+.profit {
+  color: hsl(var(--profit));
+}
+
+.loss {
+  color: hsl(var(--loss));
+}
+
+.neutral {
+  color: hsl(var(--muted-foreground));
+}
+
+.bg-profit {
+  background-color: hsla(var(--profit), 0.2);
+}
+
+.bg-loss {
+  background-color: hsla(var(--loss), 0.2);
+}
+
+/* Focus styles for accessibility */
+.focus-visible:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .responsive-flex {
+    flex-direction: column;
+  }
+  
+  .hide-on-mobile {
+    display: none;
+  }
+}
+
+/* Print styles for reports */
+@media print {
+  .no-print {
+    display: none;
+  }
+  
+  body {
+    background-color: white;
+    color: black;
+  }
+  
+  .print-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 }

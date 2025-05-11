@@ -14,7 +14,7 @@ import {
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 interface ThemeSwitcherProps {
   className?: string;
@@ -26,6 +26,7 @@ interface ColorSchemeOption {
   label: string;
   description: string;
   preview: string;
+  iconColor: string;
 }
 
 const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = false }) => {
@@ -43,25 +44,29 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = fals
       value: "default", 
       label: "Default", 
       description: "Standard elegant theme",
-      preview: "bg-gradient-to-br from-slate-900 to-slate-800" 
+      preview: "bg-gradient-to-br from-slate-900 to-slate-800",
+      iconColor: "#64748b"
     },
     { 
       value: "midnight-tech", 
       label: "Midnight Tech", 
       description: "Deep blue tech-inspired theme",
-      preview: "bg-gradient-to-br from-blue-950 to-indigo-950" 
+      preview: "bg-gradient-to-br from-blue-950 to-indigo-950",
+      iconColor: "#3b82f6" 
     },
     { 
       value: "cyber-pulse", 
       label: "Cyber Pulse", 
       description: "Vibrant purple cyberpunk style",
-      preview: "bg-gradient-to-br from-purple-950 to-violet-900" 
+      preview: "bg-gradient-to-br from-purple-950 to-violet-900",
+      iconColor: "#a855f7" 
     },
     { 
       value: "matrix-code", 
       label: "Matrix Code", 
       description: "Green-tinted hacker aesthetic",
-      preview: "bg-gradient-to-br from-emerald-950 to-green-900" 
+      preview: "bg-gradient-to-br from-emerald-950 to-green-900",
+      iconColor: "#10b981" 
     }
   ];
   
@@ -94,7 +99,7 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = fals
           variant="ghost" 
           size="icon" 
           onClick={() => setTheme(isDark ? "light" : "dark")}
-          className="relative"
+          className="relative animate-glow"
           aria-label={`Toggle ${isDark ? 'light' : 'dark'} mode`}
         >
           {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -126,7 +131,9 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = fals
               className="relative"
               aria-label="Select theme style"
             >
-              <Palette className="h-5 w-5" />
+              <Palette className="h-5 w-5" style={{ 
+                color: colorSchemeOptions.find(option => option.value === colorScheme)?.iconColor 
+              }} />
             </Button>
           </DropdownMenuTrigger>
         </div>
@@ -145,7 +152,7 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = fals
                   size="sm"
                   className={cn(
                     "justify-start",
-                    theme === option.value && "border-2 border-primary"
+                    theme === option.value && "border-2 border-primary bg-primary/10"
                   )}
                   onClick={() => {
                     handleThemeChange(option.value);
@@ -168,19 +175,25 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = fals
                 <button
                   key={option.value}
                   className={cn(
-                    "flex flex-col items-center rounded-md space-y-1 p-2 hover:bg-accent hover:text-accent-foreground",
-                    colorScheme === option.value && "border-2 border-primary"
+                    "flex flex-col items-center rounded-md space-y-1 p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-300",
+                    colorScheme === option.value && "border-2 border-primary bg-primary/10"
                   )}
                   onClick={() => {
                     handleColorSchemeChange(option.value);
                     setIsOpen(false);
                   }}
                 >
-                  <div className={cn("h-8 w-full rounded-md", option.preview)} />
-                  <div className="text-xs flex items-center">
-                    {colorScheme === option.value && <Check className="h-3 w-3 mr-1" />}
-                    {option.label}
+                  <div className={cn("h-12 w-full rounded-md shadow-md", option.preview)}>
+                    <div className="flex h-full items-center justify-center">
+                      {colorScheme === option.value && 
+                        <div className="h-5 w-5 rounded-full bg-white/90 flex items-center justify-center">
+                          <Check className="h-3 w-3 text-black" />
+                        </div>
+                      }
+                    </div>
                   </div>
+                  <div className="text-xs font-medium">{option.label}</div>
+                  <div className="text-[10px] text-muted-foreground text-center">{option.description}</div>
                 </button>
               ))}
             </div>
