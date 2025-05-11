@@ -1,114 +1,152 @@
+import { useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
-import { useState, useEffect } from "react";
-import { PriceAlert, VolumeAlert } from "@/types/alerts";
-import { toast } from "@/components/ui/use-toast";
-import { handleError } from "@/utils/errorHandling";
-import { PriceAlertFormData } from "@/components/widgets/AlertComponents/AlertTypes";
+interface Alert {
+  id: string;
+  coinId: string;
+  threshold: number;
+  type: 'above' | 'below';
+  enabled: boolean;
+}
 
-export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
-  const [volumeAlerts, setVolumeAlerts] = useState<VolumeAlert[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // Load alerts from localStorage
+const useAlerts = () => {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  
   useEffect(() => {
-    try {
-      setIsLoading(true);
-      const savedAlerts = localStorage.getItem("priceAlerts");
-      const savedVolumeAlerts = localStorage.getItem("volumeAlerts");
-      
-      if (savedAlerts) {
-        setAlerts(JSON.parse(savedAlerts));
-      }
-      
-      if (savedVolumeAlerts) {
-        setVolumeAlerts(JSON.parse(savedVolumeAlerts));
-      }
-    } catch (error) {
-      handleError(error, "warning", "Failed to load alerts");
-    } finally {
-      setIsLoading(false);
+    // Load alerts from local storage or an API
+    const storedAlerts = localStorage.getItem('alerts');
+    if (storedAlerts) {
+      setAlerts(JSON.parse(storedAlerts));
     }
   }, []);
-
-  // Save alerts to localStorage when they change
+  
   useEffect(() => {
-    if (!isLoading) {
-      try {
-        localStorage.setItem("priceAlerts", JSON.stringify(alerts));
-        localStorage.setItem("volumeAlerts", JSON.stringify(volumeAlerts));
-      } catch (error) {
-        handleError(error, "warning", "Failed to save alerts");
-      }
-    }
-  }, [alerts, volumeAlerts, isLoading]);
-
-  const addAlert = async (newAlertData: PriceAlertFormData) => {
+    // Save alerts to local storage whenever they change
+    localStorage.setItem('alerts', JSON.stringify(alerts));
+  }, [alerts]);
+  
+  const createAlert = async (alertData) => {
     try {
-      // Validate required fields
-      if (!newAlertData.coinId || !newAlertData.coinName || !newAlertData.coinSymbol) {
-        throw new Error("Missing required alert information");
-      }
-
-      const alert: PriceAlert = {
-        id: Date.now().toString(),
-        createdAt: new Date(),
-        ...newAlertData,
+      // API call to create alert would go here
+      toast({
+        title: "Alert Created",
+        description: "Your price alert has been set successfully"
+      });
+      
+      const newAlert = {
+        id: `alert-${Date.now()}`,
+        ...alertData,
+        enabled: true
       };
+      setAlerts(prev => [...prev, newAlert]);
       
-      setAlerts(prevAlerts => [...prevAlerts, alert]);
-      
-      return alert;
+      return newAlert;
     } catch (error) {
-      handleError(error, "error", "Add Alert");
-      throw error;
-    }
-  };
-
-  const removeAlert = async (id: string) => {
-    try {
-      setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
-      return true;
-    } catch (error) {
-      handleError(error, "error", "Remove Alert");
-      throw error;
+      console.error("Error creating alert:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create alert. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
-  const updateAlert = async (id: string, updatedData: Partial<PriceAlert>) => {
+  const updateAlert = async (alertId, updatedData) => {
     try {
-      setAlerts(prevAlerts => 
-        prevAlerts.map(alert => 
-          alert.id === id ? { ...alert, ...updatedData } : alert
+      // API call to update alert would go here
+      toast({
+        title: "Alert Updated",
+        description: "Your alert has been updated successfully"
+      });
+      
+      setAlerts(prev =>
+        prev.map(alert =>
+          alert.id === alertId ? { ...alert, ...updatedData } : alert
         )
       );
-      return true;
     } catch (error) {
-      handleError(error, "error", "Update Alert");
-      throw error;
+      console.error("Error updating alert:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update alert. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
-  const toggleAlertEnabled = async (id: string) => {
+  const deleteAlert = async (alertId) => {
     try {
-      const alert = alerts.find(a => a.id === id);
-      if (!alert) throw new Error("Alert not found");
+      // API call to delete alert would go here
+      toast({
+        title: "Alert Deleted",
+        description: "Your alert has been removed"
+      });
       
-      await updateAlert(id, { enabled: !alert.enabled });
-      return !alert.enabled;
+      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
     } catch (error) {
-      handleError(error, "error", "Toggle Alert");
-      throw error;
+      console.error("Error deleting alert:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete alert. Please try again.",
+        variant: "destructive"
+      });
     }
   };
-
+  
+  const pauseAlert = async (alertId) => {
+    try {
+      // API call to pause alert would go here
+      toast({
+        title: "Alert Paused",
+        description: "Your alert has been paused"
+      });
+      
+      setAlerts(prev =>
+        prev.map(alert =>
+          alert.id === alertId ? { ...alert, enabled: false } : alert
+        )
+      );
+    } catch (error) {
+      console.error("Error pausing alert:", error);
+      toast({
+        title: "Error",
+        description: "Failed to pause alert. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const resumeAlert = async (alertId) => {
+    try {
+      // API call to resume alert would go here
+      toast({
+        title: "Alert Resumed",
+        description: "Your alert is now active"
+      });
+      
+      setAlerts(prev =>
+        prev.map(alert =>
+          alert.id === alertId ? { ...alert, enabled: true } : alert
+        )
+      );
+    } catch (error) {
+      console.error("Error resuming alert:", error);
+      toast({
+        title: "Error",
+        description: "Failed to resume alert. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   return {
     alerts,
-    volumeAlerts,
-    addAlert,
-    removeAlert,
+    createAlert,
     updateAlert,
-    toggleAlertEnabled,
-    isLoading
+    deleteAlert,
+    pauseAlert,
+    resumeAlert
   };
 };
+
+export default useAlerts;

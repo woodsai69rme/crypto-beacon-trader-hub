@@ -48,7 +48,7 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
       price: priceValue,
       total: totalValue,
       timestamp: tradeDate,
-      fee: totalValue * 0.001 // Add 0.1% fee
+      fees: totalValue * 0.001 // Fix: Use 'fees' instead of 'fee'
     };
     
     onAddTrade(newTrade);

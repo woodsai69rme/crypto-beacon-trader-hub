@@ -23,7 +23,7 @@ export interface CryptoData {
   name: string;
   symbol: string;
   price?: number;
-  priceChange?: number;
+  priceChange: number;  // Explicitly required
   image?: string;
   marketCap?: number;
   volume?: number;
@@ -45,7 +45,7 @@ export interface Trade {
   price: number;
   timestamp: number | string;
   total: number;
-  fee?: number;
+  fees?: number;
   coinName?: string;
   coinSymbol?: string;
   totalValue?: number;
@@ -138,18 +138,14 @@ export interface ApiProvider {
   usageLimit?: number;
 }
 
-export interface SupportedCurrency {
-  code: string;
-  name: string;
-  symbol: string;
-}
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
 // Props interfaces
 export interface RealTimePriceChartProps {
   coinId: string;
   selectedCoinId?: string;
   onSelectCoin?: (coinId: string) => void;
-  availableCoins: CoinOption[];
+  availableCoins?: CoinOption[];
   updateInterval?: number;
 }
 
@@ -165,8 +161,8 @@ export interface TradingFormProps {
   availableCoins: CoinOption[];
   onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
   getOwnedCoinAmount: (coinId: string) => number;
-  activeCurrency: string;
-  onCurrencyChange?: (currency: string) => void;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
   conversionRate: number;
 }
 
@@ -400,10 +396,9 @@ export interface SettingsFormValues {
   sidebar?: SidebarSettings;
 }
 
-import { UseFormReturn } from "react-hook-form";
-
-export interface SettingsComponentProps {
-  form: UseFormReturn<SettingsFormValues>;
-  onSave?: (values: Partial<SettingsFormValues>) => void;
-  defaultValues?: Partial<SettingsFormValues>;
+export interface WalletAccount {
+  address: string;
+  balance: string;
+  network: string;
+  provider: string;
 }

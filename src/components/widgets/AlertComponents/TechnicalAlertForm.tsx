@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,13 +77,17 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
       }
 
       toast({
-        title: "Technical Alert Created",
-        description: `${formData.coinSymbol} alert will trigger when ${formData.indicator} is ${formData.condition} ${formData.value}`,
+        title: "Success",
+        description: "Technical alert created"
       });
 
       onSubmit();
     } catch (error) {
-      handleError(error, "error", "Technical Alert");
+      toast({
+        title: "Error",
+        description: "Failed to create alert", 
+        variant: "destructive"
+      });
     }
   };
 

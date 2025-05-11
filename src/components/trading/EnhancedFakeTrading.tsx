@@ -5,9 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OrderBook from './OrderBook';
 import FakeTradingForm from './FakeTradingForm';
 import TradingChart from './TradingChart';
+import { Trade } from '@/types/trading';
 
 const EnhancedFakeTrading: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('standard');
+  const [trades, setTrades] = useState<Trade[]>([]);
+  
+  const handleAddTrade = (trade: Trade) => {
+    setTrades(prev => [...prev, trade]);
+  };
 
   return (
     <Card className="w-full">
@@ -33,11 +39,11 @@ const EnhancedFakeTrading: React.FC = () => {
             
             <div className="space-y-6">
               <TabsContent value="standard" className="m-0">
-                <FakeTradingForm />
+                <FakeTradingForm onAddTrade={handleAddTrade} />
               </TabsContent>
               
               <TabsContent value="advanced" className="m-0">
-                <FakeTradingForm advancedMode={true} />
+                <FakeTradingForm advancedMode={true} onAddTrade={handleAddTrade} />
               </TabsContent>
               
               <TabsContent value="analysis" className="m-0">
