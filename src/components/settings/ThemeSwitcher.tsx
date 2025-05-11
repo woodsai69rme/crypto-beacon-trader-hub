@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useTheme, Theme, ColorScheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Palette, Monitor } from "lucide-react";
+import { Moon, Sun, Palette, Monitor, Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +14,11 @@ import {
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 
 interface ThemeSwitcherProps {
   className?: string;
+  minimal?: boolean;
 }
 
 interface ColorSchemeOption {
@@ -26,9 +28,15 @@ interface ColorSchemeOption {
   preview: string;
 }
 
-const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
-  const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
+const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, minimal = false }) => {
+  const { theme, setTheme, colorScheme, setColorScheme, isDark } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  
+  const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] = [
+    { value: "light", label: "Light", icon: <Sun className="h-4 w-4 mr-2" /> },
+    { value: "dark", label: "Dark", icon: <Moon className="h-4 w-4 mr-2" /> },
+    { value: "system", label: "System", icon: <Monitor className="h-4 w-4 mr-2" /> }
+  ];
   
   const colorSchemeOptions: ColorSchemeOption[] = [
     { 
@@ -57,9 +65,44 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
     }
   ];
   
-  const handleToggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+  const handleThemeChange = (value: string) => {
+    if (value === "light" || value === "dark" || value === "system") {
+      setTheme(value as Theme);
+      toast({
+        title: "Theme Updated",
+        description: `Changed to ${value} theme`,
+        duration: 2000
+      });
+    }
   };
+
+  const handleColorSchemeChange = (value: string) => {
+    if (["default", "midnight-tech", "cyber-pulse", "matrix-code"].includes(value)) {
+      setColorScheme(value as ColorScheme);
+      toast({
+        title: "Style Updated",
+        description: `Changed to ${value.replace(/-/g, " ")} style`,
+        duration: 2000
+      });
+    }
+  };
+
+  if (minimal) {
+    return (
+      <div className={className}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          className="relative"
+          aria-label={`Toggle ${isDark ? 'light' : 'dark'} mode`}
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </div>
+    );
+  }
   
   return (
     <div className={className}>
@@ -68,11 +111,11 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={handleToggleTheme}
+            onClick={() => setTheme(isDark ? "light" : "dark")}
             className="relative"
-            aria-label={`Toggle ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            aria-label={`Toggle ${isDark ? 'light' : 'dark'} mode`}
           >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             <span className="sr-only">Toggle theme</span>
           </Button>
           
@@ -88,77 +131,60 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
           </DropdownMenuTrigger>
         </div>
         
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent align="end" className="w-64 backdrop-blur-lg">
           <DropdownMenuLabel>Theme Appearance</DropdownMenuLabel>
           <DropdownMenuSeparator />
           
-          <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
-            <div className="grid grid-cols-2 gap-2 p-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "justify-start",
-                  theme === "light" && "border-2 border-primary"
-                )}
-                onClick={() => {
-                  setTheme("light");
-                  setIsOpen(false);
-                }}
-              >
-                <Sun className="h-4 w-4 mr-2" />
-                Light
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "justify-start",
-                  theme === "dark" && "border-2 border-primary"
-                )}
-                onClick={() => {
-                  setTheme("dark");
-                  setIsOpen(false);
-                }}
-              >
-                <Moon className="h-4 w-4 mr-2" />
-                Dark
-              </Button>
+          <div className="p-2">
+            <p className="text-xs text-muted-foreground mb-2">Mode</p>
+            <div className="grid grid-cols-3 gap-2">
+              {themeOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "justify-start",
+                    theme === option.value && "border-2 border-primary"
+                  )}
+                  onClick={() => {
+                    handleThemeChange(option.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  {option.icon}
+                  {option.label}
+                </Button>
+              ))}
             </div>
-          </DropdownMenuRadioGroup>
-          
-          <DropdownMenuSeparator />
-          
-          <DropdownMenuLabel>Theme Style</DropdownMenuLabel>
-          
-          <div className="grid grid-cols-2 gap-2 p-2">
-            {colorSchemeOptions.map((option) => (
-              <button
-                key={option.value}
-                className={cn(
-                  "flex flex-col items-center space-y-1 rounded-md p-2 hover:bg-accent hover:text-accent-foreground",
-                  colorScheme === option.value && "border-2 border-primary"
-                )}
-                onClick={() => {
-                  setColorScheme(option.value);
-                  setIsOpen(false);
-                }}
-              >
-                <div className={cn("h-8 w-full rounded-md", option.preview)} />
-                <div className="text-xs">{option.label}</div>
-              </button>
-            ))}
           </div>
           
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => {
-            // Match system theme
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            setTheme(systemTheme);
-          }}>
-            <Monitor className="h-4 w-4 mr-2" />
-            <span>Match system theme</span>
-          </DropdownMenuItem>
+          
+          <div className="p-2">
+            <p className="text-xs text-muted-foreground mb-2">Style</p>
+            <div className="grid grid-cols-2 gap-2">
+              {colorSchemeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  className={cn(
+                    "flex flex-col items-center rounded-md space-y-1 p-2 hover:bg-accent hover:text-accent-foreground",
+                    colorScheme === option.value && "border-2 border-primary"
+                  )}
+                  onClick={() => {
+                    handleColorSchemeChange(option.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  <div className={cn("h-8 w-full rounded-md", option.preview)} />
+                  <div className="text-xs flex items-center">
+                    {colorScheme === option.value && <Check className="h-3 w-3 mr-1" />}
+                    {option.label}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
