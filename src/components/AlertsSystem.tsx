@@ -35,6 +35,7 @@ const AlertsSystem = () => {
         <AlertHeader />
         
         <AlertFormSheet 
+          initialData={formData as any}
           onFormChange={(data: PriceAlertFormData) => setFormData(data)}
           onSubmit={handleSubmit}
         />

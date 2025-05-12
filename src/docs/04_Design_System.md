@@ -1,338 +1,293 @@
 
 # Design System
 
-## Crypto Beacon Trader Hub
+## Overview
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-05-06
+The Crypto Beacon Trader Hub design system provides a consistent, cohesive visual language and component library that ensures a professional, user-friendly experience across the platform. This document outlines the core design principles, visual elements, and component specifications that form our design system.
 
-This document outlines the design system for the Crypto Beacon Trader Hub platform, providing guidelines for consistent visual language, component usage, and user experience patterns.
+## Design Principles
 
-## 1. Design Principles
+### 1. Clarity
+- Information hierarchy that guides users through complex data
+- Clean layouts that reduce cognitive load
+- Clear visual distinction between interactive and static elements
 
-### 1.1 Core Principles
+### 2. Precision
+- Accurate data visualization with appropriate detail
+- Consistent spacing and alignment
+- Pixel-perfect implementation of designs
 
-- **Clarity**: Information hierarchy should prioritize what matters most to traders
-- **Efficiency**: Minimize clicks and cognitive load for common trading actions
-- **Adaptability**: Design must work across various devices and screen sizes
-- **Consistency**: Maintain uniform patterns and behaviors throughout the platform
-- **Precision**: Present data with appropriate level of detail for trading decisions
+### 3. Efficiency
+- Streamlined workflows for common tasks
+- Keyboard shortcuts for power users
+- Batch operations where appropriate
 
-### 1.2 Design Philosophy
+### 4. Adaptability
+- Responsive design across all screen sizes
+- Customizable layouts and preferences
+- Appropriate information density for different contexts
 
-The Crypto Beacon Trader Hub design emphasizes data density and analytical clarity while maintaining a modern, professional aesthetic. The interface prioritizes information hierarchy for trading contexts, with careful consideration given to color usage for financial data. The design allows for personalization through theming while maintaining consistency in information presentation.
+### 5. Trust
+- Visual stability and predictability
+- Consistent feedback for user actions
+- Security-focused visual cues
 
-## 2. Color System
+## Color System
 
-### 2.1 Core Color Palette
+### Primary Colors
+- **Primary**: `#3b82f6` - Used for primary actions, key UI elements
+- **Primary-Light**: `#60a5fa` - Hover states, secondary elements
+- **Primary-Dark**: `#2563eb` - Active states, emphasis
 
-#### Base Colors
-| Name | Light Mode | Dark Mode | Usage |
-|------|------------|-----------|-------|
-| Background | `#FFFFFF` | `#0D121F` | Primary background color |
-| Foreground | `#0F172A` | `#F8FAFC` | Primary text color |
-| Card | `#FFFFFF` | `#0F172A` | Card and container backgrounds |
-| Border | `#E2E8F0` | `#1E293B` | Borders and dividers |
+### Secondary Colors
+- **Secondary**: `#10b981` - Success states, positive trends
+- **Secondary-Light**: `#34d399` - Subtle success indicators
+- **Secondary-Dark**: `#059669` - Strong success emphasis
 
-#### Brand Colors
-| Name | Value | Usage |
-|------|-------|-------|
-| Primary | `#8B5CF6` | Primary actions and emphasis |
-| Primary Hover | `#7C3AED` | Hover state for primary elements |
-| Secondary | `#64748B` | Secondary actions and information |
-| Secondary Hover | `#475569` | Hover state for secondary elements |
+### Accent Colors
+- **Accent-1**: `#f97316` - Warning states, alerts
+- **Accent-2**: `#ef4444` - Error states, negative trends
+- **Accent-3**: `#8b5cf6` - Special features, premium content
 
-### 2.2 Semantic Colors
+### Neutrals
+- **White**: `#ffffff` - Background (light mode)
+- **Black**: `#000000` - Foreground text (light mode)
+- **Gray-50**: `#f9fafb` - Subtle backgrounds
+- **Gray-100**: `#f3f4f6` - Light backgrounds, hover states
+- **Gray-200**: `#e5e7eb` - Borders, dividers
+- **Gray-300**: `#d1d5db` - Disabled states
+- **Gray-400**: `#9ca3af` - Secondary text
+- **Gray-500**: `#6b7280` - Placeholder text
+- **Gray-600**: `#4b5563` - Subtle text
+- **Gray-700**: `#374151` - High-contrast text (dark mode)
+- **Gray-800**: `#1f2937` - Background elements (dark mode)
+- **Gray-900**: `#111827` - Background (dark mode)
 
-| Name | Light Mode | Dark Mode | Usage |
-|------|------------|-----------|-------|
-| Profit | `#10B981` | `#34D399` | Positive values, buy, uptrend |
-| Loss | `#EF4444` | `#F87171` | Negative values, sell, downtrend |
-| Warning | `#F59E0B` | `#FBBF24` | Cautionary information, alerts |
-| Info | `#3B82F6` | `#60A5FA` | Informational content, notifications |
+### Semantic Colors
+- **Profit**: `#10b981` - Positive price movements, gains
+- **Loss**: `#ef4444` - Negative price movements, losses
+- **Warning**: `#f97316` - Warning states, caution indicators
+- **Info**: `#3b82f6` - Informational elements
+- **Neutral**: `#6b7280` - Neutral or unchanged states
 
-### 2.3 Chart Colors
+## Typography
 
-| Name | Light Value | Dark Value | Usage |
-|------|------------|-----------|-------|
-| Chart Line | `#6366F1` | `#818CF8` | Primary chart lines |
-| Chart Grid | `#E2E8F0` | `#334155` | Chart grid lines |
-| Chart Up | `#10B981` | `#34D399` | Upward movement on charts |
-| Chart Down | `#EF4444` | `#F87171` | Downward movement on charts |
-| Volume | `#64748B` | `#94A3B8` | Volume bars on charts |
+### Font Family
+- **Primary**: Inter (sans-serif)
+- **Monospace**: JetBrains Mono (for code, numbers, data)
 
-### 2.4 Theme Variations
+### Font Sizes
+- **xs**: 0.75rem (12px)
+- **sm**: 0.875rem (14px)
+- **base**: 1rem (16px)
+- **lg**: 1.125rem (18px)
+- **xl**: 1.25rem (20px)
+- **2xl**: 1.5rem (24px)
+- **3xl**: 1.875rem (30px)
+- **4xl**: 2.25rem (36px)
 
-#### Default Theme
-Standard light/dark mode with neutral color scheme
+### Font Weights
+- **Light**: 300
+- **Regular**: 400
+- **Medium**: 500
+- **Semibold**: 600
+- **Bold**: 700
 
-#### Midnight Tech
-Dark blue-based theme with electric blue accents
+### Line Heights
+- **Tight**: 1.25
+- **Base**: 1.5
+- **Relaxed**: 1.75
 
-#### Cyber Pulse
-Dark purple-based theme with neon purple and pink accents
+## Spacing System
 
-#### Matrix Code
-Dark green-based theme with bright green data visualization
+Our spacing system follows a 4px grid to ensure consistency across the platform.
 
-## 3. Typography
+- **0**: 0px
+- **px**: 1px
+- **0.5**: 0.125rem (2px)
+- **1**: 0.25rem (4px)
+- **2**: 0.5rem (8px)
+- **3**: 0.75rem (12px)
+- **4**: 1rem (16px)
+- **5**: 1.25rem (20px)
+- **6**: 1.5rem (24px)
+- **8**: 2rem (32px)
+- **10**: 2.5rem (40px)
+- **12**: 3rem (48px)
+- **16**: 4rem (64px)
 
-### 3.1 Font Family
+## Border Radius
+- **None**: 0px
+- **Sm**: 0.125rem (2px)
+- **Default**: 0.25rem (4px)
+- **Md**: 0.375rem (6px)
+- **Lg**: 0.5rem (8px)
+- **Xl**: 0.75rem (12px)
+- **2xl**: 1rem (16px)
+- **Full**: 9999px (fully rounded)
 
-- **Primary Font**: Inter, system-ui, sans-serif
-- **Monospace Font**: JetBrains Mono, monospace (for code and numeric data)
+## Shadows
+- **Sm**: `0 1px 2px 0 rgba(0, 0, 0, 0.05)`
+- **Default**: `0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)`
+- **Md**: `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`
+- **Lg**: `0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)`
+- **Xl**: `0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)`
+- **2xl**: `0 25px 50px -12px rgba(0, 0, 0, 0.25)`
 
-### 3.2 Type Scale
+## Component System
 
-| Name | Size | Line Height | Weight | Usage |
-|------|------|-------------|--------|-------|
-| Display | 36px | 1.1 | 700 | Hero sections, major headings |
-| Heading 1 | 24px | 1.2 | 700 | Page titles, section headers |
-| Heading 2 | 20px | 1.25 | 600 | Card headers, section titles |
-| Heading 3 | 16px | 1.3 | 600 | Sub-sections, important labels |
-| Body | 14px | 1.5 | 400 | Primary content text |
-| Small | 12px | 1.5 | 400 | Secondary information, captions |
-| Tiny | 10px | 1.4 | 400 | Labels, badges, metadata |
-
-### 3.3 Numerical Typography
-
-Financial and numeric data uses monospace font for better readability and alignment:
-
-| Case | Example | Style |
-|------|---------|-------|
-| Price | $42,567.89 | 14px, monospace, medium weight |
-| Percentage | +2.41% | 14px, monospace, color-coded |
-| Trading Volume | 1.25M | 12px, monospace, condensed |
-
-## 4. Component Library
-
-### 4.1 Core Components
+### Core Components
 
 #### Buttons
+- **Primary**: Main call-to-action buttons
+- **Secondary**: Alternative actions
+- **Outline**: Less prominent actions
+- **Ghost**: Minimal visual presence
+- **Destructive**: Dangerous actions
+- **Link**: Text-only button appearance
+- **Icon**: Icon only, square aspect ratio
 
-| Variant | Usage | States |
-|---------|-------|--------|
-| Primary | Main actions, confirmations | Default, Hover, Focus, Disabled |
-| Secondary | Alternative actions | Default, Hover, Focus, Disabled |
-| Outline | Subtle actions | Default, Hover, Focus, Disabled |
-| Ghost | Low-emphasis actions | Default, Hover, Focus, Disabled |
-| Destructive | Irreversible actions | Default, Hover, Focus, Disabled |
+#### Inputs
+- **Text Input**: Standard text entry
+- **Number Input**: Numerical entry with increment controls
+- **Select**: Dropdown selection
+- **Combobox**: Searchable dropdown
+- **Checkbox**: Binary selection
+- **Radio**: Single selection from a group
+- **Switch**: Toggle for boolean settings
+- **Slider**: Range selection
+- **Date Picker**: Date selection
+- **File Input**: File upload
 
-#### Form Elements
+#### Data Display
+- **Card**: Container for related content
+- **Table**: Structured data display
+- **List**: Sequential items
+- **Badge**: Status indicator
+- **Avatar**: User or item representation
+- **Tooltip**: Additional information on hover
+- **Progress**: Completion indicator
+- **Tabs**: Content organization
+- **Accordion**: Expandable content sections
+- **Alert**: Important messages
 
-| Component | Variants | States |
-|-----------|----------|--------|
-| Input | Text, Number, Password | Default, Focus, Error, Disabled |
-| Select | Standard, SearchSelect | Default, Open, Focus, Disabled |
-| Checkbox | Standard, Toggle | Checked, Unchecked, Indeterminate, Disabled |
-| Radio | Standard | Selected, Unselected, Disabled |
-| Switch | Standard | On, Off, Disabled |
+#### Navigation
+- **Navbar**: Main navigation container
+- **Sidebar**: Secondary navigation and tools
+- **Breadcrumb**: Navigation hierarchy
+- **Pagination**: Multi-page navigation
+- **Menu**: Dropdown options
+- **Command Menu**: Keyboard-accessible menu
+- **Toolbar**: Action grouping
 
-#### Cards and Containers
+#### Feedback
+- **Toast**: Temporary notification
+- **Dialog**: Modal interaction
+- **Drawer**: Side panel
+- **Skeleton**: Loading state
+- **Spinner**: Processing indicator
 
-| Component | Variants | Usage |
-|-----------|----------|-------|
-| Card | Standard, Interactive | Data containers, sections |
-| Panel | Standard, Collapsible | Grouped content areas |
-| Table | Standard, Compact, Data | Structured data presentation |
-| List | Standard, Interactive | Vertical stacked content |
+### Data Visualization Components
 
-### 4.2 Trading-Specific Components
+#### Charts
+- **Line Chart**: Time series data
+- **Area Chart**: Cumulative values
+- **Bar Chart**: Categorical comparisons
+- **Candlestick Chart**: OHLC price data
+- **Scatter Plot**: Correlation visualization
+- **Heatmap**: Intensity visualization
+- **Pie/Donut Chart**: Part-to-whole relationships
+- **Radar Chart**: Multi-variable comparison
 
-#### Price Display
+#### Technical Indicators
+- **Moving Averages**: Trend visualization
+- **RSI**: Relative Strength Index
+- **MACD**: Moving Average Convergence Divergence
+- **Bollinger Bands**: Volatility channels
+- **Volume Indicators**: Trading volume analysis
+- **Oscillators**: Momentum visualization
 
-| Component | Usage | Format |
-|-----------|-------|--------|
-| PriceTag | Current asset price | `$42,567.89` |
-| PriceChange | Price movement | `+$1,045.20 (+2.41%)` |
-| OrderPrice | Order form prices | `$42,567.89` |
+#### Trading Components
+- **Order Form**: Trade execution interface
+- **Order Book**: Market depth visualization
+- **Price Ticker**: Live price updates
+- **Trade History**: Recent transactions
+- **Position Card**: Current position details
+- **Portfolio Summary**: Holdings overview
 
-#### Chart Components
+## Theme Variations
 
-| Component | Variants | Usage |
-|-----------|----------|-------|
-| PriceChart | Candle, Line, OHLC | Asset price visualization |
-| VolumeChart | Bar, Profile | Trading volume display |
-| IndicatorDisplay | Overlay, Separate | Technical indicator visualization |
-| TimeframeSelector | Pills, Dropdown | Chart timeframe selection |
+### Dark Theme (Default)
+- Dark backgrounds with light text
+- Reduced brightness for extended use
+- High contrast for data visualization
+- Subtle use of color for emphasis
 
-#### Trading Interface
+### Light Theme
+- Light backgrounds with dark text
+- Strong shadows for depth
+- Vibrant data visualization
+- Clear content boundaries
 
-| Component | Usage | Features |
-|-----------|-------|----------|
-| OrderForm | Create buy/sell orders | Order types, quantity, price |
-| OrderBook | View buy/sell orders | Price levels, depth visualization |
-| TradeHistory | Recent trades | Time, price, volume display |
-| PositionCard | Current position details | Size, entry, current PnL |
+### Cyberpunk Theme
+- Deep blue/purple background
+- Neon accent colors (cyan, magenta)
+- High contrast elements
+- Grid-based backgrounds
+- Futuristic typography
 
-### 4.3 Data Visualization
+### Matrix Theme
+- Black background
+- Green monochrome color scheme
+- Terminal-inspired typography
+- Minimal decoration
+- Code-like visual elements
 
-| Component | Usage | Variants |
-|-----------|-------|----------|
-| LineChart | Trend visualization | Single, Multi-line, Area |
-| BarChart | Comparison data | Vertical, Horizontal, Grouped |
-| HeatMap | Density visualization | Standard, Gradient |
-| PieChart | Distribution | Standard, Donut |
-| Gauge | Single metric | Standard, Semi-circle |
+## Responsive Breakpoints
 
-## 5. Layout System
+- **xs**: 0px (default)
+- **sm**: 640px
+- **md**: 768px
+- **lg**: 1024px
+- **xl**: 1280px
+- **2xl**: 1536px
 
-### 5.1 Grid System
+## Accessibility Standards
 
-- Base grid of 12 columns
-- Responsive breakpoints:
-  - Mobile: < 768px
-  - Tablet: 768px - 1023px
-  - Desktop: 1024px - 1439px
-  - Large Desktop: ≥ 1440px
+- All colors meet WCAG 2.1 AA contrast requirements
+- Interactive elements have visible focus states
+- Icons include alternative text
+- Animations respect reduced-motion preferences
+- Components are keyboard navigable
+- Form elements include proper labels and instructions
+- Error states provide clear feedback
 
-### 5.2 Spacing Scale
+## Implementation Guidelines
 
-| Size | Value | Usage |
-|------|-------|-------|
-| 4xs | 2px | Minimum separator |
-| 3xs | 4px | Tight spacing |
-| 2xs | 8px | Form element spacing |
-| xs | 12px | Compact component spacing |
-| sm | 16px | Standard spacing |
-| md | 20px | Component groups |
-| lg | 24px | Section spacing |
-| xl | 32px | Major section divisions |
-| 2xl | 40px | Page-level spacing |
-| 3xl | 48px | Large layout divisions |
+### Using the Design System
 
-### 5.3 Common Layouts
+Our design system is implemented using:
+- Tailwind CSS for utility-based styling
+- Shadcn UI as component foundation
+- CSS Variables for theming
+- React component architecture
 
-| Layout | Usage | Description |
-|--------|-------|-------------|
-| Dashboard | Main view | Customizable grid of widgets |
-| Trading | Trading interface | Chart, order form, order book |
-| Analysis | Technical analysis | Multiple charts and indicators |
-| Portfolio | Asset overview | Holdings, allocation, performance |
-| Settings | Configuration | Form-based settings pages |
+### Best Practices
 
-## 6. Motion and Animation
+1. Always use design tokens rather than hard-coded values
+2. Maintain consistency by using established components
+3. Follow accessibility guidelines for all new components
+4. Consider all states: default, hover, active, disabled, loading, error
+5. Ensure responsive behavior across all screen sizes
+6. Favor composition over customization for special cases
 
-### 6.1 Animation Principles
+## Design Assets
 
-- **Purpose**: Animations should serve a functional purpose
-- **Subtlety**: Subtle animations for financial data to avoid distraction
-- **Consistency**: Similar elements should animate in similar ways
-- **Performance**: Animations must not impact critical trading functionality
+The following assets are maintained in the design system:
 
-### 6.2 Animation Types
-
-| Type | Duration | Easing | Usage |
-|------|----------|--------|-------|
-| Fade | 200ms | ease-in-out | Content transitions |
-| Slide | 250ms | ease-out | Panel and drawer movements |
-| Scale | 150ms | ease-out | Focus elements, hover states |
-| Pulse | 1000ms | ease-in-out | Notifications, alerts |
-
-### 6.3 Motion Reduction
-
-All animations respect user motion preferences via `prefers-reduced-motion` media query.
-
-## 7. Iconography
-
-### 7.1 Icon Library
-
-The platform uses Lucide React for consistent iconography across the application.
-
-### 7.2 Icon Sizes
-
-| Size | Usage |
-|------|-------|
-| 16px | Inline with text, small buttons |
-| 20px | Standard UI elements |
-| 24px | Feature icons, emphasized elements |
-| 32px | Feature highlights |
-
-### 7.3 Icon Colors
-
-Icons inherit text color by default but can use semantic colors for specific meanings:
-- Green icons for positive actions/states
-- Red icons for negative actions/states
-- Amber for warnings
-- Blue for information
-
-## 8. Accessibility Guidelines
-
-### 8.1 Color Contrast
-
-- Text meets WCAG 2.1 AA standards (4.5:1 for normal text, 3:1 for large text)
-- Interactive elements have sufficient contrast against backgrounds
-- Color is not the sole indicator of meaning or state
-
-### 8.2 Focus States
-
-All interactive elements have visible focus states for keyboard navigation.
-
-### 8.3 Screen Readers
-
-- Semantic HTML structure for screen reader compatibility
-- ARIA attributes where appropriate
-- Alt text for all informational images and charts
-
-### 8.4 Keyboard Navigation
-
-- All interactive elements accessible via keyboard
-- Logical tab order throughout interface
-- Keyboard shortcuts for common actions
-
-## 9. Theme Implementation
-
-### 9.1 CSS Variables
-
-The design system is implemented using CSS variables for theming:
-
-```css
-:root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --primary: 262.1 83.3% 57.8%;
-  --primary-foreground: 210 20% 98%;
-  /* Additional variables... */
-}
-
-.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  /* Dark mode overrides... */
-}
-```
-
-### 9.2 Theme Switching
-
-Theme preferences are stored in local storage and include:
-- Light/dark mode preference
-- Color scheme selection
-- Custom theme adjustments
-
-## 10. Component Usage Guidelines
-
-### 10.1 Data Visualization Best Practices
-
-- Use appropriate chart types for data relationships
-- Apply consistent color coding for financial data
-- Provide sufficient context and labeling
-- Enable different levels of data granularity
-- Support interactive exploration where appropriate
-
-### 10.2 Form Design Guidelines
-
-- Group related fields logically
-- Show validation feedback immediately
-- Use appropriate input types for data
-- Provide clear success/error states
-- Save user progress when appropriate
-
-### 10.3 Navigation Patterns
-
-- Consistent primary navigation across the platform
-- Secondary navigation for related sections
-- Breadcrumbs for deep hierarchy
-- Clear indicators of current location
-- Quick access to frequently used features
-
-This design system document serves as a reference for maintaining consistent visual language and interaction patterns throughout the Crypto Beacon Trader Hub platform. It should be regularly updated as the design evolves.
+- Component library in Figma
+- Icon set (Lucide React)
+- Color palette definitions
+- Typography specifications
+- Example screens and patterns
+- Animation guidelines

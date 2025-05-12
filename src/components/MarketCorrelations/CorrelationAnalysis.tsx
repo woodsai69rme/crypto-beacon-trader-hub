@@ -1,239 +1,145 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { fetchCoinMarketData } from '@/services/cryptoApi';
-import { CoinOption, CryptoData } from '@/types/trading';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { mockCryptoData, generateCorrelationMatrix, generateHistoricalPrices } from './mockData';
+import { findStrongestCorrelations } from './utils';
+import CorrelationExplainer from './CorrelationExplainer';
+import { CryptoData } from '@/types/trading';
 
 interface CorrelationAnalysisProps {
-  baseCoinId: string;
-  compareCoinIds: string[];
-  timeframe: number; // days
+  initialCoinId: string;
+  timeframe: string;
 }
 
-export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ 
-  baseCoinId,
-  compareCoinIds,
+const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({ 
+  initialCoinId,
   timeframe
 }) => {
-  const [correlationData, setCorrelationData] = useState<{
-    baseCoin: { dates: string[], prices: number[] },
-    comparedCoins: Record<string, { dates: string[], prices: number[], correlation: number }>
-  }>({
-    baseCoin: { dates: [], prices: [] },
-    comparedCoins: {}
-  });
-  
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedCoinId, setSelectedCoinId] = useState(initialCoinId);
+  const [correlationMatrix, setCorrelationMatrix] = useState<Record<string, Record<string, number>>>({});
+  const [strongCorrelations, setStrongCorrelations] = useState<{ coin: CryptoData, correlation: number }[]>([]);
+  const [negativeCorrelations, setNegativeCorrelations] = useState<{ coin: CryptoData, correlation: number }[]>([]);
   
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch base coin data
-        const baseCoinData = await fetchCoinMarketData(baseCoinId, timeframe);
-        
-        // Convert timestamps to readable dates
-        const baseDates = baseCoinData.timestamps.map(ts => 
-          new Date(ts).toLocaleDateString()
-        );
-        
-        // Initialize result object
-        const result = {
-          baseCoin: {
-            dates: baseDates,
-            prices: baseCoinData.prices
-          },
-          comparedCoins: {} as Record<string, { dates: string[], prices: number[], correlation: number }>
-        };
-        
-        // Fetch data for all comparison coins
-        await Promise.all(compareCoinIds.map(async (coinId) => {
-          const coinData = await fetchCoinMarketData(coinId, timeframe);
-          
-          // Convert timestamps to dates
-          const dates = coinData.timestamps.map(ts => 
-            new Date(ts).toLocaleDateString()
-          );
-          
-          // Calculate correlation coefficient with base coin
-          const correlation = calculateCorrelation(
-            baseCoinData.prices,
-            coinData.prices
-          );
-          
-          result.comparedCoins[coinId] = {
-            dates,
-            prices: coinData.prices,
-            correlation
-          };
-        }));
-        
-        setCorrelationData(result);
-      } catch (err) {
-        console.error('Error fetching correlation data:', err);
-        setError('Failed to fetch correlation data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Generate historical prices and correlation matrix for demonstration
+    const prices = generateHistoricalPrices(mockCryptoData);
+    const matrix = generateCorrelationMatrix(prices);
+    setCorrelationMatrix(matrix);
     
-    if (baseCoinId && compareCoinIds.length > 0) {
-      fetchData();
-    }
-  }, [baseCoinId, compareCoinIds, timeframe]);
+    // Find strongest correlations
+    updateCorrelations(selectedCoinId, matrix);
+  }, [selectedCoinId]);
   
-  // Function to calculate Pearson correlation coefficient
-  const calculateCorrelation = (array1: number[], array2: number[]): number => {
-    // Use the shorter array length to avoid index errors
-    const length = Math.min(array1.length, array2.length);
+  const updateCorrelations = (coinId: string, matrix: Record<string, Record<string, number>>) => {
+    const allCorrelations = findStrongestCorrelations(matrix, coinId, mockCryptoData, 10);
     
-    if (length < 2) return 0;
+    // Split into positive and negative correlations
+    const positive = allCorrelations.filter(item => item.correlation > 0)
+      .sort((a, b) => b.correlation - a.correlation)
+      .slice(0, 5);
     
-    // Calculate means
-    let sum1 = 0, sum2 = 0;
+    const negative = allCorrelations.filter(item => item.correlation < 0)
+      .sort((a, b) => a.correlation - b.correlation)
+      .slice(0, 5);
     
-    for (let i = 0; i < length; i++) {
-      sum1 += array1[i];
-      sum2 += array2[i];
-    }
-    
-    const mean1 = sum1 / length;
-    const mean2 = sum2 / length;
-    
-    // Calculate correlation
-    let numerator = 0;
-    let denominator1 = 0;
-    let denominator2 = 0;
-    
-    for (let i = 0; i < length; i++) {
-      const diff1 = array1[i] - mean1;
-      const diff2 = array2[i] - mean2;
-      
-      numerator += diff1 * diff2;
-      denominator1 += diff1 * diff1;
-      denominator2 += diff2 * diff2;
-    }
-    
-    if (denominator1 === 0 || denominator2 === 0) return 0;
-    
-    return numerator / Math.sqrt(denominator1 * denominator2);
+    setStrongCorrelations(positive);
+    setNegativeCorrelations(negative);
   };
   
-  // Prepare chart data
-  const chartData = {
-    labels: correlationData.baseCoin.dates,
-    datasets: [
-      {
-        label: `${baseCoinId.toUpperCase()}`,
-        data: correlationData.baseCoin.prices,
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        tension: 0.1
-      },
-      ...Object.entries(correlationData.comparedCoins).map(([coinId, data], index) => ({
-        label: `${coinId.toUpperCase()} (r=${data.correlation.toFixed(2)})`,
-        data: data.prices,
-        borderColor: `rgb(${255 - (index * 30)}, ${100 + (index * 30)}, ${150})`,
-        backgroundColor: `rgba(${255 - (index * 30)}, ${100 + (index * 30)}, ${150}, 0.2)`,
-        tension: 0.1
-      }))
-    ]
+  const handleCoinChange = (coinId: string) => {
+    setSelectedCoinId(coinId);
   };
   
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: `Price Correlation with ${baseCoinId.toUpperCase()}`
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            const label = context.dataset.label || '';
-            if (label) {
-              return `${label}: $${context.parsed.y.toFixed(2)}`;
-            }
-            return `$${context.parsed.y.toFixed(2)}`;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        ticks: {
-          callback: function(value: any) {
-            return '$' + value;
-          }
-        }
-      }
-    }
+  const formatCorrelation = (value: number) => {
+    return `${(value * 100).toFixed(1)}%`;
   };
-  
-  if (loading) {
-    return <div>Loading correlation data...</div>;
-  }
-  
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
   
   return (
-    <div className="correlation-analysis">
-      <h3 className="text-lg font-medium mb-4">Price Correlation Analysis</h3>
-      <div className="h-80">
-        <Line data={chartData} options={chartOptions} />
-      </div>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Object.entries(correlationData.comparedCoins).map(([coinId, data]) => (
-          <div key={coinId} className="border rounded p-4">
-            <div className="flex justify-between items-center">
-              <h4 className="font-medium">{coinId.toUpperCase()}</h4>
-              <div 
-                className={`font-bold ${
-                  data.correlation > 0.7 ? 'text-green-600' : 
-                  data.correlation < -0.7 ? 'text-red-600' : 
-                  data.correlation > 0.3 ? 'text-green-400' : 
-                  data.correlation < -0.3 ? 'text-red-400' : 'text-gray-500'
-                }`}
-              >
-                r = {data.correlation.toFixed(2)}
-              </div>
-            </div>
-            <p className="text-sm mt-2">
-              {data.correlation > 0.7 ? 'Strong positive correlation' : 
-               data.correlation < -0.7 ? 'Strong negative correlation' : 
-               data.correlation > 0.3 ? 'Moderate positive correlation' : 
-               data.correlation < -0.3 ? 'Moderate negative correlation' : 
-               'Weak or no correlation'}
-            </p>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium mb-2">Correlation Analysis</h3>
+        <div className="text-sm text-muted-foreground mb-4">
+          Analyze how {mockCryptoData.find(c => c.id === selectedCoinId)?.name} correlates with other assets
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          {mockCryptoData.map(coin => (
+            <Button
+              key={coin.id}
+              variant={coin.id === selectedCoinId ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleCoinChange(coin.id)}
+            >
+              {coin.symbol.toUpperCase()}
+            </Button>
+          ))}
+        </div>
+        
+        <Tabs defaultValue="positive" className="mt-6">
+          <TabsList>
+            <TabsTrigger value="positive">Positive Correlations</TabsTrigger>
+            <TabsTrigger value="negative">Negative Correlations</TabsTrigger>
+            <TabsTrigger value="about">About Correlation</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="positive">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium">Assets that move with {mockCryptoData.find(c => c.id === selectedCoinId)?.symbol.toUpperCase()}</h4>
+                  <div className="space-y-2">
+                    {strongCorrelations.length > 0 ? (
+                      strongCorrelations.map(item => (
+                        <div key={item.coin.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="font-medium">{item.coin.name}</div>
+                          <div className={`text-sm ${item.correlation > 0.7 ? 'text-green-600 font-bold' : 'text-green-500'}`}>
+                            {formatCorrelation(item.correlation)}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4">No strong positive correlations found</div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="negative">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium">Assets that move against {mockCryptoData.find(c => c.id === selectedCoinId)?.symbol.toUpperCase()}</h4>
+                  <div className="space-y-2">
+                    {negativeCorrelations.length > 0 ? (
+                      negativeCorrelations.map(item => (
+                        <div key={item.coin.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="font-medium">{item.coin.name}</div>
+                          <div className={`text-sm ${item.correlation < -0.7 ? 'text-red-600 font-bold' : 'text-red-500'}`}>
+                            {formatCorrelation(item.correlation)}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4">No strong negative correlations found</div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="about">
+            <Card>
+              <CardContent className="pt-6">
+                <CorrelationExplainer />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -1,191 +1,179 @@
 
 import { AITradingStrategy, BacktestResult, OptimizationResult } from '@/types/trading';
 import { generateId } from '@/lib/utils';
-import { DEFAULT_STRATEGY_PARAMETERS } from '@/utils/aiTradingStrategies';
+
+// Mock optimization parameters
+const OPTIMIZATION_PARAMETERS = {
+  period: { min: 5, max: 30, step: 1 },
+  threshold: { min: 20, max: 80, step: 5 },
+  stopLoss: { min: 1, max: 10, step: 0.5 },
+  takeProfit: { min: 2, max: 20, step: 1 },
+  fastPeriod: { min: 5, max: 20, step: 1 },
+  slowPeriod: { min: 10, max: 40, step: 2 },
+  riskFactor: { min: 0.5, max: 3, step: 0.25 }
+};
 
 /**
- * Create a custom trading strategy
+ * Runs a backtest for the given trading strategy
+ * @param strategy Trading strategy configuration
+ * @returns Backtest result with performance metrics
  */
-export function createCustomStrategy(
-  name: string,
-  description: string,
-  type: string,
-  timeframe: string,
-  parameters: any
-): AITradingStrategy {
+export const backtestStrategy = (strategy: AITradingStrategy): BacktestResult => {
+  // This is a mock implementation
+  // In a real app, this would run a complex backtest against historical data
+  
+  // Create somewhat realistic backtest results based on strategy type
+  const isRsi = strategy.parameters.indicator === 'rsi';
+  const isMacd = strategy.parameters.indicator === 'macd';
+  const isBollinger = strategy.parameters.indicator === 'bb';
+  
+  // Generate random performance metrics with some bias based on strategy type
+  const baseProfitability = Math.random() * 10 + (isRsi ? 5 : isMacd ? 7 : 3);
+  const baseWinRate = Math.random() * 10 + (isRsi ? 50 : isMacd ? 45 : 55);
+  const baseDrawdown = Math.random() * 5 + (isRsi ? 10 : isMacd ? 15 : 12);
+  
+  // Adjust metrics based on parameters
+  const adjustedProfit = baseProfitability * (strategy.parameters.riskFactor || 1);
+  const adjustedWinRate = Math.min(95, baseWinRate + (strategy.parameters.period || 0) / 10);
+  const adjustedDrawdown = baseDrawdown * (strategy.parameters.riskFactor || 1);
+  
+  // Generate random number of trades
+  const tradeCount = Math.floor(Math.random() * 100) + 50;
+  
+  // Generate trade history
+  const tradeHistory = generateMockTradeHistory(tradeCount, adjustedWinRate / 100);
+  
   return {
-    id: `strategy-${generateId()}`,
-    name,
-    description,
-    type: type as any,
-    timeframe,
-    parameters,
-    riskLevel: calculateRiskLevel(parameters),
-    indicators: getIndicatorsFromParameters(parameters)
+    returns: adjustedProfit,
+    winRate: adjustedWinRate,
+    trades: tradeCount,
+    maxDrawdown: adjustedDrawdown,
+    sharpeRatio: (adjustedProfit - 3) / (adjustedDrawdown / 100),
+    profitFactor: adjustedProfit / (adjustedDrawdown / 3),
+    tradeHistory
   };
-}
+};
 
 /**
- * Calculate the risk level of a strategy based on its parameters
+ * Optimizes the given trading strategy parameters
+ * @param strategy Base trading strategy
+ * @param parameters Parameters to optimize
+ * @param iterations Number of optimization iterations
+ * @returns Array of optimization results
  */
-function calculateRiskLevel(parameters: any): string {
-  let riskScore = 0;
+export const optimizeStrategyParameters = (
+  strategy: AITradingStrategy, 
+  parameters: string[] = ['period', 'threshold', 'stopLoss', 'takeProfit'],
+  iterations: number = 20
+): OptimizationResult[] => {
+  // In a real app, this would run multiple backtests with different parameters
+  // and return the best performing combinations
   
-  // Factor in stop loss - smaller stop loss means higher risk
-  if (parameters.stopLoss <= 2) riskScore += 3;
-  else if (parameters.stopLoss <= 5) riskScore += 2;
-  else if (parameters.stopLoss <= 10) riskScore += 1;
+  const results: OptimizationResult[] = [];
   
-  // Factor in take profit - higher take profit can mean higher risk
-  if (parameters.takeProfit >= 20) riskScore += 2;
-  else if (parameters.takeProfit >= 10) riskScore += 1;
-  
-  // Consider indicator choice
-  if (parameters.indicator === 'bb') riskScore += 1;
-  
-  // Map score to risk level
-  if (riskScore >= 4) return 'High';
-  if (riskScore >= 2) return 'Medium';
-  return 'Low';
-}
-
-/**
- * Get the indicators used in a strategy based on its parameters
- */
-function getIndicatorsFromParameters(parameters: any): string[] {
-  const indicators: string[] = [];
-  
-  if (parameters.indicator) {
-    indicators.push(parameters.indicator);
+  // Generate multiple parameter combinations
+  for (let i = 0; i < iterations; i++) {
+    // Create a copy of the strategy with modified parameters
+    const modifiedParameters = { ...strategy.parameters };
+    
+    // Modify selected parameters
+    parameters.forEach(param => {
+      if (param in OPTIMIZATION_PARAMETERS) {
+        const range = OPTIMIZATION_PARAMETERS[param as keyof typeof OPTIMIZATION_PARAMETERS];
+        const randomValue = Math.floor(Math.random() * 
+          ((range.max - range.min) / range.step + 1)) * range.step + range.min;
+        modifiedParameters[param] = randomValue;
+      }
+    });
+    
+    // Run a backtest with the modified parameters
+    const backtest = backtestStrategy({
+      ...strategy,
+      parameters: modifiedParameters
+    });
+    
+    // Add result to results array
+    results.push({
+      id: generateId(),
+      strategyId: strategy.id,
+      parameters: modifiedParameters,
+      performance: {
+        returns: backtest.returns,
+        winRate: backtest.winRate,
+        profitFactor: backtest.profitFactor || 1.5,
+        sharpeRatio: backtest.sharpeRatio || 1.2,
+        maxDrawdown: backtest.maxDrawdown
+      },
+      trades: backtest.trades,
+      timeframe: strategy.timeframe,
+      optimizationDate: new Date().toISOString()
+    });
   }
   
-  if (parameters.useVolume) {
-    indicators.push('volume');
-  }
-  
-  // Add additional indicators based on parameters
-  if (parameters.fastPeriod && parameters.slowPeriod) {
-    indicators.push('ma');
-  }
-  
-  return indicators.length > 0 ? indicators : ['rsi'];
-}
+  // Sort by returns descending
+  return results.sort((a, b) => b.performance.returns - a.performance.returns);
+};
 
 /**
- * Run a backtest for a trading strategy
+ * Generates mock trade history data
  */
-export async function runBacktest(
-  strategy: AITradingStrategy,
-  startDate: string,
-  endDate: string,
-  initialCapital: number,
-  coinId: string
-): Promise<BacktestResult> {
-  // This would normally call an API but we'll simulate it for now
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate mock backtest results
-      const profitFactor = Math.random() * 0.4 + 1.2;
-      const winRate = Math.random() * 0.3 + 0.5;
-      const trades = Math.floor(Math.random() * 50) + 50;
-      const winningTrades = Math.floor(trades * winRate);
-      const losingTrades = trades - winningTrades;
-      const returns = Math.random() * 40 - 10;
-      const maxDrawdown = Math.random() * 15 + 5;
-      
-      // Generate mock trade history
-      const tradeHistory = Array(10).fill(0).map((_, i) => ({
-        id: `trade-${i}`,
-        timestamp: new Date(Date.now() - (i * 86400000)).toISOString(),
-        date: new Date(Date.now() - (i * 86400000)).toLocaleDateString(),
-        type: Math.random() > 0.5 ? 'buy' : 'sell',
-        price: 10000 + Math.random() * 10000,
-        amount: Math.random() * 2,
-        total: Math.random() * 10000,
-        profit: Math.random() * 1000 - 200,
-        profitPercentage: Math.random() * 20 - 5,
-        coin: coinId,
-        coinId: coinId,
-        coinName: 'Bitcoin',
-        coinSymbol: 'BTC',
-        currency: 'USD'
-      }));
-      
-      resolve({
-        startDate,
-        endDate,
-        initialBalance: initialCapital,
-        finalBalance: initialCapital * (1 + returns / 100),
-        profit: returns > 0 ? returns * initialCapital / 100 : 0,
-        profitPercentage: returns,
-        maxDrawdown,
-        winRate: winRate * 100,
-        trades,
-        tradeHistory,
-        sharpeRatio: Math.random() * 2 + 0.5,
-        profitFactor,
-        averageProfit: Math.random() * 500 + 200,
-        averageLoss: Math.random() * 300 + 100,
-        initialCapital,
-        finalCapital: initialCapital * (1 + returns / 100),
-        totalReturn: returns,
-        totalTrades: trades,
-        winningTrades,
-        losingTrades,
-        sortinoRatio: Math.random() * 2 + 0.3,
-        returns
-      });
-    }, 1000);
-  });
+function generateMockTradeHistory(count: number, winRate: number) {
+  const trades = [];
+  let cumProfit = 0;
+  
+  const symbols = ['BTC', 'ETH', 'SOL', 'BNB', 'ADA'];
+  const names = {
+    'BTC': 'Bitcoin',
+    'ETH': 'Ethereum',
+    'SOL': 'Solana',
+    'BNB': 'Binance Coin',
+    'ADA': 'Cardano'
+  };
+  const ids = {
+    'BTC': 'bitcoin',
+    'ETH': 'ethereum',
+    'SOL': 'solana',
+    'BNB': 'binancecoin',
+    'ADA': 'cardano'
+  };
+  
+  const now = new Date();
+  
+  for (let i = 0; i < count; i++) {
+    const isWin = Math.random() < winRate;
+    const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+    const price = symbol === 'BTC' ? 50000 + Math.random() * 10000 : 
+                 symbol === 'ETH' ? 3000 + Math.random() * 1000 :
+                 symbol === 'SOL' ? 100 + Math.random() * 50 :
+                 symbol === 'BNB' ? 500 + Math.random() * 100 :
+                 10 + Math.random() * 5;
+    
+    const amount = (Math.random() * 5 + 0.1).toFixed(4);
+    const profit = isWin ? Math.random() * 500 + 50 : -(Math.random() * 300 + 20);
+    cumProfit += profit;
+    
+    // Calculate date backward from now
+    const date = new Date(now);
+    date.setDate(now.getDate() - (count - i) / 5);
+    
+    trades.push({
+      id: `trade-${i + 1}`,
+      timestamp: date.toISOString(),
+      date: date.toLocaleDateString(),
+      type: isWin ? 'buy' : 'sell',
+      price: Math.round(price * 100) / 100,
+      amount: parseFloat(amount),
+      total: Math.round(price * parseFloat(amount) * 100) / 100,
+      profit: Math.round(profit * 100) / 100,
+      profitPercentage: Math.round((profit / (price * parseFloat(amount))) * 10000) / 100,
+      coin: symbol,
+      coinId: ids[symbol as keyof typeof ids],
+      coinName: names[symbol as keyof typeof names],
+      coinSymbol: symbol.toLowerCase(),
+      currency: 'USD',
+      totalValue: Math.round(price * parseFloat(amount) * 100) / 100 // Adding the missing property
+    });
+  }
+  
+  return trades;
 }
-
-/**
- * Optimize strategy parameters to improve performance
- */
-export async function optimizeStrategy(
-  strategy: AITradingStrategy,
-  parameterRanges: Array<{
-    id: string;
-    min: number;
-    max: number;
-    step: number;
-  }>,
-  optimizationTarget: 'profitFactor' | 'sharpeRatio' | 'profit' | 'drawdown'
-): Promise<OptimizationResult> {
-  // This would normally call an API but we'll simulate it for now
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate mock optimization results
-      const parameterValues: Record<string, any> = {};
-      
-      // Generate optimized parameters within the specified ranges
-      parameterRanges.forEach(param => {
-        const range = param.max - param.min;
-        // Generate a value within the range but slightly different from current
-        const optimizedValue = param.min + Math.random() * range;
-        parameterValues[param.id] = parseFloat(optimizedValue.toFixed(2));
-      });
-      
-      // Mock performance improvement
-      const improvement = Math.random() * 25 + 5;
-      
-      resolve({
-        strategyId: strategy.id,
-        parameterValues,
-        performance: {
-          profit: Math.random() * 50 + 10,
-          profitPercentage: Math.random() * 50 + 10,
-          maxDrawdown: Math.random() * 15 + 3,
-          winRate: Math.random() * 0.3 + 0.6,
-          sharpeRatio: Math.random() * 1.5 + 1,
-          profitFactor: Math.random() * 1 + 1.5,
-          totalReturn: Math.random() * 50 + 10
-        },
-        improvement
-      });
-    }, 1500);
-  });
-}
-
-// Export default strategy parameters
-export { DEFAULT_STRATEGY_PARAMETERS };

@@ -1,363 +1,307 @@
 
 # Technical Architecture
 
-## Crypto Beacon Trader Hub
+## System Overview
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-05-06
+Crypto Beacon Trader Hub is built as a modern web application using React, TypeScript, and a component-based architecture. The application follows a client-side rendering approach with a focus on performance, modularity, and maintainability.
 
-This document outlines the technical architecture of the Crypto Beacon Trader Hub platform, detailing the system components, data flows, and technology stack.
+### Tech Stack
 
-## 1. Architecture Overview
+#### Frontend
+- **Framework**: React 18
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS
+- **Component Library**: Shadcn UI
+- **State Management**: React Context API, Custom Hooks
+- **Routing**: React Router
+- **Data Fetching**: Tanstack React Query
+- **Form Handling**: React Hook Form
+- **UI Icons**: Lucide React
+- **Data Visualization**: Recharts
+- **Build System**: Vite
 
-### 1.1 System Architecture
+#### Data Management
+- **Client-Side Storage**: LocalStorage, IndexedDB
+- **Data Fetching**: REST API integration
+- **Real-Time Updates**: WebSocket connections
+- **State Persistence**: Browser storage with encryption
+- **Authentication**: Supabase Auth
 
-The Crypto Beacon Trader Hub is built as a client-side web application with a modular architecture focused on real-time data processing, visualization, and local AI model integration.
+#### Backend Services
+- **Authentication & User Management**: Supabase
+- **Database**: PostgreSQL (via Supabase)
+- **API Integration**: RESTful services
+- **Serverless Functions**: Supabase Edge Functions
+- **File Storage**: Supabase Storage
 
-Key architectural principles:
-- Client-side processing for privacy-sensitive operations
-- Modular component design for maintainability
-- Real-time data flow optimization
-- Local-first approach with optional cloud connectivity
-- Progressive enhancement for core functionality
+#### DevOps
+- **Hosting**: Vercel
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Sentry
+- **Analytics**: Custom tracking
 
-### 1.2 High-Level Architecture Diagram
+## Architecture Diagrams
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│                        Client Application                       │
-│                                                                │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐ │
-│  │   UI Layer   │◄──►│  App Logic  │◄──►│ Data Processing     │ │
-│  │             │    │             │    │                     │ │
-│  │ - Components│    │ - State     │    │ - API Integration   │ │
-│  │ - Pages     │    │   Management│    │ - Data Transformation│ │
-│  │ - Layouts   │    │ - Hooks     │    │ - Caching           │ │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘ │
-│          ▲                 ▲                     ▲             │
-└──────────┼─────────────────┼─────────────────────┼─────────────┘
-           │                 │                     │
-           ▼                 │                     ▼
-┌─────────────────┐          │            ┌─────────────────────┐
-│  Local Storage  │          │            │  External APIs      │
-│                 │          │            │                     │
-│ - User Settings │          │            │ - Market Data       │
-│ - Cache         │          │            │ - Exchange APIs     │
-│ - Offline Data  │          │            │ - Historical Data   │
-└─────────────────┘          │            └─────────────────────┘
-                             │
-                             ▼
-                     ┌─────────────────┐
-                     │  Local AI Models│
-                     │  (MCP Protocol) │
-                     │                 │
-                     │ - Model Training│
-                     │ - Inference     │
-                     │ - Analysis      │
-                     └─────────────────┘
-```
-
-## 2. Technology Stack
-
-### 2.1 Frontend Technologies
-
-| Category | Technologies |
-|----------|--------------|
-| Core | React 18+, TypeScript |
-| Build Tools | Vite |
-| Styling | Tailwind CSS |
-| UI Components | Shadcn UI (Radix UI based) |
-| Data Visualization | Recharts, Nivo |
-| State Management | React Context API |
-| Form Handling | React Hook Form, Zod |
-| Icons | Lucide React |
-
-### 2.2 Data Integration
-
-| Category | Technologies |
-|----------|--------------|
-| API Clients | Native Fetch API with custom hooks |
-| Real-time Data | WebSocket connections |
-| Data Caching | Custom caching layer with expiration |
-| Data Transformation | Custom utilities |
-| Local Storage | localStorage, IndexedDB |
-
-### 2.3 AI Integration
-
-| Category | Technologies |
-|----------|--------------|
-| Model Connection | MCP (Model Control Protocol) |
-| Data Preparation | Custom preprocessing utilities |
-| Model Communication | REST API interactions |
-| Training Visualization | Canvas-based graphs |
-
-## 3. Component Architecture
-
-### 3.1 Component Hierarchy
+### High-Level System Architecture
 
 ```
-App
-├── Layout
-│   ├── Header
-│   │   ├── Navigation
-│   │   ├── ThemeToggle
-│   │   └── UserMenu
-│   ├── Sidebar
-│   └── Footer
-├── Dashboard
-│   ├── WidgetGrid
-│   └── ConfigPanel
-├── Trading
-│   ├── Chart
-│   │   ├── PriceDisplay
-│   │   ├── TimeframeSelector
-│   │   └── IndicatorPanel
-│   ├── OrderForm
-│   │   ├── OrderTypeSelector
-│   │   ├── QuantityInput
-│   │   └── OrderButton
-│   ├── OrderBook
-│   └── TradeHistory
-├── AITrading
-│   ├── ModelConnection
-│   ├── TrainingPanel
-│   ├── SignalDisplay
-│   └── PerformanceMetrics
-└── Settings
-    ├── UserProfile
-    ├── Preferences
-    ├── APIManagement
-    └── NotificationSettings
+┌───────────────────────────────┐
+│                               │
+│    Client Application (SPA)   │
+│                               │
+└───────────┬───────────────────┘
+            │
+            ▼
+┌───────────────────────────────┐
+│                               │
+│      API Gateway Layer        │
+│                               │
+└───┬───────────────┬───────────┘
+    │               │
+    ▼               ▼
+┌─────────┐   ┌───────────────┐
+│         │   │               │
+│ Supabase│   │ External APIs │
+│         │   │               │
+└─────────┘   └───────────────┘
 ```
 
-### 3.2 Component Types
-
-| Type | Description | Examples |
-|------|-------------|---------|
-| Page Components | Top-level route targets | Dashboard, Trading, Portfolio |
-| Layout Components | Structure and organization | Layout, Sidebar, Header |
-| Feature Components | Self-contained functionality | Chart, OrderBook, TradeForm |
-| UI Components | Reusable interface elements | Button, Card, Table |
-| Provider Components | Context and state management | ThemeProvider, DataProvider |
-
-### 3.3 Component Communication
-
-- Props for parent-child communication
-- Context API for shared state across components
-- Custom event system for cross-component communication
-- URL parameters for shareable states
-
-## 4. Data Architecture
-
-### 4.1 Data Flow
+### Component Architecture
 
 ```
-┌────────────┐     ┌─────────────┐     ┌───────────────┐
-│            │     │             │     │               │
-│ Data Source│────►│ Data Hooks  │────►│ State Context │
-│            │     │             │     │               │
-└────────────┘     └─────────────┘     └───────┬───────┘
-                                              │
-                                              ▼
-┌────────────┐     ┌─────────────┐     ┌───────────────┐
-│            │     │             │     │               │
-│ Components │◄────┤ UI Logic    │◄────┤ Derived State │
-│            │     │             │     │               │
-└────────────┘     └─────────────┘     └───────────────┘
+┌───────────────────────────────────────────┐
+│                                           │
+│               App Component               │
+│                                           │
+├───────────────┬───────────────────────────┤
+│               │                           │
+│    Routing    │      Context Providers    │
+│               │                           │
+└───────┬───────┴──────────────┬────────────┘
+        │                      │
+        ▼                      ▼
+┌───────────────┐      ┌───────────────────┐
+│               │      │                   │
+│  Page Views   │      │  Global Services  │
+│               │      │                   │
+└───────┬───────┘      └─────────┬─────────┘
+        │                        │
+        ▼                        ▼
+┌───────────────┐      ┌───────────────────┐
+│               │      │                   │
+│  UI Components│◄─────┤  Custom Hooks     │
+│               │      │                   │
+└───────────────┘      └───────────────────┘
 ```
 
-### 4.2 State Management Architecture
-
-- **Local Component State**: UI state, form values
-- **Context-based State**: Theme, user settings, authentication
-- **Derived State**: Calculated values, transformed data
-- **URL State**: Shareable application state
-- **Persistent State**: Local storage for settings and cache
-
-### 4.3 Data Sources
-
-| Source | Access Method | Update Frequency | Usage |
-|--------|---------------|------------------|-------|
-| Public APIs | REST | On-demand / Polling | Market data, asset info |
-| Exchange APIs | REST / WebSocket | Real-time | Prices, order books |
-| WebSockets | Direct connection | Real-time | Live data streams |
-| Local Models | MCP Protocol | On-demand | AI predictions, analysis |
-| Local Storage | Browser API | Persistent | Settings, cached data |
-
-## 5. Real-time Data Architecture
-
-### 5.1 Data Flow Optimization
-
-- Connection pooling for multiple data streams
-- Data normalization for consistent processing
-- Throttling for high-frequency updates
-- Selective updates to minimize re-renders
-- Request batching for API efficiency
-
-### 5.2 WebSocket Management
+### Data Flow Architecture
 
 ```
-┌────────────────┐     ┌───────────────────┐     ┌───────────────┐
-│                │     │                   │     │               │
-│ WebSocket      │────►│ Message Processor │────►│ Data Store    │
-│ Connection Pool│     │                   │     │               │
-│                │     └───────────────────┘     └───────┬───────┘
-└────────────────┘                                      │
-       ▲                                                │
-       │                                                ▼
-       │                ┌───────────────────┐     ┌───────────────┐
-       │                │                   │     │               │
-       └────────────────┤ Connection Manager│◄────┤ UI Components │
-                        │                   │     │               │
-                        └───────────────────┘     └───────────────┘
+┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+│               │      │               │      │               │
+│ User Interface│─────►│ State Context │─────►│  API Service  │
+│               │◄─────│               │◄─────│               │
+└───────────────┘      └───────────────┘      └───────┬───────┘
+                                                      │
+                                                      ▼
+                                              ┌───────────────┐
+                                              │               │
+                                              │ External APIs │
+                                              │               │
+                                              └───────────────┘
 ```
 
-### 5.3 Update Frequency Management
+## Module Organization
 
-| Data Type | Update Strategy | Throttle Rate | Caching |
-|-----------|----------------|---------------|---------|
-| Tick Data | WebSocket stream | None | Short-term cache |
-| Order Book | WebSocket updates | Debounced (100ms) | Latest state only |
-| OHLC Data | WebSocket / REST | Timeframe-based | TTL cache by timeframe |
-| Market Info | REST API | Polled (5-15min) | TTL cache (15min) |
-| News Data | REST API | Polled (5-10min) | TTL cache (10min) |
-
-## 6. Local AI Integration Architecture
-
-### 6.1 MCP Integration
+The application code is organized into the following directory structure:
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                        Client Application                       │
-│                                                                │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐ │
-│  │   Model     │◄──►│  MCP Client │◄───┤ Model Registry      │ │
-│  │  Interface  │    │             │    │                     │ │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘ │
-│          ▲                 │                     ▲             │
-└──────────┼─────────────────┼─────────────────────┼─────────────┘
-           │                 │                     │
-           ▼                 ▼                     ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐
-│  Training       │  │  Inference      │  │  Model Management   │
-│  Pipeline       │  │  Engine         │  │                     │
-│                 │  │                 │  │                     │
-└─────────────────┘  └─────────────────┘  └─────────────────────┘
-           ▲                 ▲                     ▲
-           │                 │                     │
-           └─────────────────┼─────────────────────┘
-                             │
-                     ┌───────▼───────┐
-                     │               │
-                     │  Local Model  │
-                     │  Server (MCP) │
-                     │               │
-                     └───────────────┘
+src/
+├── components/         # UI components
+│   ├── ui/             # Base UI components
+│   ├── charts/         # Chart components
+│   ├── trading/        # Trading-specific components
+│   ├── portfolio/      # Portfolio components
+│   ├── layouts/        # Layout components
+│   └── widgets/        # Dashboard widgets
+├── contexts/           # React Context providers
+├── hooks/              # Custom React hooks
+├── lib/                # Utility libraries
+├── pages/              # Page components
+├── services/           # API and external services
+├── store/              # State management
+├── styles/             # Global styles
+├── types/              # TypeScript type definitions
+├── utils/              # Utility functions
+└── App.tsx             # Root component
 ```
 
-### 6.2 Model Communication Protocol
+## Key Components
 
-The platform implements the Model Control Protocol (MCP) for local AI model integration with the following endpoints:
+### Core Components
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/connect` | POST | Establish connection to model server |
-| `/status` | GET | Check model server status |
-| `/models` | GET | List available models |
-| `/train` | POST | Start model training with parameters |
-| `/train/status` | GET | Check training progress |
-| `/predict` | POST | Request prediction from model |
-| `/analyze` | POST | Request analysis from model |
+#### UI Components
+- **Button**: Multi-variant button component
+- **Card**: Container for related content
+- **Dialog**: Modal dialog component
+- **Tabs**: Tab navigation component
+- **Form Components**: Input, Select, Checkbox, etc.
 
-### 6.3 Data Processing Pipeline
+#### Layout Components
+- **AppShell**: Main application layout wrapper
+- **Sidebar**: Navigation sidebar
+- **Header**: Application header with navigation
+- **Footer**: Application footer
+- **Dashboard**: Customizable dashboard layout
 
-1. Raw data collection from sources
-2. Data preprocessing and normalization
-3. Feature extraction and transformation
-4. Transmission to local model server
-5. Processing by AI models
-6. Result formatting and integration
-7. Visualization and application integration
+#### Trading Components
+- **TradingChart**: Interactive price chart
+- **OrderForm**: Trade execution form
+- **OrderBook**: Market depth visualization
+- **TradeHistory**: Record of executed trades
+- **PriceAlert**: Price notification setup
 
-## 7. Performance Optimization
+#### Portfolio Components
+- **PortfolioSummary**: Overview of portfolio holdings
+- **AssetAllocation**: Visual breakdown of assets
+- **PerformanceChart**: Portfolio performance visualization
+- **TransactionHistory**: Record of portfolio transactions
 
-### 7.1 Rendering Optimization
+### Feature Modules
 
-- Component memoization for expensive renders
-- Virtualization for long lists
-- Lazy loading for non-critical components
-- Code splitting by feature
-- Worker threads for heavy calculations
+#### AI Trading Module
+- **AIStrategyBuilder**: Interface for creating AI strategies
+- **ModelConnection**: Integration with local AI models
+- **BacktestEngine**: Strategy backtesting functionality
+- **StrategyMonitor**: Monitor active strategies
+- **OptimizationTool**: Parameter optimization interface
 
-### 7.2 Data Optimization
+#### Market Analysis Module
+- **TechnicalIndicators**: Library of technical analysis tools
+- **CorrelationMatrix**: Asset correlation visualization
+- **SentimentAnalysis**: Market sentiment tracking
+- **PatternRecognition**: Technical pattern detection
+- **MarketHeatmap**: Market sector visualization
 
-- Selective data subscription
-- Data pagination and windowing
-- Efficient data structures for quick access
-- Incremental data loading
-- Request deduplication
+#### Portfolio Management Module
+- **PortfolioTracker**: Portfolio holdings management
+- **TradeSimulator**: Simulated trading environment
+- **TaxCalculator**: Trading tax implications calculator
+- **RiskAnalyzer**: Portfolio risk assessment tools
+- **RebalancingTool**: Portfolio rebalancing functionality
 
-### 7.3 Asset Optimization
+## External Integrations
 
-- Dynamic import of non-critical assets
-- Image optimization
-- Font subsetting
-- SVG optimization
+### Cryptocurrency APIs
+- **Price Data**: CoinGecko, CoinMarketCap
+- **Historical Data**: TradingView, CryptoCompare
+- **Market Data**: Messari, CoinMetrics
+- **Exchange Data**: CCXT library for exchange integration
+- **News & Sentiment**: Cryptocurrency news APIs, Twitter API
 
-## 8. Security Architecture
+### AI Model Integration
+- **Model Control Protocol (MCP)**: Local model server connection
+- **OpenAI Integration**: Cloud-based AI capabilities
+- **TensorFlow.js**: Client-side machine learning for simple models
+- **Model Repository**: Pre-trained models for common strategies
 
-### 8.1 Client-Side Security
+## State Management
 
-- No storage of API secrets in client code
-- API key storage with encryption
-- Session timeout management
-- Input validation and sanitization
-- XSS protection
-- CORS compliance
+The application uses a combination of state management approaches:
 
-### 8.2 Local Data Security
+1. **React Context API**: For global application state
+   - UI theme and preferences
+   - User authentication state
+   - Global notifications
 
-- Encrypted local storage where possible
-- Secure credential handling
-- Privacy-focused data management
-- Automatic data cleanup policies
+2. **Custom Hooks**: For domain-specific state
+   - Portfolio data management
+   - Trading state management
+   - Chart configuration
 
-## 9. Storage Architecture
+3. **React Query**: For server state
+   - API data fetching
+   - Caching
+   - Background refetching
 
-### 9.1 Client-Side Storage
+4. **LocalStorage/IndexedDB**: For persistent state
+   - User preferences
+   - Dashboard configurations
+   - Portfolio data
+   - Trading history
 
-| Storage Type | Usage | Persistence |
-|--------------|-------|-------------|
-| localStorage | User settings, theme, preferences | Until cleared |
-| sessionStorage | Temporary session data | Session duration |
-| IndexedDB | Large datasets, historical data | Until cleared |
-| In-memory | Active trading data | Session duration |
+## Authentication Flow
 
-### 9.2 Data Schemas
+1. User initiates login
+2. Authentication handled via Supabase Auth
+3. JWT token received and stored securely
+4. User profile data fetched and stored in context
+5. Application state initialized based on user profile
+6. Protected routes become accessible
+7. Token refresh handled automatically
+8. Logout clears tokens and resets application state
 
-Consistent data schemas are maintained for:
-- User settings
-- Trading pairs
-- Historical price data
-- Technical indicator calculations
-- Portfolio holdings
-- Trading history
+## Data Persistence Strategy
 
-## 10. Deployment Architecture
+1. **User Preferences**: Stored in browser localStorage
+2. **Large Datasets**: Stored in IndexedDB when available
+3. **Sensitive Data**: Encrypted before local storage
+4. **Portfolio Data**: Synchronized with server when available, cached locally
+5. **Trading History**: Stored locally with periodic server backup
+6. **Chart Configurations**: Stored in user preferences
 
-### 10.1 Build Process
+## Performance Optimizations
 
-1. TypeScript compilation
-2. Bundle optimization with Vite
-3. CSS processing with Tailwind
-4. Asset optimization
-5. Environment-specific configuration
+1. **Code Splitting**: Lazy loading of components and routes
+2. **Virtualization**: For long lists and tables
+3. **Memoization**: For expensive calculations
+4. **Efficient Rendering**: Using React.memo and useMemo
+5. **Debouncing/Throttling**: For frequent events
+6. **Asset Optimization**: Compressed images and optimized bundles
+7. **Caching Strategy**: Aggressive caching of infrequently changed data
 
-### 10.2 Deployment Strategy
+## Security Considerations
 
-- Static site hosting
-- CDN distribution
-- Cache management
-- Environment-based configuration
+1. **Data Encryption**: Sensitive data encrypted in local storage
+2. **API Security**: Token-based authentication for all API calls
+3. **Input Validation**: Strict validation on all user inputs
+4. **Content Security Policy**: Restricted resource loading
+5. **CORS Configuration**: Limited to trusted domains
+6. **Dependency Security**: Regular scanning for vulnerabilities
+7. **Environmental Variables**: Secure handling of API keys and secrets
 
-This technical architecture document provides a comprehensive overview of the system design for the Crypto Beacon Trader Hub platform. It serves as a reference for development, maintenance, and future enhancements.
+## Error Handling Strategy
+
+1. **Global Error Boundary**: Catches unhandled React errors
+2. **API Error Handling**: Consistent error processing from API responses
+3. **Retry Logic**: Automatic retry for transient failures
+4. **Fallback UI**: Graceful degradation when components fail
+5. **Error Logging**: Centralized error logging and reporting
+6. **User Feedback**: Clear error messages for actionable issues
+
+## Testing Strategy
+
+1. **Unit Tests**: For utility functions and isolated components
+2. **Component Tests**: For UI component functionality
+3. **Integration Tests**: For component interactions
+4. **End-to-End Tests**: For critical user flows
+5. **Performance Testing**: For critical rendering paths
+6. **Accessibility Testing**: For WCAG compliance
+
+## Deployment Architecture
+
+1. **Build Process**: Vite for fast builds and optimized output
+2. **Hosting**: Vercel for static site hosting
+3. **CDN**: Edge caching for static assets
+4. **CI/CD**: Automated testing and deployment via GitHub Actions
+5. **Environment Configuration**: Environment-specific settings
+6. **Monitoring**: Runtime error tracking and performance monitoring
+
+## Future Architecture Considerations
+
+1. **Server Components**: Potential migration to React Server Components
+2. **Edge Computing**: Moving more logic to edge functions
+3. **Offline Support**: Enhanced capabilities for disconnected usage
+4. **WebAssembly**: For computationally intensive tasks
+5. **WebGPU**: For hardware-accelerated visualization
+6. **Micro-Frontend Architecture**: For more scalable team organization
