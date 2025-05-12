@@ -1,580 +1,514 @@
 
 # How-To Guides
 
+## Overview
+
+This document provides step-by-step instructions for common tasks and features within the Crypto Beacon Trader Hub. These guides are designed to help users quickly accomplish specific goals and make the most of the platform's capabilities.
+
 ## Table of Contents
 
-1. [Market Analysis](#market-analysis)
-2. [Trading](#trading)
-3. [Portfolio Management](#portfolio-management)
-4. [AI Trading](#ai-trading)
+1. [Portfolio Management](#portfolio-management)
+2. [Trading Features](#trading-features)
+3. [AI Strategy Management](#ai-strategy-management)
+4. [Market Analysis](#market-analysis)
 5. [Alerts & Notifications](#alerts--notifications)
-6. [Platform Customization](#platform-customization)
-7. [Account Management](#account-management)
-8. [API Integration](#api-integration)
+6. [Data Management](#data-management)
+7. [Account Settings](#account-settings)
+8. [Mobile Usage](#mobile-usage)
+
+## Portfolio Management
+
+### How to Add a New Cryptocurrency to Your Portfolio
+
+1. Navigate to the "Portfolio" section from the main sidebar
+2. Click on the "Add Asset" button in the top right corner
+3. Search for and select your cryptocurrency from the dropdown list
+4. Enter the amount you own
+5. Add purchase information (optional but recommended):
+   - Purchase date
+   - Purchase price
+   - Exchange or source
+6. Click "Save" to add the asset to your portfolio
+
+**Pro Tip**: For more accurate tracking, add each purchase as a separate entry rather than combining them.
+
+### How to Import Your Trading History
+
+1. Go to "Portfolio" > "Import/Export" from the main menu
+2. Select "Import Trading History"
+3. Choose your exchange from the dropdown list
+4. You can import in two ways:
+   - **API Method**: Follow the instructions to connect your exchange API
+   - **CSV Method**: Download our CSV template, fill in your trades, and upload
+5. Review the imported trades for accuracy
+6. Click "Confirm Import" to add the trades to your history
+
+**Note**: Historical imports may take a few minutes to process for large trading histories.
+
+### How to View Portfolio Performance
+
+1. Go to the "Portfolio" section
+2. Navigate to the "Performance" tab
+3. Select your desired time period (24h, 7d, 30d, 1y, All)
+4. View your key metrics:
+   - Total value
+   - Absolute gain/loss
+   - Percentage gain/loss
+   - Comparison to market benchmarks
+5. Scroll down for detailed charts and breakdowns
+
+**Customization**: Click "Edit View" to customize which metrics and charts are displayed.
+
+### How to Rebalance Your Portfolio
+
+1. Navigate to "Portfolio" > "Rebalance"
+2. Review your current portfolio allocation
+3. Set target allocations:
+   - Drag sliders to adjust percentages
+   - Or enter exact percentages manually
+   - Or select a preset allocation strategy
+4. Click "Calculate Rebalance" to see required trades
+5. Review the suggested trades
+6. Choose "Execute Trades" (Premium) or "Save as Report"
+
+**Best Practice**: Consider rebalancing your portfolio monthly or quarterly.
+
+## Trading Features
+
+### How to Set Up the Trading Simulator
+
+1. Go to "Trading" > "Simulator" in the main navigation
+2. Choose your initial simulation settings:
+   - Starting capital
+   - Base currency
+   - Fee structure
+3. Click "Create New Simulation"
+4. Your simulator is now ready with virtual funds
+5. Use the trading interface to practice trades without real money
+6. Track your simulation performance in the dashboard
+
+**Reset Option**: You can reset your simulation at any time by clicking "Reset Simulator" in settings.
+
+### How to Execute a Trade in the Simulator
+
+1. Navigate to "Trading" > "Simulator"
+2. Select the trading pair (e.g., BTC/USD) from the dropdown
+3. Choose the order type (Market, Limit, Stop, etc.)
+4. Enter your order details:
+   - Buy/Sell direction
+   - Quantity or value
+   - Price (for limit orders)
+5. Review the order summary
+6. Click "Place Order" to execute the simulated trade
+7. View your open orders and trade history below the chart
+
+**Practice Scenario**: Try setting both stop-loss and take-profit orders to manage risk.
+
+### How to Connect to a Real Exchange (Premium)
+
+1. Go to "Settings" > "Exchange Connections"
+2. Click "Add New Connection"
+3. Select your exchange from the list
+4. Follow the exchange-specific instructions:
+   - Create API keys on the exchange website
+   - Set permissions (read-only or trading)
+   - Enter API key and secret
+5. Set optional connection settings:
+   - Connection name
+   - Trading permissions
+   - IP restrictions
+6. Click "Verify Connection" to test
+7. Save the verified connection
+
+**Security Note**: Always limit API permissions to the minimum necessary and enable IP restrictions when possible.
+
+### How to Track Trade Performance
+
+1. Navigate to "Trading" > "Trade History"
+2. View your complete trade history across all exchanges
+3. Use filters to find specific trades:
+   - Date range
+   - Trading pair
+   - Exchange
+   - Profit/Loss
+4. Click on any trade to see detailed information
+5. Use the "Analysis" tab to see aggregated performance metrics
+6. Export your trade history by clicking "Export"
+
+**Insight Tip**: Look for patterns in your successful and unsuccessful trades to refine your strategy.
+
+## AI Strategy Management
+
+### How to Create a New Trading Strategy
+
+1. Navigate to "AI Trading" > "Strategy Builder"
+2. Click "Create New Strategy"
+3. Choose a strategy type:
+   - Trend Following
+   - Mean Reversion
+   - Breakout
+   - Custom
+4. Name your strategy and add a description
+5. Configure base parameters:
+   - Timeframe (1h, 4h, 1d, etc.)
+   - Assets to trade
+   - Risk level
+6. Set up technical indicators and parameters
+7. Configure entry and exit conditions
+8. Save your strategy
+
+**Recommendation**: Start with a simple strategy and add complexity as you gain experience.
+
+### How to Backtest a Strategy
+
+1. Go to "AI Trading" > "My Strategies"
+2. Select the strategy you want to test
+3. Click "Backtest" button
+4. Configure backtest parameters:
+   - Date range (start and end dates)
+   - Initial capital
+   - Assets to test against
+   - Trading fees
+5. Click "Run Backtest"
+6. Once complete, review results:
+   - Total return
+   - Win/loss ratio
+   - Maximum drawdown
+   - Sharpe ratio
+   - Trade list
+7. Analyze the equity curve and drawdown chart
+8. Export or save results for comparison
+
+**Comparison Tip**: Run multiple backtests with different parameters to find optimal settings.
+
+### How to Optimize Strategy Parameters
+
+1. Navigate to "AI Trading" > "My Strategies"
+2. Select your strategy
+3. Click "Optimize" button
+4. Choose parameters to optimize:
+   - Select parameters to include
+   - Set min/max values and step size
+5. Set optimization goals:
+   - Maximize return
+   - Maximize Sharpe ratio
+   - Minimize drawdown
+   - Custom combination
+6. Choose optimization method:
+   - Grid search
+   - Genetic algorithm
+   - Monte Carlo
+7. Start optimization process
+8. Review optimization results
+9. Apply optimal parameters to your strategy
+
+**Note**: Parameter optimization can take several minutes depending on complexity.
+
+### How to Monitor Strategy Performance
+
+1. Go to "AI Trading" > "Dashboard"
+2. View all active strategies and their performance
+3. Select a specific strategy to see detailed metrics:
+   - Recent trades
+   - Current open positions
+   - Performance vs. benchmark
+   - Key risk metrics
+4. Use the calendar view to analyze performance by time period
+5. Set up automated reports by clicking "Reports" > "Schedule"
+
+**Alert Option**: Set performance alerts to notify you when strategies deviate from expected performance.
 
 ## Market Analysis
 
 ### How to Perform Technical Analysis
 
-Technical analysis is the study of price action and volume to predict future price movements. Here's how to perform effective technical analysis on our platform:
-
-#### Setting Up Your Chart
-
-1. Navigate to the "Charts" section or click on any asset to view its chart
-2. Select your preferred timeframe from the top menu (1m, 5m, 15m, 1h, 4h, 1d, 1w)
+1. Navigate to "Analysis" > "Charts"
+2. Select your cryptocurrency
 3. Choose your preferred chart type:
-   - Candlestick (default)
+   - Candlestick
    - Line
-   - OHLC (bars)
-   - Heikin Ashi
-   - Area
-
-#### Adding Technical Indicators
-
-1. Click the "Indicators" button above the chart
-2. Choose from categories:
-   - Trend (Moving Averages, MACD, etc.)
-   - Oscillators (RSI, Stochastic, etc.)
-   - Volume (OBV, Volume Profile, etc.)
-   - Volatility (Bollinger Bands, ATR, etc.)
-3. Configure indicator parameters (period, source, etc.)
-4. Add multiple indicators to your chart as needed
-5. Save indicator settings for future use
-
-#### Using Drawing Tools
-
-1. Select the "Drawing Tools" button in the chart toolbar
-2. Choose from available tools:
+   - OHLC
+   - Heikin-Ashi
+4. Select your timeframe (1m, 5m, 15m, 1h, 4h, 1d, etc.)
+5. Add indicators using the "Indicators" menu:
+   - Moving Averages
+   - RSI, MACD, Stochastic
+   - Bollinger Bands
+   - Volume indicators
+6. Use drawing tools for:
    - Trend lines
-   - Horizontal lines (support/resistance)
-   - Fibonacci retracement/extension
-   - Channels (ascending, descending, parallel)
-   - Patterns (triangles, rectangles, etc.)
-3. Click and drag on the chart to place the drawing
-4. Adjust points as needed
-5. Right-click to access drawing properties (color, style, etc.)
+   - Support/Resistance levels
+   - Fibonacci retracements
+   - Patterns and shapes
+7. Save your chart setup for future use
 
-#### Saving and Sharing Analysis
+**Shortcut**: Press "S" to quickly add indicators to your chart.
 
-1. Click "Save" to store your analysis
-2. Enter a name and description
-3. Choose sharing options:
-   - Private (only you can see it)
-   - Public (visible to all users)
-   - Shared (only specific users)
-4. Generate a shareable link or export as an image
+### How to Use the Correlation Explorer
 
-### How to Use Market Correlation Analysis
-
-Correlation analysis helps understand relationships between different cryptocurrencies:
-
-1. Navigate to "Analysis" > "Correlations"
-2. Select your base asset (e.g., Bitcoin)
-3. Choose comparison assets or use the suggested pairs
-4. Select timeframe (7d, 30d, 90d, 1y)
+1. Go to "Analysis" > "Correlation Explorer"
+2. Select a base asset (e.g., Bitcoin)
+3. Choose comparison assets:
+   - Select individual assets
+   - Or choose "Top 20 by Market Cap"
+4. Set the time period for analysis
 5. View the correlation matrix showing relationships
-6. Interpret the correlation values:
-   - 1.0: Perfect positive correlation
-   - 0.0: No correlation
-   - -1.0: Perfect negative correlation
-7. Use correlation data for:
-   - Portfolio diversification
-   - Pair trading opportunities
-   - Risk management
+6. Explore the heatmap visualization
+7. Click on any pair to see detailed correlation trends
+8. Sort by strongest positive or negative correlations
+9. Export correlation data by clicking "Export"
 
-### How to Read Market Depth
+**Portfolio Insight**: Look for assets with negative correlations to diversify your portfolio.
 
-Market depth shows the order book visualization to understand buy/sell pressure:
+### How to Analyze Market Sentiment
 
-1. Navigate to an asset's detail page
-2. Select the "Order Book" or "Market Depth" tab
-3. The visualization shows:
-   - X-axis: Price levels
-   - Y-axis: Cumulative volume
-   - Green area: Buy orders (bids)
-   - Red area: Sell orders (asks)
-4. Analyze the shape:
-   - Steep slopes indicate strong support/resistance
-   - Flat areas suggest weak support/resistance
-   - Large steps indicate significant orders at specific prices
-5. Use market depth to identify:
-   - Potential price barriers
-   - Order imbalances
-   - Liquidity zones
+1. Navigate to "Analysis" > "Sentiment"
+2. View the global market sentiment dashboard
+3. Select a specific cryptocurrency for detailed analysis
+4. Explore different data sources:
+   - Social media metrics
+   - News sentiment
+   - Trading data sentiment
+   - On-chain analysis
+5. Adjust the time period to see sentiment trends
+6. Compare sentiment against price action
+7. View word clouds of trending topics
+8. Check the "Unusual Activity" section for outliers
 
-## Trading
+**Pro Tip**: Major sentiment-price divergences can identify potential trading opportunities.
 
-### How to Execute a Trade
+### How to Generate a Market Report
 
-#### Market Orders
+1. Go to "Analysis" > "Reports"
+2. Click "New Report"
+3. Select report type:
+   - Market Overview
+   - Single Asset Analysis
+   - Portfolio Analysis
+   - Correlation Study
+4. Choose assets to include
+5. Select metrics and data points to include
+6. Set time period for the report
+7. Click "Generate Report"
+8. View, download, or share the report
+9. Optionally schedule recurring reports
 
-1. Navigate to the "Trading" section
-2. Select the trading pair (e.g., BTC/USD)
-3. Choose "Market" as the order type
-4. Select "Buy" or "Sell"
-5. Enter the amount to trade:
-   - Use the amount field for specific quantity
-   - Use percentage buttons for portion of available balance
-6. Review the estimated execution price and total
-7. Click "Place Order"
-8. Confirm the transaction when prompted
-
-#### Limit Orders
-
-1. Follow steps 1-3 above, but select "Limit" as order type
-2. Enter your desired price
-3. Enter the amount to trade
-4. Options to consider:
-   - "Good 'til canceled" (default)
-   - "Good 'til date" (specify expiration)
-   - "Fill or kill" (execute entirely or not at all)
-   - "Immediate or cancel" (execute what's possible immediately)
-5. Click "Place Order"
-6. Your order will appear in the "Open Orders" section until filled or canceled
-
-### How to Set Stop Loss and Take Profit
-
-1. When creating a new position or managing an existing one:
-2. Scroll to the "Risk Management" section
-3. Enable "Stop Loss" and enter your stop price:
-   - Either as absolute price
-   - Or as percentage from entry
-4. Enable "Take Profit" and enter your target price:
-   - Either as absolute price
-   - Or as percentage from entry
-5. Optional: Enable "Trailing Stop" to have your stop loss follow the price at a set distance
-6. Save your settings
-7. Monitor active risk management orders in the "Open Orders" tab
-
-### How to Read Trading Signals
-
-Our platform provides AI-generated trading signals:
-
-1. Navigate to "Trading" > "Signals"
-2. Review the signal dashboard showing:
-   - Asset name
-   - Signal direction (buy/sell)
-   - Signal strength (weak/moderate/strong)
-   - Timeframe relevance
-   - Success probability
-3. Click on any signal to see:
-   - Technical factors contributing to the signal
-   - Historical performance of similar signals
-   - Suggested entry, stop loss, and take profit levels
-4. Use filters to find signals for:
-   - Specific assets
-   - Signal strength thresholds
-   - Timeframes of interest
-
-## Portfolio Management
-
-### How to Track Your Portfolio Performance
-
-1. Navigate to the "Portfolio" section
-2. View the portfolio summary dashboard showing:
-   - Total portfolio value
-   - 24h change (absolute and percentage)
-   - All-time profit/loss
-   - Asset allocation chart
-3. Scroll down to see individual holdings with:
-   - Current price
-   - Quantity held
-   - Current value
-   - Average purchase price
-   - Profit/loss
-4. Click the "Performance" tab to see:
-   - Historical value chart
-   - Benchmark comparison (vs. BTC, ETH, or market)
-   - Return metrics (daily, weekly, monthly, yearly)
-   - Advanced metrics (volatility, Sharpe ratio, max drawdown)
-
-### How to Add Transactions Manually
-
-1. Navigate to "Portfolio" > "Transactions"
-2. Click "Add Transaction"
-3. Select transaction type:
-   - Buy
-   - Sell
-   - Transfer In
-   - Transfer Out
-   - Trade (crypto-to-crypto)
-4. Enter transaction details:
-   - Date and time
-   - Asset
-   - Quantity
-   - Price per unit
-   - Fee amount and currency
-   - Exchange/platform
-   - Notes (optional)
-5. Click "Save Transaction"
-6. Your portfolio balances will automatically update
-
-### How to Generate Tax Reports
-
-1. Navigate to "Portfolio" > "Tax Reports"
-2. Select the tax year you want to report
-3. Choose your tax jurisdiction (determines calculation rules)
-4. Select cost basis method:
-   - First In, First Out (FIFO)
-   - Last In, First Out (LIFO)
-   - Highest In, First Out (HIFO)
-   - Average Cost
-5. Configure additional options:
-   - Include airdrops
-   - Include staking rewards
-   - Handle lost/stolen assets
-6. Click "Generate Report"
-7. Once processing is complete, download reports in your preferred format:
-   - PDF summary
-   - CSV for spreadsheet analysis
-   - Tax software import files (TurboTax, TaxAct, etc.)
-
-## AI Trading
-
-### How to Create an AI Trading Strategy
-
-1. Navigate to "AI Trading" > "Strategy Builder"
-2. Click "Create New Strategy"
-3. Choose a starting point:
-   - Blank strategy
-   - Based on template
-   - Clone existing strategy
-4. Define basic strategy parameters:
-   - Strategy name and description
-   - Target assets
-   - Trading timeframe
-   - Risk profile
-5. Select the strategy type:
-   - Trend following
-   - Mean reversion
-   - Breakout
-   - Pattern recognition
-   - Sentiment-based
-   - Mixed approach
-6. Configure technical indicators:
-   - Select indicators to include
-   - Adjust parameters for each indicator
-   - Set entry and exit rules
-7. Add risk management rules:
-   - Maximum position size
-   - Stop-loss percentage
-   - Take-profit targets
-   - Maximum open positions
-8. Click "Save Strategy"
-
-### How to Backtest Trading Strategies
-
-1. Open your saved strategy
-2. Click the "Backtest" tab
-3. Configure backtest parameters:
-   - Date range (start and end dates)
-   - Initial capital
-   - Position sizing (fixed, percentage)
-   - Slippage assumption
-   - Commission rates
-4. Click "Run Backtest"
-5. Review the backtest results:
-   - Total return and annualized return
-   - Maximum drawdown
-   - Win/loss ratio
-   - Sharpe ratio and other risk metrics
-   - Detailed trade list
-   - Equity curve chart
-6. Compare against benchmark (BTC, ETH, or market)
-7. Click "Save Results" to store this backtest for future reference
-
-### How to Optimize Strategy Parameters
-
-1. Open your saved strategy
-2. Click the "Optimize" tab
-3. Select parameters to optimize:
-   - Moving average periods
-   - RSI thresholds
-   - Stop-loss percentages
-   - Take-profit levels
-   - Other strategy-specific parameters
-4. Set the optimization range for each parameter:
-   - Minimum value
-   - Maximum value
-   - Step size
-5. Choose optimization target:
-   - Maximum return
-   - Maximum Sharpe ratio
-   - Minimum drawdown
-   - Custom formula
-6. Click "Start Optimization"
-7. Once complete, review results:
-   - Heat map visualization
-   - Top parameter combinations
-   - Performance metrics for each
-8. Select preferred parameter set
-9. Apply to your strategy
-10. Run a final backtest to verify
-
-### How to Deploy an AI Trading Strategy
-
-1. After backtesting and optimization, click "Deploy Strategy"
-2. Choose deployment mode:
-   - Paper trading (simulated execution)
-   - Live trading (real execution)
-3. Connect your exchange API (if not already connected)
-4. Configure deployment settings:
-   - Starting capital allocation
-   - Position sizing rules
-   - Trading hours/days
-   - Notification preferences
-5. Review summary and confirm deployment
-6. Monitor strategy performance in the "Active Strategies" dashboard
+**Customization**: Use "Edit Template" to customize the layout and content of your reports.
 
 ## Alerts & Notifications
 
-### How to Create Advanced Price Alerts
+### How to Set Up Price Alerts
 
-While basic price alerts are simple to set up, advanced alerts offer more sophisticated conditions:
-
-1. Navigate to "Alerts" > "Create Alert" > "Advanced"
-2. Select the cryptocurrency
-3. Choose from advanced condition types:
-   - **Multiple Conditions**: Combine several conditions with AND/OR logic
-   - **Indicator Alerts**: Trigger based on technical indicators
-   - **Candle Pattern**: Alert when specific candlestick patterns form
-   - **Volume Threshold**: Alert when volume exceeds normal levels
-   - **Price Channel**: Alert when price breaks out of a range
-4. Configure specific parameters for your chosen condition
-5. Set expiration (if applicable)
-6. Choose notification methods
+1. Navigate to "Alerts" > "Create Alert"
+2. Select "Price Alert" as the alert type
+3. Choose your cryptocurrency
+4. Set your price condition:
+   - Above a price
+   - Below a price
+   - Percentage change (1h, 24h, 7d)
+   - Price crossing a moving average
+5. Set notification methods:
+   - In-app notification
+   - Email
+   - SMS (Premium)
+   - Push notification (Mobile app)
+6. Set expiration (optional)
 7. Click "Create Alert"
 
-### How to Set Up Recurring Alerts
+**Multiple Conditions**: Create complex alerts by adding multiple conditions using "Add Condition".
 
-For conditions you want to monitor regularly:
+### How to Create Technical Indicator Alerts
 
-1. Create a new alert as usual
-2. Enable the "Recurring" toggle
-3. Configure recurrence settings:
-   - Reset after triggering (time delay)
-   - Maximum triggers per day/week
-   - Active days/hours
-4. Save your alert
-5. Recurring alerts will remain active even after triggering
-6. View and manage all recurring alerts in the "Active Alerts" section
+1. Go to "Alerts" > "Create Alert"
+2. Select "Technical Indicator" as the alert type
+3. Choose your cryptocurrency
+4. Select an indicator:
+   - RSI
+   - MACD
+   - Bollinger Bands
+   - And others
+5. Set condition parameters:
+   - RSI above/below level
+   - MACD crossover
+   - Price crossing Bollinger Band
+6. Configure notification preferences
+7. Set alert duration
+8. Save your alert
 
-### How to Manage Notification Channels
+**Example**: Create an RSI alert to notify you when RSI drops below 30 (potential oversold condition).
+
+### How to Manage Alert Notifications
 
 1. Navigate to "Settings" > "Notifications"
-2. Configure each notification channel:
-   - **In-App**: Always enabled, customize sound and banner style
-   - **Email**: Verify email address, choose digest frequency
-   - **Mobile Push**: Install and link mobile app first
-   - **SMS**: Add and verify phone number (premium feature)
-   - **Webhook**: Enter custom webhook URL (professional plan)
-   - **Telegram**: Connect your Telegram account
-3. Set priority levels for different alert types
-4. Configure quiet hours for each channel
-5. Test notifications to ensure proper delivery
+2. Configure global notification settings:
+   - Notification methods priority
+   - Quiet hours
+   - Digest options (receive batched alerts)
+3. Set up device-specific settings:
+   - Mobile push notifications
+   - Desktop notifications
+   - Email frequency
+4. Manage notification categories
+5. View notification history
+6. Test notifications system
 
-## Platform Customization
+**Quiet Mode**: Set up quiet hours to prevent alerts during specific times.
 
-### How to Create Custom Dashboard Layouts
+## Data Management
 
-1. Navigate to "Dashboard"
-2. Click "Customize" in the top right
-3. Add widgets using the "+ Widget" button
-4. Available widget types:
-   - Price charts
+### How to Export Your Data
+
+1. Navigate to "Settings" > "Data Management"
+2. Select "Export Data"
+3. Choose what to export:
+   - Portfolio holdings
+   - Trade history
+   - Performance data
+   - Custom strategies
+   - Alerts and watchlists
+4. Select export format:
+   - CSV
+   - JSON
+   - PDF (for reports)
+   - Excel (Premium)
+5. Click "Generate Export"
+6. Download the file when processing is complete
+
+**Scheduling**: Premium users can schedule regular data exports.
+
+### How to Import Data from External Sources
+
+1. Go to "Settings" > "Data Management"
+2. Select "Import Data"
+3. Choose import type:
+   - Portfolio holdings
+   - Trade history
    - Watchlists
-   - Portfolio summary
-   - Market overview
-   - News feed
-   - Alert list
-   - Trading interfaces
-5. Resize widgets by dragging their corners
-6. Rearrange by dragging the widget header
-7. Configure each widget using its settings icon
-8. Save your layout with a custom name
-9. Create multiple layouts for different purposes (e.g., Trading, Research, Portfolio)
-10. Switch between saved layouts using the dropdown menu
+4. Select file format:
+   - CSV
+   - JSON
+   - Excel
+5. Upload file or provide API connection
+6. Map data fields to platform fields
+7. Preview the import
+8. Confirm and complete the import
 
-### How to Customize Chart Appearances
+**Templates**: Download import templates for each data type for easier formatting.
 
-1. Open any chart
-2. Click the appearance settings icon (paint brush)
-3. Customize general chart settings:
-   - Background color
-   - Grid lines (on/off, color, style)
-   - Text size and font
-   - Crosshair style
-4. Customize candlestick/bar appearance:
-   - Up/down colors
-   - Border width
-   - Hollow or filled candles
-   - Wick visibility
-5. Customize indicator colors and styles
-6. Save as default theme or as a named theme
-7. Apply saved themes to any chart
+### How to Generate Tax Reports
 
-### How to Configure Trading Interface
+1. Navigate to "Tools" > "Tax Reporting"
+2. Select tax year
+3. Choose your jurisdiction
+4. Verify all exchange data is imported
+5. Select report types:
+   - Capital gains
+   - Income and mining
+   - Complete tax package
+6. Choose calculation method:
+   - FIFO (First In, First Out)
+   - LIFO (Last In, First Out)
+   - HIFO (Highest In, First Out)
+   - ACB (Average Cost Basis)
+7. Generate and download your report
 
-1. Go to "Settings" > "Trading Interface"
-2. Choose your preferred order entry layout:
-   - Simple (for beginners)
-   - Standard (default)
-   - Advanced (for professionals)
-   - Custom (design your own)
-3. Configure default behaviors:
-   - Default order type
-   - Show/hide advanced order options
-   - Position sizing presets
-   - Confirmation dialogs
-4. Set up quick-trade shortcuts
-5. Configure keyboard shortcuts
-6. Save your preferences
+**Professional Export**: Export in formats compatible with popular tax software.
 
-## Account Management
+## Account Settings
 
 ### How to Secure Your Account
 
-1. Navigate to "Settings" > "Security"
-2. Enable Two-Factor Authentication (2FA):
-   - Select method (authenticator app recommended)
-   - Scan QR code with your authenticator app
-   - Enter the verification code
-   - Save backup codes securely
-3. Configure additional security features:
-   - Login notifications
-   - New device verification
-   - IP address restrictions
-   - API key permissions
-   - Session timeout settings
-4. Set up account recovery options:
-   - Recovery email
-   - Recovery phone number
-5. Review active sessions and revoke any unauthorized access
-6. Set up withdrawal whitelisting for exchange connections
+1. Go to "Settings" > "Security"
+2. Review your current security status
+3. Enhance security with these steps:
+   - Change to a stronger password
+   - Enable Two-Factor Authentication (2FA)
+   - Add backup email and phone
+   - Review and limit API connections
+   - Enable login notifications
+4. Complete the security checklist
+5. Review recent account activity
+
+**Recommendation**: Enable 2FA using an authenticator app rather than SMS for better security.
+
+### How to Customize Your Dashboard
+
+1. Navigate to your Dashboard
+2. Click "Customize" in the top right corner
+3. Enter dashboard editing mode:
+   - Drag widgets to reposition
+   - Resize widgets by dragging corners
+   - Add widgets with the "+" button
+   - Remove widgets with the "X" button
+4. Configure individual widgets by clicking the gear icon
+5. Select from different layout templates
+6. Create multiple dashboard tabs for different focuses
+7. Click "Save Layout" when finished
+
+**Layout Tip**: Create separate dashboard layouts for different trading strategies or market conditions.
 
 ### How to Manage API Connections
 
-1. Navigate to "Settings" > "API Connections"
-2. View all connected exchanges and services
-3. To add a new connection:
-   - Select the exchange/service
-   - Follow instructions to create API keys on that platform
-   - Configure appropriate permissions (read-only recommended)
-   - Enter API key and secret
-   - Complete verification process
-4. For existing connections:
-   - Test connection status
-   - Update credentials if needed
-   - View and edit permissions
-   - Enable/disable specific features
-   - Remove connection if no longer needed
-5. Monitor API usage statistics
-6. Set up alerts for API errors or rate limit warnings
+1. Go to "Settings" > "API Management"
+2. View all connected APIs and services
+3. For each connection, you can:
+   - View usage statistics
+   - Edit permissions
+   - Rotate API keys
+   - Delete the connection
+4. Add new API connection by clicking "Connect New API"
+5. Monitor rate limits and usage
+6. Set up alerts for API limit warnings
 
-### How to Upgrade Your Account
+**Security Practice**: Review and audit your API connections monthly.
 
-1. Navigate to "Settings" > "Subscription"
-2. View your current plan and features
-3. Compare available plans:
-   - Free
-   - Trader
-   - Professional
-   - Enterprise
-4. Select plan to upgrade
-5. Choose billing cycle (monthly/annual)
-6. Review subscription details and pricing
-7. Select payment method:
-   - Credit/debit card
-   - PayPal
-   - Cryptocurrency
-8. Complete payment process
-9. Access new features immediately
-10. Manage subscription settings, including:
-    - Auto-renewal preferences
-    - Payment methods
-    - Billing history
-    - Tax receipts
+## Mobile Usage
 
-## API Integration
+### How to Set Up the Mobile App
 
-### How to Generate API Keys
+1. Download the Crypto Beacon mobile app from the App Store or Google Play
+2. Open the app and log in with your existing account
+3. Complete the biometric authentication setup
+4. Choose mobile-specific settings:
+   - Default view mode
+   - Data usage settings
+   - Notification preferences
+5. Complete the mobile tour to learn key features
+6. Sync your watchlists and alerts
 
-For developers and programmatic access:
+**Offline Mode**: Configure "Offline Mode" to access key information without an internet connection.
 
-1. Navigate to "Settings" > "Developer"
-2. Click "Generate New API Key"
-3. Configure permissions:
-   - Read market data
-   - Read account data
-   - Execute trades
-   - Manage alerts
-4. Set restrictions:
-   - IP address whitelist
-   - Request rate limits
-   - Expiration date (optional)
-5. Complete verification (2FA required)
-6. Save your API key and secret securely
-7. The secret is only shown once for security reasons
+### How to Use Quick Actions
 
-### How to Use the REST API
+1. From the mobile app home screen, swipe right to access Quick Actions
+2. Customize your Quick Actions menu:
+   - Add frequent actions
+   - Rearrange actions
+   - Remove unused actions
+3. Access your most common tasks with a single tap:
+   - Check portfolio
+   - View specific assets
+   - Execute pre-set trades
+   - Run saved analyses
+4. Use 3D Touch or long-press for preview actions
 
-1. Access API documentation at [https://api.cryptobeacon.com/docs](https://api.cryptobeacon.com/docs)
-2. Authenticate requests using your API key:
-   ```
-   curl -X GET "https://api.cryptobeacon.com/v1/market/prices" \
-     -H "X-API-Key: your_api_key_here"
-   ```
-3. Common endpoints include:
-   - `/market/prices`: Current cryptocurrency prices
-   - `/market/history`: Historical price data
-   - `/portfolio/summary`: Account portfolio data
-   - `/trading/execute`: Execute trades
-4. Handle rate limits: Check headers for usage information
-5. Implement proper error handling
-6. Consider using our official client libraries for:
-   - JavaScript/TypeScript
-   - Python
-   - Go
-   - Java
+**Widget Option**: Add the Crypto Beacon widget to your phone's home screen for even quicker access.
 
-### How to Connect to the WebSocket Feed
+### How to Sync Desktop and Mobile
 
-1. Access WebSocket documentation at [https://api.cryptobeacon.com/docs/websocket](https://api.cryptobeacon.com/docs/websocket)
-2. Connect to the WebSocket endpoint:
-   ```
-   wss://ws.cryptobeacon.com/v1
-   ```
-3. Authenticate using your API key in the initial connection message
-4. Subscribe to channels:
-   - `market.ticker`: Real-time price updates
-   - `market.trades`: Live trade executions
-   - `market.orderbook`: Order book updates
-   - `account.orders`: Your order updates
-   - `account.trades`: Your trade executions
-5. Handle connection maintenance:
-   - Implement ping/pong for keepalive
-   - Handle reconnection with exponential backoff
-   - Process message queuing during disconnections
-6. Optimize for performance:
-   - Subscribe only to needed channels
-   - Implement local caching
-   - Consider using our WebSocket client libraries
+1. Ensure you're logged into the same account on both devices
+2. Go to "Settings" > "Devices & Sync"
+3. Enable cross-device synchronization for:
+   - Watchlists
+   - Alerts
+   - Trading templates
+   - Chart layouts
+4. Choose sync frequency and data usage limits
+5. Use "Force Sync" to manually trigger synchronization
+6. View sync history and resolve conflicts
 
-### How to Implement Webhook Notifications
+**Sync Tip**: Use the "Push to Mobile" feature from desktop to send specific charts or analysis to your mobile device.
 
-1. Navigate to "Settings" > "Developer" > "Webhooks"
-2. Click "Add Webhook"
-3. Enter your webhook URL where notifications will be sent
-4. Select events to trigger the webhook:
-   - Price alerts
-   - Order execution
-   - Trade completion
-   - Portfolio updates
-   - System events
-5. Configure the secret key for payload verification
-6. Test the webhook to ensure proper delivery
-7. Monitor webhook delivery status and errors
-8. Implement proper security on your receiving endpoint:
-   - Validate webhook signatures
-   - Process events idempotently
-   - Respond with appropriate status codes
+---
+
+This document will be regularly updated with new how-to guides as features are added or enhanced. If you need help with a task not covered here, please visit our complete knowledge base or contact support.

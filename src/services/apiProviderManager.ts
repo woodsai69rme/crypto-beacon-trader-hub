@@ -1,112 +1,329 @@
 
-import { ApiProvider } from "@/types/trading";
+import { v4 as uuidv4 } from 'uuid';
+import { ApiEndpoint } from '@/types/trading';
 
-// In-memory storage for API providers
-let apiProviders: ApiProvider[] = [
+// Mock API providers and endpoints
+const mockProviders = [
   {
-    id: "coingecko",
-    name: "CoinGecko",
-    baseUrl: "https://api.coingecko.com/api/v3",
-    description: "Cryptocurrency data aggregator",
+    id: 'coingecko',
+    name: 'CoinGecko',
     endpoints: [
       {
-        path: "/coins/markets",
-        method: "GET",
-        description: "Get market data for coins",
-        parameters: [
-          {
-            name: "vs_currency",
-            description: "The target currency of market data",
-            required: true,
-            type: "string",
-            default: "usd"
-          }
-        ],
+        id: uuidv4(),
+        name: 'Markets Data',
+        url: 'https://api.coingecko.com/api/v3/coins/markets',
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        params: { vs_currency: 'usd', order: 'market_cap_desc', per_page: '100', page: '1' },
+        rateLimit: 50,
+        usageCount: 12,
+        lastUsed: new Date().toISOString(),
+        category: 'market',
+        description: 'Get list of coins with market data',
+        isActive: true
+      },
+      {
+        id: uuidv4(),
+        name: 'Coin Details',
+        url: 'https://api.coingecko.com/api/v3/coins/{id}',
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        rateLimit: 50,
+        usageCount: 8,
+        lastUsed: new Date().toISOString(),
+        category: 'coin',
+        description: 'Get current data for a coin',
         isActive: true
       }
-    ],
-    isActive: true,
-    website: "https://www.coingecko.com",
-    docs: "https://www.coingecko.com/api/documentation",
-    priority: 1,
-    requiresAuth: false,
-    authRequired: false
+    ]
   },
   {
-    id: "binance",
-    name: "Binance",
-    baseUrl: "https://api.binance.com/api",
-    description: "Cryptocurrency exchange API",
+    id: 'coincap',
+    name: 'CoinCap',
     endpoints: [
       {
-        path: "/v3/ticker/price",
-        method: "GET",
-        description: "Get latest price for a symbol",
-        parameters: [
-          {
-            name: "symbol",
-            description: "The trading pair symbol",
-            required: false,
-            type: "string"
-          }
-        ],
+        id: uuidv4(),
+        name: 'Assets',
+        url: 'https://api.coincap.io/v2/assets',
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        rateLimit: 100,
+        usageCount: 5,
+        lastUsed: new Date().toISOString(),
+        category: 'market',
+        description: 'Get all assets',
         isActive: true
       }
-    ],
-    isActive: true,
-    website: "https://www.binance.com",
-    docs: "https://binance-docs.github.io/apidocs/",
-    priority: 2,
-    requiresAuth: true,
-    authRequired: true,
-    authMethod: "apiKey",
-    apiKeyName: "X-MBX-APIKEY"
+    ]
+  },
+  {
+    id: 'binance',
+    name: 'Binance',
+    endpoints: [
+      {
+        id: uuidv4(),
+        name: 'Ticker Price',
+        url: 'https://api.binance.com/api/v3/ticker/price',
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        rateLimit: 1200,
+        usageCount: 150,
+        lastUsed: new Date().toISOString(),
+        category: 'price',
+        description: 'Get latest price for a symbol or symbols',
+        isActive: true
+      },
+      {
+        id: uuidv4(),
+        name: 'Klines (Candlesticks)',
+        url: 'https://api.binance.com/api/v3/klines',
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        params: { symbol: 'BTCUSDT', interval: '1h' },
+        rateLimit: 1200,
+        usageCount: 78,
+        lastUsed: new Date().toISOString(),
+        category: 'chart',
+        description: 'Get candlestick data for a specific trading pair',
+        isActive: true
+      }
+    ]
   }
 ];
 
-// CRUD operations for API providers
-export const getApiProviders = (): ApiProvider[] => {
-  return apiProviders;
-};
+// Combine all endpoints from providers
+let allEndpoints: ApiEndpoint[] = mockProviders.flatMap(provider =>
+  provider.endpoints.map(endpoint => ({
+    ...endpoint,
+    provider: provider.name
+  }))
+);
 
-export const getApiProviderById = (id: string): ApiProvider | undefined => {
-  return apiProviders.find(provider => provider.id === id);
-};
-
-export const createApiProvider = (provider: ApiProvider): ApiProvider => {
-  apiProviders.push(provider);
-  return provider;
-};
-
-export const updateApiProvider = (id: string, updates: Partial<ApiProvider>): ApiProvider | undefined => {
-  const index = apiProviders.findIndex(provider => provider.id === id);
-  if (index !== -1) {
-    apiProviders[index] = { ...apiProviders[index], ...updates };
-    return apiProviders[index];
+// Mock API Manager Service
+const ApiProviderManager = {
+  // Get all API providers
+  getProviders: () => {
+    return mockProviders;
+  },
+  
+  // Get all endpoints
+  getEndpoints: () => {
+    return allEndpoints;
+  },
+  
+  // Get endpoints filtered by provider
+  getProviderEndpoints: (providerId: string) => {
+    const provider = mockProviders.find(p => p.id === providerId);
+    return provider ? provider.endpoints : [];
+  },
+  
+  // Get endpoints by category
+  getEndpointsByCategory: (category: string) => {
+    return allEndpoints.filter(endpoint => endpoint.category === category);
+  },
+  
+  // Add a new endpoint
+  addEndpoint: (
+    providerId: string,
+    name: string,
+    url: string,
+    method: string,
+    category: string,
+    description: string,
+    headers?: Record<string, string>,
+    params?: Record<string, string>,
+    rateLimit: number = 60
+  ) => {
+    const newEndpoint: ApiEndpoint = {
+      id: uuidv4(),
+      name,
+      url,
+      method,
+      headers,
+      params,
+      rateLimit,
+      usageCount: 0,
+      category,
+      description,
+      isActive: true
+    };
+    
+    const providerIndex = mockProviders.findIndex(p => p.id === providerId);
+    
+    if (providerIndex >= 0) {
+      mockProviders[providerIndex].endpoints.push(newEndpoint);
+      allEndpoints = mockProviders.flatMap(provider =>
+        provider.endpoints.map(endpoint => ({
+          ...endpoint,
+          provider: provider.name
+        }))
+      );
+      return newEndpoint;
+    }
+    
+    return null;
+  },
+  
+  // Update an endpoint
+  updateEndpoint: (updatedEndpoint: ApiEndpoint) => {
+    const providerIndex = mockProviders.findIndex(p => 
+      p.endpoints.some(e => e.id === updatedEndpoint.id)
+    );
+    
+    if (providerIndex >= 0) {
+      const endpointIndex = mockProviders[providerIndex].endpoints.findIndex(
+        e => e.id === updatedEndpoint.id
+      );
+      
+      if (endpointIndex >= 0) {
+        mockProviders[providerIndex].endpoints[endpointIndex] = updatedEndpoint;
+        
+        // Update the combined list
+        allEndpoints = mockProviders.flatMap(provider =>
+          provider.endpoints.map(endpoint => ({
+            ...endpoint,
+            provider: provider.name
+          }))
+        );
+        
+        return true;
+      }
+    }
+    
+    return false;
+  },
+  
+  // Delete an endpoint
+  deleteEndpoint: (endpointId: string) => {
+    const providerIndex = mockProviders.findIndex(p => 
+      p.endpoints.some(e => e.id === endpointId)
+    );
+    
+    if (providerIndex >= 0) {
+      mockProviders[providerIndex].endpoints = mockProviders[providerIndex].endpoints.filter(
+        e => e.id !== endpointId
+      );
+      
+      // Update the combined list
+      allEndpoints = mockProviders.flatMap(provider =>
+        provider.endpoints.map(endpoint => ({
+          ...endpoint,
+          provider: provider.name
+        }))
+      );
+      
+      return true;
+    }
+    
+    return false;
+  },
+  
+  // Track usage of an endpoint
+  trackEndpointUsage: (endpointId: string) => {
+    const providerIndex = mockProviders.findIndex(p => 
+      p.endpoints.some(e => e.id === endpointId)
+    );
+    
+    if (providerIndex >= 0) {
+      const endpointIndex = mockProviders[providerIndex].endpoints.findIndex(
+        e => e.id === endpointId
+      );
+      
+      if (endpointIndex >= 0) {
+        const endpoint = mockProviders[providerIndex].endpoints[endpointIndex];
+        endpoint.usageCount += 1;
+        endpoint.lastUsed = new Date().toISOString();
+        
+        // Update the combined list
+        allEndpoints = mockProviders.flatMap(provider =>
+          provider.endpoints.map(endpoint => ({
+            ...endpoint,
+            provider: provider.name
+          }))
+        );
+        
+        return endpoint;
+      }
+    }
+    
+    return null;
+  },
+  
+  // Reset usage counters for testing
+  resetUsageCounts: () => {
+    mockProviders.forEach(provider => {
+      provider.endpoints.forEach(endpoint => {
+        endpoint.usageCount = 0;
+        endpoint.lastUsed = new Date().toISOString();
+      });
+    });
+    
+    allEndpoints = mockProviders.flatMap(provider =>
+      provider.endpoints.map(endpoint => ({
+        ...endpoint,
+        provider: provider.name
+      }))
+    );
+  },
+  
+  // Calculate rate limit usage as percentage
+  getRateLimitUsage: (endpointId: string) => {
+    const endpoint = allEndpoints.find(e => e.id === endpointId);
+    if (!endpoint) return 0;
+    
+    return Math.min(100, Math.round((endpoint.usageCount / endpoint.rateLimit) * 100));
+  },
+  
+  // Check if an endpoint is approaching rate limit
+  isApproachingRateLimit: (endpointId: string, thresholdPercentage: number = 80) => {
+    const usage = ApiProviderManager.getRateLimitUsage(endpointId);
+    return usage >= thresholdPercentage;
+  },
+  
+  // Get a mock response for an endpoint (simulating API call)
+  getMockResponse: async (endpointId: string, params?: Record<string, string>) => {
+    const endpoint = allEndpoints.find(e => e.id === endpointId);
+    if (!endpoint) throw new Error('Endpoint not found');
+    
+    // Track usage
+    ApiProviderManager.trackEndpointUsage(endpointId);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Return mock data based on category
+    switch (endpoint.category) {
+      case 'market':
+        return {
+          data: [
+            { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', price: 32000, change24h: 2.5 },
+            { id: 'ethereum', symbol: 'eth', name: 'Ethereum', price: 1800, change24h: -1.2 },
+            { id: 'solana', symbol: 'sol', name: 'Solana', price: 45, change24h: 5.7 },
+          ]
+        };
+      case 'price':
+        return {
+          data: { price: 32000, timestamp: new Date().toISOString() }
+        };
+      case 'chart':
+        // Generate mock candlestick data
+        const candles = [];
+        const now = Date.now();
+        for (let i = 0; i < 100; i++) {
+          const time = now - (i * 3600000); // hourly candles
+          const open = 30000 + Math.random() * 4000;
+          const close = open + (Math.random() * 1000 - 500);
+          const high = Math.max(open, close) + Math.random() * 200;
+          const low = Math.min(open, close) - Math.random() * 200;
+          const volume = 100 + Math.random() * 500;
+          
+          candles.push([time, open, high, low, close, volume]);
+        }
+        return { data: candles.reverse() };
+      default:
+        return { data: { message: "Mock response for " + endpoint.name } };
+    }
   }
-  return undefined;
 };
 
-export const deleteApiProvider = (id: string): boolean => {
-  const initialLength = apiProviders.length;
-  apiProviders = apiProviders.filter(provider => provider.id !== id);
-  return apiProviders.length < initialLength;
-};
-
-export const setApiKey = (providerId: string, apiKey: string): boolean => {
-  const index = apiProviders.findIndex(provider => provider.id === providerId);
-  if (index !== -1) {
-    apiProviders[index].apiKey = apiKey;
-    return true;
-  }
-  return false;
-};
-
-export const toggleApiProviderActive = (id: string): boolean => {
-  const index = apiProviders.findIndex(provider => provider.id === id);
-  if (index !== -1) {
-    apiProviders[index].isActive = !apiProviders[index].isActive;
-    return true;
-  }
-  return false;
-};
+export default ApiProviderManager;

@@ -1,109 +1,58 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { TickerSettings, SidebarSettings } from '../types/trading';
+import React, { createContext, useState, useContext } from 'react';
+import { SidebarSettings } from '@/types/trading';
 
-interface UIContextType {
-  tickerSettings: TickerSettings;
-  updateTickerSettings: (settings: Partial<TickerSettings>) => void;
-  sidebarSettings: SidebarSettings;
-  updateSidebarSettings: (settings: Partial<SidebarSettings>) => void;
+interface ThemeSettings {
+  mode: 'dark' | 'light';
+  accent: 'blue' | 'green' | 'purple' | 'amber' | 'rose';
 }
 
-const defaultTickerSettings: TickerSettings = {
-  enabled: true,
-  position: 'both',
-  speed: 40,
-  direction: 'left',
-  autoPause: true
-};
-
-const defaultSidebarSettings: SidebarSettings = {
-  enabled: true,
-  position: 'left',
-  defaultCollapsed: false,
-  showLabels: true
-};
+interface UIContextType {
+  sidebarSettings: SidebarSettings;
+  updateSidebarSettings: (settings: Partial<SidebarSettings>) => void;
+  themeSettings: ThemeSettings;
+  updateThemeSettings: (settings: Partial<ThemeSettings>) => void;
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tickerSettings, setTickerSettings] = useState<TickerSettings>(defaultTickerSettings);
-  const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>(defaultSidebarSettings);
+  const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>({
+    showLabels: true,
+    position: 'left',
+    width: 240,
+    defaultCollapsed: false
+  });
   
-  useEffect(() => {
-    // Load settings from localStorage
-    const loadedSettings = localStorage.getItem('userSettings');
-    if (loadedSettings) {
-      try {
-        const parsedSettings = JSON.parse(loadedSettings);
-        if (parsedSettings.ticker) {
-          setTickerSettings({
-            ...defaultTickerSettings,
-            ...parsedSettings.ticker
-          });
-        }
-        if (parsedSettings.sidebar) {
-          setSidebarSettings({
-            ...defaultSidebarSettings,
-            ...parsedSettings.sidebar
-          });
-        }
-      } catch (e) {
-        console.error('Failed to load UI settings from localStorage:', e);
-      }
-    }
-  }, []);
-
-  const updateTickerSettings = (newSettings: Partial<TickerSettings>) => {
-    setTickerSettings(prev => {
-      const updated = { ...prev, ...newSettings };
-      
-      // Update in localStorage
-      const existingSettings = localStorage.getItem('userSettings');
-      if (existingSettings) {
-        try {
-          const settings = JSON.parse(existingSettings);
-          localStorage.setItem('userSettings', JSON.stringify({
-            ...settings,
-            ticker: updated
-          }));
-        } catch (e) {
-          console.error('Failed to update ticker settings in localStorage:', e);
-        }
-      }
-      
-      return updated;
-    });
+  const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
+    mode: 'dark',
+    accent: 'blue'
+  });
+  
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  const updateSidebarSettings = (settings: Partial<SidebarSettings>) => {
+    setSidebarSettings(prev => ({ ...prev, ...settings }));
   };
   
-  const updateSidebarSettings = (newSettings: Partial<SidebarSettings>) => {
-    setSidebarSettings(prev => {
-      const updated = { ...prev, ...newSettings };
-      
-      // Update in localStorage
-      const existingSettings = localStorage.getItem('userSettings');
-      if (existingSettings) {
-        try {
-          const settings = JSON.parse(existingSettings);
-          localStorage.setItem('userSettings', JSON.stringify({
-            ...settings,
-            sidebar: updated
-          }));
-        } catch (e) {
-          console.error('Failed to update sidebar settings in localStorage:', e);
-        }
-      }
-      
-      return updated;
-    });
+  const updateThemeSettings = (settings: Partial<ThemeSettings>) => {
+    setThemeSettings(prev => ({ ...prev, ...settings }));
+  };
+  
+  const toggleSidebar = () => {
+    setIsSidebarOpen(prev => !prev);
   };
   
   return (
     <UIContext.Provider value={{
-      tickerSettings,
-      updateTickerSettings,
       sidebarSettings,
-      updateSidebarSettings
+      updateSidebarSettings,
+      themeSettings,
+      updateThemeSettings,
+      isSidebarOpen,
+      toggleSidebar
     }}>
       {children}
     </UIContext.Provider>
@@ -117,3 +66,5 @@ export const useUI = (): UIContextType => {
   }
   return context;
 };
+
+export default UIContext;

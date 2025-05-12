@@ -1,56 +1,94 @@
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import CurrencySelector from '@/components/trading/CurrencySelector';
-import { TestWrapper } from '../utils/TestWrapper';
+import { render, fireEvent } from '@testing-library/react';
+import CurrencySelector from '@/components/CurrencySelector';
 
-describe('CurrencySelector', () => {
-  it('renders with the active currency', () => {
-    const handleChange = jest.fn();
-    
-    render(
-      <TestWrapper>
-        <CurrencySelector activeCurrency="USD" onCurrencyChange={handleChange} />
-      </TestWrapper>
-    );
-    
-    // The trigger should show the selected currency
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+describe('CurrencySelector component', () => {
+  const mockOnChange = jest.fn();
+  const currencies = ['USD', 'EUR', 'GBP', 'AUD'];
+  
+  beforeEach(() => {
+    mockOnChange.mockClear();
   });
   
-  it('calls onChange when a different currency is selected', () => {
-    const handleChange = jest.fn();
-    
-    render(
-      <TestWrapper>
-        <CurrencySelector activeCurrency="USD" onCurrencyChange={handleChange} />
-      </TestWrapper>
+  test('renders with default currency selected', () => {
+    const { getByText } = render(
+      <CurrencySelector 
+        value="USD"
+        onChange={mockOnChange}
+        currencies={currencies}
+      />
     );
     
-    // Open the dropdown
-    fireEvent.click(screen.getByRole('combobox'));
-    
-    // Select AUD
-    fireEvent.click(screen.getByText('AUD'));
-    
-    // Check if the change handler was called with the right argument
-    expect(handleChange).toHaveBeenCalledWith('AUD');
+    expect(getByText('USD')).toBeInTheDocument();
   });
   
-  it('disables the selector when disabled prop is true', () => {
-    const handleChange = jest.fn();
-    
-    render(
-      <TestWrapper>
-        <CurrencySelector 
-          activeCurrency="USD" 
-          onCurrencyChange={handleChange} 
-          disabled={true}
-        />
-      </TestWrapper>
+  test('opens dropdown when clicked', () => {
+    const { getByText, getByRole } = render(
+      <CurrencySelector 
+        value="USD"
+        onChange={mockOnChange}
+        currencies={currencies}
+      />
     );
     
-    // The trigger should be disabled
-    expect(screen.getByRole('combobox')).toBeDisabled();
+    // Open dropdown
+    fireEvent.click(getByRole('combobox'));
+    
+    // Check if all currency options are visible
+    expect(getByText('EUR')).toBeInTheDocument();
+    expect(getByText('GBP')).toBeInTheDocument();
+    expect(getByText('AUD')).toBeInTheDocument();
+  });
+  
+  test('calls onChange when new currency is selected', () => {
+    const { getByText, getByRole } = render(
+      <CurrencySelector 
+        value="USD"
+        onChange={mockOnChange}
+        currencies={currencies}
+      />
+    );
+    
+    // Open dropdown
+    fireEvent.click(getByRole('combobox'));
+    
+    // Select a different currency
+    fireEvent.click(getByText('EUR'));
+    
+    // Check if onChange was called with the correct value
+    expect(mockOnChange).toHaveBeenCalledWith('EUR');
+  });
+  
+  test('handles empty currencies array', () => {
+    render(
+      <CurrencySelector 
+        value="USD"
+        onChange={mockOnChange}
+        currencies={[]}
+      />
+    );
+    
+    expect(true).toBeTruthy(); // Just checking that it renders without error
+  });
+  
+  test('shows only the allowed currencies', () => {
+    const limitedCurrencies = ['USD', 'EUR'];
+    
+    const { getByText, getByRole, queryByText } = render(
+      <CurrencySelector 
+        value="USD"
+        onChange={mockOnChange}
+        currencies={limitedCurrencies}
+      />
+    );
+    
+    // Open dropdown
+    fireEvent.click(getByRole('combobox'));
+    
+    // Check if only specified currencies are visible
+    expect(getByText('EUR')).toBeInTheDocument();
+    expect(queryByText('GBP')).not.toBeInTheDocument();
+    expect(queryByText('AUD')).not.toBeInTheDocument();
   });
 });

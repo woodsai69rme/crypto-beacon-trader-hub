@@ -32,8 +32,8 @@ export interface BacktestResult {
   winRate: number;
   trades: number;
   maxDrawdown: number;
-  sharpeRatio?: number;
-  profitFactor?: number;
+  sharpeRatio: number;
+  profitFactor: number;
   tradeHistory?: Trade[];
 }
 
@@ -51,6 +51,8 @@ export interface OptimizationResult {
   trades: number;
   timeframe: string;
   optimizationDate: string;
+  improvement?: number;
+  parameterValues: Record<string, any>;
 }
 
 export interface CryptoData {
@@ -58,7 +60,7 @@ export interface CryptoData {
   symbol: string;
   name: string;
   price: number;
-  priceChange?: number;
+  priceChange: number;
   changePercent: number;
   marketCap?: number;
   volume?: number;
@@ -80,7 +82,7 @@ export interface Trade {
   coinName: string;
   coinSymbol: string;
   currency: string;
-  totalValue: number; // Adding missing property
+  totalValue: number;
 }
 
 export interface CoinOption {
@@ -92,4 +94,74 @@ export interface CoinOption {
   changePercent: number;
   value: string;
   label: string;
+  marketCap?: number;
+  volume?: number;
+  image?: string;
+}
+
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  initialBalance: number;
+  currency: string;
+  createdAt: string;
+  positions: Position[];
+  trades: Trade[];
+  performance: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    allTime: number;
+  };
+}
+
+export interface Position {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  amount: number;
+  entryPrice: number;
+  currentPrice: number;
+  value: number;
+  profitLoss: number;
+  profitLossPercentage: number;
+  openedAt: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  params?: Record<string, string>;
+  rateLimit: number;
+  usageCount: number;
+  lastUsed?: string;
+  category: string;
+  description: string;
+  isActive: boolean;
+  provider?: string;
+}
+
+export interface SidebarSettings {
+  defaultCollapsed: boolean;
+  showLabels: boolean;
+  position: 'left' | 'right';
+  width: number;
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  version: string;
+  connected: boolean;
+  parameters: Record<string, any>;
+  status: 'idle' | 'running' | 'error';
+  performance?: Record<string, any>;
+  lastUsed?: string;
 }
