@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Widget, WidgetType, WidgetSize } from "@/types/trading";
+import { v4 as uuidv4 } from 'uuid';
 
 interface AddWidgetDialogProps {
   open: boolean;
@@ -14,49 +15,46 @@ interface AddWidgetDialogProps {
 }
 
 const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onClose, onAddWidget }) => {
-  const [title, setTitle] = useState<string>('');
-  const [type, setType] = useState<WidgetType>('chart');
-  const [size, setSize] = useState<WidgetSize>('medium');
-  const [customContent, setCustomContent] = useState<string>('');
-  
-  const handleSubmit = () => {
-    if (!title) return;
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState<WidgetType>("price-chart");
+  const [size, setSize] = useState<WidgetSize>("medium");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
     const newWidget: Widget = {
-      id: `widget-${Date.now()}`,
-      title,
-      type,
-      size,
-      customContent: type === 'custom' ? customContent : undefined,
+      id: uuidv4(),
+      title: title || "New Widget",
+      type: type,
+      size: size,
+      position: { x: 0, y: 0 }
     };
     
     onAddWidget(newWidget);
     resetForm();
     onClose();
   };
-  
+
   const resetForm = () => {
-    setTitle('');
-    setType('chart');
-    setSize('medium');
-    setCustomContent('');
+    setTitle("");
+    setType("price-chart");
+    setSize("medium");
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Widget</DialogTitle>
+          <DialogTitle>Add Widget</DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Widget Title</Label>
-            <Input 
-              id="title" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              placeholder="Enter widget title" 
+            <Input
+              id="title"
+              placeholder="Enter widget title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           
@@ -67,18 +65,14 @@ const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onClose, onAddW
                 <SelectValue placeholder="Select widget type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="chart">Chart</SelectItem>
                 <SelectItem value="price-chart">Price Chart</SelectItem>
-                <SelectItem value="table">Table</SelectItem>
-                <SelectItem value="stats">Stats</SelectItem>
-                <SelectItem value="news">News</SelectItem>
-                <SelectItem value="alerts">Alerts</SelectItem>
                 <SelectItem value="portfolio-summary">Portfolio Summary</SelectItem>
                 <SelectItem value="watchlist">Watchlist</SelectItem>
+                <SelectItem value="news">News</SelectItem>
+                <SelectItem value="alerts">Alerts</SelectItem>
                 <SelectItem value="trading">Trading</SelectItem>
                 <SelectItem value="aiTrading">AI Trading</SelectItem>
                 <SelectItem value="aiAnalysis">AI Analysis</SelectItem>
-                <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -100,23 +94,13 @@ const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onClose, onAddW
             </Select>
           </div>
           
-          {type === 'custom' && (
-            <div className="space-y-2">
-              <Label htmlFor="customContent">Custom Content</Label>
-              <Input 
-                id="customContent"
-                value={customContent} 
-                onChange={(e) => setCustomContent(e.target.value)} 
-                placeholder="Enter custom content or HTML" 
-              />
-            </div>
-          )}
-        </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!title}>Add Widget</Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">Add Widget</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

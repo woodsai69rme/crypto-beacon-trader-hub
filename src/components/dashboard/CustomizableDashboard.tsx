@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
-import WidgetGrid from "./WidgetGrid";
-import WidgetList from "./WidgetList";
+import WidgetGrid from "./widgets/WidgetGrid";
+import WidgetList from "./widgets/WidgetList";
 import AddWidgetDialog from "./widgets/AddWidgetDialog";
 import { Widget, WidgetType, WidgetSize } from "@/types/trading";
 import { toast } from "@/hooks/use-toast";
@@ -101,9 +101,15 @@ const CustomizableDashboard: React.FC = () => {
       </div>
       
       {viewMode === "grid" ? (
-        <WidgetGrid widgets={widgets} onRemoveWidget={handleRemoveWidget} />
+        <WidgetGrid 
+          widgets={widgets} 
+          onRemove={handleRemoveWidget} 
+        />
       ) : (
-        <WidgetList widgets={widgets} onRemoveWidget={handleRemoveWidget} />
+        <WidgetList 
+          widgets={widgets} 
+          onRemove={handleRemoveWidget} 
+        />
       )}
       
       <AddWidgetDialog

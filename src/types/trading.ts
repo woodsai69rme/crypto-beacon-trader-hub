@@ -1,4 +1,3 @@
-
 /**
  * Type definitions for the trading components and functionality
  */
@@ -21,21 +20,14 @@ export interface CoinOption {
 // Cryptocurrency data type from API
 export interface CryptoData {
   id: string;
-  symbol: string;
   name: string;
+  symbol: string;
+  price?: number;
+  priceChange?: number;
   image?: string;
-  price: number;
-  priceChange: number;
-  changePercent: number;
-  priceChangePercentage?: number;
   marketCap?: number;
   volume?: number;
-  circulatingSupply?: number;
-  current_price?: number;
-  price_change_24h?: number;
-  price_change_percentage_24h?: number;
-  total_volume?: number;
-  market_cap?: number;
+  changePercent?: number;
 }
 
 // Props for the RealTimePriceChart component
@@ -355,22 +347,16 @@ export interface AiBotTradingProps {
 
 // Tax calculation interface
 export interface ATOTaxCalculation {
-  year: number;
-  gains: number;
-  losses: number;
-  netPosition: number;
-  taxableAmount: number;
-  taxOwed: number;
-  effectiveTaxRate: number;
-  transactions: {
-    date: string;
-    asset: string;
-    quantity: number;
-    costBase: number;
-    proceedsAmount: number;
-    gainLoss: number;
-    isShortTerm: boolean;
-  }[];
+  financialYear: string;
+  taxableIncome: number;
+  CGTDiscount: number;
+  netCapitalGains: number;
+  bracketInfo: string;
+  incomeTax: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxWithheld: number;
+  taxRefundOrOwed: number;
 }
 
 // Ticker settings interface
@@ -392,10 +378,18 @@ export interface SidebarSettings {
 }
 
 // Widget types
-export type WidgetType = 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom';
-export type WidgetSize = 'small' | 'medium' | 'large';
+export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
+export type WidgetType = 
+  | 'price-chart' 
+  | 'portfolio-summary' 
+  | 'watchlist' 
+  | 'news' 
+  | 'alerts' 
+  | 'custom' 
+  | 'trading' 
+  | 'aiTrading'
+  | 'aiAnalysis';
 
-// Widget definition
 export interface Widget {
   id: string;
   title: string;
@@ -413,4 +407,32 @@ export interface DetachableDashboardProps {
   darkMode?: boolean;
   isDetached?: boolean;
   children?: React.ReactNode;
+}
+
+// Add missing types for portfolio benchmarking
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioId?: string;
+  timeframe?: string;
+  comparisonAssets?: string[];
+  showDetailedView?: boolean;
+}
+
+// Settings form values type
+export interface SettingsFormValues {
+  theme: string;
+  currency: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    priceAlerts: boolean;
+  };
+  api: {
+    provider: string;
+    key: string;
+  };
+  display: {
+    showPortfolio: boolean;
+    defaultTab: string;
+    compactMode: boolean;
+  };
 }

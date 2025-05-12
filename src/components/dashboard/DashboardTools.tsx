@@ -1,151 +1,93 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Settings, Download, Share2, RotateCw, Info } from "lucide-react";
-import { SettingsFormValues } from '@/types/trading';
-
-const settingsFormSchema = z.object({
-  displayName: z.string().optional(),
-  email: z.string().email().optional(),
-  'sidebar.enabled': z.boolean().optional(),
-  'sidebar.position': z.string().optional(),
-  'sidebar.defaultCollapsed': z.boolean().optional(),
-  'sidebar.showLabels': z.boolean().optional(),
-  'sidebar.autoHide': z.boolean().optional(),
-});
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const DashboardTools = () => {
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  const form = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsFormSchema),
-    defaultValues: {
-      displayName: "John Doe",
-      email: "john@example.com",
-      'sidebar.enabled': true,
-      'sidebar.position': 'left',
-      'sidebar.defaultCollapsed': false,
-      'sidebar.showLabels': true,
-      'sidebar.autoHide': false,
-    }
-  });
-  
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1000);
-  };
-  
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="gap-1" onClick={() => setSettingsOpen(true)}>
-          <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">Settings</span>
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1" onClick={handleRefresh} disabled={isRefreshing}>
-          <RotateCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Refresh</span>
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1">
-          <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">Export</span>
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1">
-          <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Share</span>
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1">
-          <Info className="h-4 w-4" />
-          <span className="hidden sm:inline">Help</span>
-        </Button>
-      </div>
-
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Dashboard Settings</DialogTitle>
-          </DialogHeader>
-          
-          <Form {...form}>
-            <form className="space-y-4">
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Display Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="sidebar.enabled"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0">
-                    <FormLabel>Show Sidebar</FormLabel>
-                    <FormControl>
-                      <Switch 
-                        checked={field.value} 
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="sidebar.showLabels"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0">
-                    <FormLabel>Show Sidebar Labels</FormLabel>
-                    <FormControl>
-                      <Switch 
-                        checked={field.value} 
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="sidebar.autoHide"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0">
-                    <FormLabel>Auto-hide Sidebar</FormLabel>
-                    <FormControl>
-                      <Switch 
-                        checked={field.value} 
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex justify-end">
-                <Button type="button" onClick={() => setSettingsOpen(false)}>Save</Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Dashboard Tools</h2>
+      
+      <Tabs defaultValue="trading">
+        <TabsList>
+          <TabsTrigger value="trading">Trading Tools</TabsTrigger>
+          <TabsTrigger value="analysis">Analysis Tools</TabsTrigger>
+          <TabsTrigger value="portfolio">Portfolio Tools</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="trading" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Price Alerts</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Set up price alerts for your favorite cryptocurrencies.</p>
+                <Button>Configure Alerts</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Trading Calculator</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Calculate profit, loss, and trading fees.</p>
+                <Button>Open Calculator</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="analysis" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Technical Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Advanced technical analysis tools and indicators.</p>
+                <Button>View Analysis</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Market Sentiment</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Analyze market sentiment using social media data.</p>
+                <Button>View Sentiment</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="portfolio" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Portfolio Optimizer</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Optimize your portfolio for risk and return.</p>
+                <Button>Optimize Portfolio</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Portfolio Benchmarking</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Compare your portfolio performance to benchmarks.</p>
+                <Button>View Benchmarks</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
