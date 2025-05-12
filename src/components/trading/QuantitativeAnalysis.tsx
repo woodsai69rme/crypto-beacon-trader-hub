@@ -1,286 +1,281 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  LineChart, 
-  BarChart2, 
-  ArrowDownUp,
-  Calculator 
-} from "lucide-react";
-import { QuantitativeAnalysisProps } from "@/types/trading";
+interface QuantitativeAnalysisProps {
+  coinId: string;
+  timeframe?: string;
+}
 
-const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ 
-  symbol = "BTC/USD", 
-  timeframe = "1d",
-  depth = 20,
-  onResultsCalculated
-}) => {
-  const [activeTab, setActiveTab] = useState<string>('correlation');
-  const [isCalculating, setIsCalculating] = useState<boolean>(false);
-  const [results, setResults] = useState<{
-    momentum: any[];
-    volatility: any[];
-    trends: any[];
-    correlations: any[];
-    summary: any;
-  } | null>(null);
+interface AnalysisData {
+  correlations: {
+    value: number;
+    description: string;
+  }[];
+  momentum: {
+    rsi: number;
+    macd: number;
+    adx: number;
+    interpretation: string;
+  }[];
+  volatility: {
+    atr: number;
+    bbands: string;
+    interpretation: string;
+  }[];
+  efficiency: {
+    sharpe: number;
+    sortino: number;
+    calmar: number;
+    interpretation: string;
+  }[];
+}
 
-  // Simulate calculation of quantitative indicators
-  const calculateIndicators = () => {
-    setIsCalculating(true);
-    
-    // Simulate API call or calculation
-    setTimeout(() => {
-      // Mock data - in a real app, this would be calculated from actual price data
-      const momentum = [
-        { name: 'RSI (14)', value: 62.4, interpretation: 'Neutral with bullish bias' },
-        { name: 'MACD (12,26,9)', value: '0.12', interpretation: 'Bullish, above signal line' },
-        { name: 'Stochastic Oscillator', value: '78.5', interpretation: 'Overbought territory' },
-        { name: 'ROC (10)', value: 5.2, interpretation: 'Positive momentum' },
-        { name: 'Bull/Bear Power', value: 245.7, interpretation: 'Strong bullish power' }
-      ];
-      
-      const volatility = [
-        { name: 'Bollinger Bandwidth', value: '4.2%', interpretation: 'Average volatility' },
-        { name: 'ATR (14)', value: '$1280', interpretation: 'High volatility' },
-        { name: 'Historical Vol (30D)', value: '48.5%', interpretation: 'Above average' },
-        { name: 'Implied Vol', value: '52.3%', interpretation: 'Expecting higher volatility' },
-        { name: 'VWAP Distance', value: '2.1%', interpretation: 'Price above VWAP' }
-      ];
-      
-      const trends = [
-        { name: 'ADX (14)', value: 28.3, interpretation: 'Strong trend' },
-        { name: 'Supertrend (10,3)', value: 'Bullish', interpretation: 'Above supertrend line' },
-        { name: 'Ichimoku Cloud', value: 'Bullish', interpretation: 'Price above cloud' },
-        { name: 'Parabolic SAR', value: 'Bullish', interpretation: 'Below price' },
-        { name: 'Linear Regression Slope', value: 0.67, interpretation: 'Upward sloping' }
-      ];
-      
-      const correlations = [
-        { name: 'ETH Correlation (30D)', value: 0.92, interpretation: 'Very high positive' },
-        { name: 'S&P 500 Correlation', value: 0.48, interpretation: 'Moderate positive' },
-        { name: 'Gold Correlation', value: 0.12, interpretation: 'Low positive' },
-        { name: 'DXY Correlation', value: -0.56, interpretation: 'Moderate negative' },
-        { name: 'VIX Correlation', value: -0.32, interpretation: 'Low negative' }
-      ];
-      
-      const summary = {
-        overallSignal: 'Bullish',
-        confidence: 72,
-        keyStrengths: [
-          'Strong momentum indicators',
-          'Positive trend strength',
-          'Favorable correlation with ETH'
-        ],
-        keyWeaknesses: [
-          'Overbought on some oscillators',
-          'High volatility suggesting risk',
-          'Negative correlation with dollar index'
-        ],
-        recommendation: 'Consider long positions with tight stop losses due to volatility'
-      };
-      
-      const newResults = {
-        momentum,
-        volatility,
-        trends,
-        correlations,
-        summary
-      };
-      
-      setResults(newResults);
-      setIsCalculating(false);
-      
-      if (onResultsCalculated) {
-        onResultsCalculated(newResults);
-      }
-    }, 1500);
-  };
-  
-  // Calculate on first load
+const QuantitativeAnalysis: React.FC<QuantitativeAnalysisProps> = ({ coinId, timeframe = "1D" }) => {
+  const [data, setData] = useState<AnalysisData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    calculateIndicators();
-  }, []);
-  
-  // Mock function to update data periodically
-  const updateMockData = () => {
-    // This would be replaced with real data in a production app
-    if (results) {
-      const updatedResults = {...results};
-      
-      // Make small random changes to the data
-      updatedResults.momentum[0].value = +(results.momentum[0].value + (Math.random() * 2 - 1)).toFixed(1);
-      updatedResults.volatility[0].value = `${(parseFloat(results.volatility[0].value) + (Math.random() * 0.3 - 0.15)).toFixed(1)}%`;
-      updatedResults.summary.confidence = Math.min(100, Math.max(0, results.summary.confidence + Math.floor(Math.random() * 5 - 2)));
-      
-      setResults(updatedResults);
-    }
-  };
-  
-  // Perform analysis when parameters change
-  useEffect(() => {
-    // Load initial analysis
-    if (!results) {
-      calculateIndicators();
-    }
-    
-    // This is just for demo/mock purposes
-    const interval = setInterval(() => {
-      if (!isCalculating) {
-        updateMockData();
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Simulate fetching data from an API
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const mockData: AnalysisData = {
+          correlations: [
+            { value: 0.75, description: "Positive correlation with Bitcoin" },
+            { value: 0.62, description: "Positive correlation with Ethereum" },
+            { value: 0.50, description: "Moderate correlation with S&P 500" },
+          ],
+          momentum: [
+            { rsi: 68, macd: 42, adx: 30, interpretation: "Bullish momentum" },
+            { rsi: 32, macd: -25, adx: 20, interpretation: "Bearish momentum" },
+            { rsi: 50, macd: 5, adx: 45, interpretation: "Neutral momentum" },
+          ],
+          volatility: [
+            { atr: 3.5, bbands: "Wide", interpretation: "High volatility" },
+            { atr: 1.2, bbands: "Narrow", interpretation: "Low volatility" },
+            { atr: 2.0, bbands: "Normal", interpretation: "Moderate volatility" },
+          ],
+          efficiency: [
+            { sharpe: 1.2, sortino: 1.5, calmar: 0.8, interpretation: "Efficient performance" },
+            { sharpe: 0.8, sortino: 0.9, calmar: 0.4, interpretation: "Average performance" },
+            { sharpe: 0.5, sortino: 0.6, calmar: 0.2, interpretation: "Poor performance" },
+          ],
+        };
+
+        setData(mockData);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch data");
+      } finally {
+        setIsLoading(false);
       }
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [symbol, timeframe, activeTab, results, isCalculating]);
-  
-  // Helper function to perform analysis
-  const performAnalysis = () => {
-    calculateIndicators();
-  };
-  
+    };
+
+    fetchData();
+  }, [coinId, timeframe]);
+
+  if (isLoading) {
+    return <div>Loading analysis...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-medium">Quantitative Analysis: {symbol}</CardTitle>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={performAnalysis}
-            disabled={isCalculating}
-          >
-            <Calculator className="h-4 w-4 mr-1" />
-            Calculate
-          </Button>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Correlations</h3>
+        <div className="grid grid-cols-1 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bitcoin Correlation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.correlations?.[0]?.value || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.correlations?.[0]?.description || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {/* Export logic */}}
-          >
-            Export Results
-          </Button>
+          <Card>
+            <CardHeader>
+              <CardTitle>Ethereum Correlation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.correlations?.[1]?.value || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.correlations?.[1]?.description || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>S&P 500 Correlation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.correlations?.[2]?.value || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.correlations?.[2]?.description || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </CardHeader>
-      
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4">
-            <TabsTrigger value="correlation">
-              <ArrowDownUp className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Correlation</span>
-            </TabsTrigger>
-            <TabsTrigger value="momentum">
-              <LineChart className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Momentum</span>
-            </TabsTrigger>
-            <TabsTrigger value="volatility">
-              <BarChart2 className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Volatility</span>
-            </TabsTrigger>
-            <TabsTrigger value="efficiency">
-              Efficiency
-            </TabsTrigger>
-          </TabsList>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Momentum Indicators</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>RSI (14)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.momentum?.[0]?.rsi || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.momentum?.[0]?.interpretation || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="correlation">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Correlation analysis content */}
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Correlation Analysis</h3>
-                <div className="text-sm text-muted-foreground">
-                  {/* Correlation metrics */}
-                  <p>BTC ↔ ETH: {results?.correlation?.btcEth?.toFixed(2) || 'Loading...'}</p>
-                  <p>BTC ↔ SOL: {results?.correlation?.btcSol?.toFixed(2) || 'Loading...'}</p>
-                  <p>ETH ↔ SOL: {results?.correlation?.ethSol?.toFixed(2) || 'Loading...'}</p>
-                </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>MACD</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.momentum?.[1]?.macd || "N/A"}
               </div>
-              
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
-                <div className="text-xs text-muted-foreground">
-                  {/* Correlation interpretation */}
-                  <p>Strong positive correlation between BTC and ETH indicates market-wide sentiment affecting major cryptocurrencies similarly.</p>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.momentum?.[1]?.interpretation || "No data available"}
               </div>
-            </div>
-          </TabsContent>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="momentum">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Momentum analysis content */}
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Momentum Indicators</h3>
-                <div className="text-sm text-muted-foreground">
-                  {/* Momentum metrics */}
-                  <p>RSI (14): {results?.momentum?.rsi?.toFixed(2) || 'Loading...'}</p>
-                  <p>MACD: {results?.momentum?.macd?.toFixed(2) || 'Loading...'}</p>
-                  <p>ADX: {results?.momentum?.adx?.toFixed(2) || 'Loading...'}</p>
-                </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>ADX</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.momentum?.[2]?.adx || "N/A"}
               </div>
-              
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
-                <div className="text-xs text-muted-foreground">
-                  {/* Momentum interpretation */}
-                  <p>Current RSI suggests {results?.momentum?.interpretation || 'neutral'} conditions, with potential reversal points at key levels.</p>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.momentum?.[2]?.interpretation || "No data available"}
               </div>
-            </div>
-          </TabsContent>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Volatility</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>ATR (14)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.volatility?.[0]?.atr || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.volatility?.[0]?.interpretation || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="volatility">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Volatility analysis content */}
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Volatility Metrics</h3>
-                <div className="text-sm text-muted-foreground">
-                  {/* Volatility metrics */}
-                  <p>ATR (14): {results?.volatility?.atr?.toFixed(2) || 'Loading...'}</p>
-                  <p>Bollinger Width: {results?.volatility?.bbWidth?.toFixed(2) || 'Loading...'}</p>
-                  <p>Historical Vol: {results?.volatility?.historicalVol?.toFixed(2) + '%' || 'Loading...'}</p>
-                </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Bollinger Bands</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.volatility?.[1]?.bbands || "N/A"}
               </div>
-              
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
-                <div className="text-xs text-muted-foreground">
-                  {/* Volatility interpretation */}
-                  <p>Volatility is currently {results?.volatility?.interpretation || 'moderate'} compared to 30-day average, suggesting potential for increased price movement.</p>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.volatility?.[1]?.interpretation || "No data available"}
               </div>
-            </div>
-          </TabsContent>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="efficiency">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Market efficiency content */}
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Market Efficiency Ratio</h3>
-                <div className="text-sm text-muted-foreground">
-                  {/* Efficiency metrics */}
-                  <p>EMR: {results?.efficiency?.emr?.toFixed(2) || 'Loading...'}</p>
-                  <p>Hurst Exponent: {results?.efficiency?.hurst?.toFixed(2) || 'Loading...'}</p>
-                  <p>Fractal Dimension: {results?.efficiency?.fractalDim?.toFixed(2) || 'Loading...'}</p>
-                </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Implied Volatility</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.volatility?.[2]?.atr || "N/A"}
               </div>
-              
-              <div className="bg-muted rounded-md p-4">
-                <h3 className="text-sm font-medium mb-2">Interpretation</h3>
-                <div className="text-xs text-muted-foreground">
-                  {/* Efficiency interpretation */}
-                  <p>Current market efficiency metrics suggest the market is trending with moderate directional bias.</p>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.volatility?.[2]?.interpretation || "No data available"}
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Efficiency</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sharpe Ratio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.efficiency?.[0]?.sharpe || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.efficiency?.[0]?.interpretation || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Sortino Ratio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.efficiency?.[1]?.sortino || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.efficiency?.[1]?.interpretation || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Calmar Ratio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data?.efficiency?.[2]?.calmar || "N/A"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {data?.efficiency?.[2]?.interpretation || "No data available"}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 
 import { Trade, TradingAccount } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
-import { SupportedCurrency } from "@/components/trading/TradingStats";
+import { toast } from "@/hooks/use-toast";
+import type { SupportedCurrency } from "@/types/trading";
 
 interface PortfolioRecommendation {
   suggestedTrades: Trade[];
@@ -29,15 +29,20 @@ export async function analyzePortfolio(account: TradingAccount): Promise<Portfol
   Object.entries(holdings).forEach(([coinId, amount]) => {
     if (amount > 0 && Math.random() > 0.7) {
       // Suggest taking some profit
+      const price = 100 + Math.random() * 1000;
+      const tradeAmount = amount * 0.2;
+      const total = price * tradeAmount;
+      
       suggestedTrades.push({
         id: `rebalance-${Date.now()}-${coinId}`,
         coinId,
         coinName: `Coin ${coinId}`,
         coinSymbol: coinId.toUpperCase(),
         type: 'sell',
-        amount: amount * 0.2,
-        price: 100 + Math.random() * 1000,
-        totalValue: 0,
+        amount: tradeAmount,
+        price: price,
+        totalValue: total,
+        total: total,
         timestamp,
         currency: "USD" as SupportedCurrency,
         botGenerated: true,

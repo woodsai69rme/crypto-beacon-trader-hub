@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,21 @@ interface CorrelationAnalysisProps {
   coins: CryptoData[];
   onCoinSelect: (coin: CryptoData) => void;
 }
+
+// Update the code to properly map to CryptoData including the priceChange property
+const mapToCryptoData = (data: any): CryptoData => {
+  return {
+    id: data.id,
+    name: data.name,
+    symbol: data.symbol,
+    price: data.price || 0,
+    priceChange: data.changePercent || 0, // Ensure priceChange is included
+    image: data.image,
+    marketCap: data.marketCap,
+    volume: data.volume,
+    changePercent: data.changePercent
+  };
+};
 
 export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
   correlationMatrix,

@@ -26,6 +26,14 @@ const defaultSidebarSettings: SidebarSettings = {
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
+export const useUI = (): UIContextType => {
+  const context = useContext(UIContext);
+  if (context === undefined) {
+    throw new Error('useUI must be used within a UIProvider');
+  }
+  return context;
+};
+
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tickerSettings, setTickerSettings] = useState<TickerSettings>(defaultTickerSettings);
   const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>(defaultSidebarSettings);
@@ -108,12 +116,4 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       {children}
     </UIContext.Provider>
   );
-};
-
-export const useUI = (): UIContextType => {
-  const context = useContext(UIContext);
-  if (context === undefined) {
-    throw new Error('useUI must be used within a UIProvider');
-  }
-  return context;
 };

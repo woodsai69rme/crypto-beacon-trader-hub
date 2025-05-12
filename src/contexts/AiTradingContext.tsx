@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { AITradingStrategy, TradingAccount, Trade } from "@/types/trading";
@@ -320,20 +319,15 @@ export function AiTradingProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Create a new trade with unique ID
-      const newTrade: Trade = {
-        id: `trade-${Date.now()}`,
-        coinId: orderDetails.coinId || "bitcoin",
-        coinName: orderDetails.coinName || "Bitcoin",
-        coinSymbol: orderDetails.coinSymbol || "BTC",
-        type: orderDetails.type || "buy",
-        amount: orderDetails.amount || 0.1,
-        price: orderDetails.price || 60000,
-        totalValue: orderDetails.totalValue || 6000,
-        timestamp: new Date().toISOString(),
-        currency: "USD",
-        botGenerated: true,
-        strategyId: activeStrategyId || undefined
-      };
+      const newTrade = createTrade(
+        orderDetails.coinId || "bitcoin", 
+        orderDetails.coinName || "Bitcoin", 
+        orderDetails.coinSymbol || "BTC", 
+        orderDetails.type || "buy", 
+        orderDetails.amount || 0.1, 
+        orderDetails.price || 60000, 
+        activeStrategyId || undefined
+      );
       
       // Update account with new trade and adjust balance
       const updatedAccounts = aiTradingAccounts.map(acc => {

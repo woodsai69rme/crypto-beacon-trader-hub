@@ -105,7 +105,7 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
                   className="w-5 h-5 mr-2 rounded-full"
                 />
               )}
-              <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+              <span className="font-medium w-16 overflow-hidden text-ellipsis">{coin.symbol.toUpperCase()}</span>
               <span className="mx-1 text-muted-foreground">/</span>
               <span className="font-mono">
                 ${coin.price.toLocaleString(undefined, {

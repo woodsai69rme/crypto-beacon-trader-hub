@@ -1,86 +1,69 @@
-
-import React from "react";
-import { ArrowUp, ArrowDown, Wallet } from "lucide-react";
-import { SupportedCurrency } from "@/types/trading";
-import type { CoinOption } from "@/types/trading";
+import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatCurrency } from '@/lib/utils';
+import { CoinOption, SupportedCurrency } from '@/types/trading';
 
 interface TradingHoldingsTableProps {
-  availableCoins: CoinOption[];
-  getOwnedCoinAmount: (coinId: string) => number;
-  formatCurrency: (value: number) => string;
+  holdings: Holding[];
   activeCurrency: SupportedCurrency;
-  conversionRate: number;
 }
 
-const TradingHoldingsTable: React.FC<TradingHoldingsTableProps> = ({
-  availableCoins,
-  getOwnedCoinAmount,
-  formatCurrency,
-  activeCurrency,
-  conversionRate
-}) => {
-  const hasHoldings = availableCoins.some(coin => getOwnedCoinAmount(coin.id) > 0);
-  
-  if (!hasHoldings) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p>You don't have any holdings yet.</p>
-        <p className="text-sm">Start buying some crypto to build your portfolio.</p>
-      </div>
-    );
+export interface Holding {
+  coinId: string;
+  coin?: CoinOption;
+  amount: number;
+}
+
+// Add price conversion helper function
+const getCoinPrice = (coin: CoinOption, currency: SupportedCurrency): number => {
+  switch (currency) {
+    case 'AUD':
+      return coin.price * 1.5; // Apply conversion rate
+    case 'EUR':
+      return coin.price * 0.9; // Apply conversion rate
+    case 'GBP':
+      return coin.price * 0.8; // Apply conversion rate
+    case 'USD':
+    default:
+      return coin.price;
   }
-  
+};
+
+const TradingHoldingsTable: React.FC<TradingHoldingsTableProps> = ({ holdings, activeCurrency }) => {
   return (
-    <div className="space-y-2">
-      {availableCoins.map(coin => {
-        const ownedAmount = getOwnedCoinAmount(coin.id);
-        if (ownedAmount <= 0) return null;
-        
-        // Use the appropriate price based on currency
-        let price = coin.price; // Default is USD
-        
-        if (activeCurrency === 'AUD' && coin.priceAUD) {
-          price = coin.priceAUD;
-        } else if (activeCurrency === 'EUR' && coin.priceEUR) {
-          price = coin.priceEUR;
-        } else if (activeCurrency === 'GBP' && coin.priceGBP) {
-          price = coin.priceGBP;
-        } else if (activeCurrency !== 'USD') {
-          // Fallback to conversion rate if specific currency price not available
-          price = coin.price * conversionRate;
-        }
+    <div className="w-full overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Asset</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="text-right">Value</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {holdings.map((holding) => {
+            if (!holding.coin) return null;
             
-        const value = ownedAmount * price;
-        
-        // Calculate profit/loss (simplified for this component)
-        const profitLoss = 0; // This would be calculated based on purchase history
-        const profitLossPercentage = 0; // This would be calculated based on purchase history
-        
-        return (
-          <div key={coin.id} className="flex justify-between items-center p-3 border rounded-md hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                <Wallet className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <div>
-                <div className="font-medium">{coin.symbol}</div>
-                <div className="text-xs text-muted-foreground">{ownedAmount.toFixed(6)} {coin.symbol}</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="font-medium">{formatCurrency(value)}</div>
-              <div className={`text-xs flex items-center justify-end ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {profitLoss >= 0 ? (
-                  <ArrowUp className="mr-0.5 h-3 w-3" />
-                ) : (
-                  <ArrowDown className="mr-0.5 h-3 w-3" />
-                )}
-                {formatCurrency(Math.abs(profitLoss))} ({Math.abs(profitLossPercentage).toFixed(2)}%)
-              </div>
-            </div>
-          </div>
-        );
-      })}
+            const price = getCoinPrice(holding.coin, activeCurrency);
+            const value = holding.amount * price;
+            
+            return (
+              <TableRow key={holding.coinId}>
+                <TableCell className="font-medium">{holding.coin.name}</TableCell>
+                <TableCell className="text-right">{holding.amount.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(value, activeCurrency)}</TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,14 +6,17 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { UseFormReturn } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import NotificationSettings from "./NotificationSettings";
 import AppearanceSettings from "./AppearanceSettings";
 import PrivacySettings from "./PrivacySettings";
 import TradingSettings from "./TradingSettings";
 import OpenRouterSettings from "./OpenRouterSettings";
+import TickerSettings from "./TickerSettings";
 import { SettingsFormValues } from "./types";
-import { User, Settings2, Bell, Shield, BarChart2, UserCircle, Key } from "lucide-react";
+import { User, Settings2, Bell, Shield, BarChart2, UserCircle, Key, Gauge, Sidebar as SidebarIcon } from "lucide-react";
 
 interface SettingsProps {
   form: UseFormReturn<SettingsFormValues>;
@@ -51,7 +55,7 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
         <Card>
           <CardContent className="p-0">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid grid-cols-2 md:grid-cols-6">
+              <TabsList className="grid grid-cols-2 md:grid-cols-8">
                 <TabsTrigger value="profile" className="flex items-center gap-1">
                   <UserCircle className="h-4 w-4" />
                   <span className="hidden md:inline">Profile</span>
@@ -71,6 +75,14 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
                 <TabsTrigger value="trading" className="flex items-center gap-1">
                   <BarChart2 className="h-4 w-4" />
                   <span className="hidden md:inline">Trading</span>
+                </TabsTrigger>
+                <TabsTrigger value="ticker" className="flex items-center gap-1">
+                  <Gauge className="h-4 w-4" />
+                  <span className="hidden md:inline">Ticker</span>
+                </TabsTrigger>
+                <TabsTrigger value="sidebar" className="flex items-center gap-1">
+                  <SidebarIcon className="h-4 w-4" />
+                  <span className="hidden md:inline">Sidebar</span>
                 </TabsTrigger>
                 <TabsTrigger value="integrations" className="flex items-center gap-1">
                   <Key className="h-4 w-4" />
@@ -142,6 +154,31 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
                 
                 <TabsContent value="trading">
                   <TradingSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="ticker">
+                  <TickerSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="sidebar">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">Sidebar Settings</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Configure sidebar appearance and behavior
+                      </p>
+                    </div>
+                    
+                    {form.getValues().sidebar && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                          <CardContent className="p-4">
+                            <TickerSettings form={form} />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="integrations">
