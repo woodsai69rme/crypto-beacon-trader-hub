@@ -162,7 +162,7 @@ export type AITradingStrategy = {
   name: string;
   description: string;
   type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
-  timeframe: string;
+  timeframe: string;  // Using string to support '1h', '4h', '1d', etc.
   parameters: any;
   riskLevel?: string;
   indicators?: string[];

@@ -1,58 +1,19 @@
 
-import { UseFormReturn } from "react-hook-form";
+import { SupportedCurrency } from "@/types/trading";
 
 export interface SettingsFormValues {
-  displayName?: string;
-  email?: string;
-  username?: string;
-  bio?: string;
-  theme?: string;
-  language?: string;
-  appearance?: {
-    colorScheme?: string;
-    compactMode?: boolean;
-    animationsEnabled?: boolean;
-    highContrastMode?: boolean;
+  currency: {
+    defaultCurrency: SupportedCurrency;
+    showPriceInBTC: boolean;
   };
-  notifications?: {
-    email?: boolean;
-    push?: boolean;
-    trades?: boolean;
-    pricing?: boolean;
-    news?: boolean;
+  api: {
+    selectedProvider: string;
+    refreshInterval: number;
+    timeout: number;
   };
-  privacy?: {
-    showOnlineStatus?: boolean;
-    sharePortfolio?: boolean;
-    shareTrades?: boolean;
-    dataCollection?: boolean;
-    marketingConsent?: boolean;
-    thirdPartySharing?: boolean;
+  display: {
+    theme: string;
+    compactMode: boolean;
+    showAllDecimals: boolean;
   };
-  account?: {
-    twoFactorEnabled?: boolean;
-    loginAlerts?: boolean;
-  };
-  tradingPreferences?: {
-    autoConfirm?: boolean;
-    showAdvanced?: boolean;
-    defaultAsset?: string;
-  };
-  ticker?: {
-    enabled?: boolean;
-    position?: string;
-    speed?: number;
-    direction?: string;
-    autoPause?: boolean;
-  };
-  sidebar?: {
-    enabled?: boolean;
-    position?: string;
-    collapsed?: boolean;
-    showLabels?: boolean;
-  };
-}
-
-export interface SettingsComponentProps {
-  form: UseFormReturn<SettingsFormValues>;
 }

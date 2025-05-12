@@ -1,194 +1,328 @@
 
-import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import { UseFormReturn } from "react-hook-form";
+import React from 'react';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/use-toast";
+import { SupportedCurrency, SettingsFormValues } from '@/types/trading';
+import SidebarSettings from './SidebarSettings';
 
-import NotificationSettings from "./NotificationSettings";
-import AppearanceSettings from "./AppearanceSettings";
-import PrivacySettings from "./PrivacySettings";
-import TradingSettings from "./TradingSettings";
-import OpenRouterSettings from "./OpenRouterSettings";
-import TickerSettings from "./TickerSettings";
-import SidebarSettings from "./SidebarSettings";
-import { SettingsFormValues } from "./types";
-import { User, Settings2, Bell, Shield, BarChart2, UserCircle, Key, Gauge, Sidebar as SidebarIcon } from "lucide-react";
+const settingsFormSchema = z.object({
+  currency: z.object({
+    defaultCurrency: z.enum(['USD', 'EUR', 'GBP', 'AUD']),
+    showPriceInBTC: z.boolean().default(false),
+  }),
+  api: z.object({
+    selectedProvider: z.string(),
+    refreshInterval: z.number().min(5).max(600),
+    timeout: z.number().min(1).max(60),
+  }),
+  display: z.object({
+    theme: z.enum(['light', 'dark', 'system']),
+    compactMode: z.boolean().default(false),
+    showAllDecimals: z.boolean().default(false),
+  }),
+});
 
-interface SettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
+const defaultSettings: SettingsFormValues = {
+  currency: {
+    defaultCurrency: 'USD',
+    showPriceInBTC: false,
+  },
+  api: {
+    selectedProvider: 'coingecko',
+    refreshInterval: 30,
+    timeout: 15,
+  },
+  display: {
+    theme: 'system',
+    compactMode: false,
+    showAllDecimals: false,
+  },
+};
 
-const Settings: React.FC<SettingsProps> = ({ form }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  const onSubmit = async (data: SettingsFormValues) => {
-    setIsLoading(true);
+export const Settings = () => {
+  const form = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsFormSchema),
+    defaultValues: defaultSettings,
+  });
+
+  function onSubmit(data: SettingsFormValues) {
+    // Save settings
+    localStorage.setItem('userSettings', JSON.stringify(data));
     
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Settings updated",
-        description: "Your settings have been saved successfully."
-      });
-      
-      console.log("Settings saved:", data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was a problem updating your settings.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    toast({
+      title: "Settings saved",
+      description: "Your settings have been saved successfully.",
+    });
+  }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardContent className="p-0">
-            <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid grid-cols-2 md:grid-cols-8">
-                <TabsTrigger value="profile" className="flex items-center gap-1">
-                  <UserCircle className="h-4 w-4" />
-                  <span className="hidden md:inline">Profile</span>
-                </TabsTrigger>
-                <TabsTrigger value="appearance" className="flex items-center gap-1">
-                  <Settings2 className="h-4 w-4" />
-                  <span className="hidden md:inline">Appearance</span>
-                </TabsTrigger>
-                <TabsTrigger value="notifications" className="flex items-center gap-1">
-                  <Bell className="h-4 w-4" />
-                  <span className="hidden md:inline">Notifications</span>
-                </TabsTrigger>
-                <TabsTrigger value="privacy" className="flex items-center gap-1">
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden md:inline">Privacy</span>
-                </TabsTrigger>
-                <TabsTrigger value="trading" className="flex items-center gap-1">
-                  <BarChart2 className="h-4 w-4" />
-                  <span className="hidden md:inline">Trading</span>
-                </TabsTrigger>
-                <TabsTrigger value="ticker" className="flex items-center gap-1">
-                  <Gauge className="h-4 w-4" />
-                  <span className="hidden md:inline">Ticker</span>
-                </TabsTrigger>
-                <TabsTrigger value="sidebar" className="flex items-center gap-1">
-                  <SidebarIcon className="h-4 w-4" />
-                  <span className="hidden md:inline">Sidebar</span>
-                </TabsTrigger>
-                <TabsTrigger value="integrations" className="flex items-center gap-1">
-                  <Key className="h-4 w-4" />
-                  <span className="hidden md:inline">Integrations</span>
-                </TabsTrigger>
-              </TabsList>
-              
-              <div className="p-6">
-                <TabsContent value="profile">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium">Profile Settings</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Update your account information and public profile
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="font-medium">Email</label>
-                          <Input 
-                            {...form.register("email")}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="font-medium">Username</label>
-                          <Input 
-                            {...form.register("username")}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="font-medium">Display Name</label>
-                          <Input 
-                            {...form.register("displayName")}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="font-medium">Bio</label>
-                          <Textarea 
-                            {...form.register("bio")}
-                            className="h-32"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Write a short description about yourself. This will be visible on your public profile.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="appearance">
-                  <AppearanceSettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="notifications">
-                  <NotificationSettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="privacy">
-                  <PrivacySettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="trading">
-                  <TradingSettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="ticker">
-                  <TickerSettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="sidebar">
-                  <SidebarSettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="integrations">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium">API Integrations</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Configure external API integrations for enhanced functionality
-                      </p>
-                    </div>
-                    
-                    <OpenRouterSettings />
-                  </div>
-                </TabsContent>
-              </div>
-            </Tabs>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your application settings and preferences.
+        </p>
+      </div>
+
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid grid-cols-3 mb-6 w-[400px]">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="api">API</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+        </TabsList>
         
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Settings"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <TabsContent value="general">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Currency Settings</CardTitle>
+                  <CardDescription>
+                    Configure your preferred currency and display options.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="currency.defaultCurrency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default Currency</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a currency" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                            <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                            <SelectItem value="GBP">British Pound (GBP)</SelectItem>
+                            <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          All prices will be displayed in this currency by default.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="currency.showPriceInBTC"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel>Show Prices in BTC</FormLabel>
+                          <FormDescription>
+                            Display alternative prices in Bitcoin
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <div className="mt-6">
+                <SidebarSettings form={form} />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="api">
+              <Card>
+                <CardHeader>
+                  <CardTitle>API Settings</CardTitle>
+                  <CardDescription>
+                    Configure API providers and data refresh settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="api.selectedProvider"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default API Provider</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an API provider" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="coingecko">CoinGecko</SelectItem>
+                            <SelectItem value="cryptocompare">CryptoCompare</SelectItem>
+                            <SelectItem value="binance">Binance</SelectItem>
+                            <SelectItem value="coinmarketcap">CoinMarketCap</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Choose your preferred data provider for market data.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="api.refreshInterval"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data Refresh Interval (seconds)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min={5} 
+                            max={600} 
+                            {...field} 
+                            onChange={e => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          How often to refresh market data (5-600 seconds)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="api.timeout"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>API Request Timeout (seconds)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            max={60} 
+                            {...field}
+                            onChange={e => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Maximum time to wait for API responses (1-60 seconds)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="appearance">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Appearance Settings</CardTitle>
+                  <CardDescription>
+                    Customize the look and feel of the application.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="display.theme"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Theme</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a theme" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="light">Light</SelectItem>
+                            <SelectItem value="dark">Dark</SelectItem>
+                            <SelectItem value="system">System</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Choose your preferred theme or use system settings.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="display.showAllDecimals"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel>Show All Decimals</FormLabel>
+                          <FormDescription>
+                            Display full precision for cryptocurrency prices
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <Separator />
+            
+            <div className="flex justify-end">
+              <Button type="submit">Save Settings</Button>
+            </div>
+          </form>
+        </Form>
+      </Tabs>
+    </div>
   );
 };
 

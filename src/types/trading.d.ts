@@ -50,15 +50,17 @@ export interface TradingAccount {
 export interface TradingFormProps {
   onAddTrade: (trade: Trade) => void;
   defaultValues?: Partial<Trade>;
+  balance?: number;
+  availableCoins?: CoinOption[];
+  onTrade?: (trade: Trade) => void;
+  getOwnedCoinAmount?: (coinId: string) => number;
+  activeCurrency?: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
+  conversionRate?: number;
 }
 
 export interface FakeTradingFormProps extends TradingFormProps {
   advancedMode?: boolean;
-}
-
-export interface QuantitativeAnalysisProps {
-  coinId: string;
-  timeframe?: string;
 }
 
 export interface AITradingStrategy {
@@ -67,7 +69,7 @@ export interface AITradingStrategy {
   description: string;
   riskLevel: 'low' | 'medium' | 'high';
   profitPotential: 'low' | 'medium' | 'high';
-  timeframe: 'short' | 'medium' | 'long';
+  timeframe: string;  // Changed from enum to string to support '1h', '4h', etc.
   indicators: string[];
   triggers: string[];
   implementation?: string;
@@ -81,241 +83,68 @@ export interface AITradingStrategy {
   };
   type?: string;
   parameters?: any;
+  tags?: string[];
 }
 
-export interface AiBotTradingProps {
-  tradingBot: AITradingStrategy;
-  onStart: (botId: string, config: any) => void;
-  onStop: (botId: string) => void;
-  isRunning: boolean;
-  performance?: {
-    totalTrades: number;
-    winRate: number;
-    profitLoss: number;
-    startDate: string;
+export interface SettingsFormValues {
+  currency: {
+    defaultCurrency: SupportedCurrency;
+    showPriceInBTC: boolean;
+  };
+  api: {
+    selectedProvider: string;
+    refreshInterval: number;
+    timeout: number;
+  };
+  display: {
+    theme: string;
+    compactMode: boolean;
+    showAllDecimals: boolean;
   };
 }
 
-export interface ATOTaxCalculation {
-  year: number;
-  gains: number;
-  losses: number;
-  netPosition: number;
-  taxableAmount: number;
-  taxOwed: number;
-  effectiveTaxRate: number;
-  financialYear?: number;
-  taxableIncome?: number;
-  CGTDiscount?: number;
-  netCapitalGains?: number;
-  bracketInfo?: any;
-  incomeTax?: number;
-  medicareLevy?: number;
-  totalTaxLiability?: number;
-  taxWithheld?: number;
-  taxRefundOrOwed?: number;
-  transactions: {
-    date: string;
-    asset: string;
-    quantity: number;
-    costBase: number;
-    proceedsAmount: number;
-    gainLoss: number;
-    isShortTerm: boolean;
-  }[];
-}
-
-export interface TickerSettings {
-  enabled: boolean;
-  position: 'top' | 'bottom' | 'both';
-  speed: number;
-  direction: 'left' | 'right';
-  autoPause: boolean;
-}
-
-export interface SidebarSettings {
-  enabled: boolean;
-  position: 'left' | 'right';
-  defaultCollapsed: boolean;
-  showLabels: boolean;
-  collapsed?: boolean;
-  autoHide?: boolean;
-}
-
-export interface CryptoData {
+export interface LocalModel {
   id: string;
   name: string;
-  symbol: string;
-  price: number;
-  priceChange: number;
-  image?: string;
-  marketCap?: number;
-  volume?: number;
-  changePercent?: number;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
 }
 
-export interface RealTimePricesProps {
-  initialCoins: CoinOption[];
-  onSelectCoin?: (coinId: string) => void;
-  selectedCoinId?: string;
-  refreshInterval?: number;
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
 }
-
-export interface LiveAnalyticsDashboardProps {
-  initialCoinId?: string;
-  refreshInterval?: number;
-  showDetailedView?: boolean;
-  onAlertTriggered?: (alert: any) => void;
-  darkMode?: boolean;
-}
-
-export interface DetachableDashboardProps {
-  initialCoinId?: string;
-  refreshInterval?: number;
-  onClose?: () => void;
-  darkMode?: boolean;
-  isDetached?: boolean;
-  children?: React.ReactNode;
-}
-
-export type WidgetType = 
-  | 'chart' 
-  | 'table' 
-  | 'stats' 
-  | 'news' 
-  | 'alerts' 
-  | 'custom' 
-  | 'price-chart' 
-  | 'portfolio-summary' 
-  | 'watchlist' 
-  | 'trading' 
-  | 'aiTrading' 
-  | 'aiAnalysis';
 
 export interface Widget {
   id: string;
   title: string;
   type: WidgetType;
-  size?: WidgetSize;
   position?: { x: number, y: number };
-  customContent?: string;
+  size?: WidgetSize;
+  config?: any;
 }
 
-export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
+export type WidgetType = 
+  | 'portfolio-summary'
+  | 'price-chart'
+  | 'watchlist'
+  | 'news'
+  | 'alerts'
+  | 'ai-insights'
+  | 'market-overview'
+  | 'trading-signals'
+  | 'correlation-matrix'
+  | 'performance-tracker';
 
-export interface WalletProvider {
-  id: string;
-  name: string;
-  logo?: string;
-  description: string;
-  isInstalled: boolean;
-  isConnected: boolean;
-}
-
-export interface WalletAccount {
-  address: string;
-  balance: string;
-  network: string;
-  provider: string;
-}
-
-export interface ApiProvider {
-  id: string;
-  name: string;
-  baseUrl: string;
-  description?: string;
-  currentUsage: number;
-  maxUsage: number;
-  resetTime: string;
-  endpoint: string;
-  status: string;
-}
-
-export interface ApiEndpoint {
-  id: string;
-  name: string;
-  path: string;
-  method: string;
-  parameters?: any[];
-  requiresAuth: boolean;
-  description: string;
-}
-
-export interface ApiUsageStats {
-  service: string;
-  provider?: string;
-  currentUsage: number;
-  maxUsage: number;
-  endpoint?: string;
-  resetTime?: string;
-}
-
-// Market Analysis Types
-export interface MarketMetric {
-  name: string;
-  value: number | string;
-  change: number;
-  status: 'positive' | 'negative' | 'neutral';
-}
-
-export interface ProbabilityAnalysis {
-  timeframe: string;
-  upProbability: number;
-  downProbability: number;
-  neutralProbability: number;
-  confidence: number;
-  signals: string[];
-}
-
-export interface FibonacciAnalysisProps {
-  symbol?: string;
-  timeframe?: string;
-}
-
-export interface FibonacciLevels {
-  level0: number;
-  level236: number;
-  level382: number;
-  level500: number;
-  level618: number;
-  level786: number;
-  level1000: number;
-}
-
-export interface HyblockLiquidityMapProps {
-  symbol?: string;
-  timeframe?: string;
-}
-
-export interface HyblockLiquidityZone {
-  min: number;
-  max: number;
-  strength: number;
-  type: 'buy' | 'sell';
-}
-
-export interface EnhancedPortfolioBenchmarkingProps {
-  portfolio: TradingAccount;
-  benchmark?: string;
-  timeframe?: string;
-}
-
-export interface SettingsFormValues {
-  displayName?: string;
-  email?: string;
-  username?: string;
-  bio?: string;
-  theme?: string;
-  language?: string;
-  appearance?: string;
-  notifications?: boolean;
-  privacy?: string;
-  account?: string;
-  tradingPreferences?: any;
-  ticker?: any;
-  'sidebar.enabled'?: boolean;
-  'sidebar.position'?: string;
-  'sidebar.defaultCollapsed'?: boolean;
-  'sidebar.showLabels'?: boolean;
-  'sidebar.autoHide'?: boolean;
-}
+export type WidgetSize = 'small' | 'medium' | 'large';

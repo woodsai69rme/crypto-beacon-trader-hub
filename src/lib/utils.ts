@@ -1,87 +1,51 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { SupportedCurrency } from "@/types/trading";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatNumber(
-  value: number,
-  options: {
-    decimals?: number;
-    currency?: string;
-    compact?: boolean;
-  } = {}
-): string {
-  const { decimals = 2, currency, compact = false } = options;
-
-  if (compact) {
-    return new Intl.NumberFormat("en-US", {
-      notation: "compact",
-      maximumFractionDigits: decimals,
-      style: currency ? "currency" : "decimal",
-      currency,
-    }).format(value);
-  }
-
-  return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: decimals,
-    minimumFractionDigits: decimals,
-    style: currency ? "currency" : "decimal",
+export function formatCurrency(value: number, currency: SupportedCurrency = 'USD'): string {
+  const formatter = new Intl.NumberFormat(undefined, {
+    style: 'currency',
     currency,
-  }).format(value);
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  
+  return formatter.format(value);
 }
 
-export function formatPercent(value: number, decimals = 2): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "percent",
+export function formatNumber(value: number, decimals = 2): string {
+  return value.toLocaleString(undefined, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(value / 100);
+  });
 }
 
-export function formatDate(
-  date: Date | string,
-  options: Intl.DateTimeFormatOptions = {}
-): string {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    ...options,
-  }).format(dateObj);
+export function formatPercentage(value: number): string {
+  return `${(value >= 0 ? '+' : '')}${value.toFixed(2)}%`;
 }
 
-export function truncateText(text: string, maxLength: number): string {
+export function truncateText(text: string, maxLength = 30): string {
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}...`;
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).slice(2, 11);
+  return Math.random().toString(36).substring(2, 15);
 }
 
 export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number
+  func: T,
+  wait: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delay);
-  };
-}
-
-export function throttle<T extends (...args: any[]) => any>(
-  fn: T,
-  limit: number
-): (...args: Parameters<T>) => void {
-  let inThrottle = false;
-  return function (...args: Parameters<T>): void {
-    if (!inThrottle) {
-      fn(...args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  
+  return function(...args: Parameters<T>) {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
   };
 }
