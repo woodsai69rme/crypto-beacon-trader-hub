@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,15 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, XCircle } from "lucide-react";
-import { CoinOption, Trade } from "@/types/trading";
+import { CoinOption } from "@/types/trading";
 
-// Use a different name for the local interface to avoid conflict
-interface TaxHarvestTradeItem extends Trade {
+// Create a local interface for the tax harvesting trade
+interface TaxHarvestTrade {
+  id: string;
+  coinId: string;
+  coinSymbol: string;
+  coinName: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  total: number;
+  totalValue: number;
+  timestamp: string;
+  currency: "USD" | "AUD" | "EUR" | "GBP";
+  currentValue?: number;
+  profitLoss?: number;
   tags?: string[];
 }
 
 const TaxHarvestingTool: React.FC = () => {
-  const [trades, setTrades] = useState<TaxHarvestTradeItem[]>([
+  const [trades, setTrades] = useState<TaxHarvestTrade[]>([
     {
       id: "1",
       coinId: "bitcoin",
@@ -169,7 +183,7 @@ const TaxHarvestingTool: React.FC = () => {
       tags.push("harvest-candidate");
     }
     
-    const newTrade: TaxHarvestTradeItem = {
+    const newTrade: TaxHarvestTrade = {
       id: Date.now().toString(),
       coinId: randomCoin.id,
       coinName: randomCoin.name,

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {
@@ -30,7 +31,7 @@ const Navbar = () => {
     <header className={`border-b border-border sticky top-0 z-50 w-full backdrop-blur-md bg-background/70`}>
       <div className="container mx-auto flex h-16 items-center px-4 sm:px-6">
         <div className="mr-4 flex">
-          <a href="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -46,7 +47,7 @@ const Navbar = () => {
               <path d="M2 12l10 5 10-5" />
             </svg>
             <span className="font-bold text-lg hidden md:inline-block">CryptoTrader</span>
-          </a>
+          </Link>
         </div>
         
         <div className="flex-1 md:ml-auto md:mr-6 relative max-w-md hidden md:block">

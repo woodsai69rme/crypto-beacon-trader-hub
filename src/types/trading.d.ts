@@ -10,6 +10,8 @@ export interface CoinOption {
   changePercent?: number;
   marketCap?: number;
   volume?: number;
+  value: string;
+  label: string;
 }
 
 export interface Trade {
@@ -118,6 +120,8 @@ export interface SidebarSettings {
   position: 'left' | 'right';
   defaultCollapsed: boolean;
   showLabels: boolean;
+  collapsed?: boolean;
+  autoHide?: boolean;
 }
 
 export interface CryptoData {
@@ -137,4 +141,79 @@ export interface RealTimePricesProps {
   onSelectCoin?: (coinId: string) => void;
   selectedCoinId?: string;
   refreshInterval?: number;
+}
+
+export interface LiveAnalyticsDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
+}
+
+export interface DetachableDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  onClose?: () => void;
+  darkMode?: boolean;
+  isDetached?: boolean;
+  children?: React.ReactNode;
+}
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'trading' | 'aiTrading' | 'aiAnalysis';
+  size?: 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
+  position?: { x: number, y: number };
+  customContent?: string;
+}
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
+
+export interface WalletProvider {
+  id: string;
+  name: string;
+  logo?: string;
+  description: string;
+  isInstalled: boolean;
+  isConnected: boolean;
+}
+
+export interface WalletAccount {
+  address: string;
+  balance: string;
+  network: string;
+  provider: string;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description?: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime: string;
+  endpoint: string;
+  status: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  parameters?: any[];
+  requiresAuth: boolean;
+  description: string;
+}
+
+export interface ApiUsageStats {
+  service: string;
+  provider?: string;
+  currentUsage: number;
+  maxUsage: number;
+  endpoint?: string;
+  resetTime?: string;
 }

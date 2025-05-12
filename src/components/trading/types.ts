@@ -16,8 +16,9 @@ export type Trade = {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
-  fees?: number; // Add fees field to fix context errors
-  coin?: string; // Add coin field to fix context errors
+  fees?: number;
+  coin?: string;
+  total: number;
 };
 
 export interface LocalModel {
@@ -47,13 +48,10 @@ export type CoinOption = {
   id: string;
   name: string;
   symbol: string;
-  price: number; // Required for this implementation
-  priceAUD?: number;
-  priceEUR?: number; 
-  priceGBP?: number;
+  price: number;
+  priceChange: number;
+  changePercent: number;
   image?: string;
-  priceChange?: number;
-  changePercent?: number;
   volume?: number;
   marketCap?: number;
   rank?: number;
@@ -228,4 +226,68 @@ export interface RealTimePriceChartProps {
   onSelectCoin: (coinId: string) => void;
   coinId?: string;
   availableCoins?: CoinOption[];
+}
+
+export interface WalletProvider {
+  id: string;
+  name: string;
+  logo?: string;
+  description: string;
+  isInstalled: boolean;
+  isConnected: boolean;
+}
+
+export interface WalletAccount {
+  address: string;
+  balance: string;
+  network: string;
+  provider: string;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description?: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime: string;
+  endpoint: string;
+  status: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  parameters?: any[];
+  requiresAuth: boolean;
+  description: string;
+}
+
+export interface ApiUsageStats {
+  service: string;
+  provider?: string;
+  currentUsage: number;
+  maxUsage: number;
+  endpoint?: string;
+  resetTime?: string;
+}
+
+export interface LiveAnalyticsDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
+}
+
+export interface DetachableDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  onClose?: () => void;
+  darkMode?: boolean;
+  isDetached?: boolean;
+  children?: React.ReactNode;
 }

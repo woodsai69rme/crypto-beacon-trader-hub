@@ -15,6 +15,7 @@ import PrivacySettings from "./PrivacySettings";
 import TradingSettings from "./TradingSettings";
 import OpenRouterSettings from "./OpenRouterSettings";
 import TickerSettings from "./TickerSettings";
+import SidebarSettings from "./SidebarSettings";
 import { SettingsFormValues } from "./types";
 import { User, Settings2, Bell, Shield, BarChart2, UserCircle, Key, Gauge, Sidebar as SidebarIcon } from "lucide-react";
 
@@ -161,24 +162,7 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
                 </TabsContent>
                 
                 <TabsContent value="sidebar">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium">Sidebar Settings</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Configure sidebar appearance and behavior
-                      </p>
-                    </div>
-                    
-                    {form.getValues().sidebar && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card>
-                          <CardContent className="p-4">
-                            <TickerSettings form={form} />
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                  </div>
+                  <SidebarSettings form={form} />
                 </TabsContent>
                 
                 <TabsContent value="integrations">

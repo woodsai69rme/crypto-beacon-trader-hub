@@ -22,7 +22,7 @@ const LivePriceMetrics: React.FC<LivePriceMetricsProps> = ({ coin, lastUpdated }
     for (let i = hours; i >= 0; i--) {
       const time = new Date(now.getTime() - i * 60 * 60 * 1000);
       const randomFactor = Math.random() * volatility - volatility / 2;
-      const price = basePrice * (1 + (i / hours) * coin.changePercent / 100 + randomFactor);
+      const price = basePrice * (1 + (i / hours) * (coin.changePercent || 0) / 100 + randomFactor);
       
       data.push({
         time: `${time.getHours()}:00`,
@@ -51,12 +51,12 @@ const LivePriceMetrics: React.FC<LivePriceMetricsProps> = ({ coin, lastUpdated }
   
   // Trading metrics for this coin (mock data)
   const tradingMetrics = {
-    volume24h: (coin.volume).toLocaleString('en-US', {
+    volume24h: ((coin.volume || 0)).toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: 0
     }),
-    marketCap: (coin.marketCap).toLocaleString('en-US', {
+    marketCap: ((coin.marketCap || 0)).toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: 0
@@ -80,7 +80,7 @@ const LivePriceMetrics: React.FC<LivePriceMetricsProps> = ({ coin, lastUpdated }
                 <span className="text-3xl font-bold">{formattedPrice}</span>
                 <div className={`flex items-center text-sm ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
                   {isPriceUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                  <span>{formattedPriceChange} ({coin.changePercent.toFixed(2)}%)</span>
+                  <span>{formattedPriceChange} ({(coin.changePercent || 0).toFixed(2)}%)</span>
                 </div>
               </div>
             </div>
