@@ -47,7 +47,7 @@ const UserSettings: React.FC = () => {
   const { toast } = useToast();
   
   // Default form values
-  const defaultValues: SettingsFormValues = {
+  const defaultValues: z.infer<typeof formSchema> = {
     displayName: "John Doe",
     email: "john.doe@example.com",
     theme: "light",
@@ -65,12 +65,12 @@ const UserSettings: React.FC = () => {
     },
   };
 
-  const form = useForm<SettingsFormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
 
-  function onSubmit(values: SettingsFormValues) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
       title: "Settings updated",
       description: "Your settings have been updated successfully.",

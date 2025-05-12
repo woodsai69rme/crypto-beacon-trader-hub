@@ -44,6 +44,36 @@ export const fetchTopCryptoData = async (limit = 10): Promise<CoinOption[]> => {
   });
 };
 
+// Fetch data for multiple cryptocurrencies
+export const fetchMultipleCryptoData = async (coinIds: string[]): Promise<any[]> => {
+  // In a real application, this would be an API call with the list of coinIds
+  // For now, return mock data for the requested coins
+  
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const filteredCoins = mockCryptoData.filter(coin => coinIds.includes(coin.id));
+      resolve(filteredCoins);
+    }, 400);
+  });
+};
+
+// Convert API response to CoinOption format
+export const convertToCoinOptions = (data: any[]): CoinOption[] => {
+  return data.map(item => ({
+    id: item.id,
+    name: item.name,
+    symbol: item.symbol,
+    price: item.price || 0,
+    priceChange: item.price_change_24h || 0,
+    changePercent: item.price_change_percentage_24h || 0,
+    marketCap: item.market_cap || 0,
+    volume: item.total_volume || 0,
+    image: item.image,
+    value: item.id,
+    label: `${item.name} (${item.symbol.toUpperCase()})`,
+  }));
+};
+
 // Fetch data for a specific crypto
 export const fetchCryptoData = async (coinId: string): Promise<CoinOption | null> => {
   // In a real application, this would be replaced with an API call
