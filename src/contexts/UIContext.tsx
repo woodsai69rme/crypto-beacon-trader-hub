@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext } from 'react';
-import { SidebarSettings } from '@/types/trading';
+import { SidebarSettings } from '@/types/ui';
 
 interface ThemeSettings {
   mode: 'dark' | 'light';

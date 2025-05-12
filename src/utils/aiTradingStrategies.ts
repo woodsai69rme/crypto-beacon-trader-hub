@@ -124,9 +124,19 @@ export const mockTradingAccounts = [
     type: 'standard',
     provider: 'local',
     balance: 25000,
+    initialBalance: 25000,
     currency: 'USD',
     lastUpdated: '2023-05-10T14:30:00Z',
-    isActive: true
+    isActive: true,
+    positions: [],
+    trades: [],
+    createdAt: '2023-05-01T10:00:00Z',
+    performance: {
+      daily: 0,
+      weekly: 0,
+      monthly: 0,
+      allTime: 0
+    }
   },
   {
     id: 'account-2',
@@ -134,8 +144,18 @@ export const mockTradingAccounts = [
     type: 'bot',
     provider: 'local',
     balance: 15000,
+    initialBalance: 15000,
     currency: 'USD',
     lastUpdated: '2023-05-15T09:45:00Z',
-    isActive: true
+    isActive: true,
+    positions: [],
+    trades: [],
+    createdAt: '2023-05-05T14:00:00Z',
+    performance: {
+      daily: 0,
+      weekly: 0,
+      monthly: 0,
+      allTime: 0
+    }
   }
 ];

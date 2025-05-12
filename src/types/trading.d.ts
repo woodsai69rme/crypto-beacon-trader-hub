@@ -1,4 +1,3 @@
-
 export interface AITradingStrategy {
   id: string;
   name: string;
@@ -75,7 +74,7 @@ export interface BacktestResult {
 }
 
 export interface OptimizationResult {
-  id: string;
+  id?: string;
   strategyId: string;
   parameters: Record<string, any>;
   performance: {
@@ -107,7 +106,7 @@ export interface Trade {
   id: string;
   timestamp: string;
   date: string;
-  type: string;
+  type: 'buy' | 'sell';
   price: number;
   amount: number;
   total: number;
@@ -154,23 +153,23 @@ export interface Position {
 export interface TradingAccount {
   id: string;
   name: string;
+  type: string;
+  provider: string;
   balance: number;
-  initialBalance: number;
+  initialBalance?: number; // Adding initialBalance
   currency: SupportedCurrency;
-  createdAt: string;
-  positions: Position[];
-  trades: Trade[];
-  performance: {
+  lastUpdated: string;
+  isActive: boolean;
+  assets?: PortfolioAsset[];
+  positions?: Position[]; // Adding positions
+  trades?: Trade[]; // Adding trades
+  createdAt?: string; // Adding createdAt
+  performance?: {
     daily: number;
     weekly: number;
     monthly: number;
     allTime: number;
   };
-  type?: string;
-  provider?: string;
-  lastUpdated?: string;
-  isActive?: boolean;
-  assets?: PortfolioAsset[];
 }
 
 export interface ApiEndpoint {
