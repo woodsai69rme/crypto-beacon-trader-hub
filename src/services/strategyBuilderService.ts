@@ -38,16 +38,16 @@ export const DEFAULT_STRATEGY_PARAMETERS = {
 // Function to create a new custom strategy
 export const createCustomStrategy = (
   name: string,
-  type: string,
   description: string,
+  type: string,
   parameters: Record<string, any>,
   assets: string[] = ['BTC', 'ETH']
 ): AITradingStrategy => {
   return {
     id: `strategy-${Date.now()}`,
     name,
-    type,
     description,
+    type,
     timeframe: '1h',
     parameters,
     assets,
@@ -67,7 +67,9 @@ export const createCustomStrategy = (
 export const runBacktest = async (
   strategy: AITradingStrategy,
   startDate: string,
-  endDate: string
+  endDate: string,
+  initialBalance: number = 10000,
+  asset: string = 'BTC'
 ): Promise<BacktestResult> => {
   // In a real application, this would make API calls or run simulations
   // For now, we'll return mock data with some randomization
@@ -75,7 +77,6 @@ export const runBacktest = async (
   // Simulate processing time
   await new Promise((resolve) => setTimeout(resolve, 1500));
   
-  const initialBalance = 10000;
   const profit = Math.random() * 2000 - 500; // Random profit between -500 and 1500
   const winRate = 40 + Math.random() * 30; // Win rate between 40% and 70%
   const trades = 50 + Math.floor(Math.random() * 50); // Between 50 and 100 trades
@@ -155,6 +156,8 @@ export const optimizeStrategy = async (
   parameters: Record<string, any>;
   performance: Record<string, number>;
   improvement: number;
+  parameterValues: Record<string, any>;
+  strategyId: string;
 }> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 2000));
@@ -195,6 +198,8 @@ export const optimizeStrategy = async (
       profitFactor,
       totalReturn: 15 + Math.random() * 10,
     },
-    improvement
+    improvement,
+    parameterValues: optimizedParameters,
+    strategyId: strategy.id
   };
 };

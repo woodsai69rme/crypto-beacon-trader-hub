@@ -10,21 +10,24 @@ import SettingsPage from './pages/SettingsPage';
 import OnChainAnalyticsPage from './pages/OnChainAnalyticsPage';
 import { UIProvider } from './contexts/UIContext';
 import { Toaster } from '@/components/ui/toaster';
+import { AiTradingProvider } from './contexts/AiTradingContext';
 
 function App() {
   return (
     <BrowserRouter>
       <UIProvider>
-        <Routes>
-          <Route path="/" element={<CryptoTradingDashboard />} />
-          <Route path="/trading-optimization" element={<TradingOptimizationDashboard />} />
-          <Route path="/ai-strategies" element={<AIStrategiesPage />} />
-          <Route path="/builder" element={<StrategyBuilderPage />} />
-          <Route path="/analytics" element={<PortfolioAnalyticsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/on-chain" element={<OnChainAnalyticsPage />} />
-        </Routes>
-        <Toaster />
+        <AiTradingProvider>
+          <Routes>
+            <Route path="/" element={<CryptoTradingDashboard />} />
+            <Route path="/trading-optimization" element={<TradingOptimizationDashboard />} />
+            <Route path="/ai-strategies" element={<AIStrategiesPage />} />
+            <Route path="/builder" element={<StrategyBuilderPage />} />
+            <Route path="/analytics" element={<PortfolioAnalyticsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/on-chain" element={<OnChainAnalyticsPage />} />
+          </Routes>
+          <Toaster />
+        </AiTradingProvider>
       </UIProvider>
     </BrowserRouter>
   );

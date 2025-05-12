@@ -77,8 +77,8 @@ const TradingOptimizationDashboard: React.FC = () => {
       'New Strategy',
       'A custom trading strategy',
       'custom',
-      '1h',
-      ['bitcoin'] // Fix: Pass string array for assets parameter
+      {},
+      ['bitcoin'] // Pass string array for assets
     );
     
     setSelectedStrategy(newStrategy);
