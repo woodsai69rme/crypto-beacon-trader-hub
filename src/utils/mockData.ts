@@ -127,3 +127,43 @@ export const defaultPriceAlertFormData: PriceAlertFormData = {
   recurring: false,
   notifyVia: ['app']
 };
+
+// Mock trading accounts for AiTradingContext
+export const mockTradingAccounts = [
+  {
+    id: "account-1",
+    name: "Main Trading Account",
+    type: "spot",
+    provider: "binance",
+    balance: 12456.78,
+    currency: "USD",
+    lastUpdated: "2023-05-12T09:23:45Z",
+    isActive: true,
+    positions: [],
+    trades: [],
+    assets: [
+      {
+        coinId: "bitcoin",
+        name: "Bitcoin",
+        symbol: "BTC",
+        amount: 0.45,
+        price: 51234.78,
+        value: 23055.65,
+        allocation: 65.2,
+        change24h: 1245.67,
+        changePercent24h: 2.43
+      },
+      {
+        coinId: "ethereum",
+        name: "Ethereum",
+        symbol: "ETH",
+        amount: 4.2,
+        price: 2487.32,
+        value: 10446.74,
+        allocation: 29.5,
+        change24h: 87.45,
+        changePercent24h: 3.64
+      }
+    ]
+  }
+];

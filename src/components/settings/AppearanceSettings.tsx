@@ -1,155 +1,119 @@
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
+import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Palette } from "lucide-react";
-import { SettingsComponentProps } from "./types";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { UseFormReturn } from "react-hook-form";
+import { SettingsFormValues } from "./types";
 
-const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  // Initialize appearance object if it doesn't exist
-  if (!form.getValues().appearance) {
-    form.setValue("appearance", {
-      colorScheme: "blue",
-      compactMode: false,
-      animationsEnabled: true,
-      highContrastMode: false
-    });
-  }
-  
+interface AppearanceSettingsProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
+
+const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ form }) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
-          Appearance
-        </CardTitle>
-      </CardHeader>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Appearance Settings</h3>
+        <p className="text-sm text-muted-foreground">
+          Customize the look and feel of the application
+        </p>
+      </div>
       
-      <CardContent className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="theme"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Theme</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a theme" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Choose your preferred theme
-                </FormDescription>
-              </FormItem>
-            )}
-          />
+          <div className="space-y-2">
+            <Label>Theme Mode</Label>
+            <Select
+              value={form.watch("theme.mode")}
+              onValueChange={(value) => form.setValue("theme.mode", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select theme mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
-          {form.getValues().appearance && (
-            <>
-              <FormField
-                control={form.control}
-                name="appearance.colorScheme"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Color Scheme</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a color scheme" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="blue">Blue</SelectItem>
-                        <SelectItem value="green">Green</SelectItem>
-                        <SelectItem value="purple">Purple</SelectItem>
-                        <SelectItem value="orange">Orange</SelectItem>
-                        <SelectItem value="red">Red</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Choose your preferred accent color
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="appearance.compactMode"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Compact Mode</FormLabel>
-                      <FormDescription>
-                        Use a more compact interface layout
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="appearance.animationsEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Enable Animations</FormLabel>
-                      <FormDescription>
-                        Enable UI animations and transitions
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="appearance.highContrastMode"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>High Contrast Mode</FormLabel>
-                      <FormDescription>
-                        Increase contrast for better visibility
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
+          <div className="space-y-2">
+            <Label>Accent Color</Label>
+            <Select
+              value={form.watch("theme.accent")}
+              onValueChange={(value) => form.setValue("theme.accent", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select accent color" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="blue">Blue</SelectItem>
+                <SelectItem value="green">Green</SelectItem>
+                <SelectItem value="purple">Purple</SelectItem>
+                <SelectItem value="amber">Amber</SelectItem>
+                <SelectItem value="rose">Rose</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Sidebar Position</Label>
+            <Select
+              value={form.watch("sidebar.position")}
+              onValueChange={(value) => form.setValue("sidebar.position", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select sidebar position" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left</SelectItem>
+                <SelectItem value="right">Right</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="show-labels">Show Sidebar Labels</Label>
+            <Switch
+              id="show-labels"
+              checked={form.watch("sidebar.showLabels")}
+              onCheckedChange={(checked) => form.setValue("sidebar.showLabels", checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="compact-mode">Compact Mode</Label>
+            <Switch
+              id="compact-mode"
+              checked={form.watch("ui.compactMode")}
+              onCheckedChange={(checked) => form.setValue("ui.compactMode", checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="reduced-motion">Reduced Motion</Label>
+            <Switch
+              id="reduced-motion"
+              checked={form.watch("accessibility.reducedMotion")}
+              onCheckedChange={(checked) => form.setValue("accessibility.reducedMotion", checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="high-contrast">High Contrast</Label>
+            <Switch
+              id="high-contrast"
+              checked={form.watch("accessibility.highContrast")}
+              onCheckedChange={(checked) => form.setValue("accessibility.highContrast", checked)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

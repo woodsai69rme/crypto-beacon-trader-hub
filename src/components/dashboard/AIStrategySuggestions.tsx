@@ -64,7 +64,7 @@ const AIStrategySuggestions: React.FC<AIStrategySuggestionsProps> = ({
             </div>
           )}
           
-          {/* Show assets as pills if available */}
+          {/* Only display assets if they exist */}
           {strategies.length > 0 && strategies[0].assets && strategies[0].assets.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-4 pt-3 border-t">
               {strategies[0].assets.map((asset) => (

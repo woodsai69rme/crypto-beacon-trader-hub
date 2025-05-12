@@ -8,7 +8,7 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import AlertHeader from "./widgets/AlertComponents/AlertHeader";
 import AlertBadge from "./widgets/AlertComponents/AlertBadge";
-import { PriceAlertFormData } from "./widgets/AlertComponents/AlertTypes";
+import { PriceAlertFormData } from "@/types/trading";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -35,7 +35,7 @@ const AlertsSystem = () => {
         <AlertHeader />
         
         <AlertFormSheet 
-          initialData={formData as any}
+          initialData={formData}
           onFormChange={(data: PriceAlertFormData) => setFormData(data)}
           onSubmit={handleSubmit}
         />
@@ -60,7 +60,7 @@ const AlertsSystem = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAlert(alert.id)}
+                    onClick={() => removeAlert(alert.id || '')}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>

@@ -209,7 +209,7 @@ export interface PriceAlertFormData {
   coinName: string;
   coinSymbol: string;
   targetPrice: number;
-  currentPrice: number;
+  currentPrice?: number;
   isAbove: boolean;
   active?: boolean;
   createdAt?: string;
@@ -218,6 +218,8 @@ export interface PriceAlertFormData {
   notes?: string;
   recurring?: boolean;
   notifyVia?: ("app" | "email" | "push")[];
+  percentageChange?: number;
+  enabled?: boolean;
 }
 
 export interface PortfolioAsset {
@@ -230,4 +232,32 @@ export interface PortfolioAsset {
   allocation: number;
   change24h: number;
   changePercent24h: number;
+}
+
+export interface TechnicalAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  indicator: string;
+  condition: string;
+  value?: number;
+  timeframe?: string;
+  enabled?: boolean;
+  recurring?: boolean;
+}
+
+export interface VolumeAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  volumeThreshold: number;
+  isAbove: boolean;
+  timeframe: string;
+  enabled?: boolean;
+}
+
+export interface AlertFormSheetProps {
+  onFormChange: (data: PriceAlertFormData) => void;
+  onSubmit: () => void;
+  initialData?: PriceAlertFormData;
 }

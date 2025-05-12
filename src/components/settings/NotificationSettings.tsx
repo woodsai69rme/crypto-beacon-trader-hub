@@ -1,9 +1,8 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
+import React from 'react';
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Bell } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
@@ -13,126 +12,100 @@ interface NotificationSettingsProps {
 
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
-          Notifications
-        </CardTitle>
-        <CardDescription>
-          Configure how and when you receive notifications
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Notification Settings</h3>
+        <p className="text-sm text-muted-foreground">
+          Configure how you'd like to receive notifications
+        </p>
+      </div>
       
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="notifications.email"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Email Notifications</FormLabel>
-                  <FormDescription>
-                    Receive notifications via email
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notifications.push"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Push Notifications</FormLabel>
-                  <FormDescription>
-                    Receive push notifications in your browser
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notifications.trades"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Trading Notifications</FormLabel>
-                  <FormDescription>
-                    Get notified about your trades
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notifications.pricing"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Price Alerts</FormLabel>
-                  <FormDescription>
-                    Get notified about significant price changes
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notifications.news"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>News Alerts</FormLabel>
-                  <FormDescription>
-                    Receive important news about your assets
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="email-notifications" className="block">Email Notifications</Label>
+            <p className="text-sm text-muted-foreground">Receive important alerts via email</p>
+          </div>
+          <Switch
+            id="email-notifications"
+            checked={form.watch("notifications.email")}
+            onCheckedChange={(checked) => form.setValue("notifications.email", checked)}
           />
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="push-notifications" className="block">Push Notifications</Label>
+            <p className="text-sm text-muted-foreground">Receive real-time alerts in your browser</p>
+          </div>
+          <Switch
+            id="push-notifications"
+            checked={form.watch("notifications.push")}
+            onCheckedChange={(checked) => form.setValue("notifications.push", checked)}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="app-notifications" className="block">In-App Notifications</Label>
+            <p className="text-sm text-muted-foreground">Show notifications within the application</p>
+          </div>
+          <Switch
+            id="app-notifications"
+            checked={form.watch("notifications.inApp")}
+            onCheckedChange={(checked) => form.setValue("notifications.inApp", checked)}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="alert-sounds" className="block">Alert Sounds</Label>
+            <p className="text-sm text-muted-foreground">Play sounds for important notifications</p>
+          </div>
+          <Switch
+            id="alert-sounds"
+            checked={form.watch("notifications.sound")}
+            onCheckedChange={(checked) => form.setValue("notifications.sound", checked)}
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Notification Frequency</Label>
+        <Select
+          value={form.watch("notifications.frequency")}
+          onValueChange={(value) => form.setValue("notifications.frequency", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select notification frequency" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="realtime">Real-time</SelectItem>
+            <SelectItem value="hourly">Hourly Digest</SelectItem>
+            <SelectItem value="daily">Daily Summary</SelectItem>
+            <SelectItem value="weekly">Weekly Roundup</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Price Alert Sensitivity</Label>
+        <Select
+          value={form.watch("priceAlerts.sensitivity")}
+          onValueChange={(value) => form.setValue("priceAlerts.sensitivity", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select price alert sensitivity" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Low (10% changes)</SelectItem>
+            <SelectItem value="medium">Medium (5% changes)</SelectItem>
+            <SelectItem value="high">High (2% changes)</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   );
 };
 

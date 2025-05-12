@@ -1,10 +1,9 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
+import React from 'react';
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Shield, Eye, UserCheck, Lock } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { SettingsFormValues } from "./types";
 
@@ -13,163 +12,84 @@ interface PrivacySettingsProps {
 }
 
 const PrivacySettings: React.FC<PrivacySettingsProps> = ({ form }) => {
-  // Initialize privacy object if it doesn't exist
-  if (!form.getValues().privacy) {
-    form.setValue("privacy", {
-      showOnlineStatus: false,
-      sharePortfolio: false,
-      shareTrades: false,
-      dataCollection: false,
-      marketingConsent: false,
-      thirdPartySharing: false
-    });
-  }
-  
-  // Initialize account object if it doesn't exist
-  if (!form.getValues().account) {
-    form.setValue("account", {
-      twoFactorEnabled: false,
-      loginAlerts: false
-    });
-  }
-  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Privacy & Security
-        </CardTitle>
-        <CardDescription>
-          Manage your privacy settings and security preferences
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Privacy Settings</h3>
+        <p className="text-sm text-muted-foreground">
+          Control your data and privacy preferences
+        </p>
+      </div>
       
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Privacy Settings</h3>
-          
-          {form.getValues().privacy && (
-            <>
-              <FormField
-                control={form.control}
-                name="privacy.showOnlineStatus"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Show Online Status</FormLabel>
-                      <FormDescription>
-                        Let others see when you're active on the platform
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="privacy.sharePortfolio"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Share Portfolio</FormLabel>
-                      <FormDescription>
-                        Allow others to see your portfolio holdings
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="privacy.shareTrades"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Share Trades</FormLabel>
-                      <FormDescription>
-                        Publish your trades for others to see
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="data-collection" className="block">Data Collection</Label>
+            <p className="text-sm text-muted-foreground">Allow anonymous usage data collection to improve the app</p>
+          </div>
+          <Switch
+            id="data-collection"
+            checked={form.watch("privacy.dataCollection")}
+            onCheckedChange={(checked) => form.setValue("privacy.dataCollection", checked)}
+          />
         </div>
         
-        <Separator />
-        
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Security Settings</h3>
-          
-          {form.getValues().account && (
-            <>
-              <FormField
-                control={form.control}
-                name="account.twoFactorEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Two-Factor Authentication</FormLabel>
-                      <FormDescription>
-                        Add an extra layer of security to your account
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="account.loginAlerts"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Login Alerts</FormLabel>
-                      <FormDescription>
-                        Get notified when your account is accessed from a new device
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="personalization" className="block">Personalization</Label>
+            <p className="text-sm text-muted-foreground">Allow personalized recommendations based on your activity</p>
+          </div>
+          <Switch
+            id="personalization"
+            checked={form.watch("privacy.personalization")}
+            onCheckedChange={(checked) => form.setValue("privacy.personalization", checked)}
+          />
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="marketing-emails" className="block">Marketing Emails</Label>
+            <p className="text-sm text-muted-foreground">Receive emails about new features and promotions</p>
+          </div>
+          <Switch
+            id="marketing-emails"
+            checked={form.watch("privacy.marketingEmails")}
+            onCheckedChange={(checked) => form.setValue("privacy.marketingEmails", checked)}
+          />
+        </div>
+        
+        <div className="space-y-2 pt-2">
+          <Label>Data Visibility</Label>
+          <RadioGroup
+            value={form.watch("privacy.dataVisibility")}
+            onValueChange={(value) => form.setValue("privacy.dataVisibility", value)}
+            className="space-y-1"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="public" id="public" />
+              <Label htmlFor="public">Public - Anyone can view your profile and portfolio</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="followers" id="followers" />
+              <Label htmlFor="followers">Followers - Only people you approve can view your data</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="private" id="private" />
+              <Label htmlFor="private">Private - Your data is visible only to you</Label>
+            </div>
+          </RadioGroup>
+        </div>
+      </div>
+      
+      <div className="space-y-4 pt-2">
+        <h4 className="text-sm font-medium">Data Management</h4>
+        
+        <div className="flex gap-2">
+          <Button variant="outline">Export Your Data</Button>
+          <Button variant="destructive">Delete Account</Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -88,6 +88,9 @@ const AiTradingBots: React.FC<AiTradingBotsProps> = ({
                             +{bot.assets.length - 3} more
                           </Badge>
                         )}
+                        {!bot.assets && (
+                          <span className="text-xs text-muted-foreground">No assets</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

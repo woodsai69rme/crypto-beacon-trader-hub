@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React from "react";
 
 const AlertHeader: React.FC = () => {
   return (
-    <div className="flex items-center justify-between border-b pb-4">
-      <h2 className="text-lg font-semibold">Price Alerts</h2>
+    <div className="mb-6">
+      <h2 className="text-xl font-semibold">Price Alerts</h2>
+      <p className="text-sm text-muted-foreground">
+        Get notified when cryptocurrencies reach your target prices
+      </p>
     </div>
   );
 };

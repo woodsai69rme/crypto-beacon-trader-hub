@@ -1,112 +1,165 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { PriceAlertFormData, COIN_OPTIONS } from './AlertComponents/AlertTypes';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { PriceAlertFormData } from "@/types/trading";
+import { COIN_OPTIONS } from "./AlertComponents/AlertTypes";
+import { useCurrencyConverter } from "@/hooks/use-currency-converter";
 
 interface PriceAlertFormProps {
   formData: PriceAlertFormData;
-  onSubmit?: () => void;
-  onFormChange: (updatedData: PriceAlertFormData) => void;
+  setFormData: (data: PriceAlertFormData) => void;
+  onSubmit: () => void;
 }
 
-const PriceAlertForm: React.FC<PriceAlertFormProps> = ({ 
-  formData, 
-  onSubmit,
-  onFormChange
-}) => {
-  const coins = COIN_OPTIONS;
+const PriceAlertForm: React.FC<PriceAlertFormProps> = ({ formData, setFormData, onSubmit }) => {
+  const { activeCurrency } = useCurrencyConverter();
 
-  const handleChange = (field: keyof PriceAlertFormData, value: any) => {
-    const updatedData = { ...formData, [field]: value };
-    onFormChange(updatedData);
+  const handleCoinChange = (value: string) => {
+    const coin = COIN_OPTIONS[value];
+    setFormData({
+      ...formData,
+      coinId: value,
+      coinName: coin.name,
+      coinSymbol: coin.symbol
+    });
+  };
+
+  const handleNotifyViaToggle = (method: "app" | "email" | "push") => {
+    const newNotifyVia = formData.notifyVia && formData.notifyVia.includes(method)
+      ? formData.notifyVia.filter(v => v !== method)
+      : [...(formData.notifyVia || []), method];
+    
+    setFormData({ ...formData, notifyVia: newNotifyVia });
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="coin">Cryptocurrency</Label>
-        <Select 
-          value={formData.coinId} 
-          onValueChange={(value) => {
-            const selectedCoin = coins.find(c => c.id === value);
-            handleChange('coinId', value);
-            handleChange('coinName', selectedCoin?.name || '');
-            handleChange('coinSymbol', selectedCoin?.symbol || '');
-            handleChange('currentPrice', selectedCoin?.price || 0);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select coin" />
-          </SelectTrigger>
-          <SelectContent>
-            {coins.map((coin) => (
-              <SelectItem key={coin.id} value={coin.id}>
-                {coin.name} ({coin.symbol})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Alert Condition</Label>
-        <RadioGroup 
-          value={formData.isAbove ? 'above' : 'below'} 
-          onValueChange={(value) => handleChange('isAbove', value === 'above')}
-          className="flex space-x-4 mt-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="above" id="above" />
-            <Label htmlFor="above">Price Above</Label>
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Coin</label>
+            <Select
+              value={formData.coinId}
+              onValueChange={handleCoinChange}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                <SelectItem value="solana">Solana (SOL)</SelectItem>
+                <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                <SelectItem value="ripple">XRP</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="below" id="below" />
-            <Label htmlFor="below">Price Below</Label>
+          
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Alert me when price is</label>
+            <div className="flex items-center space-x-2">
+              <Select
+                value={formData.isAbove ? "above" : "below"}
+                onValueChange={(value) => setFormData({ 
+                  ...formData, 
+                  isAbove: value === "above"
+                })}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="above">Above</SelectItem>
+                  <SelectItem value="below">Below</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex-1">
+                <div className="relative">
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {activeCurrency === "USD" ? "$" : "A$"}
+                  </span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className="pl-6"
+                    value={formData.targetPrice || ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      targetPrice: parseFloat(e.target.value) || 0 
+                    })}
+                    placeholder="Enter price"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </RadioGroup>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="targetPrice">Target Price (USD)</Label>
-        <Input
-          id="targetPrice"
-          type="number"
-          step="0.01"
-          value={formData.targetPrice}
-          onChange={(e) => handleChange('targetPrice', parseFloat(e.target.value))}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Optional)</Label>
-        <Input
-          id="notes"
-          placeholder="Add any notes about this alert"
-          value={formData.notes || ''}
-          onChange={(e) => handleChange('notes', e.target.value)}
-        />
-      </div>
-
-      {onSubmit && (
-        <Button 
-          className="w-full mt-4" 
-          onClick={onSubmit}
-          disabled={!formData.coinId || !formData.targetPrice}
-        >
-          Create Alert
-        </Button>
-      )}
-    </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="recurring"
+                checked={formData.recurring || false}
+                onCheckedChange={(checked) => setFormData({
+                  ...formData,
+                  recurring: checked
+                })}
+              />
+              <Label htmlFor="recurring">Recurring Alert</Label>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {formData.recurring 
+                ? "Alert will trigger repeatedly" 
+                : "Alert will trigger once"}
+            </span>
+          </div>
+          
+          <div className="pt-2">
+            <label className="text-sm font-medium mb-2 block">Notification Methods</label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={formData.notifyVia && formData.notifyVia.includes("app") ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleNotifyViaToggle("app")}
+              >
+                App
+              </Button>
+              <Button
+                variant={formData.notifyVia && formData.notifyVia.includes("email") ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleNotifyViaToggle("email")}
+              >
+                Email
+              </Button>
+              <Button
+                variant={formData.notifyVia && formData.notifyVia.includes("push") ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleNotifyViaToggle("push")}
+              >
+                Push
+              </Button>
+            </div>
+          </div>
+          
+          <Button className="w-full" onClick={onSubmit}>
+            <Plus className="mr-1 h-4 w-4" />
+            Add Price Alert
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

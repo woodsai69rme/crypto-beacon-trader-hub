@@ -1,17 +1,17 @@
 
-import React from 'react';
+import React from "react";
 
 interface AlertBadgeProps {
   count: number;
 }
 
 const AlertBadge: React.FC<AlertBadgeProps> = ({ count }) => {
-  if (count === 0) return null;
+  if (count <= 0) return null;
   
   return (
-    <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
+    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-[10px] font-medium text-white">
       {count > 9 ? '9+' : count}
-    </span>
+    </div>
   );
 };
 

@@ -1,75 +1,97 @@
 
+import { AITradingStrategy, BacktestResult } from '@/types/trading';
 import { v4 as uuidv4 } from 'uuid';
-import { AITradingStrategy, BacktestResult, OptimizationResult, Trade } from '@/types/trading';
 
-// Default parameters for new strategies
+// Default strategy parameters
 export const DEFAULT_STRATEGY_PARAMETERS = {
   period: 14,
   threshold: 70,
   stopLoss: 5,
   takeProfit: 10,
-  useVolume: true,
-  indicator: 'RSI',
-  fastPeriod: 12,
-  slowPeriod: 26,
-  signalPeriod: 9,
-  upperBand: 70,
-  lowerBand: 30,
-  riskFactor: 2,
+  useVolume: false,
+  allowWeekendTrading: false
 };
 
-/**
- * Creates a new custom AI trading strategy
- */
+// Create a new custom strategy
 export const createCustomStrategy = (
   name: string,
   description: string,
   type: string,
   timeframe: string,
-  parameters: Record<string, any> = {}
+  parameters: Record<string, any>
 ): AITradingStrategy => {
   return {
-    id: uuidv4(),
+    id: `strategy-${uuidv4()}`,
     name,
     description,
     type,
     timeframe,
-    parameters: { 
-      ...DEFAULT_STRATEGY_PARAMETERS, 
-      ...parameters 
-    },
+    parameters,
     assets: ['bitcoin', 'ethereum'],
+    status: 'active'
   };
 };
 
-/**
- * Runs a backtest for the specified strategy and parameters
- */
+// Run a backtest for a strategy
 export const runBacktest = async (
   strategy: AITradingStrategy,
   startDate: string,
   endDate: string,
-  initialCapital: number = 10000,
-  asset: string = 'bitcoin'
+  initialCapital: number,
+  asset: string
 ): Promise<BacktestResult> => {
-  // In a real implementation, this would call an API or run calculations
-  // For now, we'll return mock data
+  // Simulate API call delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // Generate random results based on strategy parameters
-  const returns = Math.random() * (strategy.parameters.riskFactor || 1) * 30;
-  const winRate = 40 + Math.random() * 30;
-  const trades = 20 + Math.floor(Math.random() * 80);
-  const maxDrawdown = 5 + Math.random() * 15;
-  const sharpeRatio = 0.5 + Math.random() * 2;
-  const profitFactor = 1 + Math.random() * 2;
-  const profit = initialCapital * (returns / 100);
-  const profitPercentage = returns;
-  const finalBalance = initialCapital + profit;
-  const totalTrades = trades;
+  // Generate mock backtest result
+  const winRate = Math.floor(Math.random() * 30) + 50; // 50-80%
+  const trades = Math.floor(Math.random() * 150) + 50; // 50-200 trades
+  const returns = (Math.random() * 40) + 10; // 10-50% returns
+  const maxDrawdown = (Math.random() * 15) + 5; // 5-20% drawdown
+  const profitFactor = 1 + (Math.random() * 1.5); // 1.0-2.5 profit factor
+  const sharpeRatio = 1 + (Math.random() * 2); // 1.0-3.0 sharpe ratio
   
   // Generate mock trade history
-  const tradeHistory = generateMockTradeHistory(trades, returns);
+  const tradeHistory = [];
+  const priceStart = asset === 'bitcoin' ? 50000 : 2000;
+  let currentPrice = priceStart;
+  let date = new Date(startDate);
+  
+  for (let i = 0; i < Math.min(trades, 100); i++) {
+    // Add random days to date
+    date.setDate(date.getDate() + Math.floor(Math.random() * 3) + 1);
+    
+    // Random price movement
+    currentPrice = currentPrice * (1 + ((Math.random() * 0.05) - 0.025));
+    
+    // Decide trade type
+    const type = Math.random() > 0.5 ? 'buy' : 'sell';
+    
+    // Random trade amount
+    const amount = Math.random() * (asset === 'bitcoin' ? 0.5 : 10);
+    
+    // Random profit/loss
+    const profit = (Math.random() * 200) - 50;
+    const profitPercentage = profit / (currentPrice * amount) * 100;
+    
+    tradeHistory.push({
+      id: `trade-${i}`,
+      timestamp: date.toISOString(),
+      date: date.toLocaleDateString(),
+      type,
+      price: currentPrice,
+      amount,
+      total: currentPrice * amount,
+      profit,
+      profitPercentage,
+      coin: asset,
+      coinId: asset,
+      coinName: asset === 'bitcoin' ? 'Bitcoin' : 'Ethereum',
+      coinSymbol: asset === 'bitcoin' ? 'BTC' : 'ETH',
+      currency: 'USD',
+      totalValue: currentPrice * amount
+    });
+  }
   
   return {
     returns,
@@ -79,131 +101,9 @@ export const runBacktest = async (
     sharpeRatio,
     profitFactor,
     tradeHistory,
-    profit,
-    profitPercentage,
-    finalBalance,
-    totalTrades
+    profit: initialCapital * (returns / 100),
+    profitPercentage: returns,
+    finalBalance: initialCapital * (1 + returns / 100),
+    totalTrades: trades
   };
-};
-
-/**
- * Optimizes parameters for the given strategy
- */
-export const optimizeStrategy = async (
-  strategy: AITradingStrategy,
-  parameterRanges: any,
-  optimizationTarget: string = 'returns'
-): Promise<OptimizationResult> => {
-  // In a real implementation, this would run a grid search or other optimization algorithm
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Generate a mock optimization result
-  const originalParameters = { ...strategy.parameters };
-  const optimizedParameters = { ...originalParameters };
-  
-  // Modify parameters within the ranges
-  Object.entries(parameterRanges).forEach(([param, range]) => {
-    if (typeof originalParameters[param] === 'number') {
-      // Generate a slightly better value
-      if (Array.isArray(range)) {
-        // If range is provided as [min, max, step]
-        const [min, max, step] = range;
-        const steps = Math.floor((max - min) / step);
-        const randomStep = Math.floor(Math.random() * steps);
-        optimizedParameters[param] = min + (randomStep * step);
-      } else if (typeof range === 'object' && range.min !== undefined) {
-        // If range is provided as an object with min/max/step
-        const { min, max, step } = range;
-        const steps = Math.floor((max - min) / step);
-        const randomStep = Math.floor(Math.random() * steps);
-        optimizedParameters[param] = min + (randomStep * step);
-      } else {
-        // Generate a random improvement
-        const variation = originalParameters[param] * (Math.random() * 0.4 - 0.1); // -10% to +30%
-        optimizedParameters[param] = originalParameters[param] + variation;
-      }
-    }
-  });
-  
-  // Generate random improvements
-  const improvement = Math.random() * 20 + 5; // 5% to 25% improvement
-  const baseReturns = 10 + Math.random() * 20;
-  const returns = baseReturns + improvement;
-  const winRate = 45 + Math.random() * 30;
-  const maxDrawdown = 5 + Math.random() * 10;
-  const sharpeRatio = 1 + Math.random() * 1.5;
-  const profitFactor = 1.2 + Math.random() * 1.5;
-  const trades = 50 + Math.floor(Math.random() * 100);
-  
-  const result: OptimizationResult = {
-    id: uuidv4(),
-    strategyId: strategy.id,
-    parameters: optimizedParameters,
-    parameterValues: optimizedParameters,
-    performance: {
-      returns,
-      winRate,
-      profitFactor,
-      sharpeRatio,
-      maxDrawdown
-    },
-    trades,
-    timeframe: strategy.timeframe,
-    optimizationDate: new Date().toISOString(),
-    improvement
-  };
-  
-  return result;
-};
-
-/**
- * Generate mock trade history for backtests
- */
-const generateMockTradeHistory = (count: number, overallReturn: number): Trade[] => {
-  const trades: Trade[] = [];
-  let cumulativeProfit = 0;
-  
-  for (let i = 0; i < count; i++) {
-    const isWin = Math.random() > 0.4;
-    const profit = isWin 
-      ? Math.random() * 5 
-      : -Math.random() * 3;
-    
-    cumulativeProfit += profit;
-    
-    const date = new Date();
-    date.setDate(date.getDate() - (count - i));
-    
-    trades.push({
-      id: uuidv4(),
-      timestamp: date.toISOString(),
-      date: date.toLocaleDateString(),
-      type: Math.random() > 0.5 ? 'buy' : 'sell',
-      price: 20000 + Math.random() * 10000,
-      amount: 0.1 + Math.random() * 0.9,
-      total: 0, // Will be calculated below
-      profit,
-      profitPercentage: profit / 100,
-      coin: 'bitcoin',
-      coinId: 'bitcoin',
-      coinName: 'Bitcoin',
-      coinSymbol: 'BTC',
-      currency: 'USD',
-      totalValue: 0 // Will be calculated below
-    });
-  }
-  
-  // Adjust final trade to match overall return goal
-  if (trades.length > 0) {
-    const lastTrade = trades[trades.length - 1];
-    lastTrade.profit = overallReturn - (cumulativeProfit - lastTrade.profit);
-  }
-  
-  // Calculate total values
-  trades.forEach(trade => {
-    trade.total = trade.price * trade.amount;
-    trade.totalValue = trade.total + trade.profit;
-  });
-  
-  return trades;
 };

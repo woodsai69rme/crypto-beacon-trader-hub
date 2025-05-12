@@ -538,7 +538,7 @@ const StrategyBuilder: React.FC<StrategyBuilderProps> = ({ initialStrategy, onSa
     }
   };
   
-  const handleApplyOptimizedParameters = (parameters: Record<string, any>) => {
+  const handleApplyParameters = (parameters: Record<string, any>) => {
     setStrategy(prev => ({
       ...prev,
       parameters: {
@@ -615,7 +615,7 @@ const StrategyBuilder: React.FC<StrategyBuilderProps> = ({ initialStrategy, onSa
       <div className="lg:col-span-4">
         <ParameterOptimization
           strategy={strategy}
-          onApplyParameters={handleApplyOptimizedParameters}
+          onApplyParameters={handleApplyParameters}
         />
       </div>
     </div>

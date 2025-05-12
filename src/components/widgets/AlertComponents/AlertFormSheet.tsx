@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { fetchCoinOptions } from '@/services/cryptoApi';
-import { AlertFormSheetProps, PriceAlertFormData } from './AlertTypes';
+import { AlertFormSheetProps, PriceAlertFormData } from '@/types/trading';
 import { CoinOption } from '@/types/trading';
 
 export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ 
@@ -123,7 +123,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         
         <div className="flex items-center space-x-2">
           <Switch
-            checked={formData.recurring}
+            checked={formData.recurring || false}
             onCheckedChange={(checked) => updateFormData('recurring', checked)}
             id="recurring"
           />
@@ -137,3 +137,5 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     </div>
   );
 };
+
+export default AlertFormSheet;

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { TechnicalAlertFormData, COIN_OPTIONS } from "./AlertTypes";
-import { validateFormFields, createNumberRangeRule } from "@/utils/formValidation";
-import { handleError } from "@/utils/errorHandling";
+import { TechnicalAlertFormData } from "@/types/trading";
+import { COIN_OPTIONS } from "./AlertTypes";
 import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/loading-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TechnicalAlertFormProps {
   formData: TechnicalAlertFormData;
@@ -58,21 +58,17 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     e.preventDefault();
     
     try {
-      // Basic field validation
-      const isValid = validateFormFields(
-        formData,
-        ["coinId", "indicator", "condition", "value"],
-        {
-          value: [
-            createNumberRangeRule(
-              VALUE_RANGES[formData.indicator]?.min,
-              VALUE_RANGES[formData.indicator]?.max
-            )
-          ]
-        }
-      );
-      
-      if (!isValid) {
+      if (
+        !formData.coinId || 
+        !formData.indicator || 
+        !formData.condition ||
+        formData.value === undefined
+      ) {
+        toast({
+          title: "Error",
+          description: "Please fill out all required fields", 
+          variant: "destructive"
+        });
         return;
       }
 
@@ -123,7 +119,7 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     return (
       <Card>
         <CardContent className="pt-6">
-          <Skeleton variant="rectangular" height={300} />
+          <Skeleton className="h-[300px] w-full rounded-md" />
         </CardContent>
       </Card>
     );
@@ -207,8 +203,8 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
                     ...formData, 
                     value: parseFloat(e.target.value) || 0 
                   })}
-                  min={VALUE_RANGES[formData.indicator]?.min}
-                  max={VALUE_RANGES[formData.indicator]?.max}
+                  min={formData.indicator ? VALUE_RANGES[formData.indicator]?.min : undefined}
+                  max={formData.indicator ? VALUE_RANGES[formData.indicator]?.max : undefined}
                   step="0.1"
                 />
                 {formData.indicator && (

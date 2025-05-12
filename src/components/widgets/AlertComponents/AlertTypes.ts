@@ -1,5 +1,5 @@
 
-import { PriceAlertFormData } from "@/types/trading";
+import { PriceAlertFormData, TechnicalAlertFormData, VolumeAlertFormData } from "@/types/trading";
 
 // Mock coin options for alerts
 export const COIN_OPTIONS: Record<string, { id: string; name: string; symbol: string; price: number }> = {
@@ -26,3 +26,5 @@ export interface AlertSystemProps {
   onDeleteAlert?: (alertId: string) => void;
   onToggleAlert?: (alertId: string, active: boolean) => void;
 }
+
+export type { PriceAlertFormData, TechnicalAlertFormData, VolumeAlertFormData, AlertFormSheetProps };
