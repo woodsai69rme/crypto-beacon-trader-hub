@@ -1,187 +1,167 @@
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { PlusCircle, RefreshCw, Settings, Link, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
-import { TradingAccount } from "@/types/trading";
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, Trash, Edit, ExternalLink } from 'lucide-react';
+import { TradingAccount } from '@/types/trading';
 
-// Mock data for trading accounts
 const mockAccounts: TradingAccount[] = [
   {
-    id: "acc-1",
-    name: "Binance Main",
-    type: "exchange",
-    provider: "Binance",
-    balance: 4230.50,
-    currency: "USD",
-    lastUpdated: "2025-05-02T10:34:12Z",
+    id: 'acc1',
+    name: 'Binance',
+    trades: [],
+    balance: 25000,
+    currency: 'USD',
+    createdAt: '2025-01-15T00:00:00Z',
+    provider: 'Binance',
+    type: 'exchange',
+    assets: {
+      'BTC': 0.5,
+      'ETH': 4.2,
+      'SOL': 25,
+    },
+    lastUpdated: '2025-05-12T08:30:00Z',
     isActive: true,
-    assets: [
-      { id: "btc", symbol: "BTC", name: "Bitcoin", amount: 0.05, value: 3276.18 },
-      { id: "eth", symbol: "ETH", name: "Ethereum", amount: 0.28, value: 957.82 }
-    ]
   },
   {
-    id: "acc-2",
-    name: "KuCoin Trading",
-    type: "exchange",
-    provider: "KuCoin",
-    balance: 1850.75,
-    currency: "USD",
-    lastUpdated: "2025-05-01T15:22:45Z",
+    id: 'acc2',
+    name: 'Personal Wallet',
+    trades: [],
+    balance: 12500,
+    currency: 'USD',
+    createdAt: '2025-02-10T00:00:00Z',
+    provider: 'MetaMask',
+    type: 'wallet',
+    assets: {
+      'ETH': 2.8,
+      'LINK': 120,
+      'UNI': 75,
+    },
+    lastUpdated: '2025-05-12T06:15:00Z',
     isActive: true,
-    assets: [
-      { id: "sol", symbol: "SOL", name: "Solana", amount: 10.5, value: 1543.28 },
-      { id: "ada", symbol: "ADA", name: "Cardano", amount: 500, value: 307.47 }
-    ]
   },
   {
-    id: "acc-3",
-    name: "Metamask Wallet",
-    type: "wallet",
-    provider: "MetaMask",
-    balance: 2145.30,
-    currency: "USD",
-    lastUpdated: "2025-04-30T22:17:39Z",
-    isActive: false,
-    assets: [
-      { id: "eth", symbol: "ETH", name: "Ethereum", amount: 0.62, value: 2145.30 }
-    ]
+    id: 'acc3',
+    name: 'Manual Tracking',
+    trades: [],
+    balance: 8750,
+    currency: 'USD',
+    createdAt: '2025-03-05T00:00:00Z',
+    provider: 'Manual',
+    type: 'manual',
+    assets: {
+      'BTC': 0.15,
+      'DOT': 250,
+      'ADA': 3000,
+    },
+    lastUpdated: '2025-05-11T20:45:00Z',
+    isActive: true,
   }
 ];
 
 const AccountManager: React.FC = () => {
   const [accounts, setAccounts] = useState<TradingAccount[]>(mockAccounts);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   
-  const refreshAccounts = () => {
-    setIsRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1500);
+  const totalBalance = accounts.reduce((total, account) => total + account.balance, 0);
+  
+  const handleAddAccount = () => {
+    // In a real app, this would open a modal to add a new account
+    alert('Adding a new account...');
   };
   
-  const formatLastUpdated = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+  const handleDeleteAccount = (id: string) => {
+    // In a real app, this would show a confirmation dialog
+    setAccounts(accounts.filter(account => account.id !== id));
+  };
+  
+  const handleEditAccount = (id: string) => {
+    setSelectedAccount(id);
+    // In a real app, this would open an edit modal
+    alert(`Editing account ${id}...`);
   };
   
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
             <CardTitle>Trading Accounts</CardTitle>
-            <CardDescription>
-              Manage your connected exchange accounts and wallets
-            </CardDescription>
+            <CardDescription>Manage your connected trading accounts</CardDescription>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={refreshAccounts} disabled={isRefreshing}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-            <Button size="sm">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Account
-            </Button>
-          </div>
+          <Button size="sm" onClick={handleAddAccount} className="gap-1">
+            <Plus className="h-4 w-4" />
+            Add Account
+          </Button>
         </div>
       </CardHeader>
       
-      <CardContent>
-        {accounts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Link className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-1">No accounts connected</h3>
-            <p className="text-muted-foreground mb-4 text-center max-w-sm">
-              Connect your first exchange account or wallet to start trading
-            </p>
-            <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Connect Account
-            </Button>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="hidden md:table-cell">Balance</TableHead>
-                <TableHead className="hidden md:table-cell">Assets</TableHead>
-                <TableHead className="hidden lg:table-cell">Last Updated</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.name}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${account.provider.toLowerCase()}.png`}
-                        alt={account.provider}
-                        className="w-5 h-5"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/generic.png";
-                        }}
-                      />
-                      {account.provider}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    ${account.balance.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {account.assets?.length || 0} assets
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-muted-foreground">
-                    {formatLastUpdated(account.lastUpdated)}
-                  </TableCell>
-                  <TableCell>
-                    {account.isActive ? (
-                      <Badge className="flex items-center gap-1 bg-green-500/10 text-green-500 hover:bg-green-500/20">
-                        <CheckCircle className="h-3 w-3" />
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        Inactive
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-      
-      <CardFooter className="border-t p-4">
-        <div className="w-full flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
-          <span>
-            Connected Accounts: {accounts.length} ({accounts.filter(a => a.isActive).length} active)
-          </span>
-          <span className="mt-2 sm:mt-0">
-            Total Balance: ${accounts.reduce((sum, acc) => sum + acc.balance, 0).toLocaleString()}
-          </span>
+      <CardContent className="space-y-4">
+        <div className="bg-secondary/20 rounded-lg p-4">
+          <div className="text-sm text-muted-foreground">Total Portfolio Value</div>
+          <div className="text-2xl font-bold">${totalBalance.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground mt-1">Across {accounts.length} accounts</div>
         </div>
-      </CardFooter>
+        
+        <div className="space-y-3">
+          {accounts.map((account) => (
+            <div 
+              key={account.id} 
+              className={`border rounded-lg p-4 ${
+                selectedAccount === account.id ? 'border-primary' : ''
+              }`}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-medium">{account.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {account.provider} • {account.type}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-right font-bold">${account.balance.toLocaleString()}</div>
+                  <div className="text-xs text-muted-foreground text-right">
+                    {Object.keys(account.assets || {}).length} assets
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-muted-foreground">Last Updated</div>
+                  <div className="text-sm">
+                    {new Date(account.lastUpdated || '').toLocaleDateString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Status</div>
+                  <div className="text-sm flex items-center gap-1">
+                    <div className={`h-2 w-2 rounded-full ${account.isActive ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <span>{account.isActive ? 'Active' : 'Inactive'}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-between mt-4">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <ExternalLink className="h-4 w-4" />
+                  View
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="gap-1" onClick={() => handleEditAccount(account.id)}>
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-red-500 gap-1" onClick={() => handleDeleteAccount(account.id)}>
+                    <Trash className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 };

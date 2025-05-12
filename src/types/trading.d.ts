@@ -28,6 +28,7 @@ export interface Trade {
   botGenerated?: boolean;
   tags?: string[];
   total: number;
+  strategyId?: string;
 }
 
 export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
@@ -39,6 +40,11 @@ export interface TradingAccount {
   balance: number;
   currency: SupportedCurrency;
   createdAt: string;
+  provider?: string;
+  assets?: Record<string, number>;
+  lastUpdated?: string;
+  isActive?: boolean;
+  type?: 'exchange' | 'wallet' | 'manual';
 }
 
 export interface TradingFormProps {
@@ -73,6 +79,8 @@ export interface AITradingStrategy {
     maxDrawdown: number;
     sharpeRatio: number;
   };
+  type?: string;
+  parameters?: any;
 }
 
 export interface AiBotTradingProps {
@@ -96,6 +104,16 @@ export interface ATOTaxCalculation {
   taxableAmount: number;
   taxOwed: number;
   effectiveTaxRate: number;
+  financialYear?: number;
+  taxableIncome?: number;
+  CGTDiscount?: number;
+  netCapitalGains?: number;
+  bracketInfo?: any;
+  incomeTax?: number;
+  medicareLevy?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
+  taxRefundOrOwed?: number;
   transactions: {
     date: string;
     asset: string;
@@ -160,11 +178,25 @@ export interface DetachableDashboardProps {
   children?: React.ReactNode;
 }
 
+export type WidgetType = 
+  | 'chart' 
+  | 'table' 
+  | 'stats' 
+  | 'news' 
+  | 'alerts' 
+  | 'custom' 
+  | 'price-chart' 
+  | 'portfolio-summary' 
+  | 'watchlist' 
+  | 'trading' 
+  | 'aiTrading' 
+  | 'aiAnalysis';
+
 export interface Widget {
   id: string;
   title: string;
-  type: 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'trading' | 'aiTrading' | 'aiAnalysis';
-  size?: 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
+  type: WidgetType;
+  size?: WidgetSize;
   position?: { x: number, y: number };
   customContent?: string;
 }
@@ -216,4 +248,74 @@ export interface ApiUsageStats {
   maxUsage: number;
   endpoint?: string;
   resetTime?: string;
+}
+
+// Market Analysis Types
+export interface MarketMetric {
+  name: string;
+  value: number | string;
+  change: number;
+  status: 'positive' | 'negative' | 'neutral';
+}
+
+export interface ProbabilityAnalysis {
+  timeframe: string;
+  upProbability: number;
+  downProbability: number;
+  neutralProbability: number;
+  confidence: number;
+  signals: string[];
+}
+
+export interface FibonacciAnalysisProps {
+  symbol?: string;
+  timeframe?: string;
+}
+
+export interface FibonacciLevels {
+  level0: number;
+  level236: number;
+  level382: number;
+  level500: number;
+  level618: number;
+  level786: number;
+  level1000: number;
+}
+
+export interface HyblockLiquidityMapProps {
+  symbol?: string;
+  timeframe?: string;
+}
+
+export interface HyblockLiquidityZone {
+  min: number;
+  max: number;
+  strength: number;
+  type: 'buy' | 'sell';
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolio: TradingAccount;
+  benchmark?: string;
+  timeframe?: string;
+}
+
+export interface SettingsFormValues {
+  displayName?: string;
+  email?: string;
+  username?: string;
+  bio?: string;
+  theme?: string;
+  language?: string;
+  appearance?: string;
+  notifications?: boolean;
+  privacy?: string;
+  account?: string;
+  tradingPreferences?: any;
+  ticker?: any;
+  'sidebar.enabled'?: boolean;
+  'sidebar.position'?: string;
+  'sidebar.defaultCollapsed'?: boolean;
+  'sidebar.showLabels'?: boolean;
+  'sidebar.autoHide'?: boolean;
 }

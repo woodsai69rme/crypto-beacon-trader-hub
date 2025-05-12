@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useOpenRouterApiKey } from '@/services/openRouterService';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { AlertCircle, CheckCircle2, Key, ExternalLink } from 'lucide-react';
 
 const OpenRouterApiKeyForm: React.FC = () => {
@@ -65,7 +65,7 @@ const OpenRouterApiKeyForm: React.FC = () => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <Alert variant="info" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+        <Alert variant="default" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             <p className="text-sm">
@@ -105,7 +105,7 @@ const OpenRouterApiKeyForm: React.FC = () => {
         </div>
         
         {isConfigured && (
-          <Alert variant="success" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+          <Alert variant="default" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
               API key is configured and ready to use.

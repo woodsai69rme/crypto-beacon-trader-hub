@@ -51,6 +51,33 @@ export async function getTrendingCoins(limit: number = 10): Promise<CoinOption[]
 }
 
 /**
+ * Search cryptocurrencies
+ * @param query Search query string
+ * @param limit Maximum number of results to return
+ */
+export async function searchCoins(query: string, limit: number = 20): Promise<CoinOption[]> {
+  if (!query) return [];
+  
+  try {
+    // In a real app, this would call a search API
+    // For now, we'll filter the fallback data
+    const allCoins = generateFallbackTrendingCoins(50);
+    
+    const normalizedQuery = query.toLowerCase();
+    const matchedCoins = allCoins.filter(coin => 
+      coin.name.toLowerCase().includes(normalizedQuery) || 
+      coin.symbol.toLowerCase().includes(normalizedQuery) ||
+      coin.id.toLowerCase().includes(normalizedQuery)
+    ).slice(0, limit);
+    
+    return matchedCoins;
+  } catch (error) {
+    console.error('Error searching coins:', error);
+    return [];
+  }
+}
+
+/**
  * Get latest cryptocurrency news
  * @param limit Number of news items to fetch
  */

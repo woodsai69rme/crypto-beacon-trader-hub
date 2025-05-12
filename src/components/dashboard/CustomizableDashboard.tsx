@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
@@ -5,9 +6,9 @@ import WidgetGrid from "./WidgetGrid";
 import WidgetList from "./WidgetList";
 import AddWidgetDialog from "./widgets/AddWidgetDialog";
 import { Widget, WidgetType, WidgetSize } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
-const CustomizableDashboard = () => {
+const CustomizableDashboard: React.FC = () => {
   const [isAddingWidget, setIsAddingWidget] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [widgets, setWidgets] = useState<Widget[]>([
@@ -15,21 +16,21 @@ const CustomizableDashboard = () => {
       id: "portfolio-widget",
       position: { x: 0, y: 0 },
       title: "Portfolio Overview",
-      type: "portfolio-summary",
+      type: "portfolio-summary" as WidgetType,
       size: "medium",
     },
     {
       id: "chart-widget",
       position: { x: 1, y: 0 },
       title: "Market Chart",
-      type: "price-chart",
+      type: "price-chart" as WidgetType,
       size: "medium",
     },
     {
       id: "watchlist-widget",
       position: { x: 0, y: 1 },
       title: "Watchlist",
-      type: "watchlist",
+      type: "watchlist" as WidgetType,
       size: "small",
     },
     {
@@ -48,25 +49,20 @@ const CustomizableDashboard = () => {
     }
   ]);
   
-  const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
+  const handleAddWidget = (widget: Widget) => {
     // Find the next available position
     const maxY = Math.max(...widgets.map(w => w.position?.y || 0));
     
     const newWidget: Widget = {
-      id: `${widget.type}-${Date.now()}`,
-      position: { x: 0, y: maxY + 1 },
-      title: widget.title,
-      type: widget.type,
-      size: widget.size,
-      customContent: widget.customContent
+      ...widget,
+      position: { x: 0, y: maxY + 1 }
     };
     
     setWidgets([...widgets, newWidget]);
-    setIsAddingWidget(false);
     
     toast({
       title: "Widget Added",
-      description: `${widget.title} has been added to your dashboard`
+      description: `${widget.title} widget has been added to the dashboard.`,
     });
   };
   
@@ -75,63 +71,44 @@ const CustomizableDashboard = () => {
     
     toast({
       title: "Widget Removed",
-      description: "The widget has been removed from your dashboard"
+      description: "The widget has been removed from the dashboard.",
     });
   };
   
-  const handleUpdateWidgetPosition = (id: string, position: { x: number, y: number }) => {
-    setWidgets(widgets.map(widget => 
-      widget.id === id ? { ...widget, position } : widget
-    ));
-  };
-  
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        
+        <h1 className="text-2xl font-bold">Custom Dashboard</h1>
         <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
             onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
           >
-            <LayoutGrid className="h-4 w-4 mr-2" />
+            <LayoutGrid className="h-4 w-4" />
             {viewMode === "grid" ? "List View" : "Grid View"}
           </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsAddingWidget(true)}
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add Widget
+          <Button variant="outline" size="sm" className="gap-1">
+            <Settings2 className="h-4 w-4" />
+            Settings
           </Button>
-          
-          <Button variant="outline" size="sm">
-            <Settings2 className="h-4 w-4 mr-2" />
-            Customize
+          <Button onClick={() => setIsAddingWidget(true)} className="gap-1">
+            <PlusCircle className="h-4 w-4" />
+            Add Widget
           </Button>
         </div>
       </div>
       
       {viewMode === "grid" ? (
-        <WidgetGrid 
-          widgets={widgets} 
-          onRemove={handleRemoveWidget}
-          onUpdatePosition={handleUpdateWidgetPosition}
-        />
+        <WidgetGrid widgets={widgets} onRemoveWidget={handleRemoveWidget} />
       ) : (
-        <WidgetList 
-          widgets={widgets} 
-          onRemove={handleRemoveWidget} 
-        />
+        <WidgetList widgets={widgets} onRemoveWidget={handleRemoveWidget} />
       )}
       
-      <AddWidgetDialog 
-        open={isAddingWidget} 
-        onOpenChange={setIsAddingWidget} 
+      <AddWidgetDialog
+        open={isAddingWidget}
+        onClose={() => setIsAddingWidget(false)}
         onAddWidget={handleAddWidget}
       />
     </div>
