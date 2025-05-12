@@ -1,64 +1,19 @@
+
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AITradingStrategy } from "@/types/trading";
 import { Bot, TrendingUp, Settings, ChevronRight } from "lucide-react";
+import { createCustomStrategy, DEFAULT_STRATEGY_PARAMETERS } from "@/services/strategyBuilderService";
+import { predefinedStrategies } from "@/utils/aiTradingStrategies";
 
+// Import components
 import StrategyBuilder from './trading/StrategyBuilder';
 import AdvancedParameterOptimization from './widgets/AdvancedParameterOptimization';
-import { createCustomStrategy, DEFAULT_STRATEGY_PARAMETERS } from "@/services/strategyBuilderService";
-
-// Example predefined strategies
-const predefinedStrategies: AITradingStrategy[] = [
-  {
-    id: 'strategy-1',
-    name: 'RSI Mean Reversion',
-    description: 'Trades oversold and overbought conditions using RSI',
-    type: 'mean-reversion',
-    timeframe: '1h',
-    riskLevel: 'Medium',
-    parameters: {
-      ...DEFAULT_STRATEGY_PARAMETERS,
-      period: 14,
-      threshold: 30,
-      indicator: 'rsi'
-    }
-  },
-  {
-    id: 'strategy-2',
-    name: 'MACD Trend Following',
-    description: 'Follows market trends using MACD crossovers',
-    type: 'trend-following',
-    timeframe: '4h',
-    riskLevel: 'Medium',
-    parameters: {
-      ...DEFAULT_STRATEGY_PARAMETERS,
-      fastPeriod: 12,
-      slowPeriod: 26,
-      signalPeriod: 9,
-      indicator: 'macd'
-    }
-  },
-  {
-    id: 'strategy-3',
-    name: 'Bollinger Breakout',
-    description: 'Captures price breakouts from Bollinger Bands',
-    type: 'breakout',
-    timeframe: '15m',
-    riskLevel: 'High',
-    parameters: {
-      ...DEFAULT_STRATEGY_PARAMETERS,
-      period: 20,
-      stdDev: 2,
-      indicator: 'bb'
-    }
-  }
-];
 
 const TradingOptimizationDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('strategies');
+  const [activeTab, setActiveTab] = useState<string>('builder');
   const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
   const [strategies, setStrategies] = useState<AITradingStrategy[]>(predefinedStrategies);
   
@@ -131,7 +86,7 @@ const TradingOptimizationDashboard: React.FC = () => {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Trading Strategies</h2>
         
@@ -178,15 +133,6 @@ const TradingOptimizationDashboard: React.FC = () => {
                 </div>
               )}
             </CardContent>
-            <CardFooter>
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={handleCreateNewStrategy}
-              >
-                Create New Strategy
-              </Button>
-            </CardFooter>
           </Card>
         </div>
         
@@ -211,10 +157,18 @@ const TradingOptimizationDashboard: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="optimize" className="pt-6">
-              <AdvancedParameterOptimization 
-                strategy={selectedStrategy}
-                onApplyParameters={handleApplyOptimizedParams}
-              />
+              {selectedStrategy ? (
+                <AdvancedParameterOptimization 
+                  strategy={selectedStrategy}
+                  onApplyParameters={handleApplyOptimizedParams}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="py-24 text-center text-muted-foreground">
+                    <p>Select a strategy to optimize parameters</p>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </div>

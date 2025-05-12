@@ -193,12 +193,12 @@ const ATOTaxCalculator: React.FC = () => {
                         <SelectValue placeholder="Select period" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="long-term">Long-term (>12 months)</SelectItem>
+                        <SelectItem value="long-term">Long-term (&gt;12 months)</SelectItem>
                         <SelectItem value="short-term">Short-term (≤12 months)</SelectItem>
                       </SelectContent>
                     </Select>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Long-term holdings (>12 months) receive a 50% CGT discount in Australia
+                      Long-term holdings (&gt;12 months) receive a 50% CGT discount in Australia
                     </div>
                   </div>
                 </div>
