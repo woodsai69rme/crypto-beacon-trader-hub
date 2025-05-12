@@ -124,6 +124,56 @@
   --loss: 358 75% 64%;
 }
 
+/* Neon Future - Futuristic bright neon look */
+.neon-future {
+  --background: 235 60% 10%;
+  --foreground: 180 100% 80%;
+  --card: 235 60% 12%;
+  --card-foreground: 180 100% 80%;
+  --popover: 235 60% 10%;
+  --popover-foreground: 180 100% 80%;
+  --primary: 180 100% 50%;
+  --primary-foreground: 235 60% 10%;
+  --secondary: 320 100% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 235 40% 20%;
+  --muted-foreground: 180 70% 65%;
+  --accent: 320 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 235 50% 20%;
+  --input: 235 50% 20%;
+  --ring: 180 100% 50%;
+  --profit: 142 100% 65%;
+  --loss: 358 100% 64%;
+}
+
+/* Sunset Gradient - Warm gradient-based theme */
+.sunset-gradient {
+  --background: 30 40% 8%;
+  --foreground: 30 30% 96%;
+  --card: 30 40% 10%;
+  --card-foreground: 30 30% 96%;
+  --popover: 30 40% 8%;
+  --popover-foreground: 30 30% 96%;
+  --primary: 20 100% 60%;
+  --primary-foreground: 30 40% 8%;
+  --secondary: 50 100% 50%;
+  --secondary-foreground: 30 30% 5%;
+  --muted: 30 35% 15%;
+  --muted-foreground: 30 30% 70%;
+  --accent: 330 90% 60%;
+  --accent-foreground: 30 30% 96%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 30 30% 96%;
+  --border: 30 35% 15%;
+  --input: 30 35% 15%;
+  --ring: 20 100% 60%;
+  --profit: 142 70% 55%;
+  --loss: 358 100% 64%;
+}
+
 /* Glass card styling for each theme */
 .glass-card {
   backdrop-filter: blur(12px);
@@ -151,6 +201,18 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.neon-future .glass-card {
+  background-color: rgba(10, 15, 30, 0.7);
+  border-color: rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 220, 255, 0.15);
+}
+
+.sunset-gradient .glass-card {
+  background-color: rgba(30, 20, 15, 0.7);
+  border-color: rgba(255, 100, 50, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 100, 50, 0.1);
+}
+
 /* Background gradient effects for each theme */
 .midnight-tech .gradient-bg {
   background: linear-gradient(135deg, hsla(217, 91%, 60%, 0.05) 0%, hsla(222, 47%, 11%, 0) 100%);
@@ -164,9 +226,27 @@
   background: linear-gradient(135deg, hsla(120, 100%, 50%, 0.05) 0%, hsla(120, 50%, 7%, 0) 100%);
 }
 
+.neon-future .gradient-bg {
+  background: linear-gradient(135deg, hsla(180, 100%, 50%, 0.1) 0%, hsla(320, 100%, 50%, 0.05) 100%);
+}
+
+.sunset-gradient .gradient-bg {
+  background: linear-gradient(135deg, hsla(20, 100%, 60%, 0.1) 0%, hsla(330, 90%, 60%, 0.05) 100%);
+}
+
 /* Matrix Code theme typefaces */
 .matrix-code .data-text {
   font-family: 'Courier New', monospace;
+}
+
+/* Neon Future glowing text effect */
+.neon-future .glow-text {
+  text-shadow: 0 0 5px hsla(180, 100%, 70%, 0.7), 0 0 10px hsla(180, 100%, 70%, 0.5);
+}
+
+/* Sunset Gradient warm text effect */
+.sunset-gradient .warm-text {
+  text-shadow: 0 0 5px hsla(20, 100%, 60%, 0.5);
 }
 
 /* Animation for numbers in Matrix theme */
@@ -178,6 +258,33 @@
 
 .matrix-code .number-animation {
   animation: numberFlicker 2s infinite;
+}
+
+/* Neon glow animation for neon-future theme */
+@keyframes neonPulse {
+  0% { text-shadow: 0 0 5px hsla(180, 100%, 70%, 0.7), 0 0 10px hsla(180, 100%, 70%, 0.5); }
+  50% { text-shadow: 0 0 10px hsla(180, 100%, 70%, 0.9), 0 0 20px hsla(180, 100%, 70%, 0.7), 0 0 30px hsla(180, 100%, 50%, 0.5); }
+  100% { text-shadow: 0 0 5px hsla(180, 100%, 70%, 0.7), 0 0 10px hsla(180, 100%, 70%, 0.5); }
+}
+
+.neon-future .neon-pulse {
+  animation: neonPulse 3s infinite;
+}
+
+/* Gradient shift for sunset-gradient theme */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.sunset-gradient .gradient-shift {
+  background: linear-gradient(90deg, hsla(20, 100%, 60%, 1), hsla(330, 90%, 60%, 1), hsla(20, 100%, 60%, 1));
+  background-size: 200% 100%;
+  animation: gradientShift 5s ease infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 /* Trading specific colors preserved across all themes */

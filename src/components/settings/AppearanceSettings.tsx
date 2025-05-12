@@ -6,17 +6,32 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Palette } from "lucide-react";
 import { SettingsComponentProps } from "./types";
+import { ColorScheme, useTheme } from "@/contexts/ThemeContext";
 
 const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+  const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
+  
   // Initialize appearance object if it doesn't exist
   if (!form.getValues().appearance) {
     form.setValue("appearance", {
-      colorScheme: "blue",
+      colorScheme: colorScheme,
       compactMode: false,
       animationsEnabled: true,
       highContrastMode: false
     });
   }
+
+  const handleThemeChange = (value: string) => {
+    setTheme(value as "light" | "dark");
+    form.setValue("theme", value);
+  };
+
+  const handleColorSchemeChange = (value: string) => {
+    setColorScheme(value as ColorScheme);
+    if (form.getValues().appearance) {
+      form.setValue("appearance.colorScheme", value);
+    }
+  };
   
   return (
     <Card>
@@ -35,7 +50,10 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Theme</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={(value) => handleThemeChange(value)} 
+                  value={field.value || theme}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a theme" />
@@ -62,22 +80,26 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Color Scheme</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={(value) => handleColorSchemeChange(value)} 
+                      value={field.value || colorScheme}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a color scheme" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="blue">Blue</SelectItem>
-                        <SelectItem value="green">Green</SelectItem>
-                        <SelectItem value="purple">Purple</SelectItem>
-                        <SelectItem value="orange">Orange</SelectItem>
-                        <SelectItem value="red">Red</SelectItem>
+                        <SelectItem value="default">Default</SelectItem>
+                        <SelectItem value="midnight-tech">Midnight Tech</SelectItem>
+                        <SelectItem value="cyber-pulse">Cyber Pulse</SelectItem>
+                        <SelectItem value="matrix-code">Matrix Code</SelectItem>
+                        <SelectItem value="neon-future">Neon Future</SelectItem>
+                        <SelectItem value="sunset-gradient">Sunset Gradient</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Choose your preferred accent color
+                      Choose your preferred theme style
                     </FormDescription>
                   </FormItem>
                 )}

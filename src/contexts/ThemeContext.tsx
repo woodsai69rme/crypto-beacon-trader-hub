@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type Theme = 'light' | 'dark';
-export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code';
+export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
 
 interface ThemeContextType {
   theme: Theme;
@@ -57,7 +57,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // Update document attributes
     const root = window.document.documentElement;
-    root.classList.remove('default', 'midnight-tech', 'cyber-pulse', 'matrix-code');
+    root.classList.remove('default', 'midnight-tech', 'cyber-pulse', 'matrix-code', 'neon-future', 'sunset-gradient');
     root.classList.add(colorScheme);
   }, [colorScheme]);
 

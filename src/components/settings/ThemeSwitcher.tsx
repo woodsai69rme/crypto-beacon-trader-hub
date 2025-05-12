@@ -14,6 +14,7 @@ import {
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface ThemeSwitcherProps {
   className?: string;
@@ -54,11 +55,38 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
       label: "Matrix Code", 
       description: "Green-tinted hacker aesthetic",
       preview: "bg-gradient-to-br from-emerald-950 to-green-900" 
+    },
+    { 
+      value: "neon-future", 
+      label: "Neon Future", 
+      description: "Futuristic bright neon look",
+      preview: "bg-gradient-to-br from-blue-950 to-cyan-900" 
+    },
+    { 
+      value: "sunset-gradient", 
+      label: "Sunset Gradient", 
+      description: "Warm orange to purple gradient",
+      preview: "bg-gradient-to-br from-orange-950 to-rose-900" 
     }
   ];
   
   const handleToggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+    toast({
+      title: "Theme Updated",
+      description: `Switched to ${theme === "dark" ? "light" : "dark"} mode`,
+      duration: 2000
+    });
+  };
+  
+  const handleColorSchemeChange = (value: ColorScheme) => {
+    setColorScheme(value);
+    setIsOpen(false);
+    toast({
+      title: "Theme Style Updated",
+      description: `Changed to ${value.replace(/-/g, " ")} style`,
+      duration: 2000
+    });
   };
   
   return (
@@ -104,6 +132,11 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
                 onClick={() => {
                   setTheme("light");
                   setIsOpen(false);
+                  toast({
+                    title: "Theme Updated",
+                    description: "Switched to light mode",
+                    duration: 2000
+                  });
                 }}
               >
                 <Sun className="h-4 w-4 mr-2" />
@@ -119,6 +152,11 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
                 onClick={() => {
                   setTheme("dark");
                   setIsOpen(false);
+                  toast({
+                    title: "Theme Updated",
+                    description: "Switched to dark mode",
+                    duration: 2000
+                  });
                 }}
               >
                 <Moon className="h-4 w-4 mr-2" />
@@ -136,16 +174,13 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
               <button
                 key={option.value}
                 className={cn(
-                  "flex flex-col items-center space-y-1 rounded-md p-2 hover:bg-accent hover:text-accent-foreground",
+                  "flex flex-col items-center space-y-1 rounded-md p-2 hover:bg-accent hover:text-accent-foreground transition-colors",
                   colorScheme === option.value && "border-2 border-primary"
                 )}
-                onClick={() => {
-                  setColorScheme(option.value);
-                  setIsOpen(false);
-                }}
+                onClick={() => handleColorSchemeChange(option.value)}
               >
                 <div className={cn("h-8 w-full rounded-md", option.preview)} />
-                <div className="text-xs">{option.label}</div>
+                <div className="text-xs font-medium">{option.label}</div>
               </button>
             ))}
           </div>
@@ -155,6 +190,11 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
             // Match system theme
             const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             setTheme(systemTheme);
+            toast({
+              title: "Theme Updated",
+              description: "Matched to system preference",
+              duration: 2000
+            });
           }}>
             <Monitor className="h-4 w-4 mr-2" />
             <span>Match system theme</span>

@@ -1,20 +1,18 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { UseFormReturn } from "react-hook-form";
 
 import NotificationSettings from "./NotificationSettings";
 import AppearanceSettings from "./AppearanceSettings";
 import PrivacySettings from "./PrivacySettings";
 import TradingSettings from "./TradingSettings";
+import OpenRouterSettings from "./OpenRouterSettings";
 import { SettingsFormValues } from "./types";
-import { User, Settings2, Bell, Shield, BarChart2, UserCircle } from "lucide-react";
+import { User, Settings2, Bell, Shield, BarChart2, UserCircle, Key } from "lucide-react";
 
 interface SettingsProps {
   form: UseFormReturn<SettingsFormValues>;
@@ -53,7 +51,7 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
         <Card>
           <CardContent className="p-0">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid grid-cols-2 md:grid-cols-5">
+              <TabsList className="grid grid-cols-2 md:grid-cols-6">
                 <TabsTrigger value="profile" className="flex items-center gap-1">
                   <UserCircle className="h-4 w-4" />
                   <span className="hidden md:inline">Profile</span>
@@ -73,6 +71,10 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
                 <TabsTrigger value="trading" className="flex items-center gap-1">
                   <BarChart2 className="h-4 w-4" />
                   <span className="hidden md:inline">Trading</span>
+                </TabsTrigger>
+                <TabsTrigger value="integrations" className="flex items-center gap-1">
+                  <Key className="h-4 w-4" />
+                  <span className="hidden md:inline">Integrations</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -140,6 +142,19 @@ const Settings: React.FC<SettingsProps> = ({ form }) => {
                 
                 <TabsContent value="trading">
                   <TradingSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="integrations">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">API Integrations</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Configure external API integrations for enhanced functionality
+                      </p>
+                    </div>
+                    
+                    <OpenRouterSettings />
+                  </div>
                 </TabsContent>
               </div>
             </Tabs>
