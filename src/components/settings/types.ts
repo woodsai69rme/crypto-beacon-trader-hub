@@ -17,10 +17,13 @@ export interface SettingsFormValues {
     compactMode: boolean;
     showAllDecimals: boolean;
   };
-  // Extended properties for UserSettings component
+  // User profile settings
   displayName?: string;
   email?: string;
+  username?: string;
+  language?: string;
   theme?: string;
+  // Notifications
   notifications?: {
     email: boolean;
     push: boolean;
@@ -28,11 +31,13 @@ export interface SettingsFormValues {
     pricing: boolean;
     news: boolean;
   };
+  // Trading preferences
   tradingPreferences?: {
     autoConfirm: boolean;
     showAdvanced: boolean;
     defaultAsset: string;
   };
+  // Privacy settings
   privacy?: {
     showOnlineStatus: boolean;
     sharePortfolio: boolean;
@@ -41,15 +46,25 @@ export interface SettingsFormValues {
     marketingConsent: boolean;
     thirdPartySharing: boolean;
   };
+  // Account settings
   account?: {
     twoFactorEnabled: boolean;
     loginAlerts: boolean;
   };
+  // Appearance settings
   appearance?: {
     colorScheme: string;
     compactMode: boolean;
     animationsEnabled: boolean;
     highContrastMode: boolean;
+  };
+  // Ticker settings
+  ticker?: {
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
   };
 }
 

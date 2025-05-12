@@ -44,9 +44,22 @@ const settingsFormSchema = z.object({
     compactMode: z.boolean().default(false),
     showAllDecimals: z.boolean().default(false),
   }),
+  // Optional fields
+  username: z.string().optional(),
+  displayName: z.string().optional(),
+  email: z.string().optional(),
+  language: z.string().optional(),
+  theme: z.string().optional(),
+  ticker: z.object({
+    enabled: z.boolean().default(false),
+    position: z.string().default('top'),
+    speed: z.number().default(5),
+    direction: z.string().default('ltr'),
+    autoPause: z.boolean().default(true),
+  }).optional(),
 });
 
-const defaultSettings: SettingsFormValues = {
+const defaultSettings: z.infer<typeof settingsFormSchema> = {
   currency: {
     defaultCurrency: 'USD',
     showPriceInBTC: false,
@@ -61,15 +74,22 @@ const defaultSettings: SettingsFormValues = {
     compactMode: false,
     showAllDecimals: false,
   },
+  ticker: {
+    enabled: false,
+    position: 'top',
+    speed: 5,
+    direction: 'ltr',
+    autoPause: true,
+  }
 };
 
 export const Settings = () => {
-  const form = useForm<SettingsFormValues>({
+  const form = useForm<z.infer<typeof settingsFormSchema>>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues: defaultSettings,
   });
 
-  function onSubmit(data: SettingsFormValues) {
+  function onSubmit(data: z.infer<typeof settingsFormSchema>) {
     // Save settings
     localStorage.setItem('userSettings', JSON.stringify(data));
     
@@ -114,7 +134,7 @@ export const Settings = () => {
                         <FormLabel>Default Currency</FormLabel>
                         <Select 
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -181,7 +201,7 @@ export const Settings = () => {
                         <FormLabel>Default API Provider</FormLabel>
                         <Select 
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -213,8 +233,8 @@ export const Settings = () => {
                           <Input 
                             type="number" 
                             min={5} 
-                            max={600} 
-                            {...field} 
+                            max={600}
+                            value={field.value}
                             onChange={e => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
@@ -236,8 +256,8 @@ export const Settings = () => {
                           <Input 
                             type="number" 
                             min={1} 
-                            max={60} 
-                            {...field}
+                            max={60}
+                            value={field.value}
                             onChange={e => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
@@ -269,7 +289,7 @@ export const Settings = () => {
                         <FormLabel>Theme</FormLabel>
                         <Select 
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>

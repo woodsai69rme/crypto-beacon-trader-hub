@@ -21,7 +21,6 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormField
             control={form.control}
             name="username"
-            rules={{ required: "Username is required" }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Username</FormLabel>
@@ -36,13 +35,6 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormField
             control={form.control}
             name="email"
-            rules={{ 
-              required: "Email is required",
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: "Invalid email address"
-              }
-            }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>

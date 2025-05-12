@@ -101,7 +101,7 @@ export const ATOTaxCalculator = () => {
                   min={0}
                   max={250000}
                   step={1000}
-                  onValueChange={(value) => setIncome(value[0])}
+                  onValueChange={(values) => setIncome(values[0])}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-1">
                   <span>$0</span>
@@ -114,15 +114,15 @@ export const ATOTaxCalculator = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Tax Year & Status</CardTitle>
+            <CardTitle className="text-lg">Parameters</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="year">Tax Year</Label>
+                <Label htmlFor="year">Financial Year</Label>
                 <Select value={year} onValueChange={setYear}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select tax year" />
+                  <SelectTrigger id="year">
+                    <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="2023-2024">2023-2024</SelectItem>
@@ -133,14 +133,14 @@ export const ATOTaxCalculator = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="status">Residency Status</Label>
+                <Label htmlFor="residency">Residency Status</Label>
                 <Select value={residencyStatus} onValueChange={setResidencyStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger id="residency">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="resident">Australian Resident</SelectItem>
-                    <SelectItem value="non-resident">Non-Resident</SelectItem>
+                    <SelectItem value="non-resident">Foreign Resident</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -153,20 +153,26 @@ export const ATOTaxCalculator = () => {
             <CardTitle className="text-lg">Results</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground">Tax Amount</div>
-                <div className="text-2xl font-bold">${taxAmount.toLocaleString('en-AU', { maximumFractionDigits: 2 })}</div>
+                <div className="text-xs text-muted-foreground">Tax Amount</div>
+                <div className="text-2xl font-bold">AU ${taxAmount.toLocaleString('en-AU', { 
+                  minimumFractionDigits: 2, 
+                  maximumFractionDigits: 2 
+                })}</div>
               </div>
               
               <div>
-                <div className="text-sm text-muted-foreground">Net Income</div>
-                <div className="text-xl">${netIncome.toLocaleString('en-AU', { maximumFractionDigits: 2 })}</div>
+                <div className="text-xs text-muted-foreground">Effective Tax Rate</div>
+                <div className="text-xl font-semibold">{effectiveTaxRate.toFixed(2)}%</div>
               </div>
               
               <div>
-                <div className="text-sm text-muted-foreground">Effective Tax Rate</div>
-                <div className="text-xl">{effectiveTaxRate.toFixed(2)}%</div>
+                <div className="text-xs text-muted-foreground">Net Income</div>
+                <div className="text-xl font-semibold">AU ${netIncome.toLocaleString('en-AU', { 
+                  minimumFractionDigits: 2, 
+                  maximumFractionDigits: 2 
+                })}</div>
               </div>
             </div>
           </CardContent>
@@ -175,40 +181,42 @@ export const ATOTaxCalculator = () => {
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Tax Brackets ({year})</CardTitle>
+          <CardTitle className="text-lg">Tax Brackets for {year}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 px-4">Income Range</th>
-                  <th className="text-left py-2 px-4">Tax Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {taxBrackets[year].map((bracketInfo, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-2 px-4">{bracketInfo.bracket}</td>
-                    <td className="py-2 px-4">{bracketInfo.rate}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-2 gap-2">
+            {taxBrackets[year].map((bracket, index) => (
+              <div 
+                key={index} 
+                className={`p-2 rounded-md border ${
+                  (residencyStatus === "resident" && (
+                    (income <= 18200 && index === 0) ||
+                    (income > 18200 && income <= 45000 && index === 1) ||
+                    (income > 45000 && income <= 120000 && index === 2) ||
+                    (income > 120000 && income <= 180000 && index === 3) ||
+                    (income > 180000 && index === 4)
+                  )) || 
+                  (residencyStatus === "non-resident" && (
+                    (income <= 120000 && index === 2) ||
+                    (income > 120000 && income <= 180000 && index === 3) ||
+                    (income > 180000 && index === 4)
+                  ))
+                    ? 'border-primary bg-primary/10' 
+                    : ''
+                }`}
+              >
+                <div className="text-sm">{bracket.bracket}</div>
+                <div className="font-semibold">{bracket.rate}</div>
+              </div>
+            ))}
           </div>
-          
-          <div className="mt-4 text-sm text-muted-foreground">
-            <p>* Medicare levy (2%) may apply in addition to these rates.</p>
-            <p>* This calculator is for general information only and does not constitute financial advice.</p>
+          <div className="mt-4 text-xs text-muted-foreground">
+            {residencyStatus === "non-resident" 
+              ? "Note: Foreign residents pay tax from the first dollar earned in Australia with no tax-free threshold" 
+              : "Note: The above calculations include the tax-free threshold"}
           </div>
         </CardContent>
       </Card>
-      
-      <div className="flex justify-end">
-        <Button>
-          Download Tax Summary
-        </Button>
-      </div>
     </div>
   );
 };
