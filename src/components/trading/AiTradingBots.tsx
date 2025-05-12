@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Bot, Plus, Play, Pause } from "lucide-react";
 import { AITradingStrategy } from "@/types/trading";
-import { predefinedStrategies } from "@/utils/aiTradingStrategies";
+import { mockAIStrategies } from "@/utils/mockData";
 
 interface AiTradingBotsProps {
   onCreateBot?: () => void;
@@ -18,7 +18,7 @@ const AiTradingBots: React.FC<AiTradingBotsProps> = ({
   onSelectBot
 }) => {
   // State for active bots
-  const [bots, setBots] = useState<AITradingStrategy[]>(predefinedStrategies);
+  const [bots, setBots] = useState<AITradingStrategy[]>(mockAIStrategies);
   const [activeStatus, setActiveStatus] = useState<Record<string, boolean>>({
     'strategy-1': true,
     'strategy-2': false,
@@ -78,15 +78,21 @@ const AiTradingBots: React.FC<AiTradingBotsProps> = ({
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {bot.assets && bot.assets.slice(0, 3).map(asset => (
-                          <Badge key={asset} variant="outline" className="text-xs">
-                            {asset.slice(0, 3).toUpperCase()}
-                          </Badge>
-                        ))}
-                        {bot.assets && bot.assets.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{bot.assets.length - 3} more
-                          </Badge>
+                        {bot.assets && bot.assets.length > 0 ? (
+                          <>
+                            {bot.assets.slice(0, 3).map(asset => (
+                              <Badge key={asset} variant="outline" className="text-xs">
+                                {asset.slice(0, 3).toUpperCase()}
+                              </Badge>
+                            ))}
+                            {bot.assets.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{bot.assets.length - 3} more
+                              </Badge>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No assets</span>
                         )}
                       </div>
                     </TableCell>

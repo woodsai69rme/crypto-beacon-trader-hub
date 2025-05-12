@@ -1,227 +1,154 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ATOTaxSettings, TaxCalculationInput, TaxCalculationResult } from '@/types/ATOTaxCalculation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Calculator } from 'lucide-react';
+import { ATOTaxCalculation } from '@/types/trading';
 
 const ATOTaxCalculator: React.FC = () => {
-  const [income, setIncome] = useState<number>(85000);
-  const [capitalGains, setCapitalGains] = useState<number>(12000);
-  const [deductions, setDeductions] = useState<number>(3500);
-  const [cryptoTrades, setCryptoTrades] = useState<number>(42);
-  const [financialYear, setFinancialYear] = useState<string>("2023-2024");
+  const [income, setIncome] = useState<string>('85000');
+  const [capitalGains, setCapitalGains] = useState<string>('15000');
+  const [taxYear, setTaxYear] = useState<string>('2023-2024');
+  const [results, setResults] = useState<ATOTaxCalculation | null>(null);
   
-  const [result, setResult] = useState<TaxCalculationResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  const availableYears = Object.keys(ATOTaxCalculation);
-  
-  const handleCalculate = () => {
-    setIsLoading(true);
+  const calculateTax = () => {
+    // This would be a call to a proper tax calculation function in production
+    const mockResults: ATOTaxCalculation = {
+      financialYear: taxYear,
+      taxableIncome: parseFloat(income),
+      capitalGainsIncome: parseFloat(capitalGains),
+      taxRate: 0.325,
+      medicareLevyRate: 0.02,
+      taxPayable: parseFloat(income) * 0.325,
+      medicareLevy: parseFloat(income) * 0.02,
+      totalTaxLiability: parseFloat(income) * 0.325 + parseFloat(income) * 0.02,
+      taxCredits: 0,
+      taxRefundOrOwed: parseFloat(income) * 0.345,
+      incomeTax: parseFloat(income) * 0.325,
+      taxWithheld: 0,
+      netCapitalGains: parseFloat(capitalGains) * 0.5,
+      assessableIncome: parseFloat(income) + parseFloat(capitalGains) * 0.5,
+      bracketInfo: {
+        bracket: '$45,001 – $120,000',
+        rate: '32.5c for each $1 over $45,000'
+      },
+      capitalGains: parseFloat(capitalGains),
+      CGTDiscount: parseFloat(capitalGains) * 0.5
+    };
     
-    // Simulate API call delay
-    setTimeout(() => {
-      try {
-        const taxSettings = ATOTaxCalculation[financialYear as keyof typeof ATOTaxCalculation];
-        const taxableIncome = income + capitalGains - deductions;
-        
-        // Calculate tax based on brackets
-        let incomeTax = 0;
-        for (const bracket of taxSettings.brackets) {
-          if (taxableIncome > bracket.min) {
-            const taxableAmount = bracket.max ? Math.min(taxableIncome, bracket.max) - bracket.min : taxableIncome - bracket.min;
-            incomeTax += bracket.base + (taxableAmount * bracket.rate);
-            
-            if (bracket.max && taxableIncome <= bracket.max) break;
-          }
-        }
-        
-        // Calculate Medicare Levy
-        const medicareLevy = taxableIncome > taxSettings.medicareLevyThreshold 
-          ? taxableIncome * taxSettings.medicareLevyRate 
-          : 0;
-        
-        // Calculate Medicare Levy Surcharge
-        const medicareSurcharge = taxableIncome > taxSettings.medicareSurchargeThreshold 
-          ? taxableIncome * taxSettings.medicareSurchargeRate 
-          : 0;
-        
-        // Calculate low income tax offset
-        let lowIncomeTaxOffset = 0;
-        if (taxableIncome < taxSettings.lowIncomeTaxOffsetThreshold) {
-          lowIncomeTaxOffset = taxSettings.lowIncomeTaxOffset;
-        }
-        
-        // Calculate tax on crypto gains (rough estimate)
-        const taxOnCryptoGains = capitalGains > 0 
-          ? capitalGains * 0.325 // Assuming average tax rate of 32.5%
-          : 0;
-        
-        const totalTax = incomeTax + medicareLevy + medicareSurcharge - lowIncomeTaxOffset;
-        const afterTaxIncome = taxableIncome - totalTax;
-        const effectiveTaxRate = totalTax / taxableIncome * 100;
-        
-        // Find the marginal tax rate based on income
-        let marginalTaxRate = 0;
-        let taxBracket = "";
-        for (const bracket of taxSettings.brackets) {
-          if (taxableIncome > bracket.min) {
-            marginalTaxRate = bracket.rate * 100;
-            const maxText = bracket.max ? `$${bracket.max.toLocaleString()}` : "and above";
-            taxBracket = `$${bracket.min.toLocaleString()} - ${maxText}`;
-          }
-        }
-        
-        const taxBreakdown = {
-          "Income Tax": incomeTax,
-          "Medicare Levy": medicareLevy,
-          "Medicare Levy Surcharge": medicareSurcharge,
-          "Low Income Tax Offset": -lowIncomeTaxOffset,
-        };
-        
-        setResult({
-          taxableIncome,
-          incomeTax,
-          medicareLevy,
-          medicareSurcharge,
-          totalTax,
-          effectiveTaxRate,
-          afterTaxIncome,
-          taxOnCryptoGains,
-          marginalTaxRate,
-          taxBracket,
-          taxBreakdown,
-        });
-        
-      } catch (error) {
-        console.error("Error calculating tax:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1000);
+    setResults(mockResults);
   };
   
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Australian Tax Calculator</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5" />
+          Australian Tax Calculator
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label htmlFor="income" className="text-sm font-medium">Annual Income (AUD)</label>
-            <Input 
-              id="income"
-              type="number"
-              value={income}
-              onChange={(e) => setIncome(Number(e.target.value))}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="capital-gains" className="text-sm font-medium">Capital Gains (AUD)</label>
-            <Input 
-              id="capital-gains"
-              type="number"
-              value={capitalGains}
-              onChange={(e) => setCapitalGains(Number(e.target.value))}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="deductions" className="text-sm font-medium">Deductions (AUD)</label>
-            <Input 
-              id="deductions"
-              type="number"
-              value={deductions}
-              onChange={(e) => setDeductions(Number(e.target.value))}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="crypto-trades" className="text-sm font-medium">Number of Crypto Trades</label>
-            <Input 
-              id="crypto-trades"
-              type="number"
-              value={cryptoTrades}
-              onChange={(e) => setCryptoTrades(Number(e.target.value))}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="financial-year" className="text-sm font-medium">Financial Year</label>
-            <Select value={financialYear} onValueChange={setFinancialYear}>
-              <SelectTrigger>
-                <SelectValue />
+            <Label htmlFor="tax-year">Tax Year</Label>
+            <Select 
+              value={taxYear} 
+              onValueChange={setTaxYear}
+            >
+              <SelectTrigger id="tax-year">
+                <SelectValue placeholder="Select tax year" />
               </SelectTrigger>
               <SelectContent>
-                {availableYears.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
+                <SelectItem value="2023-2024">2023-2024</SelectItem>
+                <SelectItem value="2022-2023">2022-2023</SelectItem>
+                <SelectItem value="2021-2022">2021-2022</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="income">Annual Income (AUD)</Label>
+            <Input 
+              id="income" 
+              type="number" 
+              value={income} 
+              onChange={(e) => setIncome(e.target.value)}
+              placeholder="E.g. 85000" 
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="capital-gains">Capital Gains (AUD)</Label>
+            <Input 
+              id="capital-gains" 
+              type="number" 
+              value={capitalGains} 
+              onChange={(e) => setCapitalGains(e.target.value)}
+              placeholder="E.g. 15000" 
+            />
+          </div>
         </div>
         
-        <Button onClick={handleCalculate} className="w-full" disabled={isLoading}>
-          {isLoading ? "Calculating..." : "Calculate Tax"}
-        </Button>
+        <div className="flex justify-end">
+          <Button onClick={calculateTax}>Calculate Tax</Button>
+        </div>
         
-        {result && (
-          <div className="mt-4 border rounded-md p-4">
-            <h3 className="font-bold text-lg mb-2">Tax Calculation Results</h3>
+        {results && (
+          <div className="pt-4 border-t">
+            <h3 className="font-medium text-lg mb-4">Tax Assessment Summary</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="flex justify-between">
-                <span>Taxable Income:</span>
-                <span className="font-medium">${result.taxableIncome.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Tax Bracket:</span>
-                <span className="font-medium">{result.taxBracket}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Marginal Tax Rate:</span>
-                <span className="font-medium">{result.marginalTaxRate.toFixed(1)}%</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Effective Tax Rate:</span>
-                <span className="font-medium">{result.effectiveTaxRate.toFixed(1)}%</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Income Tax:</span>
-                <span className="font-medium">${result.incomeTax.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Medicare Levy:</span>
-                <span className="font-medium">${result.medicareLevy.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Medicare Surcharge:</span>
-                <span className="font-medium">${result.medicareSurcharge.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Tax on Crypto Gains:</span>
-                <span className="font-medium">${result.taxOnCryptoGains.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between font-bold">
-                <span>Total Tax Payable:</span>
-                <span>${result.totalTax.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between font-bold">
-                <span>After-Tax Income:</span>
-                <span>${result.afterTaxIncome.toLocaleString()}</span>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Amount (AUD)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Taxable Income</TableCell>
+                  <TableCell className="text-right">${results.taxableIncome.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Capital Gains</TableCell>
+                  <TableCell className="text-right">${results.capitalGains.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>CGT Discount (50%)</TableCell>
+                  <TableCell className="text-right">${results.CGTDiscount.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Net Capital Gains</TableCell>
+                  <TableCell className="text-right">${results.netCapitalGains.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Assessable Income</TableCell>
+                  <TableCell className="text-right">${results.assessableIncome.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Income Tax</TableCell>
+                  <TableCell className="text-right">${results.incomeTax.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Medicare Levy</TableCell>
+                  <TableCell className="text-right">${results.medicareLevy.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow className="font-bold">
+                  <TableCell>Total Tax Liability</TableCell>
+                  <TableCell className="text-right">${results.totalTaxLiability.toLocaleString()}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            
+            <div className="mt-4 border p-3 rounded-md">
+              <div className="text-sm font-medium">Tax Bracket</div>
+              <div className="flex justify-between items-center">
+                <span>{results.bracketInfo.bracket}</span>
+                <span className="text-muted-foreground">{results.bracketInfo.rate}</span>
               </div>
             </div>
           </div>

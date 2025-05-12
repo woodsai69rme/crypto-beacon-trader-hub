@@ -2,111 +2,147 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { PriceAlertFormData, COIN_OPTIONS } from './AlertComponents/AlertTypes';
+import { CoinOption } from '@/types/trading';
+import { mockCoinData } from '@/utils/mockData';
 
 interface PriceAlertFormProps {
-  formData: PriceAlertFormData;
-  onSubmit?: () => void;
-  onFormChange: (updatedData: PriceAlertFormData) => void;
+  onSubmit?: (data: any) => void;
+  onCancel?: () => void;
+  initialData?: any;
 }
 
-const PriceAlertForm: React.FC<PriceAlertFormProps> = ({ 
-  formData, 
+const PriceAlertForm: React.FC<PriceAlertFormProps> = ({
   onSubmit,
-  onFormChange
+  onCancel,
+  initialData
 }) => {
-  const coins = COIN_OPTIONS;
-
-  const handleChange = (field: keyof PriceAlertFormData, value: any) => {
-    const updatedData = { ...formData, [field]: value };
-    onFormChange(updatedData);
+  const [coin, setCoin] = useState(initialData?.coin || '');
+  const [condition, setCondition] = useState(initialData?.condition || 'above');
+  const [price, setPrice] = useState(initialData?.price || '');
+  const [repeat, setRepeat] = useState(initialData?.repeat || false);
+  const [email, setEmail] = useState(initialData?.email || true);
+  const [push, setPush] = useState(initialData?.push || true);
+  
+  // Get the selected coin's current price for reference
+  const selectedCoin = mockCoinData.find(c => c.id === coin);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSubmit) {
+      onSubmit({
+        type: 'price',
+        coin,
+        condition,
+        price: parseFloat(price),
+        repeat,
+        notifications: {
+          email,
+          push
+        },
+        createdAt: new Date().toISOString()
+      });
+    }
   };
-
+  
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="coin">Cryptocurrency</Label>
         <Select 
-          value={formData.coinId} 
-          onValueChange={(value) => {
-            const selectedCoin = coins.find(c => c.id === value);
-            handleChange('coinId', value);
-            handleChange('coinName', selectedCoin?.name || '');
-            handleChange('coinSymbol', selectedCoin?.symbol || '');
-            handleChange('currentPrice', selectedCoin?.price || 0);
-          }}
+          value={coin} 
+          onValueChange={setCoin}
+          required
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select coin" />
+          <SelectTrigger id="coin">
+            <SelectValue placeholder="Select a cryptocurrency" />
           </SelectTrigger>
           <SelectContent>
-            {coins.map((coin) => (
+            {mockCoinData.map(coin => (
               <SelectItem key={coin.id} value={coin.id}>
-                {coin.name} ({coin.symbol})
+                {coin.symbol.toUpperCase()} - {coin.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-
-      <div>
-        <Label>Alert Condition</Label>
-        <RadioGroup 
-          value={formData.isAbove ? 'above' : 'below'} 
-          onValueChange={(value) => handleChange('isAbove', value === 'above')}
-          className="flex space-x-4 mt-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="above" id="above" />
-            <Label htmlFor="above">Price Above</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="below" id="below" />
-            <Label htmlFor="below">Price Below</Label>
-          </div>
-        </RadioGroup>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="condition">Condition</Label>
+          <Select 
+            value={condition} 
+            onValueChange={setCondition}
+            required
+          >
+            <SelectTrigger id="condition">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="above">Price Above</SelectItem>
+              <SelectItem value="below">Price Below</SelectItem>
+              <SelectItem value="percent-increase">% Increase</SelectItem>
+              <SelectItem value="percent-decrease">% Decrease</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="price">Price (USD)</Label>
+          <Input
+            id="price"
+            type="number"
+            step="0.00000001"
+            value={price}
+            onChange={e => setPrice(e.target.value)}
+            placeholder="Enter price"
+            required
+          />
+        </div>
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="targetPrice">Target Price (USD)</Label>
-        <Input
-          id="targetPrice"
-          type="number"
-          step="0.01"
-          value={formData.targetPrice}
-          onChange={(e) => handleChange('targetPrice', parseFloat(e.target.value))}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Optional)</Label>
-        <Input
-          id="notes"
-          placeholder="Add any notes about this alert"
-          value={formData.notes || ''}
-          onChange={(e) => handleChange('notes', e.target.value)}
-        />
-      </div>
-
-      {onSubmit && (
-        <Button 
-          className="w-full mt-4" 
-          onClick={onSubmit}
-          disabled={!formData.coinId || !formData.targetPrice}
-        >
-          Create Alert
-        </Button>
+      
+      {selectedCoin && selectedCoin.price && (
+        <div className="text-sm text-muted-foreground flex justify-between">
+          <span>Current price:</span>
+          <span className="font-mono">${selectedCoin.price.toLocaleString()}</span>
+        </div>
       )}
-    </div>
+      
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="repeat">Repeat Alert</Label>
+          <Switch id="repeat" checked={repeat} onCheckedChange={setRepeat} />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          When enabled, this alert will continue to trigger whenever conditions are met.
+        </p>
+      </div>
+      
+      <div className="border rounded-md p-3 space-y-2">
+        <h3 className="text-sm font-medium">Notification Methods</h3>
+        
+        <div className="flex items-center justify-between">
+          <Label htmlFor="email-notification" className="cursor-pointer">Email Notification</Label>
+          <Switch id="email-notification" checked={email} onCheckedChange={setEmail} />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <Label htmlFor="push-notification" className="cursor-pointer">Push Notification</Label>
+          <Switch id="push-notification" checked={push} onCheckedChange={setPush} />
+        </div>
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit">Create Alert</Button>
+      </div>
+    </form>
   );
 };
 

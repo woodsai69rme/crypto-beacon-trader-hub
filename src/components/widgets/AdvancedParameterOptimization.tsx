@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { optimizeStrategy } from '@/services/strategyBuilderService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sliders, TrendingUp, Settings, BarChart2, Save } from 'lucide-react';
+import { Sliders, Settings } from 'lucide-react';
 import { AITradingStrategy, OptimizationResult } from '@/types/trading';
 
 interface AdvancedParameterOptimizationProps {
@@ -38,7 +37,7 @@ const AdvancedParameterOptimization: React.FC<AdvancedParameterOptimizationProps
     current: number[];
     enabled: boolean;
   }>>([]);
-  
+
   // Initialize parameter ranges based on strategy
   useEffect(() => {
     if (strategy && strategy.parameters) {
@@ -336,7 +335,7 @@ const AdvancedParameterOptimization: React.FC<AdvancedParameterOptimizationProps
                     <div className="flex justify-between items-center">
                       <span>Improvement:</span>
                       <span className="text-green-600 font-bold">
-                        +{optimizationResult.improvement.toFixed(2)}%
+                        +{optimizationResult.improvement?.toFixed(2)}%
                       </span>
                     </div>
                     
@@ -376,7 +375,7 @@ const AdvancedParameterOptimization: React.FC<AdvancedParameterOptimizationProps
                         <div className="p-3 border rounded-md">
                           <div className="text-xs text-muted-foreground">Profit</div>
                           <div className="font-medium text-green-600">
-                            +{optimizationResult.performance.profit.toFixed(2)}%
+                            +{optimizationResult.performance.returns.toFixed(2)}%
                           </div>
                         </div>
                         <div className="p-3 border rounded-md">
@@ -402,7 +401,7 @@ const AdvancedParameterOptimization: React.FC<AdvancedParameterOptimizationProps
                     
                     <div className="flex justify-end">
                       <Button onClick={handleApplyParameters}>
-                        <Save className="h-4 w-4 mr-2" />
+                        <Settings className="h-4 w-4 mr-2" />
                         Apply Optimized Parameters
                       </Button>
                     </div>
