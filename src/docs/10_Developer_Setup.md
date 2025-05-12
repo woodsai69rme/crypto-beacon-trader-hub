@@ -1,96 +1,206 @@
+# Developer Setup Guide
 
-# Developer Setup
+## Introduction
 
-## Crypto Beacon Trader Hub
+This document provides step-by-step instructions for setting up the Crypto Beacon Trader Hub development environment. By following these instructions, you'll have a fully functional local development environment where you can contribute to the project.
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-05-06
+## System Requirements
 
-This document provides instructions for setting up the development environment for the Crypto Beacon Trader Hub platform.
+### Minimum Requirements
 
-## 1. Prerequisites
-
-### 1.1 Required Software
-
+- **CPU**: 4 cores
+- **RAM**: 8 GB
+- **Disk Space**: 10 GB available
+- **Operating System**: macOS 10.15+, Windows 10+, or Linux (Ubuntu 20.04+ recommended)
 - **Node.js**: v18.0.0 or higher
-- **npm**: v8.0.0 or higher (included with Node.js)
-- **Git**: Latest version recommended
+- **npm**: v9.0.0 or higher
 
-### 1.2 Recommended Tools
+### Recommended Specifications
 
-- **Visual Studio Code**: With extensions:
-  - ESLint
-  - Prettier
-  - Tailwind CSS IntelliSense
-  - TypeScript Hero
-  - Error Lens
-- **Chrome/Firefox**: With React Developer Tools extension
-- **Postman/Insomnia**: For API testing
+- **CPU**: 8+ cores
+- **RAM**: 16+ GB
+- **Disk Space**: 20+ GB SSD
+- **Operating System**: macOS 12+, Windows 11, or Ubuntu 22.04+
+- **Node.js**: v20.0.0 or higher
+- **npm**: v10.0.0 or higher
 
-## 2. Setting Up the Development Environment
+## Initial Setup
 
-### 2.1 Cloning the Repository
+### 1. Install Required Tools
+
+#### Node.js and npm
+
+Install Node.js (which includes npm) using one of the following methods:
+
+**Using NVM (recommended):**
+
+```bash
+# Install NVM (Node Version Manager)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+# or with wget
+wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+
+# Reload your shell configuration
+source ~/.bashrc  # or ~/.zshrc for zsh users
+
+# Install and use Node.js v20
+nvm install 20
+nvm use 20
+```
+
+**Direct installation:**
+
+Download and install from the [Node.js website](https://nodejs.org/).
+
+Verify installation:
+
+```bash
+node -v  # Should show v18.0.0 or higher
+npm -v   # Should show v9.0.0 or higher
+```
+
+#### Git
+
+**macOS:**
+```bash
+brew install git
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install git
+```
+
+**Windows:**
+Download and install from [Git for Windows](https://gitforwindows.org/).
+
+### 2. Clone the Repository
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/crypto-beacon-trader-hub.git
+git clone https://github.com/your-organization/crypto-beacon-trader-hub.git
 
 # Navigate to the project directory
 cd crypto-beacon-trader-hub
 ```
 
-### 2.2 Installing Dependencies
+### 3. Install Dependencies
 
 ```bash
-# Install project dependencies
 npm install
 ```
 
-### 2.3 Environment Configuration
+## Environment Configuration
 
-Create a `.env.local` file in the root directory with the following variables:
+### 1. Environment Variables
 
-```
-# API Keys (Optional - for full functionality)
-VITE_COINGECKO_API_KEY=your_coingecko_api_key
-VITE_COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
-
-# Feature Flags
-VITE_ENABLE_LOCAL_MODELS=true
-VITE_ENABLE_ADVANCED_CHARTS=true
-
-# Development Settings
-VITE_API_MOCKING=true
-```
-
-Note: The application can run without API keys, but some features will use mocked data instead of live data.
-
-## 3. Running the Application
-
-### 3.1 Development Server
+Create a `.env.local` file in the project root:
 
 ```bash
-# Start the development server
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your specific configuration:
+
+```ini
+# API Configuration
+VITE_API_BASE_URL=http://localhost:5000/api
+VITE_WEBSOCKET_URL=ws://localhost:5001
+
+# Feature Flags
+VITE_ENABLE_AI_FEATURES=true
+VITE_ENABLE_SIMULATED_TRADING=true
+
+# Development Settings
+VITE_LOG_LEVEL=debug
+```
+
+### 2. Additional Configuration Files
+
+Some features require additional configuration files:
+
+#### API Provider Configuration
+
+Create `api-providers.config.json` in the `config` directory:
+
+```bash
+mkdir -p config
+cp config/api-providers.example.json config/api-providers.config.json
+```
+
+Edit as needed for your development environment.
+
+## Running the Application
+
+### Development Server
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-This will start the application on `http://localhost:5173` (or the next available port).
+This will launch the application at [http://localhost:5173](http://localhost:5173).
 
-### 3.2 Build for Production
+### Building for Production
+
+To create an optimized production build:
 
 ```bash
-# Build for production
 npm run build
+```
 
-# Preview production build
+The output will be in the `dist` directory.
+
+### Preview Production Build
+
+To preview the production build locally:
+
+```bash
 npm run preview
 ```
 
-### 3.3 Running Tests
+## Development Tools
+
+### Code Quality Tools
+
+The project uses several tools to maintain code quality:
+
+#### Linting
 
 ```bash
-# Run all tests
-npm test
+# Run ESLint
+npm run lint
+
+# Fix automatic ESLint issues
+npm run lint:fix
+```
+
+#### Formatting
+
+```bash
+# Check formatting with Prettier
+npm run format:check
+
+# Fix formatting issues
+npm run format
+```
+
+#### Type Checking
+
+```bash
+# Run TypeScript type checking
+npm run type-check
+```
+
+### Testing
+
+#### Unit Tests
+
+```bash
+# Run all unit tests
+npm run test
 
 # Run tests in watch mode
 npm run test:watch
@@ -99,178 +209,169 @@ npm run test:watch
 npm run test:coverage
 ```
 
-## 4. Development Workflow
+#### End-to-End Tests
 
-### 4.1 Branch Structure
+```bash
+# Run Cypress tests in headless mode
+npm run test:e2e
 
-- `main`: Production-ready code
-- `develop`: Primary development branch
-- `feature/*`: Feature branches
-- `bugfix/*`: Bug fix branches
-- `release/*`: Release preparation branches
-
-### 4.2 Commit Guidelines
-
-We follow Conventional Commits specification:
-
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
+# Open Cypress UI for interactive testing
+npm run cypress:open
 ```
 
-Examples:
-- `feat: add local model connection interface`
-- `fix: resolve websocket reconnection issue`
-- `docs: update API documentation`
-- `style: format code with prettier`
+### Storybook
 
-### 4.3 Pull Request Process
+Explore and test UI components in isolation:
 
-1. Create a feature/bugfix branch from `develop`
-2. Make your changes
-3. Ensure all tests pass
-4. Submit a PR to the `develop` branch
-5. Address review comments
-6. Once approved, merge to `develop`
-
-## 5. Local MCP Integration
-
-To test the local AI model integration features, you need to run a local MCP server:
-
-### 5.1 MCP Server Setup
-
-1. Clone the MCP server repository:
-   ```bash
-   git clone https://github.com/example/mcp-server.git
-   cd mcp-server
-   ```
-
-2. Install dependencies and start the server:
-   ```bash
-   npm install
-   npm start
-   ```
-
-3. The MCP server will be available at `http://localhost:5000`
-
-### 5.2 Configuring the Application for Local Models
-
-In your `.env.local` file, ensure you have:
-
-```
-VITE_ENABLE_LOCAL_MODELS=true
-VITE_MCP_SERVER_URL=http://localhost:5000
+```bash
+# Start Storybook server
+npm run storybook
 ```
 
-## 6. Code Structure
+This will launch Storybook at [http://localhost:6006](http://localhost:6006).
 
-### 6.1 Directory Structure
+## Project Structure
 
 ```
 crypto-beacon-trader-hub/
-├── public/              # Static assets
-├── src/                 # Source code
-│   ├── components/      # React components
-│   │   ├── ui/          # UI components
-│   │   ├── charts/      # Chart components
-│   │   ├── trading/     # Trading-related components
-│   │   └── settings/    # Settings components
-│   ├── hooks/           # Custom React hooks
-│   ├── contexts/        # React context providers
-│   ├── services/        # API services and data fetching
-│   ├── utils/           # Utility functions
-│   ├── types/           # TypeScript type definitions
-│   ├── styles/          # Global styles
-│   ├── pages/           # Page components
-│   ├── assets/          # Images and other assets
-│   └── App.tsx          # Application entry point
-├── docs/                # Documentation
-├── tests/               # Test files
-├── vite.config.ts       # Vite configuration
-├── tsconfig.json        # TypeScript configuration
-├── tailwind.config.js   # Tailwind CSS configuration
-├── package.json         # npm package configuration
-└── README.md            # Project README
+├── config/                  # Configuration files
+├── public/                  # Static public assets
+├── src/                     # Source code
+│   ├── components/          # React components
+│   │   ├── ui/              # UI components
+│   │   ├── charts/          # Chart components
+│   │   ├── dashboard/       # Dashboard components
+│   │   ├── trading/         # Trading components
+│   │   └── widgets/         # Widget components
+│   ├── contexts/            # React contexts
+│   ├── hooks/               # Custom React hooks
+│   ├── services/            # Service modules
+│   ├── types/               # TypeScript type definitions
+│   ├── utils/               # Utility functions
+│   ├── App.tsx              # Main App component
+│   └── main.tsx             # Application entry point
+├── tests/                   # Test files
+├── .env.example             # Example environment variables
+├── .eslintrc.js             # ESLint configuration
+├── .prettierrc              # Prettier configuration
+├── tsconfig.json            # TypeScript configuration
+├── vite.config.ts           # Vite configuration
+└── package.json             # Project metadata and dependencies
 ```
 
-### 6.2 Coding Standards
+## Troubleshooting
 
-- Follow the TypeScript style guide
-- Use functional components with hooks
-- Implement proper error handling
-- Write unit tests for critical functionality
-- Document complex logic with comments
-- Use absolute imports with path aliases
+### Common Issues
 
-## 7. API Integration
+#### Installation Failures
 
-### 7.1 Available Data Sources
+**Issue**: `npm install` fails with dependency errors.
 
-| API | Purpose | Documentation |
-|-----|---------|---------------|
-| CoinGecko | Cryptocurrency data | [CoinGecko API Docs](https://www.coingecko.com/api/documentation) |
-| Binance | Real-time market data | [Binance API Docs](https://binance-docs.github.io/apidocs/) |
-| CoinMarketCap | Market data and metadata | [CMC API Docs](https://coinmarketcap.com/api/documentation/v1/) |
+**Solution**: Try the following steps:
+1. Delete `node_modules` folder and `package-lock.json`
+2. Clear npm cache: `npm cache clean --force`
+3. Reinstall with: `npm install`
 
-### 7.2 API Services
+#### Port Conflicts
 
-API services are located in `src/services/` and implement a consistent interface for data fetching, caching, and error handling.
+**Issue**: Development server fails to start due to port conflicts.
 
-### 7.3 API Mocking
+**Solution**: Change the port in `vite.config.ts`:
 
-For development without API keys, enable API mocking:
-
-```
-VITE_API_MOCKING=true
+```typescript
+export default defineConfig({
+  // ...other config
+  server: {
+    port: 3000, // Change this to an available port
+  },
+});
 ```
 
-Mock data is located in `src/mocks/` and closely resembles the structure of real API responses.
+#### TypeScript Errors
 
-## 8. Troubleshooting
+**Issue**: TypeScript compilation errors.
 
-### 8.1 Common Issues
+**Solution**:
+1. Update TypeScript: `npm update typescript`
+2. Reset TypeScript's cache: `rm -rf .tsbuildinfo`
+3. Check for type conflicts: `npx tsc --noEmit`
 
-#### WebSocket Connection Errors
-- Check if the API key has WebSocket permissions
-- Ensure you're not hitting rate limits
-- Verify firewall/network settings
+### Getting Help
 
-#### MCP Server Connection Issues
-- Ensure the MCP server is running
-- Check CORS settings
-- Verify the MCP URL in `.env.local`
+If you encounter issues not covered here:
 
-#### Build Errors
-- Clear the `node_modules` and reinstall:
-  ```bash
-  rm -rf node_modules
-  npm install
-  ```
-- Check for TypeScript errors:
-  ```bash
-  npm run type-check
-  ```
+1. Check the project issues on GitHub
+2. Join our developer Discord channel
+3. Search for similar issues in the documentation
+4. Contact the development team via the project's communication channels
 
-### 8.2 Getting Help
+## Advanced Configuration
 
-- Check the [GitHub Issues](https://github.com/your-username/crypto-beacon-trader-hub/issues)
-- Join our [Discord community](https://discord.gg/example)
-- Contact support at support@example.com
+### Custom API Integration
 
-## 9. Additional Resources
+To develop against your own API instance:
 
-- [Project Documentation](https://docs.example.com)
-- [API Documentation](https://api-docs.example.com)
-- [Component Storybook](https://storybook.example.com)
-- [Design System](https://design.example.com)
+1. Update API endpoints in `.env.local`
+2. Configure CORS settings on your API server
+3. Update API client configuration as needed
 
-## 10. Contributing
+### Mock Mode
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more information.
+For development without backend dependencies:
 
----
+1. Set `VITE_USE_MOCK_DATA=true` in `.env.local`
+2. Run the dev server: `npm run dev`
 
-This setup guide should help you get started with developing for the Crypto Beacon Trader Hub platform. If you encounter any issues not covered here, please reach out to the development team.
+All API calls will use mock data instead of actual API requests.
+
+## Development Workflow
+
+### Branch Strategy
+
+We follow GitHub Flow with the following branches:
+
+- `main`: Production-ready code
+- `dev`: Integration branch for active development
+- Feature branches: Named as `feature/your-feature-name`
+- Bug fixes: Named as `fix/issue-description`
+
+### Commit Guidelines
+
+We follow Conventional Commits for commit messages:
+
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+Types include:
+- `feat`: New features
+- `fix`: Bug fixes
+- `docs`: Documentation changes
+- `style`: Formatting changes
+- `refactor`: Code refactoring
+- `test`: Tests
+- `chore`: Maintenance tasks
+
+### Pull Request Process
+
+1. Create a branch from `dev`
+2. Implement your changes
+3. Ensure all tests pass
+4. Create a pull request to `dev`
+5. Await code review and address feedback
+6. PR will be merged after approval
+
+## Additional Resources
+
+- [Component Documentation](./component-docs.md)
+- [API Integration Guide](./api-integration-guide.md)
+- [State Management Guide](./state-management-guide.md)
+- [Testing Guide](./testing-guide.md)
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
