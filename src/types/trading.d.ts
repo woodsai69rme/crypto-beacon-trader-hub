@@ -25,15 +25,6 @@ export interface AITradingStrategy {
     [key: string]: any;
   };
   assets?: string[];
-  performance?: {
-    winRate: number;
-    returnRate: number;
-    sharpeRatio: number;
-    maxDrawdown: number;
-  };
-  risk?: number;
-  return?: number;
-  status?: 'active' | 'paused' | 'backtest';
 }
 
 export interface BacktestResult {
@@ -98,9 +89,9 @@ export interface CoinOption {
   id: string;
   name: string;
   symbol: string;
-  price?: number;
-  priceChange?: number;
-  changePercent?: number;
+  price: number;
+  priceChange: number;
+  changePercent: number;
   value: string;
   label: string;
   marketCap?: number;
@@ -188,145 +179,4 @@ export interface RealTimePriceChartProps {
 export interface TradingFormProps {
   initialCoin?: CoinOption;
   onTradeSubmit?: (trade: Trade) => void;
-}
-
-export interface PortfolioAsset {
-  coinId: string;
-  symbol: string;
-  name: string;
-  amount: number;
-  price: number;
-  value: number;
-  allocation: number;
-  change24h: number;
-  changePercent24h: number;
-}
-
-export interface ApiProvider {
-  id: string;
-  name: string;
-  baseUrl: string;
-  apiKey?: string;
-  apiKeyName?: string;
-  authMethod?: 'query' | 'header';
-  defaultHeaders?: Record<string, string>;
-  currentUsage: number;
-  maxUsage: number;
-  resetPeriod: string;
-  lastReset?: string;
-  priority?: number;
-  isActive: boolean;
-}
-
-export interface ApiUsageMetrics {
-  provider: string;
-  endpoint: string;
-  requestCount: number;
-  successCount: number;
-  errorCount: number;
-  avgResponseTime: number;
-  lastUsed: string;
-  currentUsage: number;
-  maxUsage: number;
-}
-
-export interface WalletAccount {
-  address: string;
-  balance: number;
-  network: string;
-  provider: string;
-}
-
-export interface WalletProvider {
-  id: string;
-  name: string;
-  logo: string;
-  description: string;
-  isInstalled: boolean;
-  isConnected: boolean;
-}
-
-export interface SentimentData {
-  coinId: string;
-  symbol: string;
-  score: number;
-  change24h: number;
-  sources: {
-    twitter: number;
-    reddit: number;
-    news: number;
-  };
-  bullishPercentage: number;
-  bearishPercentage: number;
-  trendingPosts?: TrendingPost[];
-}
-
-export interface TrendingPost {
-  id: string;
-  source: 'twitter' | 'reddit' | 'news';
-  title?: string;
-  content: string;
-  sentiment: number;
-  timestamp: string;
-  url?: string;
-  author?: string;
-}
-
-export interface OnChainMetrics {
-  networkId: string;
-  name: string;
-  activeAddresses: number;
-  activeAddressesChange: number;
-  transactionCount: number;
-  transactionCountChange: number;
-  averageFee: number;
-  averageFeeChange: number;
-  newWallets: number;
-  newWalletsChange: number;
-  timestamp: string;
-}
-
-export interface WhaleTransaction {
-  id: string;
-  network: string;
-  senderAddress: string;
-  receiverAddress: string;
-  amount: number;
-  amountUsd: number;
-  tokenSymbol: string;
-  tokenName: string;
-  timestamp: string;
-  txHash: string;
-  type: 'send' | 'receive' | 'swap';
-}
-
-export interface ExchangeArbitrage {
-  id: string;
-  tokenId: string;
-  symbol: string;
-  name: string;
-  buyExchange: string;
-  buyPrice: number;
-  sellExchange: string;
-  sellPrice: number;
-  spreadPercent: number;
-  volume24h: number;
-  timestamp: string;
-  isExecutable: boolean;
-}
-
-export interface PricePrediction {
-  coinId: string;
-  symbol: string;
-  name: string;
-  currentPrice: number;
-  predictions: {
-    timestamp: string;
-    price: number;
-    confidenceLow: number;
-    confidenceHigh: number;
-  }[];
-  modelAccuracy: number;
-  modelName: string;
-  lastUpdated: string;
 }
