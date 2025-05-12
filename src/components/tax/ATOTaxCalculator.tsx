@@ -1,311 +1,231 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ATOTaxCalculation } from "@/types/ATOTaxCalculation";
-
-const financialYears = [
-  "2023-2024",
-  "2022-2023",
-  "2021-2022",
-  "2020-2021",
-  "2019-2020"
-];
+import { ATOTaxSettings, TaxCalculationInput, TaxCalculationResult } from '@/types/ATOTaxCalculation';
 
 const ATOTaxCalculator: React.FC = () => {
-  const [step, setStep] = useState(1);
-  const [financialYear, setFinancialYear] = useState("2023-2024");
-  const [income, setIncome] = useState<string>("85000");
-  const [capitalGains, setCapitalGains] = useState<string>("15000");
-  const [taxWithheld, setTaxWithheld] = useState<string>("19500");
-  const [taxDeductions, setTaxDeductions] = useState<string>("3000");
-  const [holdingPeriod, setHoldingPeriod] = useState<string>("long-term"); // long-term or short-term
+  const [income, setIncome] = useState<number>(85000);
+  const [capitalGains, setCapitalGains] = useState<number>(12000);
+  const [deductions, setDeductions] = useState<number>(3500);
+  const [cryptoTrades, setCryptoTrades] = useState<number>(42);
+  const [financialYear, setFinancialYear] = useState<string>("2023-2024");
   
-  const [taxResult, setTaxResult] = useState<ATOTaxCalculation | null>(null);
+  const [result, setResult] = useState<TaxCalculationResult | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  const handleCalculateTax = () => {
-    // Parse inputs to numbers
-    const incomeNum = parseFloat(income) || 0;
-    const capitalGainsNum = parseFloat(capitalGains) || 0;
-    const taxWithheldNum = parseFloat(taxWithheld) || 0;
-    const taxDeductionsNum = parseFloat(taxDeductions) || 0;
-    
-    // Apply CGT discount for long-term holdings (>12 months in Australia)
-    const cgtDiscount = holdingPeriod === 'long-term' ? 0.5 : 0;
-    const netCapitalGains = capitalGainsNum * (1 - cgtDiscount);
-    
-    // Calculate taxable income
-    const taxableIncome = incomeNum + netCapitalGains - taxDeductionsNum;
-    
-    // Australian tax rates 2023-2024
-    let taxPayable = 0;
-    let taxRate = 0;
-    let bracketInfo = { bracket: "", rate: "" };
-    
-    // Calculate tax based on 2023-2024 ATO rates
-    if (taxableIncome <= 18200) {
-      taxPayable = 0;
-      taxRate = 0;
-      bracketInfo = { bracket: "$0 - $18,200", rate: "0%" };
-    } else if (taxableIncome <= 45000) {
-      taxPayable = (taxableIncome - 18200) * 0.19;
-      taxRate = 0.19;
-      bracketInfo = { bracket: "$18,201 - $45,000", rate: "19%" };
-    } else if (taxableIncome <= 120000) {
-      taxPayable = 5092 + (taxableIncome - 45000) * 0.325;
-      taxRate = 0.325;
-      bracketInfo = { bracket: "$45,001 - $120,000", rate: "32.5%" };
-    } else if (taxableIncome <= 180000) {
-      taxPayable = 29467 + (taxableIncome - 120000) * 0.37;
-      taxRate = 0.37;
-      bracketInfo = { bracket: "$120,001 - $180,000", rate: "37%" };
-    } else {
-      taxPayable = 51667 + (taxableIncome - 180000) * 0.45;
-      taxRate = 0.45;
-      bracketInfo = { bracket: "$180,001+", rate: "45%" };
-    }
-    
-    // Calculate Medicare levy (2% of taxable income)
-    const medicareLevyRate = 0.02;
-    const medicareLevy = taxableIncome * medicareLevyRate;
-    
-    // Total tax liability
-    const totalTaxLiability = taxPayable + medicareLevy;
-    
-    // Tax refund or amount owed
-    const taxRefundOrOwed = totalTaxLiability - taxWithheldNum;
-    
-    // Set the tax result
-    setTaxResult({
-      financialYear,
-      taxableIncome,
-      capitalGainsIncome: capitalGainsNum,
-      taxRate,
-      medicareLevyRate,
-      taxPayable,
-      medicareLevy,
-      totalTaxLiability,
-      taxCredits: taxWithheldNum,
-      taxRefundOrOwed,
-      incomeTax: taxPayable,
-      taxWithheld: taxWithheldNum,
-      netCapitalGains,
-      assessableIncome: taxableIncome,
-      bracketInfo,
-      capitalGains: capitalGainsNum,
-      CGTDiscount: cgtDiscount
-    });
-    
-    setStep(2);
-  };
+  const availableYears = Object.keys(ATOTaxCalculation);
   
-  const resetCalculator = () => {
-    setStep(1);
-    setTaxResult(null);
+  const handleCalculate = () => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      try {
+        const taxSettings = ATOTaxCalculation[financialYear as keyof typeof ATOTaxCalculation];
+        const taxableIncome = income + capitalGains - deductions;
+        
+        // Calculate tax based on brackets
+        let incomeTax = 0;
+        for (const bracket of taxSettings.brackets) {
+          if (taxableIncome > bracket.min) {
+            const taxableAmount = bracket.max ? Math.min(taxableIncome, bracket.max) - bracket.min : taxableIncome - bracket.min;
+            incomeTax += bracket.base + (taxableAmount * bracket.rate);
+            
+            if (bracket.max && taxableIncome <= bracket.max) break;
+          }
+        }
+        
+        // Calculate Medicare Levy
+        const medicareLevy = taxableIncome > taxSettings.medicareLevyThreshold 
+          ? taxableIncome * taxSettings.medicareLevyRate 
+          : 0;
+        
+        // Calculate Medicare Levy Surcharge
+        const medicareSurcharge = taxableIncome > taxSettings.medicareSurchargeThreshold 
+          ? taxableIncome * taxSettings.medicareSurchargeRate 
+          : 0;
+        
+        // Calculate low income tax offset
+        let lowIncomeTaxOffset = 0;
+        if (taxableIncome < taxSettings.lowIncomeTaxOffsetThreshold) {
+          lowIncomeTaxOffset = taxSettings.lowIncomeTaxOffset;
+        }
+        
+        // Calculate tax on crypto gains (rough estimate)
+        const taxOnCryptoGains = capitalGains > 0 
+          ? capitalGains * 0.325 // Assuming average tax rate of 32.5%
+          : 0;
+        
+        const totalTax = incomeTax + medicareLevy + medicareSurcharge - lowIncomeTaxOffset;
+        const afterTaxIncome = taxableIncome - totalTax;
+        const effectiveTaxRate = totalTax / taxableIncome * 100;
+        
+        // Find the marginal tax rate based on income
+        let marginalTaxRate = 0;
+        let taxBracket = "";
+        for (const bracket of taxSettings.brackets) {
+          if (taxableIncome > bracket.min) {
+            marginalTaxRate = bracket.rate * 100;
+            const maxText = bracket.max ? `$${bracket.max.toLocaleString()}` : "and above";
+            taxBracket = `$${bracket.min.toLocaleString()} - ${maxText}`;
+          }
+        }
+        
+        const taxBreakdown = {
+          "Income Tax": incomeTax,
+          "Medicare Levy": medicareLevy,
+          "Medicare Levy Surcharge": medicareSurcharge,
+          "Low Income Tax Offset": -lowIncomeTaxOffset,
+        };
+        
+        setResult({
+          taxableIncome,
+          incomeTax,
+          medicareLevy,
+          medicareSurcharge,
+          totalTax,
+          effectiveTaxRate,
+          afterTaxIncome,
+          taxOnCryptoGains,
+          marginalTaxRate,
+          taxBracket,
+          taxBreakdown,
+        });
+        
+      } catch (error) {
+        console.error("Error calculating tax:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 1000);
   };
   
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Australian Tax Calculator</CardTitle>
+        <CardTitle>Australian Tax Calculator</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="income" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="income">Income Tax</TabsTrigger>
-            <TabsTrigger value="capital-gains">Capital Gains</TabsTrigger>
-          </TabsList>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="income" className="text-sm font-medium">Annual Income (AUD)</label>
+            <Input 
+              id="income"
+              type="number"
+              value={income}
+              onChange={(e) => setIncome(Number(e.target.value))}
+            />
+          </div>
           
-          {step === 1 ? (
-            <>
-              <TabsContent value="income" className="space-y-4 mt-4">
-                <div className="space-y-4">
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="financial-year">Financial Year</Label>
-                    <Select value={financialYear} onValueChange={setFinancialYear}>
-                      <SelectTrigger id="financial-year">
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {financialYears.map(year => (
-                          <SelectItem key={year} value={year}>{year}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="income">Annual Income (A$)</Label>
-                    <Input 
-                      id="income" 
-                      type="number"
-                      value={income}
-                      onChange={(e) => setIncome(e.target.value)}
-                      placeholder="Enter your total income"
-                    />
-                  </div>
-                  
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="tax-withheld">Tax Withheld (A$)</Label>
-                    <Input 
-                      id="tax-withheld" 
-                      type="number" 
-                      value={taxWithheld}
-                      onChange={(e) => setTaxWithheld(e.target.value)}
-                      placeholder="Enter tax already withheld"
-                    />
-                  </div>
-                  
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="deductions">Deductions (A$)</Label>
-                    <Input 
-                      id="deductions" 
-                      type="number" 
-                      value={taxDeductions}
-                      onChange={(e) => setTaxDeductions(e.target.value)}
-                      placeholder="Enter total deductions"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
+          <div className="space-y-2">
+            <label htmlFor="capital-gains" className="text-sm font-medium">Capital Gains (AUD)</label>
+            <Input 
+              id="capital-gains"
+              type="number"
+              value={capitalGains}
+              onChange={(e) => setCapitalGains(Number(e.target.value))}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="deductions" className="text-sm font-medium">Deductions (AUD)</label>
+            <Input 
+              id="deductions"
+              type="number"
+              value={deductions}
+              onChange={(e) => setDeductions(Number(e.target.value))}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="crypto-trades" className="text-sm font-medium">Number of Crypto Trades</label>
+            <Input 
+              id="crypto-trades"
+              type="number"
+              value={cryptoTrades}
+              onChange={(e) => setCryptoTrades(Number(e.target.value))}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="financial-year" className="text-sm font-medium">Financial Year</label>
+            <Select value={financialYear} onValueChange={setFinancialYear}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <Button onClick={handleCalculate} className="w-full" disabled={isLoading}>
+          {isLoading ? "Calculating..." : "Calculate Tax"}
+        </Button>
+        
+        {result && (
+          <div className="mt-4 border rounded-md p-4">
+            <h3 className="font-bold text-lg mb-2">Tax Calculation Results</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="flex justify-between">
+                <span>Taxable Income:</span>
+                <span className="font-medium">${result.taxableIncome.toLocaleString()}</span>
+              </div>
               
-              <TabsContent value="capital-gains" className="space-y-4 mt-4">
-                <div className="space-y-4">
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="capital-gains">Capital Gains (A$)</Label>
-                    <Input 
-                      id="capital-gains" 
-                      type="number"
-                      value={capitalGains}
-                      onChange={(e) => setCapitalGains(e.target.value)}
-                      placeholder="Enter your total capital gains"
-                    />
-                  </div>
-                  
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="holding-period">Holding Period</Label>
-                    <Select value={holdingPeriod} onValueChange={setHoldingPeriod}>
-                      <SelectTrigger id="holding-period">
-                        <SelectValue placeholder="Select period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="long-term">Long-term (&gt;12 months)</SelectItem>
-                        <SelectItem value="short-term">Short-term (≤12 months)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Long-term holdings (&gt;12 months) receive a 50% CGT discount in Australia
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
+              <div className="flex justify-between">
+                <span>Tax Bracket:</span>
+                <span className="font-medium">{result.taxBracket}</span>
+              </div>
               
-              <Button 
-                className="w-full mt-6" 
-                onClick={handleCalculateTax}
-              >
-                Calculate Tax
-              </Button>
-            </>
-          ) : (
-            <div className="mt-6 space-y-6">
-              {taxResult && (
-                <>
-                  <div className="border rounded-lg p-6 bg-muted/20">
-                    <h3 className="text-lg font-medium mb-4">Tax Summary for {taxResult.financialYear}</h3>
-                    
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center pb-2 border-b">
-                        <span>Tax Bracket</span>
-                        <span className="font-medium">{taxResult.bracketInfo.bracket} ({taxResult.bracketInfo.rate})</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-sm text-muted-foreground">Assessable Income</div>
-                          <div className="font-medium">A${taxResult.assessableIncome.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Net Capital Gains</div>
-                          <div className="font-medium">A${taxResult.netCapitalGains.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Income Tax</div>
-                          <div className="font-medium">A${taxResult.incomeTax.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Medicare Levy</div>
-                          <div className="font-medium">A${taxResult.medicareLevy.toLocaleString()}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-2 border-t">
-                        <div className="flex justify-between items-center">
-                          <span>Total Tax Liability</span>
-                          <span className="font-bold">A${taxResult.totalTaxLiability.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center mt-1">
-                          <span>Tax Already Withheld</span>
-                          <span className="font-medium">A${taxResult.taxWithheld.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center mt-4 text-lg">
-                          <span>{taxResult.taxRefundOrOwed > 0 ? 'Tax Payable' : 'Tax Refund'}</span>
-                          <span className={`font-bold ${taxResult.taxRefundOrOwed > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                            A${Math.abs(taxResult.taxRefundOrOwed).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="border rounded-lg p-6">
-                    <h3 className="text-lg font-medium mb-4">Capital Gains Details</h3>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span>Total Capital Gains</span>
-                        <span className="font-medium">A${taxResult.capitalGains.toLocaleString()}</span>
-                      </div>
-                      
-                      {taxResult.CGTDiscount > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span>CGT Discount (50%)</span>
-                          <span className="font-medium">-A${(taxResult.capitalGains * taxResult.CGTDiscount).toLocaleString()}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span>Net Capital Gains</span>
-                        <span className="font-bold">A${taxResult.netCapitalGains.toLocaleString()}</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span>Tax on Capital Gains</span>
-                        <span className="font-bold">A${(taxResult.netCapitalGains * taxResult.taxRate).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+              <div className="flex justify-between">
+                <span>Marginal Tax Rate:</span>
+                <span className="font-medium">{result.marginalTaxRate.toFixed(1)}%</span>
+              </div>
               
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={resetCalculator}
-              >
-                Calculate Another
-              </Button>
+              <div className="flex justify-between">
+                <span>Effective Tax Rate:</span>
+                <span className="font-medium">{result.effectiveTaxRate.toFixed(1)}%</span>
+              </div>
               
-              <div className="text-xs text-muted-foreground text-center">
-                This calculator provides estimates only and should not be used as a substitute for professional tax advice.
+              <div className="flex justify-between">
+                <span>Income Tax:</span>
+                <span className="font-medium">${result.incomeTax.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span>Medicare Levy:</span>
+                <span className="font-medium">${result.medicareLevy.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span>Medicare Surcharge:</span>
+                <span className="font-medium">${result.medicareSurcharge.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span>Tax on Crypto Gains:</span>
+                <span className="font-medium">${result.taxOnCryptoGains.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between font-bold">
+                <span>Total Tax Payable:</span>
+                <span>${result.totalTax.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between font-bold">
+                <span>After-Tax Income:</span>
+                <span>${result.afterTaxIncome.toLocaleString()}</span>
               </div>
             </div>
-          )}
-        </Tabs>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
