@@ -1,8 +1,8 @@
 
 import { useState, useCallback } from 'react';
-import { handleError } from '@/utils/errorHandling';
+import { toast } from "@/components/ui/use-toast";
 import { getCachedData, cacheData } from '@/utils/apiCache';
-import { executeWithRetries } from '@/utils/apiRetryUtils';
+import { executeWithRetries } from '@/utils/apiRetry';
 
 interface UseApiOptions<T> {
   initialData?: T;
@@ -14,8 +14,6 @@ interface UseApiOptions<T> {
   onError?: (error: Error) => void;
   onSettled?: () => void;
   retryIf?: (error: any) => boolean;
-  errorContext?: string;
-  useCustomErrorHandling?: boolean;
 }
 
 export function useEnhancedApi<T = any>(
@@ -32,8 +30,6 @@ export function useEnhancedApi<T = any>(
     onError,
     onSettled,
     retryIf = () => true,
-    errorContext,
-    useCustomErrorHandling = false
   } = options;
 
   const [data, setData] = useState<T | undefined>(initialData);
@@ -56,13 +52,7 @@ export function useEnhancedApi<T = any>(
         }
 
         const fetchFn = () => apiFunction(...args);
-        const result = await executeWithRetries(
-          fetchFn, 
-          retries, 
-          retryDelay, 
-          retryIf,
-          errorContext
-        );
+        const result = await executeWithRetries(fetchFn, retries, retryDelay, retryIf);
 
         setData(result);
         if (cacheKey) {
@@ -74,18 +64,13 @@ export function useEnhancedApi<T = any>(
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         setError(error);
-        
         if (onError) onError(error);
         
-        // Use our enhanced error handling if not disabled
-        if (!useCustomErrorHandling) {
-          handleError(error, {
-            context: errorContext || 'API Request',
-            retry: retries > 0,
-            retryFn: () => fetchData(...args)
-          });
-        }
-        
+        toast({
+          title: "API Error",
+          description: error.message,
+          variant: "destructive",
+        });
         return undefined;
       } finally {
         setIsLoading(false);
@@ -102,8 +87,6 @@ export function useEnhancedApi<T = any>(
       onSuccess,
       onError,
       onSettled,
-      errorContext,
-      useCustomErrorHandling
     ]
   );
 
@@ -112,6 +95,5 @@ export function useEnhancedApi<T = any>(
     error,
     isLoading,
     fetchData,
-    refetch: fetchData,
   };
 }

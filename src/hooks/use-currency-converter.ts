@@ -1,64 +1,92 @@
 
 import { useState } from 'react';
 
-export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'AUD';
+interface CurrencyConverterOptions {
+  defaultCurrency?: string;
+  rates?: Record<string, number>;
+}
 
-export type CurrencyRates = {
-  [key in CurrencyCode]: number;
-};
+export const useCurrencyConverter = (options: CurrencyConverterOptions = {}) => {
+  const [activeCurrency, setActiveCurrency] = useState(options.defaultCurrency || 'USD');
+  
+  // Default exchange rates (static for now, would be fetched from API in real app)
+  const defaultRates = {
+    USD: 1,
+    EUR: 0.93,
+    GBP: 0.82,
+    JPY: 147.32,
+    AUD: 1.54,
+    CAD: 1.38,
+    CHF: 0.91,
+    CNY: 7.23,
+    BTC: 0.000019,
+    ETH: 0.00032
+  };
+  
+  const rates = options.rates || defaultRates;
 
-// Default rates relative to USD
-const defaultRates: CurrencyRates = {
-  USD: 1,
-  EUR: 0.85,
-  GBP: 0.75,
-  AUD: 1.43,
-};
-
-export function useCurrencyConverter() {
-  const [activeCurrency, setActiveCurrency] = useState<CurrencyCode>('USD');
-  const [rates, setRates] = useState<CurrencyRates>(defaultRates);
-
-  const convert = (amount: number, from: CurrencyCode = 'USD', to: CurrencyCode = activeCurrency): number => {
-    if (from === to) return amount;
-    
-    const inUSD = amount / rates[from];
-    return inUSD * rates[to];
+  // Pre-calculated conversion rates for common pairs
+  const conversionRates = {
+    USD_AUD: 1.54,
+    USD_EUR: 0.93,
+    USD_GBP: 0.82,
+    USD_JPY: 147.32,
   };
 
-  const formatCurrency = (amount: number, currency: CurrencyCode = activeCurrency): string => {
-    const formatter = new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency 
-    });
+  /**
+   * Convert a value from one currency to another
+   */
+  const convert = (value: number, from: string = 'USD', to: string = activeCurrency): number => {
+    if (from === to) return value;
     
-    return formatter.format(amount);
+    // Convert to USD first (as base currency)
+    const valueInUSD = from === 'USD' ? value : value / rates[from];
+    
+    // Convert from USD to target currency
+    return to === 'USD' ? valueInUSD : valueInUSD * rates[to];
   };
 
-  const getCurrencySymbol = (currency: CurrencyCode = activeCurrency): string => {
-    switch (currency) {
-      case 'USD':
-        return '$';
-      case 'EUR':
-        return '€';
-      case 'GBP':
-        return '£';
-      case 'AUD':
-        return 'A$';
-      default:
-        return '$';
+  /**
+   * Format a value with currency symbol
+   */
+  const formatValue = (value: number, currency: string = activeCurrency): string => {
+    const symbols: Record<string, string> = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      JPY: '¥',
+      AUD: 'A$',
+      CAD: 'C$',
+      CHF: 'CHF',
+      CNY: '¥',
+      BTC: '₿',
+      ETH: 'Ξ'
+    };
+    
+    const symbol = symbols[currency] || currency;
+    
+    // Format number based on currency
+    const options: Intl.NumberFormatOptions = {
+      maximumFractionDigits: currency === 'JPY' ? 0 : 2,
+      minimumFractionDigits: currency === 'JPY' ? 0 : 2
+    };
+    
+    if (currency === 'BTC' || currency === 'ETH') {
+      options.maximumFractionDigits = 8;
+      options.minimumFractionDigits = 2;
     }
+    
+    return `${symbol}${value.toLocaleString(undefined, options)}`;
   };
 
   return {
     activeCurrency,
     setActiveCurrency,
-    rates,
-    setRates,
     convert,
-    formatCurrency,
-    getCurrencySymbol,
+    formatValue,
+    rates,
+    conversionRates
   };
-}
+};
 
-export default useCurrencyConverter;
+export type SupportedCurrency = "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "CHF" | "CNY" | "BTC" | "ETH";

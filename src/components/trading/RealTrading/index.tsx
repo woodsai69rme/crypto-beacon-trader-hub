@@ -1,52 +1,52 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ChevronRight, ArrowRightLeft, Wallet, LineChart, Bell } from "lucide-react";
+import { WalletAccount, WalletProvider, CoinOption } from '@/types/trading';
 import WalletConnector from '@/components/wallets/WalletConnector';
 import RealTimeTrader from '../RealTimeTrader';
 import RealTimePrices from '../RealTimePrices';
 import RealTimePriceChart from '../RealTimePriceChart';
 import { toast } from "@/components/ui/use-toast";
-import { WalletAccount, WalletProvider, CoinOption } from '@/types/trading';
 
-// Define the supported wallets with type casting to ensure it works with the WalletConnector
-const SUPPORTED_WALLETS = [
+const SUPPORTED_WALLETS: WalletProvider[] = [
   {
     id: "metamask",
     name: "MetaMask",
     logo: "https://metamask.io/images/metamask-fox.svg",
     description: "https://metamask.io/download/",
+    supportsChains: ["ETH", "BSC", "Polygon"],
     isInstalled: true, // In production, we would check if MetaMask is installed
-    isConnected: false,
-    // Add supported chains within the WalletProvider type
-  } as WalletProvider,
+    isConnected: false
+  },
   {
     id: "trustwallet",
     name: "Trust Wallet",
     logo: "https://trustwallet.com/assets/images/favicon.png",
     description: "https://trustwallet.com/",
+    supportsChains: ["ETH", "BSC", "Polygon", "BTC", "SOL"],
     isInstalled: true,
-    isConnected: false,
-    // Add supported chains within the WalletProvider type
-  } as WalletProvider,
+    isConnected: false
+  },
   {
     id: "coinbase",
     name: "Coinbase Wallet",
     logo: "https://www.coinbase.com/assets/press/icons/coinbase-icon.svg",
     description: "https://www.coinbase.com/wallet",
+    supportsChains: ["ETH", "BSC", "Polygon", "SOL"],
     isInstalled: false,
-    isConnected: false,
-    // Add supported chains within the WalletProvider type
-  } as WalletProvider,
+    isConnected: false
+  },
   {
     id: "walletconnect",
     name: "WalletConnect",
     logo: "https://avatars.githubusercontent.com/u/37784886",
     description: "https://walletconnect.com/",
+    supportsChains: ["ETH", "BSC", "Polygon", "SOL", "AVAX"],
     isInstalled: true,
-    isConnected: false,
-    // Add supported chains within the WalletProvider type
-  } as WalletProvider
+    isConnected: false
+  }
 ];
 
 const initialCoins: CoinOption[] = [
@@ -166,7 +166,7 @@ const RealTrading: React.FC = () => {
       <CardContent className="px-0">
         {!activeWallet ? (
           <WalletConnector 
-            supportedWallets={wallets as WalletProvider[]} // Type cast here
+            supportedWallets={wallets}
             onConnect={handleWalletConnect}
           />
         ) : (

@@ -1,141 +1,114 @@
-
-import React, { useState, useEffect } from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { fetchCoinOptions } from '@/services/cryptoApi';
-import { AlertFormSheetProps, PriceAlertFormData } from '@/types/trading';
-import { CoinOption } from '@/types/trading';
+import { Plus } from "lucide-react";
+import { COIN_OPTIONS } from "./AlertTypes";
+import { PriceAlert } from "@/types/alerts";
+import { validateFormFields } from "@/utils/formValidation";
+import { handleError } from "@/utils/errorHandling";
 
-export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ 
-  onFormChange, 
-  onSubmit, 
-  initialData 
+type AlertFormData = Omit<PriceAlert, 'id' | 'createdAt'>;
+
+interface AlertFormProps {
+  formData: AlertFormData;
+  onFormChange: (data: AlertFormData) => void;
+  onSubmit: () => void;
+}
+
+export const AlertFormSheet: React.FC<AlertFormProps> = ({
+  formData,
+  onFormChange,
+  onSubmit,
 }) => {
-  const [coins, setCoins] = useState<CoinOption[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState<PriceAlertFormData>(initialData || {
-    coinId: 'bitcoin',
-    coinName: 'Bitcoin',
-    coinSymbol: 'BTC',
-    targetPrice: 0,
-    isAbove: true,
-    recurring: false,
-    percentageChange: 0,
-    enabled: true,
-    notifyVia: ['app']
-  });
-
-  useEffect(() => {
-    const loadCoins = async () => {
-      try {
-        const options = await fetchCoinOptions();
-        setCoins(options);
-        
-        // Set initial price if a coin is selected
-        if (formData.coinId) {
-          const selectedCoin = options.find(c => c.id === formData.coinId);
-          if (selectedCoin && formData.targetPrice === 0) {
-            updateFormData('targetPrice', selectedCoin.price);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load coins:", error);
-      } finally {
-        setLoading(false);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const isValid = validateFormFields(formData, [
+        "coinId",
+        "coinName",
+        "coinSymbol",
+        "targetPrice"
+      ]);
+      
+      if (!isValid) {
+        return;
       }
-    };
 
-    loadCoins();
-  }, []);
-  
-  const updateFormData = (field: keyof PriceAlertFormData, value: any) => {
-    const updatedData = { ...formData, [field]: value };
-    setFormData(updatedData);
-    onFormChange(updatedData);
-  };
-  
-  const handleCoinChange = (coinId: string) => {
-    const selectedCoin = coins.find(c => c.id === coinId);
-    if (selectedCoin) {
-      updateFormData('coinId', coinId);
-      updateFormData('coinName', selectedCoin.name);
-      updateFormData('coinSymbol', selectedCoin.symbol);
-      updateFormData('targetPrice', selectedCoin.price);
+      if (formData.targetPrice <= 0) {
+        handleError("Price target must be greater than 0", "warning", "Price Alert");
+        return;
+      }
+
+      onSubmit();
+    } catch (error) {
+      handleError(error, "error", "Price Alert");
     }
   };
-  
+
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Create Price Alert</h3>
-      
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="coin">Cryptocurrency</Label>
-          <Select
-            value={formData.coinId}
-            onValueChange={handleCoinChange}
-            disabled={loading}
-          >
-            <SelectTrigger id="coin">
-              <SelectValue placeholder="Select a coin" />
-            </SelectTrigger>
-            <SelectContent>
-              {coins.map((coin) => (
-                <SelectItem key={coin.id} value={coin.id}>
-                  {coin.name} ({coin.symbol})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="price-condition">Condition</Label>
-          <RadioGroup
-            value={formData.isAbove ? "above" : "below"}
-            onValueChange={(value) => updateFormData('isAbove', value === "above")}
-            className="flex gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="above" id="above" />
-              <Label htmlFor="above">Price Above</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="below" id="below" />
-              <Label htmlFor="below">Price Below</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="target-price">Target Price (USD)</Label>
-          <Input
-            id="target-price"
-            type="number"
-            value={formData.targetPrice}
-            onChange={(e) => updateFormData('targetPrice', parseFloat(e.target.value) || 0)}
-          />
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Switch
-            checked={formData.recurring || false}
-            onCheckedChange={(checked) => updateFormData('recurring', checked)}
-            id="recurring"
-          />
-          <Label htmlFor="recurring">Recurring Alert</Label>
-        </div>
-        
-        <Button onClick={onSubmit} className="w-full">
-          Create Alert
-        </Button>
+    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+      <div className="flex flex-col space-y-2">
+        <Label className="text-sm font-medium">Coin</Label>
+        <select
+          className="rounded border border-border bg-background px-2 py-1 text-foreground"
+          value={formData.coinId}
+          onChange={(e) => {
+            const selectedCoin = COIN_OPTIONS[e.target.value];
+            onFormChange({
+              ...formData,
+              coinId: selectedCoin.id,
+              coinName: selectedCoin.name,
+              coinSymbol: selectedCoin.symbol
+            });
+          }}
+        >
+          {Object.values(COIN_OPTIONS).map((coin) => (
+            <option key={coin.id} value={coin.id}>
+              {coin.name} ({coin.symbol})
+            </option>
+          ))}
+        </select>
       </div>
-    </div>
+      
+      <div className="flex flex-col space-y-2">
+        <Label className="text-sm font-medium">Alert me when price is</Label>
+        <div className="flex items-center space-x-2">
+          <select
+            className="rounded border border-border bg-background px-2 py-1 text-foreground"
+            value={formData.isAbove ? "above" : "below"}
+            onChange={(e) => onFormChange({ 
+              ...formData, 
+              isAbove: e.target.value === "above"
+            })}
+          >
+            <option value="above">Above</option>
+            <option value="below">Below</option>
+          </select>
+          <div className="flex-1">
+            <div className="relative">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <Input
+                type="number"
+                min="0"
+                className="pl-6"
+                value={formData.targetPrice || ""}
+                onChange={(e) => onFormChange({ 
+                  ...formData, 
+                  targetPrice: parseFloat(e.target.value) || 0 
+                })}
+                placeholder="Enter price"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Button type="submit" className="w-full">
+        <Plus className="mr-1 h-4 w-4" />
+        Add Alert
+      </Button>
+    </form>
   );
 };
-
-export default AlertFormSheet;

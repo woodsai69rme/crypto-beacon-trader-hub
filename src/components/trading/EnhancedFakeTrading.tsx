@@ -5,27 +5,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OrderBook from './OrderBook';
 import FakeTradingForm from './FakeTradingForm';
 import TradingChart from './TradingChart';
-import { Trade } from '@/types/trading';
 
 const EnhancedFakeTrading: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('standard');
-  const [trades, setTrades] = useState<Trade[]>([]);
-  
-  const handleAddTrade = (trade: Trade) => {
-    setTrades(prev => [...prev, trade]);
-  };
 
   return (
-    <Card className="w-full glass-card backdrop-blur-lg border-border shadow-lg">
-      <CardHeader className="border-b border-border/40">
-        <CardTitle className="text-primary text-xl font-semibold">Trading Interface</CardTitle>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Trading Interface</CardTitle>
       </CardHeader>
-      <CardContent className="p-4 md:p-6">
+      <CardContent>
         <Tabs defaultValue="standard" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6 bg-muted/50">
-            <TabsTrigger value="standard" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Standard</TabsTrigger>
-            <TabsTrigger value="advanced" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Advanced</TabsTrigger>
-            <TabsTrigger value="analysis" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Analysis</TabsTrigger>
+          <TabsList className="grid grid-cols-3">
+            <TabsTrigger value="standard">Standard</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="analysis">Analysis</TabsTrigger>
           </TabsList>
           
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -39,11 +33,11 @@ const EnhancedFakeTrading: React.FC = () => {
             
             <div className="space-y-6">
               <TabsContent value="standard" className="m-0">
-                <FakeTradingForm onAddTrade={handleAddTrade} />
+                <FakeTradingForm />
               </TabsContent>
               
               <TabsContent value="advanced" className="m-0">
-                <FakeTradingForm advancedMode={true} onAddTrade={handleAddTrade} />
+                <FakeTradingForm advancedMode={true} />
               </TabsContent>
               
               <TabsContent value="analysis" className="m-0">

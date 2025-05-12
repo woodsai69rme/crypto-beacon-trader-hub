@@ -1,15 +1,11 @@
 
-import React from "react";
+import React from 'react';
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const AlertHeader: React.FC = () => {
+export const AlertHeader = () => {
   return (
-    <div className="mb-6">
-      <h2 className="text-xl font-semibold">Price Alerts</h2>
-      <p className="text-sm text-muted-foreground">
-        Get notified when cryptocurrencies reach your target prices
-      </p>
-    </div>
+    <SheetHeader>
+      <SheetTitle>Price Alerts</SheetTitle>
+    </SheetHeader>
   );
 };
-
-export default AlertHeader;

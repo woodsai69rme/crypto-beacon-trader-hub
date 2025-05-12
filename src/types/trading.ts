@@ -188,8 +188,6 @@ export interface ApiProvider {
   defaultHeaders?: Record<string, string>;
   enabled?: boolean;
   requiresAuth?: boolean;
-  authRequired?: boolean;
-  priority?: number;
 }
 
 // API usage metrics
@@ -223,6 +221,8 @@ export interface ApiUsageStats {
   maxUsage: number;
   endpoint?: string;
   resetTime?: string;
+  
+  // Adding missing properties reported in errors
   requestCount?: number;
   successCount?: number;
   errorCount?: number;
@@ -287,7 +287,6 @@ export interface Trade {
   fees?: number;
   coin?: string;
   total: number;
-  tags?: string[];
 }
 
 // Detachable dashboard props
@@ -347,22 +346,20 @@ export interface ModelListProps {
   onDisconnect?: (modelId: string) => void;
 }
 
-// Portfolio benchmarking props
+// Add missing interface for EnhancedPortfolioBenchmarking
 export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioPerformance?: number[];
-  portfolioDates?: string[];
-  daily?: number;
-  weekly?: number;
-  monthly?: number;
-  yearly?: number;
-  allTime?: number;
+  portfolioPerformance?: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    yearly: number;
+    allTime: number;
+  };
 }
 
-// Settings interfaces
+// Adding missing interfaces for settings components
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
-  onSave?: (values: Partial<SettingsFormValues>) => void;
-  defaultValues?: Partial<SettingsFormValues>;
 }
 
 export interface SettingsFormValues {
@@ -371,7 +368,6 @@ export interface SettingsFormValues {
   email?: string;
   theme?: string;
   bio?: string;
-  language?: string;
   notifications: {
     email: boolean;
     push: boolean;
@@ -402,14 +398,54 @@ export interface SettingsFormValues {
     animationsEnabled: boolean;
     highContrastMode: boolean;
   };
-  ticker?: {
+}
+import { UseFormReturn } from "react-hook-form";
+
+export interface SettingsFormValues {
+  username?: string;
+  displayName?: string;
+  email?: string;
+  theme?: string;
+  bio?: string;
+  language?: string; // Added language field
+  notifications: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+  };
+  tradingPreferences: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+  ticker?: { // Added ticker settings
     enabled: boolean;
     position: string;
     speed: number;
     direction: string;
     autoPause: boolean;
   };
-  sidebar?: {
+  sidebar?: { // Added sidebar settings
     enabled: boolean;
     position: string;
     collapsed: boolean;
@@ -417,110 +453,8 @@ export interface SettingsFormValues {
   };
 }
 
-import { UseFormReturn } from "react-hook-form";
-
-// Added missing interfaces
-export interface TradingAccount {
-  id: string;
-  name: string;
-  type: string;
-  provider: string;
-  balance: number;
-  currency: string;
-  lastUpdated: string;
-  isActive: boolean;
-  assets?: PortfolioAsset[];
-}
-
-export interface AiBotTradingProps {
-  botId: string;
-  strategyId: string;
-  strategyName: string;
-}
-
-export interface AITradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
-  timeframe: string;
-  parameters: any;
-  riskLevel?: string;
-  indicators?: string[];
-  performance?: {
-    winRate?: number;
-    profitFactor?: number;
-    sharpeRatio?: number;
-    trades?: number;
-    profitLoss?: number;
-    drawdown?: number;
-    returns?: number;
-  };
-  creator?: string;
-  tags?: string[];
-}
-
-export interface QuantitativeAnalysisProps {
-  symbol: string;
-  timeframe: string;
-  depth?: number;
-}
-
-export interface TradingFormProps {
-  initialCoin?: CoinOption;
-  onTradeSubmit?: (trade: Trade) => void;
-}
-
-export interface CryptoChartData {
-  timestamps: number[];
-  prices: number[];
-  volumes: number[];
-}
-
-export interface ATOTaxCalculation {
-  financialYear: string;
-  taxableIncome: number;
-  capitalGainsIncome: number;
-  taxRate: number;
-  medicareLevyRate: number;
-  taxPayable: number;
-  medicareLevy: number;
-  totalTaxLiability: number;
-  taxCredits: number;
-  taxRefundOrOwed: number;
-  incomeTax: number;
-  taxWithheld: number;
-  netCapitalGains: number;
-  assessableIncome: number;
-  bracketInfo: {
-    bracket: string;
-    rate: string;
-  };
-  capitalGains: number;
-  CGTDiscount: number;
-}
-
-export interface TickerSettings {
-  enabled: boolean;
-  position: string;
-  speed: number;
-  direction: string;
-  autoPause: boolean;
-}
-
-export interface SidebarSettings {
-  enabled: boolean;
-  position: string;
-  collapsed: boolean;
-  autoHide: boolean;
-}
-
-// Add the BacktestResult type to include it in the exported types
-export interface BacktestResult {
-  returns: number;
-  winRate: number;
-  trades: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
-  tradeHistory: Trade[];
+export interface SettingsComponentProps {
+  form: UseFormReturn<SettingsFormValues>;
+  onSave?: (values: Partial<SettingsFormValues>) => void; // Added onSave
+  defaultValues?: Partial<SettingsFormValues>; // Added defaultValues
 }

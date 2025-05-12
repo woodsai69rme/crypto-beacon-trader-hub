@@ -1,244 +1,187 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PortfolioAsset } from "@/types/trading";
-import { Wallet, RefreshCw, PlusCircle } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { PlusCircle, RefreshCw, Settings, Link, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
+import { TradingAccount } from "@/types/trading";
 
-interface TradingAccount {
-  id: string;
-  name: string;
-  type: string;
-  provider: string;
-  balance: number;
-  currency: string;
-  lastUpdated: string;
-  isActive: boolean;
-  assets?: PortfolioAsset[];
-}
+// Mock data for trading accounts
+const mockAccounts: TradingAccount[] = [
+  {
+    id: "acc-1",
+    name: "Binance Main",
+    type: "exchange",
+    provider: "Binance",
+    balance: 4230.50,
+    currency: "USD",
+    lastUpdated: "2025-05-02T10:34:12Z",
+    isActive: true,
+    assets: [
+      { id: "btc", symbol: "BTC", name: "Bitcoin", amount: 0.05, value: 3276.18 },
+      { id: "eth", symbol: "ETH", name: "Ethereum", amount: 0.28, value: 957.82 }
+    ]
+  },
+  {
+    id: "acc-2",
+    name: "KuCoin Trading",
+    type: "exchange",
+    provider: "KuCoin",
+    balance: 1850.75,
+    currency: "USD",
+    lastUpdated: "2025-05-01T15:22:45Z",
+    isActive: true,
+    assets: [
+      { id: "sol", symbol: "SOL", name: "Solana", amount: 10.5, value: 1543.28 },
+      { id: "ada", symbol: "ADA", name: "Cardano", amount: 500, value: 307.47 }
+    ]
+  },
+  {
+    id: "acc-3",
+    name: "Metamask Wallet",
+    type: "wallet",
+    provider: "MetaMask",
+    balance: 2145.30,
+    currency: "USD",
+    lastUpdated: "2025-04-30T22:17:39Z",
+    isActive: false,
+    assets: [
+      { id: "eth", symbol: "ETH", name: "Ethereum", amount: 0.62, value: 2145.30 }
+    ]
+  }
+];
 
 const AccountManager: React.FC = () => {
-  const [accounts, setAccounts] = useState<TradingAccount[]>([
-    {
-      id: "account-1",
-      name: "Main Trading Account",
-      type: "spot",
-      provider: "Binance",
-      balance: 12580.45,
-      currency: "USD",
-      lastUpdated: new Date().toISOString(),
-      isActive: true,
-      assets: [
-        {
-          coinId: "bitcoin",
-          symbol: "BTC",
-          name: "Bitcoin",
-          amount: 0.35,
-          price: 28500,
-          value: 9975,
-          allocation: 79.3,
-          change24h: 450,
-          changePercent24h: 1.58
-        },
-        {
-          coinId: "ethereum",
-          symbol: "ETH",
-          name: "Ethereum",
-          amount: 1.8,
-          price: 1450,
-          value: 2610,
-          allocation: 20.7,
-          change24h: -32,
-          changePercent24h: -1.2
-        }
-      ]
-    },
-    {
-      id: "account-2",
-      name: "HODL Portfolio",
-      type: "long-term",
-      provider: "Kraken",
-      balance: 8750.25,
-      currency: "USD",
-      lastUpdated: new Date().toISOString(),
-      isActive: true,
-      assets: [
-        {
-          coinId: "bitcoin",
-          symbol: "BTC",
-          name: "Bitcoin",
-          amount: 0.15,
-          price: 28500,
-          value: 4275,
-          allocation: 48.8,
-          change24h: 195,
-          changePercent24h: 1.58
-        },
-        {
-          coinId: "ethereum",
-          symbol: "ETH",
-          name: "Ethereum",
-          amount: 2.5,
-          price: 1450,
-          value: 3625,
-          allocation: 41.4,
-          change24h: -45,
-          changePercent24h: -1.2
-        },
-        {
-          coinId: "solana",
-          symbol: "SOL",
-          name: "Solana",
-          amount: 15,
-          price: 56.75,
-          value: 851.25,
-          allocation: 9.7,
-          change24h: 35.5,
-          changePercent24h: 2.1
-        }
-      ]
-    }
-  ]);
-  
-  const [loading, setLoading] = useState<boolean>(false);
+  const [accounts, setAccounts] = useState<TradingAccount[]>(mockAccounts);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const refreshAccounts = () => {
-    setLoading(true);
+    setIsRefreshing(true);
+    // Simulate API call
     setTimeout(() => {
-      setLoading(false);
+      setIsRefreshing(false);
     }, 1500);
+  };
+  
+  const formatLastUpdated = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
   };
   
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Trading Accounts</CardTitle>
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={refreshAccounts} disabled={loading}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" className="h-8">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add Account
-          </Button>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Trading Accounts</CardTitle>
+            <CardDescription>
+              Manage your connected exchange accounts and wallets
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={refreshAccounts} disabled={isRefreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button size="sm">
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Account
+            </Button>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent>
-        <Tabs defaultValue="accounts">
-          <TabsList className="mb-4">
-            <TabsTrigger value="accounts">All Accounts</TabsTrigger>
-            <TabsTrigger value="assets">Assets</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="accounts">
-            <div className="space-y-4">
-              {accounts.map(account => (
-                <div key={account.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center">
-                        <Wallet className="h-4 w-4 mr-2 text-primary" />
-                        <h3 className="font-medium">{account.name}</h3>
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {account.provider} • {account.type}
-                      </div>
+        {accounts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Link className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-1">No accounts connected</h3>
+            <p className="text-muted-foreground mb-4 text-center max-w-sm">
+              Connect your first exchange account or wallet to start trading
+            </p>
+            <Button>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Connect Account
+            </Button>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="hidden md:table-cell">Balance</TableHead>
+                <TableHead className="hidden md:table-cell">Assets</TableHead>
+                <TableHead className="hidden lg:table-cell">Last Updated</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {accounts.map((account) => (
+                <TableRow key={account.id}>
+                  <TableCell className="font-medium">{account.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${account.provider.toLowerCase()}.png`}
+                        alt={account.provider}
+                        className="w-5 h-5"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/generic.png";
+                        }}
+                      />
+                      {account.provider}
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold">
-                        ${account.balance.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Last updated: {new Date(account.lastUpdated).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {account.assets && (
-                    <div className="mt-4">
-                      <div className="text-sm font-medium mb-2">Assets</div>
-                      <div className="space-y-2">
-                        {account.assets.map(asset => (
-                          <div key={asset.coinId} className="flex justify-between">
-                            <div>
-                              <span className="font-medium">{asset.symbol}</span>
-                              <span className="text-muted-foreground ml-1">
-                                {asset.amount} ({asset.allocation.toFixed(1)}%)
-                              </span>
-                            </div>
-                            <div>
-                              <span>${asset.value.toLocaleString()}</span>
-                              <span 
-                                className={`ml-2 ${asset.changePercent24h >= 0 ? 'text-green-500' : 'text-red-500'}`}
-                              >
-                                {asset.changePercent24h >= 0 ? '+' : ''}
-                                {asset.changePercent24h.toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-end mt-4 space-x-2">
-                    <Button variant="outline" size="sm">Deposit</Button>
-                    <Button variant="outline" size="sm">Withdraw</Button>
-                    <Button size="sm">Trade</Button>
-                  </div>
-                </div>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    ${account.balance.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {account.assets?.length || 0} assets
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell text-muted-foreground">
+                    {formatLastUpdated(account.lastUpdated)}
+                  </TableCell>
+                  <TableCell>
+                    {account.isActive ? (
+                      <Badge className="flex items-center gap-1 bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                        <CheckCircle className="h-3 w-3" />
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Inactive
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="assets">
-            <div className="space-y-4">
-              <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-border">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Value</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">24h Change</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Allocation</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-border">
-                    {accounts.flatMap(account => account.assets || []).map((asset, index) => (
-                      <tr key={`${asset.coinId}-${index}`}>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="font-medium">{asset.symbol}</div>
-                            <div className="ml-2 text-muted-foreground text-sm">{asset.name}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {asset.amount}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right">
-                          ${asset.value.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right">
-                          <span className={asset.changePercent24h >= 0 ? 'text-green-500' : 'text-red-500'}>
-                            {asset.changePercent24h >= 0 ? '+' : ''}
-                            {asset.changePercent24h.toFixed(1)}%
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right">
-                          {asset.allocation.toFixed(1)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
+      
+      <CardFooter className="border-t p-4">
+        <div className="w-full flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
+          <span>
+            Connected Accounts: {accounts.length} ({accounts.filter(a => a.isActive).length} active)
+          </span>
+          <span className="mt-2 sm:mt-0">
+            Total Balance: ${accounts.reduce((sum, acc) => sum + acc.balance, 0).toLocaleString()}
+          </span>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

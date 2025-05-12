@@ -1,135 +1,116 @@
 
-import { AITradingStrategy } from '@/types/trading';
+import { AITradingStrategy } from "@/types/trading";
 
-// Predefined trading strategies
+// Predefined AI trading strategies
 export const predefinedStrategies: AITradingStrategy[] = [
   {
-    id: 'strategy-1',
-    name: 'BTC Trend Follower',
-    description: 'Follows Bitcoin trends using moving average crossovers',
-    type: 'trend-following',
-    timeframe: '4h',
-    assets: ['bitcoin', 'ethereum'],
+    id: "strategy-1",
+    name: "AI Price Prediction",
+    description: "Uses machine learning to predict price movements and execute trades based on predicted direction",
+    type: "ai-predictive",
+    riskLevel: "medium",
+    timeframe: "4h",
+    indicators: ["RSI", "MACD", "Bollinger Bands"],
     parameters: {
-      shortMaPeriod: 9,
-      longMaPeriod: 21,
-      takeProfitPct: 3.5,
-      stopLossPct: 2.5,
-      period: 14,
-      threshold: 70,
-      stopLoss: 5,
-      takeProfit: 10
-    },
-    performance: {
-      winRate: 65,
-      profitFactor: 1.8,
-      trades: 125,
-      returns: 42.5
+      confidenceThreshold: 0.7,
+      maxPositionSize: 5,
+      stopLossPercent: 2,
+      takeProfitPercent: 4
     }
   },
   {
-    id: 'strategy-2',
-    name: 'ETH Mean Reversion',
-    description: 'Trades Ethereum mean reversion using Bollinger Bands',
-    type: 'mean-reversion',
-    timeframe: '1h',
-    assets: ['ethereum', 'solana'],
+    id: "strategy-2",
+    name: "Sentiment Analysis Trader",
+    description: "Analyzes news and social media sentiment to make trading decisions",
+    type: "hybrid",
+    riskLevel: "medium",
+    timeframe: "1d",
+    indicators: ["Sentiment Score", "Volume", "Price Action"],
     parameters: {
-      bbPeriod: 20,
-      bbDeviation: 2,
-      rsiPeriod: 14,
-      rsiOverbought: 70,
-      rsiOversold: 30,
-      period: 14,
-      threshold: 70,
-      stopLoss: 5,
-      takeProfit: 10
-    },
-    performance: {
-      winRate: 72,
-      profitFactor: 2.1,
-      trades: 210,
-      returns: 56.8
+      sentimentThreshold: 0.65,
+      newsWeight: 0.6,
+      socialWeight: 0.4,
+      orderSize: 3
     }
   },
   {
-    id: 'strategy-3',
-    name: 'Sentiment Trader',
-    description: 'Uses market sentiment analysis for trading decisions',
-    type: 'sentiment',
-    timeframe: '1d',
-    assets: ['bitcoin', 'ethereum', 'solana', 'cardano'],
+    id: "strategy-3",
+    name: "Mean Reversion",
+    description: "Identifies when prices have deviated significantly from their historical mean and trades towards the mean",
+    type: "traditional",
+    riskLevel: "low",
+    timeframe: "1h",
+    indicators: ["Standard Deviation", "Bollinger Bands", "Keltner Channel"],
     parameters: {
-      sentimentThreshold: 65,
-      sentimentTimeframe: '4h',
-      period: 14,
-      threshold: 70,
-      stopLoss: 5,
-      takeProfit: 10
-    },
-    performance: {
-      winRate: 68,
-      profitFactor: 1.9,
-      trades: 95,
-      returns: 47.3
+      lookbackPeriod: 20,
+      entryDeviation: 2.0,
+      exitDeviation: 0.5,
+      tradeSize: 2
+    }
+  },
+  {
+    id: "strategy-4",
+    name: "Trend Following",
+    description: "Identifies and follows established market trends to capture larger price movements",
+    type: "hybrid",
+    riskLevel: "medium",
+    timeframe: "4h",
+    indicators: ["Moving Averages", "ADX", "Supertrend"],
+    parameters: {
+      fastPeriod: 9,
+      slowPeriod: 21,
+      adxThreshold: 25,
+      trailingStop: 3
+    }
+  },
+  {
+    id: "strategy-5",
+    name: "Breakout Detection",
+    description: "Identifies price breakouts from consolidation patterns and trades in the direction of the breakout",
+    type: "hybrid",
+    riskLevel: "high",
+    timeframe: "15m",
+    indicators: ["Donchian Channels", "Volume", "ATR"],
+    parameters: {
+      channelPeriod: 20,
+      volumeMultiplier: 1.5,
+      stopMultiplier: 2,
+      profitTarget: 3
+    }
+  },
+  {
+    id: "strategy-6",
+    name: "Multi-Factor AI",
+    description: "Combines multiple AI models to analyze technical patterns, sentiment, and on-chain metrics",
+    type: "ai-predictive",
+    riskLevel: "high",
+    timeframe: "1d",
+    indicators: ["Technical", "Sentiment", "On-chain", "Correlation"],
+    parameters: {
+      technicalWeight: 0.4,
+      sentimentWeight: 0.3,
+      onChainWeight: 0.3,
+      minConfidence: 0.75
     }
   }
 ];
 
-// Strategy templates for creating new strategies
-export const strategyTemplates: Record<string, Partial<AITradingStrategy>> = {
-  'trend-following': {
-    name: 'Trend Following Strategy',
-    description: 'Follows market trends using moving averages',
-    type: 'trend-following',
-    timeframe: '4h',
-    parameters: {
-      period: 14,
-      threshold: 70,
-      stopLoss: 5,
-      takeProfit: 10,
-      fastPeriod: 12,
-      slowPeriod: 26,
-      signalPeriod: 9
-    }
-  },
-  'mean-reversion': {
-    name: 'Mean Reversion Strategy',
-    description: 'Trades reversions to the mean using oscillators',
-    type: 'mean-reversion',
-    timeframe: '1h',
-    parameters: {
-      period: 14,
-      upperBand: 70,
-      lowerBand: 30,
-      stopLoss: 3,
-      takeProfit: 6
-    }
-  },
-  'breakout': {
-    name: 'Breakout Strategy',
-    description: 'Identifies and trades breakouts from ranges',
-    type: 'breakout',
-    timeframe: '1h',
-    parameters: {
-      period: 20,
-      threshold: 2.0,
-      stopLoss: 5,
-      takeProfit: 15
-    }
-  },
-  'sentiment': {
-    name: 'Sentiment Strategy',
-    description: 'Uses market sentiment to identify trading opportunities',
-    type: 'sentiment',
-    timeframe: '1d',
-    parameters: {
-      sentimentThreshold: 65,
-      sentimentTimeframe: '4h',
-      period: 14,
-      threshold: 70,
-      stopLoss: 4,
-      takeProfit: 8
-    }
-  }
+// Function to get a strategy by ID
+export const getStrategyById = (
+  strategyId: string
+): AITradingStrategy | undefined => {
+  return predefinedStrategies.find(strategy => strategy.id === strategyId);
 };
+
+// Define available timeframes for trading strategies
+export const availableTimeframes = [
+  { value: "1m", label: "1 Minute", description: "Very short-term trading" },
+  { value: "5m", label: "5 Minutes", description: "Short-term scalping" },
+  { value: "15m", label: "15 Minutes", description: "Short-term trading" },
+  { value: "30m", label: "30 Minutes", description: "Medium-short term" },
+  { value: "1h", label: "1 Hour", description: "Medium-term trading" },
+  { value: "4h", label: "4 Hours", description: "Medium-long term" },
+  { value: "1d", label: "1 Day", description: "Long-term trading" },
+  { value: "1w", label: "1 Week", description: "Position trading" },
+  { value: "1M", label: "1 Month", description: "Long-term investment" }
+];

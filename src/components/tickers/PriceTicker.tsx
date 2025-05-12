@@ -4,7 +4,6 @@ import { ArrowDown, ArrowUp, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CoinOption } from "@/types/trading";
-import { Tooltip } from "@/components/ui/tooltip";
 
 interface PriceTickerProps {
   coins: CoinOption[];
@@ -29,26 +28,19 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
     if (!tickerRef.current || coins.length === 0 || isPaused) return;
     
     const tickerContent = tickerRef.current;
+    const animationName = `ticker-${currentDirection}`;
     
-    // Remove any existing animation classes
-    tickerContent.classList.remove('animate-left', 'animate-right', 'paused');
-    
-    // Add the appropriate animation class based on direction
-    tickerContent.classList.add(currentDirection === 'left' ? 'animate-left' : 'animate-right');
+    // Reset animation
+    tickerContent.style.animation = 'none';
+    tickerContent.offsetHeight; // Trigger reflow
     
     // Apply animation with dynamic speed
     const animationDuration = `${coins.length * speed}s`;
-    tickerContent.style.animationDuration = animationDuration;
-    
-    // Add paused class if needed
-    if (isPaused) {
-      tickerContent.classList.add('paused');
-    }
+    tickerContent.style.animation = `${animationName} ${animationDuration} linear infinite`;
     
     return () => {
       if (tickerContent) {
-        tickerContent.classList.remove('animate-left', 'animate-right', 'paused');
-        tickerContent.style.animationDuration = '';
+        tickerContent.style.animation = 'none';
       }
     };
   }, [coins, speed, isPaused, currentDirection]);
@@ -72,33 +64,30 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
     )}>
       {variant === 'default' && (
         <div className="absolute top-1/2 left-2 z-10 -translate-y-1/2 space-x-1 flex opacity-70 hover:opacity-100 transition-opacity">
-          <Tooltip content={isPaused ? "Resume" : "Pause"}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-              onClick={togglePause}
-            >
-              {isPaused ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
-            </Button>
-          </Tooltip>
-          <Tooltip content={`Direction: ${currentDirection === 'left' ? 'Left' : 'Right'}`}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-              onClick={changeDirection}
-            >
-              {currentDirection === 'left' ? 
-                <ArrowUp className="h-4 w-4 rotate-90" /> : 
-                <ArrowUp className="h-4 w-4 -rotate-90" />}
-            </Button>
-          </Tooltip>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
+            onClick={togglePause}
+          >
+            {isPaused ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
+            onClick={changeDirection}
+          >
+            {currentDirection === 'left' ? 
+              <ArrowUp className="h-4 w-4 rotate-90" /> : 
+              <ArrowUp className="h-4 w-4 -rotate-90" />}
+          </Button>
         </div>
       )}
       
       <div className={cn(
-        "ticker-container whitespace-nowrap h-full flex items-center"
+        "ticker-container whitespace-nowrap h-full flex items-center",
+        isPaused && "animation-paused"
       )}>
         <div 
           ref={tickerRef}
@@ -113,17 +102,12 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
                 <img 
                   src={coin.image} 
                   alt={coin.name} 
-                  className="w-5 h-5 mr-2 rounded-full flex-shrink-0"
+                  className="w-5 h-5 mr-2 rounded-full"
                 />
               )}
-              <div className="flex items-center">
-                <span className="font-medium mr-1.5 whitespace-nowrap">{coin.symbol.toUpperCase()}</span>
-                <span className="text-xs text-muted-foreground hidden sm:inline-block">
-                  ({coin.name})
-                </span>
-              </div>
-              <span className="mx-2 text-muted-foreground">/</span>
-              <span className="font-mono truncate">
+              <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+              <span className="mx-1 text-muted-foreground">/</span>
+              <span className="font-mono">
                 ${coin.price.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 6
@@ -131,7 +115,7 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
               </span>
               {/* Percentage change */}
               <span className={cn(
-                "ml-2 text-sm whitespace-nowrap",
+                "ml-2 text-sm",
                 coin.priceChange > 0 ? "text-crypto-green" : "text-crypto-red"
               )}>
                 {coin.priceChange > 0 ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}

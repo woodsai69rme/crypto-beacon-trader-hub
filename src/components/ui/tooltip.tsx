@@ -5,9 +5,10 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import { cn } from "@/lib/utils"
 
 const TooltipProvider = TooltipPrimitive.Provider
-const TooltipRoot = TooltipPrimitive.Root
+
+const Tooltip = TooltipPrimitive.Root
+
 const TooltipTrigger = TooltipPrimitive.Trigger
-const TooltipPortal = TooltipPrimitive.Portal
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
@@ -25,23 +26,4 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-// Fix the Tooltip component to use content property correctly
-const Tooltip = ({ children, content, className, ...props }: { 
-  children: React.ReactNode; 
-  content: React.ReactNode;
-  className?: string;
-  [key: string]: any;
-}) => {
-  return (
-    <TooltipProvider>
-      <TooltipRoot>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipPortal>
-          <TooltipContent className={className} {...props}>{content}</TooltipContent>
-        </TooltipPortal>
-      </TooltipRoot>
-    </TooltipProvider>
-  );
-};
-
-export { Tooltip, TooltipProvider, TooltipRoot, TooltipTrigger, TooltipContent };
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

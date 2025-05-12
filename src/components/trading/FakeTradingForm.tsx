@@ -3,16 +3,14 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
-import { Trade } from '@/types/trading';
 
 interface FakeTradingFormProps {
-  onAddTrade: (trade: Trade) => void;
-  advancedMode?: boolean;
+  onAddTrade: (trade: any) => void;
 }
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedMode = false }) => {
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
   const [asset, setAsset] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -32,25 +30,15 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
       return;
     }
     
-    const priceValue = parseFloat(price);
-    const quantityValue = parseFloat(quantity);
-    const totalValue = priceValue * quantityValue;
-    
-    const newTrade: Trade = {
+    const newTrade = {
       id: `trade-${Date.now()}`,
-      coinId: asset,
-      coinName: asset === 'BTC' ? 'Bitcoin' : 
-               asset === 'ETH' ? 'Ethereum' :
-               asset === 'SOL' ? 'Solana' : 'Cardano',
-      coinSymbol: asset,
+      asset,
+      price: parseFloat(price),
+      quantity: parseFloat(quantity),
       type,
-      amount: quantityValue,
-      price: priceValue,
-      total: totalValue,
-      totalValue: totalValue,
-      timestamp: tradeDate,
-      currency: "USD",
-      fees: totalValue * 0.001 
+      // Convert string date to Date object (using string here to fix the error in the original component)
+      date: tradeDate,
+      timestamp: new Date(tradeDate).getTime()
     };
     
     onAddTrade(newTrade);
@@ -68,14 +56,14 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-lg glass-card animate-fade-in">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="asset" className="text-muted-foreground">Asset</Label>
+        <Label htmlFor="asset">Asset</Label>
         <Select value={asset} onValueChange={setAsset}>
-          <SelectTrigger id="asset" className="bg-background/60 backdrop-blur border-border/50">
+          <SelectTrigger id="asset">
             <SelectValue placeholder="Select Asset" />
           </SelectTrigger>
-          <SelectContent className="bg-popover/95 backdrop-blur-lg border-border/50">
+          <SelectContent>
             <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
             <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
             <SelectItem value="SOL">Solana (SOL)</SelectItem>
@@ -86,7 +74,7 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
       
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="price" className="text-muted-foreground">Price</Label>
+          <Label htmlFor="price">Price</Label>
           <Input
             id="price"
             placeholder="Enter price"
@@ -95,12 +83,11 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
             type="number"
             min="0"
             step="0.01"
-            className="bg-background/60 backdrop-blur border-border/50"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="quantity" className="text-muted-foreground">Quantity</Label>
+          <Label htmlFor="quantity">Quantity</Label>
           <Input
             id="quantity"
             placeholder="Enter quantity"
@@ -109,75 +96,38 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
             type="number"
             min="0"
             step="0.0001"
-            className="bg-background/60 backdrop-blur border-border/50"
           />
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="date" className="text-muted-foreground">Trade Date</Label>
+        <Label htmlFor="date">Trade Date</Label>
         <Input
           id="date"
           type="date"
           value={tradeDate}
           onChange={(e) => setTradeDate(e.target.value)}
-          className="bg-background/60 backdrop-blur border-border/50"
         />
       </div>
       
       <div className="grid grid-cols-2 gap-4">
         <Button
           type="button"
-          className={`w-full transition-all duration-300 ${type === 'buy' ? 'bg-crypto-green text-white hover:brightness-110' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+          className={`w-full ${type === 'buy' ? 'bg-green-500 hover:bg-green-600' : 'bg-muted hover:bg-muted/80'}`}
           onClick={() => setType('buy')}
         >
           Buy
         </Button>
         <Button
           type="button"
-          className={`w-full transition-all duration-300 ${type === 'sell' ? 'bg-crypto-red text-white hover:brightness-110' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+          className={`w-full ${type === 'sell' ? 'bg-red-500 hover:bg-red-600' : 'bg-muted hover:bg-muted/80'}`}
           onClick={() => setType('sell')}
         >
           Sell
         </Button>
       </div>
       
-      {advancedMode && (
-        <div className="space-y-2 pt-2 border-t border-border/40">
-          <p className="text-sm font-medium text-muted-foreground">Advanced Settings</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label htmlFor="fee" className="text-xs text-muted-foreground">Fee (%)</Label>
-              <Input
-                id="fee"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue="0.1"
-                disabled
-                className="bg-background/40 text-muted-foreground"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="slippage" className="text-xs text-muted-foreground">Slippage (%)</Label>
-              <Input
-                id="slippage"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue="0.5"
-                disabled
-                className="bg-background/40 text-muted-foreground"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <Button 
-        type="submit" 
-        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300"
-      >
+      <Button type="submit" className="w-full">
         Add Trade
       </Button>
     </form>

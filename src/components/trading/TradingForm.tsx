@@ -1,185 +1,124 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "@/components/ui/use-toast";
-import { CoinOption, Trade, TradingFormProps } from "@/types/trading";
-import { v4 as uuidv4 } from 'uuid';
-import { ArrowDownUp, CalculatorIcon, Clock, DollarSign } from "lucide-react";
-import { fetchCoinOptions } from '@/services/cryptoApi';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ArrowUpDown } from "lucide-react";
+import { CoinOption, SupportedCurrency, TradingFormProps } from '@/types/trading';
 
-const TradingForm: React.FC<TradingFormProps> = ({ 
-  initialCoin,
-  onTradeSubmit 
+const TradingForm: React.FC<TradingFormProps> = ({
+  balance,
+  availableCoins,
+  onTrade,
+  getOwnedCoinAmount,
+  activeCurrency,
+  onCurrencyChange,
+  conversionRate
 }) => {
-  const [availableCoins, setAvailableCoins] = useState<CoinOption[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoin?.id || 'bitcoin');
+  const [selectedCoinId, setSelectedCoinId] = useState<string>(availableCoins[0]?.id || '');
+  const [tradeAmount, setTradeAmount] = useState<number>(0);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const [amount, setAmount] = useState<number>(0);
-  const [sliderValue, setSliderValue] = useState<number>(0);
-  const [usdValue, setUsdValue] = useState<number>(0);
-  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(initialCoin || null);
-  const [advancedOptions, setAdvancedOptions] = useState<boolean>(false);
-  const [stopLoss, setStopLoss] = useState<number | null>(null);
-  const [takeProfit, setTakeProfit] = useState<number | null>(null);
+  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(null);
+  const [totalValue, setTotalValue] = useState<number>(0);
+  const [maxAmount, setMaxAmount] = useState<number>(0);
   
+  // Update selected coin when ID changes
   useEffect(() => {
-    const loadCoins = async () => {
-      try {
-        const coins = await fetchCoinOptions();
-        setAvailableCoins(coins);
-        
-        // Set initial selected coin
-        if (selectedCoinId) {
-          const coin = coins.find(c => c.id === selectedCoinId);
-          if (coin) setSelectedCoin(coin);
-        } else if (coins.length > 0) {
-          setSelectedCoin(coins[0]);
-          setSelectedCoinId(coins[0].id);
-        }
-      } catch (error) {
-        console.error("Failed to load coins:", error);
-      } finally {
-        setLoading(false);
+    const coin = availableCoins.find(c => c.id === selectedCoinId);
+    setSelectedCoin(coin || null);
+  }, [selectedCoinId, availableCoins]);
+  
+  // Calculate total value whenever amount or selected coin changes
+  useEffect(() => {
+    if (selectedCoin) {
+      setTotalValue(tradeAmount * selectedCoin.price);
+      
+      // Calculate max amount based on balance or holdings
+      if (tradeType === 'buy') {
+        setMaxAmount(balance / selectedCoin.price);
+      } else {
+        setMaxAmount(getOwnedCoinAmount(selectedCoin.id));
       }
-    };
-    
-    loadCoins();
-  }, []);
-  
-  useEffect(() => {
-    if (selectedCoin) {
-      setUsdValue(Number(amount) * selectedCoin.price);
     }
-  }, [amount, selectedCoin]);
-  
-  const handleCoinChange = (coinId: string) => {
-    setSelectedCoinId(coinId);
-    const coin = availableCoins.find(c => c.id === coinId);
-    if (coin) setSelectedCoin(coin);
-  };
-  
-  const handleAmountChange = (value: string) => {
-    const numValue = parseFloat(value);
-    setAmount(isNaN(numValue) ? 0 : numValue);
-  };
-  
-  const handleSliderChange = (value: number[]) => {
-    setSliderValue(value[0]);
-    
-    if (selectedCoin) {
-      // Calculate crypto amount based on slider percentage (0-100) of $10,000
-      const maxUsdValue = 10000;
-      const usdAmount = (value[0] / 100) * maxUsdValue;
-      const cryptoAmount = usdAmount / selectedCoin.price;
-      setAmount(parseFloat(cryptoAmount.toFixed(8)));
-      setUsdValue(usdAmount);
-    }
-  };
-  
-  const handleUsdValueChange = (value: string) => {
-    const numValue = parseFloat(value);
-    setUsdValue(isNaN(numValue) ? 0 : numValue);
-    
-    if (selectedCoin && numValue > 0) {
-      setAmount(numValue / selectedCoin.price);
-    }
-  };
+  }, [tradeAmount, selectedCoin, tradeType, balance]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedCoin) return;
     
-    if (!selectedCoin) {
-      toast({
-        title: "Error",
-        description: "Please select a cryptocurrency",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (amount <= 0) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid amount",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const trade: Trade = {
-      id: uuidv4(),
-      coinId: selectedCoin.id,
-      coinName: selectedCoin.name,
-      coinSymbol: selectedCoin.symbol,
-      type: tradeType,
-      amount: amount,
-      price: selectedCoin.price,
-      totalValue: usdValue,
-      total: usdValue,
-      timestamp: new Date().toISOString(),
-      currency: 'USD',
-    };
-    
-    if (onTradeSubmit) {
-      onTradeSubmit(trade);
-    }
-    
-    // Reset form
-    setTradeType('buy');
-    setAmount(0);
-    setUsdValue(0);
-    setSliderValue(0);
-    setAdvancedOptions(false);
-    setStopLoss(null);
-    setTakeProfit(null);
-    
-    toast({
-      title: "Trade Submitted",
-      description: `Successfully placed ${tradeType} order for ${amount} ${selectedCoin.symbol}`,
-    });
+    onTrade(selectedCoin.id, tradeType, tradeAmount, selectedCoin.price);
+    setTradeAmount(0);
+  };
+  
+  const handleCoinChange = (coinId: string) => {
+    setSelectedCoinId(coinId);
+    setTradeAmount(0); // Reset amount when coin changes
+  };
+  
+  const handleTradeTypeChange = (value: 'buy' | 'sell') => {
+    setTradeType(value);
+    setTradeAmount(0); // Reset amount when trade type changes
+  };
+  
+  // Helper function to format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: activeCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   };
   
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ArrowDownUp className="h-5 w-5" />
-          Trade {selectedCoin?.symbol || 'Crypto'}
-        </CardTitle>
-        <CardDescription>
-          Buy or sell cryptocurrencies with instant execution
-        </CardDescription>
+        <CardTitle className="text-xl">Trade</CardTitle>
+        <CardDescription>Buy or sell cryptocurrencies</CardDescription>
       </CardHeader>
       
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label>Trade Type</Label>
+            <RadioGroup 
+              value={tradeType} 
+              onValueChange={(value) => handleTradeTypeChange(value as 'buy' | 'sell')}
+              className="flex space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="buy" id="buy" />
+                <Label htmlFor="buy" className="cursor-pointer">Buy</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sell" id="sell" />
+                <Label htmlFor="sell" className="cursor-pointer">Sell</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          
+          <div className="space-y-2">
             <Label htmlFor="coin-select">Select Coin</Label>
-            <Select value={selectedCoinId} onValueChange={handleCoinChange} disabled={loading}>
+            <Select value={selectedCoinId} onValueChange={handleCoinChange}>
               <SelectTrigger id="coin-select">
-                <SelectValue placeholder="Select cryptocurrency" />
+                <SelectValue placeholder="Select a coin" />
               </SelectTrigger>
               <SelectContent>
-                {availableCoins.map((coin) => (
-                  <SelectItem key={coin.id} value={coin.id}>
-                    <div className="flex items-center gap-2">
+                {availableCoins.map(coin => (
+                  <SelectItem 
+                    key={coin.id} 
+                    value={coin.id}
+                  >
+                    <div className="flex items-center">
                       {coin.image && (
                         <img 
                           src={coin.image} 
                           alt={coin.name} 
-                          className="w-5 h-5"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
+                          className="w-5 h-5 mr-2"
                         />
                       )}
                       {coin.name} ({coin.symbol})
@@ -191,203 +130,94 @@ const TradingForm: React.FC<TradingFormProps> = ({
           </div>
           
           {selectedCoin && (
-            <div className="p-3 bg-muted/50 rounded-md">
-              <div className="flex justify-between items-center">
+            <>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-muted-foreground">Current Price</div>
-                  <div className="text-xl font-semibold">${selectedCoin.price.toLocaleString()}</div>
-                </div>
-                <div className={`text-right ${selectedCoin.priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  <div className="text-sm">24h Change</div>
-                  <div className="font-semibold">
-                    {selectedCoin.priceChange >= 0 ? '+' : ''}{selectedCoin.priceChange.toFixed(2)} ({selectedCoin.changePercent.toFixed(2)}%)
+                  <Label>Current Price</Label>
+                  <div className="text-xl font-bold">
+                    {formatCurrency(selectedCoin.price)}
+                  </div>
+                  <div className={`text-sm ${
+                    (selectedCoin.changePercent || 0) >= 0 
+                      ? "text-green-500" 
+                      : "text-red-500"
+                  }`}>
+                    {(selectedCoin.changePercent || 0) >= 0 ? "+" : ""}
+                    {selectedCoin.changePercent?.toFixed(2)}%
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label>Trade Type</Label>
-            <RadioGroup 
-              value={tradeType} 
-              onValueChange={(value) => setTradeType(value as 'buy' | 'sell')} 
-              className="flex"
-            >
-              <div className="flex items-center space-x-2 w-full">
-                <RadioGroupItem value="buy" id="buy" className="peer sr-only" />
-                <Label 
-                  htmlFor="buy" 
-                  className="flex-1 text-center py-2 border rounded-l-md cursor-pointer peer-aria-checked:bg-green-500 peer-aria-checked:text-white peer-aria-checked:border-green-500"
-                >
-                  Buy
-                </Label>
                 
-                <RadioGroupItem value="sell" id="sell" className="peer sr-only" />
-                <Label 
-                  htmlFor="sell" 
-                  className="flex-1 text-center py-2 border rounded-r-md cursor-pointer peer-aria-checked:bg-red-500 peer-aria-checked:text-white peer-aria-checked:border-red-500"
-                >
-                  Sell
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount ({selectedCoin?.symbol || 'Crypto'})</Label>
-            <div className="flex space-x-2">
-              <Input
-                id="amount"
-                type="number"
-                step="any"
-                min="0"
-                value={amount || ''}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className="flex-1"
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-20"
-                onClick={() => {
-                  if (selectedCoin) {
-                    const maxAmount = 10000 / selectedCoin.price;
-                    setAmount(parseFloat(maxAmount.toFixed(8)));
-                    setUsdValue(10000);
-                    setSliderValue(100);
-                  }
-                }}
-              >
-                Max
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="flex items-center justify-between">
-              <span>Amount Slider</span>
-              <span className="text-sm text-muted-foreground">{sliderValue}%</span>
-            </Label>
-            <Slider 
-              value={[sliderValue]} 
-              onValueChange={handleSliderChange} 
-              max={100} 
-              step={1}
-            />
-            <div className="flex justify-between text-xs text-muted-foreground pt-1">
-              <span>0%</span>
-              <span>25%</span>
-              <span>50%</span>
-              <span>75%</span>
-              <span>100%</span>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="usd-value">USD Value</Label>
-            <div className="relative">
-              <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <Input
-                id="usd-value"
-                type="number"
-                min="0"
-                value={usdValue || ''}
-                onChange={(e) => handleUsdValueChange(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="advanced-options"
-              checked={advancedOptions}
-              onCheckedChange={setAdvancedOptions}
-            />
-            <Label htmlFor="advanced-options">Advanced Options</Label>
-          </div>
-          
-          {advancedOptions && (
-            <div className="space-y-4 p-3 rounded-md border">
-              <div className="space-y-2">
-                <Label htmlFor="stop-loss">Stop Loss (USD)</Label>
-                <Input
-                  id="stop-loss"
-                  type="number"
-                  min="0"
-                  value={stopLoss || ''}
-                  onChange={(e) => setStopLoss(parseFloat(e.target.value) || null)}
-                  placeholder="Optional"
-                />
-                {selectedCoin && stopLoss && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {tradeType === 'buy' ? 
-                      `Sell at $${stopLoss} (${((stopLoss / selectedCoin.price - 1) * 100).toFixed(2)}%)` : 
-                      `Buy at $${stopLoss} (${((1 - stopLoss / selectedCoin.price) * 100).toFixed(2)}%)`}
+                {tradeType === 'buy' ? (
+                  <div>
+                    <Label>Available Balance</Label>
+                    <div className="text-xl font-bold">
+                      {formatCurrency(balance)}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <Label>Your Holdings</Label>
+                    <div className="text-xl font-bold">
+                      {getOwnedCoinAmount(selectedCoin.id)} {selectedCoin.symbol}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      ≈ {formatCurrency(getOwnedCoinAmount(selectedCoin.id) * selectedCoin.price)}
+                    </div>
                   </div>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="take-profit">Take Profit (USD)</Label>
-                <Input
-                  id="take-profit"
-                  type="number"
-                  min="0"
-                  value={takeProfit || ''}
-                  onChange={(e) => setTakeProfit(parseFloat(e.target.value) || null)}
-                  placeholder="Optional"
-                />
-                {selectedCoin && takeProfit && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {tradeType === 'buy' ? 
-                      `Sell at $${takeProfit} (${((takeProfit / selectedCoin.price - 1) * 100).toFixed(2)}%)` : 
-                      `Buy at $${takeProfit} (${((1 - takeProfit / selectedCoin.price) * 100).toFixed(2)}%)`}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground flex items-center">
-                  <Clock className="h-4 w-4 mr-1" /> Order expires in
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="amount">Amount ({selectedCoin.symbol})</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setTradeAmount(maxAmount)}
+                    disabled={maxAmount <= 0}
+                  >
+                    Max
+                  </Button>
                 </div>
-                <Select defaultValue="never">
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="never">Never</SelectItem>
-                    <SelectItem value="1d">1 Day</SelectItem>
-                    <SelectItem value="1w">1 Week</SelectItem>
-                    <SelectItem value="1m">1 Month</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="amount"
+                  type="number"
+                  min="0"
+                  step="0.0001"
+                  max={maxAmount}
+                  value={tradeAmount}
+                  onChange={(e) => setTradeAmount(Number(e.target.value))}
+                  className="w-full"
+                />
+                <div className="text-sm text-muted-foreground">
+                  Max: {maxAmount.toFixed(4)} {selectedCoin.symbol}
+                </div>
               </div>
-            </div>
+              
+              <div>
+                <Label>Total Value</Label>
+                <div className="text-xl font-bold">
+                  {formatCurrency(totalValue)}
+                </div>
+              </div>
+            </>
           )}
-          
-          <Separator className="my-4" />
-          
-          <div className="flex justify-between items-center p-3 bg-muted/50 rounded-md mb-4">
-            <div className="text-sm">Estimated Total</div>
-            <div className="text-right">
-              <div className="font-semibold">${usdValue.toFixed(2)}</div>
-              <div className="text-xs text-muted-foreground">
-                {amount.toFixed(8)} {selectedCoin?.symbol || 'Crypto'}
-              </div>
-            </div>
+
+          <div className="mt-4">
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={
+                !selectedCoin || 
+                tradeAmount <= 0 || 
+                (tradeType === 'buy' && totalValue > balance) ||
+                (tradeType === 'sell' && tradeAmount > (getOwnedCoinAmount(selectedCoinId)))
+              }
+            >
+              {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol}
+            </Button>
           </div>
-          
-          <Button 
-            type="submit" 
-            className={`w-full ${tradeType === 'buy' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
-            disabled={loading || !selectedCoin || amount <= 0}
-          >
-            {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol || 'Crypto'}
-          </Button>
         </form>
       </CardContent>
     </Card>

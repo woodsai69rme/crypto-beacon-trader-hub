@@ -1,40 +1,39 @@
 
 import { useState } from 'react';
-import { PriceAlertFormData } from '@/types/trading';
+import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
+import { PriceAlert } from '@/types/alerts';
 
-// Default form data
-const defaultFormData: PriceAlertFormData = {
-  coinId: 'bitcoin',
-  coinName: 'Bitcoin',
-  coinSymbol: 'BTC',
-  targetPrice: 55000,
-  currentPrice: 51234.78,
+const defaultAlert = {
+  coinId: "bitcoin",
+  coinName: "Bitcoin",
+  coinSymbol: "BTC",
+  targetPrice: 0,
   isAbove: true,
-  notifyVia: ['app'],
+  enabled: true,
   recurring: false,
+  percentageChange: 0,
+  notifyVia: ["app"] as ("email" | "app" | "push")[]
 };
 
 export const useAlertForm = () => {
-  const [formData, setFormData] = useState<PriceAlertFormData>(defaultFormData);
+  const [formData, setFormData] = useState(defaultAlert);
   
-  // Reset form to default values
-  const resetForm = () => {
-    setFormData(defaultFormData);
-  };
+  const resetForm = () => setFormData(defaultAlert);
   
-  // Validate form data
-  const validateForm = (): boolean => {
-    if (!formData.coinId) return false;
-    if (!formData.targetPrice || isNaN(formData.targetPrice)) return false;
-    if (!formData.notifyVia || formData.notifyVia.length === 0) return false;
-    
-    return true;
+  const updateCoin = (coinId: string) => {
+    const selectedCoin = COIN_OPTIONS[coinId];
+    setFormData(prev => ({
+      ...prev,
+      coinId: selectedCoin.id,
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol
+    }));
   };
   
   return {
     formData,
     setFormData,
     resetForm,
-    validateForm,
+    updateCoin
   };
 };

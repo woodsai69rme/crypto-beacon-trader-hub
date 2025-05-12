@@ -1,170 +1,110 @@
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { VolumeAlertFormData, COIN_OPTIONS } from "./AlertTypes";
 
 interface VolumeAlertFormProps {
   formData: VolumeAlertFormData;
-  onFormChange: (data: VolumeAlertFormData) => void;
+  setFormData: (data: VolumeAlertFormData) => void;
+  onSubmit: () => void;
 }
 
-export const VolumeAlertForm: React.FC<VolumeAlertFormProps> = ({ formData, onFormChange }) => {
-  const handleCoinChange = (coinId: string) => {
-    const selectedCoin = COIN_OPTIONS.find(coin => coin.id === coinId);
-    
-    if (selectedCoin) {
-      onFormChange({
-        ...formData,
-        coinId: selectedCoin.id,
-        coinName: selectedCoin.name,
-        coinSymbol: selectedCoin.symbol
-      });
-    }
-  };
-  
-  const handleVolumeThresholdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFormChange({
+const VolumeAlertForm: React.FC<VolumeAlertFormProps> = ({ formData, setFormData, onSubmit }) => {
+  const handleCoinChange = (value: string) => {
+    const coin = COIN_OPTIONS[value];
+    setFormData({
       ...formData,
-      volumeThreshold: parseFloat(e.target.value) || 0
+      coinId: value,
+      coinName: coin.name,
+      coinSymbol: coin.symbol
     });
   };
-  
-  const handleIsAboveChange = (value: string) => {
-    onFormChange({
-      ...formData,
-      isAbove: value === 'above'
-    });
-  };
-  
-  const handleNotifyViaChange = (method: string) => {
-    const currentNotifyVia = [...formData.notifyVia];
+
+  const handleNotifyViaToggle = (method: "app" | "email" | "push") => {
+    const newNotifyVia = formData.notifyVia.includes(method)
+      ? formData.notifyVia.filter(v => v !== method)
+      : [...formData.notifyVia, method];
     
-    if (currentNotifyVia.includes(method)) {
-      onFormChange({
-        ...formData,
-        notifyVia: currentNotifyVia.filter(m => m !== method)
-      });
-    } else {
-      onFormChange({
-        ...formData,
-        notifyVia: [...currentNotifyVia, method]
-      });
-    }
+    setFormData({ ...formData, notifyVia: newNotifyVia });
   };
-  
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="coin">Cryptocurrency</Label>
-        <Select
-          value={formData.coinId}
-          onValueChange={handleCoinChange}
-        >
-          <SelectTrigger id="coin">
-            <SelectValue placeholder="Select cryptocurrency" />
-          </SelectTrigger>
-          <SelectContent>
-            {COIN_OPTIONS.map((coin) => (
-              <SelectItem key={coin.id} value={coin.id}>
-                {coin.symbol} - {coin.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="volume-threshold">Volume Threshold (in USD)</Label>
-        <Input
-          id="volume-threshold"
-          type="number"
-          value={formData.volumeThreshold || ''}
-          onChange={handleVolumeThresholdChange}
-          placeholder="0"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="condition">Volume Condition</Label>
-        <Select
-          value={formData.isAbove ? 'above' : 'below'}
-          onValueChange={handleIsAboveChange}
-        >
-          <SelectTrigger id="condition">
-            <SelectValue placeholder="Select condition" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="above">Volume goes above threshold</SelectItem>
-            <SelectItem value="below">Volume goes below threshold</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="timeframe">Timeframe</Label>
-        <Select
-          value={formData.timeframe}
-          onValueChange={(value) => onFormChange({ ...formData, timeframe: value })}
-        >
-          <SelectTrigger id="timeframe">
-            <SelectValue placeholder="Select timeframe" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1h">1 Hour</SelectItem>
-            <SelectItem value="4h">4 Hours</SelectItem>
-            <SelectItem value="12h">12 Hours</SelectItem>
-            <SelectItem value="24h">24 Hours</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Notification Method</Label>
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="notify-app"
-              checked={formData.notifyVia.includes('app')}
-              onCheckedChange={() => handleNotifyViaChange('app')}
-            />
-            <label
-              htmlFor="notify-app"
-              className="text-sm font-medium leading-none"
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Coin</label>
+            <Select
+              value={formData.coinId}
+              onValueChange={handleCoinChange}
             >
-              In-App Notification
-            </label>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                <SelectItem value="solana">Solana (SOL)</SelectItem>
+                <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                <SelectItem value="ripple">XRP</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="notify-email"
-              checked={formData.notifyVia.includes('email')}
-              onCheckedChange={() => handleNotifyViaChange('email')}
-            />
-            <label
-              htmlFor="notify-email"
-              className="text-sm font-medium leading-none"
+          
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Volume Increase Threshold (%)</label>
+            <div className="flex items-center">
+              <Input
+                type="number"
+                min="1"
+                max="100"
+                value={formData.volumeThreshold || ""}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  volumeThreshold: parseFloat(e.target.value) || 0 
+                })}
+              />
+              <span className="ml-2">%</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Timeframe</label>
+            <Select
+              value={formData.frequency}
+              onValueChange={(value: "1h" | "4h" | "24h") => setFormData({ 
+                ...formData, 
+                frequency: value
+              })}
             >
-              Email
-            </label>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1h">1 Hour</SelectItem>
+                <SelectItem value="4h">4 Hours</SelectItem>
+                <SelectItem value="24h">24 Hours</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+          
+          <Button className="w-full" onClick={onSubmit}>
+            <Plus className="mr-1 h-4 w-4" />
+            Add Volume Alert
+          </Button>
         </div>
-      </div>
-      
-      <div className="flex items-center space-x-2 pt-2">
-        <Switch
-          id="alert-active"
-          checked={formData.enabled}
-          onCheckedChange={(checked) => onFormChange({ ...formData, enabled: checked })}
-        />
-        <Label htmlFor="alert-active">
-          Alert Active
-        </Label>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

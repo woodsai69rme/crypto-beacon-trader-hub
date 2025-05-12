@@ -1,65 +1,114 @@
 
-import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { PriceAlertFormData } from '@/types/trading';
+import { useState, useEffect } from "react";
+import { PriceAlert, VolumeAlert } from "@/types/alerts";
+import { toast } from "@/components/ui/use-toast";
+import { handleError } from "@/utils/errorHandling";
+import { PriceAlertFormData } from "@/components/widgets/AlertComponents/AlertTypes";
 
-const LOCAL_STORAGE_KEY = 'crypto-alerts';
+export const useAlerts = () => {
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [volumeAlerts, setVolumeAlerts] = useState<VolumeAlert[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-const useAlerts = () => {
-  const [alerts, setAlerts] = useState<PriceAlertFormData[]>([]);
-  
-  // Load alerts from local storage
+  // Load alerts from localStorage
   useEffect(() => {
-    const savedAlerts = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (savedAlerts) {
-      try {
+    try {
+      setIsLoading(true);
+      const savedAlerts = localStorage.getItem("priceAlerts");
+      const savedVolumeAlerts = localStorage.getItem("volumeAlerts");
+      
+      if (savedAlerts) {
         setAlerts(JSON.parse(savedAlerts));
-      } catch (error) {
-        console.error('Error parsing saved alerts:', error);
       }
+      
+      if (savedVolumeAlerts) {
+        setVolumeAlerts(JSON.parse(savedVolumeAlerts));
+      }
+    } catch (error) {
+      handleError(error, "warning", "Failed to load alerts");
+    } finally {
+      setIsLoading(false);
     }
   }, []);
-  
-  // Save alerts to local storage whenever they change
+
+  // Save alerts to localStorage when they change
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(alerts));
-  }, [alerts]);
-  
-  const addAlert = (alert: PriceAlertFormData) => {
-    const newAlert = {
-      ...alert,
-      id: uuidv4(),
-      active: true,
-      createdAt: new Date().toISOString()
-    };
-    
-    setAlerts(prev => [...prev, newAlert]);
-    return newAlert;
+    if (!isLoading) {
+      try {
+        localStorage.setItem("priceAlerts", JSON.stringify(alerts));
+        localStorage.setItem("volumeAlerts", JSON.stringify(volumeAlerts));
+      } catch (error) {
+        handleError(error, "warning", "Failed to save alerts");
+      }
+    }
+  }, [alerts, volumeAlerts, isLoading]);
+
+  const addAlert = async (newAlertData: PriceAlertFormData) => {
+    try {
+      // Validate required fields
+      if (!newAlertData.coinId || !newAlertData.coinName || !newAlertData.coinSymbol) {
+        throw new Error("Missing required alert information");
+      }
+
+      const alert: PriceAlert = {
+        id: Date.now().toString(),
+        createdAt: new Date(),
+        ...newAlertData,
+      };
+      
+      setAlerts(prevAlerts => [...prevAlerts, alert]);
+      
+      return alert;
+    } catch (error) {
+      handleError(error, "error", "Add Alert");
+      throw error;
+    }
+  };
+
+  const removeAlert = async (id: string) => {
+    try {
+      setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
+      return true;
+    } catch (error) {
+      handleError(error, "error", "Remove Alert");
+      throw error;
+    }
   };
   
-  const removeAlert = (alertId: string) => {
-    setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+  const updateAlert = async (id: string, updatedData: Partial<PriceAlert>) => {
+    try {
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          alert.id === id ? { ...alert, ...updatedData } : alert
+        )
+      );
+      return true;
+    } catch (error) {
+      handleError(error, "error", "Update Alert");
+      throw error;
+    }
   };
   
-  const updateAlert = (alertId: string, data: Partial<PriceAlertFormData>) => {
-    setAlerts(prev => 
-      prev.map(alert => 
-        alert.id === alertId ? { ...alert, ...data } : alert
-      )
-    );
+  const toggleAlertEnabled = async (id: string) => {
+    try {
+      const alert = alerts.find(a => a.id === id);
+      if (!alert) throw new Error("Alert not found");
+      
+      await updateAlert(id, { enabled: !alert.enabled });
+      return !alert.enabled;
+    } catch (error) {
+      handleError(error, "error", "Toggle Alert");
+      throw error;
+    }
   };
-  
-  const toggleAlert = (alertId: string, active: boolean) => {
-    updateAlert(alertId, { active });
-  };
-  
+
   return {
     alerts,
+    volumeAlerts,
     addAlert,
     removeAlert,
     updateAlert,
-    toggleAlert
+    toggleAlertEnabled,
+    isLoading
   };
 };
-
-export default useAlerts;

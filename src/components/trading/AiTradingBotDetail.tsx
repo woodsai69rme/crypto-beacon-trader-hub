@@ -1,170 +1,228 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Bot, BarChart, Settings, Play, Pause, Save } from "lucide-react";
-import { AITradingStrategy } from "@/types/trading";
-import BasicStrategyForm from "./strategy/BasicStrategyForm";
-import StrategyParameters from "./strategy/StrategyParameters";
-import StrategyBacktest from "./strategy/StrategyBacktest";
-import { predefinedStrategies } from "@/utils/aiTradingStrategies";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bot, ArrowLeft, RefreshCw, Play, Pause, Settings2, Code, LineChart, History } from "lucide-react";
+import { AiBotTradingProps } from "@/types/trading";
+import { Separator } from "@/components/ui/separator";
 
-interface AiTradingBotDetailProps {
-  botId?: string;
-  onBack: () => void;
+interface ExtendedAiBotTradingProps extends AiBotTradingProps {
+  strategyId?: string;
+  strategyName?: string;
 }
 
-const AiTradingBotDetail: React.FC<AiTradingBotDetailProps> = ({
-  botId,
-  onBack
-}) => {
-  // Find bot data if ID provided, otherwise use empty template
-  const initialBot = botId ? 
-    predefinedStrategies.find(b => b.id === botId) : 
-    {
-      id: '',
-      name: 'New Trading Bot',
-      description: '',
-      type: 'trend-following',
-      timeframe: '1h',
-      parameters: {
-        period: 14,
-        threshold: 70,
-        stopLoss: 5,
-        takeProfit: 10,
-        riskFactor: 1
-      },
-      assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
-    };
-  
-  const [bot, setBot] = useState<AITradingStrategy>(initialBot as AITradingStrategy);
-  const [isActive, setIsActive] = useState<boolean>(false);
-  const [isBacktesting, setIsBacktesting] = useState<boolean>(false);
-  const [backtestResults, setBacktestResults] = useState<any>(null);
-  
-  const handleBasicChange = (field: string, value: any) => {
-    setBot(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-  
-  const handleParameterChange = (param: string, value: any) => {
-    setBot(prev => ({
-      ...prev,
-      parameters: {
-        ...prev.parameters,
-        [param]: value
-      }
-    }));
-  };
-  
-  const handleRunBacktest = () => {
-    setIsBacktesting(true);
-    
-    // Simulate backtest delay
-    setTimeout(() => {
-      const mockResults = {
-        returns: Math.random() * 40 - 5, // -5% to +35%
-        winRate: 35 + Math.random() * 40, // 35% to 75%
-        trades: 20 + Math.floor(Math.random() * 180), // 20 to 200 trades
-        maxDrawdown: 5 + Math.random() * 20, // 5% to 25%
-        sharpeRatio: 0.1 + Math.random() * 2.4, // 0.1 to 2.5
-        profitFactor: 0.8 + Math.random() * 2.2, // 0.8 to 3.0
-      };
-      
-      setBacktestResults(mockResults);
-      setIsBacktesting(false);
-    }, 2000);
-  };
-  
-  const handleResetBacktest = () => {
-    setBacktestResults(null);
-  };
-  
+const AiTradingBotDetail: React.FC<ExtendedAiBotTradingProps> = ({ strategyId = "bot-1", strategyName = "Mean Reversion ETH" }) => {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <CardTitle className="text-xl flex items-center gap-2">
-            <Bot className="h-6 w-6" />
-            {bot.name}
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            {strategyName}
           </CardTitle>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant={isActive ? "outline" : "default"}
-            size="sm"
-            onClick={() => setIsActive(!isActive)}
-            className="gap-1"
-          >
-            {isActive ? (
-              <>
-                <Pause className="h-4 w-4" />
-                Stop Bot
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4" />
-                Start Bot
-              </>
-            )}
-          </Button>
-          
-          <Button 
-            variant="default"
-            size="sm"
-            className="gap-1"
-          >
-            <Save className="h-4 w-4" />
-            Save Changes
-          </Button>
+        <div className="flex items-center justify-between">
+          <CardDescription>
+            Bot ID: {strategyId} • Strategy: Mean Reversion • Timeframe: 4h
+          </CardDescription>
+          <Badge variant={Math.random() > 0.5 ? "default" : "secondary"}>
+            {Math.random() > 0.5 ? "Active" : "Inactive"}
+          </Badge>
         </div>
       </CardHeader>
       
-      <CardContent>
-        <Tabs defaultValue="basic" className="mt-2">
-          <TabsList className="mb-6">
-            <TabsTrigger value="basic">
-              <Settings className="h-4 w-4 mr-1" />
-              Basic Settings
+      <CardContent className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Button className="gap-2">
+            <Play className="h-4 w-4" />
+            Start Bot
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            Configure
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh Status
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Total Return</span>
+                  <span className="font-medium text-crypto-green">+8.4%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Win Rate</span>
+                  <span className="font-medium">68%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Profit Factor</span>
+                  <span className="font-medium">1.7</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Sharpe Ratio</span>
+                  <span className="font-medium">1.2</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Max Drawdown</span>
+                  <span className="font-medium text-crypto-red">-3.8%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Current Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Last Signal</span>
+                  <span className="font-medium text-crypto-green">Buy</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Signal Time</span>
+                  <span className="font-medium">2h ago</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Current Position</span>
+                  <span className="font-medium">Long</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Entry Price</span>
+                  <span className="font-medium">$3,412.50</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Position P/L</span>
+                  <span className="font-medium text-crypto-green">+$28.75 (+0.8%)</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Risk Level</span>
+                  <span className="font-medium">Medium</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Position Size</span>
+                  <span className="font-medium">2% of Account</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Stop Loss</span>
+                  <span className="font-medium">2.5%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Take Profit</span>
+                  <span className="font-medium">4.0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Trailing Stop</span>
+                  <span className="font-medium">Enabled (1.2%)</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Separator />
+        
+        <Tabs defaultValue="chart">
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="chart" className="flex items-center gap-1">
+              <LineChart className="h-4 w-4" />
+              <span className="hidden sm:inline">Performance</span>
             </TabsTrigger>
-            <TabsTrigger value="parameters">
-              <Bot className="h-4 w-4 mr-1" />
-              Strategy Parameters
+            <TabsTrigger value="trades" className="flex items-center gap-1">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">Trade History</span>
             </TabsTrigger>
-            <TabsTrigger value="backtest">
-              <BarChart className="h-4 w-4 mr-1" />
-              Backtesting
+            <TabsTrigger value="settings" className="flex items-center gap-1">
+              <Settings2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+            <TabsTrigger value="code" className="flex items-center gap-1">
+              <Code className="h-4 w-4" />
+              <span className="hidden sm:inline">Strategy Code</span>
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="basic">
-            <BasicStrategyForm
-              strategy={bot}
-              onStrategyChange={handleBasicChange}
-            />
+          <TabsContent value="chart">
+            <Card>
+              <CardContent className="p-6">
+                <div className="h-[300px] bg-muted/30 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <LineChart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Performance chart will appear here</p>
+                    <Button variant="outline" className="mt-4">Load Chart</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="parameters">
-            <StrategyParameters
-              strategy={bot}
-              onParameterChange={handleParameterChange}
-            />
+          <TabsContent value="trades">
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="text-base">Recent Trades</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-2">No recent trades to show</p>
+                  <p className="text-sm text-muted-foreground">Trade history will appear here once the bot executes trades</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="backtest">
-            <StrategyBacktest
-              isBacktesting={isBacktesting}
-              backtestResults={backtestResults}
-              onBacktest={handleRunBacktest}
-              onResetBacktest={handleResetBacktest}
-            />
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="text-base">Strategy Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <Settings2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Settings editor will appear here</p>
+                  <Button variant="outline" className="mt-4">Open Settings</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="code">
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="text-base">Strategy Code</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <Code className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Strategy code editor will appear here</p>
+                  <Button variant="outline" className="mt-4">View Code</Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </CardContent>

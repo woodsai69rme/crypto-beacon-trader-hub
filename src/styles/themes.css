@@ -21,13 +21,10 @@
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
   --radius: 0.75rem;
-  
-  /* Trading specific colors */
   --profit: 142 71% 45%;
   --loss: 358 75% 64%;
 }
 
-/* Dark Mode (Default) */
 .dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
@@ -48,6 +45,8 @@
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
 /* Midnight Tech Theme - Dark blue tech-inspired */
@@ -71,6 +70,8 @@
   --border: 217 19% 27%;
   --input: 217 19% 27%;
   --ring: 224 76% 48%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
 /* Cyber Pulse Theme - Purple cyberpunk style */
@@ -94,6 +95,8 @@
   --border: 280 30% 20%;
   --input: 280 30% 20%;
   --ring: 280 75% 60%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
 /* Matrix Code Theme - Green hacker aesthetic */
@@ -117,6 +120,8 @@
   --border: 120 30% 15%;
   --input: 120 30% 15%;
   --ring: 120 100% 50%;
+  --profit: 142 71% 45%;
+  --loss: 358 75% 64%;
 }
 
 /* Glass card styling for each theme */
@@ -125,13 +130,6 @@
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
-  transition: all 0.3s ease;
-}
-
-.glass-card:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 /* Theme-specific glass card styles */
@@ -154,10 +152,6 @@
 }
 
 /* Background gradient effects for each theme */
-.gradient-bg {
-  background: linear-gradient(135deg, hsla(var(--primary), 0.05) 0%, hsla(var(--background), 0) 100%);
-}
-
 .midnight-tech .gradient-bg {
   background: linear-gradient(135deg, hsla(217, 91%, 60%, 0.05) 0%, hsla(222, 47%, 11%, 0) 100%);
 }
@@ -205,53 +199,4 @@
 
 .bg-loss {
   background-color: hsla(var(--loss), 0.2);
-}
-
-/* Button styles for different themes */
-.btn-theme-primary {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.btn-theme-secondary {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-}
-
-/* Card with glow effect for premium features */
-.premium-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.premium-card::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  background: linear-gradient(90deg, 
-    transparent, 
-    hsla(var(--primary), 0.1), 
-    transparent
-  );
-  animation: glowingEffect 3s linear infinite;
-  z-index: -1;
-}
-
-@keyframes glowingEffect {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  :root {
-    --radius: 0.5rem;
-  }
-  
-  .glass-card {
-    backdrop-filter: blur(8px);
-  }
 }

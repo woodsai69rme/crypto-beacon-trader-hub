@@ -11,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { TechnicalAlertFormData } from "@/types/trading";
-import { COIN_OPTIONS } from "./AlertTypes";
+import { TechnicalAlertFormData, COIN_OPTIONS } from "./AlertTypes";
+import { validateFormFields, createNumberRangeRule } from "@/utils/formValidation";
+import { handleError } from "@/utils/errorHandling";
 import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/loading-skeleton";
 
 interface TechnicalAlertFormProps {
   formData: TechnicalAlertFormData;
@@ -58,32 +59,32 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     e.preventDefault();
     
     try {
-      if (
-        !formData.coinId || 
-        !formData.indicator || 
-        !formData.condition ||
-        formData.value === undefined
-      ) {
-        toast({
-          title: "Error",
-          description: "Please fill out all required fields", 
-          variant: "destructive"
-        });
+      // Basic field validation
+      const isValid = validateFormFields(
+        formData,
+        ["coinId", "indicator", "condition", "value"],
+        {
+          value: [
+            createNumberRangeRule(
+              VALUE_RANGES[formData.indicator]?.min,
+              VALUE_RANGES[formData.indicator]?.max
+            )
+          ]
+        }
+      );
+      
+      if (!isValid) {
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Technical alert created"
+        title: "Technical Alert Created",
+        description: `${formData.coinSymbol} alert will trigger when ${formData.indicator} is ${formData.condition} ${formData.value}`,
       });
 
       onSubmit();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create alert", 
-        variant: "destructive"
-      });
+      handleError(error, "error", "Technical Alert");
     }
   };
 
@@ -119,7 +120,7 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     return (
       <Card>
         <CardContent className="pt-6">
-          <Skeleton className="h-[300px] w-full rounded-md" />
+          <Skeleton variant="rectangular" height={300} />
         </CardContent>
       </Card>
     );
@@ -203,8 +204,8 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
                     ...formData, 
                     value: parseFloat(e.target.value) || 0 
                   })}
-                  min={formData.indicator ? VALUE_RANGES[formData.indicator]?.min : undefined}
-                  max={formData.indicator ? VALUE_RANGES[formData.indicator]?.max : undefined}
+                  min={VALUE_RANGES[formData.indicator]?.min}
+                  max={VALUE_RANGES[formData.indicator]?.max}
                   step="0.1"
                 />
                 {formData.indicator && (

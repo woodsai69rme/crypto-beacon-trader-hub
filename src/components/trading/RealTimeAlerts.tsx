@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Check, ChevronsUpDown, AlertTriangle, Bell, BellOff, Calendar as CalendarIcon } from "lucide-react";
-import { CoinOption } from '@/types/trading';
+import { Check, ChevronsUpDown, AlertTriangle, Bell, BellOff } from "lucide-react";
+import { CoinOption } from '@/components/trading/types';
 import {
   Table,
   TableBody,
@@ -31,6 +31,7 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { CalendarIcon } from "@radix-ui/react-icons"
 
 interface AssetAlertSettings {
   id: string;

@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark';
 export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code';
 
 interface ThemeContextType {
@@ -10,7 +10,6 @@ interface ThemeContextType {
   colorScheme: ColorScheme;
   setColorScheme: (colorScheme: ColorScheme) => void;
   toggleTheme: () => void;
-  isDark: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -25,72 +24,32 @@ export const useTheme = () => {
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Initialize from localStorage or default to system
+    // Initialize from localStorage or user preference or default to dark
     const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-      return savedTheme;
+    if (savedTheme) return savedTheme;
+    
+    // Check user preference
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     
-    return 'system'; // Default to system
+    return 'dark'; // Default to dark theme
   });
 
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
     // Initialize from localStorage or default
-    const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme;
-    return (savedColorScheme && ['default', 'midnight-tech', 'cyber-pulse', 'matrix-code'].includes(savedColorScheme))
-      ? savedColorScheme 
-      : 'default';
+    return (localStorage.getItem('colorScheme') as ColorScheme) || 'default';
   });
-
-  // Determine if we're in dark mode based on theme and system preference
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (theme === 'dark') return true;
-    if (theme === 'light') return false;
-    // For 'system', check user preference
-    return typeof window !== 'undefined' 
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches 
-      : true;
-  });
-
-  // Listen for system theme changes
-  useEffect(() => {
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      
-      const handleChange = (e: MediaQueryListEvent) => {
-        setIsDark(e.matches);
-      };
-      
-      mediaQuery.addEventListener('change', handleChange);
-      
-      return () => {
-        mediaQuery.removeEventListener('change', handleChange);
-      };
-    }
-  }, [theme]);
 
   useEffect(() => {
     // Update localStorage when theme changes
     localStorage.setItem('theme', theme);
     
-    // Update isDark state
-    if (theme === 'dark') {
-      setIsDark(true);
-    } else if (theme === 'light') {
-      setIsDark(false);
-    } else if (theme === 'system') {
-      setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-    
     // Update document attributes
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
-    if (theme === 'system') {
-      root.classList.add(isDark ? 'dark' : 'light');
-    } else {
-      root.classList.add(theme);
-    }
-  }, [theme, isDark]);
+    root.classList.add(theme);
+  }, [theme]);
 
   useEffect(() => {
     // Update localStorage when color scheme changes
@@ -114,23 +73,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Toggle between light and dark themes
   const toggleTheme = () => {
-    setThemeState(prevTheme => {
-      if (prevTheme === 'system') {
-        return isDark ? 'light' : 'dark';
-      }
-      return prevTheme === 'dark' ? 'light' : 'dark';
-    });
+    setThemeState(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      setTheme, 
-      colorScheme, 
-      setColorScheme, 
-      toggleTheme, 
-      isDark 
-    }}>
+    <ThemeContext.Provider value={{ theme, setTheme, colorScheme, setColorScheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

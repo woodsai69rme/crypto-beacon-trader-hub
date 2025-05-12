@@ -3,12 +3,11 @@ import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
-import useAlerts from "@/hooks/use-alerts";
+import { useAlerts } from "@/hooks/use-alerts";
 import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
-import AlertHeader from "./widgets/AlertComponents/AlertHeader";
-import AlertBadge from "./widgets/AlertComponents/AlertBadge";
-import { PriceAlertFormData } from "@/types/trading";
+import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
+import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -16,8 +15,7 @@ const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = () => {
-    // Make sure to cast formData to the proper type when calling addAlert
-    addAlert(formData as any);
+    addAlert(formData);
     resetForm();
     setIsOpen(false);
   };
@@ -35,8 +33,8 @@ const AlertsSystem = () => {
         <AlertHeader />
         
         <AlertFormSheet 
-          initialData={formData}
-          onFormChange={(data: PriceAlertFormData) => setFormData(data)}
+          formData={formData}
+          onFormChange={setFormData}
           onSubmit={handleSubmit}
         />
         
@@ -60,7 +58,7 @@ const AlertsSystem = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAlert(alert.id || '')}
+                    onClick={() => removeAlert(alert.id)}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>

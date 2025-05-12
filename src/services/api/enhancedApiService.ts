@@ -1,219 +1,234 @@
-import { apiProviderService } from './apiProviderService';
-import { ApiProvider, ApiEndpoint, ApiUsageMetrics } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
 
-// Track API usage metrics
-const apiMetrics: Record<string, ApiUsageMetrics> = {};
+import { toast } from "@/components/ui/use-toast";
+import { apiProviderManager } from "./apiProviderConfig";
+import { ApiProvider } from "@/types/trading";
+import apiCache from "./cacheService";
 
-// Enhanced API service with rate limiting and fallback
-const enhancedApiService = {
-  /**
-   * Makes an API request with automatic provider selection and rate limiting
-   */
-  async makeRequest<T>(
-    endpoint: string, 
-    params: Record<string, any> = {}, 
-    options: {
-      preferredProvider?: string;
-      requireAuth?: boolean;
-      method?: string;
-      headers?: Record<string, string>;
-      body?: any;
-    } = {}
-  ): Promise<T> {
-    const { preferredProvider, requireAuth = false, method = 'GET', headers = {}, body } = options;
-    
-    // Get available providers
-    let availableProviders = apiProviderService.getEnabledProviders()
-      .filter(p => p.isActive && (!requireAuth || (requireAuth && !!p.apiKey)));
-    
-    // If no providers available, throw error
-    if (availableProviders.length === 0) {
-      throw new Error('No active API providers available for this request');
-    }
-    
-    // Sort providers by priority (if no preferred provider)
-    if (!preferredProvider) {
-      availableProviders = availableProviders.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    }
-    // If preferred provider specified, try to use it first
-    else {
-      const preferredProviderObj = availableProviders.find(p => p.id === preferredProvider);
-      if (preferredProviderObj) {
-        // Move preferred provider to front of array
-        availableProviders = [
-          preferredProviderObj,
-          ...availableProviders.filter(p => p.id !== preferredProvider)
-        ];
-      }
-    }
-    
-    // Try each provider in order
-    for (const provider of availableProviders) {
-      try {
-        // Check if we've hit the rate limit
-        if (provider.currentUsage >= provider.maxUsage) {
-          console.warn(`Rate limit exceeded for provider ${provider.name}, trying next provider`);
-          continue;
-        }
-        
-        // Track request start time
-        const startTime = Date.now();
-        
-        // Build full URL
-        const url = new URL(endpoint.startsWith('http') ? endpoint : `${provider.baseUrl}${endpoint}`);
-        
-        // Add query parameters
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            url.searchParams.append(key, String(value));
-          }
-        });
-        
-        // Add API key if required
-        if (provider.apiKey && provider.authMethod === 'query' && provider.apiKeyName) {
-          url.searchParams.append(provider.apiKeyName, provider.apiKey);
-        }
-        
-        // Prepare headers
-        const requestHeaders: Record<string, string> = {
-          ...provider.defaultHeaders,
-          ...headers
-        };
-        
-        // Add API key to header if that's the auth method
-        if (provider.apiKey && provider.authMethod === 'header' && provider.apiKeyName) {
-          requestHeaders[provider.apiKeyName] = provider.apiKey;
-        }
-        
-        // Make the request
-        const response = await fetch(url.toString(), {
-          method,
-          headers: requestHeaders,
-          body: method !== 'GET' && body ? JSON.stringify(body) : undefined
-        });
-        
-        // Track response time
-        const responseTime = Date.now() - startTime;
-        
-        // Update usage metrics
-        this.updateMetrics(provider.id, endpoint, responseTime, response.ok);
-        
-        // Increment provider usage
-        apiProviderService.incrementUsage(provider.id);
-        
-        // If response is not ok, throw error
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-        
-        // Parse response
-        const data = await response.json();
-        return data as T;
-      } catch (error) {
-        console.error(`Error with provider ${provider.name}:`, error);
-        
-        // If this is the last provider, rethrow the error
-        if (provider === availableProviders[availableProviders.length - 1]) {
-          throw error;
-        }
-        
-        // Otherwise try the next provider
-        console.warn(`Trying next provider...`);
-      }
-    }
-    
-    throw new Error('All API providers failed');
-  },
+type RequestParams = Record<string, string | number | boolean>;
+
+interface ApiRequestOptions {
+  endpoint: string;
+  params?: RequestParams;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  data?: any;
+  cacheTime?: number; // in milliseconds
+  cacheKey?: string;
+  forceFresh?: boolean;
+  provider?: string; // provider id
+}
+
+interface ApiResponse<T = any> {
+  data: T;
+  source: string; // API provider that returned the data
+  cached: boolean;
+  timestamp: number;
+}
+
+export async function apiRequest<T = any>(options: ApiRequestOptions): Promise<ApiResponse<T>> {
+  const {
+    endpoint,
+    params = {},
+    method = 'GET',
+    data,
+    cacheTime = 5 * 60 * 1000, // 5 minutes default
+    cacheKey,
+    forceFresh = false,
+    provider: providerId
+  } = options;
   
-  /**
-   * Update metrics for API usage
-   */
-  updateMetrics(providerId: string, endpoint: string, responseTime: number, success: boolean): void {
-    const key = `${providerId}:${endpoint}`;
-    
-    if (!apiMetrics[key]) {
-      apiMetrics[key] = {
-        provider: providerId,
-        endpoint,
-        requestCount: 0,
-        successCount: 0,
-        errorCount: 0,
-        avgResponseTime: 0,
-        lastUsed: new Date().toISOString(),
-        currentUsage: 0,
-        maxUsage: 0
+  // Generate cache key if not provided
+  const generatedCacheKey = cacheKey || 
+    `${endpoint}-${JSON.stringify(params)}-${method}${providerId ? `-${providerId}` : ''}`;
+  
+  // Check cache first if not forcing fresh data
+  if (!forceFresh && cacheKey) {
+    const cachedData = apiCache.get<ApiResponse<T>>(generatedCacheKey);
+    if (cachedData) {
+      return {
+        ...cachedData,
+        cached: true
       };
     }
-    
-    const metrics = apiMetrics[key];
-    metrics.requestCount++;
-    if (success) {
-      metrics.successCount++;
-    } else {
-      metrics.errorCount++;
-    }
-    
-    // Update average response time
-    metrics.avgResponseTime = (metrics.avgResponseTime * (metrics.requestCount - 1) + responseTime) / metrics.requestCount;
-    metrics.lastUsed = new Date().toISOString();
-    
-    // Update provider's current usage from the provider service
-    try {
-      const provider = apiProviderService.getProviderById(providerId);
-      metrics.currentUsage = provider.currentUsage;
-      metrics.maxUsage = provider.maxUsage;
-    } catch (error) {
-      console.warn(`Could not fetch provider ${providerId} metrics:`, error);
-    }
-  },
-  
-  /**
-   * Get metrics for all API providers
-   */
-  getMetrics(): ApiUsageMetrics[] {
-    return Object.values(apiMetrics);
-  },
-  
-  /**
-   * Get metrics for a specific provider
-   */
-  getProviderMetrics(providerId: string): ApiUsageMetrics[] {
-    return Object.values(apiMetrics).filter(m => m.provider === providerId);
-  },
-  
-  /**
-   * Reset usage for all providers
-   */
-  resetAllUsage(): void {
-    apiProviderService.resetAllUsage();
-  },
-  
-  /**
-   * Select the best provider for a specific endpoint
-   */
-  selectBestProvider(endpoint: string, requireAuth: boolean = false): ApiProvider | null {
-    const availableProviders = apiProviderService.getEnabledProviders()
-      .filter(p => p.isActive && (!requireAuth || (requireAuth && !!p.apiKey)));
-    
-    if (availableProviders.length === 0) {
-      return null;
-    }
-    
-    // First check if there's a priority provider with available quota
-    const priorityProvider = apiProviderService.getPriorityProvider();
-    if (priorityProvider && priorityProvider.currentUsage < priorityProvider.maxUsage) {
-      return priorityProvider;
-    }
-    
-    // Otherwise find the provider with the most available quota
-    return availableProviders
-      .sort((a, b) => {
-        const aQuotaLeft = a.maxUsage - a.currentUsage;
-        const bQuotaLeft = b.maxUsage - b.currentUsage;
-        return bQuotaLeft - aQuotaLeft;
-      })[0];
   }
-};
+  
+  // Get the API provider to use
+  let apiProvider: ApiProvider | undefined;
+  
+  if (providerId) {
+    apiProvider = apiProviderManager.getProviderById(providerId);
+    if (!apiProvider?.enabled) {
+      throw new Error(`API provider '${providerId}' is not enabled`);
+    }
+  } else {
+    apiProvider = apiProviderManager.getPriorityProvider();
+  }
+  
+  if (!apiProvider) {
+    throw new Error("No enabled API provider available");
+  }
+  
+  // Process the endpoint, replacing any path params like {id}
+  let processedEndpoint = apiProvider.endpoints[endpoint] || endpoint;
+  Object.keys(params).forEach(key => {
+    processedEndpoint = processedEndpoint.replace(`{${key}}`, String(params[key]));
+  });
+  
+  // Build the URL with query parameters
+  const queryParams = new URLSearchParams();
+  Object.keys(params).forEach(key => {
+    // Skip parameters that were used in the path
+    if (!processedEndpoint.includes(`{${key}}`)) {
+      queryParams.append(key, String(params[key]));
+    }
+  });
+  
+  const url = `${apiProvider.baseUrl}${processedEndpoint}${
+    queryParams.toString() ? `?${queryParams.toString()}` : ''
+  }`;
+  
+  // Build the fetch options
+  const fetchOptions: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...apiProvider.defaultHeaders
+    }
+  };
+  
+  // Add authentication if required
+  if (apiProvider.requiresAuth && apiProvider.apiKey) {
+    if (apiProvider.authMethod === 'header') {
+      const headerName = apiProvider.apiKeyName || 'Authorization';
+      let headerValue = apiProvider.apiKey;
+      
+      // Check if there's a template in defaultHeaders
+      if (apiProvider.defaultHeaders?.[headerName]?.includes('{key}')) {
+        headerValue = apiProvider.defaultHeaders[headerName].replace('{key}', apiProvider.apiKey);
+      }
+      
+      (fetchOptions.headers as Record<string, string>)[headerName] = headerValue;
+    } else if (apiProvider.authMethod === 'query') {
+      const keyName = apiProvider.apiKeyName || 'apikey';
+      queryParams.append(keyName, apiProvider.apiKey);
+    }
+  }
+  
+  // Add body data if needed
+  if (['POST', 'PUT'].includes(method) && data) {
+    fetchOptions.body = JSON.stringify(data);
+  }
+  
+  try {
+    const response = await fetch(url, fetchOptions);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+    
+    const responseData = await response.json();
+    
+    // Format the API response
+    const apiResponse: ApiResponse<T> = {
+      data: responseData,
+      source: apiProvider.name,
+      cached: false,
+      timestamp: Date.now()
+    };
+    
+    // Cache the response
+    apiCache.set(generatedCacheKey, apiResponse, cacheTime);
+    
+    return apiResponse;
+  } catch (error) {
+    console.error(`Error calling ${apiProvider.name} API:`, error);
+    
+    // Try the next available provider if there was an error
+    if (!providerId) {
+      const allProviders = apiProviderManager.getEnabledProviders();
+      const currentIndex = allProviders.findIndex(p => p.id === apiProvider?.id);
+      
+      if (currentIndex >= 0 && currentIndex < allProviders.length - 1) {
+        const nextProvider = allProviders[currentIndex + 1];
+        
+        console.log(`Trying fallback provider: ${nextProvider.name}`);
+        
+        return apiRequest({
+          ...options,
+          provider: nextProvider.id,
+          forceFresh: true // Don't use cache for fallback
+        });
+      }
+    }
+    
+    throw new Error(`Error fetching data from ${apiProvider.name}: ${(error as Error).message}`);
+  }
+}
 
-export default enhancedApiService;
+export async function getMarketData(limit: number = 20, currency: string = 'usd'): Promise<any> {
+  try {
+    const response = await apiRequest({
+      endpoint: 'marketData',
+      params: {
+        limit,
+        vs_currency: currency
+      },
+      cacheKey: `market-data-${limit}-${currency}`,
+      cacheTime: 2 * 60 * 1000 // 2 minutes
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch market data:', error);
+    throw error;
+  }
+}
+
+export async function getCoinData(coinId: string, currency: string = 'usd'): Promise<any> {
+  try {
+    const response = await apiRequest({
+      endpoint: 'coinData',
+      params: {
+        id: coinId,
+        localization: 'false',
+        market_data: 'true',
+        vs_currency: currency
+      },
+      cacheKey: `coin-data-${coinId}-${currency}`,
+      cacheTime: 5 * 60 * 1000 // 5 minutes
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch data for coin ${coinId}:`, error);
+    throw error;
+  }
+}
+
+export async function getHistoricalData(
+  coinId: string,
+  days: number = 30,
+  interval: string = 'daily',
+  currency: string = 'usd'
+): Promise<any> {
+  try {
+    const response = await apiRequest({
+      endpoint: 'marketChart',
+      params: {
+        id: coinId,
+        days,
+        interval,
+        vs_currency: currency
+      },
+      cacheKey: `historical-data-${coinId}-${days}-${interval}-${currency}`,
+      cacheTime: 15 * 60 * 1000 // 15 minutes
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch historical data for coin ${coinId}:`, error);
+    throw error;
+  }
+}
+
+// Export the API provider manager
+export { apiProviderManager };

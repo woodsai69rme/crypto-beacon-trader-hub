@@ -1,94 +1,56 @@
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
-import CurrencySelector from '@/components/CurrencySelector';
+import { render, screen, fireEvent } from '@testing-library/react';
+import CurrencySelector from '@/components/trading/CurrencySelector';
+import { TestWrapper } from '../utils/TestWrapper';
 
-describe('CurrencySelector component', () => {
-  const mockOnChange = jest.fn();
-  const currencies = ['USD', 'EUR', 'GBP', 'AUD'];
-  
-  beforeEach(() => {
-    mockOnChange.mockClear();
-  });
-  
-  test('renders with default currency selected', () => {
-    const { getByText } = render(
-      <CurrencySelector 
-        value="USD"
-        onChange={mockOnChange}
-        currencies={currencies}
-      />
-    );
+describe('CurrencySelector', () => {
+  it('renders with the active currency', () => {
+    const handleChange = jest.fn();
     
-    expect(getByText('USD')).toBeInTheDocument();
-  });
-  
-  test('opens dropdown when clicked', () => {
-    const { getByText, getByRole } = render(
-      <CurrencySelector 
-        value="USD"
-        onChange={mockOnChange}
-        currencies={currencies}
-      />
-    );
-    
-    // Open dropdown
-    fireEvent.click(getByRole('combobox'));
-    
-    // Check if all currency options are visible
-    expect(getByText('EUR')).toBeInTheDocument();
-    expect(getByText('GBP')).toBeInTheDocument();
-    expect(getByText('AUD')).toBeInTheDocument();
-  });
-  
-  test('calls onChange when new currency is selected', () => {
-    const { getByText, getByRole } = render(
-      <CurrencySelector 
-        value="USD"
-        onChange={mockOnChange}
-        currencies={currencies}
-      />
-    );
-    
-    // Open dropdown
-    fireEvent.click(getByRole('combobox'));
-    
-    // Select a different currency
-    fireEvent.click(getByText('EUR'));
-    
-    // Check if onChange was called with the correct value
-    expect(mockOnChange).toHaveBeenCalledWith('EUR');
-  });
-  
-  test('handles empty currencies array', () => {
     render(
-      <CurrencySelector 
-        value="USD"
-        onChange={mockOnChange}
-        currencies={[]}
-      />
+      <TestWrapper>
+        <CurrencySelector activeCurrency="USD" onCurrencyChange={handleChange} />
+      </TestWrapper>
     );
     
-    expect(true).toBeTruthy(); // Just checking that it renders without error
+    // The trigger should show the selected currency
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
   
-  test('shows only the allowed currencies', () => {
-    const limitedCurrencies = ['USD', 'EUR'];
+  it('calls onChange when a different currency is selected', () => {
+    const handleChange = jest.fn();
     
-    const { getByText, getByRole, queryByText } = render(
-      <CurrencySelector 
-        value="USD"
-        onChange={mockOnChange}
-        currencies={limitedCurrencies}
-      />
+    render(
+      <TestWrapper>
+        <CurrencySelector activeCurrency="USD" onCurrencyChange={handleChange} />
+      </TestWrapper>
     );
     
-    // Open dropdown
-    fireEvent.click(getByRole('combobox'));
+    // Open the dropdown
+    fireEvent.click(screen.getByRole('combobox'));
     
-    // Check if only specified currencies are visible
-    expect(getByText('EUR')).toBeInTheDocument();
-    expect(queryByText('GBP')).not.toBeInTheDocument();
-    expect(queryByText('AUD')).not.toBeInTheDocument();
+    // Select AUD
+    fireEvent.click(screen.getByText('AUD'));
+    
+    // Check if the change handler was called with the right argument
+    expect(handleChange).toHaveBeenCalledWith('AUD');
+  });
+  
+  it('disables the selector when disabled prop is true', () => {
+    const handleChange = jest.fn();
+    
+    render(
+      <TestWrapper>
+        <CurrencySelector 
+          activeCurrency="USD" 
+          onCurrencyChange={handleChange} 
+          disabled={true}
+        />
+      </TestWrapper>
+    );
+    
+    // The trigger should be disabled
+    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 });

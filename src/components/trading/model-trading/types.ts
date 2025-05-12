@@ -1,8 +1,8 @@
 
-import type { LocalModel } from '@/types/trading';
+import { LocalModel } from '@/types/trading';
 
 // Re-export the LocalModel type
-export type { LocalModel };
+export { LocalModel };
 
 export interface ModelConnectionTabProps {
   models: LocalModel[];
@@ -29,22 +29,5 @@ export interface ModelConfigurationProps {
 export interface ModelPerformanceProps {
   model: LocalModel;
   isRunning: boolean;
-  performanceData?: Record<string, any>;
-  timeRange?: '1h' | '6h' | '24h' | '7d' | '30d';
-}
-
-export interface ModelMetricsProps {
-  model: LocalModel;
-  metrics: {
-    accuracy: number;
-    reliability: number;
-    speed: number;
-    efficiency: number;
-  };
-}
-
-export interface ModelHistoryItemProps {
-  date: string;
-  operation: 'start' | 'stop' | 'config' | 'error';
-  details: string;
+  performanceData?: any;
 }
