@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { TradingAccount, Position, Trade, SupportedCurrency } from '@/types/trading';
+import { TradingAccount, Position, Trade } from '@/types/trading';
 
 // Mock data for initial accounts
 const defaultAccounts: TradingAccount[] = [

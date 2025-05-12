@@ -1,93 +1,152 @@
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Paintbrush } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "@/types/trading";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Palette } from "lucide-react";
+import { SettingsComponentProps } from "./types";
 
-interface AppearanceSettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ form }) => {
-  const { register, setValue, watch } = form;
-
-  const handleSwitchChange = (field: string, checked: boolean) => {
-    setValue(field as any, checked, { shouldDirty: true });
-  };
+const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+  // Initialize appearance object if it doesn't exist
+  if (!form.getValues().appearance) {
+    form.setValue("appearance", {
+      colorScheme: "blue",
+      compactMode: false,
+      animationsEnabled: true,
+      highContrastMode: false
+    });
+  }
   
-  const handleRadioChange = (field: string, value: string) => {
-    setValue(field as any, value, { shouldDirty: true });
-  };
-  
-  const watchAppearance = watch('appearance') || { 
-    colorScheme: 'system', 
-    compactMode: false, 
-    animationsEnabled: true,
-    highContrastMode: false
-  };
-
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Paintbrush className="h-5 w-5" />
+          <Palette className="h-5 w-5" />
           Appearance
         </CardTitle>
       </CardHeader>
+      
       <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <Label>Theme</Label>
-          <RadioGroup 
-            value={watchAppearance.colorScheme} 
-            onValueChange={(value) => handleRadioChange('appearance.colorScheme', value)}
-            className="flex flex-col space-y-2"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="system" id="theme-system" />
-              <Label htmlFor="theme-system">System</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="light" id="theme-light" />
-              <Label htmlFor="theme-light">Light</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="dark" id="theme-dark" />
-              <Label htmlFor="theme-dark">Dark</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="compact-mode">Compact Mode</Label>
-            <Switch 
-              id="compact-mode" 
-              checked={watchAppearance.compactMode}
-              onCheckedChange={(checked) => handleSwitchChange('appearance.compactMode', checked)}
-            />
-          </div>
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="theme"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Theme</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a theme" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Choose your preferred theme
+                </FormDescription>
+              </FormItem>
+            )}
+          />
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="animations-enabled">Enable Animations</Label>
-            <Switch 
-              id="animations-enabled" 
-              checked={watchAppearance.animationsEnabled}
-              onCheckedChange={(checked) => handleSwitchChange('appearance.animationsEnabled', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="high-contrast">High Contrast Mode</Label>
-            <Switch 
-              id="high-contrast" 
-              checked={watchAppearance.highContrastMode}
-              onCheckedChange={(checked) => handleSwitchChange('appearance.highContrastMode', checked)}
-            />
-          </div>
+          {form.getValues().appearance && (
+            <>
+              <FormField
+                control={form.control}
+                name="appearance.colorScheme"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color Scheme</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a color scheme" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="blue">Blue</SelectItem>
+                        <SelectItem value="green">Green</SelectItem>
+                        <SelectItem value="purple">Purple</SelectItem>
+                        <SelectItem value="orange">Orange</SelectItem>
+                        <SelectItem value="red">Red</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose your preferred accent color
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appearance.compactMode"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Compact Mode</FormLabel>
+                      <FormDescription>
+                        Use a more compact interface layout
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appearance.animationsEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Enable Animations</FormLabel>
+                      <FormDescription>
+                        Enable UI animations and transitions
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="appearance.highContrastMode"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>High Contrast Mode</FormLabel>
+                      <FormDescription>
+                        Increase contrast for better visibility
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

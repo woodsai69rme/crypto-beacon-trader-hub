@@ -1,104 +1,172 @@
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Shield } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Shield, Eye, UserCheck, Lock } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "@/types/trading";
+import { SettingsFormValues } from "./types";
 
 interface PrivacySettingsProps {
   form: UseFormReturn<SettingsFormValues>;
 }
 
 const PrivacySettings: React.FC<PrivacySettingsProps> = ({ form }) => {
-  const { register, setValue, watch } = form;
-
-  const handleSwitchChange = (field: string, checked: boolean) => {
-    setValue(field as any, checked, { shouldDirty: true });
-  };
+  // Initialize privacy object if it doesn't exist
+  if (!form.getValues().privacy) {
+    form.setValue("privacy", {
+      showOnlineStatus: false,
+      sharePortfolio: false,
+      shareTrades: false,
+      dataCollection: false,
+      marketingConsent: false,
+      thirdPartySharing: false
+    });
+  }
   
-  const watchPrivacy = watch('privacy') || {
-    showOnlineStatus: true,
-    sharePortfolio: false,
-    shareTrades: false,
-    dataCollection: true,
-    marketingConsent: false,
-    thirdPartySharing: false
-  };
-
+  // Initialize account object if it doesn't exist
+  if (!form.getValues().account) {
+    form.setValue("account", {
+      twoFactorEnabled: false,
+      loginAlerts: false
+    });
+  }
+  
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Privacy
+          Privacy & Security
         </CardTitle>
         <CardDescription>
-          Manage how your data is used and shared
+          Manage your privacy settings and security preferences
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-online-status">Show Online Status</Label>
-            <Switch 
-              id="show-online-status" 
-              checked={watchPrivacy.showOnlineStatus}
-              onCheckedChange={(checked) => handleSwitchChange('privacy.showOnlineStatus', checked)}
-            />
-          </div>
+      
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Privacy Settings</h3>
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="share-portfolio">Share Portfolio</Label>
-            <Switch 
-              id="share-portfolio" 
-              checked={watchPrivacy.sharePortfolio}
-              onCheckedChange={(checked) => handleSwitchChange('privacy.sharePortfolio', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="share-trades">Share Trades</Label>
-            <Switch 
-              id="share-trades" 
-              checked={watchPrivacy.shareTrades}
-              onCheckedChange={(checked) => handleSwitchChange('privacy.shareTrades', checked)}
-            />
-          </div>
+          {form.getValues().privacy && (
+            <>
+              <FormField
+                control={form.control}
+                name="privacy.showOnlineStatus"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Show Online Status</FormLabel>
+                      <FormDescription>
+                        Let others see when you're active on the platform
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="privacy.sharePortfolio"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Share Portfolio</FormLabel>
+                      <FormDescription>
+                        Allow others to see your portfolio holdings
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="privacy.shareTrades"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Share Trades</FormLabel>
+                      <FormDescription>
+                        Publish your trades for others to see
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
         
-        <div className="pt-2 border-t">
-          <h4 className="text-sm font-medium mb-3">Data Usage</h4>
+        <Separator />
+        
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Security Settings</h3>
           
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="data-collection">Usage Analytics</Label>
-              <Switch 
-                id="data-collection" 
-                checked={watchPrivacy.dataCollection}
-                onCheckedChange={(checked) => handleSwitchChange('privacy.dataCollection', checked)}
+          {form.getValues().account && (
+            <>
+              <FormField
+                control={form.control}
+                name="account.twoFactorEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Two-Factor Authentication</FormLabel>
+                      <FormDescription>
+                        Add an extra layer of security to your account
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="marketing-consent">Marketing Communications</Label>
-              <Switch 
-                id="marketing-consent" 
-                checked={watchPrivacy.marketingConsent}
-                onCheckedChange={(checked) => handleSwitchChange('privacy.marketingConsent', checked)}
+              
+              <FormField
+                control={form.control}
+                name="account.loginAlerts"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Login Alerts</FormLabel>
+                      <FormDescription>
+                        Get notified when your account is accessed from a new device
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="third-party-sharing">Third-Party Data Sharing</Label>
-              <Switch 
-                id="third-party-sharing" 
-                checked={watchPrivacy.thirdPartySharing}
-                onCheckedChange={(checked) => handleSwitchChange('privacy.thirdPartySharing', checked)}
-              />
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

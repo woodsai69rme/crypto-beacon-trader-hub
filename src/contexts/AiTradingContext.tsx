@@ -1,9 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { TradingAccount, Position, Trade, AITradingStrategy, BacktestResult } from '@/types/trading';
 
 // Mock data and functions for AI trading
-import { mockAIStrategies, mockTradingAccounts } from '@/utils/mockData';
+import { mockTradingStrategies, mockTradingAccounts } from '@/utils/aiTradingStrategies';
 import { runBacktest } from '@/services/strategyBuilderService';
 
 interface AiTradingContextType {
@@ -42,7 +43,7 @@ interface AiTradingContextType {
 const AiTradingContext = createContext<AiTradingContextType | undefined>(undefined);
 
 export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [strategies, setStrategies] = useState<AITradingStrategy[]>(mockAIStrategies);
+  const [strategies, setStrategies] = useState<AITradingStrategy[]>(mockTradingStrategies);
   const [tradingAccounts, setTradingAccounts] = useState<TradingAccount[]>(mockTradingAccounts);
   const [selectedAccount, setSelectedAccount] = useState<TradingAccount | null>(
     mockTradingAccounts.length > 0 ? mockTradingAccounts[0] : null

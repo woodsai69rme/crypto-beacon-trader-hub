@@ -1,79 +1,135 @@
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Bell } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Bell } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "@/types/trading";
+import { SettingsFormValues } from "./types";
 
 interface NotificationSettingsProps {
   form: UseFormReturn<SettingsFormValues>;
 }
 
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => {
-  const { register, setValue, watch } = form;
-
-  const handleSwitchChange = (field: string, checked: boolean) => {
-    setValue(field as any, checked, { shouldDirty: true });
-  };
-  
-  const watchNotifications = watch('notifications');
-
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
-          Notification Settings
+          Notifications
         </CardTitle>
+        <CardDescription>
+          Configure how and when you receive notifications
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notifications-email">Email Notifications</Label>
-            <Switch 
-              id="notifications-email" 
-              checked={watchNotifications.email}
-              onCheckedChange={(checked) => handleSwitchChange('notifications.email', checked)}
-            />
-          </div>
+      
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="notifications.email"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Email Notifications</FormLabel>
+                  <FormDescription>
+                    Receive notifications via email
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notifications-push">Push Notifications</Label>
-            <Switch 
-              id="notifications-push" 
-              checked={watchNotifications.push}
-              onCheckedChange={(checked) => handleSwitchChange('notifications.push', checked)}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="notifications.push"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Push Notifications</FormLabel>
+                  <FormDescription>
+                    Receive push notifications in your browser
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notifications-trades">Trade Alerts</Label>
-            <Switch 
-              id="notifications-trades" 
-              checked={watchNotifications.trades}
-              onCheckedChange={(checked) => handleSwitchChange('notifications.trades', checked)}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="notifications.trades"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Trading Notifications</FormLabel>
+                  <FormDescription>
+                    Get notified about your trades
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notifications-pricing">Price Alerts</Label>
-            <Switch 
-              id="notifications-pricing" 
-              checked={watchNotifications.pricing}
-              onCheckedChange={(checked) => handleSwitchChange('notifications.pricing', checked)}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="notifications.pricing"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Price Alerts</FormLabel>
+                  <FormDescription>
+                    Get notified about significant price changes
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notifications-news">Market News</Label>
-            <Switch 
-              id="notifications-news" 
-              checked={watchNotifications.news}
-              onCheckedChange={(checked) => handleSwitchChange('notifications.news', checked)}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="notifications.news"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>News Alerts</FormLabel>
+                  <FormDescription>
+                    Receive important news about your assets
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
       </CardContent>
     </Card>

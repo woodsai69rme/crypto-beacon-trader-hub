@@ -1,201 +1,197 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BellRing, 
-  Plus, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  BarChart, 
-  Trash2, 
-  X, 
-  Bell 
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { v4 as uuidv4 } from 'uuid';
+import AlertHeader from "./AlertComponents/AlertHeader";
+import AlertBadge from "./AlertComponents/AlertBadge";
 import PriceAlertForm from "./PriceAlertForm";
-import { useToast } from "@/hooks/use-toast";
-import { PriceAlertFormData } from '@/types/trading';
+import { PriceAlertFormData, COIN_OPTIONS } from "./AlertComponents/AlertTypes";
 
-interface EnhancedAlertSystemProps {
-  onAlertCreated?: (alert: any) => void;
-  existingAlerts?: any[];
+// Alert types
+type AlertType = 'price' | 'volume' | 'percentageChange';
+
+// Basic alert interface
+interface Alert {
+  id: string;
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  isAbove?: boolean;
+  targetPrice?: number;
+  targetVolume?: number;
+  direction?: 'increase' | 'decrease';
+  percentage?: number;
+  timeframe?: string;
+  notes?: string;
+  createdAt: string;
 }
 
-const EnhancedAlertSystem: React.FC<EnhancedAlertSystemProps> = ({
-  onAlertCreated,
-  existingAlerts = []
-}) => {
-  const [alerts, setAlerts] = useState(existingAlerts);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('price');
-  const { toast } = useToast();
-  
-  // Initialize form data for different alert types
-  const [priceFormData, setPriceFormData] = useState<PriceAlertFormData>({
-    coinId: 'bitcoin',
-    coinName: 'Bitcoin',
-    coinSymbol: 'BTC',
-    targetPrice: 0,
+const EnhancedAlertSystem = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [activeTab, setActiveTab] = useState<AlertType>('price');
+  const [formData, setFormData] = useState<PriceAlertFormData>({
+    coinId: '',
+    coinName: '',
+    coinSymbol: '',
     isAbove: true,
-    recurring: false,
-    notifyVia: ['app']
+    targetPrice: 0
   });
   
-  const handleAddAlert = () => {
-    if (activeTab === 'price') {
-      const newAlert = {
-        id: `alert-${Date.now()}`,
-        type: 'price',
-        coinId: priceFormData.coinId,
-        coinName: priceFormData.coinName,
-        coinSymbol: priceFormData.coinSymbol,
-        condition: priceFormData.isAbove ? 'above' : 'below',
-        price: priceFormData.targetPrice,
-        recurring: priceFormData.recurring,
-        notifyVia: priceFormData.notifyVia,
-        createdAt: new Date().toISOString(),
-        status: 'active'
-      };
-      
-      setAlerts(prev => [...prev, newAlert]);
-      
-      if (onAlertCreated) {
-        onAlertCreated(newAlert);
+  const { toast } = useToast();
+
+  // Load alerts from localStorage on mount
+  useEffect(() => {
+    const savedAlerts = localStorage.getItem('alerts');
+    if (savedAlerts) {
+      try {
+        setAlerts(JSON.parse(savedAlerts));
+      } catch (error) {
+        console.error('Failed to parse saved alerts', error);
       }
-      
-      toast({
-        title: "Alert Created",
-        description: `You will be notified when ${newAlert.coinSymbol} is ${newAlert.condition} $${newAlert.price}`,
-      });
-      
-      setIsDialogOpen(false);
-      
-      // Reset form data
-      setPriceFormData({
-        coinId: 'bitcoin',
-        coinName: 'Bitcoin',
-        coinSymbol: 'BTC',
-        targetPrice: 0,
-        isAbove: true,
-        recurring: false,
-        notifyVia: ['app']
-      });
     }
+  }, []);
+
+  // Save alerts to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('alerts', JSON.stringify(alerts));
+  }, [alerts]);
+
+  const handleAlertFormChange = (updatedData: PriceAlertFormData) => {
+    setFormData(updatedData);
   };
-  
+
+  const handleAddAlert = () => {
+    if (!formData.coinId || !formData.targetPrice) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill out all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newAlert: Alert = {
+      id: uuidv4(),
+      type: 'price',
+      coinId: formData.coinId,
+      coinName: formData.coinName,
+      coinSymbol: formData.coinSymbol,
+      isAbove: formData.isAbove,
+      targetPrice: formData.targetPrice,
+      notes: formData.notes,
+      createdAt: new Date().toISOString()
+    };
+
+    setAlerts([...alerts, newAlert]);
+    
+    toast({
+      title: "Alert Created",
+      description: `You will be notified when ${formData.coinName} goes ${formData.isAbove ? 'above' : 'below'} $${formData.targetPrice.toLocaleString()}.`
+    });
+
+    // Reset form
+    setFormData({
+      coinId: '',
+      coinName: '',
+      coinSymbol: '',
+      isAbove: true,
+      targetPrice: 0
+    });
+    
+    // Close sheet
+    setIsOpen(false);
+  };
+
   const handleRemoveAlert = (alertId: string) => {
-    setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+    setAlerts(alerts.filter(alert => alert.id !== alertId));
     
     toast({
       title: "Alert Removed",
-      description: "The price alert has been removed",
+      description: "The alert has been removed successfully.",
     });
   };
-  
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl flex items-center gap-2">
-          <BellRing className="h-5 w-5" />
-          Price Alerts
-        </CardTitle>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          <AlertBadge count={alerts.length} />
+        </Button>
+      </SheetTrigger>
+      
+      <SheetContent>
+        <AlertHeader />
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              New Alert
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create a New Alert</DialogTitle>
-            </DialogHeader>
-            
-            <Tabs defaultValue="price" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="price">Price Alert</TabsTrigger>
-                <TabsTrigger value="volume" disabled>Volume Alert</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="price">
-                <PriceAlertForm
-                  formData={priceFormData}
-                  onFormChange={setPriceFormData}
-                  onSubmit={handleAddAlert}
-                />
-              </TabsContent>
-              
-              <TabsContent value="volume">
-                <div className="py-8 text-center text-muted-foreground">
-                  Volume alerts coming soon
-                </div>
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        {alerts.length === 0 ? (
-          <div className="text-center py-6">
-            <Bell className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-            <p className="text-muted-foreground mb-4">No price alerts set up yet</p>
-            <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" />
-              Create Your First Alert
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {alerts.map(alert => (
-              <div key={alert.id} className="border rounded-lg p-3 relative">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1 h-6 w-6"
-                  onClick={() => handleRemoveAlert(alert.id)}
+        <Tabs defaultValue="price" className="w-full mt-6" onValueChange={(value) => setActiveTab(value as AlertType)}>
+          <TabsList className="w-full">
+            <TabsTrigger value="price" className="flex-1">Price</TabsTrigger>
+            <TabsTrigger value="volume" className="flex-1" disabled>Volume</TabsTrigger>
+            <TabsTrigger value="percentageChange" className="flex-1" disabled>% Change</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="price" className="mt-4 space-y-4">
+            <PriceAlertForm
+              formData={formData}
+              onFormChange={handleAlertFormChange}
+              onSubmit={handleAddAlert}
+            />
+          </TabsContent>
+          
+          <TabsContent value="volume" className="mt-4">
+            <div className="text-center text-muted-foreground py-10">
+              Volume alerts coming soon...
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="percentageChange" className="mt-4">
+            <div className="text-center text-muted-foreground py-10">
+              Percentage change alerts coming soon...
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="mt-6">
+          <h3 className="text-sm font-medium mb-2">Active Alerts</h3>
+          {alerts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active alerts.</p>
+          ) : (
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {alerts.map((alert) => (
+                <div 
+                  key={alert.id} 
+                  className="flex items-center justify-between rounded-md border border-border bg-background p-2"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={alert.condition === 'above' ? 'default' : 'destructive'} className="capitalize">
-                      {alert.condition === 'above' ? (
-                        <ArrowUpRight className="h-3 w-3 mr-1" />
-                      ) : (
-                        <ArrowDownRight className="h-3 w-3 mr-1" />
-                      )}
-                      {alert.condition}
-                    </Badge>
-                    <span className="font-medium">{alert.coinSymbol}</span>
+                  <div>
+                    <p className="font-medium">{alert.coinName}</p>
+                    {alert.type === 'price' && (
+                      <p className="text-sm text-muted-foreground">
+                        {alert.isAbove ? 'Above' : 'Below'} ${alert.targetPrice?.toLocaleString()}
+                      </p>
+                    )}
                   </div>
-                  <div className="font-mono">
-                    ${alert.price.toLocaleString()}
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveAlert(alert.id)}
+                  >
+                    <Trash className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
-                
-                <div className="text-xs text-muted-foreground mt-2">
-                  {alert.recurring ? 'Repeating alert' : 'One-time alert'} • 
-                  {alert.notifyVia.includes('app') && ' App notification'}
-                  {alert.notifyVia.includes('email') && ' + Email'}
-                </div>
-              </div>
-            ))}
-            
-            <Button variant="outline" className="w-full mt-2" asChild>
-              <a href="/alerts">
-                <BarChart className="h-4 w-4 mr-1" />
-                View All Alerts
-              </a>
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 

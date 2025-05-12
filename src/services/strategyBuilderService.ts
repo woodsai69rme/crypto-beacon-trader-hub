@@ -1,183 +1,151 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { AITradingStrategy, BacktestResult } from '@/types/trading';
+import { AITradingStrategy, OptimizationResult } from "@/types/trading";
 
-// Default parameters for creating a strategy
-export const DEFAULT_STRATEGY_PARAMETERS = {
-  trend: {
-    period: 14,
-    threshold: 0.5,
-    stopLoss: 2.0,
-    takeProfit: 4.0,
-    useVolume: true,
-  },
-  meanReversion: {
-    period: 20,
-    upperBand: 2.0,
-    lowerBand: 2.0,
-    stopLoss: 3.0,
-    takeProfit: 6.0,
-    useVolume: true,
-  },
-  breakout: {
-    period: 20,
-    threshold: 1.5,
-    stopLoss: 3.0,
-    takeProfit: 6.0,
-  },
-  sentiment: {
-    sentimentThreshold: 0.65,
-    sentimentTimeframe: 24,
-    lookbackPeriod: 3,
-    stopLoss: 5.0,
-    takeProfit: 10.0,
-  },
-};
-
-// Create a new custom strategy
-export const createCustomStrategy = (name: string, description: string, type: string, parameters: Record<string, any>): AITradingStrategy => {
-  return {
-    id: uuidv4(),
-    name,
-    description,
-    type,
-    timeframe: '4h', // Default timeframe
-    riskLevel: 'medium', // Default risk level
-    parameters,
-    assets: [], // Default empty assets
-    status: 'backtest',
-  };
-};
-
-// Run backtest function that was missing
-export const runBacktest = async (
+/**
+ * Optimize a trading strategy based on given parameter ranges and target metric
+ * 
+ * @param strategy The base strategy to optimize
+ * @param paramRanges Parameter ranges to test
+ * @param target The optimization target metric
+ * @returns Optimization result with best parameters
+ */
+export const optimizeStrategy = async (
   strategy: AITradingStrategy,
-  startDate: string,
-  endDate: string,
-  initialCapital: number,
-  asset: string
-): Promise<BacktestResult> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  paramRanges: { id: string; min: number; max: number; step: number }[],
+  target: 'profitFactor' | 'sharpeRatio' | 'profit' | 'drawdown'
+): Promise<OptimizationResult> => {
+  // This is a simulated optimization process
+  // In a real application, this would call a backend service
+  console.log(`Optimizing strategy ${strategy.name} for ${target}`);
   
-  // Generate mock results based on strategy parameters
-  const riskFactor = strategy.riskLevel === 'high' ? 2.0 : 
-                     strategy.riskLevel === 'medium' ? 1.5 : 1.0;
-  
-  const profitPercentage = Math.random() * 30 * riskFactor;
-  const maxDrawdown = Math.random() * 15 * riskFactor;
-  const winRate = 40 + Math.random() * 30;
-  const totalTrades = 20 + Math.floor(Math.random() * 50);
-  const winningTrades = Math.floor(totalTrades * (winRate / 100));
-  const losingTrades = totalTrades - winningTrades;
-  
-  // Generate mock trade history
-  const trades = [];
-  const startTimestamp = new Date(startDate).getTime();
-  const endTimestamp = new Date(endDate).getTime();
-  const timeIncrement = (endTimestamp - startTimestamp) / totalTrades;
-  
-  let balance = initialCapital;
-  let highestBalance = initialCapital;
-  
-  for (let i = 0; i < totalTrades; i++) {
-    const isWinning = i < winningTrades;
-    const tradeTimestamp = new Date(startTimestamp + (i * timeIncrement));
-    const price = 20000 + (Math.random() * 10000);
-    const amount = (balance * 0.1) / price;
-    const profitPercent = isWinning ? 
-                        (Math.random() * 10) : 
-                        -(Math.random() * 5);
-    const profit = amount * price * (profitPercent / 100);
-    
-    // Update balance
-    balance += profit;
-    highestBalance = Math.max(balance, highestBalance);
-    
-    trades.push({
-      id: uuidv4(),
-      timestamp: tradeTimestamp.toISOString(),
-      date: tradeTimestamp.toLocaleDateString(),
-      type: Math.random() > 0.5 ? 'buy' : 'sell',
-      price: price,
-      amount: amount,
-      total: price * amount,
-      profit: profit,
-      profitPercentage: profitPercent
-    });
-  }
-  
-  const finalBalance = balance;
-  const profit = finalBalance - initialCapital;
-  const sharpeRatio = (profitPercentage / 100) / (maxDrawdown / 100);
-  const profitFactor = winningTrades / (losingTrades || 1);
-  
-  return {
-    startDate,
-    endDate,
-    initialBalance: initialCapital,
-    finalBalance,
-    profit,
-    profitPercentage,
-    maxDrawdown,
-    winRate,
-    trades,
-    sharpeRatio,
-    profitFactor,
-    averageProfit: profit / totalTrades,
-    averageLoss: -maxDrawdown / losingTrades,
-    initialCapital,
-    finalCapital: finalBalance,
-    totalReturn: profitPercentage,
-    totalTrades,
-    winningTrades,
-    losingTrades,
-    sortinoRatio: sharpeRatio * 1.2 // Just a mock calculation
-  };
-};
-
-// Function to optimize strategy parameters
-export const optimizeStrategy = async (strategy: AITradingStrategy, selectedMetric: string = "profit") => {
-  // Simulate optimization delay
+  // Simulate processing time
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Create slightly improved parameters
-  const optimizedParameters = { ...strategy.parameters };
+  // Create mock parameter values based on ranges
+  const parameterValues: Record<string, number> = {};
   
-  // Adjust parameters based on strategy type
-  if (strategy.type.includes('trend')) {
-    optimizedParameters.fastPeriod = Math.max(1, optimizedParameters.fastPeriod - 1);
-    optimizedParameters.slowPeriod = optimizedParameters.slowPeriod + 2;
-  } else if (strategy.type.includes('mean')) {
-    optimizedParameters.period = optimizedParameters.period + 4;
-    optimizedParameters.upperBand = optimizedParameters.upperBand * 1.1;
-    optimizedParameters.lowerBand = optimizedParameters.lowerBand * 1.1;
-  } else if (strategy.type.includes('sentiment')) {
-    optimizedParameters.sentimentThreshold = Math.min(0.9, optimizedParameters.sentimentThreshold + 0.05);
-  }
+  paramRanges.forEach(param => {
+    // Generate a "better" value somewhere between min and max
+    const originalValue = (strategy.parameters[param.id] as number) || param.min;
+    
+    // Random improvement between 5-20%
+    const improvement = Math.random() * 0.15 + 0.05;
+    
+    // Direction of improvement (smaller or larger)
+    const direction = Math.random() > 0.5 ? 1 : -1;
+    
+    // Calculate optimized value with constraints
+    let optimizedValue = originalValue * (1 + direction * improvement);
+    
+    // Ensure optimized value is within the specified range
+    optimizedValue = Math.max(param.min, Math.min(param.max, optimizedValue));
+    
+    // Round to 2 decimal places
+    optimizedValue = Math.round(optimizedValue * 100) / 100;
+    
+    parameterValues[param.id] = optimizedValue;
+  });
   
-  // Simulate improved performance
-  const improvement = 5 + Math.random() * 15;
-  const winRateImprovement = 2 + Math.random() * 8;
-  
-  // Base performance on original if available
-  const basePerformance = strategy.performance || {
-    winRate: 50,
-    returns: 10,
-    sharpeRatio: 1.5,
-    drawdown: 15,
-    profitFactor: 1.5
+  // Calculate performance improvements
+  const basePerformance = {
+    returns: strategy.performance?.returnRate || strategy.performance?.returns || 0,
+    winRate: strategy.performance?.winRate || 0,
+    profitFactor: strategy.performance?.profitFactor || 0,
+    sharpeRatio: strategy.performance?.sharpeRatio || 0,
+    maxDrawdown: strategy.performance?.maxDrawdown || strategy.performance?.drawdown || 0
   };
+  
+  // Generate improved performance metrics
+  const returns = basePerformance.returns * (1 + Math.random() * 0.2);
+  const winRate = Math.min(0.95, basePerformance.winRate * (1 + Math.random() * 0.15));
+  const profitFactor = basePerformance.profitFactor * (1 + Math.random() * 0.25);
+  const sharpeRatio = basePerformance.sharpeRatio * (1 + Math.random() * 0.2);
+  const maxDrawdown = basePerformance.maxDrawdown * (1 - Math.random() * 0.2);
+  
+  // Calculate overall improvement
+  const improvementPercent = target === 'drawdown'
+    ? ((basePerformance.maxDrawdown - maxDrawdown) / basePerformance.maxDrawdown) * 100
+    : ((returns - basePerformance.returns) / basePerformance.returns) * 100;
   
   return {
-    parameters: optimizedParameters,
-    parameterValues: optimizedParameters,
-    improvement,
+    id: `opt-${Date.now()}`,
+    strategyId: strategy.id,
+    parameters: parameterValues,
     performance: {
-      winRate: basePerformance.winRate + winRateImprovement,
-      profitPercentage: (basePerformance.returns || 10) * (1 + improvement/100),
-      sharpeRatio: (basePerformance.sharpeRatio || 1.5) * 1.2,
-      maxDrawdown: (basePerformance.drawdown || 15) * 0.85
-    }
+      returns,
+      winRate,
+      profitFactor,
+      sharpeRatio,
+      maxDrawdown
+    },
+    trades: Math.floor(Math.random() * 200 + 100),
+    timeframe: strategy.timeframe,
+    optimizationDate: new Date().toISOString(),
+    improvement: improvementPercent,
+    parameterValues
   };
+};
+
+/**
+ * Run a backtest on a trading strategy
+ * 
+ * @param strategy Strategy to backtest
+ * @param timeframe Timeframe for backtesting
+ * @returns Backtest results
+ */
+export const backtestStrategy = async (
+  strategy: AITradingStrategy,
+  timeframe: string = '1y'
+) => {
+  // Simulated backtest implementation
+  console.log(`Backtesting strategy ${strategy.name} on ${timeframe} timeframe`);
+  
+  // Simulate processing time
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Return mock backtest results
+  return {
+    returns: strategy.performance?.returnRate || strategy.performance?.returns || 20 + Math.random() * 30,
+    winRate: strategy.performance?.winRate || 0.6 + Math.random() * 0.2,
+    trades: 100 + Math.floor(Math.random() * 150),
+    maxDrawdown: strategy.performance?.maxDrawdown || strategy.performance?.drawdown || 5 + Math.random() * 15,
+    sharpeRatio: strategy.performance?.sharpeRatio || 1 + Math.random() * 2,
+    profitFactor: 1.2 + Math.random() * 1.5
+  };
+};
+
+/**
+ * Save a trading strategy
+ * 
+ * @param strategy Strategy to save
+ * @returns Updated strategy with ID
+ */
+export const saveStrategy = async (strategy: AITradingStrategy): Promise<AITradingStrategy> => {
+  // Simulated save implementation
+  console.log('Saving strategy:', strategy.name);
+  
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Return strategy with ID
+  return {
+    ...strategy,
+    id: strategy.id || `strategy-${Date.now()}`
+  };
+};
+
+/**
+ * Delete a trading strategy
+ * 
+ * @param strategyId ID of strategy to delete
+ * @returns Success status
+ */
+export const deleteStrategy = async (strategyId: string): Promise<boolean> => {
+  // Simulated delete implementation
+  console.log('Deleting strategy:', strategyId);
+  
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return true;
 };

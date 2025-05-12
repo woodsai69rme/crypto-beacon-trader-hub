@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AITradingStrategy } from "@/types/trading";
 import { Bot, TrendingUp, Settings, ChevronRight } from "lucide-react";
-import { createCustomStrategy } from "@/services/strategyBuilderService";
-import { mockAIStrategies as predefinedStrategies } from "@/utils/mockData";
+import { createCustomStrategy, DEFAULT_STRATEGY_PARAMETERS } from "@/services/strategyBuilderService";
+import { predefinedStrategies } from "@/utils/aiTradingStrategies";
 
 // Import components
 import StrategyBuilder from './trading/StrategyBuilder';
@@ -77,8 +77,8 @@ const TradingOptimizationDashboard: React.FC = () => {
       'New Strategy',
       'A custom trading strategy',
       'custom',
-      {},
-      ['bitcoin'] // Pass string array for assets
+      '1h',
+      DEFAULT_STRATEGY_PARAMETERS
     );
     
     setSelectedStrategy(newStrategy);

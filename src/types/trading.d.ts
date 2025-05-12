@@ -3,18 +3,35 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: string; // Expanding the allowed types
   timeframe: string;
   riskLevel?: string;
-  parameters: Record<string, any>;
+  parameters: {
+    period?: number;
+    threshold?: number;
+    stopLoss?: number;
+    takeProfit?: number;
+    useVolume?: boolean;
+    indicator?: string;
+    allowWeekendTrading?: boolean;
+    fastPeriod?: number;
+    slowPeriod?: number;
+    signalPeriod?: number;
+    upperBand?: number;
+    lowerBand?: number;
+    riskFactor?: number;
+    sentimentThreshold?: number;
+    sentimentTimeframe?: string;
+    [key: string]: any;
+  };
   assets?: string[]; // Adding assets property
   performance?: {
-    winRate?: number;
-    returns?: number;
-    returnRate?: number;
-    sharpeRatio?: number;
-    drawdown?: number;
-    maxDrawdown?: number;
+    winRate: number;
+    returnRate?: number; // Adding returnRate
+    returns?: number; // Keep returns for compatibility
+    sharpeRatio: number;
+    maxDrawdown?: number; // Adding maxDrawdown
+    drawdown?: number; // Keep drawdown for compatibility
     profitFactor?: number;
     trades?: number;
     profitLoss?: number;
@@ -25,52 +42,30 @@ export interface AITradingStrategy {
 }
 
 export interface BacktestResult {
-  startDate: string;
-  endDate: string;
-  initialBalance: number;
-  finalBalance: number;
-  profit: number;
-  profitPercentage: number;
-  maxDrawdown: number;
+  returns: number;
   winRate: number;
-  trades: {
-    id: string;
-    timestamp: string;
-    date: string;
-    type: 'buy' | 'sell';
-    price: number;
-    amount: number;
-    total: number;
-    profit: number;
-    profitPercentage: number;
-  }[];
+  trades: number;
+  maxDrawdown: number;
   sharpeRatio: number;
   profitFactor: number;
-  averageProfit: number;
-  averageLoss: number;
-  initialCapital: number;
-  finalCapital: number;
-  totalReturn: number;
-  totalTrades: number;
-  winningTrades: number;
-  losingTrades: number;
-  sortinoRatio: number;
+  tradeHistory?: Trade[];
 }
 
 export interface OptimizationResult {
-  id?: string;
+  id: string;
   strategyId: string;
   parameters: Record<string, any>;
   performance: {
-    profit: number;
-    profitPercentage: number;
-    maxDrawdown: number;
+    returns: number;
     winRate: number;
-    sharpeRatio: number;
     profitFactor: number;
-    totalReturn: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
   };
-  improvement: number;
+  trades: number;
+  timeframe: string;
+  optimizationDate: string;
+  improvement?: number;
   parameterValues: Record<string, any>;
 }
 
@@ -90,17 +85,17 @@ export interface Trade {
   id: string;
   timestamp: string;
   date: string;
-  type: 'buy' | 'sell';
+  type: string;
   price: number;
   amount: number;
   total: number;
-  profit?: number;
-  profitPercentage?: number;
+  profit: number;
+  profitPercentage: number;
   coin: string;
   coinId: string;
   coinName: string;
   coinSymbol: string;
-  currency: SupportedCurrency;
+  currency: string;
   totalValue: number;
 }
 
@@ -120,6 +115,23 @@ export interface CoinOption {
 
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
 
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  initialBalance: number;
+  currency: SupportedCurrency;
+  createdAt: string;
+  positions: Position[];
+  trades: Trade[];
+  performance: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    allTime: number;
+  };
+}
+
 export interface Position {
   id: string;
   coinId: string;
@@ -132,28 +144,6 @@ export interface Position {
   profitLoss: number;
   profitLossPercentage: number;
   openedAt: string;
-}
-
-export interface TradingAccount {
-  id: string;
-  name: string;
-  type: string;
-  provider?: string;
-  balance: number;
-  initialBalance?: number;
-  currency: SupportedCurrency;
-  lastUpdated?: string;
-  isActive?: boolean;
-  assets?: PortfolioAsset[];
-  positions?: Position[];
-  trades?: Trade[];
-  createdAt?: string;
-  performance?: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    allTime: number;
-  };
 }
 
 export interface ApiEndpoint {
@@ -173,8 +163,8 @@ export interface ApiEndpoint {
 }
 
 export interface SidebarSettings {
-  collapsed: boolean;
-  showLabels?: boolean;
+  defaultCollapsed: boolean;
+  showLabels: boolean;
   position: 'left' | 'right';
   width: number;
 }
@@ -196,7 +186,7 @@ export interface RealTimePriceChartProps {
   coinId?: string;
   selectedCoinId?: string;
   onSelectCoin?: (coinId: string) => void;
-  availableCoins?: CoinOption[];
+  availableCoins: CoinOption[];
   updateInterval?: number;
 }
 
@@ -261,102 +251,110 @@ export interface WalletProvider {
   isConnected: boolean;
 }
 
-export interface Widget {
-  id: string;
-  title: string;
-  type: WidgetType;
-  size?: WidgetSize;
-  position?: { x: number; y: number };
-  customContent?: string;
-}
-
-export type WidgetType = 
-  | 'price-chart'
-  | 'portfolio-summary'
-  | 'watchlist'
-  | 'news'
-  | 'alerts'
-  | 'trading'
-  | 'aiTrading'
-  | 'aiAnalysis'
-  | 'custom';
-
-export type WidgetSize = 'small' | 'medium' | 'large' | 'flexible';
-
-// Settings interfaces
-export interface SettingsFormValues {
-  username?: string;
-  displayName?: string;
-  email?: string;
-  theme?: string;
-  bio?: string;
-  language?: string;
-  notifications: {
-    email: boolean;
-    push: boolean;
-    trades: boolean;
-    pricing: boolean;
-    news: boolean;
-  };
-  tradingPreferences: {
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
-  };
-  privacy?: {
-    showOnlineStatus: boolean;
-    sharePortfolio: boolean;
-    shareTrades: boolean;
-    dataCollection: boolean;
-    marketingConsent: boolean;
-    thirdPartySharing: boolean;
-  };
-  account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
-  };
-  appearance?: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-  ticker?: {
-    enabled: boolean;
-    position: string;
-    speed: number;
-    direction: string;
-    autoPause: boolean;
-  };
-  sidebar?: {
-    enabled: boolean;
-    position: string;
-    collapsed: boolean;
-    autoHide: boolean;
-  };
-}
-
-// Alert types
-export interface PriceAlertFormData {
+export interface SentimentData {
   coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  targetPrice: number;
-  isAbove: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  enabled?: boolean;
-  notifyVia?: string[];
-  notes?: string;
-  currentPrice?: number;
-  coin?: CoinOption;
-  condition?: string;
-  price?: number;
-  repeat?: boolean;
+  symbol: string;
+  score: number;
+  change24h: number;
+  sources: {
+    twitter: number;
+    reddit: number;
+    news: number;
+  };
+  bullishPercentage: number;
+  bearishPercentage: number;
+  trendingPosts?: TrendingPost[];
 }
 
-export interface ParameterOptimizationProps {
-  strategy: AITradingStrategy;
-  onApplyParameters: (parameters: Record<string, any>) => void;
-  onApplyOptimizedParameters?: (parameters: Record<string, any>) => void;
+export interface TrendingPost {
+  id: string;
+  source: 'twitter' | 'reddit' | 'news';
+  title?: string;
+  content: string;
+  sentiment: number;
+  timestamp: string;
+  url?: string;
+  author?: string;
+}
+
+export interface OnChainMetrics {
+  networkId: string;
+  name: string;
+  activeAddresses: number;
+  activeAddressesChange: number;
+  transactionCount: number;
+  transactionCountChange: number;
+  averageFee: number;
+  averageFeeChange: number;
+  newWallets: number;
+  newWalletsChange: number;
+  timestamp: string;
+}
+
+export interface WhaleTransaction {
+  id: string;
+  network: string;
+  senderAddress: string;
+  receiverAddress: string;
+  amount: number;
+  amountUsd: number;
+  tokenSymbol: string;
+  tokenName: string;
+  timestamp: string;
+  txHash: string;
+  type: 'send' | 'receive' | 'swap';
+}
+
+export interface ExchangeArbitrage {
+  id: string;
+  tokenId: string;
+  symbol: string;
+  name: string;
+  buyExchange: string;
+  buyPrice: number;
+  sellExchange: string;
+  sellPrice: number;
+  spreadPercent: number;
+  volume24h: number;
+  timestamp: string;
+  isExecutable: boolean;
+}
+
+export interface PricePrediction {
+  coinId: string;
+  symbol: string;
+  name: string;
+  currentPrice: number;
+  predictions: {
+    timestamp: string;
+    price: number;
+    confidenceLow: number;
+    confidenceHigh: number;
+  }[];
+  modelAccuracy: number;
+  modelName: string;
+  lastUpdated: string;
+}
+
+export interface ATOTaxCalculation {
+  financialYear: string;
+  taxableIncome: number;
+  capitalGainsIncome: number;
+  taxRate: number;
+  medicareLevyRate: number;
+  taxPayable: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxCredits: number;
+  taxRefundOrOwed: number;
+  incomeTax: number;
+  taxWithheld: number;
+  netCapitalGains: number;
+  assessableIncome: number;
+  bracketInfo: {
+    bracket: string;
+    rate: string;
+  };
+  capitalGains: number;
+  CGTDiscount: number;
 }
