@@ -1,100 +1,90 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import React, { useState, useEffect } from 'react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { CoinOption } from '@/types/trading';
 import { searchCoins } from '@/services/enhancedCryptoApi';
-import { Loader2 } from 'lucide-react';
 
 interface CryptoSearchProps {
-  onSelectCoin: (coin: CoinOption) => void;
+  onSelect: (coin: CoinOption) => void;
   placeholder?: string;
   className?: string;
 }
 
 const CryptoSearch: React.FC<CryptoSearchProps> = ({ 
-  onSelectCoin, 
-  placeholder = "Search cryptocurrencies...",
+  onSelect,
+  placeholder = "Search for cryptocurrencies...",
   className = ""
 }) => {
-  const [query, setQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<CoinOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+    const searchForCoins = async () => {
+      if (searchQuery.length < 2) {
+        setResults([]);
+        return;
+      }
 
-    if (query.length < 2) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    searchTimeoutRef.current = setTimeout(async () => {
+      setIsLoading(true);
       try {
-        const searchResults = await searchCoins(query);
-        setResults(searchResults);
+        const coins = await searchCoins(searchQuery);
+        setResults(coins);
       } catch (error) {
-        console.error('Search error:', error);
+        console.error("Error searching for coins:", error);
         setResults([]);
       } finally {
         setIsLoading(false);
       }
-    }, 300);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
     };
-  }, [query]);
 
-  const handleSelectCoin = (coin: CoinOption) => {
-    onSelectCoin(coin);
-    setQuery('');
-    setResults([]);
-  };
+    const timeoutId = setTimeout(searchForCoins, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   return (
     <Command className={`rounded-lg border shadow-md ${className}`}>
-      <CommandInput
-        placeholder={placeholder}
-        value={query}
-        onValueChange={setQuery}
+      <CommandInput 
+        placeholder={placeholder} 
+        value={searchQuery}
+        onValueChange={setSearchQuery}
+        className="h-9"
       />
-      {isLoading && (
-        <div className="flex items-center justify-center py-6">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      )}
-      {!isLoading && (
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+      {searchQuery.length > 0 && (
+        <>
+          <CommandEmpty>
+            {isLoading ? "Searching..." : "No cryptocurrencies found."}
+          </CommandEmpty>
           <CommandGroup heading="Cryptocurrencies">
             {results.map((coin) => (
               <CommandItem
                 key={coin.id}
                 value={coin.id}
-                onSelect={() => handleSelectCoin(coin)}
-                className="flex items-center gap-2 py-2 cursor-pointer"
+                onSelect={() => {
+                  onSelect(coin);
+                  setSearchQuery("");
+                }}
+                className="flex items-center cursor-pointer hover:bg-accent"
               >
                 {coin.image && (
-                  <img src={coin.image} alt={coin.name} className="w-6 h-6" />
+                  <img
+                    src={coin.image}
+                    alt={coin.name}
+                    className="w-5 h-5 rounded-full mr-2"
+                  />
                 )}
-                <div>
-                  <span className="font-medium">{coin.name}</span>
-                  <span className="text-muted-foreground ml-2">{coin.symbol}</span>
-                </div>
-                <div className="ml-auto font-mono">
-                  ${coin.price.toLocaleString()}
-                </div>
+                <span className="font-medium">{coin.name}</span>
+                <span className="ml-2 text-muted-foreground">({coin.symbol})</span>
+                <span className="ml-auto font-mono">
+                  ${coin.price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 6,
+                  })}
+                </span>
               </CommandItem>
             ))}
           </CommandGroup>
-        </CommandList>
+        </>
       )}
     </Command>
   );

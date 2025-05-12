@@ -1,98 +1,137 @@
-
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import WidgetComponent from "./WidgetComponent";
-import AddWidgetDialog from "./AddWidgetDialog";
-import { WidgetType } from '@/types/trading';
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
+import WidgetGrid from "./WidgetGrid";
+import WidgetList from "./WidgetList";
+import AddWidgetDialog from "./widgets/AddWidgetDialog";
+import { Widget, WidgetType, WidgetSize } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
 
-interface Widget {
-  id: string;
-  title: string;
-  type: WidgetType;
-}
-
-const CustomizableDashboard: React.FC = () => {
+const CustomizableDashboard = () => {
+  const [isAddingWidget, setIsAddingWidget] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [widgets, setWidgets] = useState<Widget[]>([
     {
-      id: "widget-1",
+      id: "portfolio-widget",
+      position: { x: 0, y: 0 },
       title: "Portfolio Overview",
-      type: "portfolio-summary" as WidgetType
+      type: "portfolio-summary",
+      size: "medium",
     },
     {
-      id: "widget-2",
-      title: "Bitcoin Price Chart",
-      type: "price-chart" as WidgetType
+      id: "chart-widget",
+      position: { x: 1, y: 0 },
+      title: "Market Chart",
+      type: "price-chart",
+      size: "medium",
     },
     {
-      id: "widget-3",
-      title: "Crypto Watchlist",
-      type: "watchlist" as WidgetType
+      id: "watchlist-widget",
+      position: { x: 0, y: 1 },
+      title: "Watchlist",
+      type: "watchlist",
+      size: "small",
+    },
+    {
+      id: "news-widget",
+      position: { x: 1, y: 1 },
+      title: "Crypto News",
+      type: "news",
+      size: "small",
+    },
+    {
+      id: "alerts-widget",
+      position: { x: 0, y: 2 },
+      title: "Price Alerts",
+      type: "alerts",
+      size: "small",
     }
   ]);
   
-  const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
-  
-  const handleAddWidget = (title: string, type: WidgetType) => {
+  const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
+    // Find the next available position
+    const maxY = Math.max(...widgets.map(w => w.position?.y || 0));
+    
     const newWidget: Widget = {
-      id: `widget-${Date.now()}`,
-      title,
-      type
+      id: `${widget.type}-${Date.now()}`,
+      position: { x: 0, y: maxY + 1 },
+      title: widget.title,
+      type: widget.type,
+      size: widget.size,
+      customContent: widget.customContent
     };
     
     setWidgets([...widgets, newWidget]);
+    setIsAddingWidget(false);
+    
+    toast({
+      title: "Widget Added",
+      description: `${widget.title} has been added to your dashboard`
+    });
   };
   
   const handleRemoveWidget = (id: string) => {
     setWidgets(widgets.filter(widget => widget.id !== id));
+    
+    toast({
+      title: "Widget Removed",
+      description: "The widget has been removed from your dashboard"
+    });
   };
   
-  const handleReorderWidgets = () => {
-    // This would implement drag and drop reordering in a real application
+  const handleUpdateWidgetPosition = (id: string, position: { x: number, y: number }) => {
+    setWidgets(widgets.map(widget => 
+      widget.id === id ? { ...widget, position } : widget
+    ));
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Dashboard</h2>
-        <Button 
-          onClick={() => setIsAddWidgetOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <PlusCircle className="h-4 w-4" />
-          Add Widget
-        </Button>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            {viewMode === "grid" ? "List View" : "Grid View"}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsAddingWidget(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add Widget
+          </Button>
+          
+          <Button variant="outline" size="sm">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Customize
+          </Button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {widgets.map(widget => (
-          <WidgetComponent 
-            key={widget.id} 
-            type={widget.type} 
-            title={widget.title} 
-          />
-        ))}
-      </div>
-      
-      {widgets.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <h3 className="text-lg font-medium">Your dashboard is empty</h3>
-            <p className="text-muted-foreground mt-2 mb-4">
-              Add widgets to create your personalized trading dashboard
-            </p>
-            <Button onClick={() => setIsAddWidgetOpen(true)}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Your First Widget
-            </Button>
-          </CardContent>
-        </Card>
+      {viewMode === "grid" ? (
+        <WidgetGrid 
+          widgets={widgets} 
+          onRemove={handleRemoveWidget}
+          onUpdatePosition={handleUpdateWidgetPosition}
+        />
+      ) : (
+        <WidgetList 
+          widgets={widgets} 
+          onRemove={handleRemoveWidget} 
+        />
       )}
       
-      <AddWidgetDialog
-        isOpen={isAddWidgetOpen}
-        onClose={() => setIsAddWidgetOpen(false)}
+      <AddWidgetDialog 
+        open={isAddingWidget} 
+        onOpenChange={setIsAddingWidget} 
         onAddWidget={handleAddWidget}
       />
     </div>

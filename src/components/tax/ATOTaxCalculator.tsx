@@ -1,248 +1,398 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ATOTaxRate, ATOTaxCalculation } from '@/types/trading';
-
-// ATO Tax Rates for 2023-2024 financial year
-const atoTaxRates2023: ATOTaxRate[] = [
-  { minIncome: 0, maxIncome: 18200, baseAmount: 0, rate: 0, threshold: 0 },
-  { minIncome: 18201, maxIncome: 45000, baseAmount: 0, rate: 0.19, threshold: 18200 },
-  { minIncome: 45001, maxIncome: 120000, baseAmount: 5092, rate: 0.325, threshold: 45000 },
-  { minIncome: 120001, maxIncome: 180000, baseAmount: 29467, rate: 0.37, threshold: 120000 },
-  { minIncome: 180001, maxIncome: null, baseAmount: 51667, rate: 0.45, threshold: 180000 }
-];
-
-// Initial tax calculation state
-const initialTaxCalculation: ATOTaxCalculation = {
-  financialYear: "2023-2024",
-  incomeAmount: 85000,
-  taxWithheld: 20000,
-  grossCapitalGains: 10000,
-  capitalLosses: 2000,
-  eligibleForDiscount: true,
-  CGTDiscount: 0,
-  netCapitalGains: 0,
-  taxableIncome: 0,
-  bracketInfo: "",
-  incomeTax: 0,
-  medicareLevy: 0,
-  totalTaxLiability: 0,
-  taxRefundOrOwed: 0
-};
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { ArrowUpDown, Calculator, Download, InfoIcon } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ATOTaxCalculation } from '@/types/trading';
 
 const ATOTaxCalculator: React.FC = () => {
-  const [taxCalc, setTaxCalc] = useState<ATOTaxCalculation>(initialTaxCalculation);
-
-  // Calculate tax whenever relevant inputs change
-  useEffect(() => {
-    calculateTax();
-  }, [
-    taxCalc.incomeAmount,
-    taxCalc.taxWithheld,
-    taxCalc.grossCapitalGains,
-    taxCalc.capitalLosses,
-    taxCalc.eligibleForDiscount
-  ]);
+  const [taxYear, setTaxYear] = useState('2024-2025');
+  const [income, setIncome] = useState<number>(85000);
+  const [capitalGains, setCapitalGains] = useState<number>(15000);
+  const [deductions, setDeductions] = useState<number>(3000);
+  const [taxWithheld, setTaxWithheld] = useState<number>(22000);
+  const [calculation, setCalculation] = useState<ATOTaxCalculation | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("simple");
 
   const calculateTax = () => {
-    // Calculate net capital gains
-    let netCapGains = Math.max(0, taxCalc.grossCapitalGains - taxCalc.capitalLosses);
+    const taxableIncome = income - deductions;
+    let taxRate = 0;
+    let incomeTax = 0;
+    let bracketInfo = '';
+
+    // ATO 2024-2025 tax brackets (example)
+    if (taxableIncome <= 18200) {
+      taxRate = 0;
+      incomeTax = 0;
+      bracketInfo = '0-$18,200: 0%';
+    } else if (taxableIncome <= 45000) {
+      taxRate = 0.19;
+      incomeTax = (taxableIncome - 18200) * 0.19;
+      bracketInfo = '$18,201-$45,000: 19c for each $1 over $18,200';
+    } else if (taxableIncome <= 120000) {
+      taxRate = 0.325;
+      incomeTax = 5092 + (taxableIncome - 45000) * 0.325;
+      bracketInfo = '$45,001-$120,000: $5,092 plus 32.5c for each $1 over $45,000';
+    } else if (taxableIncome <= 180000) {
+      taxRate = 0.37;
+      incomeTax = 29467 + (taxableIncome - 120000) * 0.37;
+      bracketInfo = '$120,001-$180,000: $29,467 plus 37c for each $1 over $120,000';
+    } else {
+      taxRate = 0.45;
+      incomeTax = 51667 + (taxableIncome - 180000) * 0.45;
+      bracketInfo = '$180,001 and over: $51,667 plus 45c for each $1 over $180,000';
+    }
+
+    // Calculate capital gains tax
+    const CGTDiscount = capitalGains > 0 ? capitalGains * 0.5 : 0;
+    const netCapitalGains = capitalGains - CGTDiscount;
+    const assessableIncome = taxableIncome + netCapitalGains;
     
-    // Apply CGT discount if eligible (50% for individuals holding assets > 12 months)
-    const CGTDiscount = taxCalc.eligibleForDiscount ? netCapGains * 0.5 : 0;
-    netCapGains = netCapGains - CGTDiscount;
+    // Calculate medicare levy
+    const medicareLevyRate = 0.02; // 2%
+    const medicareLevy = assessableIncome * medicareLevyRate;
     
-    // Calculate taxable income
-    const taxableIncome = taxCalc.incomeAmount + netCapGains;
-    
-    // Find applicable tax bracket
-    const bracket = atoTaxRates2023.find(
-      rate => taxableIncome >= rate.minIncome && 
-              (rate.maxIncome === null || taxableIncome <= rate.maxIncome)
-    ) || atoTaxRates2023[0];
-    
-    // Calculate income tax
-    const incomeTax = bracket.baseAmount + (bracket.rate * (taxableIncome - bracket.threshold));
-    
-    // Calculate Medicare Levy (2% of taxable income)
-    const medicareLevy = taxableIncome * 0.02;
-    
-    // Calculate total tax liability
+    // Calculate total tax
     const totalTaxLiability = incomeTax + medicareLevy;
+    const taxRefundOrOwed = taxWithheld - totalTaxLiability;
     
-    // Calculate refund/amount owed
-    const taxRefundOrOwed = taxCalc.taxWithheld - totalTaxLiability;
+    setCalculation({
+      financialYear: taxYear,
+      taxableIncome: taxableIncome,
+      capitalGainsIncome: netCapitalGains,
+      taxRate: taxRate,
+      medicareLevyRate: medicareLevyRate,
+      taxPayable: incomeTax,
+      medicareLevy: medicareLevy,
+      totalTaxLiability: totalTaxLiability,
+      taxCredits: 0,
+      taxRefundOrOwed: taxRefundOrOwed,
+      incomeTax: incomeTax,
+      taxWithheld: taxWithheld,
+      netCapitalGains: netCapitalGains,
+      assessableIncome: assessableIncome,
+      bracketInfo: {
+        bracket: bracketInfo,
+        rate: `${(taxRate * 100).toFixed(1)}%`
+      },
+      capitalGains: capitalGains,
+      CGTDiscount: CGTDiscount
+    });
+  };
+
+  const downloadTaxReport = () => {
+    if (!calculation) return;
     
-    // Update state with calculated values
-    setTaxCalc({
-      ...taxCalc,
-      financialYear: "2023-2024", 
-      CGTDiscount, 
-      netCapitalGains: netCapGains,
-      taxableIncome,
-      bracketInfo: `${bracket.rate * 100}% over $${bracket.threshold.toLocaleString()}`,
-      incomeTax,
-      medicareLevy,
-      totalTaxLiability,
-      taxRefundOrOwed
-    });
-  };
+    const report = `
+Tax Calculation Report
+=====================
+Financial Year: ${calculation.financialYear}
+Generated on: ${new Date().toLocaleDateString()}
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTaxCalc({
-      ...taxCalc,
-      [name]: parseFloat(value) || 0
-    });
-  };
+Income Summary
+-------------
+Gross Income: $${income.toLocaleString()}
+Deductions: $${deductions.toLocaleString()}
+Taxable Income: $${calculation.taxableIncome.toLocaleString()}
 
-  const handleSwitchChange = (checked: boolean) => {
-    setTaxCalc({
-      ...taxCalc,
-      eligibleForDiscount: checked
-    });
-  };
+Capital Gains
+------------
+Total Capital Gains: $${capitalGains.toLocaleString()}
+CGT Discount (50%): $${calculation.CGTDiscount?.toLocaleString()}
+Net Capital Gains: $${calculation.netCapitalGains.toLocaleString()}
 
-  const resetCalculator = () => {
-    setTaxCalc(initialTaxCalculation);
-  };
+Tax Calculation
+--------------
+Tax Bracket: ${calculation.bracketInfo?.bracket}
+Income Tax: $${calculation.incomeTax.toLocaleString()}
+Medicare Levy (2%): $${calculation.medicareLevy.toLocaleString()}
+Total Tax Liability: $${calculation.totalTaxLiability.toLocaleString()}
 
+Summary
+-------
+Tax Withheld: $${calculation.taxWithheld.toLocaleString()}
+Tax Refund/Owed: $${Math.abs(calculation.taxRefundOrOwed).toLocaleString()} ${calculation.taxRefundOrOwed >= 0 ? '(Refund)' : '(Owed)'}
+    `;
+    
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tax_report_${calculation.financialYear}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Australian Tax Calculator {taxCalc.financialYear}</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5" />
+          ATO Tax Calculator
+        </CardTitle>
+        <CardDescription>
+          Calculate your Australian tax obligations for crypto trading
+        </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Tabs defaultValue="input">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="input">Input Details</TabsTrigger>
-            <TabsTrigger value="results">Tax Results</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4 grid w-full grid-cols-2">
+            <TabsTrigger value="simple">Simple Mode</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced Mode</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="input" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="simple" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="incomeAmount">Annual Income ($)</Label>
-                  <Input
-                    id="incomeAmount"
-                    name="incomeAmount"
-                    type="number"
-                    value={taxCalc.incomeAmount}
-                    onChange={handleInputChange}
-                  />
+                  <Label htmlFor="tax-year">Financial Year</Label>
+                  <Select defaultValue={taxYear} onValueChange={setTaxYear}>
+                    <SelectTrigger id="tax-year">
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2024-2025">2024-2025</SelectItem>
+                      <SelectItem value="2023-2024">2023-2024</SelectItem>
+                      <SelectItem value="2022-2023">2022-2023</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="taxWithheld">Tax Already Withheld ($)</Label>
-                  <Input
-                    id="taxWithheld"
-                    name="taxWithheld"
-                    type="number"
-                    value={taxCalc.taxWithheld}
-                    onChange={handleInputChange}
-                  />
+                  <Label htmlFor="income">Annual Income (AUD)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="income"
+                      type="number"
+                      value={income}
+                      onChange={(e) => setIncome(parseFloat(e.target.value) || 0)}
+                      className="flex-1"
+                    />
+                    <div className="w-20 text-right font-mono">${income.toLocaleString()}</div>
+                  </div>
                 </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="capital-gains">Capital Gains (AUD)</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="w-[220px] text-sm">Total profit from crypto trading in this financial year</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="capital-gains"
+                      type="number"
+                      value={capitalGains}
+                      onChange={(e) => setCapitalGains(parseFloat(e.target.value) || 0)}
+                      className="flex-1"
+                    />
+                    <div className="w-20 text-right font-mono">${capitalGains.toLocaleString()}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="deductions">Deductions (AUD)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="deductions"
+                      type="number"
+                      value={deductions}
+                      onChange={(e) => setDeductions(parseFloat(e.target.value) || 0)}
+                      className="flex-1"
+                    />
+                    <div className="w-20 text-right font-mono">${deductions.toLocaleString()}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="tax-withheld">Tax Already Withheld (AUD)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="tax-withheld"
+                      type="number"
+                      value={taxWithheld}
+                      onChange={(e) => setTaxWithheld(parseFloat(e.target.value) || 0)}
+                      className="flex-1"
+                    />
+                    <div className="w-20 text-right font-mono">${taxWithheld.toLocaleString()}</div>
+                  </div>
+                </div>
+                
+                <Button onClick={calculateTax} className="w-full mt-4">Calculate Tax</Button>
               </div>
               
-              <div className="border-t pt-4">
-                <h3 className="font-medium mb-2">Capital Gains</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="grossCapitalGains">Gross Capital Gains ($)</Label>
-                    <Input
-                      id="grossCapitalGains"
-                      name="grossCapitalGains"
-                      type="number"
-                      value={taxCalc.grossCapitalGains}
-                      onChange={handleInputChange}
-                    />
+              {calculation ? (
+                <div className="rounded-lg border p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Tax Summary</h3>
+                    <Button variant="outline" size="sm" onClick={downloadTaxReport} className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Download Report
+                    </Button>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="capitalLosses">Capital Losses ($)</Label>
-                    <Input
-                      id="capitalLosses"
-                      name="capitalLosses"
-                      type="number"
-                      value={taxCalc.capitalLosses}
-                      onChange={handleInputChange}
-                    />
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Taxable Income:</span>
+                      <span className="font-mono">${calculation.taxableIncome.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="flex items-center">
+                        <span className="text-muted-foreground">Net Capital Gains:</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-[220px] text-sm">Capital gains with 50% discount applied for assets held over 12 months</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <span className="font-mono">${calculation.netCapitalGains.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tax Bracket:</span>
+                      <span className="font-mono">{calculation.bracketInfo?.rate}</span>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Income Tax:</span>
+                      <span className="font-mono">${calculation.incomeTax.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Medicare Levy (2%):</span>
+                      <span className="font-mono">${calculation.medicareLevy.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold">
+                      <span>Total Tax Liability:</span>
+                      <span className="font-mono">${calculation.totalTaxLiability.toLocaleString()}</span>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tax Already Withheld:</span>
+                      <span className="font-mono">${calculation.taxWithheld.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between font-bold">
+                      <span>{calculation.taxRefundOrOwed >= 0 ? 'Tax Refund:' : 'Tax Owed:'}</span>
+                      <span className={`font-mono ${calculation.taxRefundOrOwed >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        ${Math.abs(calculation.taxRefundOrOwed).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-2 mt-4">
-                  <Switch
-                    id="eligibleForDiscount"
-                    checked={taxCalc.eligibleForDiscount}
-                    onCheckedChange={handleSwitchChange}
-                  />
-                  <Label htmlFor="eligibleForDiscount" className="cursor-pointer">
-                    Asset held for more than 12 months (50% CGT discount)
-                  </Label>
+              ) : (
+                <div className="rounded-lg border p-4 text-center flex flex-col items-center justify-center text-muted-foreground">
+                  <Calculator className="h-12 w-12 mb-3 opacity-50" />
+                  <p>Enter your details and click Calculate</p>
+                  <p className="text-sm mt-2">Your tax calculation will appear here</p>
                 </div>
-              </div>
-              
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={resetCalculator}>Reset</Button>
-                <Button onClick={calculateTax}>Calculate</Button>
-              </div>
+              )}
             </div>
           </TabsContent>
           
-          <TabsContent value="results" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              <div className="bg-muted p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-4">Tax Summary for {taxCalc.financialYear}</h3>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-muted-foreground">Taxable Income:</div>
-                  <div className="font-medium text-right">${taxCalc.taxableIncome.toLocaleString()}</div>
-                  
-                  <div className="text-muted-foreground">Tax Bracket:</div>
-                  <div className="font-medium text-right">{taxCalc.bracketInfo}</div>
-                  
-                  <div className="text-muted-foreground">Income Tax:</div>
-                  <div className="font-medium text-right">${taxCalc.incomeTax.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                  
-                  <div className="text-muted-foreground">Medicare Levy:</div>
-                  <div className="font-medium text-right">${taxCalc.medicareLevy.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                  
-                  <div className="text-muted-foreground">Net Capital Gains:</div>
-                  <div className="font-medium text-right">${taxCalc.netCapitalGains.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                  
-                  <div className="text-muted-foreground">CGT Discount:</div>
-                  <div className="font-medium text-right">${taxCalc.CGTDiscount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                  
-                  <div className="border-t col-span-2 mt-2 pt-2"></div>
-                  
-                  <div className="font-semibold">Total Tax Liability:</div>
-                  <div className="font-bold text-right">${taxCalc.totalTaxLiability.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                  
-                  <div className="text-muted-foreground">Tax Already Withheld:</div>
-                  <div className="font-medium text-right">${taxCalc.taxWithheld.toLocaleString()}</div>
-                  
-                  <div className="font-semibold">{taxCalc.taxRefundOrOwed >= 0 ? 'Tax Refund:' : 'Tax Payable:'}</div>
-                  <div className={`font-bold text-right ${taxCalc.taxRefundOrOwed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ${Math.abs(taxCalc.taxRefundOrOwed).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+          <TabsContent value="advanced" className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">Advanced Tax Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="py-2">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    For detailed tax calculations including specific deductions, holdings periods, and more advanced options.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Apply 50% CGT Discount</Label>
+                        <p className="text-sm text-muted-foreground">For assets held over 12 months</p>
+                      </div>
+                      <Switch defaultChecked={true} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Include First Home Super Saver Scheme</Label>
+                        <p className="text-sm text-muted-foreground">For saving towards your first home</p>
+                      </div>
+                      <Switch />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>HELP/HECS Debt Repayments</Label>
+                        <p className="text-sm text-muted-foreground">Calculate higher education loan repayments</p>
+                      </div>
+                      <Switch />
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
               
-              <div className="text-sm text-muted-foreground">
-                <p className="mb-2">Note: This is a simplified tax calculation for the {taxCalc.financialYear} financial year.</p>
-                <p>For exact tax calculations and professional advice, please consult a registered tax agent.</p>
-              </div>
+              <Card className="opacity-75 pointer-events-none">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    Professional Features
+                    <span className="bg-primary text-primary-foreground text-xs py-1 px-2 rounded-md">
+                      PREMIUM
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="py-2">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Access professional tax planning tools with detailed projections and optimization suggestions.
+                  </p>
+                  <div className="space-y-4 opacity-75">
+                    <div>
+                      <Label className="mb-2 block">Tax Planning</Label>
+                      <Slider disabled defaultValue={[33]} max={100} step={1} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Tax Loss Harvesting Analysis</Label>
+                        <p className="text-sm text-muted-foreground">Optimize your crypto tax position</p>
+                      </div>
+                      <Switch disabled />
+                    </div>
+                    <Button className="w-full" disabled>Upgrade to Premium</Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
+      
+      <CardFooter className="flex justify-between border-t p-4 text-sm text-muted-foreground">
+        <div>Updated for {taxYear} tax year</div>
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="h-4 w-4" />
+          <span>Last updated: May 1, 2025</span>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

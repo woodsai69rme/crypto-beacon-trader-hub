@@ -1,189 +1,134 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowTrendingUp, ArrowTrendingDown } from 'lucide-react';
-import { useUI } from '@/contexts/UIContext';
+import React, { useState, useEffect } from 'react';
 import { CoinOption } from '@/types/trading';
+import { useUI } from '@/contexts/UIContext';
+import { cn } from '@/lib/utils';
 
 interface PriceTickerProps {
   coins: CoinOption[];
   speed?: number;
-  position?: 'top' | 'bottom';
-  onSelectCoin?: (coinId: string) => void;
-  className?: string;
+  direction?: 'left' | 'right';
 }
 
-export const PriceTicker = ({ 
+const PriceTicker: React.FC<PriceTickerProps> = ({ 
   coins,
   speed,
-  position = 'top',
-  onSelectCoin,
-  className
-}: PriceTickerProps) => {
-  const [hoveredCoin, setHoveredCoin] = useState<string | null>(null);
-  const tickerRef = useRef<HTMLDivElement>(null);
+  direction = 'left' 
+}) => {
   const { tickerSettings } = useUI();
-  
-  const isEnabled = tickerSettings.enabled !== false;
-  const tickerSpeed = speed || tickerSettings.speed || 40;
-  const tickerDirection = tickerSettings.direction || 'left';
-  const shouldAutoPause = tickerSettings.autoPause !== false;
-  
   const [isPaused, setIsPaused] = useState(false);
   
-  // Pause animation on hover if autoPause is enabled
-  useEffect(() => {
-    if (!shouldAutoPause || !tickerRef.current) return;
-    
-    const handleMouseEnter = () => setIsPaused(true);
-    const handleMouseLeave = () => setIsPaused(false);
-    
-    tickerRef.current.addEventListener('mouseenter', handleMouseEnter);
-    tickerRef.current.addEventListener('mouseleave', handleMouseLeave);
-    
-    return () => {
-      if (tickerRef.current) {
-        tickerRef.current.removeEventListener('mouseenter', handleMouseEnter);
-        tickerRef.current.removeEventListener('mouseleave', handleMouseLeave);
-      }
-    };
-  }, [shouldAutoPause]);
+  // Use provided props or default to settings
+  const tickerSpeed = speed || tickerSettings.speed;
+  const tickerDirection = direction || tickerSettings.direction;
   
-  if (!isEnabled || !coins || coins.length === 0) {
-    return null;
-  }
+  // Calculate animation duration based on speed and content length
+  // Slower speed = longer duration = slower movement
+  const baseSpeed = 30; // base speed in seconds
+  const contentLength = coins.length * 200; // rough estimate of content width
+  const animationDuration = baseSpeed * (1 / (tickerSpeed / 40)) * (contentLength / 1000);
   
-  const handleCoinClick = (coinId: string) => {
-    if (onSelectCoin) {
-      onSelectCoin(coinId);
+  const handleMouseEnter = () => {
+    if (tickerSettings.autoPause) {
+      setIsPaused(true);
     }
   };
   
-  // Calculate animation duration based on content length and speed
-  const tickerItems = coins.length * 2; // Double the items for seamless looping
-  const animationDuration = (tickerItems * 10) / (tickerSpeed / 10);
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+  };
   
   return (
     <div 
-      className={`w-full overflow-hidden relative bg-background border-b dark:border-gray-800 ${
-        position === 'bottom' ? 'border-t border-b-0' : 'border-b'
-      } ${className || ''}`}
-      ref={tickerRef}
+      className="w-full bg-background border-y border-border overflow-hidden"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <style jsx global>
-        {`
-          @keyframes tickerAnimation {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          
-          .ticker-content {
-            display: flex;
-            animation: tickerAnimation ${animationDuration}s linear infinite;
-            animation-direction: ${tickerDirection === 'right' ? 'reverse' : 'normal'};
-          }
-          
-          .ticker-content.paused {
-            animation-play-state: paused;
-          }
-          
-          .ticker-item {
-            white-space: nowrap;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.2s;
-          }
-          
-          .ticker-item:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-          }
-          
-          .dark .ticker-item:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-          }
-        `}
-      </style>
-      
-      <div className={`ticker-content ${isPaused ? 'paused' : ''}`}>
-        {/* First set of items */}
-        {coins.map((coin) => (
-          <div 
-            key={`ticker-1-${coin.id}`}
-            className="ticker-item"
-            onClick={() => handleCoinClick(coin.id)}
-            onMouseEnter={() => setHoveredCoin(coin.id)}
-            onMouseLeave={() => setHoveredCoin(null)}
-          >
-            {coin.image && (
-              <img 
-                src={coin.image} 
-                alt={coin.name} 
-                className="w-5 h-5 mr-2" 
-              />
-            )}
-            <div className="flex items-center">
-              <span className="font-medium mr-1.5">{coin.symbol}</span>
-              <span className="text-sm hidden md:inline mr-2 text-muted-foreground">{coin.name}</span>
-              <span className="font-medium">
-                ${coin.price?.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
-              </span>
-              <span className={`ml-1.5 flex items-center ${
-                (coin.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'
-              }`}>
-                {(coin.changePercent || 0) >= 0 ? (
-                  <ArrowTrendingUp size={14} className="mr-0.5" />
-                ) : (
-                  <ArrowTrendingDown size={14} className="mr-0.5" />
-                )}
-                {Math.abs(coin.changePercent || 0).toFixed(2)}%
-              </span>
+      <div 
+        className={cn(
+          "flex items-center whitespace-nowrap py-2 animate-scroll",
+          isPaused && "animation-play-state-paused"
+        )}
+        style={{
+          animationDuration: `${animationDuration}s`,
+          animationDirection: tickerDirection === 'right' ? 'reverse' : 'normal'
+        }}
+      >
+        {coins.map((coin, index) => (
+          <React.Fragment key={`${coin.id}-${index}`}>
+            <div className="flex items-center space-x-2 mx-4">
+              {coin.image && (
+                <div className="w-5 h-5 flex-shrink-0">
+                  <img src={coin.image} alt={coin.symbol} className="w-full h-full" />
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-1">
+                <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+                <span className="text-muted-foreground hidden md:inline-block max-w-32 truncate">{coin.name}</span>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <span className="font-medium">${coin.price.toLocaleString(undefined, { 
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2
+                })}</span>
+                <span className={`text-xs ${coin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {coin.changePercent >= 0 ? '▲' : '▼'} {Math.abs(coin.changePercent).toFixed(2)}%
+                </span>
+              </div>
             </div>
-          </div>
+            
+            <div className="h-4 border-r border-border mx-2" />
+          </React.Fragment>
         ))}
         
-        {/* Duplicate set for seamless looping */}
-        {coins.map((coin) => (
-          <div 
-            key={`ticker-2-${coin.id}`}
-            className="ticker-item"
-            onClick={() => handleCoinClick(coin.id)}
-            onMouseEnter={() => setHoveredCoin(coin.id)}
-            onMouseLeave={() => setHoveredCoin(null)}
-          >
-            {coin.image && (
-              <img 
-                src={coin.image} 
-                alt={coin.name}
-                className="w-5 h-5 mr-2"
-              />
-            )}
-            <div className="flex items-center">
-              <span className="font-medium mr-1.5">{coin.symbol}</span>
-              <span className="text-sm hidden md:inline mr-2 text-muted-foreground">{coin.name}</span>
-              <span className="font-medium">
-                ${coin.price?.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
-              </span>
-              <span className={`ml-1.5 flex items-center ${
-                (coin.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'
-              }`}>
-                {(coin.changePercent || 0) >= 0 ? (
-                  <ArrowTrendingUp size={14} className="mr-0.5" />
-                ) : (
-                  <ArrowTrendingDown size={14} className="mr-0.5" />
-                )}
-                {Math.abs(coin.changePercent || 0).toFixed(2)}%
-              </span>
+        {/* Duplicate items to create seamless loop */}
+        {coins.slice(0, 5).map((coin, index) => (
+          <React.Fragment key={`${coin.id}-dup-${index}`}>
+            <div className="flex items-center space-x-2 mx-4">
+              {coin.image && (
+                <div className="w-5 h-5 flex-shrink-0">
+                  <img src={coin.image} alt={coin.symbol} className="w-full h-full" />
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-1">
+                <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+                <span className="text-muted-foreground hidden md:inline-block max-w-32 truncate">{coin.name}</span>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <span className="font-medium">${coin.price.toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2
+                })}</span>
+                <span className={`text-xs ${coin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {coin.changePercent >= 0 ? '▲' : '▼'} {Math.abs(coin.changePercent).toFixed(2)}%
+                </span>
+              </div>
             </div>
-          </div>
+            
+            <div className="h-4 border-r border-border mx-2" />
+          </React.Fragment>
         ))}
       </div>
+      
+      {/* Add CSS for animation */}
+      <style jsx global>{`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-${coins.length * 200}px); }
+        }
+        
+        .animate-scroll {
+          animation: scroll linear infinite;
+        }
+        
+        .animation-play-state-paused {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 };

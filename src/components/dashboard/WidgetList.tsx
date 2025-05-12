@@ -13,10 +13,7 @@ const WidgetList: React.FC<WidgetListProps> = ({ widgets, onRemove }) => {
     <div className="space-y-4">
       {widgets.map((widget) => (
         <div key={widget.id}>
-          <WidgetComponent 
-            type={widget.type} 
-            title={widget.title} 
-          />
+          <WidgetComponent widget={widget} onRemove={onRemove} />
         </div>
       ))}
     </div>
