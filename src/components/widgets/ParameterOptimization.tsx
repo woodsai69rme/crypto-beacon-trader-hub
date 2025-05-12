@@ -1,276 +1,239 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Bot, TrendingUp, RefreshCw } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRightLeft, Brain, Minimize2, Maximize2 } from 'lucide-react';
 import { AITradingStrategy, OptimizationResult } from '@/types/trading';
-import { optimizeStrategy } from '@/services/strategyBuilderService';
 
 interface ParameterOptimizationProps {
-  strategy: AITradingStrategy | null;
-  onApplyOptimizedParameters?: (parameters: Record<string, any>) => void;
+  strategy?: AITradingStrategy;
+  onParameterChange?: (paramName: string, value: number) => void;
+  onOptimize?: (targetMetric: string) => Promise<OptimizationResult | null>;
 }
 
 const ParameterOptimization: React.FC<ParameterOptimizationProps> = ({
   strategy,
-  onApplyOptimizedParameters
+  onParameterChange,
+  onOptimize
 }) => {
-  const [optimizationTarget, setOptimizationTarget] = useState<'profit' | 'profitFactor' | 'sharpeRatio' | 'drawdown'>('profitFactor');
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState('profit');
   const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
-  const [selectedParameters, setSelectedParameters] = useState<string[]>([]);
-  
-  // Define parameter ranges
-  const getParameterRanges = () => {
-    if (!strategy) return [];
-    
-    const ranges = [];
-    
-    // Add parameters based on strategy type and what's available in the strategy
-    if (strategy.parameters.period) {
-      ranges.push({
-        id: 'period',
-        name: 'Period Length',
-        min: Math.max(5, strategy.parameters.period - 10),
-        max: strategy.parameters.period + 10,
-        step: 1
-      });
-    }
-    
-    if (strategy.parameters.threshold) {
-      ranges.push({
-        id: 'threshold',
-        name: 'Signal Threshold',
-        min: Math.max(50, strategy.parameters.threshold - 15),
-        max: Math.min(95, strategy.parameters.threshold + 15),
-        step: 5
-      });
-    }
-    
-    if (strategy.parameters.stopLoss) {
-      ranges.push({
-        id: 'stopLoss',
-        name: 'Stop Loss %',
-        min: Math.max(1, strategy.parameters.stopLoss - 2),
-        max: strategy.parameters.stopLoss + 3,
-        step: 0.5
-      });
-    }
-    
-    if (strategy.parameters.takeProfit) {
-      ranges.push({
-        id: 'takeProfit',
-        name: 'Take Profit %',
-        min: Math.max(2, strategy.parameters.takeProfit - 5),
-        max: strategy.parameters.takeProfit + 10,
-        step: 1
-      });
-    }
-    
-    if (strategy.parameters.upperBand) {
-      ranges.push({
-        id: 'upperBand',
-        name: 'Upper Band',
-        min: Math.max(1, strategy.parameters.upperBand - 1),
-        max: strategy.parameters.upperBand + 1.5,
-        step: 0.1
-      });
-    }
-    
-    if (strategy.parameters.lowerBand) {
-      ranges.push({
-        id: 'lowerBand',
-        name: 'Lower Band',
-        min: Math.max(1, strategy.parameters.lowerBand - 1),
-        max: strategy.parameters.lowerBand + 1.5,
-        step: 0.1
-      });
-    }
-    
-    return ranges;
-  };
-  
-  const parameterRanges = getParameterRanges();
-  
-  const toggleParameterSelection = (paramId: string) => {
-    setSelectedParameters(prev => 
-      prev.includes(paramId) ? 
-        prev.filter(id => id !== paramId) : 
-        [...prev, paramId]
-    );
-  };
-  
+
   const handleOptimize = async () => {
-    if (!strategy) return;
+    if (!onOptimize) return;
     
     setIsOptimizing(true);
-    setOptimizationResult(null);
-    
     try {
-      // Filter parameters based on selection
-      const rangesToOptimize = parameterRanges
-        .filter(param => selectedParameters.includes(param.id));
-      
-      if (rangesToOptimize.length === 0) {
-        // If none selected, optimize all parameters
-        rangesToOptimize.push(...parameterRanges);
-      }
-      
-      const result = await optimizeStrategy(
-        strategy,
-        rangesToOptimize,
-        optimizationTarget
-      );
-      
+      const result = await onOptimize(selectedMetric);
       setOptimizationResult(result);
     } catch (error) {
-      console.error('Optimization error:', error);
+      console.error("Optimization error:", error);
     } finally {
       setIsOptimizing(false);
     }
   };
-  
-  const handleApplyParameters = () => {
-    if (optimizationResult && onApplyOptimizedParameters) {
-      onApplyOptimizedParameters(optimizationResult.parameterValues);
+
+  if (!strategy) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-center text-muted-foreground">
+          No strategy selected
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getParameterConfig = (paramName: string) => {
+    switch (paramName) {
+      case 'period':
+        return {
+          min: 5,
+          max: 200,
+          step: 1,
+          label: 'Period'
+        };
+      case 'threshold':
+        return {
+          min: 0.1,
+          max: 5,
+          step: 0.1,
+          label: 'Threshold'
+        };
+      case 'stopLoss':
+        return {
+          min: 0.5,
+          max: 10,
+          step: 0.5,
+          label: 'Stop Loss %'
+        };
+      case 'takeProfit':
+        return {
+          min: 0.5,
+          max: 20,
+          step: 0.5,
+          label: 'Take Profit %'
+        };
+      case 'upperBand':
+        return {
+          min: 1,
+          max: 3,
+          step: 0.1,
+          label: 'Upper Band'
+        };
+      case 'lowerBand':
+        return {
+          min: 1,
+          max: 3,
+          step: 0.1,
+          label: 'Lower Band'
+        };
+      case 'fastPeriod':
+        return {
+          min: 5,
+          max: 50,
+          step: 1,
+          label: 'Fast Period'
+        };
+      case 'slowPeriod':
+        return {
+          min: 10,
+          max: 200,
+          step: 5,
+          label: 'Slow Period'
+        };
+      case 'signalPeriod':
+        return {
+          min: 5,
+          max: 50,
+          step: 1,
+          label: 'Signal Period'
+        };
+      case 'riskFactor':
+        return {
+          min: 0.1,
+          max: 2,
+          step: 0.1,
+          label: 'Risk Factor'
+        };
+      default:
+        return {
+          min: 0,
+          max: 100,
+          step: 1,
+          label: paramName
+        };
     }
   };
-  
+
+  const renderOptimizationResults = () => {
+    if (!optimizationResult) return null;
+    
+    return (
+      <div className="mt-4 border rounded-md p-3 bg-muted/30">
+        <h4 className="font-medium mb-2">Optimization Results</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <div className="text-muted-foreground">Improvement</div>
+            <div className="font-medium">+{optimizationResult.improvement.toFixed(2)}%</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Win Rate</div>
+            <div className="font-medium">{optimizationResult.performance.winRate.toFixed(2)}%</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Profit</div>
+            <div className="font-medium">{optimizationResult.performance.profit.toFixed(2)}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Sharpe Ratio</div>
+            <div className="font-medium">{optimizationResult.performance.sharpeRatio.toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
-          Parameter Optimization
-        </CardTitle>
-        <CardDescription>
-          Optimize strategy parameters to improve performance
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {!strategy ? (
-          <div className="text-center py-6 text-muted-foreground">
-            <p>Select or create a strategy to optimize</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-base">Parameter Optimization</CardTitle>
+            <CardDescription>Optimize strategy parameters for better performance</CardDescription>
           </div>
-        ) : (
-          <>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium mb-2">Optimization Target</h3>
-                <Select
-                  value={optimizationTarget}
-                  onValueChange={(value: 'profit' | 'profitFactor' | 'sharpeRatio' | 'drawdown') => setOptimizationTarget(value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target metric" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="profit">Maximum Profit</SelectItem>
-                    <SelectItem value="profitFactor">Profit Factor</SelectItem>
-                    <SelectItem value="sharpeRatio">Sharpe Ratio</SelectItem>
-                    <SelectItem value="drawdown">Minimum Drawdown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-2">Select Parameters to Optimize</h3>
-                <div className="space-y-2">
-                  {parameterRanges.map((param) => (
-                    <div key={param.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`param-${param.id}`}
-                        className="mr-2"
-                        checked={selectedParameters.includes(param.id)}
-                        onChange={() => toggleParameterSelection(param.id)}
-                      />
-                      <label htmlFor={`param-${param.id}`} className="text-sm flex-1">
-                        {param.name}
-                      </label>
-                      <span className="text-xs text-muted-foreground">
-                        {param.min} - {param.max}
-                      </span>
-                    </div>
-                  ))}
-                  
-                  {parameterRanges.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      No parameters available to optimize
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              <Button 
-                className="w-full" 
-                onClick={handleOptimize} 
-                disabled={isOptimizing || parameterRanges.length === 0}
-              >
-                {isOptimizing ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Optimizing...
-                  </>
-                ) : (
-                  <>
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    Start Optimization
-                  </>
-                )}
-              </Button>
-            </div>
+          {strategy && (
+            <Badge variant="outline" className="ml-2">
+              {strategy.type}
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="mb-1 block">Optimize For</Label>
+            <Select
+              value={selectedMetric}
+              onValueChange={setSelectedMetric}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select metric" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="profit">Profit</SelectItem>
+                <SelectItem value="profitFactor">Profit Factor</SelectItem>
+                <SelectItem value="sharpeRatio">Sharpe Ratio</SelectItem>
+                <SelectItem value="drawdown">Min Drawdown</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-end">
+            <Button onClick={handleOptimize} disabled={isOptimizing} className="w-full">
+              {isOptimizing ? "Optimizing..." : "Optimize"}
+              <Brain className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-6 pt-2">
+          {Object.entries(strategy.parameters).map(([paramName, value]) => {
+            if (typeof value !== 'number' || paramName === 'id') return null;
             
-            {optimizationResult && (
-              <div className="border rounded-md p-3 mt-4">
-                <h3 className="text-sm font-medium mb-2">Optimization Results</h3>
-                <p className="text-sm mb-3">
-                  <span className="text-green-500 font-medium">+{optimizationResult.improvement}%</span> improvement in {optimizationTarget === 'drawdown' ? 'drawdown reduction' : 'performance'}
-                </p>
-                
-                <div className="space-y-2 mb-3">
-                  {Object.entries(optimizationResult.parameterValues).map(([key, value]) => (
-                    <div key={key} className="grid grid-cols-2 text-sm">
-                      <span className="text-muted-foreground">{key}:</span>
-                      <span className="font-mono">{typeof value === 'number' ? value.toFixed(2) : value}</span>
-                    </div>
-                  ))}
+            const config = getParameterConfig(paramName);
+            
+            return (
+              <div key={paramName}>
+                <div className="flex justify-between mb-1">
+                  <Label>{config.label}</Label>
+                  <span className="text-sm font-mono">{value}</span>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <div className="text-xs">
-                    <div className="text-muted-foreground">Profit</div>
-                    <div className="font-medium">+{optimizationResult.performance.profit.toFixed(2)}%</div>
-                  </div>
-                  <div className="text-xs">
-                    <div className="text-muted-foreground">Win Rate</div>
-                    <div className="font-medium">{optimizationResult.performance.winRate.toFixed(1)}%</div>
-                  </div>
-                  <div className="text-xs">
-                    <div className="text-muted-foreground">Sharpe Ratio</div>
-                    <div className="font-medium">{optimizationResult.performance.sharpeRatio.toFixed(2)}</div>
-                  </div>
-                  <div className="text-xs">
-                    <div className="text-muted-foreground">Max Drawdown</div>
-                    <div className="font-medium">-{optimizationResult.performance.maxDrawdown.toFixed(2)}%</div>
-                  </div>
+                <div className="flex gap-2 items-center">
+                  <Minimize2 className="h-4 w-4 text-muted-foreground" />
+                  <Slider
+                    value={[value]}
+                    min={config.min}
+                    max={config.max}
+                    step={config.step}
+                    onValueChange={(newValue) => {
+                      if (onParameterChange) {
+                        onParameterChange(paramName, newValue[0]);
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Maximize2 className="h-4 w-4 text-muted-foreground" />
                 </div>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3" 
-                  onClick={handleApplyParameters}
-                >
-                  Apply Optimized Parameters
-                </Button>
               </div>
-            )}
-          </>
-        )}
+            );
+          })}
+        </div>
+        
+        {renderOptimizationResults()}
       </CardContent>
     </Card>
   );

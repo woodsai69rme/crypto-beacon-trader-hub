@@ -1,70 +1,78 @@
 
-import React, { createContext, useState, useContext } from 'react';
-import { SidebarSettings } from '@/types/ui';
-
-interface ThemeSettings {
-  mode: 'dark' | 'light';
-  accent: 'blue' | 'green' | 'purple' | 'amber' | 'rose';
-}
+import React, { createContext, useContext, useState } from 'react';
+import { SidebarSettings } from '@/types/trading';
 
 interface UIContextType {
-  sidebarSettings: SidebarSettings;
-  updateSidebarSettings: (settings: Partial<SidebarSettings>) => void;
-  themeSettings: ThemeSettings;
-  updateThemeSettings: (settings: Partial<ThemeSettings>) => void;
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
+  setSidebarOpen: (isOpen: boolean) => void;
+  activeTab: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  setDarkMode: (isDark: boolean) => void;
+  isDarkMode: boolean;
+  sidebarSettings: SidebarSettings;
+  updateSidebarSettings: (settings: Partial<SidebarSettings>) => void;
 }
 
-const UIContext = createContext<UIContextType | undefined>(undefined);
+const defaultSidebarSettings: SidebarSettings = {
+  defaultCollapsed: false,
+  showLabels: true,
+  position: 'left',
+  width: 240,
+};
+
+const UIContext = createContext<UIContextType>({
+  isSidebarOpen: true,
+  toggleSidebar: () => {},
+  setSidebarOpen: () => {},
+  activeTab: 'dashboard',
+  setActiveTab: () => {},
+  setDarkMode: () => {},
+  isDarkMode: false,
+  sidebarSettings: defaultSidebarSettings,
+  updateSidebarSettings: () => {},
+});
 
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>({
-    defaultCollapsed: false,
-    showLabels: true,
-    position: 'left',
-    width: 240
-  });
-  
-  const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
-    mode: 'dark',
-    accent: 'blue'
-  });
-  
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>(defaultSidebarSettings);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const setSidebarOpen = (isOpen: boolean) => {
+    setIsSidebarOpen(isOpen);
+  };
+
+  const setDarkMode = (isDark: boolean) => {
+    setIsDarkMode(isDark);
+    document.documentElement.classList.toggle('dark', isDark);
+  };
+
   const updateSidebarSettings = (settings: Partial<SidebarSettings>) => {
     setSidebarSettings(prev => ({ ...prev, ...settings }));
   };
-  
-  const updateThemeSettings = (settings: Partial<ThemeSettings>) => {
-    setThemeSettings(prev => ({ ...prev, ...settings }));
-  };
-  
-  const toggleSidebar = () => {
-    setIsSidebarOpen(prev => !prev);
-  };
-  
+
   return (
-    <UIContext.Provider value={{
-      sidebarSettings,
-      updateSidebarSettings,
-      themeSettings,
-      updateThemeSettings,
-      isSidebarOpen,
-      toggleSidebar
-    }}>
+    <UIContext.Provider
+      value={{
+        isSidebarOpen,
+        toggleSidebar,
+        setSidebarOpen,
+        activeTab,
+        setActiveTab,
+        isDarkMode,
+        setDarkMode,
+        sidebarSettings,
+        updateSidebarSettings,
+      }}
+    >
       {children}
     </UIContext.Provider>
   );
 };
 
-export const useUI = (): UIContextType => {
-  const context = useContext(UIContext);
-  if (context === undefined) {
-    throw new Error('useUI must be used within a UIProvider');
-  }
-  return context;
-};
-
-export default UIContext;
+export const useUI = () => useContext(UIContext);

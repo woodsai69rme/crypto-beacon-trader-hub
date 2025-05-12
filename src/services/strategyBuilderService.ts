@@ -1,281 +1,200 @@
-import { AITradingStrategy, OptimizationResult, BacktestResult } from '@/types/trading';
 
-// Add the runBacktest function that was missing
-export const runBacktest = async (
-  strategy: AITradingStrategy,
-  startDate: string,
-  endDate: string,
-  initialCapital: number,
-  asset: string
-): Promise<BacktestResult> => {
-  // Simulate backtesting process time
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Generate simulated backtest results
-  const winRate = 50 + Math.random() * 30; // 50-80% win rate
-  const trades = Math.round(20 + Math.random() * 80); // 20-100 trades
-  const winningTrades = Math.round(trades * winRate / 100);
-  const losingTrades = trades - winningTrades;
-  
-  const profitPercentage = Math.round(10 + Math.random() * 40); // 10-50% profit
-  const profit = initialCapital * (profitPercentage / 100);
-  const finalBalance = initialCapital + profit;
-  const maxDrawdown = Math.round(5 + Math.random() * 15); // 5-20% drawdown
-  
-  const averageProfit = profit / winningTrades;
-  const averageLoss = (profit * 0.3) / losingTrades; // Simulate some losses
-  const profitFactor = (winningTrades * averageProfit) / (losingTrades * averageLoss);
-  const sharpeRatio = 1 + Math.random(); // 1-2 Sharpe ratio
-  
-  // Generate mock trade history
-  const trades_history = Array.from({ length: Math.min(trades, 20) }).map((_, i) => {
-    const isWin = Math.random() < (winRate / 100);
-    const tradeProfit = isWin ? 
-      (Math.random() * averageProfit * 1.5) : 
-      -(Math.random() * averageLoss * 1.5);
-    
-    const tradeDate = new Date(
-      new Date(startDate).getTime() + 
-      (i / Math.min(trades, 20)) * (new Date(endDate).getTime() - new Date(startDate).getTime())
-    );
-    
-    return {
-      id: `trade-${i + 1}`,
-      timestamp: tradeDate.toISOString(),
-      date: tradeDate.toLocaleDateString(),
-      type: isWin ? 'buy' : 'sell',
-      price: 30000 + (Math.random() * 10000 - 5000),
-      amount: (initialCapital * 0.1) / (30000 + (Math.random() * 10000 - 5000)),
-      total: initialCapital * 0.1,
-      profit: tradeProfit,
-      profitPercentage: (tradeProfit / (initialCapital * 0.1)) * 100
-    };
-  });
-  
-  return {
-    startDate,
-    endDate,
-    initialBalance: initialCapital,
-    finalBalance,
-    profit,
-    profitPercentage,
-    maxDrawdown,
-    winRate,
-    trades: trades_history,
-    sharpeRatio,
-    profitFactor,
-    averageProfit,
-    averageLoss,
-    initialCapital,
-    finalCapital: finalBalance,
-    totalReturn: profitPercentage,
-    totalTrades: trades,
-    winningTrades,
-    losingTrades,
-    sortinoRatio: sharpeRatio * 1.1 // Simulated Sortino ratio
-  };
-};
+import { AITradingStrategy, BacktestResult } from '@/types/trading';
 
-// Mock parameter optimization function
-export const optimizeStrategy = async (
-  strategy: AITradingStrategy,
-  parameterRanges: Array<{
-    id: string;
-    min: number;
-    max: number;
-    step: number;
-  }>,
-  target: 'profit' | 'profitFactor' | 'sharpeRatio' | 'drawdown' = 'profitFactor'
-): Promise<OptimizationResult> => {
-  // Simulate optimization processing time
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Generate optimized parameters based on input ranges
-  const parameterValues: Record<string, any> = {};
-  
-  // For each parameter, generate an "optimized" value
-  parameterRanges.forEach(param => {
-    // Generate a value between min and max that seems "better" than the original
-    const range = param.max - param.min;
-    const steps = Math.round(range / param.step);
-    
-    // Simulate optimization by choosing a value that's ~10-20% "better"
-    const originalValue = strategy.parameters[param.id] || 0;
-    
-    let optimizedValue: number;
-    
-    switch (target) {
-      case 'profit':
-        // For profit optimization, increase periods slightly
-        optimizedValue = originalValue * (1 + Math.random() * 0.2);
-        break;
-      case 'drawdown':
-        // For drawdown optimization, decrease risk parameters
-        optimizedValue = originalValue * (1 - Math.random() * 0.15);
-        break;
-      case 'sharpeRatio':
-        // For Sharpe optimization, find a balance
-        optimizedValue = originalValue + (Math.random() < 0.5 ? 1 : -1) * param.step * Math.floor(Math.random() * 5);
-        break;
-      default:
-        // For profit factor, increase thresholds
-        optimizedValue = originalValue + param.step * Math.floor(Math.random() * steps / 3);
-    }
-    
-    // Ensure the value stays within the allowed range
-    optimizedValue = Math.min(Math.max(optimizedValue, param.min), param.max);
-    
-    parameterValues[param.id] = optimizedValue;
-  });
-  
-  // Create performance metrics that improve upon the original
-  const originalPerformance = strategy.performance || {
-    winRate: 60,
-    returnRate: 20,
-    sharpeRatio: 1.5,
-    maxDrawdown: 15
-  };
-  
-  const improvement = Math.round(Math.random() * 10 + 5); // 5-15% improvement
-  
-  return {
-    strategyId: strategy.id,
-    parameterValues,
-    performance: {
-      profit: originalPerformance.returnRate ? originalPerformance.returnRate * (1 + improvement / 100) : 25,
-      profitPercentage: improvement,
-      maxDrawdown: originalPerformance.maxDrawdown ? originalPerformance.maxDrawdown * (1 - improvement / 200) : 12,
-      winRate: originalPerformance.winRate ? Math.min(originalPerformance.winRate * (1 + improvement / 200), 95) : 65,
-      sharpeRatio: originalPerformance.sharpeRatio ? originalPerformance.sharpeRatio * (1 + improvement / 100) : 1.8,
-      profitFactor: 1.8 * (1 + improvement / 100),
-      totalReturn: originalPerformance.returnRate ? originalPerformance.returnRate * (1 + improvement / 100) : 25
-    },
-    improvement
-  };
-};
-
-// Generate default strategy parameters based on the strategy type
-export const getDefaultParameters = (type: string): Record<string, any> => {
-  switch (type) {
-    case 'trend-following':
-      return {
-        period: 14,
-        threshold: 70,
-        stopLoss: 5,
-        takeProfit: 15,
-        useVolume: true
-      };
-    case 'mean-reversion':
-      return {
-        period: 20,
-        upperBand: 2,
-        lowerBand: 2,
-        stopLoss: 3,
-        takeProfit: 6,
-        useVolume: false
-      };
-    case 'breakout':
-      return {
-        period: 20,
-        volatilityThreshold: 2.5,
-        confirmationCandles: 2,
-        stopLoss: 5,
-        takeProfit: 15
-      };
-    case 'sentiment':
-      return {
-        lookback: 24,
-        sentimentThreshold: 0.65,
-        sourcesWeight: {
-          twitter: 0.5,
-          reddit: 0.3,
-          news: 0.2
-        },
-        stopLoss: 5,
-        takeProfit: 12
-      };
-    default:
-      return {
-        period: 14,
-        threshold: 50,
-        stopLoss: 5,
-        takeProfit: 10,
-        useVolume: true
-      };
+// Default strategy parameters for different strategy types
+export const DEFAULT_STRATEGY_PARAMETERS = {
+  trend: {
+    period: 14,
+    threshold: 1.5,
+    stopLoss: 2.0,
+    takeProfit: 5.0,
+    useVolume: true
+  },
+  meanReversion: {
+    period: 20,
+    upperBand: 2.0,
+    lowerBand: 2.0,
+    stopLoss: 2.5,
+    takeProfit: 4.0,
+    useVolume: true
+  },
+  breakout: {
+    period: 20,
+    threshold: 2.0,
+    confirmationCandles: 2,
+    stopLoss: 3.0,
+    takeProfit: 6.0
+  },
+  sentiment: {
+    period: 24,
+    threshold: 0.6,
+    source: 'combined',
+    useVolume: true,
+    stopLoss: 3.0,
+    takeProfit: 5.0
   }
 };
 
-// Create a new custom strategy
+// Function to create a new custom strategy
 export const createCustomStrategy = (
   name: string,
-  description: string,
   type: string,
-  timeframe: string,
-  assets: string[],
-  parameters?: Record<string, any>
+  description: string,
+  parameters: Record<string, any>,
+  assets: string[] = ['BTC', 'ETH']
 ): AITradingStrategy => {
-  const defaultParams = getDefaultParameters(type);
-  
   return {
-    id: `custom-${Date.now()}`,
+    id: `strategy-${Date.now()}`,
     name,
-    description,
     type,
-    timeframe,
-    riskLevel: calculateRiskLevel(type, parameters || defaultParams),
-    parameters: parameters || defaultParams,
+    description,
+    timeframe: '1h',
+    parameters,
     assets,
     performance: {
       winRate: 0,
-      returnRate: 0,
       sharpeRatio: 0,
-      maxDrawdown: 0
+      returns: 0,
+      profitFactor: 0,
+      drawdown: 0,
+      trades: 0
     },
     status: 'backtest'
   };
 };
 
-// Calculate risk level based on strategy type and parameters
-const calculateRiskLevel = (type: string, params: Record<string, any>): 'low' | 'medium' | 'high' => {
-  if (type === 'breakout' || params.stopLoss > 8) {
-    return 'high';
-  }
+// Mock function to simulate running a backtest
+export const runBacktest = async (
+  strategy: AITradingStrategy,
+  startDate: string,
+  endDate: string
+): Promise<BacktestResult> => {
+  // In a real application, this would make API calls or run simulations
+  // For now, we'll return mock data with some randomization
   
-  if (type === 'mean-reversion' || params.stopLoss < 3) {
-    return 'low';
-  }
+  // Simulate processing time
+  await new Promise((resolve) => setTimeout(resolve, 1500));
   
-  return 'medium';
+  const initialBalance = 10000;
+  const profit = Math.random() * 2000 - 500; // Random profit between -500 and 1500
+  const winRate = 40 + Math.random() * 30; // Win rate between 40% and 70%
+  const trades = 50 + Math.floor(Math.random() * 50); // Between 50 and 100 trades
+  const winningTrades = Math.floor(trades * (winRate / 100));
+  const losingTrades = trades - winningTrades;
+  const maxDrawdown = 5 + Math.random() * 15; // Between 5% and 20%
+  const sharpeRatio = 0.5 + Math.random() * 2; // Between 0.5 and 2.5
+  const profitFactor = 0.8 + Math.random() * 2; // Between 0.8 and 2.8
+  
+  const finalBalance = initialBalance + profit;
+  const profitPercentage = (profit / initialBalance) * 100;
+  
+  // Generate mock trade history
+  const tradeHistory = Array.from({ length: trades }, (_, index) => {
+    const isWinning = index < winningTrades;
+    const type = Math.random() > 0.5 ? 'buy' : 'sell';
+    const price = 1000 + Math.random() * 1000;
+    const amount = 0.1 + Math.random() * 0.9;
+    const total = price * amount;
+    const profitValue = isWinning 
+      ? Math.random() * 200 
+      : -Math.random() * 100;
+    const profitPercentage = (profitValue / total) * 100;
+    
+    const date = new Date(
+      new Date(startDate).getTime() + 
+      (index / trades) * (new Date(endDate).getTime() - new Date(startDate).getTime())
+    );
+    
+    return {
+      id: `trade-${Date.now()}-${index}`,
+      timestamp: date.toISOString(),
+      date: date.toLocaleDateString(),
+      type,
+      price,
+      amount,
+      total,
+      profit: profitValue,
+      profitPercentage
+    };
+  });
+  
+  // Sort trades by timestamp
+  tradeHistory.sort((a, b) => 
+    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+  
+  return {
+    startDate,
+    endDate,
+    initialBalance,
+    finalBalance,
+    profit,
+    profitPercentage,
+    maxDrawdown,
+    winRate,
+    trades: tradeHistory,
+    sharpeRatio,
+    profitFactor,
+    averageProfit: profit / trades,
+    averageLoss: -profit / (2 * losingTrades),
+    initialCapital: initialBalance,
+    finalCapital: finalBalance,
+    totalReturn: profitPercentage,
+    totalTrades: trades,
+    winningTrades,
+    losingTrades,
+    sortinoRatio: sharpeRatio * 0.8 // Approximation
+  };
 };
 
-// Default strategy parameters for new strategies
-export const DEFAULT_STRATEGY_PARAMETERS = {
-  trend: {
-    period: 14,
-    threshold: 70,
-    stopLoss: 5,
-    takeProfit: 15,
-    useVolume: true
-  },
-  meanReversion: {
-    period: 20,
-    upperBand: 2,
-    lowerBand: 2,
-    stopLoss: 3,
-    takeProfit: 6,
-    useVolume: false
-  },
-  breakout: {
-    period: 20,
-    volatilityThreshold: 2.5,
-    confirmationCandles: 2,
-    stopLoss: 5,
-    takeProfit: 15
-  },
-  sentiment: {
-    lookback: 24,
-    sentimentThreshold: 0.65,
-    stopLoss: 5,
-    takeProfit: 12
-  }
+// Mock API for strategy optimization
+export const optimizeStrategy = async (
+  strategy: AITradingStrategy,
+  targetMetric: string = 'profit'
+): Promise<{
+  parameters: Record<string, any>;
+  performance: Record<string, number>;
+  improvement: number;
+}> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Generate slightly improved parameters
+  const optimizedParameters = { ...strategy.parameters };
+  
+  // Modify a few parameters slightly
+  Object.keys(optimizedParameters).forEach(param => {
+    if (typeof optimizedParameters[param] === 'number') {
+      // Adjust numeric parameters by up to ±20%
+      const adjustment = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+      optimizedParameters[param] = +(optimizedParameters[param] * adjustment).toFixed(2);
+    }
+  });
+  
+  // Generate improvement metrics
+  const improvement = 5 + Math.random() * 20; // 5% to 25% improvement
+  
+  let winRate = strategy.performance?.winRate || 50;
+  let sharpeRatio = strategy.performance?.sharpeRatio || 1.0;
+  let maxDrawdown = strategy.performance?.drawdown || 15;
+  let profitFactor = strategy.performance?.profitFactor || 1.2;
+  
+  winRate = Math.min(95, winRate * (1 + Math.random() * 0.2));
+  sharpeRatio = sharpeRatio * (1 + Math.random() * 0.3);
+  maxDrawdown = maxDrawdown * (0.7 + Math.random() * 0.2);
+  profitFactor = profitFactor * (1 + Math.random() * 0.3);
+  
+  return {
+    parameters: optimizedParameters,
+    performance: {
+      profit: 1500 + Math.random() * 1000,
+      profitPercentage: 15 + Math.random() * 10,
+      winRate,
+      sharpeRatio,
+      maxDrawdown,
+      profitFactor,
+      totalReturn: 15 + Math.random() * 10,
+    },
+    improvement
+  };
 };

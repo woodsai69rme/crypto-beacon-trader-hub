@@ -1,11 +1,44 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const NotificationSettings: React.FC = () => {
+export interface NotificationSettingsProps {
+  form?: any;
+}
+
+export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => {
+  const [emailSettings, setEmailSettings] = useState({
+    tradeAlerts: true,
+    priceAlerts: true,
+    news: false,
+    weeklySummary: true
+  });
+
+  const [pushSettings, setPushSettings] = useState({
+    tradeAlerts: true,
+    priceAlerts: true,
+    news: false
+  });
+
+  const [frequency, setFrequency] = useState("immediate");
+
+  const handleEmailSettingChange = (setting: keyof typeof emailSettings) => {
+    setEmailSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
+  };
+
+  const handlePushSettingChange = (setting: keyof typeof pushSettings) => {
+    setPushSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -14,22 +47,38 @@ const NotificationSettings: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="email-trade-alerts">Trade Alerts</Label>
-            <Switch id="email-trade-alerts" defaultChecked />
+            <Switch 
+              id="email-trade-alerts" 
+              checked={emailSettings.tradeAlerts}
+              onCheckedChange={() => handleEmailSettingChange("tradeAlerts")}
+            />
           </div>
           
           <div className="flex items-center justify-between">
             <Label htmlFor="email-price-alerts">Price Alerts</Label>
-            <Switch id="email-price-alerts" defaultChecked />
+            <Switch 
+              id="email-price-alerts" 
+              checked={emailSettings.priceAlerts}
+              onCheckedChange={() => handleEmailSettingChange("priceAlerts")}
+            />
           </div>
           
           <div className="flex items-center justify-between">
             <Label htmlFor="email-news">News Updates</Label>
-            <Switch id="email-news" defaultChecked={false} />
+            <Switch 
+              id="email-news" 
+              checked={emailSettings.news}
+              onCheckedChange={() => handleEmailSettingChange("news")}
+            />
           </div>
           
           <div className="flex items-center justify-between">
             <Label htmlFor="email-weekly-summary">Weekly Summary</Label>
-            <Switch id="email-weekly-summary" defaultChecked />
+            <Switch 
+              id="email-weekly-summary" 
+              checked={emailSettings.weeklySummary}
+              onCheckedChange={() => handleEmailSettingChange("weeklySummary")}
+            />
           </div>
         </div>
       </div>
@@ -40,17 +89,29 @@ const NotificationSettings: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="push-trade-alerts">Trade Alerts</Label>
-            <Switch id="push-trade-alerts" defaultChecked />
+            <Switch 
+              id="push-trade-alerts" 
+              checked={pushSettings.tradeAlerts}
+              onCheckedChange={() => handlePushSettingChange("tradeAlerts")}
+            />
           </div>
           
           <div className="flex items-center justify-between">
             <Label htmlFor="push-price-alerts">Price Alerts</Label>
-            <Switch id="push-price-alerts" defaultChecked />
+            <Switch 
+              id="push-price-alerts" 
+              checked={pushSettings.priceAlerts}
+              onCheckedChange={() => handlePushSettingChange("priceAlerts")}
+            />
           </div>
           
           <div className="flex items-center justify-between">
             <Label htmlFor="push-news">News Updates</Label>
-            <Switch id="push-news" defaultChecked={false} />
+            <Switch 
+              id="push-news" 
+              checked={pushSettings.news}
+              onCheckedChange={() => handlePushSettingChange("news")}
+            />
           </div>
         </div>
       </div>
@@ -60,7 +121,10 @@ const NotificationSettings: React.FC = () => {
         
         <div className="grid gap-2">
           <Label htmlFor="notification-frequency">Alert Frequency</Label>
-          <Select defaultValue="immediate">
+          <Select
+            value={frequency}
+            onValueChange={setFrequency}
+          >
             <SelectTrigger id="notification-frequency">
               <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
