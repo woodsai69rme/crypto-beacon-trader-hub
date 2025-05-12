@@ -1,142 +1,82 @@
 
-import React, { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Bell } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { UseFormReturn } from "react-hook-form";
+import { SettingsFormValues } from "@/types/trading";
 
-export interface NotificationSettingsProps {
-  form?: any;
+interface NotificationSettingsProps {
+  form: UseFormReturn<SettingsFormValues>;
 }
 
-export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => {
-  const [emailSettings, setEmailSettings] = useState({
-    tradeAlerts: true,
-    priceAlerts: true,
-    news: false,
-    weeklySummary: true
-  });
+const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => {
+  const { register, setValue, watch } = form;
 
-  const [pushSettings, setPushSettings] = useState({
-    tradeAlerts: true,
-    priceAlerts: true,
-    news: false
-  });
-
-  const [frequency, setFrequency] = useState("immediate");
-
-  const handleEmailSettingChange = (setting: keyof typeof emailSettings) => {
-    setEmailSettings(prev => ({
-      ...prev,
-      [setting]: !prev[setting]
-    }));
+  const handleSwitchChange = (field: string, checked: boolean) => {
+    setValue(field as any, checked, { shouldDirty: true });
   };
-
-  const handlePushSettingChange = (setting: keyof typeof pushSettings) => {
-    setPushSettings(prev => ({
-      ...prev,
-      [setting]: !prev[setting]
-    }));
-  };
+  
+  const watchNotifications = watch('notifications');
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Email Notifications</h3>
-        
-        <div className="space-y-2">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bell className="h-5 w-5" />
+          Notification Settings
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label htmlFor="email-trade-alerts">Trade Alerts</Label>
+            <Label htmlFor="notifications-email">Email Notifications</Label>
             <Switch 
-              id="email-trade-alerts" 
-              checked={emailSettings.tradeAlerts}
-              onCheckedChange={() => handleEmailSettingChange("tradeAlerts")}
+              id="notifications-email" 
+              checked={watchNotifications.email}
+              onCheckedChange={(checked) => handleSwitchChange('notifications.email', checked)}
             />
           </div>
           
           <div className="flex items-center justify-between">
-            <Label htmlFor="email-price-alerts">Price Alerts</Label>
+            <Label htmlFor="notifications-push">Push Notifications</Label>
             <Switch 
-              id="email-price-alerts" 
-              checked={emailSettings.priceAlerts}
-              onCheckedChange={() => handleEmailSettingChange("priceAlerts")}
+              id="notifications-push" 
+              checked={watchNotifications.push}
+              onCheckedChange={(checked) => handleSwitchChange('notifications.push', checked)}
             />
           </div>
           
           <div className="flex items-center justify-between">
-            <Label htmlFor="email-news">News Updates</Label>
+            <Label htmlFor="notifications-trades">Trade Alerts</Label>
             <Switch 
-              id="email-news" 
-              checked={emailSettings.news}
-              onCheckedChange={() => handleEmailSettingChange("news")}
+              id="notifications-trades" 
+              checked={watchNotifications.trades}
+              onCheckedChange={(checked) => handleSwitchChange('notifications.trades', checked)}
             />
           </div>
           
           <div className="flex items-center justify-between">
-            <Label htmlFor="email-weekly-summary">Weekly Summary</Label>
+            <Label htmlFor="notifications-pricing">Price Alerts</Label>
             <Switch 
-              id="email-weekly-summary" 
-              checked={emailSettings.weeklySummary}
-              onCheckedChange={() => handleEmailSettingChange("weeklySummary")}
+              id="notifications-pricing" 
+              checked={watchNotifications.pricing}
+              onCheckedChange={(checked) => handleSwitchChange('notifications.pricing', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="notifications-news">Market News</Label>
+            <Switch 
+              id="notifications-news" 
+              checked={watchNotifications.news}
+              onCheckedChange={(checked) => handleSwitchChange('notifications.news', checked)}
             />
           </div>
         </div>
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Push Notifications</h3>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="push-trade-alerts">Trade Alerts</Label>
-            <Switch 
-              id="push-trade-alerts" 
-              checked={pushSettings.tradeAlerts}
-              onCheckedChange={() => handlePushSettingChange("tradeAlerts")}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="push-price-alerts">Price Alerts</Label>
-            <Switch 
-              id="push-price-alerts" 
-              checked={pushSettings.priceAlerts}
-              onCheckedChange={() => handlePushSettingChange("priceAlerts")}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="push-news">News Updates</Label>
-            <Switch 
-              id="push-news" 
-              checked={pushSettings.news}
-              onCheckedChange={() => handlePushSettingChange("news")}
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Notification Frequency</h3>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="notification-frequency">Alert Frequency</Label>
-          <Select
-            value={frequency}
-            onValueChange={setFrequency}
-          >
-            <SelectTrigger id="notification-frequency">
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="immediate">Immediate</SelectItem>
-              <SelectItem value="hourly">Hourly Digest</SelectItem>
-              <SelectItem value="daily">Daily Digest</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

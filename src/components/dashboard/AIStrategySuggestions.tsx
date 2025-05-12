@@ -48,7 +48,7 @@ const AIStrategySuggestions: React.FC<AIStrategySuggestionsProps> = ({ strategie
                 <div className="text-xs">
                   <div className="text-muted-foreground">Return Rate</div>
                   <div className="font-medium">
-                    {strategy.performance?.returns || strategy.performance?.returnRate || 0}%
+                    {strategy.performance?.returns}%
                   </div>
                 </div>
                 <div className="text-xs">
@@ -58,14 +58,14 @@ const AIStrategySuggestions: React.FC<AIStrategySuggestionsProps> = ({ strategie
                 <div className="text-xs">
                   <div className="text-muted-foreground">Max Drawdown</div>
                   <div className="font-medium">
-                    {strategy.performance?.drawdown || strategy.performance?.maxDrawdown || 0}%
+                    {strategy.performance?.drawdown}%
                   </div>
                 </div>
               </div>
               
               <div className="flex justify-between items-center pt-1">
                 <div className="text-xs text-muted-foreground">
-                  Assets: {strategy.assets ? strategy.assets.join(', ') : 'N/A'}
+                  Assets: {strategy.assets && strategy.assets.length > 0 ? strategy.assets.join(', ') : 'N/A'}
                 </div>
                 <Button variant="ghost" size="sm" className="h-7 px-2">
                   <span className="text-xs">Apply</span>

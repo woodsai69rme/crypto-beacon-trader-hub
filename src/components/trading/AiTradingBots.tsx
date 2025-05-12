@@ -20,9 +20,9 @@ const AiTradingBots: React.FC<AiTradingBotsProps> = ({
   // State for active bots
   const [bots, setBots] = useState<AITradingStrategy[]>(mockAIStrategies);
   const [activeStatus, setActiveStatus] = useState<Record<string, boolean>>({
-    'strategy-1': true,
-    'strategy-2': false,
-    'strategy-3': false
+    'ai-strategy-1': true,
+    'ai-strategy-2': false,
+    'ai-strategy-3': false
   });
   
   // Toggle bot active status

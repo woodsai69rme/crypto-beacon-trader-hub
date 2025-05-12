@@ -16,7 +16,6 @@ interface UIContextType {
 
 const defaultSidebarSettings: SidebarSettings = {
   collapsed: false,
-  showLabels: true,
   position: 'left',
   width: 240,
 };

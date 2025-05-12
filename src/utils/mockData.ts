@@ -1,5 +1,61 @@
 
-import { AITradingStrategy, TradingAccount } from '@/types/trading';
+import { AITradingStrategy, TradingAccount, CryptoData, CoinOption } from '@/types/trading';
+
+// Mock cryptocurrency data
+export const mockCoinData: CoinOption[] = [
+  {
+    id: 'bitcoin',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    price: 30000,
+    priceChange: 1500,
+    changePercent: 5.0,
+    value: 'bitcoin',
+    label: 'Bitcoin (BTC)',
+    marketCap: 580000000000,
+    volume: 25000000000,
+    image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
+  },
+  {
+    id: 'ethereum',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    price: 1800,
+    priceChange: -50,
+    changePercent: -2.7,
+    value: 'ethereum',
+    label: 'Ethereum (ETH)',
+    marketCap: 220000000000,
+    volume: 12000000000,
+    image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
+  },
+  {
+    id: 'solana',
+    symbol: 'SOL',
+    name: 'Solana',
+    price: 45,
+    priceChange: 3,
+    changePercent: 7.1,
+    value: 'solana',
+    label: 'Solana (SOL)',
+    marketCap: 18000000000,
+    volume: 1500000000,
+    image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png'
+  },
+  {
+    id: 'cardano',
+    symbol: 'ADA',
+    name: 'Cardano',
+    price: 0.45,
+    priceChange: 0.02,
+    changePercent: 4.6,
+    value: 'cardano',
+    label: 'Cardano (ADA)',
+    marketCap: 14000000000,
+    volume: 500000000,
+    image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png'
+  }
+];
 
 export const mockAIStrategies: AITradingStrategy[] = [
   {

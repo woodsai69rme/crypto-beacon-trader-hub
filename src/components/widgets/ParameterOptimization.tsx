@@ -11,11 +11,13 @@ import { optimizeStrategy } from "@/services/strategyBuilderService";
 export interface ParameterOptimizationProps {
   strategy: AITradingStrategy;
   onApplyParameters: (parameters: Record<string, any>) => void;
+  onApplyOptimizedParameters?: (parameters: Record<string, any>) => void;
 }
 
 const ParameterOptimization: React.FC<ParameterOptimizationProps> = ({
   strategy,
-  onApplyParameters
+  onApplyParameters,
+  onApplyOptimizedParameters
 }) => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizedParameters, setOptimizedParameters] = useState<Record<string, any> | null>(null);
@@ -46,7 +48,11 @@ const ParameterOptimization: React.FC<ParameterOptimizationProps> = ({
   // Apply the optimized parameters
   const handleApply = () => {
     if (optimizedParameters) {
-      onApplyParameters(optimizedParameters);
+      if (onApplyOptimizedParameters) {
+        onApplyOptimizedParameters(optimizedParameters);
+      } else {
+        onApplyParameters(optimizedParameters);
+      }
     }
   };
 

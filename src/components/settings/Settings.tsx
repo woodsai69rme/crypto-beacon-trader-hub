@@ -1,158 +1,206 @@
 
-import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
-import { UseFormReturn } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  User, 
+  Bell, 
+  Shield, 
+  Key, 
+  Paintbrush,
+  Save,
+  Settings as SettingsIcon,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { SettingsFormValues } from '@/types/trading';
+import NotificationSettings from './NotificationSettings';
+import PrivacySettings from './PrivacySettings';
+import AppearanceSettings from './AppearanceSettings';
+import ApiKeyManagement from './ApiKeyManagement';
+import { useToast } from '@/hooks/use-toast';
 
-import NotificationSettings from "./NotificationSettings";
-import AppearanceSettings from "./AppearanceSettings";
-import PrivacySettings from "./PrivacySettings";
-import TradingSettings from "./TradingSettings";
-import { SettingsFormValues } from "./types";
-import { User, Settings2, Bell, Shield, BarChart2, UserCircle } from "lucide-react";
-
-interface SettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const Settings: React.FC<SettingsProps> = ({ form }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  const onSubmit = async (data: SettingsFormValues) => {
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Settings updated",
-        description: "Your settings have been saved successfully."
-      });
-      
-      console.log("Settings saved:", data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was a problem updating your settings.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+const Settings: React.FC = () => {
+  const { toast } = useToast();
+  const form = useForm<SettingsFormValues>({
+    defaultValues: {
+      username: "trader123",
+      displayName: "Crypto Trader",
+      email: "trader@example.com",
+      bio: "Just a crypto enthusiast exploring the market",
+      theme: "dark",
+      language: "en",
+      notifications: {
+        email: true,
+        push: true,
+        trades: true,
+        pricing: true,
+        news: false
+      },
+      tradingPreferences: {
+        autoConfirm: false,
+        showAdvanced: true,
+        defaultAsset: "bitcoin"
+      },
+      privacy: {
+        showOnlineStatus: true,
+        sharePortfolio: false,
+        shareTrades: false,
+        dataCollection: true,
+        marketingConsent: false,
+        thirdPartySharing: false
+      },
+      appearance: {
+        colorScheme: "dark",
+        compactMode: false,
+        animationsEnabled: true,
+        highContrastMode: false
+      }
     }
+  });
+  
+  const { register, handleSubmit, formState } = form;
+  
+  const onSubmit = (data: SettingsFormValues) => {
+    console.log("Settings saved:", data);
+    toast({
+      title: "Settings Updated",
+      description: "Your settings have been saved successfully"
+    });
   };
-
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardContent className="p-0">
-            <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid grid-cols-2 md:grid-cols-5">
-                <TabsTrigger value="profile" className="flex items-center gap-1">
-                  <UserCircle className="h-4 w-4" />
-                  <span className="hidden md:inline">Profile</span>
-                </TabsTrigger>
-                <TabsTrigger value="appearance" className="flex items-center gap-1">
-                  <Settings2 className="h-4 w-4" />
-                  <span className="hidden md:inline">Appearance</span>
-                </TabsTrigger>
-                <TabsTrigger value="notifications" className="flex items-center gap-1">
-                  <Bell className="h-4 w-4" />
-                  <span className="hidden md:inline">Notifications</span>
-                </TabsTrigger>
-                <TabsTrigger value="privacy" className="flex items-center gap-1">
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden md:inline">Privacy</span>
-                </TabsTrigger>
-                <TabsTrigger value="trading" className="flex items-center gap-1">
-                  <BarChart2 className="h-4 w-4" />
-                  <span className="hidden md:inline">Trading</span>
-                </TabsTrigger>
-              </TabsList>
-              
-              <div className="p-6">
-                <TabsContent value="profile">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium">Profile Settings</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Update your account information and public profile
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="font-medium">Email</label>
-                          <Input 
-                            {...form.register("email")}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="font-medium">Username</label>
-                          <Input 
-                            {...form.register("username")}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="font-medium">Display Name</label>
-                          <Input 
-                            {...form.register("displayName")}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="font-medium">Bio</label>
-                          <Textarea 
-                            {...form.register("bio")}
-                            className="h-32"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Write a short description about yourself. This will be visible on your public profile.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+    <div className="container py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">Manage your account settings and preferences</p>
+      </div>
+      
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Tabs defaultValue="profile" className="space-y-4">
+          <TabsList className="grid grid-cols-5">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
+            <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      {...register('username')}
+                    />
                   </div>
-                </TabsContent>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      id="displayName"
+                      {...register('displayName')}
+                    />
+                  </div>
+                </div>
                 
-                <TabsContent value="appearance">
-                  <AppearanceSettings form={form} />
-                </TabsContent>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register('email')}
+                  />
+                </div>
                 
-                <TabsContent value="notifications">
-                  <NotificationSettings form={form} />
-                </TabsContent>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    {...register('bio')}
+                  />
+                </div>
                 
-                <TabsContent value="privacy">
-                  <PrivacySettings form={form} />
-                </TabsContent>
-                
-                <TabsContent value="trading">
-                  <TradingSettings form={form} />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </CardContent>
-        </Card>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Select
+                      onValueChange={(value) => form.setValue('language', value)}
+                      defaultValue={form.getValues('language')}
+                    >
+                      <SelectTrigger id="language">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                        <SelectItem value="ja">Japanese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="defaultAsset">Default Asset</Label>
+                    <Select
+                      onValueChange={(value) => form.setValue('tradingPreferences.defaultAsset', value)}
+                      defaultValue={form.getValues('tradingPreferences.defaultAsset')}
+                    >
+                      <SelectTrigger id="defaultAsset">
+                        <SelectValue placeholder="Select default asset" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                        <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                        <SelectItem value="solana">Solana (SOL)</SelectItem>
+                        <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="notifications">
+            <NotificationSettings form={form} />
+          </TabsContent>
+          
+          <TabsContent value="privacy">
+            <PrivacySettings form={form} />
+          </TabsContent>
+          
+          <TabsContent value="api-keys">
+            <ApiKeyManagement />
+          </TabsContent>
+          
+          <TabsContent value="appearance">
+            <AppearanceSettings form={form} />
+          </TabsContent>
+        </Tabs>
         
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Settings"}
+        <div className="mt-6 flex justify-end">
+          <Button type="submit" className="flex items-center gap-2">
+            <Save className="h-4 w-4" />
+            Save Settings
           </Button>
         </div>
       </form>
-    </Form>
+    </div>
   );
 };
 

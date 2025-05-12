@@ -138,12 +138,12 @@ export interface TradingAccount {
   id: string;
   name: string;
   type: string;
-  provider: string;
+  provider?: string;
   balance: number;
   initialBalance?: number;
   currency: SupportedCurrency;
-  lastUpdated: string;
-  isActive: boolean;
+  lastUpdated?: string;
+  isActive?: boolean;
   assets?: PortfolioAsset[];
   positions?: Position[];
   trades?: Trade[];
@@ -174,7 +174,7 @@ export interface ApiEndpoint {
 
 export interface SidebarSettings {
   collapsed: boolean;
-  showLabels: boolean;
+  showLabels?: boolean;
   position: 'left' | 'right';
   width: number;
 }
@@ -358,4 +358,5 @@ export interface PriceAlertFormData {
 export interface ParameterOptimizationProps {
   strategy: AITradingStrategy;
   onApplyParameters: (parameters: Record<string, any>) => void;
+  onApplyOptimizedParameters?: (parameters: Record<string, any>) => void;
 }
