@@ -3,8 +3,9 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { ModelTradingProvider } from './contexts/ModelTradingContext';
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import Main from './Main';
+import MainContent from './MainContent';
 import { UIProvider } from './contexts/UIContext';
+import Navbar from './components/Navbar';
 
 function App() {
   return (
@@ -12,7 +13,8 @@ function App() {
       <UIProvider>
         <ModelTradingProvider>
           <BrowserRouter>
-            <Main />
+            <Navbar />
+            <MainContent />
             <Toaster />
           </BrowserRouter>
         </ModelTradingProvider>

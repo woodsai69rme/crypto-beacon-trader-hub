@@ -49,6 +49,11 @@ const CustomizableDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Customizable Dashboard</h1>
+        <p className="text-muted-foreground">Arrange your trading widgets and monitor markets</p>
+      </div>
+      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview" className="flex items-center gap-2">
