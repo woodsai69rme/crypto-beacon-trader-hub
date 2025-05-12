@@ -1,135 +1,156 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { EnhancedPortfolioBenchmarkingProps } from '@/types/trading';
 
-const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({ portfolioPerformance }) => {
-  const defaultPerformance = {
-    daily: 2.5,
-    weekly: 8.3,
-    monthly: 15.2,
-    yearly: 42.1,
-    allTime: 75.4
+const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({
+  portfolioPerformance,
+  portfolioDates
+}) => {
+  // Generate S&P 500 and BTC performance with some correlation to portfolio
+  const generateComparisonData = () => {
+    // Create mock data for comparison
+    const basePerformance = [...portfolioPerformance];
+    
+    // Generate S&P data with some correlation but lower volatility
+    const spPerformance = basePerformance.map(val => {
+      const correlation = 0.7; // 70% correlation
+      const volatility = 0.4; // 40% of the volatility
+      
+      // Random component that's partially correlated
+      const randomComponent = (Math.random() - 0.48) * volatility;
+      const correlatedComponent = val * correlation;
+      
+      return correlatedComponent + randomComponent;
+    });
+    
+    // Generate BTC data with some correlation but higher volatility
+    const btcPerformance = basePerformance.map(val => {
+      const correlation = 0.6; // 60% correlation
+      const volatility = 2.0; // 200% of the volatility
+      
+      // Random component that's partially correlated
+      const randomComponent = (Math.random() - 0.48) * volatility;
+      const correlatedComponent = val * correlation;
+      
+      return correlatedComponent + randomComponent;
+    });
+    
+    // Compile data for chart
+    return portfolioDates.map((date, idx) => ({
+      date,
+      portfolio: portfolioPerformance[idx],
+      sp500: spPerformance[idx],
+      btc: btcPerformance[idx]
+    }));
   };
   
-  const performance = portfolioPerformance || defaultPerformance;
+  const chartData = generateComparisonData();
   
-  // Generate mock comparison data
-  const generateComparisonData = () => {
-    const data = [];
-    const now = new Date();
+  // Calculate overall performance metrics
+  const calculatePerformance = (data: number[]) => {
+    const start = data[0];
+    const end = data[data.length - 1];
+    const totalReturn = ((end - start) / start) * 100;
     
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      
-      // Portfolio performance starts at base 100 and adds some randomness plus overall trend
-      const portfolioBase = 100 + (30 - i) * (performance.monthly / 30);
-      const portfolioValue = portfolioBase + (Math.random() * 2 - 1);
-      
-      // S&P and Bitcoin correlate somewhat but with different volatility
-      const spValue = 100 + (30 - i) * (performance.monthly / 45) + (Math.random() * 1 - 0.5);
-      const btcValue = 100 + (30 - i) * (performance.monthly / 25) + (Math.random() * 4 - 2);
-      
-      data.push({
-        date: date.toLocaleDateString(),
-        portfolio: parseFloat(portfolioValue.toFixed(2)),
-        sp500: parseFloat(spValue.toFixed(2)),
-        bitcoin: parseFloat(btcValue.toFixed(2))
-      });
+    // Calculate volatility (standard deviation of daily returns)
+    let sumSquaredDiffs = 0;
+    let previousValue = data[0];
+    
+    for (let i = 1; i < data.length; i++) {
+      const dailyReturn = (data[i] - previousValue) / previousValue;
+      sumSquaredDiffs += dailyReturn * dailyReturn;
+      previousValue = data[i];
     }
     
-    return data;
+    const variance = sumSquaredDiffs / (data.length - 1);
+    const volatility = Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized volatility
+    
+    // Calculate Sharpe ratio (assuming risk-free rate of 2%)
+    const riskFreeRate = 2;
+    const sharpeRatio = (totalReturn - riskFreeRate) / volatility;
+    
+    return {
+      totalReturn: totalReturn.toFixed(2),
+      volatility: volatility.toFixed(2),
+      sharpeRatio: sharpeRatio.toFixed(2)
+    };
   };
   
-  const benchmarkData = generateComparisonData();
+  const portfolioStats = calculatePerformance(portfolioPerformance);
   
   return (
-    <Card>
-      <CardHeader>
+    <Card className="w-full">
+      <CardHeader className="pb-2">
         <CardTitle>Portfolio Benchmarking</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 text-center mb-4">
-          <div>
-            <div className="text-sm text-muted-foreground">Portfolio</div>
-            <div className="text-lg font-bold text-green-500">+{performance.monthly.toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">30 days</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">S&P 500</div>
-            <div className="text-lg font-bold">{(performance.monthly * 0.65).toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">30 days</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">Bitcoin</div>
-            <div className="text-lg font-bold">{(performance.monthly * 1.2).toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">30 days</div>
-          </div>
-        </div>
-        
-        <div className="h-64">
+        <div className="h-60">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={benchmarkData}
-              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
               <XAxis 
                 dataKey="date" 
-                tick={{ fontSize: 10 }}
-                tickLine={false}
-                minTickGap={20}
+                tick={{ fontSize: 12 }} 
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getMonth() + 1}/${date.getDate()}`;
+                }}
               />
               <YAxis 
-                tickFormatter={(value) => `${value}`}
-                tick={{ fontSize: 10 }}
-                domain={['dataMin - 5', 'dataMax + 5']}
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `${value.toFixed(2)}%`}
               />
               <Tooltip 
-                formatter={(value) => [`${value}`, '']}
-                labelFormatter={(label) => `Date: ${label}`}
+                formatter={(value: number) => `${value.toFixed(2)}%`}
+                labelFormatter={(label) => `Date: ${new Date(label).toLocaleDateString()}`}
               />
               <Legend />
               <Line 
                 type="monotone" 
                 dataKey="portfolio" 
-                name="Your Portfolio" 
-                stroke="#4ADE80" 
+                stroke="#8884d8" 
+                name="Your Portfolio"
                 dot={false}
                 strokeWidth={2}
               />
               <Line 
                 type="monotone" 
                 dataKey="sp500" 
-                name="S&P 500" 
-                stroke="#94A3B8" 
+                stroke="#82ca9d" 
+                name="S&P 500"
                 dot={false}
+                strokeWidth={2}
               />
               <Line 
                 type="monotone" 
-                dataKey="bitcoin" 
-                name="Bitcoin" 
-                stroke="#F59E0B" 
+                dataKey="btc" 
+                stroke="#ff7300" 
+                name="Bitcoin"
                 dot={false}
+                strokeWidth={2}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 text-center mt-4">
-          <div className="p-3 border rounded-md">
-            <div className="text-sm font-medium">vs. S&P 500</div>
-            <div className={`text-lg font-bold ${performance.monthly > performance.monthly * 0.65 ? 'text-green-500' : 'text-red-500'}`}>
-              {performance.monthly > performance.monthly * 0.65 ? '+' : ''}{(performance.monthly - performance.monthly * 0.65).toFixed(1)}%
+        <div className="grid grid-cols-3 gap-4">
+          <div className="border rounded-md p-3">
+            <div className="text-sm text-muted-foreground">Total Return</div>
+            <div className={`text-lg font-bold ${
+              parseFloat(portfolioStats.totalReturn) >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {portfolioStats.totalReturn}%
             </div>
           </div>
-          <div className="p-3 border rounded-md">
-            <div className="text-sm font-medium">vs. Bitcoin</div>
-            <div className={`text-lg font-bold ${performance.monthly > performance.monthly * 1.2 ? 'text-green-500' : 'text-red-500'}`}>
-              {performance.monthly > performance.monthly * 1.2 ? '+' : ''}{(performance.monthly - performance.monthly * 1.2).toFixed(1)}%
-            </div>
+          <div className="border rounded-md p-3">
+            <div className="text-sm text-muted-foreground">Volatility</div>
+            <div className="text-lg font-bold">{portfolioStats.volatility}%</div>
+          </div>
+          <div className="border rounded-md p-3">
+            <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
+            <div className="text-lg font-bold">{portfolioStats.sharpeRatio}</div>
           </div>
         </div>
       </CardContent>

@@ -1,355 +1,319 @@
 
-/**
- * OpenRouter Service
- * Provides access to AI models via OpenRouter API.
- */
+import { toast } from '@/components/ui/use-toast';
 
-import { toast } from "@/hooks/use-toast";
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-const STORAGE_KEY = 'openrouter_api_key';
-const API_BASE_URL = 'https://openrouter.ai/api/v1';
-const DEFAULT_MODEL = 'openai/gpt-4';
+// Function to get the API key from localStorage
+export const getOpenRouterApiKey = (): string | null => {
+  return localStorage.getItem('openrouter_api_key');
+};
 
-/**
- * Available model options
- */
-export const openRouterModels = [
-  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI' },
-  { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
-  { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic' },
-  { id: 'anthropic/claude-3-sonnet', name: 'Claude 3 Sonnet', provider: 'Anthropic' },
-  { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic' },
-  { id: 'google/gemini-pro', name: 'Gemini Pro', provider: 'Google' },
-  { id: 'meta-llama/llama-3-70b-instruct', name: 'Llama 3 70B', provider: 'Meta' },
-  { id: 'meta-llama/llama-3-8b-instruct', name: 'Llama 3 8B', provider: 'Meta' },
+// Function to save the API key to localStorage
+export const saveOpenRouterApiKey = (apiKey: string): void => {
+  localStorage.setItem('openrouter_api_key', apiKey);
+};
+
+// Function to remove the API key from localStorage
+export const removeOpenRouterApiKey = (): void => {
+  localStorage.removeItem('openrouter_api_key');
+};
+
+// Types for OpenRouter requests
+export interface OpenRouterMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface OpenRouterRequest {
+  model: string;
+  messages: OpenRouterMessage[];
+  temperature?: number;
+  max_tokens?: number;
+}
+
+export interface OpenRouterResponse {
+  choices: {
+    message: {
+      role: string;
+      content: string;
+    };
+    finish_reason: string;
+  }[];
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  model: string;
+}
+
+// Available models
+export const OPENROUTER_MODELS = [
+  { 
+    id: 'gpt-4o',
+    name: 'GPT-4o',
+    provider: 'OpenAI',
+    description: 'Latest and most powerful model from OpenAI',
+    contextLength: 128000,
+    costPer1kTokens: 0.005
+  },
+  { 
+    id: 'claude-3-5-sonnet-20240620',
+    name: 'Claude 3.5 Sonnet',
+    provider: 'Anthropic',
+    description: 'Latest Claude model with strong reasoning capabilities',
+    contextLength: 200000,
+    costPer1kTokens: 0.003
+  },
+  { 
+    id: 'meta-llama-3-70b-instruct',
+    name: 'Llama 3 70B',
+    provider: 'Meta',
+    description: 'Open-source model with strong performance',
+    contextLength: 8000,
+    costPer1kTokens: 0.0009
+  },
+  { 
+    id: 'gemini-1.5-pro',
+    name: 'Gemini 1.5 Pro',
+    provider: 'Google',
+    description: 'Google\'s most capable multimodal model',
+    contextLength: 1000000,
+    costPer1kTokens: 0.0025
+  }
 ];
 
-/**
- * Model usage - for cost estimation and tracking
- */
-export const modelUsage = {
-  'openai/gpt-4-turbo': { inputCost: 0.01, outputCost: 0.03 },
-  'openai/gpt-4o': { inputCost: 0.01, outputCost: 0.03 },
-  'openai/gpt-3.5-turbo': { inputCost: 0.001, outputCost: 0.002 },
-  'anthropic/claude-3-opus': { inputCost: 0.015, outputCost: 0.075 },
-  'anthropic/claude-3-sonnet': { inputCost: 0.003, outputCost: 0.015 },
-  'anthropic/claude-3-haiku': { inputCost: 0.00025, outputCost: 0.00125 },
-  'google/gemini-pro': { inputCost: 0.0005, outputCost: 0.0015 },
-  'meta-llama/llama-3-70b-instruct': { inputCost: 0.0009, outputCost: 0.0009 },
-  'meta-llama/llama-3-8b-instruct': { inputCost: 0.0002, outputCost: 0.0002 },
+// The main function to make requests to OpenRouter
+export const sendOpenRouterRequest = async (
+  request: OpenRouterRequest
+): Promise<OpenRouterResponse> => {
+  const apiKey = getOpenRouterApiKey();
+  
+  if (!apiKey) {
+    throw new Error('OpenRouter API key not found');
+  }
+  
+  try {
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.origin,
+      },
+      body: JSON.stringify(request),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('OpenRouter API error:', error);
+    toast({
+      title: 'API Error',
+      description: error instanceof Error ? error.message : 'Unknown error occurred',
+      variant: 'destructive',
+    });
+    throw error;
+  }
 };
 
-/**
- * Check if an API key exists
- */
-export const hasApiKey = (): boolean => {
-  return localStorage.getItem(STORAGE_KEY) !== null;
+// Specialized function for generating trading analysis
+export const generateTradingAnalysis = async (
+  coinId: string,
+  timeframe: string,
+  modelId: string = 'gpt-4o',
+  priceData?: any
+): Promise<{
+  recommendation: 'buy' | 'sell' | 'hold';
+  confidence: number;
+  reasoning: string;
+  targets?: { entry?: number; stop?: number; target?: number };
+}> => {
+  const systemPrompt = 
+    `You are an expert cryptocurrency trading AI assistant. Analyze market conditions and provide trading advice. 
+    Respond with a JSON object containing:
+    - recommendation: either "buy", "sell", or "hold"
+    - confidence: a number between 0 and 1 representing your confidence
+    - reasoning: short explanation for your recommendation
+    - targets: optional object with entry, stop, and target prices (if applicable)`;
+  
+  const userPrompt = 
+    `Analyze the market conditions for ${coinId.toUpperCase()} on the ${timeframe} timeframe.` +
+    (priceData ? ` Here is the recent price data: ${JSON.stringify(priceData)}` : '') +
+    ` Provide a specific trade recommendation with confidence level and reasoning.`;
+  
+  try {
+    const response = await sendOpenRouterRequest({
+      model: modelId,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 500
+    });
+    
+    // Try to parse the response as JSON
+    try {
+      const content = response.choices[0].message.content;
+      // Extract JSON if wrapped in code blocks
+      const jsonMatch = content.match(/```(?:json)?\s*({[\s\S]*?})\s*```/) || 
+                         content.match(/{[\s\S]*?}/);
+                         
+      if (jsonMatch) {
+        const jsonStr = jsonMatch[1] || jsonMatch[0];
+        const parsed = JSON.parse(jsonStr);
+        
+        // Validate the response has the expected format
+        if (!parsed.recommendation || !['buy', 'sell', 'hold'].includes(parsed.recommendation)) {
+          throw new Error('Invalid recommendation in response');
+        }
+        
+        if (typeof parsed.confidence !== 'number' || parsed.confidence < 0 || parsed.confidence > 1) {
+          parsed.confidence = 0.7; // Default confidence if invalid
+        }
+        
+        if (!parsed.reasoning) {
+          parsed.reasoning = 'Analysis complete.'; // Default reasoning if missing
+        }
+        
+        return parsed;
+      } else {
+        throw new Error('Could not find JSON in response');
+      }
+    } catch (parseError) {
+      console.error('Error parsing AI response:', parseError);
+      // Provide fallback response
+      return {
+        recommendation: 'hold',
+        confidence: 0.5,
+        reasoning: 'Unable to generate clear trading signal at this time. Consider gathering more market data.'
+      };
+    }
+  } catch (error) {
+    console.error('Trading analysis error:', error);
+    toast({
+      title: 'Analysis Error',
+      description: 'Failed to generate trading analysis. Please try again.',
+      variant: 'destructive',
+    });
+    
+    // Return default response in case of error
+    return {
+      recommendation: 'hold',
+      confidence: 0.5,
+      reasoning: 'Error generating analysis. Please check API connection and try again.'
+    };
+  }
 };
 
-/**
- * Set the API key
- */
-export const setApiKey = (key: string): void => {
-  localStorage.setItem(STORAGE_KEY, key);
-};
-
-/**
- * Get the API key
- */
-export const getApiKey = (): string | null => {
-  return localStorage.getItem(STORAGE_KEY);
-};
-
-/**
- * Clear the API key
- */
-export const clearApiKey = (): void => {
-  localStorage.removeItem(STORAGE_KEY);
-};
-
-/**
- * Generate a trading strategy using OpenRouter AI
- */
+// Function to generate trading strategies
 export const generateTradingStrategy = async (
-  params: {
-    asset: string;
-    timeframe: string;
-    riskLevel: string;
-    additionalContext?: string;
-  }
-): Promise<any> => {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    toast({
-      title: "API Key Missing",
-      description: "Please set your OpenRouter API key in the settings",
-      variant: "destructive",
-    });
-    throw new Error("OpenRouter API key not configured");
-  }
-
+  coinId: string,
+  riskLevel: string,
+  timeframe: string,
+  modelId: string = 'gpt-4o'
+): Promise<{
+  name: string;
+  description: string;
+  indicators: string[];
+  rulesBuy: string[];
+  rulesSell: string[];
+  riskManagement: string[];
+  targetReturn: number;
+}> => {
+  const systemPrompt = 
+    `You are an expert cryptocurrency trading strategy developer. Create detailed, practical trading strategies based on technical analysis.
+    Respond with a JSON object containing:
+    - name: a catchy name for the strategy
+    - description: 1-2 sentences describing the core strategy
+    - indicators: array of technical indicators used
+    - rulesBuy: array of specific rules for entry signals
+    - rulesSell: array of specific rules for exit signals
+    - riskManagement: array of risk management rules
+    - targetReturn: expected monthly return percentage (realistic)`;
+  
+  const userPrompt = 
+    `Create a ${riskLevel} risk trading strategy for ${coinId.toUpperCase()} on the ${timeframe} timeframe.
+    Focus on specific technical indicators with precise entry/exit rules and risk management guidelines.
+    Keep the strategy practical and implementable with clear conditions.`;
+  
   try {
-    const prompt = `Generate a detailed cryptocurrency trading strategy for ${params.asset} with the following parameters:
-- Timeframe: ${params.timeframe}
-- Risk level: ${params.riskLevel}
-${params.additionalContext ? `- Additional context: ${params.additionalContext}` : ''}
-
-Please structure your response as follows:
-1. Strategy name
-2. Strategy description
-3. Key indicators to use
-4. Entry signals
-5. Exit signals
-6. Risk management rules
-7. Expected performance metrics
-`;
-
-    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'Crypto Trading Platform'
-      },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        messages: [
-          { role: 'system', content: 'You are an expert cryptocurrency trading strategist. Provide detailed, actionable trading strategies based on technical and fundamental analysis.' },
-          { role: 'user', content: prompt }
-        ],
-      }),
+    const response = await sendOpenRouterRequest({
+      model: modelId,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.4,
+      max_tokens: 1000
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    return {
-      content: data.choices[0].message.content,
-      model: data.model,
-      usage: data.usage,
-    };
-  } catch (error) {
-    console.error("Error generating trading strategy:", error);
-    toast({
-      title: "Strategy Generation Failed",
-      description: error instanceof Error ? error.message : "Unknown error occurred",
-      variant: "destructive",
-    });
-    throw error;
-  }
-};
-
-/**
- * Generate market analysis using OpenRouter AI
- */
-export const generateMarketAnalysis = async (
-  params: {
-    assets: string[];
-    timeframe: string;
-    focusAreas?: string[];
-  }
-): Promise<any> => {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    toast({
-      title: "API Key Missing",
-      description: "Please set your OpenRouter API key in the settings",
-      variant: "destructive",
-    });
-    throw new Error("OpenRouter API key not configured");
-  }
-
-  try {
-    const assetList = params.assets.join(', ');
-    const focusAreas = params.focusAreas?.join(', ') || 'technical analysis, market sentiment';
     
-    const prompt = `Provide a comprehensive market analysis for the following cryptocurrencies: ${assetList}
-- Timeframe: ${params.timeframe}
-- Focus areas: ${focusAreas}
-
-Structure your analysis with:
-1. Overall market sentiment
-2. Individual asset analysis
-3. Key support and resistance levels
-4. Potential catalysts
-5. Risk assessment
-`;
-
-    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'Crypto Trading Platform'
-      },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        messages: [
-          { role: 'system', content: 'You are an expert cryptocurrency market analyst. Provide detailed, accurate market analysis based on the latest trends and data.' },
-          { role: 'user', content: prompt }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
+    try {
+      const content = response.choices[0].message.content;
+      const jsonMatch = content.match(/```(?:json)?\s*({[\s\S]*?})\s*```/) || 
+                         content.match(/{[\s\S]*?}/);
+      
+      if (jsonMatch) {
+        const jsonStr = jsonMatch[1] || jsonMatch[0];
+        const parsed = JSON.parse(jsonStr);
+        
+        // Add defaults for any missing fields
+        return {
+          name: parsed.name || `${coinId.toUpperCase()} ${timeframe} ${riskLevel} Strategy`,
+          description: parsed.description || 'A custom trading strategy based on technical analysis.',
+          indicators: parsed.indicators || ['RSI', 'Moving Averages', 'Volume'],
+          rulesBuy: parsed.rulesBuy || ['Buy when price shows upward momentum'],
+          rulesSell: parsed.rulesSell || ['Sell when price shows downward momentum'],
+          riskManagement: parsed.riskManagement || ['Use stop losses', 'Limit position size'],
+          targetReturn: parsed.targetReturn || (riskLevel === 'high' ? 15 : riskLevel === 'medium' ? 8 : 4)
+        };
+      } else {
+        throw new Error('Could not find JSON in response');
+      }
+    } catch (parseError) {
+      console.error('Error parsing strategy response:', parseError);
+      // Provide fallback strategy
+      return {
+        name: `${coinId.toUpperCase()} Basic Strategy`,
+        description: 'A simple trend-following strategy based on moving averages.',
+        indicators: ['Moving Average (50)', 'Moving Average (200)', 'RSI', 'Volume'],
+        rulesBuy: ['Buy when 50MA crosses above 200MA', 'Confirm with RSI above 50', 'Require above-average volume'],
+        rulesSell: ['Sell when 50MA crosses below 200MA', 'Sell when RSI crosses below 70 from above', 'Use trailing stop loss'],
+        riskManagement: ['Set stop loss at 5% below entry', 'Position size limited to 5% of portfolio', 'Take partial profits at 10% gain'],
+        targetReturn: riskLevel === 'high' ? 15 : riskLevel === 'medium' ? 8 : 4
+      };
     }
-
-    const data = await response.json();
-    return {
-      content: data.choices[0].message.content,
-      model: data.model,
-      usage: data.usage,
-    };
   } catch (error) {
-    console.error("Error generating market analysis:", error);
+    console.error('Strategy generation error:', error);
     toast({
-      title: "Analysis Generation Failed",
-      description: error instanceof Error ? error.message : "Unknown error occurred",
-      variant: "destructive",
+      title: 'Strategy Error',
+      description: 'Failed to generate trading strategy. Please try again.',
+      variant: 'destructive',
     });
-    throw error;
-  }
-};
-
-/**
- * Get available models from OpenRouter
- */
-export const getModels = async (): Promise<any[]> => {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    toast({
-      title: "API Key Missing",
-      description: "Please set your OpenRouter API key in the settings",
-      variant: "destructive",
-    });
-    throw new Error("OpenRouter API key not configured");
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/models`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'Crypto Trading Platform'
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching models:", error);
-    toast({
-      title: "Failed to Fetch Models",
-      description: error instanceof Error ? error.message : "Unknown error occurred",
-      variant: "destructive",
-    });
-    throw error;
-  }
-};
-
-/**
- * Analyze portfolio using OpenRouter AI
- */
-export const analyzePortfolioWithAI = async (
-  portfolio: {
-    assets: Array<{ name: string; symbol: string; allocation: number; performance: number }>;
-    totalValue: number;
-    timeframe: string;
-  }
-): Promise<any> => {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    toast({
-      title: "API Key Missing",
-      description: "Please set your OpenRouter API key in the settings",
-      variant: "destructive",
-    });
-    throw new Error("OpenRouter API key not configured");
-  }
-
-  try {
-    const assetDetails = portfolio.assets
-      .map(a => `- ${a.name} (${a.symbol}): ${a.allocation.toFixed(2)}% allocation, ${a.performance >= 0 ? '+' : ''}${a.performance.toFixed(2)}% performance`)
-      .join('\n');
     
-    const prompt = `Analyze the following cryptocurrency portfolio:
-
-Portfolio Value: $${portfolio.totalValue.toLocaleString()}
-Timeframe: ${portfolio.timeframe}
-
-Assets:
-${assetDetails}
-
-Please provide:
-1. Overall portfolio assessment
-2. Risk analysis
-3. Diversification recommendations
-4. Rebalancing suggestions
-5. Potential opportunities and concerns
-`;
-
-    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'Crypto Trading Platform'
-      },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        messages: [
-          { role: 'system', content: 'You are an expert cryptocurrency portfolio manager. Provide detailed, actionable portfolio analysis and recommendations.' },
-          { role: 'user', content: prompt }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
     return {
-      content: data.choices[0].message.content,
-      model: data.model,
-      usage: data.usage,
+      name: `${coinId.toUpperCase()} Fallback Strategy`,
+      description: 'A defensive trading approach using basic technical indicators.',
+      indicators: ['RSI', '50-day Moving Average', 'Volume'],
+      rulesBuy: ['Buy when price is above 50-day MA', 'RSI should be above 40 but below 70', 'Confirm with increasing volume'],
+      rulesSell: ['Sell when price drops below 50-day MA', 'Sell when RSI crosses above 70', 'Use trailing stop loss'],
+      riskManagement: ['Maximum 3% risk per trade', 'Always use stop losses', 'Take partial profits at predetermined levels'],
+      targetReturn: 5
     };
-  } catch (error) {
-    console.error("Error analyzing portfolio:", error);
-    toast({
-      title: "Portfolio Analysis Failed",
-      description: error instanceof Error ? error.message : "Unknown error occurred",
-      variant: "destructive",
-    });
-    throw error;
   }
 };
 
 export default {
-  hasApiKey,
-  setApiKey,
-  getApiKey,
-  clearApiKey,
-  generateTradingStrategy,
-  generateMarketAnalysis,
-  getModels,
-  analyzePortfolioWithAI,
-  openRouterModels,
-  modelUsage
+  getOpenRouterApiKey,
+  saveOpenRouterApiKey,
+  removeOpenRouterApiKey,
+  OPENROUTER_MODELS,
+  sendOpenRouterRequest,
+  generateTradingAnalysis,
+  generateTradingStrategy
 };

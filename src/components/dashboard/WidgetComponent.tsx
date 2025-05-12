@@ -1,57 +1,72 @@
 
 import React from 'react';
-import { Widget } from '@/types/trading';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WidgetType } from '@/types/trading';
+import PriceChart from "@/components/charts/PriceChart";
+import RealTimePrices from "@/components/charts/RealTimePrices";
+import PortfolioSummary from "@/components/portfolio/PortfolioSummary";
+import WatchlistManager from "@/components/trading/WatchlistManager";
 
 interface WidgetComponentProps {
-  widget: Widget;
-  onRemove?: (id: string) => void;
+  type: WidgetType;
+  title: string;
+  className?: string;
 }
 
-const WidgetComponent: React.FC<WidgetComponentProps> = ({ widget, onRemove }) => {
+const WidgetComponent: React.FC<WidgetComponentProps> = ({
+  type,
+  title,
+  className = "",
+}) => {
   const renderWidgetContent = () => {
-    switch (widget.type) {
-      case 'custom':
-        return widget.customContent ? <div dangerouslySetInnerHTML={{ __html: widget.customContent }} /> : <div>Custom Widget</div>;
-      case 'price-chart':
-        return <div>Price Chart Widget</div>;
-      case 'portfolio-summary':
-        return <div>Portfolio Summary Widget</div>;
-      case 'watchlist':
-        return <div>Watchlist Widget</div>;
-      case 'news':
-        return <div>News Widget</div>;
-      case 'alerts':
-        return <div>Alerts Widget</div>;
-      case 'trading':
+    switch (type) {
+      case "price-chart":
+        return <PriceChart coinId="bitcoin" height={300} />;
+      
+      case "portfolio-summary":
+        return <PortfolioSummary />;
+      
+      case "watchlist":
+        return <WatchlistManager />;
+      
+      case "chart":
+        return <RealTimePrices initialCoins={[]} />;
+      
+      case "trading":
         return <div>Trading Widget</div>;
-      case 'aiTrading':
+      
+      case "aiTrading":
         return <div>AI Trading Widget</div>;
-      case 'aiAnalysis':
+      
+      case "aiAnalysis":
         return <div>AI Analysis Widget</div>;
+      
+      case "stats":
+        return <div>Statistics</div>;
+      
+      case "news":
+        return <div>News Feed</div>;
+      
+      case "alerts":
+        return <div>Price Alerts</div>;
+      
+      case "table":
+        return <div>Data Table</div>;
+      
+      case "custom":
       default:
-        return <div>Widget Content</div>;
+        return <div>Custom Widget</div>;
     }
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between py-3">
-        <CardTitle className="text-base">{widget.title}</CardTitle>
-        {onRemove && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => onRemove(widget.id)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+    <Card className={`${className}`}>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
-      <CardContent>{renderWidgetContent()}</CardContent>
+      <CardContent className="p-4 pt-0">
+        {renderWidgetContent()}
+      </CardContent>
     </Card>
   );
 };
