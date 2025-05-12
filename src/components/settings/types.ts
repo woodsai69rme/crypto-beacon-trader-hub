@@ -2,59 +2,57 @@
 import { UseFormReturn } from "react-hook-form";
 
 export interface SettingsFormValues {
-  username?: string;
   displayName?: string;
   email?: string;
-  theme?: string;
+  username?: string;
   bio?: string;
-  language?: string; // Added language field
-  notifications: {
-    email: boolean;
-    push: boolean;
-    trades: boolean;
-    pricing: boolean;
-    news: boolean;
+  theme?: string;
+  language?: string;
+  appearance?: {
+    colorScheme?: string;
+    compactMode?: boolean;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
   };
-  tradingPreferences: {
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
   };
   privacy?: {
-    showOnlineStatus: boolean;
-    sharePortfolio: boolean;
-    shareTrades: boolean;
-    dataCollection: boolean;
-    marketingConsent: boolean;
-    thirdPartySharing: boolean;
+    showOnlineStatus?: boolean;
+    sharePortfolio?: boolean;
+    shareTrades?: boolean;
+    dataCollection?: boolean;
+    marketingConsent?: boolean;
+    thirdPartySharing?: boolean;
   };
   account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
+    twoFactorEnabled?: boolean;
+    loginAlerts?: boolean;
   };
-  appearance?: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
+  tradingPreferences?: {
+    autoConfirm?: boolean;
+    showAdvanced?: boolean;
+    defaultAsset?: string;
   };
-  ticker?: { // Added ticker settings
-    enabled: boolean;
-    position: string;
-    speed: number;
-    direction: string;
-    autoPause: boolean;
+  ticker?: {
+    enabled?: boolean;
+    position?: string;
+    speed?: number;
+    direction?: string;
+    autoPause?: boolean;
   };
-  sidebar?: { // Added sidebar settings
-    enabled: boolean;
-    position: string;
-    collapsed: boolean;
-    autoHide: boolean;
+  sidebar?: {
+    enabled?: boolean;
+    position?: string;
+    collapsed?: boolean;
+    showLabels?: boolean;
   };
 }
 
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
-  onSave?: (values: Partial<SettingsFormValues>) => void; // Added onSave
-  defaultValues?: Partial<SettingsFormValues>; // Added defaultValues
 }

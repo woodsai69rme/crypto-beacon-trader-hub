@@ -21,6 +21,7 @@ const defaultSidebarSettings: SidebarSettings = {
   enabled: true,
   position: 'left',
   defaultCollapsed: false,
+  collapsed: false,
   showLabels: true
 };
 
@@ -78,6 +79,10 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         } catch (e) {
           console.error('Failed to update ticker settings in localStorage:', e);
         }
+      } else {
+        localStorage.setItem('userSettings', JSON.stringify({
+          ticker: updated
+        }));
       }
       
       return updated;
@@ -100,6 +105,10 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         } catch (e) {
           console.error('Failed to update sidebar settings in localStorage:', e);
         }
+      } else {
+        localStorage.setItem('userSettings', JSON.stringify({
+          sidebar: updated
+        }));
       }
       
       return updated;

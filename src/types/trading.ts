@@ -1,3 +1,4 @@
+
 /**
  * Type definitions for the trading components and functionality
  */
@@ -151,6 +152,27 @@ export interface TradeOrder {
 }
 
 // AI trading strategy configuration
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  profitPotential: 'low' | 'medium' | 'high';
+  timeframe: 'short' | 'medium' | 'long';
+  indicators: string[];
+  triggers: string[];
+  implementation?: string;
+  recommendation?: string;
+  confidence?: number;
+  backtestResults?: {
+    winRate: number;
+    profitFactor: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+  };
+}
+
+// Trading strategy configuration
 export interface TradingStrategy {
   id: string;
   name: string;
@@ -287,6 +309,100 @@ export interface Trade {
   fees?: number;
   coin?: string;
   total: number;
+  tags?: string[];
+}
+
+// Trading account information
+export interface TradingAccount {
+  id: string;
+  name: string;
+  trades: Trade[];
+  balance: number;
+  currency: SupportedCurrency;
+  createdAt: string;
+}
+
+// Trading form props
+export interface TradingFormProps {
+  onAddTrade: (trade: Trade) => void;
+  defaultValues?: Partial<Trade>;
+}
+
+// Fake trading form props
+export interface FakeTradingFormProps extends TradingFormProps {
+  advancedMode?: boolean;
+}
+
+// Quantitative analysis props
+export interface QuantitativeAnalysisProps {
+  coinId: string;
+  timeframe?: string;
+}
+
+// AI bot trading props
+export interface AiBotTradingProps {
+  tradingBot: AITradingStrategy;
+  onStart: (botId: string, config: any) => void;
+  onStop: (botId: string) => void;
+  isRunning: boolean;
+  performance?: {
+    totalTrades: number;
+    winRate: number;
+    profitLoss: number;
+    startDate: string;
+  };
+}
+
+// Tax calculation interface
+export interface ATOTaxCalculation {
+  year: number;
+  gains: number;
+  losses: number;
+  netPosition: number;
+  taxableAmount: number;
+  taxOwed: number;
+  effectiveTaxRate: number;
+  transactions: {
+    date: string;
+    asset: string;
+    quantity: number;
+    costBase: number;
+    proceedsAmount: number;
+    gainLoss: number;
+    isShortTerm: boolean;
+  }[];
+}
+
+// Ticker settings interface
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom' | 'both';
+  speed: number;
+  direction: 'left' | 'right';
+  autoPause: boolean;
+}
+
+// Sidebar settings interface
+export interface SidebarSettings {
+  enabled: boolean;
+  position: 'left' | 'right';
+  defaultCollapsed: boolean;
+  showLabels: boolean;
+  collapsed?: boolean;
+}
+
+// Widget types
+export type WidgetType = 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom';
+export type WidgetSize = 'small' | 'medium' | 'large';
+
+// Widget definition
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  size?: WidgetSize;
+  position?: { x: number; y: number };
+  customContent?: string;
 }
 
 // Detachable dashboard props
@@ -297,164 +413,4 @@ export interface DetachableDashboardProps {
   darkMode?: boolean;
   isDetached?: boolean;
   children?: React.ReactNode;
-}
-
-// Widget related interfaces
-export interface Widget {
-  id: string;
-  title: string;
-  type: WidgetType;
-  size?: WidgetSize;
-  position?: { x: number; y: number };
-  customContent?: string;
-}
-
-export type WidgetType = 
-  | 'price-chart'
-  | 'portfolio-summary'
-  | 'watchlist'
-  | 'news'
-  | 'alerts'
-  | 'trading'
-  | 'aiTrading'
-  | 'aiAnalysis'
-  | 'custom';
-
-export type WidgetSize = 'small' | 'medium' | 'large' | 'flexible';
-
-// Local model types
-export interface LocalModel {
-  id: string;
-  name: string;
-  endpoint: string;
-  type: "prediction" | "sentiment" | "trading" | "analysis";
-  isConnected: boolean;
-  lastUsed?: string;
-  description?: string;
-  performance?: {
-    accuracy: number;
-    returns: number;
-    sharpeRatio: number;
-    maxDrawdown: number;
-  };
-}
-
-export interface ModelListProps {
-  models: LocalModel[];
-  onSelect?: (model: LocalModel) => void;
-  onConnect?: (model: LocalModel) => void;
-  onDisconnect?: (modelId: string) => void;
-}
-
-// Add missing interface for EnhancedPortfolioBenchmarking
-export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioPerformance?: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    yearly: number;
-    allTime: number;
-  };
-}
-
-// Adding missing interfaces for settings components
-export interface SettingsComponentProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-export interface SettingsFormValues {
-  username?: string;
-  displayName?: string;
-  email?: string;
-  theme?: string;
-  bio?: string;
-  notifications: {
-    email: boolean;
-    push: boolean;
-    trades: boolean;
-    pricing: boolean;
-    news: boolean;
-  };
-  tradingPreferences: {
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
-  };
-  privacy?: {
-    showOnlineStatus: boolean;
-    sharePortfolio: boolean;
-    shareTrades: boolean;
-    dataCollection: boolean;
-    marketingConsent: boolean;
-    thirdPartySharing: boolean;
-  };
-  account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
-  };
-  appearance?: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-}
-import { UseFormReturn } from "react-hook-form";
-
-export interface SettingsFormValues {
-  username?: string;
-  displayName?: string;
-  email?: string;
-  theme?: string;
-  bio?: string;
-  language?: string; // Added language field
-  notifications: {
-    email: boolean;
-    push: boolean;
-    trades: boolean;
-    pricing: boolean;
-    news: boolean;
-  };
-  tradingPreferences: {
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
-  };
-  privacy?: {
-    showOnlineStatus: boolean;
-    sharePortfolio: boolean;
-    shareTrades: boolean;
-    dataCollection: boolean;
-    marketingConsent: boolean;
-    thirdPartySharing: boolean;
-  };
-  account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
-  };
-  appearance?: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-  ticker?: { // Added ticker settings
-    enabled: boolean;
-    position: string;
-    speed: number;
-    direction: string;
-    autoPause: boolean;
-  };
-  sidebar?: { // Added sidebar settings
-    enabled: boolean;
-    position: string;
-    collapsed: boolean;
-    autoHide: boolean;
-  };
-}
-
-export interface SettingsComponentProps {
-  form: UseFormReturn<SettingsFormValues>;
-  onSave?: (values: Partial<SettingsFormValues>) => void; // Added onSave
-  defaultValues?: Partial<SettingsFormValues>; // Added defaultValues
 }

@@ -3,19 +3,17 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import { FakeTradingFormProps, Trade } from '@/types/trading';
 
-interface FakeTradingFormProps {
-  onAddTrade: (trade: any) => void;
-}
-
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedMode = false }) => {
   const [asset, setAsset] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [type, setType] = useState<'buy' | 'sell'>('buy');
   const [tradeDate, setTradeDate] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,15 +28,23 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
       return;
     }
     
-    const newTrade = {
+    const priceValue = parseFloat(price);
+    const quantityValue = parseFloat(quantity);
+    const totalValue = priceValue * quantityValue;
+    
+    const newTrade: Trade = {
       id: `trade-${Date.now()}`,
-      asset,
-      price: parseFloat(price),
-      quantity: parseFloat(quantity),
+      coinId: asset,
+      coinName: asset,
+      coinSymbol: asset,
+      price: priceValue,
+      amount: quantityValue,
       type,
-      // Convert string date to Date object (using string here to fix the error in the original component)
-      date: tradeDate,
-      timestamp: new Date(tradeDate).getTime()
+      timestamp: tradeDate,
+      currency: 'USD',
+      totalValue,
+      total: totalValue,
+      tags: advancedMode ? tags : []
     };
     
     onAddTrade(newTrade);
@@ -48,6 +54,7 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
     setPrice('');
     setQuantity('');
     setTradeDate('');
+    setTags([]);
     
     toast({
       title: "Trade Added",
@@ -109,6 +116,17 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade }) => {
           onChange={(e) => setTradeDate(e.target.value)}
         />
       </div>
+      
+      {advancedMode && (
+        <div className="space-y-2">
+          <Label htmlFor="tags">Tags (comma-separated)</Label>
+          <Input
+            id="tags"
+            placeholder="e.g., long-term, dip-buy"
+            onChange={(e) => setTags(e.target.value.split(',').map(tag => tag.trim()))}
+          />
+        </div>
+      )}
       
       <div className="grid grid-cols-2 gap-4">
         <Button

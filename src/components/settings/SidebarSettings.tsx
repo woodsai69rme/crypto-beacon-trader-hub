@@ -64,7 +64,7 @@ const SidebarSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="sidebar.defaultCollapsed"
+          name="sidebar.collapsed"
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">

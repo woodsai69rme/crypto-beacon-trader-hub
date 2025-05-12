@@ -1,175 +1,162 @@
 
-# Advanced Trading Platform User Guide
+# User Guide
 
-## Introduction
-
-Welcome to the Advanced Trading Platform - a powerful tool designed to provide institutional-grade trading features for cryptocurrency traders. This platform combines advanced technical analysis tools, AI-powered trading insights, and real-time market data to help you make informed trading decisions.
+Welcome to the Crypto Trading Platform! This guide will help you navigate and make the most of the available features.
 
 ## Getting Started
 
 ### Dashboard Overview
 
-The dashboard provides a comprehensive overview of the crypto market and your trading portfolio. Key areas include:
+The main dashboard provides an overview of:
 
-- **Trading Dashboard**: Real-time trading with advanced charts
-- **AI Trading**: AI-powered trading bots and analysis
-- **Portfolio**: Track and analyze your holdings
-- **Market Analysis**: In-depth market data and correlations
+- Current market prices via the price ticker
+- Portfolio value and performance
+- Recent market news
+- Trading activity
 
 ### Navigation
 
-The main navigation is located at the top of the screen, allowing you to access different sections of the platform. On mobile devices, a hamburger menu provides access to all features.
+Use the sidebar (if enabled) to navigate between main sections:
+- Dashboard - Overview of your account and market
+- Trading - Access to trading interfaces
+- Analysis - In-depth market analysis tools
+- Settings - Configure application preferences
+
+## Themes and UI Customization
+
+### Changing Themes
+
+1. Click the theme toggle button in the top navigation bar
+2. Select from available themes:
+   - Light / Dark mode
+   - Color schemes (Default, Midnight Tech, Cyber Pulse, Matrix Code, etc.)
+
+### Customizing the Interface
+
+Access Settings to customize:
+- Ticker settings (position, speed, enable/disable)
+- Sidebar settings (position, collapsed state, labels)
+- Appearance settings (animations, compact mode)
+- Notification preferences
 
 ## Trading Features
 
-### Real-Time Trading
+### Real-Time Price Tracking
 
-The enhanced fake trading system allows you to practice trading with real-time price updates without risking real money. Features include:
+1. View the Price Ticker at the top/bottom of the screen
+2. Access detailed price data in the Trading section
+3. Select specific coins to view detailed charts
 
-- Real-time price charts
-- Buy and sell functionality
-- Portfolio tracking
-- Trade history
+### Making Trades
 
-To execute a trade:
-1. Select a cryptocurrency from the dropdown
-2. Enter the amount you wish to buy/sell
-3. Click the "Buy" or "Sell" button
-4. Review your trade history and portfolio performance
+Using the mock trading interface:
+1. Select an asset from the dropdown
+2. Enter the price and quantity
+3. Choose Buy or Sell
+4. Enter the trade date
+5. Add tags (optional in advanced mode)
+6. Submit the trade
 
-### TradingView Charts
+### AI Trading Features
 
-Professional-grade charts with advanced technical analysis tools are available through the TradingView integration. Features include:
+Access AI-powered trading features:
+1. Navigate to the AI Trading section
+2. Select a trading model
+3. Configure model parameters
+4. Run the model to get trade suggestions
+5. View backtest results to evaluate performance
 
-- Multiple chart types (candles, bars, line, area)
-- Timeframe selection (1m to 1w)
-- Technical indicators
-- Drawing tools
+### Portfolio Analysis
 
-To use the charts:
-1. Select a cryptocurrency pair
-2. Choose your preferred timeframe
-3. Apply technical indicators and drawing tools as needed
+1. View your current holdings and total value
+2. Analyze performance over time
+3. Get AI-generated portfolio optimization suggestions
 
-### Fibonacci Analysis
+## Market Analysis Tools
 
-The Fibonacci analysis tool automatically identifies potential reversal points using Fibonacci retracement and extension levels. This can help identify potential support and resistance levels for your trades.
+### Price Charts
 
-To use Fibonacci analysis:
-1. Navigate to the Fibonacci Analysis section
-2. Select a cryptocurrency and timeframe
-3. The system will automatically calculate and display key Fibonacci levels
+Interactive price charts allow you to:
+- View price history across different timeframes
+- Toggle between line and candlestick charts
+- Display volume indicators
+- Add technical indicators
 
-### Hyblock Liquidity Map
+### Correlation Analysis
 
-The Hyblock liquidity map shows where large orders and liquidity pools are located in the market. This helps you identify potential price targets for market makers.
+Understand how different assets move in relation to each other:
+1. Select assets to compare
+2. Choose a timeframe
+3. View correlation coefficient and visual representation
 
-Key features:
-- Visualization of buy and sell liquidity zones
-- Large order detection
-- Real-time updates
+### News Feed
 
-## AI Trading Features
+Stay up to date with market news:
+- Scroll through the news ticker for headlines
+- Click on news items for full articles
+- Filter news by relevance to your portfolio
 
-### AI Trading Bots
+## API Integration
 
-The platform offers AI-powered trading bots that can execute trades based on predefined strategies. Features include:
+### OpenRouter Integration
 
-- Multiple pre-built strategies
-- Real-time trade execution
-- Performance tracking
-- Strategy customization
+To use AI features powered by OpenRouter:
+1. Navigate to Settings > Integrations
+2. Enter your OpenRouter API key
+3. Save to enable AI-powered features
 
-To set up an AI trading bot:
-1. Navigate to the AI Bots section
-2. Select a trading strategy
-3. Connect the bot to your trading account
-4. Start the bot to begin automated trading
+## Account Settings
 
-### AI Trading Dashboard
+### Notification Settings
 
-The AI Trading Dashboard provides insights and analytics generated by the AI system. It shows market analysis, trading signals, and strategy performance.
+Customize how you receive alerts:
+- Email notifications
+- Push notifications
+- Trading alerts
+- Price alerts
+- News alerts
 
-Key features:
-- Real-time market analysis
-- Trading signal generation
-- Strategy visualization
-- Performance metrics
+### Privacy Settings
 
-### Quantitative Analysis
+Control your data and visibility:
+- Online status
+- Portfolio sharing
+- Trade sharing
+- Data collection preferences
 
-The quantitative analysis tool calculates trade outcome probabilities using mathematical models. This helps you assess the risk and potential reward of each trade.
+### Security Settings
 
-Features include:
-- Probability calculations for different trading scenarios
-- Risk/reward analysis
-- Technical indicator signals
-- Multi-timeframe analysis
-
-## Portfolio Management
-
-### Trading Accounts
-
-The platform allows you to create and manage multiple trading accounts. Each account tracks its own balance, trades, and performance.
-
-To manage accounts:
-1. Use the Account Manager to create or select accounts
-2. View account balance and performance metrics
-3. Review trade history and portfolio composition
-
-### Portfolio Analytics
-
-Track and analyze your portfolio performance with detailed metrics and visualizations. Features include:
-
-- Total portfolio value
-- Performance percentages
-- Asset allocation
-- Profit/loss calculations
-
-## Settings and Preferences
-
-### Currency Preferences
-
-Change the display currency for all monetary values throughout the application:
-1. Select your preferred currency from the dropdown (USD, EUR, GBP, AUD)
-2. All values will automatically convert to the selected currency
-
-### Theme Toggle
-
-Switch between light and dark themes to customize your viewing experience:
-1. Click the theme toggle button in the top navigation bar
-2. Select your preferred theme
-
-## Advanced Features
-
-### Multi-Exchange Trading
-
-Connect to multiple cryptocurrency exchanges to trade and view your portfolio across platforms.
-
-### Market Alerts
-
-Set up price, volume, and technical alerts to notify you of important market movements. To create an alert:
-1. Navigate to the Alerts section
-2. Select the alert type (price, volume, technical)
-3. Configure the alert parameters
-4. Save the alert
-
-### Local AI Models
-
-Connect to local AI models for advanced trading analysis and predictions. This feature requires additional setup with compatible AI models.
+Enhance your account security:
+- Two-factor authentication
+- Login alerts
 
 ## Troubleshooting
 
 ### Common Issues
 
-- **Price Updates Not Working**: Check your internet connection and refresh the page
-- **Chart Not Loading**: Ensure your browser allows third-party scripts
-- **Trade Execution Errors**: Verify you have sufficient balance in your account
+**Ticker Not Displaying Correctly**:
+- Check if the ticker is enabled in settings
+- Adjust the ticker speed if it's moving too fast/slow
 
-### Support
+**Chart Data Not Loading**:
+- Check your internet connection
+- Try refreshing the page
+- Verify API provider status
 
-For additional help, click the help button in the application or refer to the detailed documentation in the settings menu.
+**Settings Not Saving**:
+- Clear browser cache and cookies
+- Ensure localStorage is enabled in your browser
 
-## Privacy and Security
+### Getting Help
 
-This platform operates entirely in your browser. Your trading data is stored locally on your device and is not transmitted to any external servers unless you explicitly connect to exchange APIs.
+For additional assistance:
+- Check the documentation
+- Contact support through the help section
+- View tutorials for guided walkthroughs
+
+## Keyboard Shortcuts
+
+- `Shift + D`: Toggle dark/light mode
+- `Shift + S`: Toggle sidebar
+- `Shift + T`: Toggle ticker visibility
+- `Ctrl/Cmd + ,`: Open settings
