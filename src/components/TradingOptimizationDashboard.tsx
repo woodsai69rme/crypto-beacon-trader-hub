@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AITradingStrategy } from "@/types/trading";
 import { Bot, TrendingUp, Settings, ChevronRight } from "lucide-react";
-import { createCustomStrategy, DEFAULT_STRATEGY_PARAMETERS } from "@/services/strategyBuilderService";
+import { createCustomStrategy } from "@/services/strategyBuilderService";
 import { mockAIStrategies as predefinedStrategies } from "@/utils/mockData";
 
 // Import components
@@ -78,7 +78,7 @@ const TradingOptimizationDashboard: React.FC = () => {
       'A custom trading strategy',
       'custom',
       '1h',
-      DEFAULT_STRATEGY_PARAMETERS
+      ['bitcoin'] // Fix: Pass string array for assets parameter
     );
     
     setSelectedStrategy(newStrategy);

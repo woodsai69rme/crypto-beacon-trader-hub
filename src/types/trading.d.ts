@@ -1,8 +1,9 @@
+
 export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: string; // Expanding the allowed types
+  type: string;
   timeframe: string;
   riskLevel?: string;
   parameters: {

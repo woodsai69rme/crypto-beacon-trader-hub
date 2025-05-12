@@ -1,175 +1,100 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Shield, Eye, UserCheck, Lock } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "./types";
+import React from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowRight, Download, Trash } from 'lucide-react';
 
-interface PrivacySettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const PrivacySettings: React.FC<PrivacySettingsProps> = ({ form }) => {
-  // Initialize privacy object if it doesn't exist
-  if (!form.getValues().privacy) {
-    form.setValue("privacy", {
-      showOnlineStatus: false,
-      sharePortfolio: false,
-      shareTrades: false,
-      dataCollection: false,
-      marketingConsent: false,
-      thirdPartySharing: false
-    });
-  }
-  
-  // Initialize account object if it doesn't exist
-  if (!form.getValues().account) {
-    form.setValue("account", {
-      twoFactorEnabled: false,
-      loginAlerts: false
-    });
-  }
-  
+export const PrivacySettings: React.FC = () => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Privacy & Security
-        </CardTitle>
-        <CardDescription>
-          Manage your privacy settings and security preferences
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Privacy Preferences</h3>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="share-data" className="flex-1">Share Trading Data for Analytics</Label>
+            <Switch id="share-data" defaultChecked />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            We use anonymized trading data to improve our algorithms and provide better insights.
+          </p>
+          
+          <div className="flex items-center justify-between pt-2">
+            <Label htmlFor="personalized-ads" className="flex-1">Personalized Content</Label>
+            <Switch id="personalized-ads" defaultChecked />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Allow us to customize content and recommendations based on your activity.
+          </p>
+          
+          <div className="flex items-center justify-between pt-2">
+            <Label htmlFor="activity-status" className="flex-1">Show Online Status</Label>
+            <Switch id="activity-status" defaultChecked />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Let others see when you're active on the platform.
+          </p>
+        </div>
+      </div>
       
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Privacy Settings</h3>
-          
-          {form.getValues().privacy && (
-            <>
-              <FormField
-                control={form.control}
-                name="privacy.showOnlineStatus"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Show Online Status</FormLabel>
-                      <FormDescription>
-                        Let others see when you're active on the platform
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="privacy.sharePortfolio"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Share Portfolio</FormLabel>
-                      <FormDescription>
-                        Allow others to see your portfolio holdings
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="privacy.shareTrades"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Share Trades</FormLabel>
-                      <FormDescription>
-                        Publish your trades for others to see
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
-        </div>
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Social Sharing</h3>
         
-        <Separator />
-        
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Security Settings</h3>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="share-trades" className="flex-1">Share My Trades</Label>
+            <Select defaultValue="friends">
+              <SelectTrigger id="share-trades" className="w-[180px]">
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="friends">Friends Only</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
-          {form.getValues().account && (
-            <>
-              <FormField
-                control={form.control}
-                name="account.twoFactorEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Two-Factor Authentication</FormLabel>
-                      <FormDescription>
-                        Add an extra layer of security to your account
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="account.loginAlerts"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Login Alerts</FormLabel>
-                      <FormDescription>
-                        Get notified when your account is accessed from a new device
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
+          <div className="flex items-center justify-between pt-2">
+            <Label htmlFor="share-portfolio" className="flex-1">Share My Portfolio</Label>
+            <Select defaultValue="private">
+              <SelectTrigger id="share-portfolio" className="w-[180px]">
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="friends">Friends Only</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Your Data</h3>
+        
+        <div className="flex flex-col space-y-2">
+          <Button variant="outline" className="justify-between">
+            <span className="flex items-center">
+              <Download className="mr-2 h-4 w-4" />
+              Download My Data
+            </span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+          
+          <Button variant="outline" className="justify-between text-destructive border-destructive/20 hover:bg-destructive/10">
+            <span className="flex items-center">
+              <Trash className="mr-2 h-4 w-4" />
+              Delete My Account
+            </span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

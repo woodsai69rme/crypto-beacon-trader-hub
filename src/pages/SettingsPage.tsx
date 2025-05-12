@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import NotificationSettings from '@/components/settings/NotificationSettings';
 import AppearanceSettings from '@/components/settings/AppearanceSettings';
-import { PrivacySettings } from '@/components/settings/PrivacySettings';
+import PrivacySettings from '@/components/settings/PrivacySettings';
 import { ApiKeyManagement } from '@/components/ApiKeyManagement';
 
 const SettingsPage = () => {

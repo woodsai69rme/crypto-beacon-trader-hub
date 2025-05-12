@@ -1,5 +1,80 @@
+import { AITradingStrategy, OptimizationResult, BacktestResult } from '@/types/trading';
 
-import { AITradingStrategy, OptimizationResult } from '@/types/trading';
+// Add the runBacktest function that was missing
+export const runBacktest = async (
+  strategy: AITradingStrategy,
+  startDate: string,
+  endDate: string,
+  initialCapital: number,
+  asset: string
+): Promise<BacktestResult> => {
+  // Simulate backtesting process time
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Generate simulated backtest results
+  const winRate = 50 + Math.random() * 30; // 50-80% win rate
+  const trades = Math.round(20 + Math.random() * 80); // 20-100 trades
+  const winningTrades = Math.round(trades * winRate / 100);
+  const losingTrades = trades - winningTrades;
+  
+  const profitPercentage = Math.round(10 + Math.random() * 40); // 10-50% profit
+  const profit = initialCapital * (profitPercentage / 100);
+  const finalBalance = initialCapital + profit;
+  const maxDrawdown = Math.round(5 + Math.random() * 15); // 5-20% drawdown
+  
+  const averageProfit = profit / winningTrades;
+  const averageLoss = (profit * 0.3) / losingTrades; // Simulate some losses
+  const profitFactor = (winningTrades * averageProfit) / (losingTrades * averageLoss);
+  const sharpeRatio = 1 + Math.random(); // 1-2 Sharpe ratio
+  
+  // Generate mock trade history
+  const trades_history = Array.from({ length: Math.min(trades, 20) }).map((_, i) => {
+    const isWin = Math.random() < (winRate / 100);
+    const tradeProfit = isWin ? 
+      (Math.random() * averageProfit * 1.5) : 
+      -(Math.random() * averageLoss * 1.5);
+    
+    const tradeDate = new Date(
+      new Date(startDate).getTime() + 
+      (i / Math.min(trades, 20)) * (new Date(endDate).getTime() - new Date(startDate).getTime())
+    );
+    
+    return {
+      id: `trade-${i + 1}`,
+      timestamp: tradeDate.toISOString(),
+      date: tradeDate.toLocaleDateString(),
+      type: isWin ? 'buy' : 'sell',
+      price: 30000 + (Math.random() * 10000 - 5000),
+      amount: (initialCapital * 0.1) / (30000 + (Math.random() * 10000 - 5000)),
+      total: initialCapital * 0.1,
+      profit: tradeProfit,
+      profitPercentage: (tradeProfit / (initialCapital * 0.1)) * 100
+    };
+  });
+  
+  return {
+    startDate,
+    endDate,
+    initialBalance: initialCapital,
+    finalBalance,
+    profit,
+    profitPercentage,
+    maxDrawdown,
+    winRate,
+    trades: trades_history,
+    sharpeRatio,
+    profitFactor,
+    averageProfit,
+    averageLoss,
+    initialCapital,
+    finalCapital: finalBalance,
+    totalReturn: profitPercentage,
+    totalTrades: trades,
+    winningTrades,
+    losingTrades,
+    sortinoRatio: sharpeRatio * 1.1 // Simulated Sortino ratio
+  };
+};
 
 // Mock parameter optimization function
 export const optimizeStrategy = async (
