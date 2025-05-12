@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AITradingStrategy } from "@/types/trading";
 import { Bot, TrendingUp, Settings, ChevronRight } from "lucide-react";
 import { createCustomStrategy, DEFAULT_STRATEGY_PARAMETERS } from "@/services/strategyBuilderService";
-import { predefinedStrategies } from "@/utils/aiTradingStrategies";
+import { mockAIStrategies as predefinedStrategies } from "@/utils/mockData";
 
 // Import components
 import StrategyBuilder from './trading/StrategyBuilder';

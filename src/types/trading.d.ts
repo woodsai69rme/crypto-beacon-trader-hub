@@ -42,13 +42,36 @@ export interface AITradingStrategy {
 }
 
 export interface BacktestResult {
-  returns: number;
-  winRate: number;
-  trades: number;
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  profit: number;
+  profitPercentage: number;
   maxDrawdown: number;
+  winRate: number;
+  trades: {
+    id: string;
+    timestamp: string;
+    date: string;
+    type: 'buy' | 'sell';
+    price: number;
+    amount: number;
+    total: number;
+    profit: number;
+    profitPercentage: number;
+  }[];
   sharpeRatio: number;
   profitFactor: number;
-  tradeHistory?: Trade[];
+  averageProfit: number;
+  averageLoss: number;
+  initialCapital: number;
+  finalCapital: number;
+  totalReturn: number;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  sortinoRatio: number;
 }
 
 export interface OptimizationResult {
@@ -56,16 +79,15 @@ export interface OptimizationResult {
   strategyId: string;
   parameters: Record<string, any>;
   performance: {
-    returns: number;
-    winRate: number;
-    profitFactor: number;
-    sharpeRatio: number;
+    profit: number;
+    profitPercentage: number;
     maxDrawdown: number;
+    winRate: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalReturn: number;
   };
-  trades: number;
-  timeframe: string;
-  optimizationDate: string;
-  improvement?: number;
+  improvement: number;
   parameterValues: Record<string, any>;
 }
 
@@ -95,7 +117,7 @@ export interface Trade {
   coinId: string;
   coinName: string;
   coinSymbol: string;
-  currency: string;
+  currency: SupportedCurrency;
   totalValue: number;
 }
 
@@ -115,6 +137,20 @@ export interface CoinOption {
 
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
 
+export interface Position {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  amount: number;
+  entryPrice: number;
+  currentPrice: number;
+  value: number;
+  profitLoss: number;
+  profitLossPercentage: number;
+  openedAt: string;
+}
+
 export interface TradingAccount {
   id: string;
   name: string;
@@ -130,20 +166,11 @@ export interface TradingAccount {
     monthly: number;
     allTime: number;
   };
-}
-
-export interface Position {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  amount: number;
-  entryPrice: number;
-  currentPrice: number;
-  value: number;
-  profitLoss: number;
-  profitLossPercentage: number;
-  openedAt: string;
+  type?: string;
+  provider?: string;
+  lastUpdated?: string;
+  isActive?: boolean;
+  assets?: PortfolioAsset[];
 }
 
 export interface ApiEndpoint {
@@ -186,7 +213,7 @@ export interface RealTimePriceChartProps {
   coinId?: string;
   selectedCoinId?: string;
   onSelectCoin?: (coinId: string) => void;
-  availableCoins: CoinOption[];
+  availableCoins?: CoinOption[];
   updateInterval?: number;
 }
 

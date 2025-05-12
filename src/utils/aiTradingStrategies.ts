@@ -1,276 +1,141 @@
 
-import { AITradingStrategy, TradingAccount } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
+import { AITradingStrategy } from "@/types/trading";
 
-// Mock trading strategies
+export const predefinedStrategies: AITradingStrategy[] = [
+  {
+    id: 'strategy-101',
+    name: 'Momentum ETH',
+    description: 'A strategy that follows Ethereum price momentum',
+    type: 'trend-following',
+    timeframe: '4h',
+    riskLevel: 'medium',
+    parameters: {
+      period: 14,
+      threshold: 70,
+      stopLoss: 5,
+      takeProfit: 15,
+      useVolume: true
+    },
+    assets: ['ethereum'],
+    performance: {
+      winRate: 68,
+      returnRate: 34.2,
+      sharpeRatio: 2.1,
+      maxDrawdown: 12.5
+    }
+  },
+  {
+    id: 'strategy-102',
+    name: 'BTC Mean Reversion',
+    description: 'Capitalizes on Bitcoin price returning to the mean',
+    type: 'mean-reversion',
+    timeframe: '1d',
+    riskLevel: 'low',
+    parameters: {
+      period: 21,
+      threshold: 65,
+      stopLoss: 3,
+      takeProfit: 10,
+      useVolume: false
+    },
+    assets: ['bitcoin'],
+    performance: {
+      winRate: 72,
+      returnRate: 28.4,
+      sharpeRatio: 1.9,
+      maxDrawdown: 9.2
+    }
+  },
+  {
+    id: 'strategy-103',
+    name: 'Multi-Asset Trend',
+    description: 'Follows trends across multiple crypto assets',
+    type: 'trend-following',
+    timeframe: '1d',
+    riskLevel: 'medium',
+    parameters: {
+      period: 10,
+      threshold: 75,
+      stopLoss: 7,
+      takeProfit: 20,
+      useVolume: true
+    },
+    assets: ['bitcoin', 'ethereum', 'solana'],
+    performance: {
+      winRate: 65,
+      returnRate: 42.3,
+      sharpeRatio: 2.3,
+      maxDrawdown: 14.7
+    }
+  }
+];
+
 export const mockTradingStrategies: AITradingStrategy[] = [
   {
-    id: 'strategy-1',
-    name: 'Trend Follower',
-    description: 'A strategy that identifies and follows medium-term trends using moving averages.',
-    type: 'trend-following',
+    id: 'strategy-1001',
+    name: 'RSI BTC Strategy',
+    description: 'Uses RSI indicator to trade Bitcoin',
+    type: 'mean-reversion',
     timeframe: '1h',
     riskLevel: 'medium',
     parameters: {
       period: 14,
       threshold: 70,
       stopLoss: 5,
-      takeProfit: 10,
-      useVolume: true,
-      indicator: 'RSI'
-    },
-    assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
-  },
-  {
-    id: 'strategy-2',
-    name: 'Mean Reversion',
-    description: 'Captures short-term price reversals when assets move too far from their average.',
-    type: 'mean-reversion',
-    timeframe: '15m',
-    riskLevel: 'high',
-    parameters: {
-      period: 20,
-      upperBand: 75,
-      lowerBand: 25,
-      stopLoss: 3,
-      takeProfit: 6,
-      useVolume: false,
-      indicator: 'Bollinger'
-    },
-    assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
-  },
-  {
-    id: 'strategy-3',
-    name: 'MACD Crossover',
-    description: 'Detects trend changes using the MACD indicator crossovers.',
-    type: 'macd',
-    timeframe: '4h',
-    riskLevel: 'medium',
-    parameters: {
-      fastPeriod: 12,
-      slowPeriod: 26,
-      signalPeriod: 9,
-      stopLoss: 7,
-      takeProfit: 14,
+      takeProfit: 15,
       useVolume: true
     },
-    assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
+    assets: ['bitcoin'],
+    performance: {
+      winRate: 68,
+      returnRate: 34.2,
+      sharpeRatio: 2.1,
+      maxDrawdown: 12.5
+    }
+  },
+  {
+    id: 'strategy-1002',
+    name: 'Multi-Timeframe ETH',
+    description: 'Combines multiple timeframes for Ethereum trading',
+    type: 'multi-timeframe',
+    timeframe: '4h',
+    riskLevel: 'high',
+    parameters: {
+      period: 21,
+      threshold: 65,
+      stopLoss: 10,
+      takeProfit: 25,
+      useVolume: true
+    },
+    assets: ['ethereum'],
+    performance: {
+      winRate: 62,
+      returnRate: 48.7,
+      sharpeRatio: 1.8,
+      maxDrawdown: 18.3
+    }
   }
 ];
 
-// Exporting predefined strategies for use in components
-export const predefinedStrategies = mockTradingStrategies;
-
-// Mock trading accounts
-export const mockTradingAccounts: TradingAccount[] = [
+export const mockTradingAccounts = [
   {
     id: 'account-1',
     name: 'Main Trading Account',
-    balance: 10000,
-    initialBalance: 10000,
+    type: 'standard',
+    provider: 'local',
+    balance: 25000,
     currency: 'USD',
-    createdAt: new Date().toISOString(),
-    positions: [
-      {
-        id: 'position-1',
-        coinId: 'bitcoin',
-        coinName: 'Bitcoin',
-        coinSymbol: 'BTC',
-        amount: 0.05,
-        entryPrice: 29500,
-        currentPrice: 30000,
-        value: 1500,
-        profitLoss: 25,
-        profitLossPercentage: 1.69,
-        openedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() // 5 days ago
-      },
-      {
-        id: 'position-2',
-        coinId: 'ethereum',
-        coinName: 'Ethereum',
-        coinSymbol: 'ETH',
-        amount: 1,
-        entryPrice: 1900,
-        currentPrice: 1800,
-        value: 1800,
-        profitLoss: -100,
-        profitLossPercentage: -5.26,
-        openedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
-      }
-    ],
-    trades: generateMockTrades(15),
-    performance: {
-      daily: 1.2,
-      weekly: -0.8,
-      monthly: 4.5,
-      allTime: 7.3
-    }
+    lastUpdated: '2023-05-10T14:30:00Z',
+    isActive: true
   },
   {
     id: 'account-2',
-    name: 'Conservative Portfolio',
-    balance: 25000,
-    initialBalance: 20000,
+    name: 'AI Bot Account',
+    type: 'bot',
+    provider: 'local',
+    balance: 15000,
     currency: 'USD',
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    positions: [
-      {
-        id: 'position-3',
-        coinId: 'bitcoin',
-        coinName: 'Bitcoin',
-        coinSymbol: 'BTC',
-        amount: 0.2,
-        entryPrice: 25000,
-        currentPrice: 30000,
-        value: 6000,
-        profitLoss: 1000,
-        profitLossPercentage: 20,
-        openedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'position-4',
-        coinId: 'cardano',
-        coinName: 'Cardano',
-        coinSymbol: 'ADA',
-        amount: 5000,
-        entryPrice: 0.4,
-        currentPrice: 0.45,
-        value: 2250,
-        profitLoss: 250,
-        profitLossPercentage: 12.5,
-        openedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    ],
-    trades: generateMockTrades(8),
-    performance: {
-      daily: 0.5,
-      weekly: 2.3,
-      monthly: 8.2,
-      allTime: 25
-    }
+    lastUpdated: '2023-05-15T09:45:00Z',
+    isActive: true
   }
 ];
-
-// Helper function to generate mock trades
-function generateMockTrades(count: number) {
-  const trades = [];
-  const coins = [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL' },
-    { id: 'ripple', name: 'XRP', symbol: 'XRP' },
-    { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
-    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' }
-  ];
-  
-  for (let i = 0; i < count; i++) {
-    const type = Math.random() > 0.5 ? 'buy' : 'sell';
-    const coin = coins[Math.floor(Math.random() * coins.length)];
-    const price = coin.id === 'bitcoin' ? 
-      28000 + Math.random() * 4000 :
-      coin.id === 'ethereum' ?
-      1700 + Math.random() * 200 :
-      coin.id === 'solana' ?
-      40 + Math.random() * 10 :
-      coin.id === 'ripple' ?
-      0.5 + Math.random() * 0.1 :
-      coin.id === 'cardano' ?
-      0.4 + Math.random() * 0.1 :
-      0.05 + Math.random() * 0.03;
-    
-    const amount = coin.id === 'bitcoin' ? 
-      0.01 + Math.random() * 0.1 :
-      coin.id === 'ethereum' ?
-      0.1 + Math.random() * 2 :
-      coin.id === 'solana' ?
-      1 + Math.random() * 10 :
-      coin.id === 'ripple' ?
-      100 + Math.random() * 500 :
-      coin.id === 'cardano' ?
-      100 + Math.random() * 1000 :
-      100 + Math.random() * 1000;
-      
-    const total = price * amount;
-    const profit = type === 'sell' ? (Math.random() * 2 - 0.5) * total * 0.1 : 0;
-    const profitPercentage = profit / total * 100;
-    
-    // Create timestamp between 1 and 30 days ago
-    const timestamp = new Date();
-    timestamp.setDate(timestamp.getDate() - Math.floor(Math.random() * 30) - 1);
-    
-    trades.push({
-      id: uuidv4(),
-      timestamp: timestamp.toISOString(),
-      date: timestamp.toLocaleDateString(),
-      type,
-      price,
-      amount,
-      total,
-      profit,
-      profitPercentage,
-      coin: coin.id,
-      coinId: coin.id,
-      coinName: coin.name,
-      coinSymbol: coin.symbol,
-      currency: 'USD',
-      totalValue: total + profit
-    });
-  }
-  
-  // Sort by timestamp, newest first
-  return trades.sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
-}
-
-// Export strategy utilities
-export default {
-  mockTradingStrategies,
-  mockTradingAccounts,
-  predefinedStrategies,
-  
-  // Generate a new strategy
-  createStrategy(
-    name: string,
-    description: string,
-    type: string,
-    timeframe: string,
-    parameters: Record<string, any> = {},
-    assets: string[] = ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
-  ): AITradingStrategy {
-    return {
-      id: uuidv4(),
-      name,
-      description,
-      type,
-      timeframe,
-      parameters: {
-        period: 14,
-        threshold: 70,
-        stopLoss: 5,
-        takeProfit: 10,
-        ...parameters
-      },
-      assets
-    };
-  },
-  
-  // Get risk level based on parameters
-  calculateRiskLevel(strategy: AITradingStrategy): string {
-    const { stopLoss, takeProfit, riskFactor } = strategy.parameters;
-    
-    if (!stopLoss || stopLoss > 10) {
-      return 'high';
-    }
-    
-    if (riskFactor && riskFactor > 2) {
-      return 'high';
-    }
-    
-    if (stopLoss < 3) {
-      return 'low';
-    }
-    
-    return 'medium';
-  }
-};

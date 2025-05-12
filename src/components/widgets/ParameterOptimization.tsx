@@ -1,84 +1,48 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { optimizeStrategy } from '@/services/strategyBuilderService';
-import { AITradingStrategy } from '@/types/trading';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { AITradingStrategy } from "@/types/trading";
+import { Sliders, ArrowRight } from "lucide-react";
+import { optimizeStrategy } from "@/services/strategyBuilderService";
 
 interface ParameterOptimizationProps {
   strategy: AITradingStrategy | null;
-  onApplyOptimizedParameters?: (parameters: Record<string, any>) => void;
+  onApplyOptimizedParameters: (parameters: Record<string, any>) => void;
 }
 
-const ParameterOptimization: React.FC<ParameterOptimizationProps> = ({ 
+const ParameterOptimization: React.FC<ParameterOptimizationProps> = ({
   strategy,
   onApplyOptimizedParameters
 }) => {
+  const [target, setTarget] = useState<string>('profitFactor');
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
-  const [optimizationTarget, setOptimizationTarget] = useState<'profitFactor' | 'sharpeRatio' | 'profit' | 'drawdown'>('profitFactor');
   const [optimizationResult, setOptimizationResult] = useState<any>(null);
-  const [paramRanges, setParamRanges] = useState<Array<{
-    id: string;
-    label: string;
-    min: number;
-    max: number;
-    step: number;
-    current: number[];
-  }>>([]);
-
-  // Initialize parameter ranges based on strategy
-  useEffect(() => {
-    if (strategy && strategy.parameters) {
-      const initialRanges = [];
-      
-      // Get ranges based on strategy parameters
-      for (const [key, value] of Object.entries(strategy.parameters)) {
-        // Only add numerical parameters
-        if (typeof value === 'number') {
-          const min = Math.max(0, value * 0.5);
-          const max = value * 1.5;
-          const step = (max - min) / 20;
-          
-          initialRanges.push({
-            id: key,
-            label: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-            min,
-            max,
-            step,
-            current: [value]
-          });
-        }
-      }
-      
-      setParamRanges(initialRanges);
-      setOptimizationResult(null);
-    }
-  }, [strategy]);
   
-  const handleOptimize = async () => {
+  const runOptimization = async () => {
     if (!strategy) return;
     
     setIsOptimizing(true);
+    setOptimizationResult(null);
     
     try {
-      // Prepare parameter ranges for optimization
-      const parameterRanges = paramRanges.map(param => ({
-        id: param.id,
-        min: param.min,
-        max: param.max,
-        step: param.step
-      }));
+      // Create parameter ranges for optimization
+      const paramRanges = Object.entries(strategy.parameters)
+        .filter(([_, value]) => typeof value === 'number')
+        .map(([key, value]) => ({
+          id: key,
+          min: Math.max(1, Number(value) * 0.7),
+          max: Number(value) * 1.3,
+          step: Number(value) * 0.05
+        }))
+        .slice(0, 3); // Limit to top 3 parameters for simplicity
       
-      // Call the strategy optimization service
       const result = await optimizeStrategy(
         strategy,
-        parameterRanges,
-        optimizationTarget
+        paramRanges,
+        target as any
       );
       
       setOptimizationResult(result);
@@ -90,160 +54,83 @@ const ParameterOptimization: React.FC<ParameterOptimizationProps> = ({
   };
   
   const handleApplyParameters = () => {
-    if (optimizationResult && onApplyOptimizedParameters) {
+    if (optimizationResult) {
       onApplyOptimizedParameters(optimizationResult.parameterValues);
     }
   };
   
-  const handleParamRangeChange = (id: string, values: number[]) => {
-    setParamRanges(prev => 
-      prev.map(param => 
-        param.id === id ? { ...param, current: values } : param
-      )
-    );
-  };
-  
-  if (!strategy) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Select a strategy to optimize parameters</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-  
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-medium">Parameter Optimization</CardTitle>
-        <CardDescription>
-          Optimize strategy parameters to improve performance
-        </CardDescription>
+        <CardTitle className="text-lg flex items-center">
+          <Sliders className="h-5 w-5 mr-2" />
+          Quick Optimization
+        </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="optimization-target">Optimization Target</Label>
-            <Select
-              value={optimizationTarget}
-              onValueChange={(value) => setOptimizationTarget(value as any)}
-            >
-              <SelectTrigger id="optimization-target">
-                <SelectValue placeholder="Select optimization target" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="profitFactor">Profit Factor</SelectItem>
-                <SelectItem value="sharpeRatio">Sharpe Ratio</SelectItem>
-                <SelectItem value="profit">Total Profit</SelectItem>
-                <SelectItem value="drawdown">Minimize Drawdown</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="border rounded-md p-4">
-            <h3 className="text-sm font-medium mb-4">Parameter Ranges</h3>
-            
-            {paramRanges.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                No numerical parameters available for this strategy
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {paramRanges.map((param) => (
-                  <div key={param.id} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor={param.id}>{param.label}</Label>
-                      <span className="text-sm font-mono">{param.current[0]}</span>
-                    </div>
-                    <Slider
-                      id={param.id}
-                      min={param.min}
-                      max={param.max}
-                      step={param.step}
-                      value={param.current}
-                      onValueChange={(values) => handleParamRangeChange(param.id, values)}
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{param.min.toFixed(2)}</span>
-                      <span>{param.max.toFixed(2)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <Button 
-          className="w-full" 
-          onClick={handleOptimize}
-          disabled={isOptimizing || paramRanges.length === 0}
-        >
-          {isOptimizing ? 'Optimizing...' : 'Run Optimization'}
-        </Button>
-        
-        {optimizationResult && (
-          <div className="border rounded-md p-4 mt-4 bg-muted/40">
-            <h3 className="font-medium mb-2">Optimization Results</h3>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Improvement:</span>
-                <span className="font-medium text-green-600">
-                  +{optimizationResult.improvement.toFixed(2)}%
-                </span>
+      <CardContent className="space-y-4">
+        {!strategy ? (
+          <p className="text-center text-muted-foreground py-4">
+            Save your strategy first to enable optimization
+          </p>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Optimization Target</label>
+                <Select defaultValue={target} onValueChange={setTarget}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select target" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="profit">Total Return</SelectItem>
+                    <SelectItem value="profitFactor">Profit Factor</SelectItem>
+                    <SelectItem value="sharpeRatio">Sharpe Ratio</SelectItem>
+                    <SelectItem value="drawdown">Minimize Drawdown</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
-              <div className="text-sm font-medium mt-2">Optimized Parameters:</div>
-              {paramRanges.map(param => (
-                <div key={param.id} className="flex justify-between text-sm">
-                  <span>{param.label}:</span>
-                  <span className="font-medium">
-                    {optimizationResult.parameterValues[param.id]}
-                    <span className="text-muted-foreground ml-1">
-                      (was {param.current[0]})
-                    </span>
-                  </span>
-                </div>
-              ))}
-              
-              <div className="text-sm font-medium mt-2">Performance Metrics:</div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span>Profit:</span>
-                  <span className="font-medium text-green-600">
-                    {optimizationResult.performance.profit.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Win Rate:</span>
-                  <span className="font-medium">
-                    {(optimizationResult.performance.winRate * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Drawdown:</span>
-                  <span className="font-medium text-red-500">
-                    {optimizationResult.performance.maxDrawdown.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sharpe Ratio:</span>
-                  <span className="font-medium">
-                    {optimizationResult.performance.sharpeRatio.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-              
-              <Button className="w-full mt-2" onClick={handleApplyParameters}>
-                Apply Optimized Parameters
+              <Button 
+                onClick={runOptimization} 
+                disabled={isOptimizing}
+                className="w-full"
+              >
+                {isOptimizing ? 'Optimizing...' : 'Run Quick Optimization'}
               </Button>
             </div>
-          </div>
+            
+            {optimizationResult && (
+              <div className="space-y-3 pt-2">
+                <div className="border-t pt-3">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium">Optimization Results</h4>
+                    <Badge className="bg-green-600">
+                      +{optimizationResult.improvement.toFixed(2)}%
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {Object.entries(optimizationResult.parameterValues).map(([key, value]) => (
+                      <div key={key} className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">{key}:</span>
+                        <span className="font-mono">{Number(value).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={handleApplyParameters}
+                >
+                  Apply Parameters
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

@@ -12,21 +12,21 @@
 
 ### Component Fixes
 - **AIStrategySuggestions.tsx**: Fixed property access for returnRate, maxDrawdown, and assets
-- **PortfolioSummaryCard.tsx**: Fixed type error in tooltip rendering
-- **SettingsPage.tsx**: Replaced ApiIcon with Network from lucide-react
-- **CryptoTradingDashboard.tsx**: Updated strategy types to align with interface definition
 - **AiTradingBots.tsx**: Added null check for assets property
+- **TradingOptimizationDashboard.tsx**: Added missing exports for createCustomStrategy and DEFAULT_STRATEGY_PARAMETERS
+- **StrategyBuilder.tsx**: Fixed missing exports and implemented missing component props
 - **AdvancedParameterOptimization.tsx**: Fixed parameter handling and added OptimizationResult interface
-- **PriceAlertForm.tsx**: Updated coin price access to use mockData
 
-### New Files Added
-- **mockData.ts**: Created centralized mock data utility for coins and strategies
-- **strategyBuilderService.ts**: Implemented optimization and backtest services
+### New Files Created
+- **ParameterOptimization.tsx**: Created to support the StrategyBuilder component
+- **PriceAlertForm.tsx**: Created form component with proper type definitions
+- **aiTradingStrategies.ts**: Added mock trading strategies
+- **ui.d.ts**: Added proper SidebarSettings interface with defaultCollapsed property
 
-### Interface Additions
-- Added ATOTaxCalculation interface for tax calculator
-- Added OptimizationResult interface for strategy optimization
-- Updated TradingAccount interface with missing properties
+### Interface Updates
+- Created OptimizationResult interface for strategy optimization
+- Updated TradingAccount interface with required properties
+- Fixed mockTradingAccounts data structure to match TradingAccount interface
 
 ## Previous Fixes
 - Fixed missing cryptoApi.ts exports

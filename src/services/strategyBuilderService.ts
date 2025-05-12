@@ -1,5 +1,110 @@
 
-import { AITradingStrategy, OptimizationResult } from "@/types/trading";
+import { AITradingStrategy, OptimizationResult, BacktestResult } from "@/types/trading";
+
+// Default strategy parameters
+export const DEFAULT_STRATEGY_PARAMETERS = {
+  period: 14,
+  threshold: 70,
+  stopLoss: 5,
+  takeProfit: 15,
+  useVolume: true,
+  indicator: 'rsi',
+  allowWeekendTrading: false,
+  fastPeriod: 12,
+  slowPeriod: 26,
+  signalPeriod: 9,
+  upperBand: 70,
+  lowerBand: 30,
+  riskFactor: 0.5,
+  sentimentThreshold: 0.6,
+  sentimentTimeframe: '1d'
+};
+
+// Create a new custom strategy
+export const createCustomStrategy = (
+  name: string,
+  description: string,
+  type: string,
+  timeframe: string,
+  parameters: Record<string, any>
+): AITradingStrategy => {
+  return {
+    id: `strategy-${Date.now()}`,
+    name,
+    description,
+    type,
+    timeframe,
+    riskLevel: 'medium',
+    parameters: { ...parameters },
+    assets: ['bitcoin', 'ethereum'],
+    performance: {
+      winRate: 65,
+      returnRate: 25.4,
+      sharpeRatio: 2.1,
+      maxDrawdown: 12.5,
+      profitFactor: 1.8
+    }
+  };
+};
+
+// Run a backtest for a strategy
+export const runBacktest = async (
+  strategy: AITradingStrategy,
+  startDate: string,
+  endDate: string,
+  initialBalance: number,
+  asset: string
+): Promise<BacktestResult> => {
+  // Simulate backtest processing time
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Return a simulated backtest result
+  return {
+    startDate,
+    endDate,
+    initialBalance,
+    finalBalance: initialBalance * (1 + Math.random() * 0.4),
+    profit: initialBalance * Math.random() * 0.4,
+    profitPercentage: Math.random() * 40,
+    maxDrawdown: Math.random() * 15,
+    winRate: 0.6 + Math.random() * 0.2,
+    trades: [
+      {
+        id: `trade-${Date.now()}-1`,
+        timestamp: new Date(startDate).toISOString(),
+        date: new Date(startDate).toLocaleDateString(),
+        type: 'buy',
+        price: 30000 + Math.random() * 2000,
+        amount: Math.random() * 2,
+        total: 30000 * Math.random() * 2,
+        profit: 0,
+        profitPercentage: 0
+      },
+      {
+        id: `trade-${Date.now()}-2`,
+        timestamp: new Date(endDate).toISOString(),
+        date: new Date(endDate).toLocaleDateString(),
+        type: 'sell',
+        price: 32000 + Math.random() * 2000,
+        amount: Math.random() * 2,
+        total: 32000 * Math.random() * 2,
+        profit: 2000 * Math.random() * 2,
+        profitPercentage: Math.random() * 8
+      }
+    ],
+    sharpeRatio: 1.5 + Math.random() * 1,
+    profitFactor: 1.2 + Math.random() * 0.8,
+    averageProfit: 500 + Math.random() * 200,
+    averageLoss: -300 - Math.random() * 200,
+    initialCapital: initialBalance,
+    finalCapital: initialBalance * (1 + Math.random() * 0.4),
+    totalReturn: Math.random() * 40,
+    totalTrades: 10 + Math.floor(Math.random() * 20),
+    winningTrades: 6 + Math.floor(Math.random() * 15),
+    losingTrades: 4 + Math.floor(Math.random() * 5),
+    sortinoRatio: 1.3 + Math.random() * 0.8
+  };
+};
 
 /**
  * Optimize a trading strategy based on given parameter ranges and target metric
@@ -68,49 +173,20 @@ export const optimizeStrategy = async (
     : ((returns - basePerformance.returns) / basePerformance.returns) * 100;
   
   return {
-    id: `opt-${Date.now()}`,
     strategyId: strategy.id,
-    parameters: parameterValues,
+    parameterValues,
     performance: {
-      returns,
+      profit: returns,
+      profitPercentage: returns,
+      maxDrawdown,
       winRate,
-      profitFactor,
       sharpeRatio,
-      maxDrawdown
+      profitFactor,
+      totalReturn: returns
     },
-    trades: Math.floor(Math.random() * 200 + 100),
-    timeframe: strategy.timeframe,
-    optimizationDate: new Date().toISOString(),
     improvement: improvementPercent,
-    parameterValues
-  };
-};
-
-/**
- * Run a backtest on a trading strategy
- * 
- * @param strategy Strategy to backtest
- * @param timeframe Timeframe for backtesting
- * @returns Backtest results
- */
-export const backtestStrategy = async (
-  strategy: AITradingStrategy,
-  timeframe: string = '1y'
-) => {
-  // Simulated backtest implementation
-  console.log(`Backtesting strategy ${strategy.name} on ${timeframe} timeframe`);
-  
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Return mock backtest results
-  return {
-    returns: strategy.performance?.returnRate || strategy.performance?.returns || 20 + Math.random() * 30,
-    winRate: strategy.performance?.winRate || 0.6 + Math.random() * 0.2,
-    trades: 100 + Math.floor(Math.random() * 150),
-    maxDrawdown: strategy.performance?.maxDrawdown || strategy.performance?.drawdown || 5 + Math.random() * 15,
-    sharpeRatio: strategy.performance?.sharpeRatio || 1 + Math.random() * 2,
-    profitFactor: 1.2 + Math.random() * 1.5
+    id: `opt-${Date.now()}`,
+    parameters: parameterValues
   };
 };
 
