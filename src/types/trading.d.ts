@@ -6,6 +6,7 @@ export interface AITradingStrategy {
   type: string;
   timeframe: string;
   riskLevel?: string;
+  assets?: string[];
   parameters: {
     period?: number;
     threshold?: number;
@@ -24,7 +25,16 @@ export interface AITradingStrategy {
     sentimentTimeframe?: string;
     [key: string]: any;
   };
-  assets?: string[];
+  status?: string;
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    sharpeRatio?: number;
+    trades?: number;
+    profitLoss?: number;
+    drawdown?: number;
+    returns?: number;
+  };
 }
 
 export interface BacktestResult {
@@ -35,6 +45,10 @@ export interface BacktestResult {
   sharpeRatio: number;
   profitFactor: number;
   tradeHistory?: Trade[];
+  profit?: number;
+  profitPercentage?: number;
+  finalBalance?: number;
+  totalTrades?: number;
 }
 
 export interface OptimizationResult {
@@ -105,17 +119,22 @@ export interface TradingAccount {
   id: string;
   name: string;
   balance: number;
-  initialBalance: number;
+  initialBalance?: number;
   currency: SupportedCurrency;
-  createdAt: string;
-  positions: Position[];
-  trades: Trade[];
-  performance: {
+  createdAt?: string;
+  lastUpdated?: string; 
+  isActive?: boolean;
+  type?: string;
+  provider?: string;
+  positions?: Position[];
+  trades?: Trade[];
+  performance?: {
     daily: number;
     weekly: number;
     monthly: number;
     allTime: number;
   };
+  assets?: PortfolioAsset[];
 }
 
 export interface Position {
@@ -150,9 +169,12 @@ export interface ApiEndpoint {
 
 export interface SidebarSettings {
   defaultCollapsed: boolean;
-  showLabels: boolean;
+  showLabels?: boolean;
   position: 'left' | 'right';
-  width: number;
+  width?: number;
+  enabled?: boolean;
+  collapsed?: boolean;
+  autoHide?: boolean;
 }
 
 export interface LocalModel {
@@ -179,4 +201,33 @@ export interface RealTimePriceChartProps {
 export interface TradingFormProps {
   initialCoin?: CoinOption;
   onTradeSubmit?: (trade: Trade) => void;
+}
+
+export interface PriceAlertFormData {
+  id?: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  currentPrice: number;
+  isAbove: boolean;
+  active?: boolean;
+  createdAt?: string;
+  triggered?: boolean;
+  triggeredAt?: string;
+  notes?: string;
+  recurring?: boolean;
+  notifyVia?: ("app" | "email" | "push")[];
+}
+
+export interface PortfolioAsset {
+  coinId: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  price: number;
+  value: number;
+  allocation: number;
+  change24h: number;
+  changePercent24h: number;
 }

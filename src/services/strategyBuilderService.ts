@@ -63,6 +63,10 @@ export const runBacktest = async (
   const maxDrawdown = 5 + Math.random() * 15;
   const sharpeRatio = 0.5 + Math.random() * 2;
   const profitFactor = 1 + Math.random() * 2;
+  const profit = initialCapital * (returns / 100);
+  const profitPercentage = returns;
+  const finalBalance = initialCapital + profit;
+  const totalTrades = trades;
   
   // Generate mock trade history
   const tradeHistory = generateMockTradeHistory(trades, returns);
@@ -74,7 +78,11 @@ export const runBacktest = async (
     maxDrawdown,
     sharpeRatio,
     profitFactor,
-    tradeHistory
+    tradeHistory,
+    profit,
+    profitPercentage,
+    finalBalance,
+    totalTrades
   };
 };
 
@@ -199,8 +207,3 @@ const generateMockTradeHistory = (count: number, overallReturn: number): Trade[]
   
   return trades;
 };
-
-/**
- * Backtests a strategy
- */
-export const backtestStrategy = runBacktest;

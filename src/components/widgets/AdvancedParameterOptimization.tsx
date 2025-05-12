@@ -1,452 +1,265 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { optimizeStrategy } from '@/services/strategyBuilderService';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sliders, TrendingUp, Settings, BarChart2, Save } from 'lucide-react';
 import { AITradingStrategy, OptimizationResult } from '@/types/trading';
+import { Wand2, TrendingUp, Check, RefreshCw, LineChart } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AdvancedParameterOptimizationProps {
-  strategy: AITradingStrategy | null;
-  onApplyParameters?: (parameters: Record<string, any>) => void;
+  strategy: AITradingStrategy;
+  onApplyParameters: (parameters: Record<string, any>) => void;
 }
 
 const AdvancedParameterOptimization: React.FC<AdvancedParameterOptimizationProps> = ({ 
   strategy,
   onApplyParameters
 }) => {
-  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
-  const [optimizationTarget, setOptimizationTarget] = useState<string>('profitFactor');
-  const [optimizationMethod, setOptimizationMethod] = useState<string>('grid-search');
-  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
-  const [optimizationProgress, setOptimizationProgress] = useState<number>(0);
-  const [iterations, setIterations] = useState<number>(50);
-  const [testPeriod, setTestPeriod] = useState<string>('1y');
-  const [paramRanges, setParamRanges] = useState<Array<{
-    id: string;
-    label: string;
-    min: number;
-    max: number;
-    step: number;
-    current: number[];
-    enabled: boolean;
-  }>>([]);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizationMethod, setOptimizationMethod] = useState('genetic');
+  const [optimizationTarget, setOptimizationTarget] = useState('returns');
+  const [timeframe, setTimeframe] = useState('1d');
+  const [optimizationResults, setOptimizationResults] = useState<OptimizationResult[]>([]);
   
-  // Initialize parameter ranges based on strategy
-  useEffect(() => {
-    if (strategy && strategy.parameters) {
-      const initialRanges = [];
-      
-      // Get ranges based on strategy parameters
-      for (const [key, value] of Object.entries(strategy.parameters)) {
-        // Only add numerical parameters
-        if (typeof value === 'number') {
-          const min = Math.max(0, value * 0.5);
-          const max = value * 1.5;
-          const step = (max - min) / 20;
-          
-          initialRanges.push({
-            id: key,
-            label: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-            min,
-            max,
-            step,
-            current: [value],
-            enabled: true
-          });
-        }
-      }
-      
-      setParamRanges(initialRanges);
-      setOptimizationResult(null);
-    }
-  }, [strategy]);
-  
-  const handleOptimize = async () => {
-    if (!strategy) return;
-    
+  const handleStartOptimization = async () => {
     setIsOptimizing(true);
-    setOptimizationProgress(0);
     
     try {
-      // Prepare parameter ranges for optimization - only use enabled parameters
-      const parameterRanges = paramRanges
-        .filter(param => param.enabled)
-        .map(param => ({
-          id: param.id,
-          min: param.min,
-          max: param.max,
-          step: param.step
-        }));
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2500));
       
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setOptimizationProgress(prev => {
-          const newProgress = prev + Math.random() * 5;
-          return newProgress >= 100 ? 100 : newProgress;
+      // Generate mock optimization results
+      const results: OptimizationResult[] = [];
+      
+      for (let i = 0; i < 3; i++) {
+        const baseReturn = 20 + (i * 10) + (Math.random() * 15);
+        const improvement = 5 + (i * 5) + (Math.random() * 10);
+        
+        results.push({
+          id: `opt-${i+1}`,
+          strategyId: strategy.id,
+          parameters: {
+            ...strategy.parameters,
+            period: 10 + i * 4,
+            threshold: 60 + i * 5,
+            stopLoss: 3 + i * 0.5,
+            takeProfit: 8 + i * 1.5,
+            riskFactor: 1.5 + i * 0.5,
+          },
+          parameterValues: {
+            period: 10 + i * 4,
+            threshold: 60 + i * 5,
+            stopLoss: 3 + i * 0.5,
+            takeProfit: 8 + i * 1.5,
+            riskFactor: 1.5 + i * 0.5,
+          },
+          performance: {
+            returns: baseReturn,
+            winRate: 55 + i * 5,
+            profitFactor: 1.5 + i * 0.4,
+            sharpeRatio: 1.2 + i * 0.3,
+            maxDrawdown: 15 - i * 1.5,
+          },
+          trades: 120 + i * 40,
+          timeframe: timeframe,
+          optimizationDate: new Date().toISOString(),
+          improvement: improvement
         });
-      }, 500);
+      }
       
-      // Call the strategy optimization service
-      const result = await optimizeStrategy(
-        strategy,
-        parameterRanges,
-        optimizationTarget as any
-      );
-      
-      clearInterval(progressInterval);
-      setOptimizationProgress(100);
-      
-      setOptimizationResult(result);
-    } catch (error) {
-      console.error('Error optimizing strategy:', error);
+      setOptimizationResults(results.sort((a, b) => b.performance.returns - a.performance.returns));
     } finally {
       setIsOptimizing(false);
     }
   };
   
-  const handleApplyParameters = () => {
-    if (optimizationResult && onApplyParameters) {
-      onApplyParameters(optimizationResult.parameterValues);
-    }
+  const handleApply = (result: OptimizationResult) => {
+    onApplyParameters(result.parameters);
   };
-  
-  const handleParamRangeChange = (id: string, values: number[]) => {
-    setParamRanges(prev => 
-      prev.map(param => 
-        param.id === id ? { ...param, current: values } : param
-      )
-    );
-  };
-  
-  const handleToggleParameter = (id: string, enabled: boolean) => {
-    setParamRanges(prev => 
-      prev.map(param => 
-        param.id === id ? { ...param, enabled } : param
-      )
-    );
-  };
-  
-  if (!strategy) {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-center py-12 text-muted-foreground">
-          <p>Select a strategy to optimize parameters</p>
-        </CardContent>
-      </Card>
-    );
-  }
   
   return (
-    <Card>
+    <Card className="shadow-md">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center">
-              <Sliders className="h-5 w-5 mr-2" />
-              Advanced Parameter Optimization
-            </CardTitle>
-            <CardDescription>
-              Optimize strategy parameters to maximize performance
-            </CardDescription>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Badge variant={strategy?.type === 'trend-following' ? 'default' : 'outline'}>
-              {strategy?.type}
-            </Badge>
-            <Badge variant="outline">{strategy?.timeframe}</Badge>
-          </div>
-        </div>
+        <CardTitle className="flex items-center">
+          <Wand2 className="h-5 w-5 mr-2" />
+          Advanced Parameter Optimization
+        </CardTitle>
+        <CardDescription>
+          Optimize your strategy parameters for maximum performance
+        </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <Tabs defaultValue="parameters">
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="parameters">Parameters</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            {optimizationResult && <TabsTrigger value="results">Results</TabsTrigger>}
-          </TabsList>
-          
-          <TabsContent value="parameters" className="space-y-4 pt-4">
-            <div className="space-y-4">
-              <div className="border rounded-md p-4">
-                <h3 className="text-sm font-medium mb-4">Parameter Ranges</h3>
-                
-                {paramRanges.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    No numerical parameters available for this strategy
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {paramRanges.map((param) => (
-                      <div key={param.id} className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id={`${param.id}-enabled`}
-                              checked={param.enabled}
-                              onCheckedChange={(checked) => handleToggleParameter(param.id, checked)}
-                            />
-                            <Label htmlFor={`${param.id}-enabled`} className="cursor-pointer">{param.label}</Label>
-                          </div>
-                          <span className="text-sm font-mono">{param.current[0]}</span>
-                        </div>
-                        
-                        <div className={param.enabled ? '' : 'opacity-50 pointer-events-none'}>
-                          <Slider
-                            id={param.id}
-                            min={param.min}
-                            max={param.max}
-                            step={param.step}
-                            value={param.current}
-                            onValueChange={(values) => handleParamRangeChange(param.id, values)}
-                            disabled={!param.enabled}
-                          />
-                          
-                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                            <span>{param.min.toFixed(2)}</span>
-                            <span>{param.max.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="settings" className="pt-4">
-            <div className="space-y-6">
-              <div className="border rounded-md p-4 space-y-4">
-                <h3 className="text-sm font-medium mb-2">Optimization Settings</h3>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="optimization-method">Optimization Method</Label>
-                  <Select
-                    value={optimizationMethod}
-                    onValueChange={setOptimizationMethod}
-                  >
-                    <SelectTrigger id="optimization-method">
-                      <SelectValue placeholder="Select optimization method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="grid-search">Grid Search</SelectItem>
-                      <SelectItem value="monte-carlo">Monte Carlo</SelectItem>
-                      <SelectItem value="genetic">Genetic Algorithm</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="optimization-target">Optimization Target</Label>
-                  <Select
-                    value={optimizationTarget}
-                    onValueChange={setOptimizationTarget}
-                  >
-                    <SelectTrigger id="optimization-target">
-                      <SelectValue placeholder="Select optimization target" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="profitFactor">Profit Factor</SelectItem>
-                      <SelectItem value="sharpeRatio">Sharpe Ratio</SelectItem>
-                      <SelectItem value="profit">Total Profit</SelectItem>
-                      <SelectItem value="drawdown">Minimize Drawdown</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="iterations">Number of Iterations</Label>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      id="iterations"
-                      min={10}
-                      max={200}
-                      step={10}
-                      value={[iterations]}
-                      onValueChange={(values) => setIterations(values[0])}
-                    />
-                    <span className="w-12 text-right">{iterations}</span>
-                  </div>
-                </div>
+        {optimizationResults.length === 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Optimization Method</Label>
+                <Select value={optimizationMethod} onValueChange={setOptimizationMethod}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="genetic">Genetic Algorithm</SelectItem>
+                    <SelectItem value="grid">Grid Search</SelectItem>
+                    <SelectItem value="bayesian">Bayesian Optimization</SelectItem>
+                    <SelectItem value="monte-carlo">Monte Carlo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
-              <div className="border rounded-md p-4 space-y-4">
-                <h3 className="text-sm font-medium mb-2">Backtesting Settings</h3>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="test-period">Test Period</Label>
-                  <Select value={testPeriod} onValueChange={setTestPeriod}>
-                    <SelectTrigger id="test-period">
-                      <SelectValue placeholder="Select test period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1m">1 Month</SelectItem>
-                      <SelectItem value="3m">3 Months</SelectItem>
-                      <SelectItem value="6m">6 Months</SelectItem>
-                      <SelectItem value="1y">1 Year</SelectItem>
-                      <SelectItem value="2y">2 Years</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="data-split">Data Split</Label>
-                  <Select defaultValue="80-20">
-                    <SelectTrigger id="data-split">
-                      <SelectValue placeholder="Select data split" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="70-30">70% Training / 30% Testing</SelectItem>
-                      <SelectItem value="80-20">80% Training / 20% Testing</SelectItem>
-                      <SelectItem value="90-10">90% Training / 10% Testing</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="walk-forward">Walk-Forward Analysis</Label>
-                    <Switch id="walk-forward" defaultChecked />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Tests strategy on out-of-sample data for more robust results
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <Label>Optimization Target</Label>
+                <Select value={optimizationTarget} onValueChange={setOptimizationTarget}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="returns">Total Returns</SelectItem>
+                    <SelectItem value="sharpe">Sharpe Ratio</SelectItem>
+                    <SelectItem value="win-rate">Win Rate</SelectItem>
+                    <SelectItem value="drawdown">Minimize Drawdown</SelectItem>
+                    <SelectItem value="profit-factor">Profit Factor</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </TabsContent>
-          
-          {optimizationResult && (
-            <TabsContent value="results" className="pt-4">
-              <div className="space-y-6">
-                <div className="border rounded-md p-4">
-                  <h3 className="text-sm font-medium mb-4">Optimization Results</h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Timeframe</Label>
+                <Select value={timeframe} onValueChange={setTimeframe}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                    <SelectItem value="1w">1 Week</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Data Range</Label>
+                <Select defaultValue="1y">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3m">3 Months</SelectItem>
+                    <SelectItem value="6m">6 Months</SelectItem>
+                    <SelectItem value="1y">1 Year</SelectItem>
+                    <SelectItem value="2y">2 Years</SelectItem>
+                    <SelectItem value="max">Maximum</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="flex items-center justify-between">
+                <span className="text-sm font-medium">Out-of-sample Testing</span>
+                <Switch defaultChecked />
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Use part of historical data for validation to prevent overfitting
+              </p>
+            </div>
+            
+            <Button 
+              className="w-full" 
+              onClick={handleStartOptimization}
+              disabled={isOptimizing}
+            >
+              {isOptimizing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Optimizing...
+                </>
+              ) : (
+                <>
+                  <LineChart className="h-4 w-4 mr-2" />
+                  Start Advanced Optimization
+                </>
+              )}
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Optimization Results</h3>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setOptimizationResults([])}
+              >
+                New Optimization
+              </Button>
+            </div>
+            
+            <div className="space-y-5">
+              {optimizationResults.map((result, index) => (
+                <Card key={result.id} className="border-2 border-muted relative overflow-hidden">
+                  {index === 0 && (
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs px-2 py-1">
+                      Best
+                    </div>
+                  )}
                   
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span>Improvement:</span>
-                      <span className="text-green-600 font-bold">
-                        +{optimizationResult.improvement.toFixed(2)}%
-                      </span>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-primary/20">
+                          Set #{index + 1}
+                        </Badge>
+                        <Badge className="bg-green-500">
+                          +{result.improvement.toFixed(1)}%
+                        </Badge>
+                      </div>
+                      
+                      <Button size="sm" onClick={() => handleApply(result)}>
+                        <Check className="h-3 w-3 mr-1" />
+                        Apply
+                      </Button>
                     </div>
                     
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Parameter</TableHead>
-                          <TableHead>Original</TableHead>
-                          <TableHead>Optimized</TableHead>
-                          <TableHead>Change</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {paramRanges.filter(p => p.enabled).map(param => {
-                          const originalValue = param.current[0];
-                          const optimizedValue = optimizationResult.parameterValues[param.id];
-                          const change = ((optimizedValue - originalValue) / originalValue) * 100;
-                          const isPositive = change >= 0;
-                          
-                          return (
-                            <TableRow key={param.id}>
-                              <TableCell>{param.label}</TableCell>
-                              <TableCell>{originalValue.toFixed(2)}</TableCell>
-                              <TableCell>{optimizedValue.toFixed(2)}</TableCell>
-                              <TableCell className={isPositive ? 'text-green-600' : 'text-red-600'}>
-                                {isPositive ? '+' : ''}{change.toFixed(2)}%
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                    
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Performance Comparison</h4>
-                      <div className="grid grid-cols-4 gap-4">
-                        <div className="p-3 border rounded-md">
-                          <div className="text-xs text-muted-foreground">Profit</div>
-                          <div className="font-medium text-green-600">
-                            +{optimizationResult.performance.profit.toFixed(2)}%
-                          </div>
-                        </div>
-                        <div className="p-3 border rounded-md">
-                          <div className="text-xs text-muted-foreground">Win Rate</div>
-                          <div className="font-medium">
-                            {(optimizationResult.performance.winRate * 100).toFixed(1)}%
-                          </div>
-                        </div>
-                        <div className="p-3 border rounded-md">
-                          <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
-                          <div className="font-medium">
-                            {optimizationResult.performance.sharpeRatio.toFixed(2)}
-                          </div>
-                        </div>
-                        <div className="p-3 border rounded-md">
-                          <div className="text-xs text-muted-foreground">Max Drawdown</div>
-                          <div className="font-medium text-red-600">
-                            -{optimizationResult.performance.maxDrawdown.toFixed(2)}%
-                          </div>
-                        </div>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Returns</div>
+                        <div className="font-medium">{result.performance.returns.toFixed(1)}%</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Win Rate</div>
+                        <div className="font-medium">{result.performance.winRate}%</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Trades</div>
+                        <div className="font-medium">{result.trades}</div>
                       </div>
                     </div>
                     
-                    <div className="flex justify-end">
-                      <Button onClick={handleApplyParameters}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Apply Optimized Parameters
-                      </Button>
+                    <div className="grid grid-cols-2 gap-4 text-xs border-t pt-3">
+                      {Object.entries(result.parameterValues).map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span className="capitalize">{key}:</span>
+                          <span className="font-medium">{value}</span>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-          )}
-        </Tabs>
-      </CardContent>
-      
-      <CardFooter className="border-t pt-4 pb-4 flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          {isOptimizing ? (
-            <div className="flex items-center">
-              <div className="w-36 h-2 bg-muted rounded-full mr-2">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-500"
-                  style={{ width: `${optimizationProgress}%` }}
-                ></div>
-              </div>
-              <span>{Math.round(optimizationProgress)}% complete</span>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ) : (
-            <span>{paramRanges.filter(p => p.enabled).length} parameters selected</span>
-          )}
-        </div>
-        
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setOptimizationResult(null)}
-            disabled={!optimizationResult || isOptimizing}
-          >
-            Reset
-          </Button>
-          <Button 
-            onClick={handleOptimize}
-            disabled={isOptimizing || paramRanges.filter(p => p.enabled).length === 0}
-          >
-            {isOptimizing ? 'Optimizing...' : 'Run Optimization'}
-          </Button>
-        </div>
-      </CardFooter>
+          </>
+        )}
+      </CardContent>
     </Card>
   );
 };

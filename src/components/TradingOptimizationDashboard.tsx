@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AITradingStrategy } from "@/types/trading";
 import { Bot, TrendingUp, Settings, ChevronRight } from "lucide-react";
-import { createCustomStrategy, DEFAULT_STRATEGY_PARAMETERS } from "@/services/strategyBuilderService";
 import { predefinedStrategies } from "@/utils/aiTradingStrategies";
-
-// Import components
 import StrategyBuilder from './trading/StrategyBuilder';
 import AdvancedParameterOptimization from './widgets/AdvancedParameterOptimization';
 
@@ -73,15 +70,7 @@ const TradingOptimizationDashboard: React.FC = () => {
   
   // Create a new blank strategy
   const handleCreateNewStrategy = () => {
-    const newStrategy = createCustomStrategy(
-      'New Strategy',
-      'A custom trading strategy',
-      'custom',
-      '1h',
-      DEFAULT_STRATEGY_PARAMETERS
-    );
-    
-    setSelectedStrategy(newStrategy);
+    setSelectedStrategy(null);
     setActiveTab('builder');
   };
   
@@ -151,8 +140,8 @@ const TradingOptimizationDashboard: React.FC = () => {
             
             <TabsContent value="builder" className="pt-6">
               <StrategyBuilder 
-                onSave={handleSaveStrategy}
                 initialStrategy={selectedStrategy}
+                onSaveStrategy={handleSaveStrategy}
               />
             </TabsContent>
             

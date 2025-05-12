@@ -1,58 +1,28 @@
 
-import { ReactNode } from 'react';
+import { PriceAlertFormData } from "@/types/trading";
 
-export interface AlertFormSheetProps {
-  onFormChange: (data: PriceAlertFormData) => void;
-  onSubmit: () => void;
-  initialData: PriceAlertFormData;
-  content?: ReactNode;
-  className?: string;
-  children?: ReactNode;
+// Mock coin options for alerts
+export const COIN_OPTIONS: Record<string, { id: string; name: string; symbol: string; price: number }> = {
+  "bitcoin": { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 51234.78 },
+  "ethereum": { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 2487.32 },
+  "solana": { id: "solana", name: "Solana", symbol: "SOL", price: 143.89 },
+  "cardano": { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.43 },
+  "ripple": { id: "ripple", name: "XRP", symbol: "XRP", price: 0.53 }
+};
+
+// Default price alert form data
+export const defaultAlertFormData: PriceAlertFormData = {
+  coinId: "bitcoin",
+  coinName: "Bitcoin",
+  coinSymbol: "BTC",
+  targetPrice: 55000,
+  currentPrice: 51234.78,
+  isAbove: true,
+  notifyVia: ["app"]
+};
+
+export interface AlertSystemProps {
+  onCreateAlert?: (alert: PriceAlertFormData) => void;
+  onDeleteAlert?: (alertId: string) => void;
+  onToggleAlert?: (alertId: string, active: boolean) => void;
 }
-
-export interface PriceAlertFormData {
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  targetPrice: number;
-  isAbove: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  enabled?: boolean;
-  notifyVia?: string[];
-  notes?: string;
-  currentPrice?: number;
-}
-
-export interface TechnicalAlertFormData {
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  indicator: string;
-  condition: string;
-  value: number;
-  timeframe: string;
-  enabled: boolean;
-  notifyVia: string[];
-}
-
-export interface VolumeAlertFormData {
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  volumeThreshold: number;
-  isAbove: boolean;
-  timeframe: string;
-  enabled: boolean;
-  notifyVia: string[];
-}
-
-export const COIN_OPTIONS = [
-  { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', value: 'bitcoin', label: 'BTC - Bitcoin' },
-  { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', value: 'ethereum', label: 'ETH - Ethereum' },
-  { id: 'solana', symbol: 'SOL', name: 'Solana', value: 'solana', label: 'SOL - Solana' },
-  { id: 'ripple', symbol: 'XRP', name: 'XRP', value: 'ripple', label: 'XRP - Ripple' },
-  { id: 'cardano', symbol: 'ADA', name: 'Cardano', value: 'cardano', label: 'ADA - Cardano' },
-  { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin', value: 'dogecoin', label: 'DOGE - Dogecoin' },
-  { id: 'binancecoin', symbol: 'BNB', name: 'Binance Coin', value: 'binancecoin', label: 'BNB - Binance Coin' }
-];

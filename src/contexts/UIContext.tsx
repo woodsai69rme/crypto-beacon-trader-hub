@@ -21,8 +21,8 @@ const UIContext = createContext<UIContextType | undefined>(undefined);
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>({
     defaultCollapsed: false,
-    showLabels: true,
     position: 'left',
+    showLabels: true,
     width: 240
   });
   
