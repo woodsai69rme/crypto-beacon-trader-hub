@@ -3,7 +3,7 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: string; // Expanding the allowed types
+  type: string;
   timeframe: string;
   riskLevel?: string;
   parameters: {
@@ -24,17 +24,12 @@ export interface AITradingStrategy {
     sentimentTimeframe?: string;
     [key: string]: any;
   };
-  assets?: string[]; // Adding assets property
+  assets?: string[];
   performance?: {
     winRate: number;
-    returnRate?: number; // Adding returnRate
-    returns?: number; // Keep returns for compatibility
+    returnRate: number;
     sharpeRatio: number;
-    maxDrawdown?: number; // Adding maxDrawdown
-    drawdown?: number; // Keep drawdown for compatibility
-    profitFactor?: number;
-    trades?: number;
-    profitLoss?: number;
+    maxDrawdown: number;
   };
   risk?: number;
   return?: number;
@@ -334,27 +329,4 @@ export interface PricePrediction {
   modelAccuracy: number;
   modelName: string;
   lastUpdated: string;
-}
-
-export interface ATOTaxCalculation {
-  financialYear: string;
-  taxableIncome: number;
-  capitalGainsIncome: number;
-  taxRate: number;
-  medicareLevyRate: number;
-  taxPayable: number;
-  medicareLevy: number;
-  totalTaxLiability: number;
-  taxCredits: number;
-  taxRefundOrOwed: number;
-  incomeTax: number;
-  taxWithheld: number;
-  netCapitalGains: number;
-  assessableIncome: number;
-  bracketInfo: {
-    bracket: string;
-    rate: string;
-  };
-  capitalGains: number;
-  CGTDiscount: number;
 }

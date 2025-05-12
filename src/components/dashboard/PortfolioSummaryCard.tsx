@@ -132,7 +132,7 @@ const PortfolioSummaryCard: React.FC<PortfolioSummaryCardProps> = ({
                     <div className={`w-2 h-2 rounded-full ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <span className="font-medium">${Number(point.data.y).toLocaleString()}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground">{String(point.data.x)}</div>
+                  <div className="text-xs text-muted-foreground">{point.data.x}</div>
                 </div>
               );
             }}
