@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,10 @@ export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
   const strongestCorrelations = findStrongestCorrelations(
     correlationMatrix,
     selectedCoin.id,
-    coins,
+    coins.map(coin => ({
+      ...coin,
+      priceChange: coin.priceChange || coin.changePercent || 0 // Ensure priceChange is present
+    })),
     5
   );
   
@@ -129,3 +133,5 @@ export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
     </div>
   );
 };
+
+export default CorrelationAnalysis;

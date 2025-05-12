@@ -38,7 +38,10 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosi
           onDragOver={handleDragOver}
           className="cursor-grab active:cursor-grabbing"
         >
-          <WidgetComponent widget={widget} onRemove={onRemove} />
+          <WidgetComponent 
+            type={widget.type} 
+            title={widget.title}
+          />
         </div>
       ))}
     </div>
