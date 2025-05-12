@@ -1,69 +1,77 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CryptoData } from '@/types/trading';
 import { getCorrelationColor } from './utils';
 
 interface CorrelationHeatmapProps {
   correlationMatrix: Record<string, Record<string, number>>;
-  cryptoData: CryptoData[];
-  onSelectPair?: (coin1: string, coin2: string) => void;
+  coinNames: Record<string, string>;
+  selectedCoin?: string | null;
+  onCoinSelect?: (coinId: string) => void;
 }
 
 const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
   correlationMatrix,
-  cryptoData,
-  onSelectPair
+  coinNames,
+  selectedCoin,
+  onCoinSelect
 }) => {
-  // Get all pairs of correlations
-  const correlationPairs = [];
-  const coinIds = cryptoData.map(coin => coin.id);
+  const coinIds = Object.keys(correlationMatrix);
   
-  for (let i = 0; i < coinIds.length; i++) {
-    for (let j = i + 1; j < coinIds.length; j++) {
-      const coin1 = coinIds[i];
-      const coin2 = coinIds[j];
-      const correlation = correlationMatrix[coin1]?.[coin2] || 0;
-      
-      correlationPairs.push({
-        coin1,
-        coin2,
-        correlation,
-        label: `${cryptoData.find(c => c.id === coin1)?.symbol.toUpperCase()} / ${
-          cryptoData.find(c => c.id === coin2)?.symbol.toUpperCase()
-        }`
-      });
-    }
+  if (coinIds.length === 0) {
+    return <div className="p-4 text-center">No correlation data available</div>;
   }
   
-  // Sort by absolute correlation value
-  correlationPairs.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+  // Get cell color based on correlation value
+  const getCellColor = (value: number) => {
+    return getCorrelationColor(value);
+  };
+  
+  // Format correlation as percentage
+  const formatCorrelation = (value: number) => {
+    return `${(value * 100).toFixed(0)}%`;
+  };
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Correlation Heatmap</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {correlationPairs.map(({ coin1, coin2, correlation, label }) => (
-            <div
-              key={`${coin1}-${coin2}`}
-              className="relative p-2 rounded cursor-pointer hover:opacity-90"
-              style={{ backgroundColor: getCorrelationColor(correlation) }}
-              onClick={() => onSelectPair && onSelectPair(coin1, coin2)}
-            >
-              <div className="text-white text-xs font-medium">{label}</div>
-              <div className="text-white text-lg font-bold">{(correlation * 100).toFixed(0)}%</div>
-            </div>
+    <div className="overflow-auto">
+      <table className="min-w-full border-collapse">
+        <thead>
+          <tr>
+            <th className="bg-background p-2 border text-left sticky left-0 z-10">Coin</th>
+            {coinIds.map(id => (
+              <th key={id} className="p-2 border text-center text-xs">
+                {coinNames[id]?.substring(0, 3) || id.substring(0, 3)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {coinIds.map(rowId => (
+            <tr key={rowId} className={selectedCoin === rowId ? 'bg-accent/20' : ''}>
+              <td 
+                className="p-2 border sticky left-0 bg-background z-10 font-medium cursor-pointer hover:bg-accent/20"
+                onClick={() => onCoinSelect && onCoinSelect(rowId)}
+              >
+                {coinNames[rowId] || rowId}
+              </td>
+              {coinIds.map(colId => {
+                const correlation = correlationMatrix[rowId][colId];
+                return (
+                  <td 
+                    key={`${rowId}-${colId}`}
+                    className="p-2 border text-center cursor-pointer"
+                    style={{ backgroundColor: getCellColor(correlation) }}
+                    title={`${coinNames[rowId] || rowId} to ${coinNames[colId] || colId}: ${formatCorrelation(correlation)}`}
+                    onClick={() => onCoinSelect && onCoinSelect(colId)}
+                  >
+                    {formatCorrelation(correlation)}
+                  </td>
+                );
+              })}
+            </tr>
           ))}
-        </div>
-        
-        <div className="mt-4 text-xs text-center text-muted-foreground">
-          Blue indicates positive correlation, red indicates negative correlation
-        </div>
-      </CardContent>
-    </Card>
+        </tbody>
+      </table>
+    </div>
   );
 };
 

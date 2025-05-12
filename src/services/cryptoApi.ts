@@ -45,6 +45,17 @@ export const fetchCoinOptions = async (): Promise<CoinOption[]> => {
         label: 'Solana (SOL)'
       },
       { 
+        id: 'ripple',
+        name: 'XRP',
+        symbol: 'XRP',
+        price: 0.57,
+        priceChange: 0.03,
+        changePercent: 5.8,
+        image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
+        value: 'ripple',
+        label: 'XRP (XRP)'
+      },
+      { 
         id: 'cardano',
         name: 'Cardano',
         symbol: 'ADA',
@@ -56,15 +67,15 @@ export const fetchCoinOptions = async (): Promise<CoinOption[]> => {
         label: 'Cardano (ADA)'
       },
       { 
-        id: 'ripple',
-        name: 'XRP',
-        symbol: 'XRP',
-        price: 0.57,
-        priceChange: 0.03,
-        changePercent: 5.8,
-        image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
-        value: 'ripple',
-        label: 'XRP (XRP)'
+        id: 'dogecoin',
+        name: 'Dogecoin',
+        symbol: 'DOGE',
+        price: 0.08,
+        priceChange: 0.003,
+        changePercent: 3.5,
+        image: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
+        value: 'dogecoin',
+        label: 'Dogecoin (DOGE)'
       },
     ];
   } catch (error) {
@@ -82,25 +93,25 @@ export const fetchCoinMarketData = async (coinId: string): Promise<any> => {
     // Mock implementation
     return {
       id: coinId,
-      symbol: coinId === 'bitcoin' ? 'btc' : coinId === 'ethereum' ? 'eth' : 'sol',
-      name: coinId === 'bitcoin' ? 'Bitcoin' : coinId === 'ethereum' ? 'Ethereum' : 'Solana',
+      symbol: getCoinSymbol(coinId),
+      name: getCoinName(coinId),
       market_data: {
         current_price: {
-          usd: coinId === 'bitcoin' ? 61245.32 : coinId === 'ethereum' ? 3010.45 : 142.87,
+          usd: getCoinPrice(coinId),
         },
-        price_change_24h: coinId === 'bitcoin' ? 1245.32 : coinId === 'ethereum' ? -45.67 : 7.35,
-        price_change_percentage_24h: coinId === 'bitcoin' ? 2.3 : coinId === 'ethereum' ? -1.5 : 5.4,
+        price_change_24h: getCoinPriceChange(coinId),
+        price_change_percentage_24h: getCoinPercentChange(coinId),
         market_cap: {
-          usd: coinId === 'bitcoin' ? 1180000000000 : coinId === 'ethereum' ? 360000000000 : 64000000000,
+          usd: getCoinMarketCap(coinId),
         },
         total_volume: {
-          usd: coinId === 'bitcoin' ? 28000000000 : coinId === 'ethereum' ? 15000000000 : 2500000000,
+          usd: getCoinVolume(coinId),
         },
         high_24h: {
-          usd: coinId === 'bitcoin' ? 62500 : coinId === 'ethereum' ? 3100 : 148,
+          usd: getCoinPrice(coinId) * 1.05,
         },
         low_24h: {
-          usd: coinId === 'bitcoin' ? 60000 : coinId === 'ethereum' ? 2950 : 138,
+          usd: getCoinPrice(coinId) * 0.95,
         },
       },
     };
@@ -109,3 +120,88 @@ export const fetchCoinMarketData = async (coinId: string): Promise<any> => {
     return null;
   }
 };
+
+// Helper functions to get coin data
+function getCoinSymbol(coinId: string): string {
+  const map: Record<string, string> = {
+    'bitcoin': 'btc',
+    'ethereum': 'eth',
+    'solana': 'sol',
+    'ripple': 'xrp',
+    'cardano': 'ada',
+    'dogecoin': 'doge'
+  };
+  return map[coinId] || coinId.substring(0, 3);
+}
+
+function getCoinName(coinId: string): string {
+  const map: Record<string, string> = {
+    'bitcoin': 'Bitcoin',
+    'ethereum': 'Ethereum',
+    'solana': 'Solana',
+    'ripple': 'XRP',
+    'cardano': 'Cardano',
+    'dogecoin': 'Dogecoin'
+  };
+  return map[coinId] || coinId.charAt(0).toUpperCase() + coinId.slice(1);
+}
+
+function getCoinPrice(coinId: string): number {
+  const map: Record<string, number> = {
+    'bitcoin': 61245.32,
+    'ethereum': 3010.45,
+    'solana': 142.87,
+    'ripple': 0.57,
+    'cardano': 0.45,
+    'dogecoin': 0.08
+  };
+  return map[coinId] || 100;
+}
+
+function getCoinPriceChange(coinId: string): number {
+  const map: Record<string, number> = {
+    'bitcoin': 1245.32,
+    'ethereum': -45.67,
+    'solana': 7.35,
+    'ripple': 0.03,
+    'cardano': 0.02,
+    'dogecoin': 0.003
+  };
+  return map[coinId] || 0;
+}
+
+function getCoinPercentChange(coinId: string): number {
+  const map: Record<string, number> = {
+    'bitcoin': 2.3,
+    'ethereum': -1.5,
+    'solana': 5.4,
+    'ripple': 5.8,
+    'cardano': 4.6,
+    'dogecoin': 3.5
+  };
+  return map[coinId] || 0;
+}
+
+function getCoinMarketCap(coinId: string): number {
+  const map: Record<string, number> = {
+    'bitcoin': 1180000000000,
+    'ethereum': 360000000000,
+    'solana': 64000000000,
+    'ripple': 32000000000,
+    'cardano': 15000000000,
+    'dogecoin': 10000000000
+  };
+  return map[coinId] || 1000000000;
+}
+
+function getCoinVolume(coinId: string): number {
+  const map: Record<string, number> = {
+    'bitcoin': 28000000000,
+    'ethereum': 15000000000,
+    'solana': 2500000000,
+    'ripple': 1800000000,
+    'cardano': 500000000,
+    'dogecoin': 800000000
+  };
+  return map[coinId] || 100000000;
+}

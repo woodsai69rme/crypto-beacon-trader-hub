@@ -99,12 +99,14 @@ export interface CoinOption {
   image?: string;
 }
 
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
+
 export interface TradingAccount {
   id: string;
   name: string;
   balance: number;
   initialBalance: number;
-  currency: string;
+  currency: SupportedCurrency;
   createdAt: string;
   positions: Position[];
   trades: Trade[];
@@ -164,4 +166,17 @@ export interface LocalModel {
   status: 'idle' | 'running' | 'error';
   performance?: Record<string, any>;
   lastUsed?: string;
+}
+
+export interface RealTimePriceChartProps {
+  coinId?: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins: CoinOption[];
+  updateInterval?: number;
+}
+
+export interface TradingFormProps {
+  initialCoin?: CoinOption;
+  onTradeSubmit?: (trade: Trade) => void;
 }

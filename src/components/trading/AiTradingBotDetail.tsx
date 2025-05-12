@@ -2,182 +2,171 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bot, TrendingUp, Settings, History, PieChart } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ArrowLeft, Bot, BarChart, Settings, Play, Pause, Save } from "lucide-react";
+import { AITradingStrategy } from "@/types/trading";
+import BasicStrategyForm from "./strategy/BasicStrategyForm";
+import StrategyParameters from "./strategy/StrategyParameters";
+import StrategyBacktest from "./strategy/StrategyBacktest";
 import { predefinedStrategies } from "@/utils/aiTradingStrategies";
 
-interface AiBotTradingProps {
-  botId: string;
-  strategyId?: string;
-  strategyName: string;
+interface AiTradingBotDetailProps {
+  botId?: string;
+  onBack: () => void;
 }
 
-interface ExtendedAiBotTradingProps extends AiBotTradingProps {
-  botName?: string;
-}
-
-const AiTradingBotDetail: React.FC<ExtendedAiBotTradingProps> = ({ 
-  botId = 'bot-1',
-  strategyId = 'strategy-1',
-  strategyName = 'AI Price Prediction',
-  botName = 'BTC Momentum Bot'
+const AiTradingBotDetail: React.FC<AiTradingBotDetailProps> = ({
+  botId,
+  onBack
 }) => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isRunning, setIsRunning] = useState(true);
+  // Find bot data if ID provided, otherwise use empty template
+  const initialBot = botId ? 
+    predefinedStrategies.find(b => b.id === botId) : 
+    {
+      id: '',
+      name: 'New Trading Bot',
+      description: '',
+      type: 'trend-following',
+      timeframe: '1h',
+      parameters: {
+        period: 14,
+        threshold: 70,
+        stopLoss: 5,
+        takeProfit: 10,
+        riskFactor: 1
+      },
+      assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
+    };
   
-  const strategy = predefinedStrategies.find(s => s.id === strategyId) || predefinedStrategies[0];
+  const [bot, setBot] = useState<AITradingStrategy>(initialBot as AITradingStrategy);
+  const [isActive, setIsActive] = useState<boolean>(false);
+  const [isBacktesting, setIsBacktesting] = useState<boolean>(false);
+  const [backtestResults, setBacktestResults] = useState<any>(null);
   
-  const botStats = {
-    trades: 156,
-    winRate: 67.3,
-    profitLoss: 28.7,
-    averageHoldTime: '12h 24m',
-    lastTrade: '5 minutes ago',
-    dailyPerformance: 1.2,
-    weeklyPerformance: 4.5,
-    monthlyPerformance: 12.3,
-    drawdown: 8.6
+  const handleBasicChange = (field: string, value: any) => {
+    setBot(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
   
-  const toggleBot = () => {
-    setIsRunning(!isRunning);
+  const handleParameterChange = (param: string, value: any) => {
+    setBot(prev => ({
+      ...prev,
+      parameters: {
+        ...prev.parameters,
+        [param]: value
+      }
+    }));
+  };
+  
+  const handleRunBacktest = () => {
+    setIsBacktesting(true);
+    
+    // Simulate backtest delay
+    setTimeout(() => {
+      const mockResults = {
+        returns: Math.random() * 40 - 5, // -5% to +35%
+        winRate: 35 + Math.random() * 40, // 35% to 75%
+        trades: 20 + Math.floor(Math.random() * 180), // 20 to 200 trades
+        maxDrawdown: 5 + Math.random() * 20, // 5% to 25%
+        sharpeRatio: 0.1 + Math.random() * 2.4, // 0.1 to 2.5
+        profitFactor: 0.8 + Math.random() * 2.2, // 0.8 to 3.0
+      };
+      
+      setBacktestResults(mockResults);
+      setIsBacktesting(false);
+    }, 2000);
+  };
+  
+  const handleResetBacktest = () => {
+    setBacktestResults(null);
   };
   
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            {botName}
-          </CardTitle>
-          <Button
-            variant={isRunning ? "destructive" : "default"}
-            onClick={toggleBot}
-            size="sm"
-          >
-            {isRunning ? 'Stop Bot' : 'Start Bot'}
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Bot className="h-6 w-6" />
+            {bot.name}
+          </CardTitle>
         </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          <div className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-            {strategy.type}
-          </div>
-          <div className="text-sm bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-            {strategy.timeframe}
-          </div>
-          <div className="text-sm bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-            Risk: {strategy.riskLevel}
-          </div>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant={isActive ? "outline" : "default"}
+            size="sm"
+            onClick={() => setIsActive(!isActive)}
+            className="gap-1"
+          >
+            {isActive ? (
+              <>
+                <Pause className="h-4 w-4" />
+                Stop Bot
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" />
+                Start Bot
+              </>
+            )}
+          </Button>
+          
+          <Button 
+            variant="default"
+            size="sm"
+            className="gap-1"
+          >
+            <Save className="h-4 w-4" />
+            Save Changes
+          </Button>
         </div>
       </CardHeader>
       
       <CardContent>
-        <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 border rounded-md">
-            <div className="text-sm text-muted-foreground">Win Rate</div>
-            <div className="text-lg font-semibold">{botStats.winRate}%</div>
-          </div>
-          <div className="p-3 border rounded-md">
-            <div className="text-sm text-muted-foreground">Total Profit</div>
-            <div className="text-lg font-semibold text-green-500">+{botStats.profitLoss}%</div>
-          </div>
-          <div className="p-3 border rounded-md">
-            <div className="text-sm text-muted-foreground">Trades</div>
-            <div className="text-lg font-semibold">{botStats.trades}</div>
-          </div>
-          <div className="p-3 border rounded-md">
-            <div className="text-sm text-muted-foreground">Max Drawdown</div>
-            <div className="text-lg font-semibold text-red-500">-{botStats.drawdown}%</div>
-          </div>
-        </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="trades">Trades</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="performance">Analytics</TabsTrigger>
+        <Tabs defaultValue="basic" className="mt-2">
+          <TabsList className="mb-6">
+            <TabsTrigger value="basic">
+              <Settings className="h-4 w-4 mr-1" />
+              Basic Settings
+            </TabsTrigger>
+            <TabsTrigger value="parameters">
+              <Bot className="h-4 w-4 mr-1" />
+              Strategy Parameters
+            </TabsTrigger>
+            <TabsTrigger value="backtest">
+              <BarChart className="h-4 w-4 mr-1" />
+              Backtesting
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview" className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Strategy Description</h3>
-              <p className="text-sm text-muted-foreground">{strategy.description}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium mb-2">Performance</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Daily</span>
-                  <span className={botStats.dailyPerformance >= 0 ? "text-green-500" : "text-red-500"}>
-                    {botStats.dailyPerformance >= 0 ? "+" : ""}{botStats.dailyPerformance}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Weekly</span>
-                  <span className={botStats.weeklyPerformance >= 0 ? "text-green-500" : "text-red-500"}>
-                    {botStats.weeklyPerformance >= 0 ? "+" : ""}{botStats.weeklyPerformance}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Monthly</span>
-                  <span className={botStats.monthlyPerformance >= 0 ? "text-green-500" : "text-red-500"}>
-                    {botStats.monthlyPerformance >= 0 ? "+" : ""}{botStats.monthlyPerformance}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Last Trade</span>
-                  <span className="text-muted-foreground">{botStats.lastTrade}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium mb-2">Strategy Parameters</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(strategy.parameters).map(([key, value]) => (
-                  <div key={key} className="flex justify-between items-center">
-                    <span className="text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                    <span className="font-mono text-sm">{value.toString()}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <TabsContent value="basic">
+            <BasicStrategyForm
+              strategy={bot}
+              onStrategyChange={handleBasicChange}
+            />
           </TabsContent>
           
-          <TabsContent value="trades">
-            <div className="text-sm">Recent trades will appear here</div>
+          <TabsContent value="parameters">
+            <StrategyParameters
+              strategy={bot}
+              onParameterChange={handleParameterChange}
+            />
           </TabsContent>
           
-          <TabsContent value="settings">
-            <div className="text-sm">Bot settings will appear here</div>
-          </TabsContent>
-          
-          <TabsContent value="performance">
-            <div className="text-sm">Performance analytics will appear here</div>
+          <TabsContent value="backtest">
+            <StrategyBacktest
+              isBacktesting={isBacktesting}
+              backtestResults={backtestResults}
+              onBacktest={handleRunBacktest}
+              onResetBacktest={handleResetBacktest}
+            />
           </TabsContent>
         </Tabs>
-        
-        <div className="flex justify-center gap-2 mt-6">
-          <Button variant="outline" size="sm">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Backtest
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-          <Button variant="outline" size="sm">
-            <History className="h-4 w-4 mr-2" />
-            History
-          </Button>
-          <Button variant="outline" size="sm">
-            <PieChart className="h-4 w-4 mr-2" />
-            Report
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

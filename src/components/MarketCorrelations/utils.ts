@@ -1,133 +1,92 @@
 
-import { CryptoData } from '@/types/trading';
+/**
+ * Utility functions for Market Correlations components
+ */
 
-// Find strongest correlations for a given coin
-export const findStrongestCorrelations = (
-  correlationMatrix: Record<string, Record<string, number>>,
-  coinId: string,
-  allCoins: CryptoData[],
-  limit: number = 10
-): { coin: CryptoData; correlation: number }[] => {
-  if (!correlationMatrix[coinId]) {
-    console.error(`No correlation data found for coin: ${coinId}`);
-    return [];
-  }
+/**
+ * Get color for correlation heatmap based on correlation value
+ * @param correlation Correlation coefficient (-1 to 1)
+ * @returns Color in hex format
+ */
+export const getCorrelationColor = (correlation: number): string => {
+  // Strong negative correlation: deep blue
+  if (correlation <= -0.75) return "#2563eb";
   
-  // Get correlations for the coin
-  const correlations = correlationMatrix[coinId];
+  // Medium negative correlation: light blue
+  if (correlation <= -0.5) return "#60a5fa";
   
-  // Convert to array of [coinId, correlation] pairs, excluding self
-  const correlationPairs = Object.entries(correlations)
-    .filter(([id]) => id !== coinId);
+  // Weak negative correlation: very light blue
+  if (correlation < 0) return "#bfdbfe";
   
-  // Sort by absolute correlation value (descending)
-  correlationPairs.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  // No correlation: light gray
+  if (correlation === 0) return "#f3f4f6";
   
-  // Take top N correlations
-  const topCorrelations = correlationPairs.slice(0, limit);
+  // Weak positive correlation: light orange
+  if (correlation < 0.5) return "#fed7aa";
   
-  // Map to objects with coin data
-  return topCorrelations.map(([id, correlation]) => {
-    const coin = allCoins.find(c => c.id === id);
-    return {
-      coin: coin || {
-        id,
-        name: id,
-        symbol: id.substring(0, 3).toUpperCase(),
-        price: 0,
-        priceChange: 0,
-        changePercent: 0
-      },
-      correlation
-    };
-  });
+  // Medium positive correlation: medium orange
+  if (correlation < 0.75) return "#fb923c";
+  
+  // Strong positive correlation: deep orange/red
+  return "#ea580c";
 };
 
-// Find coins most correlated to a specific coin
-export const findMostCorrelatedCoins = (
-  correlationMatrix: Record<string, Record<string, number>>,
-  coinId: string,
-  allCoins: CryptoData[],
-  limit: number = 5
-): { coin: CryptoData; correlation: number }[] => {
-  const allCorrelations = findStrongestCorrelations(
-    correlationMatrix,
-    coinId,
-    allCoins
-  );
+/**
+ * Format correlation coefficient for display
+ * @param correlation Correlation coefficient
+ * @returns Formatted string
+ */
+export const formatCorrelation = (correlation: number): string => {
+  // Ensure correlation is within range
+  const value = Math.max(-1, Math.min(1, correlation));
   
-  // Return only positive correlations
-  return allCorrelations
-    .filter(item => item.correlation > 0)
-    .sort((a, b) => b.correlation - a.correlation)
-    .slice(0, limit);
+  // Convert to percentage and show sign
+  const percentage = Math.round(value * 100);
+  return percentage > 0 ? `+${percentage}%` : `${percentage}%`;
 };
 
-// Find coins most negatively correlated to a specific coin
-export const findMostNegativelyCorrelatedCoins = (
-  correlationMatrix: Record<string, Record<string, number>>,
-  coinId: string,
-  allCoins: CryptoData[],
-  limit: number = 5
-): { coin: CryptoData; correlation: number }[] => {
-  const allCorrelations = findStrongestCorrelations(
-    correlationMatrix,
-    coinId,
-    allCoins
-  );
-  
-  // Return only negative correlations
-  return allCorrelations
-    .filter(item => item.correlation < 0)
-    .sort((a, b) => a.correlation - b.correlation)
-    .slice(0, limit);
-};
-
-// Find pairs of coins with strongest correlation
-export const findStrongestCorrelatedPairs = (
-  correlationMatrix: Record<string, Record<string, number>>,
-  allCoins: CryptoData[],
-  limit: number = 10
-): { coin1: CryptoData; coin2: CryptoData; correlation: number }[] => {
-  const pairs: { coin1: CryptoData; coin2: CryptoData; correlation: number }[] = [];
-  const coinIds = Object.keys(correlationMatrix);
-  
-  // Examine each pair of coins
-  for (let i = 0; i < coinIds.length; i++) {
-    for (let j = i + 1; j < coinIds.length; j++) {
-      const id1 = coinIds[i];
-      const id2 = coinIds[j];
-      const correlation = correlationMatrix[id1][id2];
-      
-      const coin1 = allCoins.find(c => c.id === id1);
-      const coin2 = allCoins.find(c => c.id === id2);
-      
-      if (coin1 && coin2) {
-        pairs.push({ coin1, coin2, correlation });
-      }
-    }
-  }
-  
-  // Sort by absolute correlation value (descending)
-  pairs.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
-  
-  // Return top N pairs
-  return pairs.slice(0, limit);
-};
-
-// Calculate the correlation strength description
+/**
+ * Get description for correlation strength
+ * @param correlation Correlation coefficient
+ * @returns Description string
+ */
 export const getCorrelationDescription = (correlation: number): string => {
-  const absCorrelation = Math.abs(correlation);
+  const abs = Math.abs(correlation);
   
-  if (absCorrelation > 0.8) {
-    return correlation > 0 ? 'Very Strong Positive' : 'Very Strong Negative';
-  } else if (absCorrelation > 0.6) {
-    return correlation > 0 ? 'Strong Positive' : 'Strong Negative';
-  } else if (absCorrelation > 0.4) {
-    return correlation > 0 ? 'Moderate Positive' : 'Moderate Negative';
-  } else if (absCorrelation > 0.2) {
-    return correlation > 0 ? 'Weak Positive' : 'Weak Negative';
-  } else {
-    return 'No Correlation';
+  if (abs > 0.8) {
+    return correlation > 0 ? 'Very strong positive' : 'Very strong negative';
   }
+  
+  if (abs > 0.6) {
+    return correlation > 0 ? 'Strong positive' : 'Strong negative';
+  }
+  
+  if (abs > 0.4) {
+    return correlation > 0 ? 'Moderate positive' : 'Moderate negative';
+  }
+  
+  if (abs > 0.2) {
+    return correlation > 0 ? 'Weak positive' : 'Weak negative';
+  }
+  
+  return 'Very weak or no correlation';
+};
+
+/**
+ * Sort correlations from highest to lowest or vice versa
+ * @param data Correlation data
+ * @param ascending Sort direction
+ * @returns Sorted correlation data
+ */
+export const sortCorrelations = (
+  data: { name: string; correlation: number }[],
+  ascending = false
+): { name: string; correlation: number }[] => {
+  return [...data].sort((a, b) => {
+    if (ascending) {
+      return a.correlation - b.correlation;
+    } else {
+      return b.correlation - a.correlation;
+    }
+  });
 };

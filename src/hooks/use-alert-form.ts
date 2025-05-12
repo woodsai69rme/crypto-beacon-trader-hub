@@ -4,32 +4,26 @@ import { PriceAlertFormData } from '@/components/widgets/AlertComponents/AlertTy
 
 export const useAlertForm = () => {
   const [formData, setFormData] = useState<PriceAlertFormData>({
-    coinId: 'bitcoin',
-    coinName: 'Bitcoin',
-    coinSymbol: 'BTC',
-    targetPrice: 0,
+    coinId: '',
+    coinName: '',
+    coinSymbol: '',
     isAbove: true,
-    recurring: false,
-    enabled: true,
-    notifyVia: ['app']
+    targetPrice: 0,
   });
-  
+
   const resetForm = () => {
     setFormData({
-      coinId: 'bitcoin',
-      coinName: 'Bitcoin',
-      coinSymbol: 'BTC',
-      targetPrice: 0,
+      coinId: '',
+      coinName: '',
+      coinSymbol: '',
       isAbove: true,
-      recurring: false,
-      enabled: true,
-      notifyVia: ['app']
+      targetPrice: 0,
     });
   };
-  
+
   return {
     formData,
     setFormData,
-    resetForm
+    resetForm,
   };
 };

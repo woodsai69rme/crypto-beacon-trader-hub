@@ -3,26 +3,15 @@ import React, { useState, useEffect } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { v4 as uuidv4 } from 'uuid';
-import { PriceAlertFormData } from "./AlertComponents/AlertTypes";
-
-const AlertHeader = () => (
-  <div className="flex items-center justify-between border-b pb-4">
-    <h2 className="text-lg font-semibold">Price Alerts</h2>
-  </div>
-);
-
-const AlertBadge = ({ count }: { count: number }) => {
-  if (count === 0) return null;
-  
-  return (
-    <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
-      {count > 9 ? '9+' : count}
-    </span>
-  );
-};
+import AlertHeader from "./AlertComponents/AlertHeader";
+import AlertBadge from "./AlertComponents/AlertBadge";
+import PriceAlertForm from "./PriceAlertForm";
+import { PriceAlertFormData, COIN_OPTIONS } from "./AlertComponents/AlertTypes";
 
 // Alert types
 type AlertType = 'price' | 'volume' | 'percentageChange';
@@ -44,9 +33,6 @@ interface Alert {
   createdAt: string;
 }
 
-// Import the real PriceAlertForm component
-import PriceAlertForm from "./AlertComponents/PriceAlertForm";
-
 const EnhancedAlertSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -56,8 +42,7 @@ const EnhancedAlertSystem = () => {
     coinName: '',
     coinSymbol: '',
     isAbove: true,
-    targetPrice: 0,
-    currentPrice: 0
+    targetPrice: 0
   });
   
   const { toast } = useToast();
@@ -118,8 +103,7 @@ const EnhancedAlertSystem = () => {
       coinName: '',
       coinSymbol: '',
       isAbove: true,
-      targetPrice: 0,
-      currentPrice: 0
+      targetPrice: 0
     });
     
     // Close sheet

@@ -16,10 +16,12 @@ export interface PriceAlertFormData {
   coinSymbol: string;
   targetPrice: number;
   isAbove: boolean;
-  recurring: boolean;
+  recurring?: boolean;
   percentageChange?: number;
-  enabled: boolean;
-  notifyVia: string[];
+  enabled?: boolean;
+  notifyVia?: string[];
+  notes?: string;
+  currentPrice?: number;
 }
 
 export interface TechnicalAlertFormData {
@@ -49,6 +51,8 @@ export const COIN_OPTIONS = [
   { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', value: 'bitcoin', label: 'BTC - Bitcoin' },
   { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', value: 'ethereum', label: 'ETH - Ethereum' },
   { id: 'solana', symbol: 'SOL', name: 'Solana', value: 'solana', label: 'SOL - Solana' },
+  { id: 'ripple', symbol: 'XRP', name: 'XRP', value: 'ripple', label: 'XRP - Ripple' },
   { id: 'cardano', symbol: 'ADA', name: 'Cardano', value: 'cardano', label: 'ADA - Cardano' },
+  { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin', value: 'dogecoin', label: 'DOGE - Dogecoin' },
   { id: 'binancecoin', symbol: 'BNB', name: 'Binance Coin', value: 'binancecoin', label: 'BNB - Binance Coin' }
 ];

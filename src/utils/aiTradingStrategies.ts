@@ -19,7 +19,7 @@ export const mockTradingStrategies: AITradingStrategy[] = [
       useVolume: true,
       indicator: 'RSI'
     },
-    assets: ['bitcoin', 'ethereum', 'solana', 'cardano']
+    assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
   },
   {
     id: 'strategy-2',
@@ -37,7 +37,7 @@ export const mockTradingStrategies: AITradingStrategy[] = [
       useVolume: false,
       indicator: 'Bollinger'
     },
-    assets: ['bitcoin', 'ethereum', 'polkadot']
+    assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
   },
   {
     id: 'strategy-3',
@@ -54,9 +54,12 @@ export const mockTradingStrategies: AITradingStrategy[] = [
       takeProfit: 14,
       useVolume: true
     },
-    assets: ['bitcoin', 'ethereum', 'litecoin', 'ripple']
+    assets: ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
   }
 ];
+
+// Exporting predefined strategies for use in components
+export const predefinedStrategies = mockTradingStrategies;
 
 // Mock trading accounts
 export const mockTradingAccounts: TradingAccount[] = [
@@ -155,8 +158,9 @@ function generateMockTrades(count: number) {
     { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
     { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
     { id: 'solana', name: 'Solana', symbol: 'SOL' },
+    { id: 'ripple', name: 'XRP', symbol: 'XRP' },
     { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
-    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT' }
+    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' }
   ];
   
   for (let i = 0; i < count; i++) {
@@ -168,9 +172,11 @@ function generateMockTrades(count: number) {
       1700 + Math.random() * 200 :
       coin.id === 'solana' ?
       40 + Math.random() * 10 :
+      coin.id === 'ripple' ?
+      0.5 + Math.random() * 0.1 :
       coin.id === 'cardano' ?
       0.4 + Math.random() * 0.1 :
-      5 + Math.random();
+      0.05 + Math.random() * 0.03;
     
     const amount = coin.id === 'bitcoin' ? 
       0.01 + Math.random() * 0.1 :
@@ -178,9 +184,11 @@ function generateMockTrades(count: number) {
       0.1 + Math.random() * 2 :
       coin.id === 'solana' ?
       1 + Math.random() * 10 :
+      coin.id === 'ripple' ?
+      100 + Math.random() * 500 :
       coin.id === 'cardano' ?
       100 + Math.random() * 1000 :
-      1 + Math.random() * 10;
+      100 + Math.random() * 1000;
       
     const total = price * amount;
     const profit = type === 'sell' ? (Math.random() * 2 - 0.5) * total * 0.1 : 0;
@@ -219,6 +227,7 @@ function generateMockTrades(count: number) {
 export default {
   mockTradingStrategies,
   mockTradingAccounts,
+  predefinedStrategies,
   
   // Generate a new strategy
   createStrategy(
@@ -227,7 +236,7 @@ export default {
     type: string,
     timeframe: string,
     parameters: Record<string, any> = {},
-    assets: string[] = ['bitcoin', 'ethereum']
+    assets: string[] = ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin']
   ): AITradingStrategy {
     return {
       id: uuidv4(),

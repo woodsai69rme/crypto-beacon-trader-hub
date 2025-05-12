@@ -6,8 +6,8 @@ import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import useAlerts from "@/hooks/use-alerts";
 import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
-import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
-import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
+import AlertHeader from "./widgets/AlertComponents/AlertHeader";
+import AlertBadge from "./widgets/AlertComponents/AlertBadge";
 import { PriceAlertFormData } from "./widgets/AlertComponents/AlertTypes";
 
 const AlertsSystem = () => {
