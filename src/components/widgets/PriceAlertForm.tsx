@@ -9,9 +9,9 @@ import { CoinOption } from '@/types/trading';
 import { mockCoinData } from '@/utils/mockData';
 
 interface PriceAlertFormProps {
+  initialData?: any;
   onSubmit?: (data: any) => void;
   onCancel?: () => void;
-  initialData?: any;
 }
 
 const PriceAlertForm: React.FC<PriceAlertFormProps> = ({

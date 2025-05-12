@@ -110,8 +110,8 @@ export interface Trade {
   price: number;
   amount: number;
   total: number;
-  profit: number;
-  profitPercentage: number;
+  profit?: number;
+  profitPercentage?: number;
   coin: string;
   coinId: string;
   coinName: string;
