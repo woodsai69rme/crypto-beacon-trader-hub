@@ -1,222 +1,200 @@
 
 import React, { useState, useEffect } from 'react';
-import { CoinOption } from '@/types/trading';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { ArrowUpIcon, ArrowDownIcon, RefreshCw } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CoinOption, RealTimePricesProps } from '@/types/trading';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowUp, ArrowDown, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { fetchTopCryptoData } from '@/services/api/coinGeckoService';
+import { toast } from '@/components/ui/use-toast';
 
-// Sample mock data - Replace with real API call in production
-const mockCoins: CoinOption[] = [
-  {
-    id: 'bitcoin',
-    symbol: 'BTC',
-    name: 'Bitcoin',
-    price: 65000,
-    priceChange: 1500,
-    changePercent: 2.3,
-    image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
-    value: 'bitcoin',
-    label: 'Bitcoin (BTC)'
-  },
-  {
-    id: 'ethereum',
-    symbol: 'ETH',
-    name: 'Ethereum',
-    price: 3500,
-    priceChange: -120,
-    changePercent: -3.3,
-    image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
-    value: 'ethereum',
-    label: 'Ethereum (ETH)'
-  },
-  {
-    id: 'solana',
-    symbol: 'SOL',
-    name: 'Solana',
-    price: 142,
-    priceChange: 5.7,
-    changePercent: 4.2,
-    image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
-    value: 'solana',
-    label: 'Solana (SOL)'
-  },
-  {
-    id: 'cardano',
-    symbol: 'ADA',
-    name: 'Cardano',
-    price: 0.45,
-    priceChange: 0.02,
-    changePercent: 4.7,
-    image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png',
-    value: 'cardano',
-    label: 'Cardano (ADA)'
-  }
-];
-
-// Function to simulate fetching data - Replace with real API call
-const fetchCryptoData = async (): Promise<CoinOption[]> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Return mock data with slightly modified prices
-  return mockCoins.map(coin => ({
-    ...coin,
-    price: coin.price * (1 + (Math.random() * 0.02 - 0.01)),
-    priceChange: coin.priceChange * (1 + (Math.random() * 0.1 - 0.05)),
-    changePercent: coin.changePercent * (1 + (Math.random() * 0.1 - 0.05))
-  }));
-};
-
-// Function to convert API data to CoinOption format
-const convertToCoinOptions = (data: any[]): CoinOption[] => {
-  // This is a placeholder that would normally transform API data
-  return mockCoins;
-};
-
-interface RealTimePricesProps {
-  refreshInterval?: number;
-  maxCoins?: number;
-  onSelectCoin?: (coinId: string) => void;
-}
-
-const RealTimePrices: React.FC<RealTimePricesProps> = ({
-  refreshInterval = 5000,
-  maxCoins = 4,
-  onSelectCoin
+const RealTimePrices: React.FC<RealTimePricesProps> = ({ 
+  coins = [], 
+  refreshInterval = 60000, // Set default to 1 minute to avoid rate limiting
+  onSelectCoin,
+  selectedCoinId
 }) => {
-  const [coins, setCoins] = useState<CoinOption[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [cryptoData, setCryptoData] = useState<CoinOption[]>(coins);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  
-  const fetchData = async () => {
-    setIsLoading(true);
-    setError(null);
+
+  useEffect(() => {
+    // Set initial data if provided
+    if (coins && coins.length > 0) {
+      setCryptoData(coins);
+      setIsLoading(false);
+    } else {
+      fetchData();
+    }
+
+    // Setup interval for refreshing data
+    const intervalId = setInterval(fetchData, refreshInterval);
     
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [refreshInterval]);
+
+  const fetchData = async () => {
     try {
-      const data = await fetchCryptoData();
-      setCoins(data.slice(0, maxCoins));
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error('Error fetching crypto data:', err);
-      setError('Failed to fetch latest price data');
+      setIsLoading(true);
+      const data = await fetchTopCryptoData(20);
+      if (data && data.length > 0) {
+        setCryptoData(data);
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error('Error fetching price data:', error);
+      toast({
+        title: "Failed to fetch data",
+        description: "Could not retrieve the latest cryptocurrency prices. Please try again later.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    fetchData();
-    
-    const intervalId = setInterval(fetchData, refreshInterval);
-    
-    return () => clearInterval(intervalId);
-  }, [refreshInterval, maxCoins]);
-  
-  const handleRefresh = () => {
-    fetchData();
-  };
-  
-  const formatCurrency = (value: number) => {
+
+  const formatPrice = (price: number) => {
+    if (price < 0.01) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 6,
+        maximumFractionDigits: 6,
+      }).format(price);
+    }
+
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: value < 1 ? 4 : 2,
-      maximumFractionDigits: value < 1 ? 4 : 2
-    }).format(value);
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price);
   };
-  
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString();
+
+  const formatPercentage = (percentage: number) => {
+    if (percentage === undefined || percentage === null) return 'N/A';
+    return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
   };
-  
+
+  const handleRowClick = (coinId: string) => {
+    if (onSelectCoin) {
+      onSelectCoin(coinId);
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchData();
+  };
+
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle className="text-xl">Real-Time Prices</CardTitle>
-          <CardDescription>
-            Last updated: {formatTime(lastUpdated)}
-          </CardDescription>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Real-Time Prices</CardTitle>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </span>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleRefresh} 
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleRefresh}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-        </Button>
       </CardHeader>
-      
       <CardContent>
-        {error ? (
-          <div className="py-4 text-center text-red-500">
-            {error}
+        {isLoading && cryptoData.length === 0 ? (
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {isLoading && coins.length === 0 ? (
-              Array.from({ length: maxCoins }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between py-2">
-                  <div className="flex items-center">
-                    <Skeleton className="h-8 w-8 rounded-full mr-3" />
-                    <div>
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-16 mt-1" />
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-3 w-12 mt-1 ml-auto" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              coins.map((coin) => (
-                <div
-                  key={coin.id}
-                  className="flex items-center justify-between py-2 border-b last:border-b-0 cursor-pointer hover:bg-muted/50 rounded-md px-2"
-                  onClick={() => onSelectCoin && onSelectCoin(coin.id)}
-                >
-                  <div className="flex items-center">
-                    {coin.image && (
-                      <img
-                        src={coin.image}
-                        alt={coin.name}
-                        className="h-8 w-8 rounded-full mr-3"
-                      />
-                    )}
-                    <div>
-                      <div className="font-medium">{coin.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {coin.symbol}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Asset</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">24h Change</TableHead>
+                  <TableHead className="text-right">Market Cap</TableHead>
+                  <TableHead className="text-right">24h Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cryptoData.map((coin) => (
+                  <TableRow 
+                    key={coin.id}
+                    onClick={() => handleRowClick(coin.id)}
+                    className={`cursor-pointer hover:bg-muted ${selectedCoinId === coin.id ? 'bg-muted' : ''}`}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {coin.image && (
+                          <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
+                        )}
+                        <div>
+                          <div>{coin.name}</div>
+                          <div className="text-xs text-muted-foreground">{coin.symbol}</div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">
-                      {formatCurrency(coin.price)}
-                    </div>
-                    <div
-                      className={`text-sm flex items-center justify-end ${
-                        coin.changePercent >= 0
-                          ? 'text-green-500'
-                          : 'text-red-500'
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {formatPrice(coin.price)}
+                    </TableCell>
+                    <TableCell 
+                      className={`text-right ${
+                        coin.changePercent > 0 
+                          ? 'text-green-500' 
+                          : coin.changePercent < 0 
+                            ? 'text-red-500' 
+                            : ''
                       }`}
                     >
-                      {coin.changePercent >= 0 ? (
-                        <ArrowUpIcon className="h-3 w-3 mr-1" />
-                      ) : (
-                        <ArrowDownIcon className="h-3 w-3 mr-1" />
-                      )}
-                      {coin.changePercent.toFixed(2)}%
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+                      <div className="flex items-center justify-end gap-1">
+                        {coin.changePercent > 0 ? (
+                          <ArrowUp className="w-4 h-4" />
+                        ) : coin.changePercent < 0 ? (
+                          <ArrowDown className="w-4 h-4" />
+                        ) : null}
+                        {formatPercentage(coin.changePercent)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {coin.marketCap ? 
+                        new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          notation: 'compact',
+                          maximumFractionDigits: 2
+                        }).format(coin.marketCap) : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {coin.volume ? 
+                        new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          notation: 'compact',
+                          maximumFractionDigits: 1
+                        }).format(coin.volume) : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        
+        {isLoading && cryptoData.length > 0 && (
+          <div className="flex justify-center items-center mt-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        )}
+        
+        {!isLoading && cryptoData.length === 0 && (
+          <div className="text-center py-6 text-muted-foreground">
+            No cryptocurrency data available. Please try again later.
           </div>
         )}
       </CardContent>

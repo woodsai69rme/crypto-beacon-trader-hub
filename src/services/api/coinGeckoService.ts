@@ -1,104 +1,134 @@
 
-import { CryptoData, CryptoChartData } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
+import axios from 'axios';
+import { CoinOption } from '@/types/trading';
 
-// Mock API key storage
-let apiKey: string | null = null;
+// Free API endpoints from CoinGecko
+const BASE_URL = 'https://api.coingecko.com/api/v3';
 
-export const setCoinGeckoApiKey = (key: string) => {
-  apiKey = key;
-  localStorage.setItem('coinGeckoApiKey', key);
-  return true;
-};
-
-export const getCoinGeckoApiKey = (): string | null => {
-  if (!apiKey) {
-    apiKey = localStorage.getItem('coinGeckoApiKey');
-  }
-  return apiKey;
-};
-
-export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<CryptoData[]> => {
+// Helper to handle rate limiting with exponential backoff
+const fetchWithRetry = async (url: string, retries = 3, delay = 1000) => {
   try {
-    // In a real app, we would use the API key
-    // For now, returning mock data
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch coins from CoinGecko');
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error: any) {
+    // Check if we're being rate limited (429)
+    if (error.response && error.response.status === 429 && retries > 0) {
+      console.log(`Rate limited. Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithRetry(url, retries - 1, delay * 2);
     }
-    
-    const data = await response.json();
-    return data as CryptoData[];
+    throw error;
+  }
+};
+
+// Get price data for multiple cryptocurrencies
+export const fetchCryptoPrices = async (coinIds: string[], currency = 'usd') => {
+  try {
+    const idsParam = coinIds.join(',');
+    const url = `${BASE_URL}/simple/price?ids=${idsParam}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`;
+    return await fetchWithRetry(url);
   } catch (error) {
-    console.error("Error fetching from CoinGecko:", error);
-    toast({
-      title: "API Error",
-      description: "Could not fetch data from CoinGecko API. Using mock data instead.",
-      variant: "destructive",
-    });
-    
-    // Fallback to local mock data
-    return import("../cryptoApi").then(module => module.getMockCryptoData().slice(0, limit));
+    console.error('Failed to fetch crypto prices:', error);
+    throw error;
   }
 };
 
-export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: number = 30): Promise<CryptoChartData> => {
+// Get top cryptocurrencies by market cap
+export const fetchTopCryptoData = async (limit = 10, currency = 'usd'): Promise<CoinOption[]> => {
   try {
-    // In a real app, we would use the API key
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
+    const url = `${BASE_URL}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`;
+    const response = await fetchWithRetry(url);
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch coin history from CoinGecko');
-    }
-    
-    const data = await response.json();
-    return data as CryptoChartData;
-  } catch (error) {
-    console.error("Error fetching from CoinGecko:", error);
-    toast({
-      title: "API Error",
-      description: "Could not fetch historical data from CoinGecko API. Using mock data instead.",
-      variant: "destructive",
-    });
-    
-    // Fallback to local mock data
-    return import("../cryptoApi").then(module => module.fetchCoinHistory(coinId, days));
-  }
-};
-
-export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoData[]> => {
-  try {
-    // In a real app, we would use the API key
-    const response = await fetch(`https://api.coingecko.com/api/v3/search?query=${query}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to search coins from CoinGecko');
-    }
-    
-    const data = await response.json();
-    return data.coins.map((coin: any) => ({
+    return response.map((coin: any) => ({
       id: coin.id,
       name: coin.name,
-      symbol: coin.symbol,
-      image: coin.large,
-      market_cap_rank: coin.market_cap_rank,
-    })) as Partial<CryptoData>[] as CryptoData[];
+      symbol: coin.symbol.toUpperCase(),
+      price: coin.current_price,
+      priceChange: coin.price_change_24h || 0,
+      changePercent: coin.price_change_percentage_24h || 0,
+      image: coin.image,
+      volume: coin.total_volume,
+      marketCap: coin.market_cap,
+      value: coin.id,
+      label: `${coin.name} (${coin.symbol.toUpperCase()})`
+    }));
   } catch (error) {
-    console.error("Error searching from CoinGecko:", error);
-    toast({
-      title: "API Error",
-      description: "Could not search CoinGecko API. Using mock data instead.",
-      variant: "destructive",
-    });
-    
-    // Fallback to local mock data
-    return import("../cryptoApi").then(module => {
-      const mockData = module.getMockCryptoData();
-      return mockData.filter(coin => 
-        coin.name.toLowerCase().includes(query.toLowerCase()) || 
-        coin.symbol.toLowerCase().includes(query.toLowerCase())
-      );
-    });
+    console.error('Failed to fetch top crypto data:', error);
+    // Return empty array to avoid breaking the UI
+    return [];
   }
+};
+
+// Get historical price data for a specific coin
+export const fetchCoinHistory = async (coinId: string, days = 7, currency = 'usd') => {
+  try {
+    const url = `${BASE_URL}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`;
+    return await fetchWithRetry(url);
+  } catch (error) {
+    console.error(`Failed to fetch history for ${coinId}:`, error);
+    throw error;
+  }
+};
+
+// Get detailed information for a specific coin
+export const fetchCoinDetails = async (coinId: string) => {
+  try {
+    const url = `${BASE_URL}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false`;
+    return await fetchWithRetry(url);
+  } catch (error) {
+    console.error(`Failed to fetch details for ${coinId}:`, error);
+    throw error;
+  }
+};
+
+// Search for coins by query
+export const searchCoins = async (query: string) => {
+  try {
+    const url = `${BASE_URL}/search?query=${query}`;
+    return await fetchWithRetry(url);
+  } catch (error) {
+    console.error(`Failed to search for coins with query "${query}":`, error);
+    throw error;
+  }
+};
+
+// Convert API response to our app's CoinOption format
+export const convertToCoinOptions = (apiData: any[]): CoinOption[] => {
+  return apiData.map(coin => ({
+    id: coin.id,
+    name: coin.name,
+    symbol: coin.symbol.toUpperCase(),
+    price: coin.current_price || 0,
+    priceChange: coin.price_change_24h || 0,
+    changePercent: coin.price_change_percentage_24h || 0,
+    image: coin.image,
+    volume: coin.total_volume || 0,
+    marketCap: coin.market_cap || 0,
+    value: coin.id,
+    label: `${coin.name} (${coin.symbol.toUpperCase()})`
+  }));
+};
+
+// Format price history data from API into PricePoint format
+export const formatPriceHistory = (apiData: any): { priceData: any[], marketCapData: any[], volumeData: any[] } => {
+  if (!apiData || !apiData.prices) {
+    return { priceData: [], marketCapData: [], volumeData: [] };
+  }
+  
+  const priceData = apiData.prices.map((item: [number, number]) => ({
+    time: item[0],
+    price: item[1]
+  }));
+  
+  const marketCapData = apiData.market_caps.map((item: [number, number]) => ({
+    time: item[0],
+    value: item[1]
+  }));
+  
+  const volumeData = apiData.total_volumes.map((item: [number, number]) => ({
+    time: item[0],
+    value: item[1]
+  }));
+  
+  return { priceData, marketCapData, volumeData };
 };
