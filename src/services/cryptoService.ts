@@ -1,165 +1,226 @@
 
 import { CoinOption } from '@/types/trading';
 
-// Mock data for crypto prices
-const mockCryptoData: CoinOption[] = [
+// Mock crypto data for development
+const mockCoins: CoinOption[] = [
   {
     id: 'bitcoin',
-    name: 'Bitcoin',
     symbol: 'BTC',
+    name: 'Bitcoin',
     price: 65000,
-    priceChange: 2.5,
-    changePercent: 2.5,
-    marketCap: 1254000000000,
-    volume: 35600000000,
+    priceChange: 1500,
+    changePercent: 2.3,
     image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
     value: 'bitcoin',
-    label: 'Bitcoin (BTC)',
+    label: 'Bitcoin (BTC)'
   },
   {
     id: 'ethereum',
-    name: 'Ethereum',
     symbol: 'ETH',
+    name: 'Ethereum',
     price: 3500,
-    priceChange: 3.2,
-    changePercent: 3.2,
-    marketCap: 421000000000,
-    volume: 21500000000,
+    priceChange: -120,
+    changePercent: -3.3,
     image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
     value: 'ethereum',
-    label: 'Ethereum (ETH)',
+    label: 'Ethereum (ETH)'
   },
-  // Add more coins as needed
+  {
+    id: 'solana',
+    symbol: 'SOL',
+    name: 'Solana',
+    price: 142,
+    priceChange: 5.7,
+    changePercent: 4.2,
+    image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+    value: 'solana',
+    label: 'Solana (SOL)'
+  },
+  {
+    id: 'cardano',
+    symbol: 'ADA',
+    name: 'Cardano',
+    price: 0.45,
+    priceChange: 0.02,
+    changePercent: 4.7,
+    image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png',
+    value: 'cardano',
+    label: 'Cardano (ADA)'
+  },
+  {
+    id: 'binancecoin',
+    symbol: 'BNB',
+    name: 'Binance Coin',
+    price: 580,
+    priceChange: 12.5,
+    changePercent: 2.2,
+    image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+    value: 'binancecoin',
+    label: 'Binance Coin (BNB)'
+  },
+  {
+    id: 'ripple',
+    symbol: 'XRP',
+    name: 'XRP',
+    price: 0.58,
+    priceChange: 0.01,
+    changePercent: 1.75,
+    image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
+    value: 'ripple',
+    label: 'XRP (XRP)'
+  },
+  {
+    id: 'dogecoin',
+    symbol: 'DOGE',
+    name: 'Dogecoin',
+    price: 0.12,
+    priceChange: -0.01,
+    changePercent: -7.69,
+    image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
+    value: 'dogecoin',
+    label: 'Dogecoin (DOGE)'
+  },
+  {
+    id: 'polkadot',
+    symbol: 'DOT',
+    name: 'Polkadot',
+    price: 6.50,
+    priceChange: 0.25,
+    changePercent: 4.0,
+    image: 'https://assets.coingecko.com/coins/images/12171/small/polkadot.png',
+    value: 'polkadot',
+    label: 'Polkadot (DOT)'
+  }
 ];
 
-// Fetch top crypto data
-export const fetchTopCryptoData = async (limit = 10): Promise<CoinOption[]> => {
-  // In a real application, this would be replaced with an API call
-  // Example API: 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10'
-  
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockCryptoData.slice(0, limit));
-    }, 500); // Simulate network latency
-  });
-};
-
-// Fetch data for multiple cryptocurrencies
-export const fetchMultipleCryptoData = async (coinIds: string[]): Promise<any[]> => {
-  // In a real application, this would be an API call with the list of coinIds
-  // For now, return mock data for the requested coins
-  
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const filteredCoins = mockCryptoData.filter(coin => coinIds.includes(coin.id));
-      resolve(filteredCoins);
-    }, 400);
-  });
-};
-
-// Convert API response to CoinOption format
-export const convertToCoinOptions = (data: any[]): CoinOption[] => {
-  return data.map(item => ({
-    id: item.id,
-    name: item.name,
-    symbol: item.symbol,
-    price: item.price || 0,
-    priceChange: item.price_change_24h || 0,
-    changePercent: item.price_change_percentage_24h || 0,
-    marketCap: item.market_cap || 0,
-    volume: item.total_volume || 0,
-    image: item.image,
-    value: item.id,
-    label: `${item.name} (${item.symbol.toUpperCase()})`,
-  }));
-};
-
-// Fetch data for a specific crypto
+// Fetch data for a single crypto asset
 export const fetchCryptoData = async (coinId: string): Promise<CoinOption | null> => {
-  // In a real application, this would be replaced with an API call
-  // Example API: `https://api.coingecko.com/api/v3/coins/${coinId}`
-  
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const coin = mockCryptoData.find(c => c.id === coinId);
-      resolve(coin || null);
-    }, 300);
-  });
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const coin = mockCoins.find(c => c.id === coinId);
+    
+    if (!coin) return null;
+    
+    // Add some random variation to the price
+    const priceVariation = coin.price * (Math.random() * 0.02 - 0.01);
+    const updatedCoin = {
+      ...coin,
+      price: coin.price + priceVariation,
+      priceChange: coin.priceChange * (1 + (Math.random() * 0.1 - 0.05)),
+      changePercent: coin.changePercent * (1 + (Math.random() * 0.1 - 0.05))
+    };
+    
+    return updatedCoin;
+  } catch (error) {
+    console.error('Error fetching crypto data:', error);
+    return null;
+  }
 };
 
-// Fetch historical price data for a crypto
-interface PricePoint {
-  timestamp: number;
-  price: number;
-}
-
-export const fetchCoinHistory = async (
-  coinId: string, 
-  days = 30
-): Promise<PricePoint[]> => {
-  // In a real application, this would be replaced with an API call
-  // Example API: `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
-  
-  return new Promise((resolve) => {
-    // Generate mock historical data
-    const now = Date.now();
-    const oneDayMs = 86400000;
-    const startPrice = coinId === 'bitcoin' ? 60000 : 3200;
-    const volatility = coinId === 'bitcoin' ? 2000 : 200;
+// Fetch historical price data
+export const fetchHistoricalData = async (
+  coinId: string,
+  days: number = 30,
+  interval: string = 'daily'
+): Promise<{ time: number; price: number }[]> => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 800));
     
-    const pricePoints: PricePoint[] = Array.from({ length: days }).map((_, i) => {
-      const timestamp = now - ((days - i) * oneDayMs);
-      const randomChange = (Math.random() - 0.5) * volatility;
-      const price = startPrice + randomChange;
-      
-      return {
-        timestamp,
-        price,
-      };
+    const coin = mockCoins.find(c => c.id === coinId);
+    if (!coin) return [];
+    
+    const currentPrice = coin.price;
+    const volatility = currentPrice * 0.15; // 15% volatility
+    const dataPoints = days * (interval === 'hourly' ? 24 : 1);
+    
+    // Generate simulated historical data
+    const now = Date.now();
+    const millisecondsPerPoint = (days * 86400000) / dataPoints;
+    
+    const data = Array.from({ length: dataPoints }).map((_, i) => {
+      const time = now - (dataPoints - i) * millisecondsPerPoint;
+      const randomWalk = volatility * (Math.random() - 0.5);
+      const price = Math.max(0.01, currentPrice - volatility / 2 + randomWalk * (i / dataPoints));
+      return { time, price };
     });
     
-    setTimeout(() => {
-      resolve(pricePoints);
-    }, 500);
-  });
+    return data;
+  } catch (error) {
+    console.error('Error fetching historical data:', error);
+    return [];
+  }
 };
 
-// Search for coins
+// Fetch multiple crypto assets data
+export const fetchMultipleCryptoData = async (limit: number = 10): Promise<CoinOption[]> => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Return the mock data with random variations
+    return mockCoins.slice(0, limit).map(coin => {
+      const priceVariation = coin.price * (Math.random() * 0.04 - 0.02);
+      return {
+        ...coin,
+        price: coin.price + priceVariation,
+        priceChange: coin.priceChange * (1 + (Math.random() * 0.2 - 0.1)),
+        changePercent: coin.changePercent * (1 + (Math.random() * 0.2 - 0.1))
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching multiple crypto data:', error);
+    return [];
+  }
+};
+
+// Convert API data to CoinOption format
+export const convertToCoinOptions = (apiData: any[]): CoinOption[] => {
+  try {
+    return apiData.map(item => ({
+      id: item.id || '',
+      name: item.name || '',
+      symbol: item.symbol?.toUpperCase() || '',
+      price: item.current_price || 0,
+      priceChange: item.price_change_24h || 0,
+      changePercent: item.price_change_percentage_24h || 0,
+      image: item.image || '',
+      volume: item.total_volume || 0,
+      marketCap: item.market_cap || 0,
+      value: item.id || '',
+      label: `${item.name} (${item.symbol?.toUpperCase() || ''})`
+    }));
+  } catch (error) {
+    console.error('Error converting to coin options:', error);
+    return [];
+  }
+};
+
+// Get all available coins
+export const getAllCoins = async (): Promise<CoinOption[]> => {
+  // In a real app, this would fetch from an API
+  return mockCoins;
+};
+
+// Search for coins by name or symbol
 export const searchCoins = async (query: string): Promise<CoinOption[]> => {
-  // In a real application, this would be replaced with an API call
-  // Example API: `https://api.coingecko.com/api/v3/search?query=${query}`
+  if (!query) return mockCoins;
   
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const results = mockCryptoData.filter(coin => 
-        coin.name.toLowerCase().includes(query.toLowerCase()) || 
-        coin.symbol.toLowerCase().includes(query.toLowerCase())
-      );
-      resolve(results);
-    }, 300);
-  });
+  const normalizedQuery = query.toLowerCase();
+  return mockCoins.filter(
+    coin => 
+      coin.name.toLowerCase().includes(normalizedQuery) || 
+      coin.symbol.toLowerCase().includes(normalizedQuery)
+  );
 };
 
-// Get market overview stats
-export interface MarketOverview {
-  totalMarketCap: number;
-  totalVolume24h: number;
-  btcDominance: number;
-  activeCryptocurrencies: number;
-}
-
-export const getMarketOverview = async (): Promise<MarketOverview> => {
-  // In a real application, this would be replaced with an API call
-  // Example API: 'https://api.coingecko.com/api/v3/global'
-  
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        totalMarketCap: 2621000000000,
-        totalVolume24h: 98700000000,
-        btcDominance: 47.8,
-        activeCryptocurrencies: 10825,
-      });
-    }, 400);
-  });
+export default {
+  fetchCryptoData,
+  fetchHistoricalData,
+  fetchMultipleCryptoData,
+  convertToCoinOptions,
+  getAllCoins,
+  searchCoins
 };

@@ -44,15 +44,16 @@ export interface TradingAccount {
   assets?: Record<string, number>;
   lastUpdated?: string;
   isActive?: boolean;
-  type?: 'exchange' | 'wallet' | 'manual';
+  type?: 'exchange' | 'wallet' | 'manual' | 'ai';
+  initialBalance?: number;
 }
 
 export interface TradingFormProps {
-  onAddTrade: (trade: Trade) => void;
+  onAddTrade?: (trade: Trade) => void;
   defaultValues?: Partial<Trade>;
   balance?: number;
   availableCoins?: CoinOption[];
-  onTrade?: (trade: Trade) => void;
+  onTrade?: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
   getOwnedCoinAmount?: (coinId: string) => number;
   activeCurrency?: SupportedCurrency;
   onCurrencyChange?: (currency: SupportedCurrency) => void;
@@ -68,10 +69,10 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   riskLevel: 'low' | 'medium' | 'high';
-  profitPotential: 'low' | 'medium' | 'high';
+  profitPotential?: 'low' | 'medium' | 'high';
   timeframe: string;  // Changed from enum to string to support '1h', '4h', etc.
   indicators: string[];
-  triggers: string[];
+  triggers?: string[];
   implementation?: string;
   recommendation?: string;
   confidence?: number;
@@ -92,14 +93,61 @@ export interface SettingsFormValues {
     showPriceInBTC: boolean;
   };
   api: {
-    selectedProvider: string;
-    refreshInterval: number;
-    timeout: number;
+    provider: string;
+    key: string;
+    selectedProvider?: string;
+    refreshInterval?: number;
+    timeout?: number;
   };
   display: {
-    theme: string;
+    theme?: string;
+    showPortfolio: boolean;
+    defaultTab: string;
     compactMode: boolean;
-    showAllDecimals: boolean;
+    showAllDecimals?: boolean;
+  };
+  displayName?: string;
+  email?: string;
+  username?: string;
+  language?: string;
+  theme?: string;
+  notifications?: {
+    email: boolean;
+    push: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
+    priceAlerts?: boolean;
+  };
+  tradingPreferences?: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+  };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+  ticker?: {
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
   };
 }
 
@@ -148,3 +196,9 @@ export type WidgetType =
   | 'performance-tracker';
 
 export type WidgetSize = 'small' | 'medium' | 'large';
+
+// Add missing PricePoint interface
+export interface PricePoint {
+  time: number;
+  price: number;
+}

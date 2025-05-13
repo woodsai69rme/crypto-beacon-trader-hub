@@ -4,16 +4,17 @@ import { LocalModel } from '@/types/trading';
 export interface ModelPerformanceProps {
   model: LocalModel;
   timeframe?: string;
+  isRunning?: boolean;
+  performanceData?: any;
 }
 
 export interface ModelRunningTabProps {
-  models: LocalModel[];
+  models?: LocalModel[];
   selectedModel: LocalModel | null;
-  onSelectModel: (model: LocalModel) => void;
   isRunning: boolean;
-  progress: number;
-  onStart: () => void;
-  onStop: () => void;
+  progress?: number;
+  onStartModel: (model: LocalModel) => void;
+  onStopModel: () => void;
 }
 
 export interface ModelInfoProps {

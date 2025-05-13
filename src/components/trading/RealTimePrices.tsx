@@ -1,117 +1,224 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown } from 'lucide-react';
-import { RealTimePricesProps, CoinOption } from '@/types/trading';
+import { CoinOption } from '@/types/trading';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { ArrowUpIcon, ArrowDownIcon, RefreshCw } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+
+// Sample mock data - Replace with real API call in production
+const mockCoins: CoinOption[] = [
+  {
+    id: 'bitcoin',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    price: 65000,
+    priceChange: 1500,
+    changePercent: 2.3,
+    image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+    value: 'bitcoin',
+    label: 'Bitcoin (BTC)'
+  },
+  {
+    id: 'ethereum',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    price: 3500,
+    priceChange: -120,
+    changePercent: -3.3,
+    image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+    value: 'ethereum',
+    label: 'Ethereum (ETH)'
+  },
+  {
+    id: 'solana',
+    symbol: 'SOL',
+    name: 'Solana',
+    price: 142,
+    priceChange: 5.7,
+    changePercent: 4.2,
+    image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+    value: 'solana',
+    label: 'Solana (SOL)'
+  },
+  {
+    id: 'cardano',
+    symbol: 'ADA',
+    name: 'Cardano',
+    price: 0.45,
+    priceChange: 0.02,
+    changePercent: 4.7,
+    image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png',
+    value: 'cardano',
+    label: 'Cardano (ADA)'
+  }
+];
+
+// Function to simulate fetching data - Replace with real API call
+const fetchCryptoData = async (): Promise<CoinOption[]> => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Return mock data with slightly modified prices
+  return mockCoins.map(coin => ({
+    ...coin,
+    price: coin.price * (1 + (Math.random() * 0.02 - 0.01)),
+    priceChange: coin.priceChange * (1 + (Math.random() * 0.1 - 0.05)),
+    changePercent: coin.changePercent * (1 + (Math.random() * 0.1 - 0.05))
+  }));
+};
+
+// Function to convert API data to CoinOption format
+const convertToCoinOptions = (data: any[]): CoinOption[] => {
+  // This is a placeholder that would normally transform API data
+  return mockCoins;
+};
+
+interface RealTimePricesProps {
+  refreshInterval?: number;
+  maxCoins?: number;
+  onSelectCoin?: (coinId: string) => void;
+}
 
 const RealTimePrices: React.FC<RealTimePricesProps> = ({
-  initialCoins,
-  onSelectCoin,
-  selectedCoinId,
-  refreshInterval = 5000
+  refreshInterval = 5000,
+  maxCoins = 4,
+  onSelectCoin
 }) => {
-  const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
+  const [coins, setCoins] = useState<CoinOption[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
-  useEffect(() => {
-    // In a real app, this would connect to a WebSocket or REST API
-    // For this demo, we'll simulate price updates
-    const intervalId = setInterval(() => {
-      const updatedCoins = coins.map(coin => {
-        // Generate a random price change (-2% to +2%)
-        const priceChangePercent = (Math.random() * 4 - 2) / 100;
-        const newPrice = coin.price * (1 + priceChangePercent);
-        const priceChange = newPrice - coin.price;
-        
-        // Updated coin data
-        return {
-          ...coin,
-          price: newPrice,
-          priceChange: coin.priceChange + priceChange,
-          changePercent: coin.changePercent + (priceChangePercent * 100)
-        };
-      });
-      
-      setCoins(updatedCoins);
-      setLastUpdated(new Date());
-    }, refreshInterval);
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
     
-    return () => clearInterval(intervalId);
-  }, [coins, refreshInterval]);
-  
-  const handleRowClick = (coinId: string) => {
-    if (onSelectCoin) {
-      onSelectCoin(coinId);
+    try {
+      const data = await fetchCryptoData();
+      setCoins(data.slice(0, maxCoins));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Error fetching crypto data:', err);
+      setError('Failed to fetch latest price data');
+    } finally {
+      setIsLoading(false);
     }
   };
   
+  useEffect(() => {
+    fetchData();
+    
+    const intervalId = setInterval(fetchData, refreshInterval);
+    
+    return () => clearInterval(intervalId);
+  }, [refreshInterval, maxCoins]);
+  
+  const handleRefresh = () => {
+    fetchData();
+  };
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: value < 1 ? 4 : 2,
+      maximumFractionDigits: value < 1 ? 4 : 2
+    }).format(value);
+  };
+  
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString();
+  };
+  
   return (
-    <Card>
-      <CardContent className="p-0">
-        <div className="max-h-[400px] overflow-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                <TableHead>Coin</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right hidden md:table-cell">24h Change</TableHead>
-                <TableHead className="text-right hidden lg:table-cell">Volume</TableHead>
-                <TableHead className="text-right hidden lg:table-cell">Market Cap</TableHead>
-              </TableRow>
-            </TableHeader>
-            
-            <TableBody>
-              {coins.map(coin => (
-                <TableRow 
-                  key={coin.id} 
-                  onClick={() => handleRowClick(coin.id)} 
-                  className={`cursor-pointer hover:bg-muted ${selectedCoinId === coin.id ? 'bg-muted/50' : ''}`}
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle className="text-xl">Real-Time Prices</CardTitle>
+          <CardDescription>
+            Last updated: {formatTime(lastUpdated)}
+          </CardDescription>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        </Button>
+      </CardHeader>
+      
+      <CardContent>
+        {error ? (
+          <div className="py-4 text-center text-red-500">
+            {error}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {isLoading && coins.length === 0 ? (
+              Array.from({ length: maxCoins }).map((_, index) => (
+                <div key={index} className="flex items-center justify-between py-2">
+                  <div className="flex items-center">
+                    <Skeleton className="h-8 w-8 rounded-full mr-3" />
+                    <div>
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16 mt-1" />
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-12 mt-1 ml-auto" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              coins.map((coin) => (
+                <div
+                  key={coin.id}
+                  className="flex items-center justify-between py-2 border-b last:border-b-0 cursor-pointer hover:bg-muted/50 rounded-md px-2"
+                  onClick={() => onSelectCoin && onSelectCoin(coin.id)}
                 >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {coin.image && (
-                        <img src={coin.image} alt={coin.name} className="w-6 h-6" />
-                      )}
-                      <div>
-                        <div className="font-medium">{coin.name}</div>
-                        <div className="text-xs text-muted-foreground">{coin.symbol}</div>
+                  <div className="flex items-center">
+                    {coin.image && (
+                      <img
+                        src={coin.image}
+                        alt={coin.name}
+                        className="h-8 w-8 rounded-full mr-3"
+                      />
+                    )}
+                    <div>
+                      <div className="font-medium">{coin.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {coin.symbol}
                       </div>
                     </div>
-                  </TableCell>
-                  
-                  <TableCell className="text-right font-medium">
-                    ${coin.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                  </TableCell>
-                  
-                  <TableCell className="text-right hidden md:table-cell">
-                    <Badge variant={coin.changePercent >= 0 ? "outline" : "destructive"} className="font-medium">
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">
+                      {formatCurrency(coin.price)}
+                    </div>
+                    <div
+                      className={`text-sm flex items-center justify-end ${
+                        coin.changePercent >= 0
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                      }`}
+                    >
                       {coin.changePercent >= 0 ? (
-                        <ArrowUp className="h-3 w-3 mr-1" />
+                        <ArrowUpIcon className="h-3 w-3 mr-1" />
                       ) : (
-                        <ArrowDown className="h-3 w-3 mr-1" />
+                        <ArrowDownIcon className="h-3 w-3 mr-1" />
                       )}
-                      {Math.abs(coin.changePercent).toFixed(2)}%
-                    </Badge>
-                  </TableCell>
-                  
-                  <TableCell className="text-right text-muted-foreground hidden lg:table-cell">
-                    ${coin.volume ? (coin.volume / 1000000).toFixed(2) + 'M' : 'N/A'}
-                  </TableCell>
-                  
-                  <TableCell className="text-right text-muted-foreground hidden lg:table-cell">
-                    ${coin.marketCap ? (coin.marketCap / 1000000000).toFixed(2) + 'B' : 'N/A'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        
-        <div className="text-xs text-muted-foreground text-right p-2">
-          Last updated: {lastUpdated.toLocaleTimeString()}
-        </div>
+                      {coin.changePercent.toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

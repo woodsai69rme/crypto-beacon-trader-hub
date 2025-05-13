@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { AITradingStrategy, TradingAccount, Trade } from "@/types/trading";
+import { createTrade } from "@/services/aiTradingService";
 
 interface AiTradingContextType {
   isLoading: boolean;
@@ -75,7 +77,8 @@ export function AiTradingProvider({ children }: { children: React.ReactNode }) {
               profitLoss: 2450,
               drawdown: 12.3,
               returns: 18.7
-            }
+            },
+            riskLevel: 'medium'
           },
           {
             id: 'strategy-2',
@@ -96,7 +99,8 @@ export function AiTradingProvider({ children }: { children: React.ReactNode }) {
               profitLoss: 1850,
               drawdown: 15.7,
               returns: 14.2
-            }
+            },
+            riskLevel: 'medium'
           }
         ]);
       }

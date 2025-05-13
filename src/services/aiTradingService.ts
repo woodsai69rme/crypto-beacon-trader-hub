@@ -17,8 +17,8 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
     description: 'Uses machine learning to identify and follow market trends',
     type: 'trend-following',
     timeframe: '1d',
+    riskLevel: 'medium',
     parameters: {
-      riskLevel: 'medium',
       backtestResults: {
         winRate: 0.68,
         profitFactor: 1.85,
@@ -26,7 +26,8 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
         drawdown: 15,
         returns: 45
       }
-    }
+    },
+    indicators: ['SMA', 'EMA', 'MACD', 'RSI']
   },
   {
     id: 'mean-reversion-ai',
@@ -34,8 +35,8 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
     description: 'Identifies overbought and oversold conditions using AI',
     type: 'mean-reversion',
     timeframe: '4h',
+    riskLevel: 'medium',
     parameters: {
-      riskLevel: 'medium',
       backtestResults: {
         winRate: 0.72,
         profitFactor: 1.95,
@@ -43,17 +44,17 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
         drawdown: 12,
         returns: 52
       }
-    }
+    },
+    indicators: ['RSI', 'Bollinger', 'Stochastic', 'MFI']
   },
   {
     id: 'sentiment-analysis',
     name: 'AI Sentiment Trading',
     description: 'Analyzes market sentiment using NLP',
-    type: 'custom',
+    type: 'sentiment',
     timeframe: '1d',
+    riskLevel: 'high',
     parameters: {
-      strategyType: 'sentiment',
-      riskLevel: 'high',
       backtestResults: {
         winRate: 0.65,
         profitFactor: 2.1,
@@ -61,7 +62,8 @@ export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
         drawdown: 22,
         returns: 75
       }
-    }
+    },
+    indicators: ['Social Media Sentiment', 'News Analysis', 'Market Emotion']
   }
 ];
 
@@ -75,7 +77,7 @@ export async function analyzeMarketConditions(
   
   const random = Math.random();
   const confidence = 0.5 + (Math.random() * 0.4); // 50-90% confidence
-  const riskLevel = strategy.parameters.riskLevel as 'low' | 'medium' | 'high';
+  const riskLevel = strategy.riskLevel;
   
   return {
     recommendation: random > 0.6 ? 'buy' : random > 0.3 ? 'hold' : 'sell',
@@ -125,7 +127,8 @@ export async function executeAITrade(
       timestamp: new Date().toISOString(),
       currency: "USD",
       botGenerated: true,
-      strategyId: strategy.id
+      strategyId: strategy.id,
+      total: totalValue
     };
 
     toast({
@@ -144,3 +147,38 @@ export async function executeAITrade(
     return null;
   }
 }
+
+export function createTrade(
+  coinId: string,
+  coinName: string,
+  coinSymbol: string,
+  type: 'buy' | 'sell',
+  amount: number,
+  price: number,
+  strategyId?: string
+): Trade {
+  const totalValue = amount * price;
+  
+  return {
+    id: `trade-${Date.now()}`,
+    coinId,
+    coinName,
+    coinSymbol,
+    type,
+    amount,
+    price,
+    totalValue,
+    timestamp: new Date().toISOString(),
+    currency: "USD",
+    botGenerated: strategyId ? true : false,
+    strategyId,
+    total: totalValue
+  };
+}
+
+export default {
+  AVAILABLE_STRATEGIES,
+  analyzeMarketConditions,
+  executeAITrade,
+  createTrade
+};

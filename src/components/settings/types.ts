@@ -8,14 +8,18 @@ export interface SettingsFormValues {
     showPriceInBTC: boolean;
   };
   api: {
-    selectedProvider: string;
-    refreshInterval: number;
-    timeout: number;
+    provider: string;
+    key: string;
+    selectedProvider?: string;
+    refreshInterval?: number;
+    timeout?: number;
   };
   display: {
-    theme: string;
+    theme?: string;
+    showPortfolio: boolean;
+    defaultTab: string;
     compactMode: boolean;
-    showAllDecimals: boolean;
+    showAllDecimals?: boolean;
   };
   // User profile settings
   displayName?: string;
@@ -30,6 +34,7 @@ export interface SettingsFormValues {
     trades: boolean;
     pricing: boolean;
     news: boolean;
+    priceAlerts?: boolean;
   };
   // Trading preferences
   tradingPreferences?: {
