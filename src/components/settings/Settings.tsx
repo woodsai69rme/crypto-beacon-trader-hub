@@ -15,12 +15,13 @@ import GeneralSettings from './GeneralSettings';
 import NotificationSettings from './NotificationSettings';
 import ApiSettings from './ApiSettings';
 import TickerSettings from './TickerSettings';
-import { SettingsFormValues } from './types';
+import AppearanceSettings from './AppearanceSettings';
+import DataPrivacySettings from './DataPrivacySettings';
+import { SupportedCurrency, SettingsFormValues } from '@/types/trading';
 
-// Define the schema for the settings form
 const settingsFormSchema = z.object({
   currency: z.object({
-    defaultCurrency: z.enum(['AUD', 'USD', 'EUR', 'GBP']),
+    defaultCurrency: z.enum(['USD', 'EUR', 'GBP', 'AUD']),
     showPriceInBTC: z.boolean(),
   }),
   api: z.object({
@@ -31,10 +32,10 @@ const settingsFormSchema = z.object({
     timeout: z.number().optional(),
   }),
   display: z.object({
-    theme: z.string().optional(),
     showPortfolio: z.boolean(),
     defaultTab: z.string(),
     compactMode: z.boolean(),
+    theme: z.string().optional(),
     showAllDecimals: z.boolean().optional(),
   }),
   displayName: z.string().optional(),
@@ -45,36 +46,51 @@ const settingsFormSchema = z.object({
   notifications: z.object({
     email: z.boolean(),
     push: z.boolean(),
-    priceAlerts: z.boolean(),
     trades: z.boolean().optional(),
     pricing: z.boolean().optional(),
     news: z.boolean().optional(),
+    priceAlerts: z.boolean().optional(),
   }).optional(),
   tradingPreferences: z.object({
     autoConfirm: z.boolean(),
     showAdvanced: z.boolean(),
     defaultAsset: z.string(),
   }).optional(),
+  privacy: z.object({
+    showOnlineStatus: z.boolean().optional(),
+    sharePortfolio: z.boolean().optional(),
+    shareTrades: z.boolean().optional(),
+    dataCollection: z.boolean().optional(),
+    marketingConsent: z.boolean().optional(),
+    thirdPartySharing: z.boolean().optional(),
+  }).optional(),
+  account: z.object({
+    twoFactorEnabled: z.boolean().optional(),
+    loginAlerts: z.boolean().optional(),
+  }).optional(),
+  appearance: z.object({
+    colorScheme: z.string().optional(),
+    compactMode: z.boolean().optional(),
+    animationsEnabled: z.boolean().optional(),
+    highContrastMode: z.boolean().optional(),
+  }).optional(),
   ticker: z.object({
-    enabled: z.boolean(),
-    position: z.string(),
-    speed: z.number(),
-    direction: z.string(),
-    autoPause: z.boolean(),
+    enabled: z.boolean().optional(),
+    position: z.string().optional(),
+    speed: z.number().optional(),
+    direction: z.string().optional(),
+    autoPause: z.boolean().optional(),
   }).optional(),
 });
 
-type FormValues = z.infer<typeof settingsFormSchema>;
-
 export function Settings() {
-  // Define default values for the form
-  const defaultValues: FormValues = {
+  const defaultValues: Partial<SettingsFormValues> = {
     currency: {
-      defaultCurrency: 'AUD', // Set default currency to AUD as per requirements
+      defaultCurrency: 'AUD', // Set AUD as default currency
       showPriceInBTC: false,
     },
     api: {
-      provider: 'coingecko', // Use CoinGecko as default provider for free API access
+      provider: 'coingecko', // Default to free CoinGecko API
       key: '',
       selectedProvider: 'coingecko',
       refreshInterval: 30,
@@ -105,6 +121,20 @@ export function Settings() {
       showAdvanced: true,
       defaultAsset: 'bitcoin',
     },
+    privacy: {
+      showOnlineStatus: true,
+      sharePortfolio: false,
+      shareTrades: false,
+      dataCollection: true,
+      marketingConsent: false,
+      thirdPartySharing: false,
+    },
+    appearance: {
+      colorScheme: 'default',
+      compactMode: false,
+      animationsEnabled: true,
+      highContrastMode: false,
+    },
     ticker: {
       enabled: true,
       position: 'bottom',
@@ -114,20 +144,14 @@ export function Settings() {
     },
   };
   
-  // Initialize form with zod resolver
-  const form = useForm<FormValues>({
+  const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues,
   });
 
-  // Handle form submission
-  function onSubmit(values: FormValues) {
+  function onSubmit(values: SettingsFormValues) {
     console.log('Settings form values:', values);
     
-    // Store settings in localStorage for persistence
-    localStorage.setItem('appSettings', JSON.stringify(values));
-    
-    // Show success toast
     toast({
       title: "Settings updated",
       description: "Your preferences have been saved successfully.",
@@ -145,234 +169,43 @@ export function Settings() {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Currency Settings</CardTitle>
-              <CardDescription>
-                Configure your preferred currency and display options.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="currency.defaultCurrency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Default Currency</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a currency" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      This is the currency used for displaying prices and values.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="currency.showPriceInBTC"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Show BTC Prices</FormLabel>
-                      <FormDescription>
-                        Display cryptocurrency prices in BTC equivalent
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="general" className="mt-6">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="api">API</TabsTrigger>
+              <TabsTrigger value="privacy">Privacy</TabsTrigger>
+              <TabsTrigger value="ticker">Market Ticker</TabsTrigger>
+            </TabsList>
+            
+            <div className="mt-6">
+              <TabsContent value="general">
+                <GeneralSettings form={form} />
+              </TabsContent>
+              <TabsContent value="appearance">
+                <AppearanceSettings form={form} />
+              </TabsContent>
+              <TabsContent value="notifications">
+                <NotificationSettings form={form} />
+              </TabsContent>
+              <TabsContent value="api">
+                <ApiSettings form={form} />
+              </TabsContent>
+              <TabsContent value="privacy">
+                <DataPrivacySettings form={form} />
+              </TabsContent>
+              <TabsContent value="ticker">
+                <TickerSettings form={form} />
+              </TabsContent>
+            </div>
+          </Tabs>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>API Settings</CardTitle>
-              <CardDescription>
-                Configure API providers and connection settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="api.provider"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>API Provider</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a provider" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="coingecko">CoinGecko</SelectItem>
-                        <SelectItem value="coinlore">CoinLore</SelectItem>
-                        <SelectItem value="binance">Binance</SelectItem>
-                        <SelectItem value="okx">OKX</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      The data provider used for market information.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="api.key"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>API Key</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter your API key (optional for free APIs)"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The API key for the selected provider (optional).
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Display Settings</CardTitle>
-              <CardDescription>
-                Configure how information is displayed in the application.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="display.theme"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Theme</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a theme" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="system">System</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Choose the application appearance theme.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="display.compactMode"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Compact Mode</FormLabel>
-                      <FormDescription>
-                        Use a more compact display with less padding
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="display.showAllDecimals"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Show All Decimals</FormLabel>
-                      <FormDescription>
-                        Display all decimal places for cryptocurrency prices
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value || false}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button type="submit">Save Changes</Button>
-            </CardFooter>
-          </Card>
+          <div className="flex justify-end">
+            <Button type="submit">Save All Settings</Button>
+          </div>
         </form>
       </Form>
-      
-      <Tabs defaultValue="general" className="mt-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="api">API</TabsTrigger>
-          <TabsTrigger value="ticker">Market Ticker</TabsTrigger>
-        </TabsList>
-        <TabsContent value="general">
-          <GeneralSettings form={form} />
-        </TabsContent>
-        <TabsContent value="notifications">
-          <NotificationSettings form={form} />
-        </TabsContent>
-        <TabsContent value="api">
-          <ApiSettings form={form} />
-        </TabsContent>
-        <TabsContent value="ticker">
-          <TickerSettings form={form} />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }

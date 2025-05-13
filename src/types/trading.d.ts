@@ -29,12 +29,9 @@ export interface Trade {
   tags?: string[];
   total: number;
   strategyId?: string;
-  fees?: number;
-  currentValue?: number;
-  profitLoss?: number;
 }
 
-export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP';
+export type SupportedCurrency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 export interface TradingAccount {
   id: string;
@@ -49,6 +46,7 @@ export interface TradingAccount {
   isActive?: boolean;
   type?: 'exchange' | 'wallet' | 'manual' | 'ai';
   initialBalance?: number;
+  total: number;
 }
 
 export interface TradingFormProps {
@@ -82,20 +80,14 @@ export interface AITradingStrategy {
   backtestResults?: {
     winRate: number;
     profitFactor: number;
-    maxDrawdown: number;
+    maxDrawdown?: number;
     sharpeRatio: number;
+    drawdown?: number;
+    returns?: number;
   };
   type?: string;
   parameters?: any;
   tags?: string[];
-}
-
-// Define the PricePoint interface
-export interface PricePoint {
-  time: number;
-  price: number;
-  volume?: number;
-  marketCap?: number;
 }
 
 export interface SettingsFormValues {
@@ -125,9 +117,9 @@ export interface SettingsFormValues {
   notifications?: {
     email: boolean;
     push: boolean;
-    trades?: boolean;
-    pricing?: boolean;
-    news?: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
     priceAlerts?: boolean;
   };
   tradingPreferences?: {
@@ -208,6 +200,15 @@ export type WidgetType =
 
 export type WidgetSize = 'small' | 'medium' | 'large';
 
+// Add missing PricePoint interface
+export interface PricePoint {
+  time: number;
+  price: number;
+  volume?: number;
+  marketCap?: number;
+}
+
+// Added missing interfaces
 export interface RealTimePricesProps {
   coins?: CoinOption[];
   refreshInterval?: number;
@@ -220,87 +221,56 @@ export interface WalletConnectionProps {
   supportedWallets: WalletProvider[];
 }
 
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  roi: number;
+  trades: number;
+  winRate: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  strategy: AITradingStrategy;
+  transactions: BacktestTransaction[];
+}
+
+export interface BacktestTransaction {
+  date: string;
+  type: 'buy' | 'sell';
+  price: number;
+  amount: number;
+  total: number;
+  balanceAfter: number;
+  reason: string;
+}
+
 export interface WalletAccount {
+  id: string;
+  type: string;
   address: string;
-  balance: string;
+  balance: number;
   network: string;
-  provider: string;
 }
 
 export interface WalletProvider {
   id: string;
   name: string;
-  logo?: string;
-  description: string;
-  isInstalled: boolean;
-  isConnected: boolean;
-  enabled?: boolean;
+  logo: string;
+  supported: boolean;
 }
 
-export interface TradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  timeframe: string;
-  parameters: any;
-  performance?: {
-    winRate?: number;
-    profitFactor?: number;
-    drawdown?: number;
-    volatility?: number;
-  };
+export interface OpenRouterOptions {
+  model: string;
+  prompt: string;
+  temperature?: number;
+  maxTokens?: number;
 }
 
-export interface PaperTradingConfig {
-  enabled: boolean;
-  initialBalance: number;
-  currency: SupportedCurrency;
-  slippageModel: 'none' | 'simple' | 'realistic';
-  slippagePercentage?: number;
-  maxTradeSize?: number;
-  includeFees: boolean;
-  feePercentage?: number;
-}
-
-export interface AIStrategyParameters {
-  buySignalThreshold?: number;
-  sellSignalThreshold?: number;
+export interface BotExecutionOptions {
+  useRealTrading: boolean;
+  maxInvestmentPerTrade: number;
   stopLossPercentage?: number;
   takeProfitPercentage?: number;
-  maxOpenPositions?: number;
-  positionSizePercentage?: number;
-  timeframes?: string[];
-  indicators?: Record<string, any>;
-}
-
-export interface AIModelConfig {
-  model: string;
-  provider: string;
-  endpoint?: string;
-  apiKey?: string;
-  parameters?: {
-    temperature?: number;
-    topP?: number;
-    maxTokens?: number;
-  };
-}
-
-export interface BacktestResults {
-  strategyId: string;
-  startDate: string;
-  endDate: string;
-  trades: Trade[];
-  initialBalance: number;
-  finalBalance: number;
-  returns: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
-  winRate: number;
-  profitFactor: number;
-  averageProfitPerTrade: number;
-  averageLossPerTrade: number;
-  profitTrades: number;
-  lossTrades: number;
-  currency: SupportedCurrency;
+  timeframe: string;
 }

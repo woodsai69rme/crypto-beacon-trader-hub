@@ -22,7 +22,7 @@ function App() {
         const defaultSettings = {
           ...settings,
           currency: {
-            defaultCurrency: 'AUD',
+            defaultCurrency: 'AUD', // Set AUD as default
             showPriceInBTC: false
           }
         };

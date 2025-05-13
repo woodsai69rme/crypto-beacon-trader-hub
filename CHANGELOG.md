@@ -6,90 +6,53 @@ All notable changes to the Crypto Beacon Trader Hub will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-05-03
+## [1.0.0] - 2025-05-13
 
-### 🚀 Initial Release
-
-#### Added
-- Complete dashboard with customizable layouts
-- Portfolio management with tracking and performance metrics
-- Watchlist with real-time price updates and alerts
+### Added
+- Initial release with core trading functionality
+- Dashboard with customizable widgets and market overview
+- Portfolio tracking and management with performance metrics
+- Real-time price charts and data from CoinGecko and other free APIs
+- Trading simulation system with paper trading support
 - Market correlation analysis tools
-- Advanced crypto charting with multiple timeframes
-- API management system with usage tracking
-- Tax calculation tools
+- AI trading bots with multiple strategies
+- Technical analysis tools and indicators
+- Settings panel with theme customization
 - Mobile-responsive design
-- Dark/light mode toggle
-- Multiple data provider support
-- Real-time price updates
-- Historical charting with multiple visualization options
-- User preferences and settings
+- Australian Dollar (AUD) as the default currency
+
+### Features
+- **Dashboard**: Customizable dashboard with multiple view options
+- **Trading**: Paper trading mode with real-time market data
+- **Portfolio**: Track holdings across multiple coins and exchanges
+- **AI Trading**: Bot strategies including trend following, mean reversion, and pattern recognition
+- **Analytics**: Technical indicators, correlation matrices, and performance tracking
+- **Tax Tools**: Tax calculation and harvesting tools for Australian tax rules
+- **API Management**: Connect and manage multiple free cryptocurrency data APIs
+- **Settings**: Comprehensive settings for personalization and preferences
+- **Mobile Support**: Fully responsive design that works on all devices
 
 ## [0.9.0] - 2025-04-15
 
-### 🧪 Beta Release
-
-#### Added
-- Core dashboard functionality
+### Added
+- Beta release for testing
+- Core trading functionality
+- Initial AI bot implementation
 - Basic portfolio tracking
-- Watchlist features
-- Market data display
-- Preliminary API management
-- Initial chart implementations
-- Mobile responsive layout
+- Light and dark themes
 
-#### Fixed
-- Performance issues with large portfolios
-- Chart rendering on mobile devices
-- Data synchronization between views
+### Changed
+- Improved performance of price charts
+- Enhanced mobile responsiveness
 
-## [0.8.0] - 2025-03-20
+### Fixed
+- Various UI bugs and inconsistencies
+- Data loading issues with API providers
 
-### 🔬 Alpha Release
+## [0.8.0] - 2025-03-01
 
-#### Added
-- Dashboard prototype
-- Basic market data
-- Simplified portfolio view
-- Limited watchlist functionality
-- Preliminary API connections
-- Single chart type support
+### Added
+- Alpha release for internal testing
+- Initial implementation of core features
+- Proof of concept for AI trading bots
 
-#### Known Issues
-- Performance optimization needed
-- Limited mobile responsiveness
-- Occasional data refresh issues
-- Incomplete API provider integrations
-
-## [0.7.0] - 2025-02-10
-
-### 🛠️ Internal Development Build
-
-#### Added
-- Basic application structure
-- Component library integration
-- Data fetching services
-- Authentication framework
-- Core market data APIs
-
-## Future Planned Releases
-
-## [1.1.0] - Planned for 2025-06-15
-
-### Planned Additions
-- Enhanced AI market insights
-- Advanced portfolio analytics
-- Additional technical indicators
-- Exchange direct integration
-- Improved mobile experience
-- Community and social features
-
-## [1.2.0] - Planned for 2025-08-01
-
-### Planned Additions
-- Automated trading strategies
-- Backtesting capabilities
-- Enhanced tax optimization tools
-- Multiple portfolio management
-- Additional API providers
-- Advanced market correlation tools

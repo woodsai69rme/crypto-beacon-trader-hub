@@ -5,32 +5,50 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Repeat } from "lucide-react";
 import { SettingsComponentProps } from './types';
 
 const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+  // Initialize ticker object if it doesn't exist
+  const formValues = form.getValues();
+  
+  if (!formValues.ticker) {
+    form.setValue("ticker", {
+      enabled: true,
+      position: 'bottom',
+      speed: 5,
+      direction: 'left',
+      autoPause: true
+    });
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Market Ticker Settings</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Repeat className="h-5 w-5" />
+          Market Ticker Settings
+        </CardTitle>
         <CardDescription>
-          Configure the appearance and behavior of the market ticker
+          Configure the market ticker display and behavior
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      
+      <CardContent className="space-y-6">
         <FormField
           control={form.control}
           name="ticker.enabled"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Enable Ticker</FormLabel>
+                <FormLabel>Enable Ticker</FormLabel>
                 <FormDescription>
-                  Show the scrolling market ticker
+                  Show the market ticker on the platform
                 </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value}
+                  checked={field.value as boolean}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
@@ -46,22 +64,21 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormLabel>Ticker Position</FormLabel>
               <Select 
                 onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={!form.watch("ticker.enabled")}
+                value={field.value as string}
+                disabled={!form.getValues().ticker?.enabled}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select position" />
+                    <SelectValue placeholder="Select ticker position" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="top">Top</SelectItem>
                   <SelectItem value="bottom">Bottom</SelectItem>
-                  <SelectItem value="both">Both Top and Bottom</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
-                Where to display the market ticker
+                Choose where to display the ticker
               </FormDescription>
             </FormItem>
           )}
@@ -75,19 +92,22 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormLabel>Scroll Direction</FormLabel>
               <Select 
                 onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={!form.watch("ticker.enabled")}
+                value={field.value as string}
+                disabled={!form.getValues().ticker?.enabled}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select direction" />
+                    <SelectValue placeholder="Select scroll direction" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="left">Left</SelectItem>
-                  <SelectItem value="right">Right</SelectItem>
+                  <SelectItem value="left">Left to Right</SelectItem>
+                  <SelectItem value="right">Right to Left</SelectItem>
                 </SelectContent>
               </Select>
+              <FormDescription>
+                Set the direction of price movement
+              </FormDescription>
             </FormItem>
           )}
         />
@@ -100,16 +120,16 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormLabel>Ticker Speed: {field.value}</FormLabel>
               <FormControl>
                 <Slider
-                  disabled={!form.watch("ticker.enabled")}
                   min={1}
                   max={10}
                   step={1}
-                  value={[field.value]}
+                  defaultValue={[field.value as number]}
                   onValueChange={(values) => field.onChange(values[0])}
+                  disabled={!form.getValues().ticker?.enabled}
                 />
               </FormControl>
               <FormDescription>
-                Adjust the scrolling speed (1-10)
+                Control how fast the ticker moves (1 = slow, 10 = fast)
               </FormDescription>
             </FormItem>
           )}
@@ -119,18 +139,18 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           control={form.control}
           name="ticker.autoPause"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Auto-Pause</FormLabel>
+                <FormLabel>Auto-Pause on Hover</FormLabel>
                 <FormDescription>
-                  Pause the ticker when hovering over it
+                  Pause ticker movement when hovering over it
                 </FormDescription>
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value}
+                  checked={field.value as boolean}
                   onCheckedChange={field.onChange}
-                  disabled={!form.watch("ticker.enabled")}
+                  disabled={!form.getValues().ticker?.enabled}
                 />
               </FormControl>
             </FormItem>
