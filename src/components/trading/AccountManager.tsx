@@ -1,168 +1,239 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Trash, Edit, ExternalLink } from 'lucide-react';
-import { TradingAccount } from '@/types/trading';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { TradingAccount, SupportedCurrency } from '@/types/trading';
+import { formatPrice } from '@/services/cryptoService'; 
+import { BarChart, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from '@/components/ui/use-toast';
 
+// Mock trading accounts
 const mockAccounts: TradingAccount[] = [
   {
-    id: 'acc1',
-    name: 'Binance',
+    id: '1',
+    name: 'Binance Account',
+    balance: 24563.98,
+    currency: 'AUD', // Default to AUD as per requirements
+    createdAt: '2023-07-15T10:30:00Z',
     trades: [],
-    balance: 25000,
-    currency: 'USD',
-    createdAt: '2025-01-15T00:00:00Z',
-    provider: 'Binance',
-    type: 'exchange',
+    provider: 'binance',
     assets: {
-      'BTC': 0.5,
-      'ETH': 4.2,
-      'SOL': 25,
+      'bitcoin': 0.5,
+      'ethereum': 5.2,
+      'solana': 45.8
     },
-    lastUpdated: '2025-05-12T08:30:00Z',
+    lastUpdated: '2023-09-22T14:30:00Z',
     isActive: true,
+    initialBalance: 20000,
+    type: 'exchange'
   },
   {
-    id: 'acc2',
-    name: 'Personal Wallet',
+    id: '2',
+    name: 'Coinbase Pro',
+    balance: 12450.34,
+    currency: 'AUD',
+    createdAt: '2023-05-10T08:20:00Z',
     trades: [],
-    balance: 12500,
-    currency: 'USD',
-    createdAt: '2025-02-10T00:00:00Z',
-    provider: 'MetaMask',
-    type: 'wallet',
+    provider: 'coinbase',
     assets: {
-      'ETH': 2.8,
-      'LINK': 120,
-      'UNI': 75,
+      'bitcoin': 0.25,
+      'ethereum': 2.8,
+      'cardano': 2500
     },
-    lastUpdated: '2025-05-12T06:15:00Z',
+    lastUpdated: '2023-09-20T09:45:00Z',
     isActive: true,
+    initialBalance: 10000,
+    type: 'exchange'
   },
   {
-    id: 'acc3',
-    name: 'Manual Tracking',
+    id: '3',
+    name: 'Paper Trading',
+    balance: 32500.00,
+    currency: 'AUD',
+    createdAt: '2023-08-05T16:15:00Z',
     trades: [],
-    balance: 8750,
-    currency: 'USD',
-    createdAt: '2025-03-05T00:00:00Z',
-    provider: 'Manual',
-    type: 'manual',
+    provider: 'paper',
     assets: {
-      'BTC': 0.15,
-      'DOT': 250,
-      'ADA': 3000,
+      'bitcoin': 0.15,
+      'ethereum': 1.5,
+      'polkadot': 120,
+      'chainlink': 200
     },
-    lastUpdated: '2025-05-11T20:45:00Z',
+    lastUpdated: '2023-09-21T11:20:00Z',
     isActive: true,
+    initialBalance: 25000,
+    type: 'manual'
   }
 ];
 
 const AccountManager: React.FC = () => {
   const [accounts, setAccounts] = useState<TradingAccount[]>(mockAccounts);
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [showAddAccount, setShowAddAccount] = useState(false);
   
-  const totalBalance = accounts.reduce((total, account) => total + account.balance, 0);
+  const calculateTotalBalance = () => {
+    return accounts.reduce((sum, account) => sum + account.balance, 0);
+  };
+  
+  const calculateTotalAssets = () => {
+    const assetCounts: Record<string, number> = {};
+    
+    accounts.forEach(account => {
+      if (account.assets) {
+        Object.entries(account.assets).forEach(([asset, amount]) => {
+          if (assetCounts[asset]) {
+            assetCounts[asset] += amount;
+          } else {
+            assetCounts[asset] = amount;
+          }
+        });
+      }
+    });
+    
+    return assetCounts;
+  };
   
   const handleAddAccount = () => {
-    // In a real app, this would open a modal to add a new account
-    alert('Adding a new account...');
+    // In a real app, this would open a modal or form to add a new account
+    setShowAddAccount(true);
+    
+    // For demo purposes, just show a toast
+    toast({
+      title: "Add Account",
+      description: "This would open a form to add a new trading account",
+    });
   };
   
-  const handleDeleteAccount = (id: string) => {
-    // In a real app, this would show a confirmation dialog
-    setAccounts(accounts.filter(account => account.id !== id));
+  const handleEditAccount = (accountId: string) => {
+    toast({
+      title: "Edit Account",
+      description: `This would open a form to edit account ${accountId}`,
+    });
   };
   
-  const handleEditAccount = (id: string) => {
-    setSelectedAccount(id);
-    // In a real app, this would open an edit modal
-    alert(`Editing account ${id}...`);
+  const handleDeleteAccount = (accountId: string) => {
+    setAccounts(prev => prev.filter(account => account.id !== accountId));
+    
+    toast({
+      title: "Account Deleted",
+      description: "The trading account has been removed",
+      variant: "destructive"
+    });
   };
   
+  const handleViewStats = (accountId: string) => {
+    toast({
+      title: "View Statistics",
+      description: `This would show detailed statistics for account ${accountId}`,
+    });
+  };
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>Trading Accounts</CardTitle>
-            <CardDescription>Manage your connected trading accounts</CardDescription>
-          </div>
-          <Button size="sm" onClick={handleAddAccount} className="gap-1">
-            <Plus className="h-4 w-4" />
-            Add Account
-          </Button>
-        </div>
-      </CardHeader>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Trading Accounts</h2>
+        <Button onClick={handleAddAccount}>
+          <Plus className="h-4 w-4 mr-2" /> Add Account
+        </Button>
+      </div>
       
-      <CardContent className="space-y-4">
-        <div className="bg-secondary/20 rounded-lg p-4">
-          <div className="text-sm text-muted-foreground">Total Portfolio Value</div>
-          <div className="text-2xl font-bold">${totalBalance.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground mt-1">Across {accounts.length} accounts</div>
-        </div>
-        
-        <div className="space-y-3">
-          {accounts.map((account) => (
-            <div 
-              key={account.id} 
-              className={`border rounded-lg p-4 ${
-                selectedAccount === account.id ? 'border-primary' : ''
-              }`}
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-medium">{account.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {account.provider} • {account.type}
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Overview</CardTitle>
+          <CardDescription>
+            Manage your connected trading accounts and view balances
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold">{accounts.length}</div>
+                <p className="text-sm text-muted-foreground">Connected Accounts</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold">{formatPrice(calculateTotalBalance())}</div>
+                <p className="text-sm text-muted-foreground">Total Balance</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold">{Object.keys(calculateTotalAssets()).length}</div>
+                <p className="text-sm text-muted-foreground">Unique Assets</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="space-y-4">
+            {accounts.map((account) => (
+              <Card key={account.id} className={account.isActive ? "" : "opacity-70"}>
+                <CardContent className="p-4">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <h3 className="font-bold flex items-center">
+                        {account.name}
+                        {account.isActive === false && (
+                          <Badge variant="outline" className="ml-2 text-xs bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                            Inactive
+                          </Badge>
+                        )}
+                        {account.type === 'manual' && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            Paper
+                          </Badge>
+                        )}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">Provider: {account.provider}</p>
+                    </div>
+                    
+                    <div className="flex flex-col items-end">
+                      <div className="font-bold">{formatPrice(account.balance)}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Updated {new Date(account.lastUpdated || account.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button size="icon" variant="ghost" onClick={() => handleViewStats(account.id)}>
+                        <BarChart className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleEditAccount(account.id)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDeleteAccount(account.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-right font-bold">${account.balance.toLocaleString()}</div>
-                  <div className="text-xs text-muted-foreground text-right">
-                    {Object.keys(account.assets || {}).length} assets
-                  </div>
-                </div>
+                  
+                  {account.assets && Object.keys(account.assets).length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium mb-1">Assets:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(account.assets).map(([asset, amount]) => (
+                          <div key={asset} className="bg-muted px-2 py-1 rounded-md text-xs">
+                            {asset.charAt(0).toUpperCase() + asset.slice(1)}: {amount}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            
+            {accounts.length === 0 && (
+              <div className="text-center p-8 border rounded-md">
+                <p className="text-muted-foreground mb-4">No trading accounts connected yet</p>
+                <Button onClick={handleAddAccount}>Add Your First Account</Button>
               </div>
-              
-              <div className="mt-3 grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xs text-muted-foreground">Last Updated</div>
-                  <div className="text-sm">
-                    {new Date(account.lastUpdated || '').toLocaleDateString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Status</div>
-                  <div className="text-sm flex items-center gap-1">
-                    <div className={`h-2 w-2 rounded-full ${account.isActive ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span>{account.isActive ? 'Active' : 'Inactive'}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between mt-4">
-                <Button variant="outline" size="sm" className="gap-1">
-                  <ExternalLink className="h-4 w-4" />
-                  View
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="gap-1" onClick={() => handleEditAccount(account.id)}>
-                    <Edit className="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-red-500 gap-1" onClick={() => handleDeleteAccount(account.id)}>
-                    <Trash className="h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

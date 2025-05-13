@@ -1,77 +1,56 @@
 
-import { SupportedCurrency } from "@/types/trading";
 import { UseFormReturn } from "react-hook-form";
+import * as z from "zod";
+import { SupportedCurrency } from "@/types/trading";
 
-export interface SettingsFormValues {
-  currency: {
-    defaultCurrency: SupportedCurrency;
-    showPriceInBTC: boolean;
-  };
-  api: {
-    provider: string;
-    key: string;
-    selectedProvider?: string;
-    refreshInterval?: number;
-    timeout?: number;
-  };
-  display: {
-    theme?: string;
-    showPortfolio: boolean;
-    defaultTab: string;
-    compactMode: boolean;
-    showAllDecimals?: boolean;
-  };
-  // User profile settings
-  displayName?: string;
-  email?: string;
-  username?: string;
-  language?: string;
-  theme?: string;
-  // Notifications
-  notifications?: {
-    email: boolean;
-    push: boolean;
-    trades: boolean;
-    pricing: boolean;
-    news: boolean;
-    priceAlerts?: boolean;
-  };
-  // Trading preferences
-  tradingPreferences?: {
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
-  };
-  // Privacy settings
-  privacy?: {
-    showOnlineStatus: boolean;
-    sharePortfolio: boolean;
-    shareTrades: boolean;
-    dataCollection: boolean;
-    marketingConsent: boolean;
-    thirdPartySharing: boolean;
-  };
-  // Account settings
-  account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
-  };
-  // Appearance settings
-  appearance?: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-  // Ticker settings
-  ticker?: {
-    enabled: boolean;
-    position: string;
-    speed: number;
-    direction: string;
-    autoPause: boolean;
-  };
-}
+// Define the schema for the settings form
+export const settingsFormSchema = z.object({
+  currency: z.object({
+    defaultCurrency: z.enum(['AUD', 'USD', 'EUR', 'GBP']),
+    showPriceInBTC: z.boolean(),
+  }),
+  api: z.object({
+    provider: z.string(),
+    key: z.string().optional(),
+    selectedProvider: z.string().optional(),
+    refreshInterval: z.number().optional(),
+    timeout: z.number().optional(),
+  }),
+  display: z.object({
+    theme: z.string().optional(),
+    showPortfolio: z.boolean(),
+    defaultTab: z.string(),
+    compactMode: z.boolean(),
+    showAllDecimals: z.boolean().optional(),
+  }),
+  displayName: z.string().optional(),
+  email: z.string().email().optional(),
+  username: z.string().optional(),
+  language: z.string().optional(),
+  theme: z.string().optional(),
+  notifications: z.object({
+    email: z.boolean(),
+    push: z.boolean(),
+    priceAlerts: z.boolean(),
+    trades: z.boolean().optional(),
+    pricing: z.boolean().optional(),
+    news: z.boolean().optional(),
+  }).optional(),
+  tradingPreferences: z.object({
+    autoConfirm: z.boolean(),
+    showAdvanced: z.boolean(),
+    defaultAsset: z.string(),
+  }).optional(),
+  ticker: z.object({
+    enabled: z.boolean(),
+    position: z.string(),
+    speed: z.number(),
+    direction: z.string(),
+    autoPause: z.boolean(),
+  }).optional(),
+});
+
+export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;

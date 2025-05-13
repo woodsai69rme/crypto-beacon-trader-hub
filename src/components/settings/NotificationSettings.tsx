@@ -1,82 +1,93 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Bell } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "./types";
+import { SettingsComponentProps } from './types';
 
-interface NotificationSettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => {
+const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
-          Notifications
-        </CardTitle>
+        <CardTitle>Notification Settings</CardTitle>
         <CardDescription>
           Configure how and when you receive notifications
         </CardDescription>
       </CardHeader>
-      
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="notifications.email"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Email Notifications</FormLabel>
-                  <FormDescription>
-                    Receive notifications via email
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notifications.push"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Push Notifications</FormLabel>
-                  <FormDescription>
-                    Receive push notifications in your browser
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
+      <CardContent className="space-y-4">
+        <FormField
+          control={form.control}
+          name="notifications.email"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Email Notifications</FormLabel>
+                <FormDescription>
+                  Receive notifications via email
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="notifications.push"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Push Notifications</FormLabel>
+                <FormDescription>
+                  Receive push notifications on your device
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="notifications.priceAlerts"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Price Alerts</FormLabel>
+                <FormDescription>
+                  Get notified about significant price changes
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        {form.getValues().notifications?.trades !== undefined && (
           <FormField
             control={form.control}
             name="notifications.trades"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel>Trading Notifications</FormLabel>
+                  <FormLabel className="text-base">Trade Notifications</FormLabel>
                   <FormDescription>
-                    Get notified about your trades
+                    Get notified about your executed trades
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -88,37 +99,18 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => 
               </FormItem>
             )}
           />
-          
-          <FormField
-            control={form.control}
-            name="notifications.pricing"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Price Alerts</FormLabel>
-                  <FormDescription>
-                    Get notified about significant price changes
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          
+        )}
+        
+        {form.getValues().notifications?.news !== undefined && (
           <FormField
             control={form.control}
             name="notifications.news"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel>News Alerts</FormLabel>
+                  <FormLabel className="text-base">News Updates</FormLabel>
                   <FormDescription>
-                    Receive important news about your assets
+                    Receive notifications about market news
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -130,7 +122,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ form }) => 
               </FormItem>
             )}
           />
-        </div>
+        )}
       </CardContent>
     </Card>
   );

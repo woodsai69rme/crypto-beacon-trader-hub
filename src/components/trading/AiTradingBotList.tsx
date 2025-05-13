@@ -1,249 +1,356 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bot, TrendingUp, TrendingDown, BarChart2, Activity, Play, Pause, Settings, MoreHorizontal } from "lucide-react";
-import { AITradingStrategy } from "@/types/trading";
-import { predefinedStrategies } from "@/utils/aiTradingStrategies";
-import { Separator } from "@/components/ui/separator";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AITradingStrategy, BacktestResults } from "@/types/trading";
+import { Robot, Play, Pause, LineChart, Settings, Trash2, BarChart2 } from "lucide-react";
+import { formatPrice } from '@/services/cryptoService';
+import { toast } from '@/components/ui/use-toast';
 
-interface BotListProps {
-  onSelectBot?: (bot: AITradingStrategy) => void;
-  onStartBot?: (botId: string) => void;
-  onStopBot?: (botId: string) => void;
-  onEditBot?: (botId: string) => void;
-  activeBots?: string[];
+interface Bot {
+  id: string;
+  name: string;
+  strategy: AITradingStrategy;
+  coinId: string;
+  coinSymbol: string;
+  status: 'running' | 'paused' | 'stopped' | 'error';
+  createdAt: string;
+  lastRun?: string;
+  performance?: {
+    trades: number;
+    winRate: number;
+    profit: number;
+    profitPercentage: number;
+  };
+  config?: any;
 }
 
-const AiTradingBotList: React.FC<BotListProps> = ({
-  onSelectBot,
+interface AiTradingBotListProps {
+  bots: Bot[];
+  onStartBot: (botId: string) => void;
+  onStopBot: (botId: string) => void;
+  onDeleteBot: (botId: string) => void;
+  onViewBot: (botId: string) => void;
+  isLoading?: boolean;
+}
+
+// Mock data for the sample bots
+const mockBots: Bot[] = [
+  {
+    id: 'bot-1',
+    name: 'BTC Trend Follower',
+    strategy: {
+      id: 'trend-following',
+      name: 'AI Trend Following',
+      description: 'Uses machine learning to identify and follow market trends',
+      type: 'trend-following',
+      timeframe: '1d',
+      riskLevel: 'medium',
+      indicators: ['SMA', 'EMA', 'MACD', 'RSI'],
+    },
+    coinId: 'bitcoin',
+    coinSymbol: 'BTC',
+    status: 'running',
+    createdAt: '2023-08-15T10:30:00Z',
+    lastRun: '2023-09-22T14:45:00Z',
+    performance: {
+      trades: 42,
+      winRate: 68.5,
+      profit: 2845.32,
+      profitPercentage: 28.45
+    }
+  },
+  {
+    id: 'bot-2',
+    name: 'ETH Mean Reversion',
+    strategy: {
+      id: 'mean-reversion',
+      name: 'AI Mean Reversion',
+      description: 'Identifies overbought and oversold conditions using AI',
+      type: 'mean-reversion',
+      timeframe: '4h',
+      riskLevel: 'medium',
+      indicators: ['RSI', 'Bollinger Bands', 'Stochastic', 'MFI'],
+    },
+    coinId: 'ethereum',
+    coinSymbol: 'ETH',
+    status: 'paused',
+    createdAt: '2023-09-05T16:20:00Z',
+    lastRun: '2023-09-21T09:15:00Z',
+    performance: {
+      trades: 28,
+      winRate: 71.4,
+      profit: 1328.79,
+      profitPercentage: 13.29
+    }
+  },
+  {
+    id: 'bot-3',
+    name: 'SOL Breakout Detector',
+    strategy: {
+      id: 'breakout',
+      name: 'AI Breakout Detection',
+      description: 'Identifies and trades significant price breakouts',
+      type: 'breakout',
+      timeframe: '1h',
+      riskLevel: 'high',
+      indicators: ['ATR', 'Volume', 'Support/Resistance', 'Volatility'],
+    },
+    coinId: 'solana',
+    coinSymbol: 'SOL',
+    status: 'error',
+    createdAt: '2023-09-10T11:45:00Z',
+    lastRun: '2023-09-22T08:30:00Z',
+    performance: {
+      trades: 16,
+      winRate: 62.5,
+      profit: -350.18,
+      profitPercentage: -3.50
+    }
+  }
+];
+
+const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
+  bots = mockBots,
   onStartBot,
   onStopBot,
-  onEditBot,
-  activeBots = []
+  onDeleteBot,
+  onViewBot,
+  isLoading = false
 }) => {
-  const [strategies, setStrategies] = useState<AITradingStrategy[]>([]);
-  const [filter, setFilter] = useState<'all' | 'ai-predictive' | 'hybrid' | 'traditional'>('all');
-
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filteredBots, setFilteredBots] = useState<Bot[]>(bots);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Bot | 'performance.profit'; direction: 'asc' | 'desc' }>({ 
+    key: 'coinId', 
+    direction: 'asc' 
+  });
+  
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    setStrategies(predefinedStrategies);
-  }, []);
-
-  const filteredStrategies = filter === 'all' 
-    ? strategies 
-    : strategies.filter(strategy => strategy.type === filter);
+    // Filter bots based on search term
+    const filtered = bots.filter(bot => 
+      bot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bot.coinId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bot.coinSymbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bot.strategy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bot.strategy.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     
-  const handleStartBot = (botId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (onStartBot) {
-      onStartBot(botId);
-      toast({
-        title: "Bot Started",
-        description: "The trading bot has been activated successfully.",
+    // Sort filtered bots
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortConfig.key === 'performance.profit') {
+        const aValue = a.performance?.profit || 0;
+        const bValue = b.performance?.profit || 0;
+        return sortConfig.direction === 'asc' 
+          ? aValue - bValue 
+          : bValue - aValue;
+      } else {
+        // @ts-ignore - Dynamic key access
+        const aValue = a[sortConfig.key];
+        // @ts-ignore - Dynamic key access
+        const bValue = b[sortConfig.key];
+        
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+        
+        // Fall back to simple comparison
+        return sortConfig.direction === 'asc'
+          ? (aValue > bValue ? 1 : -1)
+          : (bValue > aValue ? 1 : -1);
+      }
+    });
+    
+    setFilteredBots(sorted);
+  }, [bots, searchTerm, sortConfig]);
+  
+  const handleSort = (key: keyof Bot | 'performance.profit') => {
+    if (sortConfig.key === key) {
+      // Toggle direction if same key
+      setSortConfig({
+        key,
+        direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'
+      });
+    } else {
+      // Default to ascending for new key
+      setSortConfig({
+        key,
+        direction: 'asc'
       });
     }
   };
   
-  const handleStopBot = (botId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (onStopBot) {
-      onStopBot(botId);
-      toast({
-        title: "Bot Stopped",
-        description: "The trading bot has been deactivated.",
-      });
+  const handleBotAction = (bot: Bot, action: 'start' | 'stop' | 'delete' | 'view') => {
+    switch (action) {
+      case 'start':
+        onStartBot(bot.id);
+        toast({
+          title: `Bot Started`,
+          description: `${bot.name} is now running`,
+        });
+        break;
+      case 'stop':
+        onStopBot(bot.id);
+        toast({
+          title: `Bot Paused`,
+          description: `${bot.name} has been paused`,
+        });
+        break;
+      case 'delete':
+        onDeleteBot(bot.id);
+        toast({
+          title: `Bot Deleted`,
+          description: `${bot.name} has been removed`,
+          variant: "destructive"
+        });
+        break;
+      case 'view':
+        onViewBot(bot.id);
+        break;
     }
   };
   
-  const handleEditBot = (botId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (onEditBot) {
-      onEditBot(botId);
-    }
-  };
-  
-  const getBotStatusIcon = (bot: AITradingStrategy) => {
-    const isActive = activeBots.includes(bot.id);
-    
-    if (isActive) {
-      return <div className="flex items-center text-green-500 gap-1">
-        <div className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-        </div>
-        <span>Active</span>
-      </div>;
-    }
-    
-    return <div className="flex items-center text-muted-foreground gap-1">
-      <div className="relative flex h-3 w-3">
-        <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-400"></span>
-      </div>
-      <span>Inactive</span>
-    </div>;
-  };
-  
-  const getRiskBadgeVariant = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'low':
-        return 'secondary';
-      case 'medium':
-        return 'outline';
-      case 'high':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-  
-  const getStrategyTypeIcon = (type?: string) => {
-    switch (type) {
-      case 'ai-predictive':
-        return <Bot className="h-4 w-4 text-purple-500" />;
-      case 'hybrid':
-        return <Activity className="h-4 w-4 text-blue-500" />;
-      case 'traditional':
-        return <BarChart2 className="h-4 w-4 text-green-500" />;
-      default:
-        return <TrendingUp className="h-4 w-4" />;
-    }
-  };
-
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
+          <Robot className="h-5 w-5" />
           AI Trading Bots
         </CardTitle>
         <CardDescription>
-          Select and manage AI-powered trading strategies
+          Manage your active trading bots and monitor performance
         </CardDescription>
       </CardHeader>
       
-      <Tabs defaultValue="all" className="px-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all" onClick={() => setFilter('all')}>All</TabsTrigger>
-          <TabsTrigger value="ai-predictive" onClick={() => setFilter('ai-predictive')}>AI Predictive</TabsTrigger>
-          <TabsTrigger value="hybrid" onClick={() => setFilter('hybrid')}>Hybrid</TabsTrigger>
-          <TabsTrigger value="traditional" onClick={() => setFilter('traditional')}>Traditional</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      
-      <CardContent className="pt-6">
-        {filteredStrategies.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Bot className="h-10 w-10 mx-auto mb-4 opacity-50" />
-            <p>No trading bots available for the selected filter.</p>
+      <CardContent className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search bots..."
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="whitespace-nowrap">
+              <Settings className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+            <Button variant="default" size="sm" className="whitespace-nowrap">
+              <Robot className="h-4 w-4 mr-2" />
+              Create Bot
+            </Button>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredBots.length > 0 ? (
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[180px]" onClick={() => handleSort('name')}>
+                    Bot Name
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('coinId')}>Asset</TableHead>
+                  <TableHead onClick={() => handleSort('strategy.type')}>Strategy</TableHead>
+                  <TableHead className="hidden md:table-cell" onClick={() => handleSort('status')}>Status</TableHead>
+                  <TableHead className="hidden md:table-cell text-right" onClick={() => handleSort('performance.winRate')}>
+                    Win Rate
+                  </TableHead>
+                  <TableHead className="text-right" onClick={() => handleSort('performance.profit')}>
+                    P/L
+                  </TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBots.map((bot) => (
+                  <TableRow key={bot.id} className="cursor-pointer" onClick={() => handleBotAction(bot, 'view')}>
+                    <TableCell>
+                      <div className="font-medium">{bot.name}</div>
+                    </TableCell>
+                    <TableCell>{bot.coinSymbol}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{bot.strategy.type}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center">
+                        <span className={`h-2 w-2 rounded-full mr-2 ${
+                          bot.status === 'running' ? 'bg-green-500' :
+                          bot.status === 'paused' ? 'bg-yellow-500' : 
+                          bot.status === 'error' ? 'bg-red-500' : 'bg-slate-500'
+                        }`} />
+                        <span className="capitalize">{bot.status}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-right">
+                      {bot.performance ? `${bot.performance.winRate}%` : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className={bot.performance && bot.performance.profit >= 0 ? 'text-green-500' : 'text-red-500'}>
+                        {bot.performance ? formatPrice(bot.performance.profit) : 'N/A'}
+                      </span>
+                      <div className="text-xs text-muted-foreground">
+                        {bot.performance ? `${bot.performance.profitPercentage >= 0 ? '+' : ''}${bot.performance.profitPercentage.toFixed(2)}%` : ''}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {bot.status === 'running' ? (
+                          <Button variant="ghost" size="sm" onClick={() => handleBotAction(bot, 'stop')}>
+                            <Pause className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button variant="ghost" size="sm" onClick={() => handleBotAction(bot, 'start')}>
+                            <Play className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
+                        <Button variant="ghost" size="sm" onClick={() => handleBotAction(bot, 'view')}>
+                          <BarChart2 className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button variant="ghost" size="sm" onClick={() => handleBotAction(bot, 'delete')}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredStrategies.map((strategy) => (
-              <Card 
-                key={strategy.id}
-                className={`hover:border-primary cursor-pointer transition-colors ${
-                  activeBots.includes(strategy.id) ? 'border-green-500' : ''
-                }`}
-                onClick={() => onSelectBot?.(strategy)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-base">{strategy.name}</h3>
-                        <Badge variant={getRiskBadgeVariant(strategy.riskLevel)}>
-                          {strategy.riskLevel} risk
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                        {getStrategyTypeIcon(strategy.type)}
-                        <span>{strategy.type === 'ai-predictive' 
-                          ? 'AI Prediction' 
-                          : strategy.type === 'hybrid' 
-                            ? 'AI-Traditional Hybrid' 
-                            : 'Traditional Algorithm'
-                        }</span>
-                        <span className="text-xs">•</span>
-                        <span>Timeframe: {strategy.timeframe}</span>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {strategy.description}
-                      </p>
-                    </div>
-                    
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        {getBotStatusIcon(strategy)}
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => handleEditBot(strategy.id, e)}
-                            >
-                              <Settings className="mr-2 h-4 w-4" />
-                              <span>Edit Strategy</span>
-                            </DropdownMenuItem>
-                            {activeBots.includes(strategy.id) ? (
-                              <DropdownMenuItem
-                                className="text-red-500"
-                                onClick={(e) => handleStopBot(strategy.id, e)}
-                              >
-                                <Pause className="mr-2 h-4 w-4" />
-                                <span>Stop Bot</span>
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                className="text-green-500"
-                                onClick={(e) => handleStartBot(strategy.id, e)}
-                              >
-                                <Play className="mr-2 h-4 w-4" />
-                                <span>Start Bot</span>
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      
-                      {strategy.backtestResults && (
-                        <div className="bg-muted px-2 py-1 rounded-md text-xs">
-                          Win Rate: {(strategy.backtestResults.winRate * 100).toFixed(1)}%
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <Separator className="my-3" />
-                  
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {strategy.indicators.slice(0, 3).map((indicator, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {indicator}
-                      </Badge>
-                    ))}
-                    {strategy.indicators.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{strategy.indicators.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="text-center p-8 bg-muted rounded-md">
+            <Robot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-medium mb-2">No Trading Bots Found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? 'No bots match your search criteria' : 'You haven\'t created any trading bots yet'}
+            </p>
+            <Button>Create Your First Bot</Button>
           </div>
         )}
       </CardContent>
+      
+      <CardFooter>
+        <div className="w-full flex justify-between text-sm text-muted-foreground">
+          <span>{filteredBots.length} bots</span>
+          <span>
+            <LineChart className="inline-block h-4 w-4 mr-1" />
+            Paper trading enabled
+          </span>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

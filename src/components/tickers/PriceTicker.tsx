@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
-import { fetchTopCryptoData } from '@/services/cryptoService';
+import { fetchTopCryptoData, formatPrice } from '@/services/cryptoService';
 import { CoinOption } from '@/types/trading';
 
 interface PriceTickerProps {
@@ -21,11 +21,12 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const data = await fetchTopCryptoData(maxCoins);
         setCoins(data);
-        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching price data:', error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -53,7 +54,7 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
     return () => clearInterval(scrollInterval);
   }, [autoScroll, coins.length]);
   
-  if (isLoading) {
+  if (isLoading && coins.length === 0) {
     return (
       <div className="bg-background border-y py-2 flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading price data...</div>
@@ -70,18 +71,18 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
               <img src={coin.image} alt={coin.name} className="h-5 w-5" />
             )}
             <span className="font-medium">{coin.symbol}</span>
-            <span className="font-mono">${coin.price.toLocaleString()}</span>
+            <span className="font-mono">{formatPrice(coin.price)}</span>
             <span 
               className={`flex items-center text-xs ${
-                coin.priceChange >= 0 ? 'text-green-500' : 'text-red-500'
+                coin.changePercent && coin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'
               }`}
             >
-              {coin.priceChange >= 0 ? (
+              {coin.changePercent && coin.changePercent >= 0 ? (
                 <ArrowUpIcon className="h-3 w-3 mr-1" />
               ) : (
                 <ArrowDownIcon className="h-3 w-3 mr-1" />
               )}
-              {Math.abs(coin.priceChange).toFixed(2)}%
+              {Math.abs(coin.changePercent || 0).toFixed(2)}%
             </span>
           </div>
         ))}

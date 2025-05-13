@@ -15,11 +15,12 @@ import GeneralSettings from './GeneralSettings';
 import NotificationSettings from './NotificationSettings';
 import ApiSettings from './ApiSettings';
 import TickerSettings from './TickerSettings';
-import { SupportedCurrency, SettingsFormValues } from '@/types/trading';
+import { SettingsFormValues } from './types';
 
+// Define the schema for the settings form
 const settingsFormSchema = z.object({
   currency: z.object({
-    defaultCurrency: z.enum(['USD', 'EUR', 'GBP', 'AUD']),
+    defaultCurrency: z.enum(['AUD', 'USD', 'EUR', 'GBP']),
     showPriceInBTC: z.boolean(),
   }),
   api: z.object({
@@ -30,10 +31,10 @@ const settingsFormSchema = z.object({
     timeout: z.number().optional(),
   }),
   display: z.object({
+    theme: z.string().optional(),
     showPortfolio: z.boolean(),
     defaultTab: z.string(),
     compactMode: z.boolean(),
-    theme: z.string().optional(),
     showAllDecimals: z.boolean().optional(),
   }),
   displayName: z.string().optional(),
@@ -63,20 +64,28 @@ const settingsFormSchema = z.object({
   }).optional(),
 });
 
+type FormValues = z.infer<typeof settingsFormSchema>;
+
 export function Settings() {
-  const defaultValues: SettingsFormValues = {
+  // Define default values for the form
+  const defaultValues: FormValues = {
     currency: {
-      defaultCurrency: 'USD',
+      defaultCurrency: 'AUD', // Set default currency to AUD as per requirements
       showPriceInBTC: false,
     },
     api: {
-      provider: 'coinmarketcap',
+      provider: 'coingecko', // Use CoinGecko as default provider for free API access
       key: '',
+      selectedProvider: 'coingecko',
+      refreshInterval: 30,
+      timeout: 10,
     },
     display: {
       showPortfolio: true,
       defaultTab: 'dashboard',
       compactMode: false,
+      theme: 'system',
+      showAllDecimals: false,
     },
     displayName: 'John Doe',
     email: 'johndoe@example.com',
@@ -105,14 +114,20 @@ export function Settings() {
     },
   };
   
-  const form = useForm<z.infer<typeof settingsFormSchema>>({
+  // Initialize form with zod resolver
+  const form = useForm<FormValues>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues,
   });
 
-  function onSubmit(values: z.infer<typeof settingsFormSchema>) {
+  // Handle form submission
+  function onSubmit(values: FormValues) {
     console.log('Settings form values:', values);
     
+    // Store settings in localStorage for persistence
+    localStorage.setItem('appSettings', JSON.stringify(values));
+    
+    // Show success toast
     toast({
       title: "Settings updated",
       description: "Your preferences have been saved successfully.",
@@ -154,10 +169,10 @@ export function Settings() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
                         <SelectItem value="USD">USD - US Dollar</SelectItem>
                         <SelectItem value="EUR">EUR - Euro</SelectItem>
                         <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                        <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -215,10 +230,10 @@ export function Settings() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="coinmarketcap">CoinMarketCap</SelectItem>
                         <SelectItem value="coingecko">CoinGecko</SelectItem>
+                        <SelectItem value="coinlore">CoinLore</SelectItem>
                         <SelectItem value="binance">Binance</SelectItem>
-                        <SelectItem value="coinbase">Coinbase</SelectItem>
+                        <SelectItem value="okx">OKX</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -238,7 +253,7 @@ export function Settings() {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your API key"
+                        placeholder="Enter your API key (optional for free APIs)"
                         {...field}
                       />
                     </FormControl>
@@ -323,7 +338,7 @@ export function Settings() {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={field.value || false}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
