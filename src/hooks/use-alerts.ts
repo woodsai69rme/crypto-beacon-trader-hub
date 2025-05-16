@@ -1,114 +1,56 @@
 
-import { useState, useEffect } from "react";
-import { PriceAlert, VolumeAlert, AlertData, AlertFormData } from "@/types/trading";
-import { toast } from "@/hooks/use-toast";
-import { handleError } from "@/utils/errorHandling";
+import { useState, useEffect } from 'react';
+import { AlertData, AlertFormData } from '@/types/trading';
 
 export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<AlertData[]>([]);
-  const [volumeAlerts, setVolumeAlerts] = useState<VolumeAlert[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [alerts, setAlerts] = useState<AlertData[]>(() => {
+    // Load from localStorage if available
+    try {
+      const saved = localStorage.getItem('alerts');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error loading alerts from localStorage:', error);
+      return [];
+    }
+  });
 
-  // Load alerts from localStorage
+  // Save to localStorage when alerts change
   useEffect(() => {
     try {
-      setIsLoading(true);
-      const savedAlerts = localStorage.getItem("priceAlerts");
-      const savedVolumeAlerts = localStorage.getItem("volumeAlerts");
-      
-      if (savedAlerts) {
-        setAlerts(JSON.parse(savedAlerts));
-      }
-      
-      if (savedVolumeAlerts) {
-        setVolumeAlerts(JSON.parse(savedVolumeAlerts));
-      }
+      localStorage.setItem('alerts', JSON.stringify(alerts));
     } catch (error) {
-      handleError(error, "warning", "Failed to load alerts");
-    } finally {
-      setIsLoading(false);
+      console.error('Error saving alerts to localStorage:', error);
     }
-  }, []);
+  }, [alerts]);
 
-  // Save alerts to localStorage when they change
-  useEffect(() => {
-    if (!isLoading) {
-      try {
-        localStorage.setItem("priceAlerts", JSON.stringify(alerts));
-        localStorage.setItem("volumeAlerts", JSON.stringify(volumeAlerts));
-      } catch (error) {
-        handleError(error, "warning", "Failed to save alerts");
-      }
-    }
-  }, [alerts, volumeAlerts, isLoading]);
-
-  const addAlert = async (newAlertData: AlertFormData) => {
-    try {
-      // Validate required fields
-      if (!newAlertData.coinId || !newAlertData.coinName || !newAlertData.coinSymbol || !newAlertData.type || !newAlertData.frequency) {
-        throw new Error("Missing required alert information");
-      }
-
-      const alert: AlertData = {
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        ...newAlertData,
-        enabled: true,
-      } as AlertData;
-      
-      setAlerts(prevAlerts => [...prevAlerts, alert]);
-      
-      return alert;
-    } catch (error) {
-      handleError(error, "error", "Add Alert");
-      throw error;
-    }
+  const addAlert = (formData: AlertFormData) => {
+    const newAlert: AlertData = {
+      id: Date.now().toString(),
+      ...formData,
+      createdAt: new Date()
+    };
+    setAlerts(prev => [...prev, newAlert]);
   };
 
-  const removeAlert = async (id: string) => {
-    try {
-      setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
-      return true;
-    } catch (error) {
-      handleError(error, "error", "Remove Alert");
-      throw error;
-    }
+  const removeAlert = (id: string) => {
+    setAlerts(prev => prev.filter(alert => alert.id !== id));
   };
-  
-  const updateAlert = async (id: string, updatedData: Partial<AlertData>) => {
-    try {
-      setAlerts(prevAlerts => 
-        prevAlerts.map(alert => 
-          alert.id === id ? { ...alert, ...updatedData } : alert
-        )
-      );
-      return true;
-    } catch (error) {
-      handleError(error, "error", "Update Alert");
-      throw error;
-    }
+
+  const updateAlert = (id: string, updates: Partial<AlertData>) => {
+    setAlerts(prev => prev.map(alert => 
+      alert.id === id ? { ...alert, ...updates } : alert
+    ));
   };
-  
-  const toggleAlertEnabled = async (id: string) => {
-    try {
-      const alert = alerts.find(a => a.id === id);
-      if (!alert) throw new Error("Alert not found");
-      
-      await updateAlert(id, { enabled: !alert.enabled });
-      return !alert.enabled;
-    } catch (error) {
-      handleError(error, "error", "Toggle Alert");
-      throw error;
-    }
+
+  const clearAlerts = () => {
+    setAlerts([]);
   };
 
   return {
     alerts,
-    volumeAlerts,
     addAlert,
     removeAlert,
     updateAlert,
-    toggleAlertEnabled,
-    isLoading
+    clearAlerts
   };
 };

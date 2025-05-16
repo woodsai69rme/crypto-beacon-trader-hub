@@ -1,390 +1,400 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { AITradingStrategy } from "@/types/trading";
-import { Bot, Play, Pause, AlertTriangle, TrendingUp, BarChart2, Settings } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 
-const AiTradingDashboard = () => {
-  const [activeBot, setActiveBot] = useState<string | null>(null);
-  const [isConfiguring, setIsConfiguring] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
-  const [botName, setBotName] = useState("");
-  const [selectedModel, setSelectedModel] = useState("default");
-  const [paperTrading, setPaperTrading] = useState(true);
-  const [riskLevel, setRiskLevel] = useState(30);
-  const [initialCapital, setInitialCapital] = useState(10000);
-  const [maxDrawdown, setMaxDrawdown] = useState(15);
-  const [autoRebalance, setAutoRebalance] = useState(false);
-  const [performance, setPerformance] = useState({ 
-    profit: 0, 
-    trades: 0, 
-    winRate: 0, 
-    drawdown: 0 
-  });
-  
-  // Dummy strategy presets
-  const strategyPresets: AITradingStrategy[] = [
-    {
-      id: "trend-1",
-      name: "Trend Follower",
-      description: "Follows market momentum using moving averages",
-      type: "trend-following",
-      timeframe: "1d",
-      riskLevel: "medium",
-      parameters: {
-        lookbackPeriod: 14,
-        stopLoss: 5,
-        takeProfit: 15,
-        capitalAllocation: 25
-      }
-    },
-    {
-      id: "mean-1",
-      name: "Mean Reversion",
-      description: "Trades price reversals to the mean",
-      type: "mean-reversion",
-      timeframe: "4h",
-      riskLevel: "high",
-      parameters: {
-        lookbackPeriod: 20,
-        stopLoss: 3,
-        takeProfit: 10,
-        capitalAllocation: 15
-      }
-    },
-    {
-      id: "breakout-1",
-      name: "Breakout Hunter",
-      description: "Catches high momentum breakouts from consolidation",
-      type: "breakout",
-      timeframe: "1h",
-      riskLevel: "high",
-      parameters: {
-        lookbackPeriod: 24,
-        stopLoss: 7,
-        takeProfit: 20,
-        capitalAllocation: 10
-      }
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { 
+  LineChart, XAxis, YAxis, CartesianGrid, Line, Tooltip, 
+  ResponsiveContainer, ReferenceLine, Legend
+} from 'recharts';
+import { toast } from "@/hooks/use-toast";
+import { AITradingStrategy } from '@/types/trading';
+
+// Simulated data
+const mockPriceData = [
+  { date: "Jan", price: 35000, prediction: 34500 },
+  { date: "Feb", price: 37500, prediction: 38000 },
+  { date: "Mar", price: 42000, prediction: 41000 },
+  { date: "Apr", price: 41000, prediction: 42500 },
+  { date: "May", price: 38000, prediction: 37000 },
+  { date: "Jun", price: 34500, prediction: 35000 },
+  { date: "Jul", price: 39000, prediction: 40000 },
+];
+
+// Bot performance metrics
+const botPerformance = {
+  winRate: 68,
+  profitFactor: 2.3,
+  sharpeRatio: 1.7,
+  maxDrawdown: 12.5,
+  totalTrades: 87,
+  profitableTrades: 59,
+  avgTradeLength: "3.2 days",
+  bestTrade: "+8.4%",
+  worstTrade: "-3.7%",
+  netProfit: "+27.3%"
+};
+
+// Trading strategies
+const tradingStrategies: AITradingStrategy[] = [
+  {
+    id: "trend-following",
+    name: "Trend Following",
+    description: "Follows market momentum using moving averages",
+    type: "trend-following",
+    timeframe: "1d",
+    riskLevel: "medium",
+    parameters: {
+      fastMA: 8,
+      slowMA: 21,
+      stopLoss: 5,
+      takeProfit: 15,
+      tradeSize: 10
     }
-  ];
+  },
+  {
+    id: "mean-reversion",
+    name: "Mean Reversion",
+    description: "Trades price reversals to the mean",
+    type: "mean-reversion",
+    timeframe: "4h",
+    riskLevel: "high",
+    parameters: {
+      rsiPeriod: 14,
+      rsiOverbought: 70,
+      rsiOversold: 30,
+      stopLoss: 3,
+      takeProfit: 7,
+      tradeSize: 5
+    }
+  },
+  {
+    id: "breakout",
+    name: "Breakout Trading",
+    description: "Catches price breakouts from consolidation",
+    type: "breakout",
+    timeframe: "1h",
+    riskLevel: "high",
+    parameters: {
+      channelPeriod: 20,
+      volatilityThreshold: 2.5,
+      stopLoss: 5,
+      takeProfit: 15,
+      tradeSize: 7
+    }
+  }
+];
+
+const AiTradingDashboard: React.FC = () => {
+  const [selectedStrategy, setSelectedStrategy] = useState<string>("trend-following");
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [paperTrading, setPaperTrading] = useState<boolean>(true);
+  const [riskLevel, setRiskLevel] = useState<number>(50);
   
+  const [parameters, setParameters] = useState<Record<string, any> | null>(null);
+  const [currentStrategy, setCurrentStrategy] = useState<AITradingStrategy | null>(null);
+  
+  // Update parameters when strategy changes
   useEffect(() => {
-    // Simulate performance updates
-    const intervalId = setInterval(() => {
-      setPerformance(prev => ({
-        profit: prev.profit + (Math.random() * 100 - 50),
-        trades: prev.trades + 1,
-        winRate: Math.min(100, prev.winRate + Math.random() * 5 - 2),
-        drawdown: Math.max(0, prev.drawdown - Math.random() * 3)
-      }));
-    }, 5000);
-    
-    return () => clearInterval(intervalId);
-  }, []);
+    const strategy = tradingStrategies.find(s => s.id === selectedStrategy);
+    if (strategy) {
+      setCurrentStrategy(strategy);
+      setParameters(strategy.parameters);
+    }
+  }, [selectedStrategy]);
   
   const handleStartBot = () => {
-    if (!selectedStrategy) {
+    if (isRunning) {
+      setIsRunning(false);
       toast({
-        title: "Strategy Required",
-        description: "Please select a trading strategy before starting the bot",
-        variant: "destructive"
+        title: "Bot Stopped",
+        description: "Trading bot has been stopped",
       });
-      return;
-    }
-    
-    if (!botName) {
+    } else {
+      setIsRunning(true);
       toast({
-        title: "Bot Name Required",
-        description: "Please give your bot a name",
-        variant: "destructive"
+        title: "Bot Started",
+        description: `Started ${currentStrategy?.name} in ${paperTrading ? "paper" : "live"} trading mode`,
       });
-      return;
     }
-    
-    // Start the bot logic would go here
-    setIsRunning(true);
-    setIsConfiguring(false);
-    toast({
-      title: "Bot Started",
-      description: `${botName} is now running with ${selectedStrategy.name} strategy`,
-    });
   };
   
-  const handleStopBot = () => {
-    setIsRunning(false);
-    toast({
-      title: "Bot Stopped",
-      description: `${botName} has been stopped`,
-    });
-  };
-  
-  const handleDeleteBot = () => {
-    setActiveBot(null);
-    setIsRunning(false);
-    setIsConfiguring(false);
-    toast({
-      title: "Bot Deleted",
-      description: `${botName} has been deleted`,
-    });
-    setBotName("");
-  };
-  
-  const handleConfigureNew = () => {
-    setIsConfiguring(true);
-    setActiveBot(null);
-    setIsRunning(false);
-    setBotName("");
-    setSelectedStrategy(null);
-    setRiskLevel(30);
-    setInitialCapital(10000);
-    setMaxDrawdown(15);
-    setAutoRebalance(false);
-    toast({
-      title: "Configure New Bot",
-      description: "Please set up your new trading bot",
-    });
-  };
-  
-  const handleSaveConfig = () => {
-    if (!selectedStrategy) {
+  const handleReset = () => {
+    if (currentStrategy?.parameters) {
+      setParameters(currentStrategy.parameters);
       toast({
-        title: "Strategy Required",
-        description: "Please select a trading strategy",
-        variant: "destructive"
+        title: "Parameters Reset",
+        description: "Strategy parameters have been reset to defaults",
       });
-      return;
     }
-    
-    if (!botName) {
-      toast({
-        title: "Bot Name Required",
-        description: "Please name your bot",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Save configuration logic would go here
-    toast({
-      title: "Configuration Saved",
-      description: `${botName} has been configured with ${selectedStrategy.name}`,
-    });
   };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>AI Trading Bots</CardTitle>
-        <CardDescription>Manage and monitor your automated trading bots</CardDescription>
-      </CardHeader>
+  
+  const handleOptimize = () => {
+    toast({
+      title: "Optimizing Strategy",
+      description: "Running strategy optimization...",
+    });
+    
+    // Simulate optimization delay
+    setTimeout(() => {
+      const optimizedParams = { ...parameters };
       
-      <CardContent className="space-y-4">
-        <Tabs defaultValue={activeBot ? "monitor" : "configure"} className="w-full">
-          <TabsList>
-            {!isConfiguring && (
-              <TabsTrigger value="configure" onClick={() => handleConfigureNew()}>
-                <Settings className="h-4 w-4 mr-2" />
-                Configure New
-              </TabsTrigger>
-            )}
-            {activeBot && (
-              <TabsTrigger value="monitor">
-                <BarChart2 className="h-4 w-4 mr-2" />
-                Monitor Bot
-              </TabsTrigger>
-            )}
-          </TabsList>
-          
-          <TabsContent value="configure" className="space-y-4">
-            <h3 className="text-lg font-semibold">Bot Configuration</h3>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bot-name">Bot Name</Label>
-              <Input 
-                type="text" 
-                id="bot-name" 
-                placeholder="Enter bot name" 
-                value={botName}
-                onChange={(e) => setBotName(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="strategy">Trading Strategy</Label>
-              <Select 
-                id="strategy"
-                onValueChange={(value) => {
-                  const strategy = strategyPresets.find(s => s.id === value);
-                  setSelectedStrategy(strategy || null);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a strategy" />
-                </SelectTrigger>
-                <SelectContent>
-                  {strategyPresets.map((strategy) => (
-                    <SelectItem key={strategy.id} value={strategy.id}>
-                      {strategy.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="model">AI Model</Label>
-              <Select id="model" defaultValue={selectedModel}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select AI Model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default Model</SelectItem>
-                  <SelectItem value="advanced">Advanced Model</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Risk Level</Label>
-              <Slider
-                defaultValue={[riskLevel]}
-                max={100}
-                step={10}
-                onValueChange={(value) => setRiskLevel(value[0])}
-              />
-              <p className="text-sm text-muted-foreground">
-                Adjust the risk tolerance of the bot.
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Initial Capital</Label>
-              <Input 
-                type="number" 
-                placeholder="Enter initial capital" 
-                value={initialCapital}
-                onChange={(e) => setInitialCapital(Number(e.target.value))}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Max Drawdown (%)</Label>
-              <Slider
-                defaultValue={[maxDrawdown]}
-                max={50}
-                step={5}
-                onValueChange={(value) => setMaxDrawdown(value[0])}
-              />
-              <p className="text-sm text-muted-foreground">
-                Maximum percentage drawdown before the bot stops trading.
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch id="paper-trading" checked={paperTrading} onCheckedChange={setPaperTrading} />
-              <Label htmlFor="paper-trading">Paper Trading</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch id="auto-rebalance" checked={autoRebalance} onCheckedChange={setAutoRebalance} />
-              <Label htmlFor="auto-rebalance">Auto Rebalance</Label>
-            </div>
-            
-            <Button onClick={handleSaveConfig}>Save Configuration</Button>
-          </TabsContent>
-          
-          <TabsContent value="monitor" className="space-y-4">
-            <h3 className="text-lg font-semibold">Bot Monitoring</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance</CardTitle>
-                  <CardDescription>Real-time performance metrics</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span>Profit</span>
-                    <span>${performance.profit.toFixed(2)}</span>
+      // Simulate parameter changes
+      Object.keys(optimizedParams).forEach(key => {
+        if (typeof optimizedParams[key] === 'number') {
+          optimizedParams[key] = Math.round(optimizedParams[key] * (0.9 + Math.random() * 0.3));
+        }
+      });
+      
+      setParameters(optimizedParams);
+      
+      toast({
+        title: "Optimization Complete",
+        description: "Strategy parameters have been optimized based on historical data",
+      });
+    }, 3000);
+  };
+  
+  const handleBacktest = () => {
+    toast({
+      title: "Running Backtest",
+      description: "Backtesting strategy on historical data...",
+    });
+    
+    // Simulate backtest delay
+    setTimeout(() => {
+      toast({
+        title: "Backtest Complete",
+        description: `Strategy would have yielded +${Math.floor(15 + Math.random() * 20)}% return over the last 6 months`,
+      });
+    }, 3000);
+  };
+  
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Trading Dashboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Strategy selector and controls */}
+              <div className="space-y-4 flex-1">
+                <div>
+                  <Label>Trading Strategy</Label>
+                  <Select 
+                    value={selectedStrategy} 
+                    onValueChange={(value) => setSelectedStrategy(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a strategy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tradingStrategies.map(strategy => (
+                        <SelectItem key={strategy.id} value={strategy.id}>
+                          {strategy.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {currentStrategy?.description}
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <Label>Trading Mode:</Label>
+                  <Select
+                    value={paperTrading ? "paper" : "live"}
+                    onValueChange={(value) => setPaperTrading(value === "paper")}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="paper">Paper</SelectItem>
+                      <SelectItem value="live">Live</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label>Risk Level: {riskLevel}%</Label>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Trades</span>
-                    <span>{performance.trades}</span>
+                  <Slider
+                    value={[riskLevel]}
+                    min={10}
+                    max={90}
+                    step={10}
+                    onValueChange={(value) => setRiskLevel(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Conservative</span>
+                    <span>Aggressive</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Win Rate</span>
-                    <span>{performance.winRate.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Drawdown</span>
-                    <span>{performance.drawdown.toFixed(2)}%</span>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button 
+                    className="flex-1"
+                    variant={isRunning ? "destructive" : "default"}
+                    onClick={handleStartBot}
+                  >
+                    {isRunning ? "Stop Bot" : "Start Bot"}
+                  </Button>
+                  <Button variant="outline" onClick={handleBacktest}>
+                    Backtest
+                  </Button>
+                  <Button variant="outline" onClick={handleOptimize}>
+                    Optimize
+                  </Button>
+                </div>
+              </div>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Risk Metrics</CardTitle>
-                  <CardDescription>Risk assessment and management</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span>Risk Level</span>
-                    <span>
-                      <Badge variant="secondary">{riskLevel}</Badge>
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Max Drawdown</span>
-                    <span>{maxDrawdown}%</span>
-                  </div>
-                  <Progress value={performance.drawdown} max={maxDrawdown} />
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Strategy Details</h4>
-              <p className="text-sm text-muted-foreground">
-                {selectedStrategy?.description}
-              </p>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">{selectedStrategy?.type}</Badge>
-                <Badge variant="outline">{selectedStrategy?.timeframe}</Badge>
+              {/* Chart */}
+              <div className="flex-1 h-64">
+                <h3 className="text-sm font-medium mb-2">Price Prediction</h3>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={mockPriceData}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(15, 23, 42, 0.8)', 
+                        border: 'none', 
+                        borderRadius: '6px',
+                        color: '#fff'
+                      }} 
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="price" 
+                      stroke="#3b82f6" 
+                      strokeWidth={2} 
+                      dot={{ r: 4 }}
+                      name="Actual"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="prediction" 
+                      stroke="#10b981" 
+                      strokeWidth={2} 
+                      strokeDasharray="5 5"
+                      dot={{ r: 4 }}
+                      name="Prediction"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+            
+            {/* Parameters */}
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-medium">Strategy Parameters</h3>
+                <Button size="sm" variant="ghost" onClick={handleReset}>
+                  Reset
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {parameters && Object.entries(parameters).map(([key, value]) => (
+                  <div key={key} className="space-y-1">
+                    <Label htmlFor={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</Label>
+                    <Input 
+                      id={key}
+                      type="number" 
+                      value={value as number}
+                      onChange={(e) => {
+                        setParameters({
+                          ...parameters,
+                          [key]: parseFloat(e.target.value)
+                        });
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
-      <CardFooter className="flex justify-between">
-        {isRunning ? (
-          <Button variant="destructive" onClick={handleStopBot}>
-            <Pause className="h-4 w-4 mr-2" />
-            Stop Bot
-          </Button>
-        ) : (
-          <Button onClick={handleStartBot}>
-            <Play className="h-4 w-4 mr-2" />
-            Start Bot
-          </Button>
-        )}
-        <Button variant="outline" onClick={handleDeleteBot}>
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          Delete Bot
-        </Button>
-      </CardFooter>
-    </Card>
+      {/* Performance Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="summary">
+            <TabsList className="mb-4">
+              <TabsTrigger value="summary">Summary</TabsTrigger>
+              <TabsTrigger value="trades">Trades</TabsTrigger>
+              <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="summary">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Win Rate</div>
+                  <div className="text-lg font-semibold">{botPerformance.winRate}%</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Profit Factor</div>
+                  <div className="text-lg font-semibold">{botPerformance.profitFactor}</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
+                  <div className="text-lg font-semibold">{botPerformance.sharpeRatio}</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Max Drawdown</div>
+                  <div className="text-lg font-semibold">{botPerformance.maxDrawdown}%</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Total Trades</div>
+                  <div className="text-lg font-semibold">{botPerformance.totalTrades}</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Profitable</div>
+                  <div className="text-lg font-semibold">{botPerformance.profitableTrades}</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Best Trade</div>
+                  <div className="text-lg font-semibold text-green-500">{botPerformance.bestTrade}</div>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="text-xs text-muted-foreground">Net Profit</div>
+                  <div className="text-lg font-semibold text-green-500">{botPerformance.netProfit}</div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="trades">
+              <div className="text-center py-8 text-muted-foreground">
+                No trade history available. Start the bot to generate trades.
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="risk">
+              <div className="text-center py-8 text-muted-foreground">
+                Risk analysis will be available after the bot has completed several trades.
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

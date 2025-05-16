@@ -22,15 +22,28 @@ export const useTheme = () => {
     }
   });
 
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(theme === 'light' ? 'light' : 'dark');
+
   // Update localStorage and document classes when theme changes
   useEffect(() => {
     try {
       localStorage.setItem('theme', theme);
       
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
+      if (theme === 'system') {
+        const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setResolvedTheme(isSystemDark ? 'dark' : 'light');
+        if (isSystemDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       } else {
-        document.documentElement.classList.remove('dark');
+        setResolvedTheme(theme === 'dark' ? 'dark' : 'light');
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       }
     } catch (error) {
       console.error('Error setting theme:', error);
@@ -54,7 +67,9 @@ export const useTheme = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     const handleChange = () => {
-      if (mediaQuery.matches) {
+      const isDark = mediaQuery.matches;
+      setResolvedTheme(isDark ? 'dark' : 'light');
+      if (isDark) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
@@ -71,5 +86,5 @@ export const useTheme = () => {
   const setTheme = (newTheme: Theme) => setThemeState(newTheme);
   const setColorScheme = (newColorScheme: ColorScheme) => setColorSchemeState(newColorScheme);
 
-  return { theme, setTheme, colorScheme, setColorScheme };
+  return { theme, setTheme, colorScheme, setColorScheme, resolvedTheme };
 };

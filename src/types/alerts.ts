@@ -1,18 +1,17 @@
 
-// Define alert types for the application
 export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly';
 
 export interface BaseAlertData {
   id?: string;
-  type: string;
   coinId: string;
   coinName: string;
   coinSymbol: string;
   enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: Array<"email" | "app" | "push">;
-  createdAt?: string;
+  frequency?: AlertFrequency;
+  notifyVia?: Array<"email" | "app" | "push">;
+  createdAt?: Date | string;
   lastTriggered?: string;
+  type?: string;
 }
 
 export interface PriceAlert extends BaseAlertData {
@@ -36,3 +35,21 @@ export interface TechnicalAlert extends BaseAlertData {
 }
 
 export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
+
+export interface AlertFormData {
+  type: 'price' | 'volume' | 'technical';
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  frequency: AlertFrequency;
+  notifyVia: Array<"email" | "app" | "push">;
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  volumeThreshold?: number;
+  indicator?: string;
+  condition?: string;
+  value?: number;
+}

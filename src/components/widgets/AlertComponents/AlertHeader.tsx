@@ -1,29 +1,18 @@
 
 import React from 'react';
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useTheme } from '@/contexts/ThemeContext';
-import { Bell } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Bell } from "lucide-react";
 
 export const AlertHeader = () => {
-  const { colorScheme } = useTheme();
-
   return (
-    <SheetHeader className={cn(
-      "pb-4 border-b border-border",
-      colorScheme === "neon-future" && "border-cyan-800/50"
-    )}>
-      <SheetTitle className="flex items-center gap-2">
-        <Bell className={cn(
-          "h-5 w-5",
-          colorScheme === "neon-future" && "text-cyan-400 neon-pulse"
-        )} />
-        <span className={cn(
-          colorScheme === "neon-future" && "text-cyan-400 neon-pulse"
-        )}>
-          Price Alerts
-        </span>
+    <div className="mb-4">
+      <SheetTitle className="flex items-center">
+        <Bell className="h-5 w-5 mr-2" />
+        Price Alerts
       </SheetTitle>
-    </SheetHeader>
+      <SheetDescription>
+        Get notified when assets hit your target prices
+      </SheetDescription>
+    </div>
   );
 };
