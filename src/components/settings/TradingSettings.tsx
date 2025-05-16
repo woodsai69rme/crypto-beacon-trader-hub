@@ -18,7 +18,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         defaultAsset: 'bitcoin',
         defaultTradeSize: 100,
         riskLevel: 'medium'
-      }, { shouldValidate: false });
+      });
     }
   }, [form]);
 
@@ -51,7 +51,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                     ...form.getValues().tradingPreferences,
                     autoConfirm: checked
                   };
-                  form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
+                  form.setValue("tradingPreferences", updatedPrefs);
                 }}
               />
             </FormControl>
@@ -72,7 +72,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                     ...form.getValues().tradingPreferences,
                     showAdvanced: checked
                   };
-                  form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
+                  form.setValue("tradingPreferences", updatedPrefs);
                 }}
               />
             </FormControl>
@@ -87,7 +87,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                   ...form.getValues().tradingPreferences,
                   defaultAsset: value
                 };
-                form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
+                form.setValue("tradingPreferences", updatedPrefs);
               }}
             >
               <FormControl>

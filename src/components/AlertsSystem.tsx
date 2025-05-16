@@ -8,7 +8,7 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
-import { AlertFormData, AlertData } from "@/types/trading";
+import { AlertFormData, AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from "@/types/trading";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();

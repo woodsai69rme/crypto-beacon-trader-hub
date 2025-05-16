@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
@@ -23,7 +22,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         coins: ['bitcoin', 'ethereum', 'solana'],
         showVolume: true,
         showPercentChange: true
-      }, { shouldValidate: false });
+      });
     }
   }, [form]);
 

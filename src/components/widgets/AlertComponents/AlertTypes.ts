@@ -1,7 +1,7 @@
 
-import { AlertFrequency, AlertFormData, CoinOption } from "@/types/trading";
+import { AlertFrequency, AlertFormData, CoinOption, AlertData } from "@/types/trading";
 
-export type { AlertFormData, CoinOption };
+export type { AlertFormData, CoinOption, AlertData };
 export type { AlertFrequency };
 
 export const COIN_OPTIONS: Record<string, CoinOption> = {

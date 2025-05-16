@@ -234,12 +234,12 @@ export interface WalletAccount {
 // Theming types
 export type Theme = 'light' | 'dark' | 'system';
 export type ColorScheme = 
-  | 'default'
   | 'blue'
   | 'green'
   | 'orange'
   | 'purple'
   | 'red'
+  | 'default'
   | 'midnight-tech'
   | 'cyber-pulse'
   | 'matrix-code'
@@ -272,7 +272,11 @@ export interface SettingsFormValues {
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
   };
-  currency?: SupportedCurrency;
+  currency?: SupportedCurrency | {
+    defaultCurrency: SupportedCurrency;
+    showConversion: boolean;
+    showPriceInBTC?: boolean;
+  };
   notifications?: {
     enablePush: boolean;
     enableEmail: boolean;
@@ -364,6 +368,12 @@ export interface AITradingStrategy {
   tags?: string[];
 }
 
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
 export interface AITradingBot {
   id: string;
   name: string;
@@ -377,12 +387,6 @@ export interface AITradingBot {
     trades: number;
     profit: number;
   };
-}
-
-export interface AiBotTradingProps {
-  botId: string;
-  strategyId: string;
-  strategyName: string;
 }
 
 export interface PaperTradingConfig {
@@ -477,10 +481,12 @@ export interface AlertFormData {
 // TradingAccount type
 export interface TradingAccount {
   id: string;
-  address: string;
   name: string;
+  address: string;
   balance: number;
   network: string;
+  trades?: Trade[];
+  createdAt?: string;
   type?: string;
   provider?: string;
   assets?: Array<{

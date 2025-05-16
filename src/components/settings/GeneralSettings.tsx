@@ -110,7 +110,15 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Default Currency</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value as string}>
+              <Select 
+                onValueChange={(value) => {
+                  // Handle currency as simple string value
+                  form.setValue("currency", value as SupportedCurrency);
+                }} 
+                value={typeof form.getValues().currency === "string" ? 
+                  form.getValues().currency as string : 
+                  (form.getValues().currency as any)?.defaultCurrency || "AUD"}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select currency" />

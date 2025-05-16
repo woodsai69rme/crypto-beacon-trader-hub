@@ -1,12 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { PriceAlert, VolumeAlert } from "@/types/alerts";
-import { toast } from "@/components/ui/use-toast";
+import { PriceAlert, VolumeAlert, AlertData, AlertFormData } from "@/types/trading";
+import { toast } from "@/hooks/use-toast";
 import { handleError } from "@/utils/errorHandling";
-import { PriceAlertFormData } from "@/components/widgets/AlertComponents/AlertTypes";
 
 export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [volumeAlerts, setVolumeAlerts] = useState<VolumeAlert[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -43,18 +42,19 @@ export const useAlerts = () => {
     }
   }, [alerts, volumeAlerts, isLoading]);
 
-  const addAlert = async (newAlertData: PriceAlertFormData) => {
+  const addAlert = async (newAlertData: AlertFormData) => {
     try {
       // Validate required fields
-      if (!newAlertData.coinId || !newAlertData.coinName || !newAlertData.coinSymbol) {
+      if (!newAlertData.coinId || !newAlertData.coinName || !newAlertData.coinSymbol || !newAlertData.type || !newAlertData.frequency) {
         throw new Error("Missing required alert information");
       }
 
-      const alert: PriceAlert = {
+      const alert: AlertData = {
         id: Date.now().toString(),
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
         ...newAlertData,
-      };
+        enabled: true,
+      } as AlertData;
       
       setAlerts(prevAlerts => [...prevAlerts, alert]);
       
@@ -75,7 +75,7 @@ export const useAlerts = () => {
     }
   };
   
-  const updateAlert = async (id: string, updatedData: Partial<PriceAlert>) => {
+  const updateAlert = async (id: string, updatedData: Partial<AlertData>) => {
     try {
       setAlerts(prevAlerts => 
         prevAlerts.map(alert => 
