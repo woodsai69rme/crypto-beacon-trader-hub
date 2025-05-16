@@ -1,13 +1,12 @@
-
 /**
  * Enhanced Crypto API Service
  * Provides advanced cryptocurrency data and analysis functions.
  */
 
-import { CoinOption, CryptoData } from '@/types/trading.d';
+import { CoinOption } from '@/types/trading.d';
 import { toast } from "@/components/ui/use-toast";
 import { 
-  fetchCoinDetails,
+  fetchCoinDetails as fetchCoinDetailsFromService,
   fetchHistoricalData as fetchHistoricalDataFromService,
   fetchCoinHistory as fetchCoinHistoryFromService
 } from './cryptoService';
@@ -19,7 +18,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 // Re-export with appropriate aliases to avoid name conflicts
 export const fetchHistoricalData = fetchHistoricalDataFromService;
 export const fetchCoinHistory = fetchCoinHistoryFromService;
-export { fetchCoinDetails };
+export const fetchCoinDetails = fetchCoinDetailsFromService;
 
 /**
  * Get trending cryptocurrencies
@@ -285,7 +284,3 @@ async function fetchTopCryptoData(limit: number): Promise<CoinOption[]> {
   const trendingCoins = generateFallbackTrendingCoins(limit);
   return trendingCoins;
 }
-
-// IMPORTANT: Remove the duplicate exports at the bottom
-// We already exported the functions at the top of the file
-// export { fetchHistoricalData, fetchCoinDetails, fetchCoinHistory };
