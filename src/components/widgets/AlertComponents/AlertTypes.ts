@@ -1,5 +1,5 @@
 
-import { AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";
+import { AlertFrequency } from "@/types/alerts";
 
 export const COIN_OPTIONS: Record<string, { id: string; name: string; symbol: string }> = {
   "bitcoin": { id: "bitcoin", name: "Bitcoin", symbol: "BTC" },
@@ -38,4 +38,5 @@ export const INDICATOR_CONDITIONS = [
   { value: "divergence", label: "Shows Divergence" },
 ];
 
-export { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData };
+// Re-export using 'export type' for isolatedModules
+export type { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";

@@ -95,7 +95,7 @@ const AccountManager: React.FC = () => {
       }
     });
     
-    return assetCounts;
+    return Object.keys(assetCounts).length;
   };
   
   const handleAddAccount = () => {

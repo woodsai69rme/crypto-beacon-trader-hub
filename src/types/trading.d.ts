@@ -1,6 +1,5 @@
 
 import { ReactNode } from 'react';
-import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency } from './alerts';
 
 // Widget related types
 export interface Widget {
@@ -434,6 +433,7 @@ export interface RealTimePricesProps {
   onSelectCoin?: (coinId: string) => void;
   selectedCoinId?: string;
   isLoading?: boolean;
+  initialCoins?: CoinOption[];
 }
 
 export interface ModelListProps {
@@ -443,6 +443,10 @@ export interface ModelListProps {
   selectedModelId?: string;
   onConnect?: (model: LocalModel) => void;
   onDisconnect?: (modelId: string) => void;
+}
+
+export interface ModelPerformanceProps {
+  model: LocalModel;
 }
 
 export interface WalletConnectionProps {
@@ -485,5 +489,6 @@ export interface TradingAccount {
   initialBalance?: number;
 }
 
-// Re-exporting alert types for convenience
-export { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency };
+// Import and re-export alert types
+import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts';
+export type { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData };

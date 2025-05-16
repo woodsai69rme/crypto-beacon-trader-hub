@@ -14,7 +14,7 @@ import {
   PriceAlert, 
   VolumeAlert, 
   TechnicalAlert 
-} from "@/types/trading";
+} from "@/types/alerts";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -22,7 +22,7 @@ const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = () => {
-    if (formData.type && formData.frequency) {
+    if (formData.type && formData.coinId) {
       addAlert(formData as AlertFormData);
       resetForm();
       setIsOpen(false);

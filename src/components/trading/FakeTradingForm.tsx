@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,18 @@ import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { FakeTradingFormProps, Trade } from '@/types/trading';
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onTrade, advancedMode = false }) => {
-  const [asset, setAsset] = useState('');
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ 
+  onTrade, 
+  advancedMode = false,
+  availableCoins = [
+    { id: 'BTC', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1.2, changePercent: 1.2, value: 'BTC', label: 'Bitcoin (BTC)' },
+    { id: 'ETH', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 2.5, changePercent: 2.5, value: 'ETH', label: 'Ethereum (ETH)' },
+    { id: 'SOL', name: 'Solana', symbol: 'SOL', price: 100, priceChange: 3.7, changePercent: 3.7, value: 'SOL', label: 'Solana (SOL)' },
+    { id: 'ADA', name: 'Cardano', symbol: 'ADA', price: 1.2, priceChange: -0.5, changePercent: -0.5, value: 'ADA', label: 'Cardano (ADA)' }
+  ],
+  initialCoinId
+}) => {
+  const [asset, setAsset] = useState(initialCoinId || '');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [type, setType] = useState<'buy' | 'sell'>('buy');
@@ -70,10 +81,11 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onTrade, advancedMode
             <SelectValue placeholder="Select Asset" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-            <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-            <SelectItem value="SOL">Solana (SOL)</SelectItem>
-            <SelectItem value="ADA">Cardano (ADA)</SelectItem>
+            {availableCoins.map(coin => (
+              <SelectItem key={coin.id} value={coin.id}>
+                {coin.name} ({coin.symbol})
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

@@ -1,440 +1,171 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTheme } from '@/hooks/use-theme';
-import { fetchCoinHistory, formatPriceHistory } from '@/services/api/coinGeckoService';
-import { toast } from '@/components/ui/use-toast';
-import { RefreshCw } from 'lucide-react';
-
-interface RealTimePriceChartProps {
-  coinId: string;
-  coinName?: string;
-  timeframe?: string;
-  isLoading?: boolean;
-  onTimeframeChange?: (timeframe: string) => void;
-}
-
-interface ChartData {
-  time: number;
-  price: number;
-  marketCap?: number;
-  volume?: number;
-}
-
-const timeframes = [
-  { value: '1', label: '24 Hours' },
-  { value: '7', label: '7 Days' },
-  { value: '30', label: '30 Days' },
-  { value: '90', label: '3 Months' },
-  { value: '365', label: '1 Year' },
-  { value: 'max', label: 'All Time' },
-];
-
-const formatDate = (timestamp: number, timeframe: string) => {
-  const date = new Date(timestamp);
-  
-  if (timeframe === '1') {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-};
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: price < 1 ? 4 : 2,
-    maximumFractionDigits: price < 1 ? 6 : 2,
-  }).format(price);
-};
-
-const formatValue = (value: string | number): number => {
-  if (typeof value === 'string') {
-    return parseFloat(value);
-  }
-  return value;
-};
+import React, { useRef, useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LineChart, BarChart, CandlestickChart, ArrowLeft, ArrowRight, ZoomIn, ZoomOut } from "lucide-react";
+import { RealTimePriceChartProps, CoinOption } from '@/types/trading';
+import { fetchCoinPriceHistory } from '@/services/cryptoService';
 
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
-  coinId,
-  coinName,
-  timeframe = '7',
-  isLoading: externalIsLoading = false,
-  onTimeframeChange
+  selectedCoinId,
+  onSelectCoin,
+  availableCoins = []
 }) => {
-  const { theme } = useTheme();
-  const [data, setData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(externalIsLoading);
-  const [error, setError] = useState<string | null>(null);
-  const [chartType, setChartType] = useState<'price' | 'volume' | 'market-cap'>('price');
-  
-  const fetchData = useCallback(async () => {
-    if (!coinId) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const historyData = await fetchCoinHistory(coinId, timeframe);
-      const { priceData, marketCapData, volumeData } = formatPriceHistory(historyData);
-      
-      // Combine data for chart
-      const combinedData = priceData.map((point: any, index: number) => ({
-        time: point.time,
-        price: point.price,
-        marketCap: marketCapData[index]?.value,
-        volume: volumeData[index]?.value
-      }));
-      
-      setData(combinedData);
-    } catch (err) {
-      console.error(`Error fetching price history for ${coinId}:`, err);
-      setError("Failed to load price data. Please try again later.");
-      toast({
-        title: "Data fetch failed",
-        description: `Could not retrieve historical data for ${coinName || coinId}.`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [coinId, timeframe, coinName]);
+  const [chartType, setChartType] = useState<'line' | 'candle' | 'bar'>('line');
+  const [timeframe, setTimeframe] = useState<string>('7d');
+  const [priceData, setPriceData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const chartRef = useRef<any>(null);
   
   useEffect(() => {
+    const fetchData = async () => {
+      if (!selectedCoinId) return;
+      
+      setIsLoading(true);
+      try {
+        const data = await fetchCoinPriceHistory(selectedCoinId, timeframe);
+        setPriceData(data);
+      } catch (error) {
+        console.error("Error fetching price data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     fetchData();
-  }, [fetchData]);
-  
-  const handleTimeframeChange = (value: string) => {
-    if (onTimeframeChange) {
-      onTimeframeChange(value);
-    }
-  };
-
-  const handleRefresh = () => {
-    fetchData();
-  };
-
-  const priceColor = theme === 'dark' ? '#4ADE80' : '#16A34A';
-  const negativeColor = theme === 'dark' ? '#F87171' : '#EF4444';
-  const gridColor = theme === 'dark' ? '#333333' : '#E5E7EB';
-  const textColor = theme === 'dark' ? '#FFFFFF' : '#000000';
-  
-  // Calculate price change
-  const calculatePriceChange = () => {
-    if (data.length < 2) return { change: 0, percent: 0 };
     
-    const firstPrice = data[0].price;
-    const lastPrice = data[data.length - 1].price;
-    const change = lastPrice - firstPrice;
-    const percent = (change / firstPrice) * 100;
+    // Set up polling for real-time updates
+    const interval = setInterval(fetchData, 60000); // Update every minute
     
-    return { change, percent };
+    return () => clearInterval(interval);
+  }, [selectedCoinId, timeframe]);
+  
+  const handleZoomIn = () => {
+    // Implement zoom functionality
+    console.log("Zoom in");
   };
   
-  const { change, percent } = calculatePriceChange();
-  const isPriceUp = change >= 0;
-  
-  const renderChartContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center h-[300px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-        </div>
-      );
-    }
-    
-    if (error) {
-      return (
-        <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-          <p>{error}</p>
-          <Button variant="outline" className="mt-4" onClick={handleRefresh}>
-            Try Again
-          </Button>
-        </div>
-      );
-    }
-    
-    if (data.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-          No data available
-        </div>
-      );
-    }
-    
-    // Determine y-axis domain
-    const prices = data.map(point => point.price);
-    const minPrice = Math.min(...prices) * 0.995;
-    const maxPrice = Math.max(...prices) * 1.005;
-    
-    const chartData = [...data];
-    
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        {chartType === 'price' ? (
-          <AreaChart
-            data={chartData}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <defs>
-              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isPriceUp ? priceColor : negativeColor} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={isPriceUp ? priceColor : negativeColor} stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-            <XAxis 
-              dataKey="time" 
-              tickFormatter={(timestamp) => formatDate(timestamp, timeframe)} 
-              stroke={textColor}
-              tick={{ fill: textColor }}
-              dy={10}
-            />
-            <YAxis 
-              domain={[minPrice, maxPrice]}
-              tickFormatter={(value) => formatPrice(value)}
-              stroke={textColor}
-              tick={{ fill: textColor }}
-              width={80}
-            />
-            <Tooltip 
-              formatter={(value) => formatPrice(value as number)} 
-              labelFormatter={(timestamp) => new Date(timestamp as number).toLocaleString()}
-              contentStyle={{ 
-                backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
-                borderColor: theme === 'dark' ? '#374151' : '#e5e7eb'
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="price"
-              stroke={isPriceUp ? priceColor : negativeColor}
-              fillOpacity={1}
-              fill="url(#colorPrice)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6 }}
-            />
-          </AreaChart>
-        ) : chartType === 'volume' ? (
-          <AreaChart
-            data={chartData}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <defs>
-              <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-            <XAxis 
-              dataKey="time" 
-              tickFormatter={(timestamp) => formatDate(timestamp, timeframe)} 
-              stroke={textColor}
-              tick={{ fill: textColor }}
-              dy={10}
-            />
-            <YAxis 
-              dataKey="volume"
-              tickFormatter={(value) => {
-                return new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                  notation: 'compact',
-                  maximumFractionDigits: 1
-                }).format(value as number);
-              }}
-              stroke={textColor}
-              tick={{ fill: textColor }}
-              width={80}
-            />
-            <Tooltip 
-              formatter={(value) => {
-                return new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                  maximumFractionDigits: 0
-                }).format(value as number);
-              }}
-              labelFormatter={(timestamp) => new Date(timestamp as number).toLocaleString()}
-              contentStyle={{ 
-                backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
-                borderColor: theme === 'dark' ? '#374151' : '#e5e7eb'
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="volume"
-              stroke="#8884d8"
-              fillOpacity={1}
-              fill="url(#colorVolume)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6 }}
-            />
-          </AreaChart>
-        ) : (
-          <AreaChart
-            data={chartData}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <defs>
-              <linearGradient id="colorMC" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-            <XAxis 
-              dataKey="time" 
-              tickFormatter={(timestamp) => formatDate(timestamp, timeframe)} 
-              stroke={textColor}
-              tick={{ fill: textColor }}
-              dy={10}
-            />
-            <YAxis 
-              dataKey="marketCap"
-              tickFormatter={(value) => {
-                return new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                  notation: 'compact',
-                  maximumFractionDigits: 1
-                }).format(value as number);
-              }}
-              stroke={textColor}
-              tick={{ fill: textColor }}
-              width={80}
-            />
-            <Tooltip 
-              formatter={(value) => {
-                return new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                  maximumFractionDigits: 0
-                }).format(value as number);
-              }}
-              labelFormatter={(timestamp) => new Date(timestamp as number).toLocaleString()}
-              contentStyle={{ 
-                backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
-                borderColor: theme === 'dark' ? '#374151' : '#e5e7eb'
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="marketCap"
-              stroke="#82ca9d"
-              fillOpacity={1}
-              fill="url(#colorMC)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6 }}
-            />
-          </AreaChart>
-        )}
-      </ResponsiveContainer>
-    );
+  const handleZoomOut = () => {
+    // Implement zoom functionality
+    console.log("Zoom out");
   };
+  
+  const handleScrollLeft = () => {
+    // Scroll chart to the left
+    console.log("Scroll left");
+  };
+  
+  const handleScrollRight = () => {
+    // Scroll chart to the right
+    console.log("Scroll right");
+  };
+  
+  const handleDateSelect = (date: string) => {
+    // Scroll to specific date
+    chartRef.current?.scrollToIndex(parseInt(date as string, 10) || 0);
+  };
+  
+  const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);
   
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle className="text-xl">{coinName || coinId}</CardTitle>
-          <CardDescription>
-            {isPriceUp ? 'Up' : 'Down'} {Math.abs(percent).toFixed(2)}% in the selected period
-          </CardDescription>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select
-            value={timeframe}
-            onValueChange={handleTimeframeChange}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Select timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              {timeframes.map((tf) => (
-                <SelectItem key={tf.value} value={tf.value}>
-                  {tf.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <Card className="w-full h-full">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CardTitle>
+              {selectedCoin?.name || 'Price Chart'}
+            </CardTitle>
+            {selectedCoin && (
+              <span className="text-sm text-muted-foreground">
+                {selectedCoin.symbol.toUpperCase()}
+              </span>
+            )}
+          </div>
           
-          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1d">1 Day</SelectItem>
+                <SelectItem value="7d">7 Days</SelectItem>
+                <SelectItem value="30d">30 Days</SelectItem>
+                <SelectItem value="90d">90 Days</SelectItem>
+                <SelectItem value="1y">1 Year</SelectItem>
+                <SelectItem value="max">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'line' | 'candle' | 'bar')}>
+              <TabsList className="h-8">
+                <TabsTrigger value="line" className="px-2">
+                  <LineChart className="h-4 w-4" />
+                </TabsTrigger>
+                <TabsTrigger value="candle" className="px-2">
+                  <CandlestickChart className="h-4 w-4" />
+                </TabsTrigger>
+                <TabsTrigger value="bar" className="px-2">
+                  <BarChart className="h-4 w-4" />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0">
-        <div className="flex justify-between mb-4">
-          <div className="flex gap-2">
-            <Button 
-              variant={chartType === 'price' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setChartType('price')}
-            >
-              Price
-            </Button>
-            <Button 
-              variant={chartType === 'volume' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setChartType('volume')}
-            >
-              Volume
-            </Button>
-            <Button 
-              variant={chartType === 'market-cap' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setChartType('market-cap')}
-            >
-              Market Cap
-            </Button>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-[300px]">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
-        </div>
-        
-        {renderChartContent()}
-        
-        {data.length > 0 && chartType === 'price' && (
-          <div className="mt-4 flex justify-between">
-            <div className="text-sm">
-              <span className="text-muted-foreground">Low: </span>
-              <span className="font-medium">
-                {formatPrice(Math.min(...data.map(point => point.price)))}
-              </span>
+        ) : (
+          <div className="relative">
+            <div className="h-[300px] w-full">
+              {/* Chart would be rendered here using a library like recharts, d3, etc. */}
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                Chart visualization would be rendered here
+              </div>
             </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">High: </span>
-              <span className="font-medium">
-                {formatPrice(Math.max(...data.map(point => point.price)))}
-              </span>
+            
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="icon" onClick={handleScrollLeft}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleScrollRight}>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="icon" onClick={handleZoomIn}>
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleZoomOut}>
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Current: </span>
-              <span className="font-medium">
-                {data.length > 0 ? formatPrice(data[data.length - 1].price) : 'N/A'}
-              </span>
+          </div>
+        )}
+        
+        {selectedCoin && (
+          <div className="mt-4 grid grid-cols-3 gap-4">
+            <div>
+              <div className="text-sm text-muted-foreground">Price</div>
+              <div className="font-medium">${selectedCoin.price?.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">24h Change</div>
+              <div className={`font-medium ${(selectedCoin.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {(selectedCoin.changePercent || 0) >= 0 ? '+' : ''}{selectedCoin.changePercent?.toFixed(2)}%
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Volume</div>
+              <div className="font-medium">${selectedCoin.volume?.toLocaleString()}</div>
             </div>
           </div>
         )}

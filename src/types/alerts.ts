@@ -42,8 +42,8 @@ export interface AlertFormData {
   coinName: string;
   coinSymbol: string;
   enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: Array<"email" | "app" | "push">;
+  frequency?: AlertFrequency;
+  notifyVia?: Array<"email" | "app" | "push">;
   targetPrice?: number;
   isAbove?: boolean;
   recurring?: boolean;
@@ -66,6 +66,7 @@ export interface PriceAlertFormData {
   percentageChange: number;
   notifyVia: Array<"email" | "app" | "push">;
   frequency?: AlertFrequency;
+  type?: 'price'; // Make type optional or add in component
 }
 
 export interface VolumeAlertFormData {
@@ -76,6 +77,7 @@ export interface VolumeAlertFormData {
   frequency: AlertFrequency;
   enabled: boolean;
   notifyVia: Array<"email" | "app" | "push">;
+  type?: 'volume'; // Make type optional or add in component
 }
 
 export interface TechnicalAlertFormData {
@@ -88,4 +90,5 @@ export interface TechnicalAlertFormData {
   enabled: boolean;
   frequency?: AlertFrequency;
   notifyVia?: Array<"email" | "app" | "push">;
+  type?: 'technical'; // Make type optional or add in component
 }

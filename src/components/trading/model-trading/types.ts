@@ -13,3 +13,7 @@ export interface ModelStatus {
     successRate: number;
   };
 }
+
+export interface ModelPerformanceProps {
+  model: LocalModel;
+}
