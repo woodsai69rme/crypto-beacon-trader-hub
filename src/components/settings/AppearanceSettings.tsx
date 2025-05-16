@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Palette } from "lucide-react";
 import { SettingsComponentProps } from "./types";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from "@/hooks/use-theme";
 import { Theme, ColorScheme } from "@/types/trading";
 
 const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
@@ -34,13 +34,13 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     }
   }, [form, theme, colorScheme]);
 
-  const handleThemeChange = (value: string) => {
-    setTheme(value as Theme);
+  const handleThemeChange = (value: Theme) => {
+    setTheme(value);
     form.setValue("theme", value);
   };
 
-  const handleColorSchemeChange = (value: string) => {
-    setColorScheme(value as ColorScheme);
+  const handleColorSchemeChange = (value: ColorScheme) => {
+    setColorScheme(value);
     form.setValue("display", {
       ...form.getValues().display,
       colorScheme: value
@@ -65,7 +65,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Theme</FormLabel>
                 <Select 
-                  onValueChange={(value) => handleThemeChange(value)} 
+                  onValueChange={(value) => handleThemeChange(value as Theme)} 
                   value={field.value || theme}
                 >
                   <FormControl>
@@ -89,7 +89,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <div className="space-y-2">
             <FormLabel>Color Scheme</FormLabel>
             <Select 
-              onValueChange={(value) => handleColorSchemeChange(value)} 
+              onValueChange={(value) => handleColorSchemeChange(value as ColorScheme)} 
               value={form.getValues().display?.colorScheme || colorScheme}
             >
               <FormControl>

@@ -221,16 +221,16 @@ export interface WalletAccount {
 // Theming types
 export type Theme = 'light' | 'dark' | 'system';
 export type ColorScheme = 
-  | 'blue' 
-  | 'green' 
-  | 'orange' 
-  | 'purple' 
+  | 'default'
+  | 'blue'
+  | 'green'
+  | 'orange'
+  | 'purple'
   | 'red'
-  | 'default' 
-  | 'midnight-tech' 
-  | 'cyber-pulse' 
-  | 'matrix-code' 
-  | 'neon-future' 
+  | 'midnight-tech'
+  | 'cyber-pulse'
+  | 'matrix-code'
+  | 'neon-future'
   | 'sunset-gradient';
 
 // Supported currencies
@@ -314,7 +314,9 @@ export interface SettingsFormValues {
     autoPause: boolean;
   };
   tradingPreferences?: {
-    autoConfirm?: boolean;
+    autoConfirm: boolean;
+    showAdvanced?: boolean;
+    defaultAsset?: string;
     defaultTradeSize?: number;
     riskLevel?: 'low' | 'medium' | 'high';
     tradingStrategy?: string;

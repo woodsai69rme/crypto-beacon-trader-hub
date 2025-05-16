@@ -13,7 +13,7 @@ import {
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { Theme, ColorScheme } from '@/contexts/ThemeContext';
+import { Theme, ColorScheme } from '@/types/trading';
 
 interface ThemeOption {
   value: Theme | ColorScheme;
@@ -52,7 +52,8 @@ const ThemeSwitcher: React.FC = () => {
   };
 
   const handleColorSchemeChange = (value: string) => {
-    if (["blue", "green", "orange", "purple", "red"].includes(value)) {
+    if (["blue", "green", "orange", "purple", "red", "default", "midnight-tech", 
+         "cyber-pulse", "matrix-code", "neon-future", "sunset-gradient"].includes(value)) {
       setColorScheme(value as ColorScheme);
       toast({
         title: "Style Updated",

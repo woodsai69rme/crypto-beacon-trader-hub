@@ -13,6 +13,10 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     
     if (!formValues.notifications) {
       const notificationsDefaults = {
+        enablePush: true,
+        enableEmail: true,
+        alertPrice: true,
+        alertNews: false,
         email: true,
         push: true,
         trades: true,
@@ -29,6 +33,10 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   // Get current values safely 
   const notificationsValues = React.useMemo(() => {
     const values = form.getValues().notifications || {
+      enablePush: true,
+      enableEmail: true,
+      alertPrice: true,
+      alertNews: false,
       email: true,
       push: true,
       trades: true,
@@ -64,10 +72,11 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={notificationsValues.email}
+                checked={notificationsValues.enableEmail}
                 onCheckedChange={(checked) => {
                   form.setValue("notifications", {
                     ...notificationsValues,
+                    enableEmail: checked,
                     email: checked
                   });
                 }}
@@ -84,10 +93,11 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={notificationsValues.push}
+                checked={notificationsValues.enablePush}
                 onCheckedChange={(checked) => {
                   form.setValue("notifications", {
                     ...notificationsValues,
+                    enablePush: checked,
                     push: checked
                   });
                 }}
@@ -132,7 +142,8 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 onCheckedChange={(checked) => {
                   form.setValue("notifications", {
                     ...notificationsValues,
-                    pricing: checked
+                    pricing: checked,
+                    alertPrice: checked
                   });
                 }}
               />
@@ -152,7 +163,8 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 onCheckedChange={(checked) => {
                   form.setValue("notifications", {
                     ...notificationsValues,
-                    news: checked
+                    news: checked,
+                    alertNews: checked
                   });
                 }}
               />

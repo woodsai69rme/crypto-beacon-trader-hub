@@ -20,6 +20,9 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         direction: 'ltr',
         speed: 50,
         autoPause: true,
+        coins: ['bitcoin', 'ethereum', 'solana'],
+        showVolume: true,
+        showPercentChange: true
       }, { shouldValidate: false });
     }
   }, [form]);

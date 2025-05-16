@@ -8,6 +8,7 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
+import { AlertFormData } from "@/types/trading";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -15,9 +16,11 @@ const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = () => {
-    addAlert(formData);
-    resetForm();
-    setIsOpen(false);
+    if (formData.type && formData.frequency) {
+      addAlert(formData as AlertFormData);
+      resetForm();
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -52,13 +55,20 @@ const AlertsSystem = () => {
                   <div>
                     <p className="font-medium">{alert.coinName}</p>
                     <p className="text-sm text-muted-foreground">
-                      {alert.isAbove ? "Above" : "Below"} ${alert.targetPrice.toLocaleString()}
+                      {alert.type === 'price' && (alert as any).isAbove !== undefined ? 
+                        `${(alert as any).isAbove ? "Above" : "Below"} $${(alert as any).targetPrice?.toLocaleString() || 0}` 
+                        : 
+                        alert.type === 'volume' ? 
+                          `Volume > ${(alert as any).volumeThreshold}` 
+                          : 
+                          `${(alert as any).indicator} ${(alert as any).condition}`
+                      }
                     </p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAlert(alert.id)}
+                    onClick={() => removeAlert(alert.id || '')}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>
