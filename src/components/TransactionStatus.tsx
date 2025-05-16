@@ -8,6 +8,7 @@ import {
   AlertTriangle 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TransactionStatusVariant } from "@/types/trading";
 
 export type TransactionStatusType = "success" | "failed" | "pending" | "warning";
 
@@ -21,22 +22,22 @@ const statusConfig = {
   success: {
     label: "Success",
     icon: CheckCircle,
-    variant: "success" as const
+    variant: "success" as TransactionStatusVariant
   },
   failed: {
     label: "Failed",
     icon: XCircle,
-    variant: "destructive" as const
+    variant: "destructive" as TransactionStatusVariant
   },
   pending: {
     label: "Pending",
     icon: Clock,
-    variant: "pending" as const
+    variant: "pending" as TransactionStatusVariant
   },
   warning: {
     label: "Warning",
     icon: AlertTriangle,
-    variant: "warning" as const
+    variant: "warning" as TransactionStatusVariant
   }
 };
 

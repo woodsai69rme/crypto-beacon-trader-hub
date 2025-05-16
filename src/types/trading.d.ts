@@ -75,7 +75,7 @@ export interface WalletProvider {
   isConnected: boolean;
 }
 
-// Additional required interfaces based on build errors
+// Additional required interfaces
 
 export interface CoinOption {
   id: string;
@@ -84,6 +84,8 @@ export interface CoinOption {
   image?: string;
   price?: number;
   priceChangePercentage24h?: number;
+  value?: string; // For select components
+  label?: string; // For select components
 }
 
 export interface CryptoData {
@@ -91,10 +93,14 @@ export interface CryptoData {
   name: string;
   symbol: string;
   prices: PricePoint[];
-  marketCap?: number[];
+  marketCap?: number | number[];
   volumes?: number[];
   change24h?: number;
   change7d?: number;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  price?: number;
 }
 
 export interface Trade {
@@ -118,7 +124,7 @@ export interface Widget {
   config?: Record<string, any>;
 }
 
-export type WidgetType = 'price' | 'chart' | 'news' | 'portfolio' | 'trades' | 'alerts' | 'ai-insights' | 'watchlist' | 'market-depth' | 'order-book';
+export type WidgetType = 'price' | 'chart' | 'news' | 'portfolio' | 'trades' | 'alerts' | 'ai-insights' | 'watchlist' | 'market-depth' | 'order-book' | 'custom';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large';
 
@@ -128,6 +134,7 @@ export interface WidgetComponentProps {
   title: string;
   onRemove?: (id: string) => void;
   config?: Record<string, any>;
+  widget?: Widget;
 }
 
 export interface ApiProvider {
@@ -147,6 +154,7 @@ export interface ApiEndpoint {
   description: string;
   parameters?: Record<string, string>;
   requiresAuth: boolean;
+  method?: string;
 }
 
 export interface ApiUsageStats {
@@ -156,22 +164,55 @@ export interface ApiUsageStats {
   requestsPerSecond: number;
   cost: number;
   nextReset: string;
+  service?: string;
+  currentUsage?: number;
+  maxUsage?: number;
+  endpoint?: string;
+  resetTime?: string;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioValue: number;
   portfolioHistory: { date: string; value: number }[];
   benchmarks: { id: string; name: string; history: { date: string; value: number }[] }[];
+  portfolioPerformance?: number[];
+  portfolioDates?: string[];
 }
 
 export interface DetachableDashboardProps {
   isOpen: boolean;
   onClose: () => void;
   botId?: string;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
+  isDetached?: boolean;
+  children?: React.ReactNode;
 }
 
 export interface LiveAnalyticsDashboardProps {
   selectedCoins: CoinOption[];
   apiUsage: ApiUsageStats;
   refreshInterval?: number;
+  initialCoinId?: string;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
+}
+
+// Currency types
+export type SupportedCurrency = string;
+
+// Type exports from ThemeContext
+export type Theme = 'light' | 'dark' | 'system';
+export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
+
+// Badge variants for TransactionStatus
+export type TransactionStatusVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'pending' | 'warning';
+
+// Add a declared module for the ui components to support additional variants
+declare module '@/components/ui/badge' {
+  interface BadgeProps {
+    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'pending' | 'warning';
+  }
 }

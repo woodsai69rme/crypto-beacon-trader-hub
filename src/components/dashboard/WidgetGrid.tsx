@@ -6,39 +6,56 @@ import WidgetComponent from './WidgetComponent';
 interface WidgetGridProps {
   widgets: Widget[];
   onRemove?: (id: string) => void;
-  onUpdatePosition?: (id: string, position: { x: number, y: number }) => void;
 }
 
-const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosition }) => {
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData('text/plain', id);
-  };
-
-  const handleDrop = (e: React.DragEvent, position: { x: number, y: number }) => {
-    e.preventDefault();
-    const id = e.dataTransfer.getData('text/plain');
-    
-    if (onUpdatePosition && id) {
-      onUpdatePosition(id, position);
+const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove }) => {
+  // Function to determine column span based on widget size
+  const getColSpan = (size: Widget['size']) => {
+    switch (size) {
+      case 'small':
+        return 'col-span-1';
+      case 'medium':
+        return 'col-span-2';
+      case 'large':
+        return 'col-span-3';
+      case 'x-large':
+        return 'col-span-4';
+      default:
+        return 'col-span-2';
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
+  // Function to determine row span based on widget size
+  const getRowSpan = (size: Widget['size']) => {
+    switch (size) {
+      case 'small':
+        return 'row-span-1';
+      case 'medium':
+        return 'row-span-1';
+      case 'large':
+        return 'row-span-2';
+      case 'x-large':
+        return 'row-span-2';
+      default:
+        return 'row-span-1';
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {widgets.map((widget) => (
-        <div 
+        <div
           key={widget.id}
-          draggable
-          onDragStart={(e) => handleDragStart(e, widget.id)}
-          onDrop={(e) => handleDrop(e, widget.position || { x: 0, y: 0 })}
-          onDragOver={handleDragOver}
-          className="cursor-grab active:cursor-grabbing"
+          className={`${getColSpan(widget.size)} ${getRowSpan(widget.size)}`}
         >
-          <WidgetComponent widget={widget} onRemove={onRemove} />
+          <WidgetComponent
+            id={widget.id}
+            type={widget.type}
+            title={widget.title}
+            onRemove={onRemove}
+            config={widget.config}
+            widget={widget}
+          />
         </div>
       ))}
     </div>
