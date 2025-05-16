@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Palette, Monitor } from "lucide-react";
-import { useTheme } from "@/hooks/use-theme";
-import { Theme, ColorScheme } from "@/contexts/ThemeContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Theme, ColorScheme } from "@/types/trading";
 import {
   DropdownMenu,
   DropdownMenuContent,

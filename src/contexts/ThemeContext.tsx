@@ -1,9 +1,6 @@
 
 import React, { createContext, useState, useEffect } from 'react';
-
-export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red' | 
-  'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
+import { Theme, ColorScheme } from '@/types/trading';
 
 interface ThemeContextType {
   theme: Theme;
@@ -16,9 +13,19 @@ interface ThemeContextType {
 // Export the ThemeContext directly
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+export const useTheme = () => {
+  const context = React.useContext(ThemeContext);
+  
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  
+  return context;
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('system');
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('default');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
   // Check for system preference on mount

@@ -6,8 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Palette } from "lucide-react";
 import { SettingsComponentProps } from "./types";
-import { useTheme } from "@/hooks/use-theme";
-import { ColorScheme, Theme } from "@/contexts/ThemeContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Theme, ColorScheme } from "@/types/trading";
 
 const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
@@ -24,7 +24,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     if (!formValues.display) {
       form.setValue("display", {
         showPortfolio: true,
-        showBalances: true, // Added missing required property
+        showBalances: true,
         defaultTab: "overview",
         compactMode: false,
         animationsEnabled: true,

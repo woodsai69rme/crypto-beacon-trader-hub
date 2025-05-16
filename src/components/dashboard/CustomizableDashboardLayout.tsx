@@ -18,9 +18,10 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
   const [widgets, setWidgets] = useState<Widget[]>([]);
 
   const handleRemoveWidget = (id: string) => {
-    setWidgets(widgets.filter(widget => widget.id !== id));
+    const updatedWidgets = widgets.filter(widget => widget.id !== id);
+    setWidgets(updatedWidgets);
     if (onLayoutChange) {
-      onLayoutChange(widgets.filter(widget => widget.id !== id));
+      onLayoutChange(updatedWidgets);
     }
   };
 
