@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge"; // Added missing Badge component
+import { Badge } from "@/components/ui/badge"; 
 import { Separator } from "@/components/ui/separator";
 import { AITradingStrategy, PaperTradingConfig, AIStrategyParameters } from "@/types/trading";
 import AiTradingStrategySelector from './AiTradingStrategySelector';
 import AiTradingBotList from './AiTradingBotList';
-import RealTimePriceChart from '@/components/RealTimePriceChart'; // Fixed direct import
-import { Robot, Zap, AlertTriangle, Settings, LineChart, Activity, Box } from "lucide-react";
+import RealTimePriceChart from '@/components/RealTimePriceChart';
+import { Bot, Zap, AlertTriangle, Settings, LineChart, Activity, Box } from "lucide-react";
 import { fetchCoinHistory, formatPrice } from '@/services/cryptoService';
-import { toast } from '@/hooks/use-toast'; // Updated to use from hooks
+import { useToast } from '@/hooks/use-toast';
 import { generateTradingSignal, backtestStrategy, availableStrategies } from '@/services/aiService';
 
 const AiTradingDashboard: React.FC = () => {
@@ -302,7 +302,7 @@ const AiTradingDashboard: React.FC = () => {
                               <h3 className="font-medium mb-2">Selected Strategy</h3>
                               <div className="bg-muted p-4 rounded-md">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Robot className="h-5 w-5 text-primary" />
+                                  <Bot className="h-5 w-5 text-primary" />
                                   <h4>{selectedStrategy.name}</h4>
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-2">
@@ -493,7 +493,7 @@ const AiTradingDashboard: React.FC = () => {
                     className="w-full"
                     onClick={handleCreateBot}
                   >
-                    <Robot className="h-4 w-4 mr-2" />
+                    <Bot className="h-4 w-4 mr-2" />
                     Create Trading Bot
                   </Button>
                 )}
