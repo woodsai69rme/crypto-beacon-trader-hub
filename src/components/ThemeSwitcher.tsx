@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Palette } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
-import { Theme, ColorScheme } from '@/types/trading';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +12,7 @@ import {
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { Theme, ColorScheme } from '@/contexts/ThemeContext';
 
 interface ThemeOption {
   value: Theme | ColorScheme;
@@ -34,12 +33,11 @@ const ThemeSwitcher: React.FC = () => {
 
   // Define color scheme options
   const colorSchemeOptions: ThemeOption[] = [
-    { value: "default", label: "Default", description: "Standard color scheme" },
-    { value: "midnight-tech", label: "Midnight Tech", description: "Deep blue tech-inspired theme" },
-    { value: "cyber-pulse", label: "Cyber Pulse", description: "Vibrant purple cyberpunk style" },
-    { value: "matrix-code", label: "Matrix Code", description: "Green-tinted hacker aesthetic" },
-    { value: "neon-future", label: "Neon Future", description: "Bright futuristic neon style" },
-    { value: "sunset-gradient", label: "Sunset Gradient", description: "Warm sunset color palette" }
+    { value: "blue", label: "Default", description: "Standard blue color scheme" },
+    { value: "green", label: "Green", description: "Green-inspired theme" },
+    { value: "purple", label: "Purple", description: "Vibrant purple style" },
+    { value: "orange", label: "Orange", description: "Warm orange palette" },
+    { value: "red", label: "Red", description: "Bold red aesthetic" }
   ];
 
   const handleThemeChange = (value: string) => {
@@ -53,7 +51,7 @@ const ThemeSwitcher: React.FC = () => {
   };
 
   const handleColorSchemeChange = (value: string) => {
-    if (["default", "midnight-tech", "cyber-pulse", "matrix-code", "neon-future", "sunset-gradient"].includes(value)) {
+    if (["blue", "green", "purple", "orange", "red"].includes(value)) {
       setColorScheme(value as ColorScheme);
       toast({
         title: "Style Updated",

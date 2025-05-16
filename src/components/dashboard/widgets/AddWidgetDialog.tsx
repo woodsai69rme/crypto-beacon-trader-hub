@@ -27,7 +27,7 @@ const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onClose, onAddW
       title: title || "New Widget",
       type: type,
       size: size,
-      position: { x: 0, y: 0 }
+      position: { x: 0, y: 0, w: 1, h: 1 }
     };
     
     onAddWidget(newWidget);

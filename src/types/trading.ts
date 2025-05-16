@@ -1,113 +1,5 @@
 
-// Trading related type definitions
-
-export interface WidgetComponentProps {
-  id: string;
-  type: string;
-  title: string;
-  onRemove: (id: string) => void;
-  config?: any;
-  widget?: any;
-  [key: string]: any;
-}
-
-// PricePoint definition for real-time price chart
-export interface PricePoint {
-  timestamp: number;
-  price: number;
-  volume?: number;
-  date?: string; // Formatted date string
-  open?: number;
-  close?: number;
-  high?: number;
-  low?: number;
-}
-
-export interface AITradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  timeframe: string;
-  riskLevel: string;
-  indicators: string[];
-}
-
-export interface BacktestResults {
-  initialBalance: number;
-  finalBalance: number;
-  profit: number;
-  trades: number;
-  winRate: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
-}
-
-export interface OpenRouterRequest {
-  model: string;
-  messages: { role: string; content: string }[];
-  temperature?: number;
-  max_tokens?: number;
-}
-
-// Widget-related types
-export type WidgetType = 
-  | 'price-chart' 
-  | 'portfolio-summary' 
-  | 'watchlist' 
-  | 'trading' 
-  | 'aiTrading' 
-  | 'aiAnalysis'
-  | 'price'
-  | 'chart'
-  | 'news'
-  | 'portfolio'
-  | 'alerts'
-  | 'custom';
-
-export interface TradingData {
-  symbol: string;
-  price: number;
-  volume: number;
-  timestamp: number;
-}
-
-export interface Order {
-  id: string;
-  symbol: string;
-  type: 'buy' | 'sell';
-  quantity: number;
-  price: number;
-  timestamp: number;
-  status: 'open' | 'filled' | 'cancelled';
-}
-
-export interface TradingStrategy {
-  name: string;
-  description: string;
-  parameters: any;
-}
-
-export interface TradingPair {
-  symbol: string;
-  baseAsset: string;
-  quoteAsset: string;
-}
-
-export interface MarketData {
-  symbol: string;
-  price: number;
-  volume: number;
-  timestamp: number;
-}
-
-// Define the TradingPosition enum
-export enum TradingPosition {
-  LONG = 'long',
-  SHORT = 'short',
-  NEUTRAL = 'neutral',
-}
-
+// Define basic trading types
 export interface CoinOption {
   id: string;
   name: string;
@@ -124,37 +16,53 @@ export interface CoinOption {
 
 export interface CryptoData {
   id: string;
-  name: string;
   symbol: string;
+  name: string;
+  price?: number;
   currentPrice?: number;
+  priceChange?: number;
+  changePercent?: number;
   priceChangePercentage24h?: number;
   marketCap?: number;
+  volume?: number;
   totalVolume?: number;
   high24h?: number;
   low24h?: number;
-  prices?: [number, number][]; // [timestamp, price]
-  image?: string;
-  current_price?: number;
   market_cap?: number;
   market_cap_rank?: number;
-  price?: number; 
-  priceChange?: number;
-  changePercent?: number; // Add this to support MarketCorrelations/mockData.ts
-  volume?: number; // Add this for consistency
+  image?: string;
+  current_price?: number;
 }
 
 export interface Trade {
   id: string;
   coinId: string;
   coinName: string;
-  coinSymbol?: string;
   type: 'buy' | 'sell';
   price: number;
   quantity: number;
   total: number;
   timestamp: number;
-  amount?: number; // Added for backward compatibility
-  totalValue?: number; // Added for backward compatibility
+  coinSymbol?: string;
+  amount?: number;
+  totalValue?: number;
+  fees?: number;
+  currency?: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+}
+
+export interface PricePoint {
+  timestamp: number;
+  price: number;
+  volume?: number;
+  date?: string;
+  open?: number;
+  close?: number;
+  high?: number;
+  low?: number;
 }
 
 export interface WalletAccount {
@@ -162,15 +70,15 @@ export interface WalletAccount {
   name: string;
   balance: number;
   currency: string;
-  assets: {
+  assets: Array<{
     coinId: string;
     name: string;
     symbol: string;
     quantity: number;
     averagePrice: number;
-  }[];
-  network?: string;
+  }>;
   address?: string;
+  network?: string;
   provider?: string;
   isConnected?: boolean;
 }
@@ -188,6 +96,23 @@ export interface WalletProvider {
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive';
 
+// Dashboard & widgets
+export type WidgetType = 
+  | 'price-chart' 
+  | 'portfolio-summary' 
+  | 'watchlist' 
+  | 'trading' 
+  | 'aiTrading' 
+  | 'aiAnalysis'
+  | 'news'
+  | 'alerts'
+  | 'price'
+  | 'chart'
+  | 'portfolio'
+  | 'custom';
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large' | 'wide' | 'tall' | 'full' | 'custom';
+
 export interface Widget {
   id: string;
   type: WidgetType;
@@ -200,27 +125,7 @@ export interface Widget {
   config?: any;
 }
 
-export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large' | 'wide' | 'tall' | 'full' | 'custom';
-
-export interface DetachableDashboardProps {
-  onClose: () => void;
-  isDetached?: boolean;
-  children?: React.ReactNode;
-  initialCoinId?: string;
-  refreshInterval?: number;
-  darkMode?: boolean;
-}
-
-export interface LiveAnalyticsDashboardProps {
-  refreshInterval?: number;
-  availableCoins?: CoinOption[];
-  apiUsageStats?: ApiUsageStats;
-  showDetailedView?: boolean;
-  initialCoinId?: string;
-  onAlertTriggered?: (alert: any) => void;
-  darkMode?: boolean;
-}
-
+// API related types
 export interface ApiProvider {
   id: string;
   name: string;
@@ -233,11 +138,12 @@ export interface ApiProvider {
   apiKeyName?: string;
   authMethod?: 'header' | 'query';
   defaultHeaders?: Record<string, string>;
-  usageLimit?: number;
   currentUsage?: number;
   maxUsage?: number;
-  isActive?: boolean;
   resetTime?: string;
+  isActive?: boolean;
+  status?: string;
+  endpoint?: string;
 }
 
 export interface ApiEndpoint {
@@ -251,6 +157,7 @@ export interface ApiEndpoint {
   responseTime?: number;
   lastUsed?: string;
   requiresAuth?: boolean;
+  parameters?: any[];
 }
 
 export interface ApiUsageStats {
@@ -261,23 +168,32 @@ export interface ApiUsageStats {
   rateLimit: number;
   rateLimitRemaining: number;
   rateLimitReset: number;
-  maxUsage?: number;
-  currentUsage?: number;
   service?: string;
   provider?: string;
+  currentUsage?: number;
+  maxUsage?: number;
   endpoint?: string;
   resetTime?: string;
 }
 
-// Update Theme type to include custom themes for ThemeSwitcher.tsx
-export type Theme = 'light' | 'dark' | 'system' | 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
+// Dashboard props
+export interface DetachableDashboardProps {
+  onClose: () => void;
+  isDetached?: boolean;
+  children?: React.ReactNode;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
+}
 
-export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'light' | 'dark' | Theme;
-
-export interface CryptoChartData {
-  prices: [number, number][];
-  market_caps?: [number, number][];
-  total_volumes?: [number, number][];
+export interface LiveAnalyticsDashboardProps {
+  refreshInterval?: number;
+  availableCoins?: CoinOption[];
+  apiUsageStats?: ApiUsageStats;
+  initialCoinId?: string;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
@@ -286,21 +202,39 @@ export interface EnhancedPortfolioBenchmarkingProps {
   timeframe?: 'week' | 'month' | 'quarter' | 'year' | 'max';
   portfolioPerformance?: number[];
   portfolioDates?: string[];
+  portfolioId?: string;
+  comparisonAssets?: string[];
+  showDetailedView?: boolean;
 }
 
+// Theming types
+export type Theme = 'light' | 'dark' | 'system';
+export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red';
+
+// Supported currencies
+export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP';
+
+// Trading position enum
+export enum TradingPosition {
+  LONG = 'long',
+  SHORT = 'short',
+  NEUTRAL = 'neutral',
+}
+
+// Settings form values
 export interface SettingsFormValues {
   displayName: string;
   username: string;
   contactEmail: string;
   userLanguage: string;
+  theme: {
+    mode: 'dark' | 'light' | 'system';
+    accentColor: string;
+  };
   display: {
     showPortfolio: boolean;
     showBalances: boolean;
     compactMode: boolean;
-  };
-  theme: {
-    mode: 'dark' | 'light' | 'system';
-    accentColor: string;
   };
   currency: {
     defaultCurrency: SupportedCurrency;
@@ -328,7 +262,11 @@ export interface SettingsFormValues {
     densityMode: 'compact' | 'comfortable' | 'spacious';
     fontScale: number;
   };
-  ticker: {
+  account: {
+    twoFactor: boolean;
+    loginAlerts: boolean;
+  };
+  ticker?: {
     enabled: boolean;
     position: 'top' | 'bottom';
     speed: number;
@@ -338,10 +276,4 @@ export interface SettingsFormValues {
     showPercentChange: boolean;
     autoPause: boolean;
   };
-  account: {
-    twoFactor: boolean;
-    loginAlerts: boolean;
-  };
 }
-
-export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP';
