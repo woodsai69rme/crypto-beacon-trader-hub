@@ -1,12 +1,12 @@
-
 /**
  * Enhanced Crypto API Service
  * Provides advanced cryptocurrency data and analysis functions.
  */
 
-import { CoinOption, CryptoData } from '@/types/trading';
-import { fetchTopCryptoData, fetchHistoricalData } from './cryptoService';
-import { toast } from '@/hooks/use-toast';
+import { CoinOption, CryptoData } from '@/types/trading.d';
+import { fetchHistoricalData, fetchCoinDetails, fetchTopCryptoData } from './cryptoService';
+import { useToast } from '@/hooks/use-toast';
+import { toast } from "@/components/ui/use-toast";
 
 // Cache for storing recent API responses
 const apiCache: Record<string, { data: any; timestamp: number }> = {};
@@ -140,31 +140,16 @@ export async function calculateCorrelation(
     const asset2Data = await fetchHistoricalData(asset2Id, days);
     
     // Ensure we have data for both assets
-    if (!asset1Data?.prices || !asset2Data?.prices) {
+    if (!asset1Data?.length || !asset2Data?.length) {
       throw new Error('Missing price data for correlation calculation');
     }
     
-    // Find matching timestamps (common data points)
-    const asset1Timestamps = new Set(asset1Data.timestamps);
-    const commonData = asset2Data.timestamps
-      .map((timestamp, index) => {
-        if (asset1Timestamps.has(timestamp)) {
-          const asset1Index = asset1Data.timestamps.indexOf(timestamp);
-          return { 
-            timestamp,
-            price1: asset1Data.prices[asset1Index],
-            price2: asset2Data.prices[index]
-          };
-        }
-        return null;
-      })
-      .filter(item => item !== null);
+    // Extract price data
+    const prices1 = asset1Data.map(item => item.price);
+    const prices2 = asset2Data.map(item => item.price);
     
     // Calculate correlation
-    const correlation = calculatePearsonCorrelation(
-      commonData.map(item => item!.price1),
-      commonData.map(item => item!.price2)
-    );
+    const correlation = calculatePearsonCorrelation(prices1, prices2);
     
     // Cache the result
     apiCache[cacheKey] = { data: correlation, timestamp: Date.now() };
@@ -187,8 +172,8 @@ export async function calculateCorrelation(
  * Calculate Pearson correlation coefficient between two datasets
  */
 function calculatePearsonCorrelation(x: number[], y: number[]): number {
-  const n = x.length;
-  if (n !== y.length || n === 0) return 0;
+  const n = Math.min(x.length, y.length);
+  if (n === 0) return 0;
   
   // Calculate sums
   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
@@ -214,29 +199,25 @@ function calculatePearsonCorrelation(x: number[], y: number[]): number {
  */
 function generateFallbackTrendingCoins(count: number): CoinOption[] {
   const trendingCoins = [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1500, changePercent: 3.0, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 100, changePercent: 3.3, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 120, priceChange: 5, changePercent: 4.2, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
-    { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 1.2, priceChange: 0.05, changePercent: 4.1, image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png' },
-    { id: 'ripple', name: 'XRP', symbol: 'XRP', price: 0.75, priceChange: 0.02, changePercent: 2.7, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' },
-    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT', price: 22, priceChange: 0.8, changePercent: 3.6, image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png' },
-    { id: 'polygon', name: 'Polygon', symbol: 'MATIC', price: 1.8, priceChange: 0.09, changePercent: 5.0, image: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png' },
-    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX', price: 85, priceChange: 3.2, changePercent: 3.8, image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png' },
-    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', price: 28, priceChange: 1.1, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png' },
-    { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', price: 18, priceChange: 0.7, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png' },
-    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE', price: 0.12, priceChange: 0.01, changePercent: 8.3, image: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png' },
-    { id: 'shiba-inu', name: 'Shiba Inu', symbol: 'SHIB', price: 0.00002, priceChange: 0.000001, changePercent: 5.0, image: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png' },
-    { id: 'near', name: 'NEAR Protocol', symbol: 'NEAR', price: 5.2, priceChange: 0.3, changePercent: 6.1, image: 'https://assets.coingecko.com/coins/images/10365/large/near_icon.png' },
-    { id: 'aave', name: 'Aave', symbol: 'AAVE', price: 175, priceChange: 7, changePercent: 4.0, image: 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png' },
-    { id: 'cosmos', name: 'Cosmos', symbol: 'ATOM', price: 28, priceChange: 1.5, changePercent: 5.3, image: 'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png' },
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1500, changePercent: 3.0, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png', value: 'bitcoin', label: 'Bitcoin' },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 100, changePercent: 3.3, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png', value: 'ethereum', label: 'Ethereum' },
+    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 120, priceChange: 5, changePercent: 4.2, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png', value: 'solana', label: 'Solana' },
+    { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 1.2, priceChange: 0.05, changePercent: 4.1, image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png', value: 'cardano', label: 'Cardano' },
+    { id: 'ripple', name: 'XRP', symbol: 'XRP', price: 0.75, priceChange: 0.02, changePercent: 2.7, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png', value: 'ripple', label: 'XRP' },
+    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT', price: 22, priceChange: 0.8, changePercent: 3.6, image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png', value: 'polkadot', label: 'Polkadot' },
+    { id: 'polygon', name: 'Polygon', symbol: 'MATIC', price: 1.8, priceChange: 0.09, changePercent: 5.0, image: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png', value: 'polygon', label: 'Polygon' },
+    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX', price: 85, priceChange: 3.2, changePercent: 3.8, image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png', value: 'avalanche', label: 'Avalanche' },
+    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', price: 28, priceChange: 1.1, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png', value: 'chainlink', label: 'Chainlink' },
+    { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', price: 18, priceChange: 0.7, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png', value: 'uniswap', label: 'Uniswap' },
+    { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE', price: 0.12, priceChange: 0.01, changePercent: 8.3, image: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png', value: 'dogecoin', label: 'Dogecoin' },
+    { id: 'shiba-inu', name: 'Shiba Inu', symbol: 'SHIB', price: 0.00002, priceChange: 0.000001, changePercent: 5.0, image: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png', value: 'shiba-inu', label: 'Shiba Inu' },
+    { id: 'near', name: 'NEAR Protocol', symbol: 'NEAR', price: 5.2, priceChange: 0.3, changePercent: 6.1, image: 'https://assets.coingecko.com/coins/images/10365/large/near_icon.png', value: 'near', label: 'NEAR Protocol' },
+    { id: 'aave', name: 'Aave', symbol: 'AAVE', price: 175, priceChange: 7, changePercent: 4.0, image: 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png', value: 'aave', label: 'Aave' },
+    { id: 'cosmos', name: 'Cosmos', symbol: 'ATOM', price: 28, priceChange: 1.5, changePercent: 5.3, image: 'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png', value: 'cosmos', label: 'Cosmos' },
   ];
   
   // Return requested number of coins with added value and label fields for Select component
-  return trendingCoins.slice(0, count).map(coin => ({
-    ...coin,
-    value: coin.id,
-    label: coin.name
-  }));
+  return trendingCoins.slice(0, count);
 }
 
 /**
@@ -287,3 +268,6 @@ function generateMockNewsData(count: number): any[] {
     summary: `${item.title}. This is a brief summary of the article discussing the latest developments in the cryptocurrency space.`,
   }));
 }
+
+// Re-export these functions for convenience
+export { fetchHistoricalData, fetchCoinDetails };

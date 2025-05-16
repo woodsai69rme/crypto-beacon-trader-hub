@@ -1,6 +1,5 @@
-
 import axios from 'axios';
-import { CoinOption, PricePoint, SupportedCurrency } from '@/types/trading';
+import { CoinOption, PricePoint, SupportedCurrency } from '@/types/trading.d';
 import { toast } from "@/components/ui/use-toast";
 
 // Base URLs for different API providers
@@ -107,7 +106,7 @@ export const fetchCryptoData = async (coinId: string): Promise<any> => {
 };
 
 // Fetch historical price data for a coin
-export const fetchCoinHistory = async (coinId: string, days: number = 7): Promise<PricePoint[]> => {
+export const fetchHistoricalData = async (coinId: string, days: number | string = 7): Promise<PricePoint[]> => {
   const provider = getApiProvider();
   const currency = getPreferredCurrency().toLowerCase();
   
@@ -122,6 +121,7 @@ export const fetchCoinHistory = async (coinId: string, days: number = 7): Promis
       // Transform to PricePoint array
       return data.prices.map((item: [number, number]) => ({
         time: item[0],
+        timestamp: item[0],
         price: item[1]
       }));
     }
@@ -153,12 +153,12 @@ export const fetchCoinHistory = async (coinId: string, days: number = 7): Promis
     }
     else {
       // Fallback to mock historical data
-      return generateMockHistoricalData(days);
+      return generateMockHistoricalData(typeof days === 'string' ? parseInt(days) : days);
     }
   } catch (error) {
     console.error("Error fetching coin history:", error);
     // Return mock data as fallback
-    return generateMockHistoricalData(days);
+    return generateMockHistoricalData(typeof days === 'string' ? parseInt(days) : days);
   }
 };
 
@@ -416,10 +416,9 @@ const generateMockHistoricalData = (days: number): PricePoint[] => {
     currentPrice = Math.max(100, currentPrice + change);
     
     result.push({
-      time: timestamp,
+      timestamp,
       price: currentPrice,
       volume: Math.random() * 30000000000,
-      marketCap: currentPrice * 19000000
     });
   }
   
@@ -526,4 +525,33 @@ export const convertCurrency = (amount: number, from: SupportedCurrency, to: Sup
   };
   
   return amount * (rates[from]?.[to] || 1);
+};
+
+// Make sure we export fetchCoinDetails function
+export const fetchCoinDetails = async (coinId: string): Promise<CoinOption> => {
+  try {
+    const data = await fetchCryptoData(coinId);
+    
+    // Convert to CoinOption format
+    return {
+      id: coinId,
+      name: data.name || coinId.charAt(0).toUpperCase() + coinId.slice(1),
+      symbol: data.symbol?.toUpperCase() || coinId.substring(0, 3).toUpperCase(),
+      price: data.market_data?.current_price?.aud || 30000 + Math.random() * 5000,
+      image: data.image?.thumb || `https://cryptoicons.org/api/icon/${coinId}/200`,
+      value: coinId,
+      label: data.name || coinId.charAt(0).toUpperCase() + coinId.slice(1),
+    };
+  } catch (error) {
+    // Return mock data on error
+    return {
+      id: coinId,
+      name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+      symbol: coinId.substring(0, 3).toUpperCase(),
+      price: 30000 + Math.random() * 5000,
+      image: `https://cryptoicons.org/api/icon/${coinId}/200`,
+      value: coinId,
+      label: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+    };
+  }
 };
