@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe } from "lucide-react";
 import RealTimePrices from './trading/RealTimePrices';
@@ -61,6 +61,12 @@ const initialCoins: CoinOption[] = [
 ];
 
 const MarketOverview: React.FC = () => {
+  const [selectedCoinId, setSelectedCoinId] = useState<string | null>(null);
+  
+  const handleSelectCoin = (coinId: string) => {
+    setSelectedCoinId(coinId);
+  };
+  
   return (
     <div className="space-y-6">
       <Card>
@@ -71,7 +77,11 @@ const MarketOverview: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <RealTimePrices initialCoins={initialCoins} />
+          <RealTimePrices 
+            coins={initialCoins}
+            onSelectCoin={handleSelectCoin}
+            selectedCoinId={selectedCoinId}
+          />
         </CardContent>
       </Card>
     </div>

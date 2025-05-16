@@ -5,7 +5,7 @@ import { CoinOption, RealTimePricesProps } from '@/types/trading';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUp, ArrowDown, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchTopCryptoData } from '@/services/api/coinGeckoService';
+import { fetchTopCryptoData } from '@/services/cryptoService';
 import { toast } from '@/components/ui/use-toast';
 
 const RealTimePrices: React.FC<RealTimePricesProps> = ({ 
