@@ -1,4 +1,3 @@
-
 // Define interfaces for the trading module
 export interface CoinOption {
   id: string;
@@ -12,6 +11,14 @@ export interface CoinOption {
   volume?: number;
   value: string;
   label: string;
+}
+
+// Adding the PricePoint interface that was missing
+export interface PricePoint {
+  time: number;
+  price: number;
+  volume?: number;
+  marketCap?: number;
 }
 
 export interface Trade {
@@ -92,7 +99,12 @@ export interface AITradingStrategy {
   tags?: string[];
 }
 
+// Update SettingsFormValues to match required structure
 export interface SettingsFormValues {
+  theme?: string;
+  displayName?: string;
+  email?: string;
+  language?: string;
   currency: {
     defaultCurrency: SupportedCurrency;
     showPriceInBTC: boolean;
@@ -104,7 +116,7 @@ export interface SettingsFormValues {
     timeout?: number;
     selectedProvider?: string;
   };
-  display?: {
+  display: {
     theme?: string;
     showPortfolio: boolean;
     defaultTab: string;
@@ -114,23 +126,13 @@ export interface SettingsFormValues {
     highContrastMode?: boolean;
     colorScheme?: string;
   };
-  displayName?: string;
-  email?: string;
-  username?: string;
-  language?: string;
-  theme?: string;
   notifications?: {
     email: boolean;
     push: boolean;
-    trades?: boolean;
-    pricing?: boolean;
-    news?: boolean;
+    trades: boolean;
+    pricing: boolean;
+    news: boolean;
     priceAlerts?: boolean;
-  };
-  tradingPreferences?: {
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
   };
   privacy?: {
     showOnlineStatus: boolean;
@@ -139,23 +141,6 @@ export interface SettingsFormValues {
     dataCollection: boolean;
     marketingConsent: boolean;
     thirdPartySharing: boolean;
-  };
-  account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
-  };
-  appearance?: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-  ticker?: {
-    enabled: boolean;
-    position: string;
-    speed: number;
-    direction: string;
-    autoPause: boolean;
   };
 }
 
@@ -208,68 +193,31 @@ export type WidgetType =
 
 export type WidgetSize = 'small' | 'medium' | 'large';
 
-// Add the missing PricePoint interface
-export interface PricePoint {
-  time: number;
-  price: number;
-  volume?: number;
-  marketCap?: number;
-}
-
-// Added missing interfaces
-export interface RealTimePricesProps {
-  coins?: CoinOption[];
-  refreshInterval?: number;
-  onSelectCoin?: (coinId: string) => void;
-  selectedCoinId?: string;
-}
-
-export interface WalletConnectionProps {
-  onConnect: (account: WalletAccount) => void;
-  supportedWallets: WalletProvider[];
-}
-
-export interface BacktestResult {
-  startDate: string;
-  endDate: string;
-  initialBalance: number;
-  finalBalance: number;
-  roi: number;
-  trades: number;
-  winRate: number;
-  maxDrawdown: number;
-  sharpeRatio: number;
-  strategy: AITradingStrategy;
-  transactions: BacktestTransaction[];
-}
-
-export interface BacktestTransaction {
-  date: string;
-  type: 'buy' | 'sell';
-  price: number;
-  amount: number;
-  total: number;
-  balanceAfter: number;
-  reason: string;
-}
-
-export interface WalletAccount {
-  id?: string;
-  type: string;
-  address: string;
-  balance: number;
-  network: string;
-  provider?: string;
-}
-
-export interface WalletProvider {
+export interface WidgetComponentProps {
   id: string;
-  name: string;
-  logo: string;
-  description: string;
-  isInstalled: boolean;
-  isConnected: boolean;
-  supported?: boolean;
+  onRemove: (id: string) => void;
+  title: string;
+  type: WidgetType;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioId?: string;
+  timeframe?: string;
+  comparisonAssets?: string[];
+  showDetailedView?: boolean;
+}
+
+export interface ATOTaxCalculation {
+  financialYear: string;
+  taxableIncome: number;
+  CGTDiscount: number;
+  netCapitalGains: number;
+  bracketInfo: string;
+  incomeTax: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxWithheld: number;
+  taxRefundOrOwed: number;
 }
 
 export interface OpenRouterOptions {
@@ -294,7 +242,6 @@ export interface ToastOptions {
   variant?: 'default' | 'destructive';
 }
 
-// Add missing CryptoData interface
 export interface CryptoData {
   id: string;
   name: string;
@@ -307,29 +254,6 @@ export interface CryptoData {
   changePercent?: number;
 }
 
-// Add enhanced portfolio benchmarking props
-export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioId?: string;
-  timeframe?: string;
-  comparisonAssets?: string[];
-  showDetailedView?: boolean;
-}
-
-// Add ATOTaxCalculation interface
-export interface ATOTaxCalculation {
-  financialYear: string;
-  taxableIncome: number;
-  CGTDiscount: number;
-  netCapitalGains: number;
-  bracketInfo: string;
-  incomeTax: number;
-  medicareLevy: number;
-  totalTaxLiability: number;
-  taxWithheld: number;
-  taxRefundOrOwed: number;
-}
-
-// Add OpenRouterRequest interface
 export interface OpenRouterRequest {
   model: string;
   messages: Array<{
@@ -338,10 +262,4 @@ export interface OpenRouterRequest {
   }>;
   temperature?: number;
   max_tokens?: number;
-}
-
-// Add WidgetComponentProps interface
-export interface WidgetComponentProps {
-  widget: Widget;
-  onRemove?: (id: string) => void;
 }

@@ -18,21 +18,13 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       form.setValue("theme", theme);
     }
     
-    // Initialize display settings if they don't exist
+    // Initialize display object with proper values
     const formValues = form.getValues();
     if (!formValues.display) {
       form.setValue("display", {
         showPortfolio: true,
         defaultTab: "overview",
         compactMode: false,
-        animationsEnabled: true,
-        highContrastMode: false,
-        colorScheme: colorScheme
-      });
-    } else if (formValues.display && !formValues.display.animationsEnabled) {
-      // Add missing properties to display
-      form.setValue("display", {
-        ...formValues.display,
         animationsEnabled: true,
         highContrastMode: false,
         colorScheme: colorScheme
@@ -47,28 +39,10 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
 
   const handleColorSchemeChange = (value: string) => {
     setColorScheme(value as ColorScheme);
-    
-    // Update the display in the form
-    const display = form.getValues().display || {
-      showPortfolio: true,
-      defaultTab: "overview",
-      compactMode: false
-    };
-    
     form.setValue("display", {
-      ...display,
+      ...form.getValues().display,
       colorScheme: value
     });
-  };
-  
-  // Get current display values safely
-  const displayValues = form.getValues().display || {
-    showPortfolio: true,
-    defaultTab: "overview",
-    compactMode: false,
-    animationsEnabled: true,
-    highContrastMode: false,
-    colorScheme: colorScheme
   };
   
   return (
@@ -110,11 +84,11 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             )}
           />
           
-          <FormItem>
+          <div className="space-y-2">
             <FormLabel>Color Scheme</FormLabel>
             <Select 
               onValueChange={(value) => handleColorSchemeChange(value)} 
-              value={displayValues.colorScheme || colorScheme}
+              value={form.getValues().display?.colorScheme || colorScheme}
             >
               <FormControl>
                 <SelectTrigger>
@@ -133,30 +107,29 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <FormDescription>
               Choose your preferred theme style
             </FormDescription>
-          </FormItem>
+          </div>
           
-          <FormField
-            control={form.control}
-            name="display.compactMode"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div className="space-y-0.5">
-                  <FormLabel>Compact Mode</FormLabel>
-                  <FormDescription>
-                    Use a more compact interface layout
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value as boolean}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <div className="flex flex-row items-center justify-between">
+            <div className="space-y-0.5">
+              <FormLabel>Compact Mode</FormLabel>
+              <FormDescription>
+                Use a more compact interface layout
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={form.getValues().display?.compactMode || false}
+                onCheckedChange={(checked) => {
+                  form.setValue("display", {
+                    ...form.getValues().display,
+                    compactMode: checked
+                  });
+                }}
+              />
+            </FormControl>
+          </div>
           
-          <FormItem className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center justify-between">
             <div className="space-y-0.5">
               <FormLabel>Enable Animations</FormLabel>
               <FormDescription>
@@ -165,18 +138,18 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={displayValues.animationsEnabled || false}
+                checked={form.getValues().display?.animationsEnabled || true}
                 onCheckedChange={(checked) => {
                   form.setValue("display", {
-                    ...displayValues,
+                    ...form.getValues().display,
                     animationsEnabled: checked
                   });
                 }}
               />
             </FormControl>
-          </FormItem>
+          </div>
           
-          <FormItem className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center justify-between">
             <div className="space-y-0.5">
               <FormLabel>High Contrast Mode</FormLabel>
               <FormDescription>
@@ -185,16 +158,16 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={displayValues.highContrastMode || false}
+                checked={form.getValues().display?.highContrastMode || false}
                 onCheckedChange={(checked) => {
                   form.setValue("display", {
-                    ...displayValues,
+                    ...form.getValues().display,
                     highContrastMode: checked
                   });
                 }}
               />
             </FormControl>
-          </FormItem>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -19,15 +19,6 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     });
   }
   
-  // Ensure refreshInterval and timeout exist
-  if (formValues.api && !formValues.api.refreshInterval) {
-    form.setValue("api.refreshInterval", 30);
-  }
-  
-  if (formValues.api && !formValues.api.timeout) {
-    form.setValue("api.timeout", 10);
-  }
-  
   return (
     <Card>
       <CardHeader>
@@ -90,49 +81,45 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <div className="space-y-4">
           <div className="grid gap-4">
-            <FormItem className="flex flex-col">
+            <div className="space-y-2">
               <FormLabel>Refresh Interval (seconds)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={5}
-                  max={3600}
-                  value={formValues.api?.refreshInterval || 30}
-                  onChange={(e) => {
-                    const value = Number(e.target.value) || 30;
-                    form.setValue("api", {
-                      ...formValues.api,
-                      refreshInterval: value
-                    });
-                  }}
-                />
-              </FormControl>
+              <Input
+                type="number"
+                min={5}
+                max={3600}
+                value={formValues.api?.refreshInterval || 30}
+                onChange={(e) => {
+                  const value = Number(e.target.value) || 30;
+                  form.setValue("api", {
+                    ...formValues.api,
+                    refreshInterval: value
+                  });
+                }}
+              />
               <FormDescription>
                 How often to refresh data from the API.
               </FormDescription>
-            </FormItem>
+            </div>
             
-            <FormItem className="flex flex-col">
+            <div className="space-y-2">
               <FormLabel>Timeout (seconds)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={formValues.api?.timeout || 10}
-                  onChange={(e) => {
-                    const value = Number(e.target.value) || 10;
-                    form.setValue("api", {
-                      ...formValues.api,
-                      timeout: value
-                    });
-                  }}
-                />
-              </FormControl>
+              <Input
+                type="number"
+                min={1}
+                max={60}
+                value={formValues.api?.timeout || 10}
+                onChange={(e) => {
+                  const value = Number(e.target.value) || 10;
+                  form.setValue("api", {
+                    ...formValues.api,
+                    timeout: value
+                  });
+                }}
+              />
               <FormDescription>
                 API request timeout duration.
               </FormDescription>
-            </FormItem>
+            </div>
           </div>
         </div>
       </CardContent>

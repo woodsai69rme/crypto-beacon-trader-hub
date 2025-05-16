@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
+import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Shield } from "lucide-react";
 import { SettingsComponentProps } from './types';
@@ -22,29 +22,13 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
         thirdPartySharing: false
       };
 
-      // Update the form with privacy settings
+      // Update form with privacy defaults
       form.setValue("privacy", privacyDefaults);
     }
   }, [form]);
 
-  // Get current privacy values from the form
-  const formValues = form.getValues();
-  const privacyValues = formValues.privacy || {
-    showOnlineStatus: true,
-    sharePortfolio: false,
-    shareTrades: false,
-    dataCollection: true,
-    marketingConsent: false,
-    thirdPartySharing: false
-  };
-
-  // Helper to update privacy settings
-  const handlePrivacyChange = (setting: string, value: boolean) => {
-    form.setValue("privacy", {
-      ...privacyValues,
-      [setting]: value
-    });
-  };
+  // Get privacy values from form safely
+  const privacyValues = form.getValues().privacy || {};
 
   return (
     <Card>
@@ -59,7 +43,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <FormItem className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between">
           <div className="space-y-0.5">
             <FormLabel>Show Online Status</FormLabel>
             <FormDescription>
@@ -68,13 +52,18 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <FormControl>
             <Switch
-              checked={privacyValues.showOnlineStatus}
-              onCheckedChange={(checked) => handlePrivacyChange('showOnlineStatus', checked)}
+              checked={privacyValues.showOnlineStatus || false}
+              onCheckedChange={(checked) => {
+                form.setValue("privacy", {
+                  ...privacyValues,
+                  showOnlineStatus: checked
+                });
+              }}
             />
           </FormControl>
-        </FormItem>
+        </div>
         
-        <FormItem className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between">
           <div className="space-y-0.5">
             <FormLabel>Share Portfolio</FormLabel>
             <FormDescription>
@@ -83,13 +72,18 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <FormControl>
             <Switch
-              checked={privacyValues.sharePortfolio}
-              onCheckedChange={(checked) => handlePrivacyChange('sharePortfolio', checked)}
+              checked={privacyValues.sharePortfolio || false}
+              onCheckedChange={(checked) => {
+                form.setValue("privacy", {
+                  ...privacyValues,
+                  sharePortfolio: checked
+                });
+              }}
             />
           </FormControl>
-        </FormItem>
+        </div>
         
-        <FormItem className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between">
           <div className="space-y-0.5">
             <FormLabel>Share Trades</FormLabel>
             <FormDescription>
@@ -98,13 +92,18 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <FormControl>
             <Switch
-              checked={privacyValues.shareTrades}
-              onCheckedChange={(checked) => handlePrivacyChange('shareTrades', checked)}
+              checked={privacyValues.shareTrades || false}
+              onCheckedChange={(checked) => {
+                form.setValue("privacy", {
+                  ...privacyValues,
+                  shareTrades: checked
+                });
+              }}
             />
           </FormControl>
-        </FormItem>
+        </div>
         
-        <FormItem className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between">
           <div className="space-y-0.5">
             <FormLabel>Usage Data Collection</FormLabel>
             <FormDescription>
@@ -113,13 +112,18 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <FormControl>
             <Switch
-              checked={privacyValues.dataCollection}
-              onCheckedChange={(checked) => handlePrivacyChange('dataCollection', checked)}
+              checked={privacyValues.dataCollection || false}
+              onCheckedChange={(checked) => {
+                form.setValue("privacy", {
+                  ...privacyValues,
+                  dataCollection: checked
+                });
+              }}
             />
           </FormControl>
-        </FormItem>
+        </div>
         
-        <FormItem className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between">
           <div className="space-y-0.5">
             <FormLabel>Marketing Communications</FormLabel>
             <FormDescription>
@@ -128,13 +132,18 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <FormControl>
             <Switch
-              checked={privacyValues.marketingConsent}
-              onCheckedChange={(checked) => handlePrivacyChange('marketingConsent', checked)}
+              checked={privacyValues.marketingConsent || false}
+              onCheckedChange={(checked) => {
+                form.setValue("privacy", {
+                  ...privacyValues,
+                  marketingConsent: checked
+                });
+              }}
             />
           </FormControl>
-        </FormItem>
+        </div>
         
-        <FormItem className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between">
           <div className="space-y-0.5">
             <FormLabel>Third-Party Data Sharing</FormLabel>
             <FormDescription>
@@ -143,11 +152,16 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <FormControl>
             <Switch
-              checked={privacyValues.thirdPartySharing}
-              onCheckedChange={(checked) => handlePrivacyChange('thirdPartySharing', checked)}
+              checked={privacyValues.thirdPartySharing || false}
+              onCheckedChange={(checked) => {
+                form.setValue("privacy", {
+                  ...privacyValues,
+                  thirdPartySharing: checked
+                });
+              }}
             />
           </FormControl>
-        </FormItem>
+        </div>
       </CardContent>
     </Card>
   );

@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge"; // Added missing Badge component
 import { Separator } from "@/components/ui/separator";
 import { AITradingStrategy, PaperTradingConfig, AIStrategyParameters } from "@/types/trading";
 import AiTradingStrategySelector from './AiTradingStrategySelector';
 import AiTradingBotList from './AiTradingBotList';
-import { RealTimePriceChart } from '@/components';
+import RealTimePriceChart from '@/components/RealTimePriceChart'; // Fixed direct import
 import { Robot, Zap, AlertTriangle, Settings, LineChart, Activity, Box } from "lucide-react";
 import { fetchCoinHistory, formatPrice } from '@/services/cryptoService';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast'; // Updated to use from hooks
 import { generateTradingSignal, backtestStrategy, availableStrategies } from '@/services/aiService';
 
 const AiTradingDashboard: React.FC = () => {

@@ -136,4 +136,17 @@ class OpenRouterService {
 
 // Create a singleton instance
 const openRouterService = new OpenRouterService();
+
+// Export both the singleton and a hook-like function for components that need it
 export default openRouterService;
+export const useOpenRouterApiKey = () => {
+  return {
+    apiKey: openRouterService.getOpenRouterApiKey(),
+    hasApiKey: openRouterService.hasApiKey(),
+    setApiKey: openRouterService.setApiKey.bind(openRouterService),
+    clearApiKey: openRouterService.clearApiKey.bind(openRouterService),
+    getModels: openRouterService.getModels.bind(openRouterService)
+  };
+};
+// Export models for direct use
+export const OPENROUTER_MODELS = openRouterService.OPENROUTER_MODELS;
