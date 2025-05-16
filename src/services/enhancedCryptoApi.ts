@@ -4,7 +4,7 @@
  */
 
 import { CoinOption, CryptoData } from '@/types/trading.d';
-import { fetchHistoricalData, fetchCoinDetails, fetchTopCryptoData } from './cryptoService';
+import { fetchHistoricalData, fetchCoinDetails, fetchCoinHistory } from './cryptoService';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from "@/components/ui/use-toast";
 
@@ -270,4 +270,4 @@ function generateMockNewsData(count: number): any[] {
 }
 
 // Re-export these functions for convenience
-export { fetchHistoricalData, fetchCoinDetails };
+export { fetchHistoricalData, fetchCoinDetails, fetchCoinHistory };

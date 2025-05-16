@@ -555,3 +555,14 @@ export const fetchCoinDetails = async (coinId: string): Promise<CoinOption> => {
     };
   }
 };
+
+/**
+ * Fetch historical price data for a coin for charting
+ * This is an alias for fetchHistoricalData to maintain compatibility with components using fetchCoinHistory
+ */
+export const fetchCoinHistory = async (coinId: string, days: number | string = 7): Promise<PricePoint[]> => {
+  return fetchHistoricalData(coinId, days);
+};
+
+// Make sure these functions are exported
+export { fetchHistoricalData, fetchCoinDetails };
