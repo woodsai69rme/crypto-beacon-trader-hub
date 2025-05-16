@@ -10,7 +10,7 @@ export function useTheme() {
   
   // Calculate resolvedTheme based on system preference if theme is set to 'system'
   const resolvedTheme = context.theme === 'system'
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
     : context.theme;
   
   return {

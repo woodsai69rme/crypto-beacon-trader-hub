@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -12,11 +13,12 @@ import DataPrivacySettings from "./DataPrivacySettings";
 import { SettingsFormValues } from "@/types/trading";
 import { useToast } from '@/hooks/use-toast';
 
-// Define the form schema with all the expected fields
+// Define the form schema
 const settingsFormSchema = z.object({
   theme: z.string().optional(),
   displayName: z.string().optional(),
   email: z.string().email().optional(),
+  username: z.string().optional(),
   language: z.string().optional(),
   currency: z.object({
     defaultCurrency: z.enum(["USD", "AUD", "EUR", "GBP"]),
@@ -33,7 +35,8 @@ const settingsFormSchema = z.object({
     defaultTab: z.string(),
     compactMode: z.boolean(),
     animationsEnabled: z.boolean().optional(),
-    highContrastMode: z.boolean().optional()
+    highContrastMode: z.boolean().optional(),
+    colorScheme: z.string().optional()
   }).optional(),
   notifications: z.object({
     email: z.boolean(),
@@ -44,29 +47,29 @@ const settingsFormSchema = z.object({
     priceAlerts: z.boolean().optional()
   }).optional(),
   privacy: z.object({
-    showOnlineStatus: z.boolean().optional(),
-    sharePortfolio: z.boolean().optional(),
-    shareTrades: z.boolean().optional(),
-    dataCollection: z.boolean().optional(),
-    marketingConsent: z.boolean().optional(),
-    thirdPartySharing: z.boolean().optional()
-  }).optional(),
-  appearance: z.object({
-    colorScheme: z.string().optional(),
-    compactMode: z.boolean().optional(),
-    animationsEnabled: z.boolean().optional(),
-    highContrastMode: z.boolean().optional()
+    showOnlineStatus: z.boolean(),
+    sharePortfolio: z.boolean(),
+    shareTrades: z.boolean(),
+    dataCollection: z.boolean(),
+    marketingConsent: z.boolean(),
+    thirdPartySharing: z.boolean()
   }).optional(),
   account: z.object({
-    twoFactorEnabled: z.boolean().optional(),
-    loginAlerts: z.boolean().optional()
+    twoFactorEnabled: z.boolean(),
+    loginAlerts: z.boolean()
+  }).optional(),
+  appearance: z.object({
+    colorScheme: z.string(),
+    compactMode: z.boolean(),
+    animationsEnabled: z.boolean(),
+    highContrastMode: z.boolean()
   }).optional(),
   ticker: z.object({
-    enabled: z.boolean().optional(),
-    position: z.string().optional(),
-    speed: z.number().optional(),
-    direction: z.string().optional(),
-    autoPause: z.boolean().optional()
+    enabled: z.boolean(),
+    position: z.string(),
+    speed: z.number(),
+    direction: z.string(),
+    autoPause: z.boolean()
   }).optional()
 });
 
@@ -100,7 +103,10 @@ export const Settings: React.FC = () => {
       display: {
         showPortfolio: true,
         defaultTab: 'overview',
-        compactMode: false
+        compactMode: false,
+        animationsEnabled: true,
+        highContrastMode: false,
+        colorScheme: 'default'
       },
       notifications: {
         email: true,
@@ -113,16 +119,10 @@ export const Settings: React.FC = () => {
       privacy: {
         showOnlineStatus: true,
         sharePortfolio: false,
-        shareTrades: false, 
+        shareTrades: false,
         dataCollection: true,
         marketingConsent: false,
         thirdPartySharing: false
-      },
-      appearance: {
-        colorScheme: 'default',
-        compactMode: false,
-        animationsEnabled: true,
-        highContrastMode: false
       }
     };
   };
@@ -155,50 +155,48 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="space-y-0.5">
-        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences.
-        </p>
+    <div className="container py-10 max-w-5xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">Manage your account settings and preferences</p>
       </div>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Tabs defaultValue="general" className="mt-6">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
-              <TabsTrigger value="general">General</TabsTrigger>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <Tabs defaultValue="appearance" className="w-full">
+            <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4 w-full max-w-md">
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="api">API</TabsTrigger>
+              <TabsTrigger value="api">API Settings</TabsTrigger>
               <TabsTrigger value="privacy">Privacy</TabsTrigger>
-              <TabsTrigger value="ticker">Market Ticker</TabsTrigger>
             </TabsList>
             
-            <div className="mt-6">
-              <TabsContent value="general">
-                <GeneralSettings form={form} />
-              </TabsContent>
-              <TabsContent value="appearance">
-                <AppearanceSettings form={form} />
-              </TabsContent>
-              <TabsContent value="notifications">
-                <NotificationSettings form={form} />
-              </TabsContent>
-              <TabsContent value="api">
-                <ApiSettings form={form} />
-              </TabsContent>
-              <TabsContent value="privacy">
-                <DataPrivacySettings form={form} />
-              </TabsContent>
-              <TabsContent value="ticker">
-                <TickerSettings form={form} />
-              </TabsContent>
-            </div>
+            <TabsContent value="appearance">
+              <AppearanceSettings form={form} />
+            </TabsContent>
+            
+            <TabsContent value="notifications">
+              <NotificationSettings form={form} />
+            </TabsContent>
+            
+            <TabsContent value="api">
+              <ApiSettings form={form} />
+            </TabsContent>
+            
+            <TabsContent value="privacy">
+              <DataPrivacySettings form={form} />
+            </TabsContent>
           </Tabs>
           
-          <div className="flex justify-end">
-            <Button type="submit">Save All Settings</Button>
+          <div className="flex gap-2">
+            <Button type="submit">Save Settings</Button>
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => form.reset(loadSettings())}
+            >
+              Reset
+            </Button>
           </div>
         </form>
       </Form>

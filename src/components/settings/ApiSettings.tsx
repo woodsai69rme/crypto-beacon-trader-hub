@@ -19,6 +19,15 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     });
   }
   
+  // Ensure refreshInterval and timeout exist
+  if (formValues.api && !formValues.api.refreshInterval) {
+    form.setValue("api.refreshInterval", 30);
+  }
+  
+  if (formValues.api && !formValues.api.timeout) {
+    form.setValue("api.timeout", 10);
+  }
+  
   return (
     <Card>
       <CardHeader>
@@ -91,8 +100,10 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                   value={formValues.api?.refreshInterval || 30}
                   onChange={(e) => {
                     const value = Number(e.target.value) || 30;
-                    const newApi = { ...formValues.api, refreshInterval: value };
-                    form.setValue("api", newApi);
+                    form.setValue("api", {
+                      ...formValues.api,
+                      refreshInterval: value
+                    });
                   }}
                 />
               </FormControl>
@@ -111,8 +122,10 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                   value={formValues.api?.timeout || 10}
                   onChange={(e) => {
                     const value = Number(e.target.value) || 10;
-                    const newApi = { ...formValues.api, timeout: value };
-                    form.setValue("api", newApi);
+                    form.setValue("api", {
+                      ...formValues.api,
+                      timeout: value
+                    });
                   }}
                 />
               </FormControl>

@@ -1,3 +1,4 @@
+
 // Define interfaces for the trading module
 export interface CoinOption {
   id: string;
@@ -58,6 +59,8 @@ export interface TradingFormProps {
   activeCurrency?: SupportedCurrency;
   onCurrencyChange?: (currency: SupportedCurrency) => void;
   conversionRate?: number;
+  onCoinSelect?: (coinId: string) => void;
+  selectedCoinId?: string;
 }
 
 export interface FakeTradingFormProps extends TradingFormProps {
@@ -97,11 +100,11 @@ export interface SettingsFormValues {
   api: {
     provider: string;
     key: string;
-    refreshInterval: number;
-    timeout: number;
+    refreshInterval?: number;
+    timeout?: number;
     selectedProvider?: string;
   };
-  display: {
+  display?: {
     theme?: string;
     showPortfolio: boolean;
     defaultTab: string;
@@ -109,6 +112,7 @@ export interface SettingsFormValues {
     showAllDecimals?: boolean;
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
+    colorScheme?: string;
   };
   displayName?: string;
   email?: string;
@@ -118,9 +122,9 @@ export interface SettingsFormValues {
   notifications?: {
     email: boolean;
     push: boolean;
-    trades: boolean;
-    pricing: boolean;
-    news: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
     priceAlerts?: boolean;
   };
   tradingPreferences?: {
@@ -197,11 +201,14 @@ export type WidgetType =
   | 'market-overview'
   | 'trading-signals'
   | 'correlation-matrix'
-  | 'performance-tracker';
+  | 'performance-tracker'
+  | 'trading'
+  | 'aiTrading'
+  | 'aiAnalysis';
 
 export type WidgetSize = 'small' | 'medium' | 'large';
 
-// Add missing PricePoint interface
+// Add the missing PricePoint interface
 export interface PricePoint {
   time: number;
   price: number;
@@ -247,18 +254,22 @@ export interface BacktestTransaction {
 }
 
 export interface WalletAccount {
-  id: string;
+  id?: string;
   type: string;
   address: string;
   balance: number;
   network: string;
+  provider?: string;
 }
 
 export interface WalletProvider {
   id: string;
   name: string;
   logo: string;
-  supported: boolean;
+  description: string;
+  isInstalled: boolean;
+  isConnected: boolean;
+  supported?: boolean;
 }
 
 export interface OpenRouterOptions {
@@ -274,4 +285,63 @@ export interface BotExecutionOptions {
   stopLossPercentage?: number;
   takeProfitPercentage?: number;
   timeframe: string;
+}
+
+export interface ToastOptions {
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
+  variant?: 'default' | 'destructive';
+}
+
+// Add missing CryptoData interface
+export interface CryptoData {
+  id: string;
+  name: string;
+  symbol: string;
+  price?: number;
+  priceChange: number;  // Required field
+  image?: string;
+  marketCap?: number;
+  volume?: number;
+  changePercent?: number;
+}
+
+// Add enhanced portfolio benchmarking props
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioId?: string;
+  timeframe?: string;
+  comparisonAssets?: string[];
+  showDetailedView?: boolean;
+}
+
+// Add ATOTaxCalculation interface
+export interface ATOTaxCalculation {
+  financialYear: string;
+  taxableIncome: number;
+  CGTDiscount: number;
+  netCapitalGains: number;
+  bracketInfo: string;
+  incomeTax: number;
+  medicareLevy: number;
+  totalTaxLiability: number;
+  taxWithheld: number;
+  taxRefundOrOwed: number;
+}
+
+// Add OpenRouterRequest interface
+export interface OpenRouterRequest {
+  model: string;
+  messages: Array<{
+    role: string;
+    content: string;
+  }>;
+  temperature?: number;
+  max_tokens?: number;
+}
+
+// Add WidgetComponentProps interface
+export interface WidgetComponentProps {
+  widget: Widget;
+  onRemove?: (id: string) => void;
 }

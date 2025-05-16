@@ -1,75 +1,80 @@
 
-// OpenRouter API service for accessing AI models
-import { useState, useEffect } from 'react';
+import { OpenRouterRequest } from '@/types/trading';
 
-const STORAGE_KEY = 'openrouter_api_key';
+class OpenRouterService {
+  private static API_KEY_STORAGE_KEY = 'openrouter_api_key';
 
-export interface OpenRouterModel {
-  id: string;
-  name: string;
-  description?: string;
-  context_length: number;
-  provider: string;
-}
+  public OPENROUTER_MODELS = [
+    {
+      id: 'deepseek-coder/deepseek-coder-33b-instruct',
+      name: 'DeepSeek Coder 33B',
+      provider: 'DeepSeek',
+      description: 'Specialized coding model from DeepSeek',
+      contextLength: 16384,
+      costPer1kTokens: 0.0
+    },
+    {
+      id: 'anthropic/claude-3-haiku',
+      name: 'Claude 3 Haiku',
+      provider: 'Anthropic',
+      description: 'Fast and efficient model from Anthropic',
+      contextLength: 200000,
+      costPer1kTokens: 0.25
+    },
+    {
+      id: 'google/gemini-1.5-pro',
+      name: 'Gemini 1.5 Pro',
+      provider: 'Google',
+      description: 'Advanced reasoning and context model',
+      contextLength: 1000000,
+      costPer1kTokens: 0.5
+    },
+    {
+      id: 'openai/gpt-4o',
+      name: 'GPT-4o',
+      provider: 'OpenAI',
+      description: 'Most powerful model from OpenAI',
+      contextLength: 128000,
+      costPer1kTokens: 1.0
+    }
+  ];
 
-export const OPENROUTER_MODELS = [
-  {
-    id: 'anthropic/claude-3-opus',
-    name: 'Claude 3 Opus',
-    description: 'Anthropic\'s most powerful model for complex tasks',
-    context_length: 100000,
-    provider: 'Anthropic'
-  },
-  {
-    id: 'anthropic/claude-3-sonnet',
-    name: 'Claude 3 Sonnet',
-    description: 'Balanced performance and affordability',
-    context_length: 100000,
-    provider: 'Anthropic'
-  },
-  {
-    id: 'openai/gpt-4-turbo',
-    name: 'GPT-4 Turbo',
-    description: 'OpenAI\'s most capable model',
-    context_length: 128000,
-    provider: 'OpenAI'
-  },
-  {
-    id: 'meta-llama/llama-3-70b-instruct',
-    name: 'Llama 3 70B',
-    description: 'Meta\'s largest open model',
-    context_length: 8192,
-    provider: 'Meta'
-  }
-];
-
-const openRouterService = {
-  // Set the API key in localStorage
-  setApiKey: (apiKey: string) => {
-    localStorage.setItem(STORAGE_KEY, apiKey);
-  },
-  
-  // Check if an API key exists
-  hasApiKey: (): boolean => {
-    return !!localStorage.getItem(STORAGE_KEY);
-  },
-  
   // Get the stored API key
-  getApiKey: (): string | null => {
-    return localStorage.getItem(STORAGE_KEY);
-  },
-  
-  // Clear the stored API key
-  clearApiKey: () => {
-    localStorage.removeItem(STORAGE_KEY);
-  },
-  
-  // Fetch available models from OpenRouter
-  getModels: async (): Promise<OpenRouterModel[]> => {
-    const apiKey = localStorage.getItem(STORAGE_KEY);
+  public getOpenRouterApiKey(): string {
+    return localStorage.getItem(OpenRouterService.API_KEY_STORAGE_KEY) || '';
+  }
+
+  // Check if an API key is stored
+  public hasApiKey(): boolean {
+    return !!this.getOpenRouterApiKey();
+  }
+
+  // Save the API key to localStorage
+  public saveOpenRouterApiKey(apiKey: string): void {
+    localStorage.setItem(OpenRouterService.API_KEY_STORAGE_KEY, apiKey);
+  }
+
+  // Set API key (alias for saveOpenRouterApiKey)
+  public setApiKey(apiKey: string): void {
+    this.saveOpenRouterApiKey(apiKey);
+  }
+
+  // Remove the API key from localStorage
+  public removeOpenRouterApiKey(): void {
+    localStorage.removeItem(OpenRouterService.API_KEY_STORAGE_KEY);
+  }
+
+  // Clear API key (alias for removeOpenRouterApiKey)
+  public clearApiKey(): void {
+    this.removeOpenRouterApiKey();
+  }
+
+  // Fetch available models from OpenRouter API
+  public async getModels(): Promise<any> {
+    const apiKey = this.getOpenRouterApiKey();
     
     if (!apiKey) {
-      throw new Error('API key not configured');
+      throw new Error('API key is not set');
     }
     
     try {
@@ -77,33 +82,27 @@ const openRouterService = {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': window.location.origin,
           'Content-Type': 'application/json'
         }
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
+        throw new Error(`Failed to fetch models: ${response.status}`);
       }
       
-      const data = await response.json();
-      return data.data || [];
+      return await response.json();
     } catch (error) {
       console.error('Error fetching OpenRouter models:', error);
       throw error;
     }
-  },
-  
-  // Generate text completion via OpenRouter API
-  generateCompletion: async (
-    prompt: string,
-    modelId: string = 'openai/gpt-4-turbo',
-    maxTokens: number = 500
-  ): Promise<string> => {
-    const apiKey = localStorage.getItem(STORAGE_KEY);
+  }
+
+  // Send a request to OpenRouter API
+  public async sendOpenRouterRequest(request: OpenRouterRequest): Promise<any> {
+    const apiKey = this.getOpenRouterApiKey();
     
     if (!apiKey) {
-      throw new Error('API key not configured');
+      throw new Error('API key is not set');
     }
     
     try {
@@ -111,57 +110,30 @@ const openRouterService = {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
-          'Content-Type': 'application/json'
+          'X-Title': 'Crypto Trading Platform'
         },
         body: JSON.stringify({
-          model: modelId,
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant for cryptocurrency trading analysis.' },
-            { role: 'user', content: prompt }
-          ],
-          max_tokens: maxTokens,
-          temperature: 0.7
+          model: request.model,
+          messages: request.messages,
+          temperature: request.temperature || 0.7,
+          max_tokens: request.max_tokens || 1000
         })
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
+        throw new Error(`Failed to send request: ${response.status}`);
       }
       
-      const data = await response.json();
-      return data.choices[0].message.content;
+      return await response.json();
     } catch (error) {
-      console.error('Error generating completion:', error);
+      console.error('Error sending OpenRouter request:', error);
       throw error;
     }
   }
-};
+}
 
-// A React hook for using API key state
-export const useOpenRouterApiKey = () => {
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [isConfigured, setIsConfigured] = useState<boolean>(false);
-  
-  useEffect(() => {
-    const storedKey = openRouterService.getApiKey();
-    setApiKey(storedKey);
-    setIsConfigured(!!storedKey);
-  }, []);
-  
-  const saveApiKey = (key: string) => {
-    openRouterService.setApiKey(key);
-    setApiKey(key);
-    setIsConfigured(true);
-  };
-  
-  const removeApiKey = () => {
-    openRouterService.clearApiKey();
-    setApiKey(null);
-    setIsConfigured(false);
-  };
-  
-  return { apiKey, isConfigured, saveApiKey, removeApiKey };
-};
-
+// Create a singleton instance
+const openRouterService = new OpenRouterService();
 export default openRouterService;

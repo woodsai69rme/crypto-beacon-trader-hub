@@ -1,14 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Widget, WidgetType } from '@/types/trading';
+import { Widget, WidgetComponentProps } from '@/types/trading';
 import { LineChart, PieChart, List, Bell, ChartBar, TrendingUp, BrainCircuit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-interface WidgetComponentProps {
-  widget: Widget;
-  onRemove?: (id: string) => void;
-}
 
 const WidgetComponent: React.FC<WidgetComponentProps> = ({ widget, onRemove }) => {
   const renderWidgetContent = () => {

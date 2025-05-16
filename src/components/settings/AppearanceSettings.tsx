@@ -18,26 +18,24 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       form.setValue("theme", theme);
     }
     
-    // Initialize appearance settings
+    // Initialize display settings if they don't exist
     const formValues = form.getValues();
-    if (!formValues.appearance) {
-      // Make sure display exists with defaults
-      if (!formValues.display) {
-        form.setValue("display", {
-          showPortfolio: true,
-          defaultTab: "overview",
-          compactMode: false,
-          animationsEnabled: true,
-          highContrastMode: false
-        });
-      }
-      
-      // Set appearance settings
-      form.setValue("appearance", {
-        colorScheme: colorScheme,
+    if (!formValues.display) {
+      form.setValue("display", {
+        showPortfolio: true,
+        defaultTab: "overview",
         compactMode: false,
         animationsEnabled: true,
-        highContrastMode: false
+        highContrastMode: false,
+        colorScheme: colorScheme
+      });
+    } else if (formValues.display && !formValues.display.animationsEnabled) {
+      // Add missing properties to display
+      form.setValue("display", {
+        ...formValues.display,
+        animationsEnabled: true,
+        highContrastMode: false,
+        colorScheme: colorScheme
       });
     }
   }, [form, theme, colorScheme]);
@@ -50,34 +48,27 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   const handleColorSchemeChange = (value: string) => {
     setColorScheme(value as ColorScheme);
     
-    // Update the appearance in the form
-    const currentAppearance = form.getValues().appearance || {
-      colorScheme: "default", 
-      compactMode: false,
-      animationsEnabled: true,
-      highContrastMode: false
+    // Update the display in the form
+    const display = form.getValues().display || {
+      showPortfolio: true,
+      defaultTab: "overview",
+      compactMode: false
     };
     
-    form.setValue("appearance", {
-      ...currentAppearance,
+    form.setValue("display", {
+      ...display,
       colorScheme: value
     });
   };
   
-  // Get current values or set defaults for access in the UI
-  const appearanceValues = form.getValues().appearance || {
-    colorScheme: colorScheme,
-    compactMode: false,
-    animationsEnabled: true,
-    highContrastMode: false
-  };
-  
+  // Get current display values safely
   const displayValues = form.getValues().display || {
     showPortfolio: true,
     defaultTab: "overview",
     compactMode: false,
     animationsEnabled: true,
-    highContrastMode: false
+    highContrastMode: false,
+    colorScheme: colorScheme
   };
   
   return (
@@ -123,7 +114,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <FormLabel>Color Scheme</FormLabel>
             <Select 
               onValueChange={(value) => handleColorSchemeChange(value)} 
-              value={appearanceValues.colorScheme || colorScheme}
+              value={displayValues.colorScheme || colorScheme}
             >
               <FormControl>
                 <SelectTrigger>
@@ -174,7 +165,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={displayValues.animationsEnabled || true}
+                checked={displayValues.animationsEnabled || false}
                 onCheckedChange={(checked) => {
                   form.setValue("display", {
                     ...displayValues,

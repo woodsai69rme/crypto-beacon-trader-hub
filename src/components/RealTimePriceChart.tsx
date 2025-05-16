@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -5,8 +6,8 @@ import { PricePoint } from '@/types/trading';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/hooks/use-theme';
-import { fetchCoinHistory, formatPrice } from '@/services/cryptoService';
 import { Loader2 } from 'lucide-react';
+import { useCurrency } from '@/hooks/use-currency';
 
 interface RealTimePriceChartProps {
   coinId: string;
@@ -50,41 +51,70 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   onTimeframeChange
 }) => {
   const { resolvedTheme } = useTheme();
+  const { formatValue } = useCurrency();
   const [data, setData] = useState<PricePoint[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(externalLoading);
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    // If external data is provided, use it
     if (priceData && priceData.length > 0) {
       setData(priceData);
     } else {
-      // Otherwise, fetch data ourselves
-      fetchData();
+      // In a real app, fetch data from API
+      setData(generateDummyData(coinId, timeframe));
     }
-    
-    // Set up interval for refreshing data
-    const interval = setInterval(fetchData, timeframeToRefreshInterval(timeframe));
-    
-    return () => clearInterval(interval);
-  }, [coinId, timeframe]);
+  }, [coinId, timeframe, priceData]);
   
-  const fetchData = async () => {
-    if (priceData && priceData.length > 0) return;
+  // Generate dummy data for the chart
+  const generateDummyData = (coinId: string, timeframe: string): PricePoint[] => {
+    const now = Date.now();
+    const dummyData: PricePoint[] = [];
+    const basePrice = coinId === 'bitcoin' ? 60000 : 
+                      coinId === 'ethereum' ? 3000 : 
+                      coinId === 'solana' ? 150 : 1000;
     
-    setIsLoading(true);
-    setError(null);
+    let points = 24; // Default for 24h
+    let interval = 60 * 60 * 1000; // 1 hour in milliseconds
     
-    try {
-      const days = timeframeToDays(timeframe);
-      const historyData = await fetchCoinHistory(coinId, days);
-      setData(historyData);
-    } catch (err) {
-      console.error('Error fetching price data:', err);
-      setError('Failed to load price data. Please try again later.');
-    } finally {
-      setIsLoading(false);
+    switch (timeframe) {
+      case '1h':
+        points = 60;
+        interval = 60 * 1000; // 1 minute
+        break;
+      case '7d':
+        points = 7 * 24;
+        break;
+      case '30d':
+        points = 30;
+        interval = 24 * 60 * 60 * 1000; // 1 day
+        break;
+      case '90d':
+        points = 90;
+        interval = 24 * 60 * 60 * 1000; // 1 day
+        break;
+      case '1y':
+        points = 12;
+        interval = 30 * 24 * 60 * 60 * 1000; // 1 month
+        break;
     }
+    
+    // Generate random price movements
+    let price = basePrice;
+    for (let i = points; i >= 0; i--) {
+      const time = now - i * interval;
+      
+      // Add some randomness to the price
+      const change = (Math.random() - 0.5) * basePrice * 0.02;
+      price = Math.max(0, price + change);
+      
+      dummyData.push({
+        time,
+        price,
+        volume: Math.random() * basePrice * 10
+      });
+    }
+    
+    return dummyData;
   };
   
   const handleTimeframeChange = (value: string) => {
@@ -92,31 +122,6 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
       onTimeframeChange(value);
     }
   };
-  
-  const timeframeToDays = (tf: string): number => {
-    switch (tf) {
-      case '1h': return 0.042; // 1 hour in days
-      case '24h': return 1;
-      case '7d': return 7;
-      case '30d': return 30;
-      case '90d': return 90;
-      case '1y': return 365;
-      default: return 1;
-    }
-  };
-  
-  const timeframeToRefreshInterval = (tf: string): number => {
-    switch (tf) {
-      case '1h': return 10000; // 10 seconds
-      case '24h': return 30000; // 30 seconds
-      case '7d': return 60000; // 1 minute
-      default: return 300000; // 5 minutes
-    }
-  };
-
-  const priceColor = resolvedTheme === 'dark' ? '#4ADE80' : '#16A34A';
-  const gridColor = resolvedTheme === 'dark' ? '#333333' : '#E5E7EB';
-  const textColor = resolvedTheme === 'dark' ? '#FFFFFF' : '#000000';
   
   const calculateChange = () => {
     if (data.length < 2) return { value: 0, percent: 0 };
@@ -131,6 +136,10 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   
   const change = calculateChange();
   const isPositive = change.value >= 0;
+  
+  const priceColor = resolvedTheme === 'dark' ? '#4ADE80' : '#16A34A';
+  const gridColor = resolvedTheme === 'dark' ? '#333333' : '#E5E7EB';
+  const textColor = resolvedTheme === 'dark' ? '#FFFFFF' : '#000000';
   
   return (
     <Card className="w-full h-[400px]">
@@ -169,7 +178,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-[300px] text-center">
             <p className="text-destructive mb-4">{error}</p>
-            <Button variant="outline" onClick={fetchData}>Retry</Button>
+            <Button variant="outline" onClick={() => setData(generateDummyData(coinId, timeframe))}>Retry</Button>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
@@ -191,12 +200,12 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
               />
               <YAxis 
                 domain={['auto', 'auto']}
-                tickFormatter={(value) => formatPrice(value)}
+                tickFormatter={(value) => formatValue(value)}
                 stroke={textColor}
                 tick={{ fill: textColor }}
               />
               <Tooltip 
-                formatter={(value) => formatPrice(value as number)} 
+                formatter={(value) => formatValue(value as number)} 
                 labelFormatter={(timestamp) => new Date(timestamp as number).toLocaleString()}
                 contentStyle={{
                   backgroundColor: resolvedTheme === 'dark' ? '#1F2937' : '#FFFFFF',
@@ -220,13 +229,13 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
             <div className="text-sm">
               <span className="text-muted-foreground">Low: </span>
               <span className="font-medium">
-                {formatPrice(Math.min(...data.map(point => point.price)))}
+                {formatValue(Math.min(...data.map(point => point.price)))}
               </span>
             </div>
             <div className="text-sm">
               <span className="text-muted-foreground">High: </span>
               <span className="font-medium">
-                {formatPrice(Math.max(...data.map(point => point.price)))}
+                {formatValue(Math.max(...data.map(point => point.price)))}
               </span>
             </div>
             <div className="text-sm text-right">
