@@ -1,7 +1,6 @@
 
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -15,22 +14,20 @@ import AppLayout from "./components/layout/AppLayout";
 
 function App() {
   return (
-    <ThemeProvider>
-      <CurrencyProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Index />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="custom-dashboard" element={<CustomDashboard />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-        <Toaster />
-      </CurrencyProvider>
-    </ThemeProvider>
+    <CurrencyProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Index />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="custom-dashboard" element={<CustomDashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+      <Toaster />
+    </CurrencyProvider>
   );
 }
 

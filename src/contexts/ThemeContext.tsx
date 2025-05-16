@@ -9,18 +9,10 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
   colorScheme: ColorScheme;
   setColorScheme: (colorScheme: ColorScheme) => void;
-  resolvedTheme: Theme;
+  resolvedTheme: 'light' | 'dark';
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -28,7 +20,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Try to get theme from localStorage, default to AUD as per requirement
+    // Try to get theme from localStorage, default to system
     const savedTheme = localStorage.getItem('theme');
     return (savedTheme as Theme) || 'system';
   });
@@ -39,7 +31,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     return (savedColorScheme as ColorScheme) || 'default';
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<Theme>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     // Save theme to localStorage whenever it changes
@@ -51,7 +43,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       setResolvedTheme(systemTheme);
       document.documentElement.classList.toggle('dark', systemTheme === 'dark');
     } else {
-      setResolvedTheme(theme);
+      setResolvedTheme(theme as 'light' | 'dark');
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   }, [theme]);

@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ThemeOption {
   value: Theme | ColorScheme;
@@ -22,11 +22,13 @@ interface ThemeOption {
 
 const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
+  const { toast } = useToast();
 
   // Define theme options
   const themeOptions: ThemeOption[] = [
     { value: "dark", label: "Dark", description: "Dark theme with deep backgrounds" },
-    { value: "light", label: "Light", description: "Light theme with bright backgrounds" }
+    { value: "light", label: "Light", description: "Light theme with bright backgrounds" },
+    { value: "system", label: "System", description: "Follow system preferences" }
   ];
 
   // Define color scheme options
@@ -34,24 +36,24 @@ const ThemeSwitcher: React.FC = () => {
     { value: "default", label: "Default", description: "Standard color scheme" },
     { value: "midnight-tech", label: "Midnight Tech", description: "Deep blue tech-inspired theme" },
     { value: "cyber-pulse", label: "Cyber Pulse", description: "Vibrant purple cyberpunk style" },
-    { value: "matrix-code", label: "Matrix Code", description: "Green-tinted hacker aesthetic" }
+    { value: "matrix-code", label: "Matrix Code", description: "Green-tinted hacker aesthetic" },
+    { value: "neon-future", label: "Neon Future", description: "Bright futuristic neon style" },
+    { value: "sunset-gradient", label: "Sunset Gradient", description: "Warm sunset color palette" }
   ];
 
   const handleThemeChange = (value: string) => {
-    if (value === "light" || value === "dark") {
+    if (value === "light" || value === "dark" || value === "system") {
       setTheme(value as Theme);
-      localStorage.setItem("theme", value);
       toast({
         title: "Theme Updated",
-        description: `Changed to ${value} theme`
+        description: `Changed to ${value === "system" ? "system default" : value} theme`
       });
     }
   };
 
   const handleColorSchemeChange = (value: string) => {
-    if (["default", "midnight-tech", "cyber-pulse", "matrix-code"].includes(value)) {
+    if (["default", "midnight-tech", "cyber-pulse", "matrix-code", "neon-future", "sunset-gradient"].includes(value)) {
       setColorScheme(value as ColorScheme);
-      localStorage.setItem("colorScheme", value);
       toast({
         title: "Style Updated",
         description: `Changed to ${value.replace("-", " ")} style`
