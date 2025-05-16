@@ -17,32 +17,40 @@ const TradingDashboard: React.FC = () => {
     {
       id: "metamask",
       name: "MetaMask",
+      icon: "metamask-icon",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/800px-MetaMask_Fox.svg.png",
       description: "https://metamask.io/",
+      supported: true,
       isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isMetaMask,
       isConnected: false
     },
     {
       id: "trustwallet",
       name: "Trust Wallet",
+      icon: "trust-wallet-icon",
       logo: "https://trustwallet.com/assets/images/favicon.ico",
       description: "https://trustwallet.com/",
+      supported: true,
       isInstalled: false,
       isConnected: false
     },
     {
       id: "coinbase",
       name: "Coinbase Wallet",
+      icon: "coinbase-icon",
       logo: "https://www.coinbase.com/img/favicon.ico",
       description: "https://www.coinbase.com/wallet",
+      supported: true,
       isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isCoinbaseWallet,
       isConnected: false
     },
     {
       id: "walletconnect",
       name: "WalletConnect",
+      icon: "walletconnect-icon",
       logo: "https://avatars.githubusercontent.com/u/37784886",
       description: "https://walletconnect.com/",
+      supported: true,
       isInstalled: true, // WalletConnect doesn't require installation
       isConnected: false
     }

@@ -2,28 +2,29 @@
 import React from 'react';
 import { Widget } from '@/types/trading';
 import WidgetComponent from './WidgetComponent';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface WidgetListProps {
   widgets: Widget[];
-  onRemove?: (id: string) => void;
+  onRemoveWidget: (id: string) => void;
 }
 
-const WidgetList: React.FC<WidgetListProps> = ({ widgets, onRemove }) => {
+const WidgetList: React.FC<WidgetListProps> = ({ widgets, onRemoveWidget }) => {
   return (
-    <div className="space-y-4">
-      {widgets.map((widget) => (
-        <div key={widget.id}>
+    <ScrollArea className="h-[calc(100vh-220px)] pr-4">
+      <div className="space-y-4">
+        {widgets.map(widget => (
           <WidgetComponent 
+            key={widget.id} 
             id={widget.id}
-            type={widget.type}
+            type={widget.type} 
             title={widget.title}
-            onRemove={onRemove}
-            config={widget.config}
+            onRemove={onRemoveWidget}
             widget={widget}
           />
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 

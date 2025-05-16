@@ -4,3 +4,6 @@ export * from './trading';
 
 // Add any additional type exports here
 export type { AlertFrequency } from './alerts';
+
+// Re-export Theme types from ThemeContext to ensure consistency
+export { Theme, ColorScheme } from '@/contexts/ThemeContext';

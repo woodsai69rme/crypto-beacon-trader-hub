@@ -24,6 +24,7 @@ export interface PricePoint {
   close?: number;
   high?: number;
   low?: number;
+  time?: number; // Add time property for compatibility with charts
 }
 
 export interface CryptoData {
@@ -62,14 +63,21 @@ export interface WalletAccount {
     quantity: number;
     averagePrice: number;
   }[];
+  address?: string;
+  network?: string;
+  provider?: string;
+  isConnected?: boolean;
 }
 
 export interface WalletProvider {
   id: string;
   name: string;
   icon: string;
+  logo?: string;
   description: string;
   supported: boolean;
+  isInstalled?: boolean;
+  isConnected?: boolean;
 }
 
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP';
@@ -118,8 +126,19 @@ export interface Widget {
   position?: { x: number; y: number; w: number; h: number };
 }
 
-export type WidgetType = 'price' | 'chart' | 'news' | 'portfolio' | 'alerts' | 'trading' | 'custom';
+export type WidgetType = 
+  'price' | 'chart' | 'news' | 'portfolio' | 'alerts' | 
+  'trading' | 'aiTrading' | 'aiAnalysis' | 'custom';
+  
 export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
+
+export interface WidgetComponentProps {
+  id: string;
+  type: WidgetType;
+  title: string;
+  onRemove?: (id: string) => void;
+  widget?: Widget;
+}
 
 export interface DetachableDashboardProps {
   onClose: () => void;
@@ -129,8 +148,11 @@ export interface DetachableDashboardProps {
 
 export interface LiveAnalyticsDashboardProps {
   refreshInterval?: number;
+  initialCoinId?: string;
+  showDetailedView?: boolean;
+  darkMode?: boolean;
   availableCoins?: CoinOption[];
-  apiUsageStats?: ApiUsageStats;
+  apiUsageStats?: ApiUsageStats[];
 }
 
 // API related types
@@ -155,6 +177,10 @@ export interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   description?: string;
   requiredParams?: string[];
+  url?: string;
+  responseTime?: number;
+  lastUsed?: string;
+  requiresAuth?: boolean;
 }
 
 export interface ApiUsageStats {
@@ -165,38 +191,54 @@ export interface ApiUsageStats {
   rateLimit: number;
   rateLimitRemaining: number;
   rateLimitReset: number;
+  service?: string;
+  currentUsage?: number;
+  maxUsage?: number;
+  endpoint?: string;
+  resetTime?: string;
+  provider?: string;
 }
 
 // Settings types
 export interface SettingsFormValues {
-  displayName: string;
-  username: string;
-  contactEmail: string;
-  userLanguage: string;
-  display: {
-    showPortfolio: boolean;
-    showBalances: boolean;
-    compactMode: boolean;
-  };
-  theme: {
-    mode: 'dark' | 'light' | 'system';
-    accentColor: string;
-  };
-  currency: {
+  theme?: string;
+  displayName?: string;
+  username?: string;
+  contactEmail?: string;
+  userLanguage?: string;
+  currency?: {
     defaultCurrency: SupportedCurrency;
     showConversion: boolean;
+    showPriceInBTC?: boolean;
   };
-  notifications: {
-    enablePush: boolean;
+  api?: {
+    provider: string;
+    key?: string;
+    refreshInterval: number;
+    timeout?: number;
+  };
+  display?: {
+    showPortfolio: boolean;
+    showBalances: boolean;
+    defaultTab?: string;
+    compactMode: boolean;
+    colorScheme?: string;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
+  };
+  notifications?: {
     enableEmail: boolean;
+    enablePush: boolean;
     alertPrice: boolean;
     alertNews: boolean;
+    email?: boolean;
+    push?: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
+    priceAlerts?: boolean;
   };
-  api: {
-    provider: string;
-    refreshInterval: number;
-  };
-  privacy: {
+  privacy?: {
     showOnlineStatus: boolean;
     sharePortfolio: boolean;
     shareTrades: boolean;
@@ -204,32 +246,37 @@ export interface SettingsFormValues {
     marketingConsent: boolean;
     thirdPartySharing: boolean;
   };
-  appearance: {
-    densityMode: 'compact' | 'comfortable' | 'spacious';
-    fontScale: number;
+  appearance?: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
   };
-  ticker: {
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  ticker?: {
     enabled: boolean;
     position: 'top' | 'bottom';
     speed: number;
     direction: 'ltr' | 'rtl';
-    coins: string[];
-    showVolume: boolean;
-    showPercentChange: boolean;
     autoPause: boolean;
-  };
-  account: {
-    twoFactor: boolean;
-    loginAlerts: boolean;
   };
 }
 
-export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red';
+// Use ThemeContext types to avoid type conflicts
+import { Theme, ColorScheme } from '@/contexts/ThemeContext';
+export { Theme, ColorScheme };
 
 // Portfolio benchmarking types
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioData?: any[];
   benchmarks?: string[];
   timeframe?: 'week' | 'month' | 'quarter' | 'year' | 'max';
+  portfolioPerformance?: number[];
+  portfolioDates?: string[];
+  portfolioId?: string;
+  comparisonAssets?: string[];
+  showDetailedView?: boolean;
 }

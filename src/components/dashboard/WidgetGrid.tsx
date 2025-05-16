@@ -1,75 +1,25 @@
 
 import React from 'react';
-import { Widget, WidgetSize } from '@/types/trading';
+import { Widget } from '@/types/trading';
 import WidgetComponent from './WidgetComponent';
 
 interface WidgetGridProps {
   widgets: Widget[];
-  onRemove?: (id: string) => void;
-  onUpdatePosition?: (id: string, position: { x: number; y: number; w: number; h: number }) => void;
+  onRemoveWidget: (id: string) => void;
 }
 
-const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosition }) => {
-  // Function to determine column span based on widget size
-  const getColSpan = (size: WidgetSize) => {
-    switch (size) {
-      case 'small':
-        return 'col-span-1';
-      case 'medium':
-        return 'col-span-2';
-      case 'large':
-        return 'col-span-3';
-      case 'x-large':
-        return 'col-span-4';
-      case 'wide':
-        return 'col-span-2';
-      case 'tall':
-        return 'col-span-1';
-      case 'full':
-        return 'col-span-4';
-      default:
-        return 'col-span-2';
-    }
-  };
-
-  // Function to determine row span based on widget size
-  const getRowSpan = (size: WidgetSize) => {
-    switch (size) {
-      case 'small':
-        return 'row-span-1';
-      case 'medium':
-        return 'row-span-1';
-      case 'large':
-        return 'row-span-2';
-      case 'x-large':
-        return 'row-span-2';
-      case 'wide':
-        return 'row-span-1';
-      case 'tall':
-        return 'row-span-2';
-      case 'full':
-        return 'row-span-2';
-      default:
-        return 'row-span-1';
-    }
-  };
-
+const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemoveWidget }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {widgets.map((widget) => (
-        <div
-          key={widget.id}
-          className={`${getColSpan(widget.size)} ${getRowSpan(widget.size)}`}
-        >
-          <WidgetComponent
-            id={widget.id}
-            type={widget.type}
-            title={widget.title}
-            onRemove={onRemove}
-            config={widget.config}
-            widget={widget}
-          />
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {widgets.map(widget => (
+        <WidgetComponent 
+          key={widget.id} 
+          id={widget.id}
+          type={widget.type} 
+          title={widget.title}
+          onRemove={onRemoveWidget}
+          widget={widget}
+        />
       ))}
     </div>
   );

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define theme types for the context
 export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red';
+export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
 
 interface ThemeContextType {
   theme: Theme;
@@ -17,14 +17,14 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'system',
   setTheme: () => {},
-  colorScheme: 'blue',
+  colorScheme: 'default',
   setColorScheme: () => {},
   resolvedTheme: 'dark'
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('system');
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('default');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
 
   // Initialize theme from localStorage on component mount
@@ -35,7 +35,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const storedColorScheme = localStorage.getItem('colorScheme') as ColorScheme;
-    if (storedColorScheme && ['blue', 'green', 'orange', 'purple', 'red'].includes(storedColorScheme)) {
+    if (storedColorScheme && ['default', 'midnight-tech', 'cyber-pulse', 'matrix-code', 'neon-future', 'sunset-gradient'].includes(storedColorScheme)) {
       setColorScheme(storedColorScheme);
     }
 

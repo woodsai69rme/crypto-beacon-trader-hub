@@ -27,7 +27,7 @@ const settingsFormSchema = z.object({
   }),
   api: z.object({
     provider: z.string(),
-    key: z.string(),
+    key: z.string().optional(),
     refreshInterval: z.number().optional(),
     timeout: z.number().optional()
   }),
