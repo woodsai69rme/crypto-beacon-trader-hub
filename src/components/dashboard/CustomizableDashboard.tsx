@@ -14,35 +14,35 @@ const CustomizableDashboard: React.FC = () => {
   const [widgets, setWidgets] = useState<Widget[]>([
     {
       id: "portfolio-widget",
-      position: { x: 0, y: 0 },
+      position: { x: 0, y: 0, w: 1, h: 1 },
       title: "Portfolio Overview",
       type: "portfolio-summary" as WidgetType,
       size: "medium",
     },
     {
       id: "chart-widget",
-      position: { x: 1, y: 0 },
+      position: { x: 1, y: 0, w: 1, h: 1 },
       title: "Market Chart",
       type: "price-chart" as WidgetType,
       size: "medium",
     },
     {
       id: "watchlist-widget",
-      position: { x: 0, y: 1 },
+      position: { x: 0, y: 1, w: 1, h: 1 },
       title: "Watchlist",
       type: "watchlist" as WidgetType,
       size: "small",
     },
     {
       id: "news-widget",
-      position: { x: 1, y: 1 },
+      position: { x: 1, y: 1, w: 1, h: 1 },
       title: "Crypto News",
       type: "news",
       size: "small",
     },
     {
       id: "alerts-widget",
-      position: { x: 0, y: 2 },
+      position: { x: 0, y: 2, w: 1, h: 1 },
       title: "Price Alerts",
       type: "alerts",
       size: "small",
@@ -51,11 +51,11 @@ const CustomizableDashboard: React.FC = () => {
   
   const handleAddWidget = (widget: Widget) => {
     // Find the next available position
-    const maxY = Math.max(...widgets.map(w => w.position?.y || 0));
+    const maxY = Math.max(...widgets.map(w => (w.position?.y || 0)));
     
     const newWidget: Widget = {
       ...widget,
-      position: { x: 0, y: maxY + 1 }
+      position: { x: 0, y: maxY + 1, w: 1, h: 1 }
     };
     
     setWidgets([...widgets, newWidget]);

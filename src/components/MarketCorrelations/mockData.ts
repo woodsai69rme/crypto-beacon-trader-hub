@@ -60,12 +60,12 @@ export const generateHistoricalPrices = (coins: CryptoData[], days = 30): Record
   const result: Record<string, number[]> = {};
   
   coins.forEach(coin => {
-    const basePrice = coin.price;
+    const basePrice = coin.price || 0;
     const priceHistory: number[] = [];
     
     for (let i = 0; i < days; i++) {
       // Generate some random price movement with volatility proportional to market cap
-      const volatility = 1000000000000 / (coin.marketCap || 1000000000);
+      const volatility = 1000000000000 / ((coin.marketCap || 1000000000));
       const change = (Math.random() - 0.5) * volatility * basePrice;
       const previousPrice = i > 0 ? priceHistory[i-1] : basePrice;
       priceHistory.push(previousPrice + change);

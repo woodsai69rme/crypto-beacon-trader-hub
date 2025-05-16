@@ -1,17 +1,17 @@
 
 import React from 'react';
-import { Widget } from '@/types/trading';
+import { Widget, WidgetSize } from '@/types/trading';
 import WidgetComponent from './WidgetComponent';
 
 interface WidgetGridProps {
   widgets: Widget[];
   onRemove?: (id: string) => void;
-  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number; w: number; h: number }) => void;
 }
 
 const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosition }) => {
   // Function to determine column span based on widget size
-  const getColSpan = (size: Widget['size']) => {
+  const getColSpan = (size: WidgetSize) => {
     switch (size) {
       case 'small':
         return 'col-span-1';
@@ -21,13 +21,19 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosi
         return 'col-span-3';
       case 'x-large':
         return 'col-span-4';
+      case 'wide':
+        return 'col-span-2';
+      case 'tall':
+        return 'col-span-1';
+      case 'full':
+        return 'col-span-4';
       default:
         return 'col-span-2';
     }
   };
 
   // Function to determine row span based on widget size
-  const getRowSpan = (size: Widget['size']) => {
+  const getRowSpan = (size: WidgetSize) => {
     switch (size) {
       case 'small':
         return 'row-span-1';
@@ -36,6 +42,12 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosi
       case 'large':
         return 'row-span-2';
       case 'x-large':
+        return 'row-span-2';
+      case 'wide':
+        return 'row-span-1';
+      case 'tall':
+        return 'row-span-2';
+      case 'full':
         return 'row-span-2';
       default:
         return 'row-span-1';

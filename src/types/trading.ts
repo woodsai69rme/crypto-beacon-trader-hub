@@ -6,6 +6,8 @@ export interface WidgetComponentProps {
   type: string;
   title: string;
   onRemove: (id: string) => void;
+  config?: any;
+  widget?: any;
   [key: string]: any;
 }
 
@@ -106,7 +108,6 @@ export enum TradingPosition {
   NEUTRAL = 'neutral',
 }
 
-// Add missing types from trading.d.ts that are required by other components
 export interface CoinOption {
   id: string;
   name: string;
@@ -125,10 +126,10 @@ export interface CryptoData {
   id: string;
   name: string;
   symbol: string;
-  currentPrice: number;
-  priceChangePercentage24h: number;
-  marketCap: number;
-  totalVolume: number;
+  currentPrice?: number;
+  priceChangePercentage24h?: number;
+  marketCap?: number;
+  totalVolume?: number;
   high24h?: number;
   low24h?: number;
   prices?: [number, number][]; // [timestamp, price]
@@ -136,8 +137,10 @@ export interface CryptoData {
   current_price?: number;
   market_cap?: number;
   market_cap_rank?: number;
-  price?: number; // Added to match usage in components
-  priceChange?: number; // Added to match usage in components
+  price?: number; 
+  priceChange?: number;
+  changePercent?: number; // Add this to support MarketCorrelations/mockData.ts
+  volume?: number; // Add this for consistency
 }
 
 export interface Trade {
@@ -166,9 +169,10 @@ export interface WalletAccount {
     quantity: number;
     averagePrice: number;
   }[];
-  network?: string; // Added for compatibility with existing components
-  address?: string; // Added for compatibility with existing components
-  provider?: string; // Added for compatibility with existing components
+  network?: string;
+  address?: string;
+  provider?: string;
+  isConnected?: boolean;
 }
 
 export interface WalletProvider {
@@ -177,7 +181,9 @@ export interface WalletProvider {
   icon: string;
   description: string;
   supported: boolean;
-  logo?: string; // Added for compatibility with existing components
+  logo?: string;
+  isInstalled?: boolean;
+  isConnected?: boolean;
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive';
@@ -189,28 +195,30 @@ export interface Widget {
   size: WidgetSize;
   data?: any;
   settings?: any;
+  customContent?: string;
   position?: { x: number; y: number; w: number; h: number };
+  config?: any;
 }
 
-export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
+export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large' | 'wide' | 'tall' | 'full' | 'custom';
 
 export interface DetachableDashboardProps {
   onClose: () => void;
   isDetached?: boolean;
   children?: React.ReactNode;
-  initialCoinId?: string; // Added for compatibility
-  refreshInterval?: number; // Added for compatibility
-  darkMode?: boolean; // Added for compatibility
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
 }
 
 export interface LiveAnalyticsDashboardProps {
   refreshInterval?: number;
   availableCoins?: CoinOption[];
   apiUsageStats?: ApiUsageStats;
-  showDetailedView?: boolean; // Added for compatibility
-  initialCoinId?: string;  // Added for compatibility
-  onAlertTriggered?: (alert: any) => void;  // Added for compatibility
-  darkMode?: boolean;  // Added for compatibility
+  showDetailedView?: boolean;
+  initialCoinId?: string;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
 }
 
 export interface ApiProvider {
@@ -225,7 +233,11 @@ export interface ApiProvider {
   apiKeyName?: string;
   authMethod?: 'header' | 'query';
   defaultHeaders?: Record<string, string>;
-  usageLimit?: number; // Added for compatibility
+  usageLimit?: number;
+  currentUsage?: number;
+  maxUsage?: number;
+  isActive?: boolean;
+  resetTime?: string;
 }
 
 export interface ApiEndpoint {
@@ -235,10 +247,10 @@ export interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   description?: string;
   requiredParams?: string[];
-  url?: string; // Added for compatibility
-  responseTime?: number; // Added for compatibility
-  lastUsed?: string; // Added for compatibility
-  requiresAuth?: boolean; // Added for compatibility
+  url?: string;
+  responseTime?: number;
+  lastUsed?: string;
+  requiresAuth?: boolean;
 }
 
 export interface ApiUsageStats {
@@ -249,15 +261,18 @@ export interface ApiUsageStats {
   rateLimit: number;
   rateLimitRemaining: number;
   rateLimitReset: number;
-  maxUsage?: number; // Added for compatibility
-  currentUsage?: number; // Added for compatibility
-  service?: string; // Added for compatibility
+  maxUsage?: number;
+  currentUsage?: number;
+  service?: string;
+  provider?: string;
+  endpoint?: string;
+  resetTime?: string;
 }
 
-// Update Theme type to include custom themes
+// Update Theme type to include custom themes for ThemeSwitcher.tsx
 export type Theme = 'light' | 'dark' | 'system' | 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
 
-export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red' | Theme;
+export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'light' | 'dark' | Theme;
 
 export interface CryptoChartData {
   prices: [number, number][];
@@ -269,6 +284,8 @@ export interface EnhancedPortfolioBenchmarkingProps {
   portfolioData?: any[];
   benchmarks?: string[];
   timeframe?: 'week' | 'month' | 'quarter' | 'year' | 'max';
+  portfolioPerformance?: number[];
+  portfolioDates?: string[];
 }
 
 export interface SettingsFormValues {

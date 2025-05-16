@@ -24,14 +24,15 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
     }
   };
 
-  const handleUpdatePosition = (id: string, position: { x: number, y: number }) => {
-    setWidgets(widgets.map(widget => 
+  const handleUpdatePosition = (id: string, position: { x: number, y: number, w: number, h: number }) => {
+    const updatedWidgets = widgets.map(widget => 
       widget.id === id ? { ...widget, position } : widget
-    ));
+    );
+    
+    setWidgets(updatedWidgets);
+    
     if (onLayoutChange) {
-      onLayoutChange(widgets.map(widget => 
-        widget.id === id ? { ...widget, position } : widget
-      ));
+      onLayoutChange(updatedWidgets);
     }
   };
 
