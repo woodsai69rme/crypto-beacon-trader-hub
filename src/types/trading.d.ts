@@ -1,3 +1,11 @@
+// If the file exists, we'll only update what's needed
+export interface RealTimePricesProps {
+  coins?: CoinOption[];
+  refreshInterval?: number;
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string | null;
+  isLoading?: boolean;
+}
 
 // Basic trading types
 export interface CoinOption {

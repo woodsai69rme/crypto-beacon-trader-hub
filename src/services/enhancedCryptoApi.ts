@@ -1,10 +1,10 @@
 
 import { CryptoData } from '@/types/trading';
-import { fetchTopCryptoData, searchCoins as searchCoinsImpl } from './cryptoService';
+import { fetchTopCryptoData as fetchTopCryptoDataImpl, searchCoins as searchCoinsImpl } from './cryptoService';
 
 // Wrapper around fetchTopCryptoData to ensure type compatibility with CryptoData[]
 export const fetchTopCryptoData = async (limit: number = 10): Promise<CryptoData[]> => {
-  const data = await fetchTopCryptoData(limit);
+  const data = await fetchTopCryptoDataImpl(limit);
   
   // Transform CoinOption to CryptoData format
   return data.map(coin => ({

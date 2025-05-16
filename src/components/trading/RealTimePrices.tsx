@@ -1,28 +1,35 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CoinOption, RealTimePricesProps } from '@/types/trading';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUp, ArrowDown, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchTopCryptoData } from '@/services/cryptoService';
+import { fetchTopCryptoData } from '@/services/enhancedCryptoApi';
 import { toast } from '@/components/ui/use-toast';
 
 const RealTimePrices: React.FC<RealTimePricesProps> = ({ 
   coins = [], 
   refreshInterval = 60000, // Set default to 1 minute to avoid rate limiting
   onSelectCoin,
-  selectedCoinId
+  selectedCoinId,
+  isLoading: externalLoading
 }) => {
   const [cryptoData, setCryptoData] = useState<CoinOption[]>(coins);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(externalLoading !== undefined ? externalLoading : true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  useEffect(() => {
+    // Update internal loading state when external prop changes
+    if (externalLoading !== undefined) {
+      setIsLoading(externalLoading);
+    }
+  }, [externalLoading]);
 
   useEffect(() => {
     // Set initial data if provided
     if (coins && coins.length > 0) {
       setCryptoData(coins);
-      setIsLoading(false);
+      if (externalLoading === undefined) setIsLoading(false);
     } else {
       fetchData();
     }
@@ -32,14 +39,29 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({
     
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, [refreshInterval]);
+  }, [coins, refreshInterval]);
 
   const fetchData = async () => {
     try {
-      setIsLoading(true);
+      if (externalLoading === undefined) setIsLoading(true);
       const data = await fetchTopCryptoData(20);
-      if (data && data.length > 0) {
-        setCryptoData(data);
+      // Convert CryptoData to CoinOption format
+      const coinOptions: CoinOption[] = data.map(crypto => ({
+        id: crypto.id,
+        name: crypto.name,
+        symbol: crypto.symbol,
+        price: crypto.currentPrice,
+        priceChange: crypto.priceChangePercentage24h * crypto.currentPrice / 100,
+        changePercent: crypto.priceChangePercentage24h,
+        image: `https://assets.coingecko.com/coins/images/1/large/${crypto.id}.png`,
+        volume: crypto.totalVolume,
+        marketCap: crypto.marketCap,
+        value: crypto.symbol.toLowerCase(),
+        label: `${crypto.name} (${crypto.symbol})`
+      }));
+      
+      if (coinOptions && coinOptions.length > 0) {
+        setCryptoData(coinOptions);
         setLastUpdated(new Date());
       }
     } catch (error) {
@@ -50,7 +72,7 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      if (externalLoading === undefined) setIsLoading(false);
     }
   };
 
