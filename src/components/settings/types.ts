@@ -8,7 +8,6 @@ export interface SettingsFormValues {
     showPortfolio: boolean;
     defaultTab: string;
     compactMode: boolean;
-    // Add any missing properties
     colorScheme?: string;
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
@@ -18,16 +17,17 @@ export interface SettingsFormValues {
     email: boolean;
     push: boolean;
     priceAlerts: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
   };
   api: {
     provider: string;
     key: string;
-    // Add the missing properties
     refreshInterval?: number;
     timeout?: number;
   };
-  // Add missing sections
-  privacy?: {
+  privacy: {
     showOnlineStatus: boolean;
     sharePortfolio: boolean;
     shareTrades: boolean;
@@ -35,15 +35,20 @@ export interface SettingsFormValues {
     marketingConsent: boolean;
     thirdPartySharing: boolean;
   };
-  appearance?: {
+  appearance: {
     colorScheme: string;
     compactMode: boolean;
     animationsEnabled: boolean;
     highContrastMode: boolean;
   };
-  // Add any other missing sections
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
   displayName?: string;
   username?: string;
+  contactEmail?: string;
+  userLanguage?: string;
 }
 
 export interface SettingsComponentProps {

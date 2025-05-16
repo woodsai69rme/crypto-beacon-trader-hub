@@ -6,9 +6,10 @@ import WidgetComponent from './WidgetComponent';
 interface WidgetGridProps {
   widgets: Widget[];
   onRemove?: (id: string) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
 }
 
-const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove }) => {
+const WidgetGrid: React.FC<WidgetGridProps> = ({ widgets, onRemove, onUpdatePosition }) => {
   // Function to determine column span based on widget size
   const getColSpan = (size: Widget['size']) => {
     switch (size) {

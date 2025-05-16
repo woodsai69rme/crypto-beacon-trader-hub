@@ -9,6 +9,21 @@ export interface PricePoint {
   time?: string; // For compatibility with some charts
 }
 
+export interface CryptoData {
+  id: string;
+  name: string;
+  symbol: string;
+  prices: PricePoint[];
+  marketCap?: number | number[];
+  volumes?: number[];
+  change24h?: number;
+  change7d?: number;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  price?: number;
+}
+
 export interface AITradingStrategy {
   id: string;
   name: string;
@@ -75,8 +90,6 @@ export interface WalletProvider {
   isConnected: boolean;
 }
 
-// Additional required interfaces
-
 export interface CoinOption {
   id: string;
   name: string;
@@ -86,21 +99,11 @@ export interface CoinOption {
   priceChangePercentage24h?: number;
   value?: string; // For select components
   label?: string; // For select components
-}
-
-export interface CryptoData {
-  id: string;
-  name: string;
-  symbol: string;
-  prices: PricePoint[];
-  marketCap?: number | number[];
-  volumes?: number[];
-  change24h?: number;
-  change7d?: number;
   priceChange?: number;
   changePercent?: number;
   volume?: number;
-  price?: number;
+  marketCap?: number;
+  rank?: number;
 }
 
 export interface Trade {
@@ -113,6 +116,19 @@ export interface Trade {
   date: string;
   fee?: number;
   feeAsset?: string;
+  coinId?: string;
+  coinName?: string;
+  coinSymbol?: string;
+  type?: 'buy' | 'sell';
+  totalValue?: number;
+  timestamp?: string;
+  currency?: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+  fees?: number;
+  coin?: string;
 }
 
 export interface Widget {
@@ -124,7 +140,7 @@ export interface Widget {
   config?: Record<string, any>;
 }
 
-export type WidgetType = 'price' | 'chart' | 'news' | 'portfolio' | 'trades' | 'alerts' | 'ai-insights' | 'watchlist' | 'market-depth' | 'order-book' | 'custom';
+export type WidgetType = 'price' | 'chart' | 'news' | 'portfolio' | 'trades' | 'alerts' | 'ai-insights' | 'watchlist' | 'market-depth' | 'order-book' | 'custom' | 'price-chart' | 'portfolio-summary' | 'trading' | 'aiTrading' | 'aiAnalysis';
 
 export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large';
 
@@ -145,6 +161,12 @@ export interface ApiProvider {
   enabled: boolean;
   requiresKey: boolean;
   endpoints: ApiEndpoint[];
+  baseUrl?: string;
+  currentUsage?: number;
+  maxUsage?: number;
+  resetTime?: string;
+  endpoint?: string;
+  status?: string;
 }
 
 export interface ApiEndpoint {
@@ -209,6 +231,16 @@ export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-
 
 // Badge variants for TransactionStatus
 export type TransactionStatusVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'pending' | 'warning';
+
+// Trading account type definition
+export interface TradingAccount {
+  id: string;
+  name: string;
+  balance: number;
+  currency: SupportedCurrency;
+  trades: Trade[];
+  createdAt: string;
+}
 
 // Add a declared module for the ui components to support additional variants
 declare module '@/components/ui/badge' {

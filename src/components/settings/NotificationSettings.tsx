@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
+import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Bell } from "lucide-react";
 import { SettingsComponentProps } from './types';
@@ -26,15 +26,18 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     }
   }, [form]);
   
-  // Get current values safely
-  const notificationsValues = form.getValues().notifications || {
-    email: true,
-    push: true,
-    trades: true,
-    pricing: true,
-    news: false,
-    priceAlerts: true
-  };
+  // Get current values safely 
+  const notificationsValues = React.useMemo(() => {
+    const values = form.getValues().notifications || {
+      email: true,
+      push: true,
+      trades: true,
+      pricing: true,
+      news: false,
+      priceAlerts: true
+    };
+    return values;
+  }, [form]);
   
   return (
     <Card>

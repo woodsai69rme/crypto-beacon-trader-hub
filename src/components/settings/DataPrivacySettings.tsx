@@ -28,14 +28,16 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
   }, [form]);
 
   // Get privacy values from form safely
-  const privacyValues = form.getValues().privacy || {
-    showOnlineStatus: true,
-    sharePortfolio: false,
-    shareTrades: false,
-    dataCollection: true,
-    marketingConsent: false,
-    thirdPartySharing: false
-  };
+  const privacyValues = React.useMemo(() => {
+    return form.getValues().privacy || {
+      showOnlineStatus: true,
+      sharePortfolio: false,
+      shareTrades: false,
+      dataCollection: true,
+      marketingConsent: false,
+      thirdPartySharing: false
+    };
+  }, [form]);
 
   return (
     <Card>

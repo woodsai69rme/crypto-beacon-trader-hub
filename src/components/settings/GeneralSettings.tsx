@@ -59,7 +59,7 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="email"
+          name="contactEmail"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email Address</FormLabel>
@@ -76,11 +76,11 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="language"
+          name="userLanguage"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Language</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value as string}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select language" />
@@ -106,11 +106,11 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         <div>
           <FormField
             control={form.control}
-            name="currency.defaultCurrency"
+            name="currency"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Default Currency</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value as string}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select currency" />
