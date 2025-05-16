@@ -18,7 +18,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         defaultAsset: 'bitcoin',
         defaultTradeSize: 100,
         riskLevel: 'medium'
-      });
+      }, { shouldValidate: false });
     }
   }, [form]);
 
@@ -45,13 +45,13 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={form.getValues().tradingPreferences?.autoConfirm || false}
+                checked={form.getValues()?.tradingPreferences?.autoConfirm || false}
                 onCheckedChange={(checked) => {
                   const updatedPrefs = {
-                    ...form.getValues().tradingPreferences,
+                    ...form.getValues()?.tradingPreferences,
                     autoConfirm: checked
                   };
-                  form.setValue("tradingPreferences", updatedPrefs);
+                  form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -66,13 +66,13 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={form.getValues().tradingPreferences?.showAdvanced || false}
+                checked={form.getValues()?.tradingPreferences?.showAdvanced || false}
                 onCheckedChange={(checked) => {
                   const updatedPrefs = {
-                    ...form.getValues().tradingPreferences,
+                    ...form.getValues()?.tradingPreferences,
                     showAdvanced: checked
                   };
-                  form.setValue("tradingPreferences", updatedPrefs);
+                  form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -81,13 +81,13 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <div className="space-y-2">
             <FormLabel>Default Asset</FormLabel>
             <Select
-              value={form.getValues().tradingPreferences?.defaultAsset || 'bitcoin'}
+              value={form.getValues()?.tradingPreferences?.defaultAsset || 'bitcoin'}
               onValueChange={(value) => {
                 const updatedPrefs = {
-                  ...form.getValues().tradingPreferences,
+                  ...form.getValues()?.tradingPreferences,
                   defaultAsset: value
                 };
-                form.setValue("tradingPreferences", updatedPrefs);
+                form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
               }}
             >
               <FormControl>

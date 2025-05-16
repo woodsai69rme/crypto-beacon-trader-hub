@@ -1,13 +1,15 @@
 
 import { useState } from 'react';
 import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
-import { PriceAlert } from '@/types/alerts';
+import { AlertFormData, AlertFrequency } from '@/types/trading';
 
-const defaultAlert = {
+const defaultAlert: Partial<AlertFormData> = {
   coinId: "bitcoin",
   coinName: "Bitcoin",
   coinSymbol: "BTC",
   targetPrice: 0,
+  type: 'price',
+  frequency: 'once' as AlertFrequency,
   isAbove: true,
   enabled: true,
   recurring: false,
@@ -16,7 +18,7 @@ const defaultAlert = {
 };
 
 export const useAlertForm = () => {
-  const [formData, setFormData] = useState(defaultAlert);
+  const [formData, setFormData] = useState<Partial<AlertFormData>>(defaultAlert);
   
   const resetForm = () => setFormData(defaultAlert);
   

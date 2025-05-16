@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
@@ -22,7 +23,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         coins: ['bitcoin', 'ethereum', 'solana'],
         showVolume: true,
         showPercentChange: true
-      });
+      }, { shouldValidate: false });
     }
   }, [form]);
 
@@ -50,7 +51,11 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <Switch 
             checked={form.getValues().ticker?.enabled}
             onCheckedChange={(checked) => {
-              form.setValue('ticker.enabled', checked, { shouldValidate: false });
+              const updatedTicker = {
+                ...form.getValues().ticker,
+                enabled: checked
+              };
+              form.setValue('ticker', updatedTicker, { shouldValidate: false });
             }}
           />
         </div>
@@ -64,7 +69,11 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <RadioGroup 
             value={form.getValues().ticker?.position || 'bottom'}
             onValueChange={(value) => {
-              form.setValue('ticker.position', value as 'top' | 'bottom', { shouldValidate: false });
+              const updatedTicker = {
+                ...form.getValues().ticker,
+                position: value as 'top' | 'bottom'
+              };
+              form.setValue('ticker', updatedTicker, { shouldValidate: false });
             }}
             className="flex flex-col space-y-1"
           >
@@ -88,7 +97,11 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <RadioGroup 
             value={form.getValues().ticker?.direction || 'ltr'}
             onValueChange={(value) => {
-              form.setValue('ticker.direction', value as 'ltr' | 'rtl', { shouldValidate: false });
+              const updatedTicker = {
+                ...form.getValues().ticker,
+                direction: value as 'ltr' | 'rtl'
+              };
+              form.setValue('ticker', updatedTicker, { shouldValidate: false });
             }}
             className="flex flex-col space-y-1"
           >
@@ -112,7 +125,11 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             step={5}
             defaultValue={[form.getValues().ticker?.speed || 50]}
             onValueChange={(values) => {
-              form.setValue('ticker.speed', values[0], { shouldValidate: false });
+              const updatedTicker = {
+                ...form.getValues().ticker,
+                speed: values[0]
+              };
+              form.setValue('ticker', updatedTicker, { shouldValidate: false });
             }}
           />
           <div className="flex justify-between">
@@ -132,7 +149,11 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <Switch 
             checked={form.getValues().ticker?.autoPause}
             onCheckedChange={(checked) => {
-              form.setValue('ticker.autoPause', checked, { shouldValidate: false });
+              const updatedTicker = {
+                ...form.getValues().ticker,
+                autoPause: checked
+              };
+              form.setValue('ticker', updatedTicker, { shouldValidate: false });
             }}
           />
         </div>

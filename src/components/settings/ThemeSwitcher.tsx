@@ -22,7 +22,7 @@ interface ThemeSwitcherProps {
 }
 
 interface ColorSchemeOption {
-  value: ColorScheme;
+  value: string;
   label: string;
   description: string;
   preview: string;
@@ -80,8 +80,8 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
     });
   };
   
-  const handleColorSchemeChange = (value: ColorScheme) => {
-    setColorScheme(value);
+  const handleColorSchemeChange = (value: string) => {
+    setColorScheme(value as ColorScheme);
     setIsOpen(false);
     toast({
       title: "Theme Style Updated",

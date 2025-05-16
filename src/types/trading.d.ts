@@ -112,6 +112,7 @@ export interface Trade {
   botGenerated?: boolean;
   strategyId?: string;
   fees?: number;
+  tags?: string[];
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive' | 'completed' | 'failed' | 'cancelled';
@@ -266,13 +267,13 @@ export interface SettingsFormValues {
   display?: {
     showPortfolio: boolean;
     showBalances?: boolean;
-    compactMode: boolean;
     defaultTab?: string;
-    colorScheme?: string;
+    compactMode: boolean;
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
+    colorScheme?: string;
   };
-  currency?: SupportedCurrency | {
+  currency?: {
     defaultCurrency: SupportedCurrency;
     showConversion: boolean;
     showPriceInBTC?: boolean;
@@ -420,6 +421,18 @@ export interface FakeTradingFormProps {
   onTrade: (trade: Trade) => void;
   availableCoins: CoinOption[];
   initialCoinId?: string;
+}
+
+export interface RealTimePricesProps {
+  coins?: CoinOption[];
+  refreshInterval?: number;
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onDelete?: (modelId: string) => void;
+  selectedModelId?: string;
 }
 
 // Alert system types
