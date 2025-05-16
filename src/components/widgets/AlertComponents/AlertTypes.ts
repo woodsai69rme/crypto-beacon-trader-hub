@@ -1,7 +1,8 @@
 
-import { AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData, AlertFormData, CoinOption } from "@/types/trading";
+import { AlertFrequency, AlertFormData, CoinOption } from "@/types/trading";
 
-export type { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData, AlertFormData, CoinOption };
+export type { AlertFormData, CoinOption };
+export type { AlertFrequency };
 
 export const COIN_OPTIONS: Record<string, CoinOption> = {
   bitcoin: { id: "bitcoin", name: "Bitcoin", symbol: "BTC" },

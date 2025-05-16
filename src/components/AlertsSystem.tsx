@@ -8,7 +8,7 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
-import { AlertFormData } from "@/types/trading";
+import { AlertFormData, AlertData } from "@/types/trading";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -47,7 +47,7 @@ const AlertsSystem = () => {
             <p className="mt-2 text-sm text-muted-foreground">No active alerts.</p>
           ) : (
             <div className="mt-2 space-y-2">
-              {alerts.map((alert) => (
+              {alerts.map((alert: AlertData) => (
                 <div 
                   key={alert.id} 
                   className="flex items-center justify-between rounded-md border border-border bg-background p-2"
@@ -55,13 +55,13 @@ const AlertsSystem = () => {
                   <div>
                     <p className="font-medium">{alert.coinName}</p>
                     <p className="text-sm text-muted-foreground">
-                      {alert.type === 'price' && (alert as any).isAbove !== undefined ? 
-                        `${(alert as any).isAbove ? "Above" : "Below"} $${(alert as any).targetPrice?.toLocaleString() || 0}` 
+                      {alert.type === 'price' ? 
+                        `${(alert as PriceAlert).isAbove ? "Above" : "Below"} $${(alert as PriceAlert).targetPrice?.toLocaleString() || 0}` 
                         : 
                         alert.type === 'volume' ? 
-                          `Volume > ${(alert as any).volumeThreshold}` 
+                          `Volume > ${(alert as VolumeAlert).volumeThreshold}` 
                           : 
-                          `${(alert as any).indicator} ${(alert as any).condition}`
+                          `${(alert as TechnicalAlert).indicator} ${(alert as TechnicalAlert).condition}`
                       }
                     </p>
                   </div>

@@ -77,6 +77,19 @@ export interface CoinOption {
   rank?: number;
 }
 
+// Price chart data types
+export interface PricePoint {
+  timestamp: number;
+  price: number;
+  volume?: number;
+  date?: string;
+  open?: number;
+  close?: number;
+  high?: number;
+  low?: number;
+  time?: number;
+}
+
 // Transaction/Trade related types
 export interface Trade {
   id: string;
@@ -252,18 +265,14 @@ export interface SettingsFormValues {
   theme?: Theme;
   display?: {
     showPortfolio: boolean;
-    showBalances: boolean;
+    showBalances?: boolean;
     compactMode: boolean;
     defaultTab?: string;
     colorScheme?: string;
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
   };
-  currency?: {
-    defaultCurrency: SupportedCurrency;
-    showConversion: boolean;
-    showPriceInBTC?: boolean;
-  };
+  currency?: SupportedCurrency;
   notifications?: {
     enablePush: boolean;
     enableEmail: boolean;
@@ -278,8 +287,8 @@ export interface SettingsFormValues {
   };
   api?: {
     provider: string;
-    refreshInterval: number;
-    key?: string;
+    key: string;
+    refreshInterval?: number;
     timeout?: number;
   };
   privacy?: {
@@ -289,19 +298,17 @@ export interface SettingsFormValues {
     dataCollection: boolean;
     marketingConsent: boolean;
     thirdPartySharing: boolean;
+    publicProfile?: boolean;
   };
   appearance?: {
-    densityMode: 'compact' | 'comfortable' | 'spacious';
-    fontScale: number;
-    colorScheme?: string;
-    compactMode?: boolean;
-    animationsEnabled?: boolean;
-    highContrastMode?: boolean;
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
   };
   account?: {
-    twoFactor?: boolean;
-    loginAlerts?: boolean;
-    twoFactorEnabled?: boolean;
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
   };
   ticker?: {
     enabled: boolean;
@@ -324,6 +331,14 @@ export interface SettingsFormValues {
     showPnL?: boolean;
     defaultTimeframe?: string;
   };
+  exportFormat?: "CSV" | "JSON" | "PDF";
+  layout?: string;
+  sidebar?: {
+    expanded: boolean;
+    position: "left" | "right";
+    visible: boolean;
+  };
+  bio?: string;
 }
 
 // AI Trading types
@@ -349,13 +364,25 @@ export interface AITradingStrategy {
   tags?: string[];
 }
 
-export interface AIStrategyParameters {
-  buySignalThreshold: number;
-  sellSignalThreshold: number;
-  stopLossPercentage: number;
-  takeProfitPercentage: number;
-  maxOpenPositions: number;
-  positionSizePercentage: number;
+export interface AITradingBot {
+  id: string;
+  name: string;
+  description: string;
+  strategy: AITradingStrategy;
+  status: 'active' | 'paused' | 'stopped';
+  createdAt: string;
+  lastRun?: string;
+  performance?: {
+    winRate: number;
+    trades: number;
+    profit: number;
+  };
+}
+
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
 }
 
 export interface PaperTradingConfig {
@@ -369,70 +396,101 @@ export interface PaperTradingConfig {
   feePercentage: number;
 }
 
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface FakeTradingFormProps {
+  onTrade: (trade: Trade) => void;
+  availableCoins: CoinOption[];
+  initialCoinId?: string;
+}
+
 // Alert system types
 export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly';
 
-export interface PriceAlertFormData {
-  type: 'price';
+export interface BaseAlertData {
+  id?: string;
+  type: string;
   coinId: string;
   coinName: string;
   coinSymbol: string;
+  enabled: boolean;
+  frequency: AlertFrequency;
+  notifyVia: Array<"email" | "app" | "push">;
+  createdAt?: string;
+  lastTriggered?: string;
+}
+
+export interface PriceAlert extends BaseAlertData {
+  type: 'price';
   targetPrice: number;
   isAbove: boolean;
   recurring: boolean;
   percentageChange: number;
-  enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: ("email" | "app" | "push")[];
 }
 
-export interface VolumeAlertFormData {
+export interface VolumeAlert extends BaseAlertData {
   type: 'volume';
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
   volumeThreshold: number;
-  frequency: AlertFrequency;
-  enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
 }
 
-export interface TechnicalAlertFormData {
+export interface TechnicalAlert extends BaseAlertData {
   type: 'technical';
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
   indicator: string;
   condition: string;
   value: number;
-  frequency: AlertFrequency;
+}
+
+export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
+
+export interface AlertFormData {
+  type: 'price' | 'volume' | 'technical';
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
   enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
+  frequency: AlertFrequency;
+  notifyVia: Array<"email" | "app" | "push">;
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  volumeThreshold?: number;
+  indicator?: string;
+  condition?: string;
+  value?: number;
 }
 
-export type AlertFormData = PriceAlertFormData | VolumeAlertFormData | TechnicalAlertFormData;
-
-// Portfolio and benchmarking types
-export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioData?: any[];
-  benchmarks?: string[];
-  timeframe?: 'week' | 'month' | 'quarter' | 'year' | 'max';
-  portfolioPerformance?: number[];
-  portfolioDates?: string[];
-  portfolioId?: string;
-  comparisonAssets?: string[];
-  showDetailedView?: boolean;
-}
-
-// Price chart data types
-export interface PricePoint {
-  timestamp: number;
-  price: number;
-  volume?: number;
-  date?: string;
-  open?: number;
-  close?: number;
-  high?: number;
-  low?: number;
-  time?: number;
+// TradingAccount type
+export interface TradingAccount {
+  id: string;
+  address: string;
+  name: string;
+  balance: number;
+  network: string;
+  type?: string;
+  provider?: string;
+  assets?: Array<{
+    coinId: string;
+    name: string;
+    symbol: string;
+    quantity: number;
+    averagePrice: number;
+    currentPrice?: number;
+  }>;
+  isActive?: boolean;
+  lastUpdated?: string;
 }

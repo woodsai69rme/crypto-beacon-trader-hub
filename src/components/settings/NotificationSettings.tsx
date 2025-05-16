@@ -26,7 +26,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       };
       
       // Update form with notification defaults
-      form.setValue("notifications", notificationsDefaults);
+      form.setValue("notifications", notificationsDefaults, { shouldValidate: false });
     }
   }, [form]);
   
@@ -74,11 +74,8 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.enableEmail}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications", {
-                    ...notificationsValues,
-                    enableEmail: checked,
-                    email: checked
-                  });
+                  form.setValue("notifications.enableEmail", checked, { shouldValidate: false });
+                  form.setValue("notifications.email", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -95,11 +92,8 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.enablePush}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications", {
-                    ...notificationsValues,
-                    enablePush: checked,
-                    push: checked
-                  });
+                  form.setValue("notifications.enablePush", checked, { shouldValidate: false });
+                  form.setValue("notifications.push", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -120,10 +114,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.trades || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications", {
-                    ...notificationsValues,
-                    trades: checked
-                  });
+                  form.setValue("notifications.trades", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -140,11 +131,8 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.pricing || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications", {
-                    ...notificationsValues,
-                    pricing: checked,
-                    alertPrice: checked
-                  });
+                  form.setValue("notifications.pricing", checked, { shouldValidate: false });
+                  form.setValue("notifications.alertPrice", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -161,11 +149,8 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.news || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications", {
-                    ...notificationsValues,
-                    news: checked,
-                    alertNews: checked
-                  });
+                  form.setValue("notifications.news", checked, { shouldValidate: false });
+                  form.setValue("notifications.alertNews", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -182,10 +167,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.priceAlerts || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications", {
-                    ...notificationsValues,
-                    priceAlerts: checked
-                  });
+                  form.setValue("notifications.priceAlerts", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>

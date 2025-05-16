@@ -8,16 +8,18 @@ import { SettingsComponentProps } from './types';
 
 const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   // Initialize api object if it doesn't exist
-  const formValues = form.getValues();
-  
-  if (!formValues.api) {
-    form.setValue("api", {
-      provider: "coingecko",
-      key: "",
-      refreshInterval: 30,
-      timeout: 10
-    });
-  }
+  React.useEffect(() => {
+    const formValues = form.getValues();
+    
+    if (!formValues.api) {
+      form.setValue("api", {
+        provider: "coingecko",
+        key: "",
+        refreshInterval: 30,
+        timeout: 10
+      });
+    }
+  }, [form]);
   
   return (
     <Card>
@@ -87,13 +89,10 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 type="number"
                 min={5}
                 max={3600}
-                value={formValues.api?.refreshInterval || 30}
+                value={form.getValues().api?.refreshInterval || 30}
                 onChange={(e) => {
                   const value = Number(e.target.value) || 30;
-                  form.setValue("api", {
-                    ...formValues.api,
-                    refreshInterval: value
-                  });
+                  form.setValue("api.refreshInterval", value, { shouldValidate: false });
                 }}
               />
               <FormDescription>
@@ -107,13 +106,10 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 type="number"
                 min={1}
                 max={60}
-                value={formValues.api?.timeout || 10}
+                value={form.getValues().api?.timeout || 10}
                 onChange={(e) => {
                   const value = Number(e.target.value) || 10;
-                  form.setValue("api", {
-                    ...formValues.api,
-                    timeout: value
-                  });
+                  form.setValue("api.timeout", value, { shouldValidate: false });
                 }}
               />
               <FormDescription>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User } from "lucide-react";
 import { SettingsComponentProps } from './types';
+import { SupportedCurrency } from '@/types/trading';
 
 const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
@@ -103,34 +104,32 @@ const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           )}
         />
         
-        <div>
-          <FormField
-            control={form.control}
-            name="currency"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Default Currency</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value as string}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
-                    <SelectItem value="USD">US Dollar (USD)</SelectItem>
-                    <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                    <SelectItem value="GBP">British Pound (GBP)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Your preferred currency for displaying values
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="currency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Default Currency</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value as string}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
+                  <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                  <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                  <SelectItem value="GBP">British Pound (GBP)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Your preferred currency for displaying values
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </CardContent>
     </Card>
   );

@@ -47,7 +47,11 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={form.getValues().tradingPreferences?.autoConfirm || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("tradingPreferences.autoConfirm", checked, { shouldValidate: false });
+                  const updatedPrefs = {
+                    ...form.getValues().tradingPreferences,
+                    autoConfirm: checked
+                  };
+                  form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -64,7 +68,11 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={form.getValues().tradingPreferences?.showAdvanced || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("tradingPreferences.showAdvanced", checked, { shouldValidate: false });
+                  const updatedPrefs = {
+                    ...form.getValues().tradingPreferences,
+                    showAdvanced: checked
+                  };
+                  form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -75,7 +83,11 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Select
               value={form.getValues().tradingPreferences?.defaultAsset || 'bitcoin'}
               onValueChange={(value) => {
-                form.setValue("tradingPreferences.defaultAsset", value, { shouldValidate: false });
+                const updatedPrefs = {
+                  ...form.getValues().tradingPreferences,
+                  defaultAsset: value
+                };
+                form.setValue("tradingPreferences", updatedPrefs, { shouldValidate: false });
               }}
             >
               <FormControl>

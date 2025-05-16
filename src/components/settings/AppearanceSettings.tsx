@@ -16,7 +16,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   React.useEffect(() => {
     // Set theme value if not already set
     if (!form.getValues().theme) {
-      form.setValue("theme", theme);
+      form.setValue("theme", theme as Theme);
     }
     
     // Initialize display object with proper values
@@ -41,10 +41,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
 
   const handleColorSchemeChange = (value: ColorScheme) => {
     setColorScheme(value);
-    form.setValue("display", {
-      ...form.getValues().display,
-      colorScheme: value
-    });
+    form.setValue("display.colorScheme", value);
   };
   
   return (
@@ -122,10 +119,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={form.getValues().display?.compactMode || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("display", {
-                    ...form.getValues().display,
-                    compactMode: checked
-                  });
+                  form.setValue("display.compactMode", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -142,10 +136,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={form.getValues().display?.animationsEnabled || true}
                 onCheckedChange={(checked) => {
-                  form.setValue("display", {
-                    ...form.getValues().display,
-                    animationsEnabled: checked
-                  });
+                  form.setValue("display.animationsEnabled", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -162,10 +153,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={form.getValues().display?.highContrastMode || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("display", {
-                    ...form.getValues().display,
-                    highContrastMode: checked
-                  });
+                  form.setValue("display.highContrastMode", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
