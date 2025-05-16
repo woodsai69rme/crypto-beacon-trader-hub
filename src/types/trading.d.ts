@@ -4,7 +4,7 @@
 export interface PricePoint {
   price: number;
   timestamp: number;
-  date: string; // ISO string representation
+  date?: string; // ISO string representation
   volume?: number;
   time?: string; // For compatibility with some charts
 }
@@ -244,4 +244,16 @@ export interface TradingAccount {
   currency: SupportedCurrency;
   trades: Trade[];
   createdAt: string;
+}
+
+export interface TradingPosition {
+  id: string;
+  symbol: string;
+  entryPrice: number;
+  currentPrice: number;
+  quantity: number;
+  pnl: number;
+  pnlPercentage: number;
+  openTime: string;
+  type: 'long' | 'short';
 }
