@@ -16,9 +16,10 @@ export const fetchCryptoData = async (coins: string[]): Promise<CoinOption[]> =>
   }));
 };
 
-export const fetchCryptoHistory = async (
+// Add the missing fetchCoinHistory function
+export const fetchCoinHistory = async (
   coinId: string,
-  timeframe: string,
+  days: number,
   currency: string = 'aud'
 ): Promise<[number, number][]> => {
   // Mock implementation
@@ -26,15 +27,7 @@ export const fetchCryptoHistory = async (
   const dayInMs = 24 * 60 * 60 * 1000;
   const points = 100;
   
-  let timeRange: number;
-  switch (timeframe) {
-    case '24h': timeRange = dayInMs; break;
-    case '7d': timeRange = 7 * dayInMs; break;
-    case '30d': timeRange = 30 * dayInMs; break;
-    case '90d': timeRange = 90 * dayInMs; break;
-    case '1y': timeRange = 365 * dayInMs; break;
-    default: timeRange = 7 * dayInMs;
-  }
+  const timeRange = days * dayInMs;
   
   const startPrice = 1000 + Math.random() * 9000;
   const volatility = 0.02;
@@ -51,6 +44,25 @@ export const fetchCryptoHistory = async (
     
     return [timestamp, price];
   });
+};
+
+export const fetchCryptoHistory = async (
+  coinId: string,
+  timeframe: string,
+  currency: string = 'aud'
+): Promise<[number, number][]> => {
+  // Convert timeframe to days for consistency
+  let days: number;
+  switch (timeframe) {
+    case '24h': days = 1; break;
+    case '7d': days = 7; break;
+    case '30d': days = 30; break;
+    case '90d': days = 90; break;
+    case '1y': days = 365; break;
+    default: days = 7;
+  }
+  
+  return fetchCoinHistory(coinId, days, currency);
 };
 
 export const searchCoins = async (query: string): Promise<CoinOption[]> => {
@@ -84,3 +96,11 @@ export const searchCoins = async (query: string): Promise<CoinOption[]> => {
     label: `${coin.name} (${coin.symbol})`
   }));
 };
+
+export const formatPrice = (price: number, currency: string = 'AUD'): string => {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: currency
+  }).format(price);
+};
+

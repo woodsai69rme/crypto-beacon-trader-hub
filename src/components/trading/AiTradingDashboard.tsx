@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +12,7 @@ import AiTradingStrategySelector from './AiTradingStrategySelector';
 import AiTradingBotList from './AiTradingBotList';
 import RealTimePriceChart from '@/components/RealTimePriceChart';
 import { Bot, Zap, AlertTriangle, Settings, LineChart, Activity, Box } from "lucide-react";
-import { fetchCoinHistory, formatPrice } from '@/services/cryptoService';
+import { fetchCryptoHistory, formatPrice } from '@/services/cryptoService';
 import { useToast } from '@/hooks/use-toast';
 import { generateTradingSignal, backtestStrategy, availableStrategies } from '@/services/aiService';
 
@@ -61,7 +60,8 @@ const AiTradingDashboard: React.FC = () => {
                   timeframe === '30d' ? 30 : 
                   timeframe === '90d' ? 90 : 365;
       
-      const data = await fetchCoinHistory(selectedCoin, days);
+      // Use the fetchCryptoHistory function instead of fetchCoinHistory
+      const data = await fetchCryptoHistory(selectedCoin, timeframe);
       setPriceData(data);
     } catch (error) {
       console.error("Error fetching price data:", error);
