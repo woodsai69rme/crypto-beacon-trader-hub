@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { FakeTradingFormProps, Trade } from '@/types/trading';
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedMode = false }) => {
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onTrade, advancedMode = false }) => {
   const [asset, setAsset] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -47,7 +46,7 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
       tags: advancedMode ? tags : []
     };
     
-    onAddTrade(newTrade);
+    onTrade(newTrade);
     
     // Reset form
     setAsset('');

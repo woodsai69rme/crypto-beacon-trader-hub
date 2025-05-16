@@ -83,7 +83,7 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
               <TableRow key={bot.id}>
                 <TableCell>
                   <div className="font-medium">{bot.name}</div>
-                  <div className="text-sm text-muted-foreground">{bot.pair}</div>
+                  <div className="text-sm text-muted-foreground">{bot.pair || 'All pairs'}</div>
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{bot.strategy.name}</Badge>
@@ -91,9 +91,8 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
                 <TableCell>
                   <Badge 
                     className={
-                      bot.status === 'running' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                      bot.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
                       bot.status === 'paused' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100' :
-                      bot.status === 'error' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100' :
                       'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
                     }
                   >
@@ -101,14 +100,14 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className={bot.profitLoss >= 0 ? "text-green-600" : "text-red-600"}>
-                    {bot.profitLoss >= 0 ? "+" : ""}{bot.profitLoss.toFixed(2)}%
+                  <span className={(bot.profitLoss || 0) >= 0 ? "text-green-600" : "text-red-600"}>
+                    {(bot.profitLoss || 0) >= 0 ? "+" : ""}{(bot.profitLoss || 0).toFixed(2)}%
                   </span>
                 </TableCell>
-                <TableCell>{bot.totalTrades}</TableCell>
+                <TableCell>{bot.totalTrades || 0}</TableCell>
                 <TableCell>
                   <Switch 
-                    checked={bot.status === 'running'} 
+                    checked={bot.status === 'active'} 
                     onCheckedChange={(checked) => {
                       if (checked) onStartBot(bot.id);
                       else onStopBot(bot.id);
@@ -120,7 +119,7 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
                     <Button variant="ghost" size="icon" onClick={() => onStartBot(bot.id)}>
                       <Play className="h-4 w-4" />
                     </Button>
-                  ) : bot.status === 'running' ? (
+                  ) : bot.status === 'active' ? (
                     <Button variant="ghost" size="icon" onClick={() => onStopBot(bot.id)}>
                       <Pause className="h-4 w-4" />
                     </Button>

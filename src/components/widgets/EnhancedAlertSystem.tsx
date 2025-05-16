@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash, Check, X, ArrowUp, ArrowDown, Settings, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,7 @@ interface TechnicalAlert {
   value: number;
   createdAt: Date;
   enabled: boolean;
+  type: 'technical';
 }
 
 type AlertWithType = 
@@ -52,7 +52,8 @@ export const createPriceAlert = (formData: any): PriceAlert => {
     enabled: true,
     recurring: formData.recurring,
     percentageChange: formData.percentageChange || 0,
-    notifyVia: formData.notifyVia as ("email" | "app" | "push")[]
+    notifyVia: formData.notifyVia as ("email" | "app" | "push")[],
+    type: 'price'
   };
 };
 
@@ -74,7 +75,8 @@ const EnhancedAlertSystem = () => {
     enabled: true,
     recurring: false,
     percentageChange: 0,
-    notifyVia: ["app"] as ("email" | "app" | "push")[]
+    notifyVia: ["app"] as ("email" | "app" | "push")[],
+    type: 'price' as const
   });
 
   // Volume alert state
@@ -86,7 +88,8 @@ const EnhancedAlertSystem = () => {
     volumeThreshold: 15,
     frequency: "1h" as AlertFrequency,
     enabled: true,
-    notifyVia: ["app"] as ("email" | "app" | "push")[]
+    notifyVia: ["app"] as ("email" | "app" | "push")[],
+    type: 'volume' as const
   });
 
   // Technical alert state
@@ -98,7 +101,8 @@ const EnhancedAlertSystem = () => {
     indicator: "RSI",
     condition: "above",
     value: 70,
-    enabled: true
+    enabled: true,
+    type: 'technical' as const
   });
   
   // Load alerts from localStorage
@@ -226,7 +230,8 @@ const EnhancedAlertSystem = () => {
       recurring: newPriceAlert.recurring,
       percentageChange: newPriceAlert.percentageChange,
       notifyVia: [...newPriceAlert.notifyVia],
-      createdAt: new Date()
+      createdAt: new Date(),
+      type: 'price'
     };
     
     setPriceAlerts([...priceAlerts, alert]);
@@ -260,7 +265,8 @@ const EnhancedAlertSystem = () => {
       frequency: newVolumeAlert.frequency,
       enabled: true,
       notifyVia: [...newVolumeAlert.notifyVia],
-      createdAt: new Date()
+      createdAt: new Date(),
+      type: 'volume'
     };
     
     setVolumeAlerts([...volumeAlerts, alert]);
@@ -275,7 +281,8 @@ const EnhancedAlertSystem = () => {
     const alert: TechnicalAlert = {
       id: Date.now().toString(),
       ...newTechnicalAlert,
-      createdAt: new Date()
+      createdAt: new Date(),
+      type: 'technical'
     };
     
     setTechnicalAlerts([...technicalAlerts, alert]);

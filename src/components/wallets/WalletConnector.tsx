@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supported
       // Mock account data - in a real implementation this would come from the wallet
       const mockAccount: WalletAccount = {
         address: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        balance: (Math.random() * 10).toFixed(4),
+        balance: "10.0", // Changed to string to match WalletAccount type
         network: "ETH",
         provider: wallet.id
       };

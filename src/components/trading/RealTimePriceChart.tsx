@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
@@ -50,6 +49,13 @@ const formatPrice = (price: number) => {
     minimumFractionDigits: price < 1 ? 4 : 2,
     maximumFractionDigits: price < 1 ? 6 : 2,
   }).format(price);
+};
+
+const formatValue = (value: string | number): number => {
+  if (typeof value === 'string') {
+    return parseFloat(value);
+  }
+  return value;
 };
 
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({

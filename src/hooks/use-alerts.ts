@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { AlertData, AlertFormData } from '@/types/trading';
+import { AlertData, AlertFormData } from '@/types/alerts';
 
 export const useAlerts = () => {
   const [alerts, setAlerts] = useState<AlertData[]>(() => {
@@ -28,7 +28,7 @@ export const useAlerts = () => {
       id: Date.now().toString(),
       ...formData,
       createdAt: new Date()
-    };
+    } as AlertData;
     setAlerts(prev => [...prev, newAlert]);
   };
 

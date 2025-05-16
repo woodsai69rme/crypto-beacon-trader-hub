@@ -39,11 +39,11 @@ const EnhancedFakeTrading: React.FC = () => {
             
             <div className="space-y-6">
               <TabsContent value="standard" className="m-0">
-                <FakeTradingForm onAddTrade={handleAddTrade} />
+                <FakeTradingForm onTrade={handleAddTrade} />
               </TabsContent>
               
               <TabsContent value="advanced" className="m-0">
-                <FakeTradingForm onAddTrade={handleAddTrade} advancedMode={true} />
+                <FakeTradingForm onTrade={handleAddTrade} advancedMode={true} />
               </TabsContent>
               
               <TabsContent value="analysis" className="m-0">

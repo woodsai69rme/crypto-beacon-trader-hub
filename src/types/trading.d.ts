@@ -1,5 +1,6 @@
 
 import { ReactNode } from 'react';
+import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency } from './alerts';
 
 // Widget related types
 export interface Widget {
@@ -380,9 +381,12 @@ export interface AITradingBot {
   name: string;
   description: string;
   strategy: AITradingStrategy;
+  pair?: string;
   status: 'active' | 'paused' | 'stopped';
   createdAt: string;
   lastRun?: string;
+  profitLoss?: number;
+  totalTrades?: number;
   performance?: {
     winRate: number;
     trades: number;
@@ -419,13 +423,17 @@ export interface LocalModel {
 
 export interface FakeTradingFormProps {
   onTrade: (trade: Trade) => void;
-  availableCoins: CoinOption[];
+  availableCoins?: CoinOption[];
   initialCoinId?: string;
+  advancedMode?: boolean;
 }
 
 export interface RealTimePricesProps {
   coins?: CoinOption[];
   refreshInterval?: number;
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
+  isLoading?: boolean;
 }
 
 export interface ModelListProps {
@@ -433,62 +441,23 @@ export interface ModelListProps {
   onSelect: (model: LocalModel) => void;
   onDelete?: (modelId: string) => void;
   selectedModelId?: string;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
 }
 
-// Alert system types
-export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly';
-
-export interface BaseAlertData {
-  id?: string;
-  type: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: Array<"email" | "app" | "push">;
-  createdAt?: string;
-  lastTriggered?: string;
+export interface WalletConnectionProps {
+  onConnect: (account: WalletAccount) => void;
+  supportedWallets: WalletProvider[];
 }
 
-export interface PriceAlert extends BaseAlertData {
-  type: 'price';
-  targetPrice: number;
-  isAbove: boolean;
-  recurring: boolean;
-  percentageChange: number;
-}
-
-export interface VolumeAlert extends BaseAlertData {
-  type: 'volume';
-  volumeThreshold: number;
-}
-
-export interface TechnicalAlert extends BaseAlertData {
-  type: 'technical';
-  indicator: string;
-  condition: string;
-  value: number;
-}
-
-export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
-
-export interface AlertFormData {
-  type: 'price' | 'volume' | 'technical';
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: Array<"email" | "app" | "push">;
-  targetPrice?: number;
-  isAbove?: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  volumeThreshold?: number;
-  indicator?: string;
-  condition?: string;
-  value?: number;
+export interface TradingFormProps {
+  balance: number;
+  availableCoins: CoinOption[];
+  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
+  conversionRate?: number;
 }
 
 // TradingAccount type
@@ -512,4 +481,9 @@ export interface TradingAccount {
   }>;
   isActive?: boolean;
   lastUpdated?: string;
+  currency?: SupportedCurrency;
+  initialBalance?: number;
 }
+
+// Re-exporting alert types for convenience
+export { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency };

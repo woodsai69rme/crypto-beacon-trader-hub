@@ -11,7 +11,7 @@ export interface BaseAlertData {
   notifyVia?: Array<"email" | "app" | "push">;
   createdAt?: Date | string;
   lastTriggered?: string;
-  type?: string;
+  type: string;
 }
 
 export interface PriceAlert extends BaseAlertData {
@@ -52,4 +52,40 @@ export interface AlertFormData {
   indicator?: string;
   condition?: string;
   value?: number;
+}
+
+// Form data types for different alert types
+export interface PriceAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  isAbove: boolean;
+  enabled: boolean;
+  recurring: boolean;
+  percentageChange: number;
+  notifyVia: Array<"email" | "app" | "push">;
+  frequency?: AlertFrequency;
+}
+
+export interface VolumeAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  volumeThreshold: number;
+  frequency: AlertFrequency;
+  enabled: boolean;
+  notifyVia: Array<"email" | "app" | "push">;
+}
+
+export interface TechnicalAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  indicator: string;
+  condition: string;
+  value: number;
+  enabled: boolean;
+  frequency?: AlertFrequency;
+  notifyVia?: Array<"email" | "app" | "push">;
 }
