@@ -73,6 +73,7 @@ const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onClose, onAddW
                 <SelectItem value="trading">Trading</SelectItem>
                 <SelectItem value="aiTrading">AI Trading</SelectItem>
                 <SelectItem value="aiAnalysis">AI Analysis</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -39,6 +39,14 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
     };
   }, [form]);
 
+  const updatePrivacyValue = (key: string, checked: boolean) => {
+    const updatedPrivacy = {
+      ...privacyValues,
+      [key]: checked
+    };
+    form.setValue("privacy", updatedPrivacy);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -62,10 +70,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormControl>
             <Switch
               checked={privacyValues.showOnlineStatus}
-              onCheckedChange={(checked) => {
-                const updatedPrivacy = { ...privacyValues, showOnlineStatus: checked };
-                form.setValue("privacy", updatedPrivacy);
-              }}
+              onCheckedChange={(checked) => updatePrivacyValue('showOnlineStatus', checked)}
             />
           </FormControl>
         </div>
@@ -80,10 +85,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormControl>
             <Switch
               checked={privacyValues.sharePortfolio}
-              onCheckedChange={(checked) => {
-                const updatedPrivacy = { ...privacyValues, sharePortfolio: checked };
-                form.setValue("privacy", updatedPrivacy);
-              }}
+              onCheckedChange={(checked) => updatePrivacyValue('sharePortfolio', checked)}
             />
           </FormControl>
         </div>
@@ -98,10 +100,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormControl>
             <Switch
               checked={privacyValues.shareTrades}
-              onCheckedChange={(checked) => {
-                const updatedPrivacy = { ...privacyValues, shareTrades: checked };
-                form.setValue("privacy", updatedPrivacy);
-              }}
+              onCheckedChange={(checked) => updatePrivacyValue('shareTrades', checked)}
             />
           </FormControl>
         </div>
@@ -116,10 +115,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormControl>
             <Switch
               checked={privacyValues.dataCollection}
-              onCheckedChange={(checked) => {
-                const updatedPrivacy = { ...privacyValues, dataCollection: checked };
-                form.setValue("privacy", updatedPrivacy);
-              }}
+              onCheckedChange={(checked) => updatePrivacyValue('dataCollection', checked)}
             />
           </FormControl>
         </div>
@@ -134,10 +130,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormControl>
             <Switch
               checked={privacyValues.marketingConsent}
-              onCheckedChange={(checked) => {
-                const updatedPrivacy = { ...privacyValues, marketingConsent: checked };
-                form.setValue("privacy", updatedPrivacy);
-              }}
+              onCheckedChange={(checked) => updatePrivacyValue('marketingConsent', checked)}
             />
           </FormControl>
         </div>
@@ -152,10 +145,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormControl>
             <Switch
               checked={privacyValues.thirdPartySharing}
-              onCheckedChange={(checked) => {
-                const updatedPrivacy = { ...privacyValues, thirdPartySharing: checked };
-                form.setValue("privacy", updatedPrivacy);
-              }}
+              onCheckedChange={(checked) => updatePrivacyValue('thirdPartySharing', checked)}
             />
           </FormControl>
         </div>

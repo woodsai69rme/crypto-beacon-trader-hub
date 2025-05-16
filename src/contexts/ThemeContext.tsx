@@ -12,6 +12,7 @@ interface ThemeContextType {
   setColorScheme: (scheme: ColorScheme) => void;
 }
 
+// Create context with proper default values
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'system',
   setTheme: () => {},
@@ -57,11 +58,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     document.documentElement.setAttribute('data-color-scheme', colorScheme);
   }, [colorScheme]);
 
+  const contextValue: ThemeContextType = {
+    theme,
+    setTheme,
+    colorScheme,
+    setColorScheme
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, colorScheme, setColorScheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
+// Export the useTheme hook directly from here
 export const useTheme = () => useContext(ThemeContext);

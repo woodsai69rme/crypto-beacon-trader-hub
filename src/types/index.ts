@@ -1,9 +1,5 @@
-
-// Re-export all types from the trading module
+// Export everything from the trading module
 export * from './trading';
 
-// Re-export any other type modules as needed
-// export * from './alerts';
-// export * from './settings';
-// export * from './api';
-// export * from './currency';
+// Add any additional type exports here
+// We're making sure all types are properly exported

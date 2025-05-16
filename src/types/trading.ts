@@ -42,7 +42,7 @@ export interface Trade {
   price: number;
   quantity: number;
   total: number;
-  timestamp: number;
+  timestamp: number | string;
   coinSymbol?: string;
   amount?: number;
   totalValue?: number;
@@ -63,6 +63,8 @@ export interface PricePoint {
   close?: number;
   high?: number;
   low?: number;
+  // Needed for compatibility with some components
+  time?: number;
 }
 
 export interface WalletAccount {
@@ -92,6 +94,15 @@ export interface WalletProvider {
   logo?: string;
   isInstalled?: boolean;
   isConnected?: boolean;
+}
+
+export interface TradingAccount {
+  id: string;
+  name: string;
+  trades: Trade[];
+  balance: number;
+  currency: string;
+  createdAt: string;
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive';
@@ -125,6 +136,15 @@ export interface Widget {
   config?: any;
 }
 
+export interface WidgetComponentProps {
+  id: string;
+  type: WidgetType;
+  title: string;
+  onRemove?: (id: string) => void;
+  config?: any;
+  widget?: Widget;
+}
+
 // API related types
 export interface ApiProvider {
   id: string;
@@ -144,6 +164,7 @@ export interface ApiProvider {
   isActive?: boolean;
   status?: string;
   endpoint?: string;
+  usageLimit?: number;
 }
 
 export interface ApiEndpoint {
@@ -223,34 +244,47 @@ export enum TradingPosition {
 
 // Settings form values
 export interface SettingsFormValues {
-  displayName: string;
-  username: string;
-  contactEmail: string;
-  userLanguage: string;
-  theme: {
+  displayName?: string;
+  username?: string;
+  contactEmail?: string;
+  userLanguage?: string;
+  theme?: {
     mode: 'dark' | 'light' | 'system';
     accentColor: string;
-  };
-  display: {
+  } | string;
+  display?: {
     showPortfolio: boolean;
     showBalances: boolean;
     compactMode: boolean;
+    defaultTab?: string;
+    colorScheme?: string;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
   };
-  currency: {
+  currency?: {
     defaultCurrency: SupportedCurrency;
     showConversion: boolean;
+    showPriceInBTC?: boolean;
   };
-  notifications: {
+  notifications?: {
     enablePush: boolean;
     enableEmail: boolean;
     alertPrice: boolean;
     alertNews: boolean;
+    email?: boolean;
+    push?: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
+    priceAlerts?: boolean;
   };
-  api: {
+  api?: {
     provider: string;
     refreshInterval: number;
+    key?: string;
+    timeout?: number;
   };
-  privacy: {
+  privacy?: {
     showOnlineStatus: boolean;
     sharePortfolio: boolean;
     shareTrades: boolean;
@@ -258,13 +292,18 @@ export interface SettingsFormValues {
     marketingConsent: boolean;
     thirdPartySharing: boolean;
   };
-  appearance: {
+  appearance?: {
     densityMode: 'compact' | 'comfortable' | 'spacious';
     fontScale: number;
+    colorScheme?: string;
+    compactMode?: boolean;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
   };
-  account: {
-    twoFactor: boolean;
-    loginAlerts: boolean;
+  account?: {
+    twoFactor?: boolean;
+    loginAlerts?: boolean;
+    twoFactorEnabled?: boolean;
   };
   ticker?: {
     enabled: boolean;
@@ -277,3 +316,6 @@ export interface SettingsFormValues {
     autoPause: boolean;
   };
 }
+
+// Alert types
+export type AlertFrequency = 'once' | 'daily' | 'hourly' | 'always';
