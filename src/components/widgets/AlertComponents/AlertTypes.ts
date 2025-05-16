@@ -1,6 +1,8 @@
+
 import { AlertFrequency } from "@/types/alerts";
 
 export interface PriceAlertFormData {
+  type: 'price';
   coinId: string;
   coinName: string;
   coinSymbol: string;
@@ -9,10 +11,12 @@ export interface PriceAlertFormData {
   recurring: boolean;
   percentageChange: number;
   enabled: boolean;
+  frequency: AlertFrequency;
   notifyVia: ("email" | "app" | "push")[];
 }
 
 export interface VolumeAlertFormData {
+  type: 'volume';
   coinId: string;
   coinName: string;
   coinSymbol: string;
@@ -23,14 +27,19 @@ export interface VolumeAlertFormData {
 }
 
 export interface TechnicalAlertFormData {
+  type: 'technical';
   coinId: string;
   coinName: string;
   coinSymbol: string;
   indicator: string;
   condition: string;
   value: number;
+  frequency: AlertFrequency;
   enabled: boolean;
+  notifyVia: ("email" | "app" | "push")[];
 }
+
+export type AlertFormData = PriceAlertFormData | VolumeAlertFormData | TechnicalAlertFormData;
 
 export type CoinOption = {
   id: string;

@@ -16,21 +16,10 @@ export interface CoinOption {
   image?: string;
   volume?: number;
   marketCap?: number;
+  rank?: number;
   // For select component
-  value: string;
-  label: string;
-}
-
-export interface PricePoint {
-  timestamp: number;
-  price: number;
-  date?: string; // Formatted date string
-  volume?: number;
-  open?: number;
-  close?: number;
-  high?: number;
-  low?: number;
-  time?: number; // Add time property for compatibility with charts
+  value?: string;
+  label?: string;
 }
 
 export interface CryptoData {
@@ -54,6 +43,18 @@ export interface CryptoData {
   current_price?: number;
 }
 
+export interface PricePoint {
+  timestamp: number;
+  price: number;
+  date?: string; // Formatted date string
+  volume?: number;
+  open?: number;
+  close?: number;
+  high?: number;
+  low?: number;
+  time?: number; // Add time property for compatibility with charts
+}
+
 export interface Trade {
   id: string;
   coinId: string;
@@ -72,6 +73,7 @@ export interface Trade {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
+  coin?: string;
 }
 
 export interface WalletAccount {
@@ -154,7 +156,7 @@ export interface Widget {
 export type WidgetType = 
   'price' | 'chart' | 'news' | 'portfolio' | 'alerts' | 
   'trading' | 'aiTrading' | 'aiAnalysis' | 'custom' |
-  'price-chart' | 'portfolio-summary' | 'watchlist';
+  'price-chart' | 'portfolio-summary' | 'watchlist' | 'news';
   
 export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large' | 'wide' | 'tall' | 'full' | 'custom';
 
@@ -184,6 +186,7 @@ export interface LiveAnalyticsDashboardProps {
   availableCoins?: CoinOption[];
   apiUsageStats?: ApiUsageStats[];
   onAlertTriggered?: (alert: any) => void;
+  isLoading?: boolean;
 }
 
 // API related types
@@ -338,4 +341,23 @@ export enum TradingPosition {
   LONG = 'long',
   SHORT = 'short',
   NEUTRAL = 'neutral',
+}
+
+// Alert form data type
+export interface AlertFormData {
+  type: string;
+  frequency: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice?: number;
+  isAbove?: boolean;
+  enabled: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  notifyVia: ("email" | "app" | "push")[];
+  volumeThreshold?: number;
+  indicator?: string;
+  condition?: string;
+  value?: number;
 }

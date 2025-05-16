@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CustomizableDashboardLayoutProps {
   children: React.ReactNode;
-  onLayoutChange?: (layout: any) => void;
+  onLayoutChange?: (layout: Widget[]) => void;
 }
 
 const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = ({

@@ -1,111 +1,92 @@
 
 /**
- * Generates color based on correlation value
- * @param correlation Value between -1 and 1
- * @returns CSS color string
+ * Utility functions for market correlation components
  */
-export function getCorrelationColor(correlation: number): string {
-  // Red for negative correlation, blue for positive
-  if (correlation > 0) {
-    const intensity = Math.round(correlation * 200) + 55;
-    return `rgb(0, 0, ${intensity})`;
-  } else {
-    const intensity = Math.round(-correlation * 200) + 55;
-    return `rgb(${intensity}, 0, 0)`;
-  }
-}
 
 /**
- * Calculates Pearson correlation coefficient between two arrays of numbers
+ * Get a color shade based on correlation value
+ * @param value Correlation value between -1 and 1
+ * @returns CSS color string
+ */
+export const getCorrelationColor = (value: number): string => {
+  // Strong positive correlation: dark green
+  if (value >= 0.8) return '#15803d';
+  
+  // Moderate positive correlation: medium green
+  if (value >= 0.5) return '#22c55e';
+  
+  // Weak positive correlation: light green
+  if (value >= 0.2) return '#86efac';
+  
+  // Very weak or no correlation: gray
+  if (value >= -0.2) return '#e2e8f0';
+  
+  // Weak negative correlation: light red
+  if (value >= -0.5) return '#fca5a5';
+  
+  // Moderate negative correlation: medium red
+  if (value >= -0.8) return '#ef4444';
+  
+  // Strong negative correlation: dark red
+  return '#b91c1c';
+};
+
+/**
+ * Calculate Pearson correlation between two arrays of numbers
  * @param x First array of numbers
  * @param y Second array of numbers
  * @returns Correlation coefficient between -1 and 1
  */
-export function calculateCorrelation(x: number[], y: number[]): number {
-  if (x.length !== y.length) {
-    throw new Error('Arrays must have the same length');
-  }
-  
-  const n = x.length;
-  
-  // Calculate means
-  const xMean = x.reduce((a, b) => a + b, 0) / n;
-  const yMean = y.reduce((a, b) => a + b, 0) / n;
-  
-  // Calculate variance and covariance
-  let xVariance = 0;
-  let yVariance = 0;
-  let covariance = 0;
-  
-  for (let i = 0; i < n; i++) {
-    const xDiff = x[i] - xMean;
-    const yDiff = y[i] - yMean;
-    
-    xVariance += xDiff * xDiff;
-    yVariance += yDiff * yDiff;
-    covariance += xDiff * yDiff;
-  }
-  
-  // Calculate correlation coefficient
-  const denominator = Math.sqrt(xVariance * yVariance);
-  
-  if (denominator === 0) {
+export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
+  if (x.length === 0 || y.length === 0 || x.length !== y.length) {
     return 0;
   }
+
+  const n = x.length;
   
-  return covariance / denominator;
-}
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumX2 = 0;
+  let sumY2 = 0;
+  
+  for (let i = 0; i < n; i++) {
+    sumX += x[i];
+    sumY += y[i];
+    sumXY += x[i] * y[i];
+    sumX2 += x[i] * x[i];
+    sumY2 += y[i] * y[i];
+  }
+  
+  const numerator = n * sumXY - sumX * sumY;
+  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+  
+  if (denominator === 0) return 0;
+  return numerator / denominator;
+};
 
 /**
- * Finds strongest correlations for a given coin
+ * Format correlation value for display
+ * @param value Correlation value between -1 and 1
+ * @returns Formatted string (e.g. "72%" or "-45%")
  */
-export function findStrongestCorrelations(
-  correlationMatrix: Record<string, Record<string, number>>,
-  coinId: string,
-  cryptoData: {
-    id: string;
-    name: string;
-    symbol: string;
-    price?: number;
-    image?: string;
-    marketCap?: number;
-    volume?: number;
-    changePercent?: number;
-  }[],
-  limit = 5
-): { coin: { 
-    id: string;
-    name: string;
-    symbol: string;
-    price?: number;
-    image?: string;
-    marketCap?: number;
-    volume?: number;
-    changePercent?: number;
-  }; correlation: number }[] {
-  const coinCorrelations = correlationMatrix[coinId];
-  if (!coinCorrelations) return [];
-  
-  const coinMap = cryptoData.reduce((map, coin) => {
-    map[coin.id] = coin;
-    return map;
-  }, {} as Record<string, {
-    id: string;
-    name: string;
-    symbol: string;
-    price?: number;
-    image?: string;
-    marketCap?: number;
-    volume?: number;
-    changePercent?: number;
-  }>);
-  
-  return Object.entries(coinCorrelations)
-    .filter(([id]) => id !== coinId && coinMap[id])
-    .map(([id, correlation]) => ({
-      coin: coinMap[id],
-      correlation
-    }))
-    .sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation))
-    .slice(0, limit);
-}
+export const formatCorrelation = (value: number): string => {
+  return `${(value * 100).toFixed(0)}%`;
+};
+
+/**
+ * Group correlations into categories
+ * @param correlations Array of correlation values
+ * @returns Object with correlations grouped by strength
+ */
+export const categorizeCorrelations = (correlations: number[]) => {
+  return {
+    strong_positive: correlations.filter(c => c >= 0.7),
+    moderate_positive: correlations.filter(c => c >= 0.5 && c < 0.7),
+    weak_positive: correlations.filter(c => c >= 0.3 && c < 0.5),
+    negligible: correlations.filter(c => c > -0.3 && c < 0.3),
+    weak_negative: correlations.filter(c => c <= -0.3 && c > -0.5),
+    moderate_negative: correlations.filter(c => c <= -0.5 && c > -0.7),
+    strong_negative: correlations.filter(c => c <= -0.7)
+  };
+};
