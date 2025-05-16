@@ -6,7 +6,7 @@ import WidgetGrid from "./widgets/WidgetGrid";
 import WidgetList from "./widgets/WidgetList";
 import AddWidgetDialog from "./widgets/AddWidgetDialog";
 import { Widget, WidgetType, WidgetSize } from "@/types/trading";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 const CustomizableDashboard: React.FC = () => {
   const [isAddingWidget, setIsAddingWidget] = useState(false);
@@ -36,26 +36,29 @@ const CustomizableDashboard: React.FC = () => {
     {
       id: "news-widget",
       position: { x: 1, y: 1, w: 1, h: 1 },
-      title: "Crypto News",
-      type: "news",
+      title: "news" as WidgetType,
       size: "small",
     },
     {
       id: "alerts-widget",
       position: { x: 0, y: 2, w: 1, h: 1 },
       title: "Price Alerts",
-      type: "alerts",
+      type: "alerts" as WidgetType, 
       size: "small",
     }
   ]);
   
-  const handleAddWidget = (widget: Widget) => {
+  const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
     // Find the next available position
     const maxY = Math.max(...widgets.map(w => (w.position?.y || 0)));
     
     const newWidget: Widget = {
-      ...widget,
-      position: { x: 0, y: maxY + 1, w: 1, h: 1 }
+      id: `${widget.type}-${Date.now()}`,
+      title: widget.title,
+      type: widget.type,
+      size: widget.size,
+      position: { x: 0, y: maxY + 1, w: 1, h: 1 },
+      customContent: widget.customContent
     };
     
     setWidgets([...widgets, newWidget]);
@@ -64,6 +67,8 @@ const CustomizableDashboard: React.FC = () => {
       title: "Widget Added",
       description: `${widget.title} widget has been added to the dashboard.`,
     });
+    
+    setIsAddingWidget(false);
   };
   
   const handleRemoveWidget = (id: string) => {
@@ -103,18 +108,18 @@ const CustomizableDashboard: React.FC = () => {
       {viewMode === "grid" ? (
         <WidgetGrid 
           widgets={widgets} 
-          onRemove={handleRemoveWidget} 
+          onRemoveWidget={handleRemoveWidget} 
         />
       ) : (
         <WidgetList 
           widgets={widgets} 
-          onRemove={handleRemoveWidget} 
+          onRemoveWidget={handleRemoveWidget} 
         />
       )}
       
       <AddWidgetDialog
         open={isAddingWidget}
-        onClose={() => setIsAddingWidget(false)}
+        onOpenChange={setIsAddingWidget}
         onAddWidget={handleAddWidget}
       />
     </div>

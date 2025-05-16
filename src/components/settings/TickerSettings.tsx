@@ -12,24 +12,17 @@ import { Label } from '@/components/ui/label';
 const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   useEffect(() => {
     // Initialize ticker settings if they don't exist
-    if (!form.getValues().ticker) {
+    const currentValues = form.getValues();
+    if (!currentValues.ticker) {
       form.setValue('ticker', {
         enabled: true,
         position: 'bottom',
         direction: 'ltr',
         speed: 50,
         autoPause: true,
-      });
+      }, { shouldValidate: false });
     }
   }, [form]);
-  
-  const tickerValues = form.getValues().ticker || {
-    enabled: true,
-    position: 'bottom',
-    direction: 'ltr',
-    speed: 50,
-    autoPause: true,
-  };
 
   return (
     <Card>
@@ -45,147 +38,102 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       
       <CardContent className="space-y-6">
         {/* Ticker Enabled */}
-        <FormField
-          control={form.control}
-          name="ticker.enabled"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Show Price Ticker</FormLabel>
-                <FormDescription>
-                  Display a real-time price ticker on your dashboard
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch 
-                  checked={field.value} 
-                  onCheckedChange={(checked) => {
-                    const updatedTicker = { ...tickerValues, enabled: checked };
-                    form.setValue('ticker', updatedTicker);
-                  }}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+          <div className="space-y-0.5">
+            <Label>Show Price Ticker</Label>
+            <p className="text-sm text-muted-foreground">
+              Display a real-time price ticker on your dashboard
+            </p>
+          </div>
+          <Switch 
+            checked={form.getValues().ticker?.enabled}
+            onCheckedChange={(checked) => {
+              form.setValue('ticker.enabled', checked, { shouldValidate: false });
+            }}
+          />
+        </div>
         
         {/* Ticker Position */}
-        <FormField
-          control={form.control}
-          name="ticker.position"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Ticker Position</FormLabel>
-              <FormDescription>
-                Choose where the ticker appears on screen
-              </FormDescription>
-              <FormControl>
-                <RadioGroup 
-                  onValueChange={(value) => {
-                    const updatedTicker = { ...tickerValues, position: value as "top" | "bottom" };
-                    form.setValue('ticker', updatedTicker);
-                  }}
-                  defaultValue={field.value} 
-                  className="flex flex-col space-y-1"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="top" id="top" />
-                    <Label htmlFor="top">Top of screen</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="bottom" id="bottom" />
-                    <Label htmlFor="bottom">Bottom of screen</Label>
-                  </div>
-                </RadioGroup>
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <div className="space-y-3">
+          <Label>Ticker Position</Label>
+          <p className="text-sm text-muted-foreground">
+            Choose where the ticker appears on screen
+          </p>
+          <RadioGroup 
+            value={form.getValues().ticker?.position || 'bottom'}
+            onValueChange={(value) => {
+              form.setValue('ticker.position', value as 'top' | 'bottom', { shouldValidate: false });
+            }}
+            className="flex flex-col space-y-1"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="top" id="top" />
+              <Label htmlFor="top">Top of screen</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="bottom" id="bottom" />
+              <Label htmlFor="bottom">Bottom of screen</Label>
+            </div>
+          </RadioGroup>
+        </div>
         
         {/* Ticker Direction */}
-        <FormField
-          control={form.control}
-          name="ticker.direction"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Scrolling Direction</FormLabel>
-              <FormDescription>
-                Choose the direction the ticker scrolls
-              </FormDescription>
-              <FormControl>
-                <RadioGroup 
-                  onValueChange={(value) => {
-                    const updatedTicker = { ...tickerValues, direction: value as "ltr" | "rtl" };
-                    form.setValue('ticker', updatedTicker);
-                  }}
-                  defaultValue={field.value} 
-                  className="flex flex-col space-y-1"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ltr" id="ltr" />
-                    <Label htmlFor="ltr">Left to right</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="rtl" id="rtl" />
-                    <Label htmlFor="rtl">Right to left</Label>
-                  </div>
-                </RadioGroup>
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <div className="space-y-3">
+          <Label>Scrolling Direction</Label>
+          <p className="text-sm text-muted-foreground">
+            Choose the direction the ticker scrolls
+          </p>
+          <RadioGroup 
+            value={form.getValues().ticker?.direction || 'ltr'}
+            onValueChange={(value) => {
+              form.setValue('ticker.direction', value as 'ltr' | 'rtl', { shouldValidate: false });
+            }}
+            className="flex flex-col space-y-1"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="ltr" id="ltr" />
+              <Label htmlFor="ltr">Left to right</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="rtl" id="rtl" />
+              <Label htmlFor="rtl">Right to left</Label>
+            </div>
+          </RadioGroup>
+        </div>
         
         {/* Ticker Speed */}
-        <FormField
-          control={form.control}
-          name="ticker.speed"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Scrolling Speed</FormLabel>
-              <FormControl>
-                <Slider
-                  min={10}
-                  max={100}
-                  step={5}
-                  defaultValue={[field.value || 50]}
-                  onValueChange={(values) => {
-                    const updatedTicker = { ...tickerValues, speed: values[0] };
-                    form.setValue('ticker', updatedTicker);
-                  }}
-                />
-              </FormControl>
-              <div className="flex justify-between">
-                <FormDescription>Slower</FormDescription>
-                <FormDescription>Faster</FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
+        <div className="space-y-3">
+          <Label>Scrolling Speed</Label>
+          <Slider
+            min={10}
+            max={100}
+            step={5}
+            defaultValue={[form.getValues().ticker?.speed || 50]}
+            onValueChange={(values) => {
+              form.setValue('ticker.speed', values[0], { shouldValidate: false });
+            }}
+          />
+          <div className="flex justify-between">
+            <p className="text-sm text-muted-foreground">Slower</p>
+            <p className="text-sm text-muted-foreground">Faster</p>
+          </div>
+        </div>
         
         {/* Auto Pause */}
-        <FormField
-          control={form.control}
-          name="ticker.autoPause"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Auto-pause on hover</FormLabel>
-                <FormDescription>
-                  Pause the ticker when you hover over it
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch 
-                  checked={field.value} 
-                  onCheckedChange={(checked) => {
-                    const updatedTicker = { ...tickerValues, autoPause: checked };
-                    form.setValue('ticker', updatedTicker);
-                  }}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+          <div className="space-y-0.5">
+            <Label>Auto-pause on hover</Label>
+            <p className="text-sm text-muted-foreground">
+              Pause the ticker when you hover over it
+            </p>
+          </div>
+          <Switch 
+            checked={form.getValues().ticker?.autoPause}
+            onCheckedChange={(checked) => {
+              form.setValue('ticker.autoPause', checked, { shouldValidate: false });
+            }}
+          />
+        </div>
       </CardContent>
     </Card>
   );

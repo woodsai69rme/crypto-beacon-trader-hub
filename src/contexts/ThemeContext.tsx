@@ -1,121 +1,68 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Define theme types for the context
 export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
+export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red';
 
 interface ThemeContextType {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
   colorScheme: ColorScheme;
-  setColorScheme: (scheme: ColorScheme) => void;
-  resolvedTheme: 'light' | 'dark';
+  setTheme: (theme: Theme) => void;
+  setColorScheme: (colorScheme: ColorScheme) => void;
 }
 
-// Create context with proper default values
-export const ThemeContext = createContext<ThemeContextType>({
+const defaultTheme: ThemeContextType = {
   theme: 'system',
+  colorScheme: 'blue',
   setTheme: () => {},
-  colorScheme: 'default',
-  setColorScheme: () => {},
-  resolvedTheme: 'dark'
-});
+  setColorScheme: () => {}
+};
+
+// Export the ThemeContext directly
+export const ThemeContext = createContext<ThemeContextType>(defaultTheme);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('system');
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('default');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
 
-  // Initialize theme from localStorage on component mount
+  // Check for system preference on mount
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme') as Theme;
-    if (storedTheme && ['light', 'dark', 'system'].includes(storedTheme)) {
-      setTheme(storedTheme);
+    // Check localStorage first
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme | null;
+    
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('dark');
     }
-
-    const storedColorScheme = localStorage.getItem('colorScheme') as ColorScheme;
-    if (storedColorScheme && ['default', 'midnight-tech', 'cyber-pulse', 'matrix-code', 'neon-future', 'sunset-gradient'].includes(storedColorScheme)) {
-      setColorScheme(storedColorScheme);
+    
+    if (savedColorScheme) {
+      setColorScheme(savedColorScheme);
     }
-
-    // Set initial resolved theme
-    updateResolvedTheme(storedTheme || 'system');
   }, []);
 
-  // Function to update the resolved theme based on system preference and theme setting
-  const updateResolvedTheme = (themeValue: Theme) => {
-    if (themeValue === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setResolvedTheme(isDark ? 'dark' : 'light');
-    } else {
-      setResolvedTheme(themeValue === 'dark' ? 'dark' : 'light');
-    }
-  };
-
-  // Update localStorage when theme changes
+  // Save preferences when they change
   useEffect(() => {
     localStorage.setItem('theme', theme);
-
-    // Update resolved theme
-    updateResolvedTheme(theme);
-
+    localStorage.setItem('colorScheme', colorScheme);
+    
     // Apply theme to document
-    if (theme === 'dark' || 
-        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [theme]);
-
-  // Update localStorage when color scheme changes
-  useEffect(() => {
-    localStorage.setItem('colorScheme', colorScheme);
     
-    // Apply color scheme to document
+    // Apply color scheme
     document.documentElement.setAttribute('data-color-scheme', colorScheme);
-  }, [colorScheme]);
-
-  // Listen for system preference changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = () => {
-      if (theme === 'system') {
-        setResolvedTheme(mediaQuery.matches ? 'dark' : 'light');
-        if (mediaQuery.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
-
-  const contextValue: ThemeContextType = {
-    theme,
-    setTheme,
-    colorScheme,
-    setColorScheme,
-    resolvedTheme
-  };
+  }, [theme, colorScheme]);
 
   return (
-    <ThemeContext.Provider value={contextValue}>
+    <ThemeContext.Provider value={{ theme, colorScheme, setTheme, setColorScheme }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-// Export the useTheme hook directly from here
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+export default ThemeProvider;

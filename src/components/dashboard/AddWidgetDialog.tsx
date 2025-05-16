@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { WidgetType, WidgetSize } from '@/types/trading';
+import { WidgetType, WidgetSize, Widget } from '@/types/trading';
 
 interface AddWidgetDialogProps {
   open: boolean;
@@ -32,6 +32,7 @@ const AddWidgetDialog: React.FC<AddWidgetDialogProps> = ({ open, onOpenChange, o
     setType('price-chart');
     setSize('medium');
     setCustomContent('');
+    onOpenChange(false);
   };
   
   return (

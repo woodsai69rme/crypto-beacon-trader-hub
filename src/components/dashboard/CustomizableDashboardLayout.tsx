@@ -1,8 +1,8 @@
 
 import React, { useState } from "react";
 import { Widget } from "@/types/trading";
-import WidgetGrid from "./WidgetGrid";
-import WidgetList from "./WidgetList";
+import WidgetGrid from "./widgets/WidgetGrid";
+import WidgetList from "./widgets/WidgetList";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CustomizableDashboardLayoutProps {
@@ -43,11 +43,11 @@ const CustomizableDashboardLayout: React.FC<CustomizableDashboardLayoutProps> = 
       {widgets.length > 0 && (
         <div className="mt-6">
           {isMobile ? (
-            <WidgetList widgets={widgets} onRemove={handleRemoveWidget} />
+            <WidgetList widgets={widgets} onRemoveWidget={handleRemoveWidget} />
           ) : (
             <WidgetGrid 
               widgets={widgets} 
-              onRemove={handleRemoveWidget} 
+              onRemoveWidget={handleRemoveWidget} 
               onUpdatePosition={handleUpdatePosition} 
             />
           )}

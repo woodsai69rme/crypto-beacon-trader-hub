@@ -7,20 +7,15 @@ import { X } from "lucide-react";
 
 export interface WidgetGridProps {
   widgets: Widget[];
-  onRemove?: (id: string) => void;
   onRemoveWidget?: (id: string) => void;
-  onUpdatePosition?: (id: string, position: { x: number; y: number }) => void;
+  onUpdatePosition?: (id: string, position: { x: number; y: number; w: number; h: number }) => void;
 }
 
 const WidgetGrid: React.FC<WidgetGridProps> = ({
   widgets,
-  onRemove,
   onRemoveWidget,
   onUpdatePosition
 }) => {
-  // Use onRemoveWidget or onRemove, whichever is provided
-  const handleRemove = onRemoveWidget || onRemove;
-  
   const getSizeClass = (size: string) => {
     switch (size) {
       case "small":
@@ -49,12 +44,12 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({
         >
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <CardTitle className="text-base">{widget.title}</CardTitle>
-            {handleRemove && (
+            {onRemoveWidget && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full"
-                onClick={() => handleRemove(widget.id)}
+                onClick={() => onRemoveWidget(widget.id)}
               >
                 <X className="h-4 w-4" />
               </Button>

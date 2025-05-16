@@ -1,11 +1,9 @@
-// If the file exists, we'll only update what's needed
-export interface RealTimePricesProps {
-  coins?: CoinOption[];
-  refreshInterval?: number;
-  onSelectCoin?: (coinId: string) => void;
-  selectedCoinId?: string | null;
-  isLoading?: boolean;
-}
+
+// Import any external types needed
+import { Theme, ColorScheme } from '@/contexts/ThemeContext';
+
+// Re-export theme types
+export { Theme, ColorScheme };
 
 // Basic trading types
 export interface CoinOption {
@@ -46,6 +44,14 @@ export interface CryptoData {
   high24h?: number;
   low24h?: number;
   prices?: [number, number][]; // [timestamp, price]
+  price?: number;
+  priceChange?: number;
+  changePercent?: number;
+  image?: string;
+  volume?: number;
+  market_cap?: number;
+  market_cap_rank?: number;
+  current_price?: number;
 }
 
 export interface Trade {
@@ -55,8 +61,17 @@ export interface Trade {
   type: 'buy' | 'sell';
   price: number;
   quantity: number;
+  amount?: number;
   total: number;
-  timestamp: number;
+  totalValue?: number;
+  timestamp: number | string;
+  coinSymbol?: string;
+  fees?: number;
+  currency?: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
 }
 
 export interface WalletAccount {
@@ -132,13 +147,16 @@ export interface Widget {
   data?: any;
   settings?: any;
   position?: { x: number; y: number; w: number; h: number };
+  customContent?: string;
+  config?: any;
 }
 
 export type WidgetType = 
   'price' | 'chart' | 'news' | 'portfolio' | 'alerts' | 
-  'trading' | 'aiTrading' | 'aiAnalysis' | 'custom';
+  'trading' | 'aiTrading' | 'aiAnalysis' | 'custom' |
+  'price-chart' | 'portfolio-summary' | 'watchlist';
   
-export type WidgetSize = 'small' | 'medium' | 'large' | 'custom';
+export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large' | 'wide' | 'tall' | 'full' | 'custom';
 
 export interface WidgetComponentProps {
   id: string;
@@ -146,12 +164,16 @@ export interface WidgetComponentProps {
   title: string;
   onRemove?: (id: string) => void;
   widget?: Widget;
+  className?: string;
 }
 
 export interface DetachableDashboardProps {
   onClose: () => void;
   isDetached?: boolean;
   children?: React.ReactNode;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
 }
 
 export interface LiveAnalyticsDashboardProps {
@@ -161,6 +183,7 @@ export interface LiveAnalyticsDashboardProps {
   darkMode?: boolean;
   availableCoins?: CoinOption[];
   apiUsageStats?: ApiUsageStats[];
+  onAlertTriggered?: (alert: any) => void;
 }
 
 // API related types
@@ -176,6 +199,15 @@ export interface ApiProvider {
   apiKeyName?: string;
   authMethod?: 'header' | 'query';
   defaultHeaders?: Record<string, string>;
+  currentUsage?: number;
+  maxUsage?: number;
+  resetTime?: string;
+  isActive?: boolean;
+  status?: string;
+  endpoint?: string;
+  usageLimit?: number;
+  website?: string;
+  docs?: string;
 }
 
 export interface ApiEndpoint {
@@ -189,6 +221,7 @@ export interface ApiEndpoint {
   responseTime?: number;
   lastUsed?: string;
   requiresAuth?: boolean;
+  parameters?: any[];
 }
 
 export interface ApiUsageStats {
@@ -259,10 +292,13 @@ export interface SettingsFormValues {
     compactMode: boolean;
     animationsEnabled: boolean;
     highContrastMode: boolean;
+    densityMode?: 'compact' | 'comfortable' | 'spacious';
+    fontScale?: number;
   };
   account?: {
     twoFactorEnabled: boolean;
     loginAlerts: boolean;
+    twoFactor?: boolean;
   };
   ticker?: {
     enabled: boolean;
@@ -270,12 +306,11 @@ export interface SettingsFormValues {
     speed: number;
     direction: 'ltr' | 'rtl';
     autoPause: boolean;
+    coins?: string[];
+    showVolume?: boolean;
+    showPercentChange?: boolean;
   };
 }
-
-// Use ThemeContext types to avoid type conflicts
-import { Theme, ColorScheme } from '@/contexts/ThemeContext';
-export { Theme, ColorScheme };
 
 // Portfolio benchmarking types
 export interface EnhancedPortfolioBenchmarkingProps {
@@ -287,4 +322,20 @@ export interface EnhancedPortfolioBenchmarkingProps {
   portfolioId?: string;
   comparisonAssets?: string[];
   showDetailedView?: boolean;
+}
+
+// Real-time prices component props
+export interface RealTimePricesProps {
+  coins?: CoinOption[];
+  refreshInterval?: number;
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string | null;
+  isLoading?: boolean;
+}
+
+// Trading position enum
+export enum TradingPosition {
+  LONG = 'long',
+  SHORT = 'short',
+  NEUTRAL = 'neutral',
 }
