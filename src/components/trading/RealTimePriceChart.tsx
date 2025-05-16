@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, BarChart, CandlestickChart, ArrowLeft, ArrowRight, ZoomIn, ZoomOut } from "lucide-react";
 import { RealTimePriceChartProps, CoinOption } from '@/types/trading';
-import { fetchCoinPriceHistory } from '@/services/cryptoService';
 
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   selectedCoinId,
@@ -24,8 +24,15 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
       
       setIsLoading(true);
       try {
-        const data = await fetchCoinPriceHistory(selectedCoinId, timeframe);
-        setPriceData(data);
+        // Mock data fetch - in a real app, replace with actual API call
+        // Replace fetchCoinPriceHistory with a fetch function that exists in your app
+        const mockData = Array(30).fill(null).map((_, i) => ({
+          timestamp: Date.now() - (i * 86400000),
+          price: 50000 - (Math.random() * 5000),
+          volume: Math.random() * 10000000
+        }));
+        
+        setPriceData(mockData);
       } catch (error) {
         console.error("Error fetching price data:", error);
       } finally {
@@ -62,8 +69,11 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   };
   
   const handleDateSelect = (date: string) => {
-    // Scroll to specific date
-    chartRef.current?.scrollToIndex(parseInt(date as string, 10) || 0);
+    // Scroll to specific date - convert string to number for index
+    const index = parseInt(date, 10) || 0;
+    if (chartRef.current?.scrollToIndex) {
+      chartRef.current.scrollToIndex(index);
+    }
   };
   
   const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);

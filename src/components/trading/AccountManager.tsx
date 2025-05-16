@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ const mockAccounts: TradingAccount[] = [
     ],
     lastUpdated: '2023-09-22T14:30:00Z',
     isActive: true,
-    initialBalance: 20000,
     type: 'exchange'
   },
   {
@@ -46,7 +46,6 @@ const mockAccounts: TradingAccount[] = [
     ],
     lastUpdated: '2023-09-20T09:45:00Z',
     isActive: true,
-    initialBalance: 10000,
     type: 'exchange'
   },
   {
@@ -67,7 +66,6 @@ const mockAccounts: TradingAccount[] = [
     ],
     lastUpdated: '2023-09-21T11:20:00Z',
     isActive: true,
-    initialBalance: 25000,
     type: 'manual'
   }
 ];
@@ -165,7 +163,7 @@ const AccountManager: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold">{Object.keys(calculateTotalAssets()).length}</div>
+                <div className="text-2xl font-bold">{calculateTotalAssets()}</div>
                 <p className="text-sm text-muted-foreground">Unique Assets</p>
               </CardContent>
             </Card>

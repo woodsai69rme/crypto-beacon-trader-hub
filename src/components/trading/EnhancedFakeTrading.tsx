@@ -10,7 +10,7 @@ import { Trade } from '@/types/trading';
 const EnhancedFakeTrading: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('standard');
 
-  const handleAddTrade = (trade: Trade) => {
+  const handleTrade = (trade: Trade) => {
     console.log("Trade added:", trade);
     // Implementation for adding trade would be here
   };
@@ -47,16 +47,16 @@ const EnhancedFakeTrading: React.FC = () => {
             <div className="space-y-6">
               <TabsContent value="standard" className="m-0">
                 <FakeTradingForm 
-                  onTrade={handleAddTrade} 
+                  onTrade={handleTrade} 
                   availableCoins={availableCoins}
                 />
               </TabsContent>
               
               <TabsContent value="advanced" className="m-0">
                 <FakeTradingForm 
-                  onTrade={handleAddTrade} 
-                  advancedMode={true}
+                  onTrade={handleTrade} 
                   availableCoins={availableCoins}
+                  advancedMode={true}
                 />
               </TabsContent>
               

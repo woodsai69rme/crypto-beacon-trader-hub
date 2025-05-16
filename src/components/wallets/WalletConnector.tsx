@@ -6,7 +6,10 @@ import { WalletProvider, WalletAccount, WalletConnectionProps } from '@/types/tr
 import { Wallet, Check } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 
-const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supportedWallets }) => {
+const WalletConnector: React.FC<WalletConnectionProps> = ({ 
+  onConnect, 
+  supportedWallets 
+}) => {
   const [connecting, setConnecting] = useState<string | null>(null);
   
   const handleConnect = async (wallet: WalletProvider) => {
@@ -31,7 +34,7 @@ const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supported
       // Mock account data - in a real implementation this would come from the wallet
       const mockAccount: WalletAccount = {
         address: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        balance: "10.0", // Changed to string to match WalletAccount type
+        balance: "10.0", // Using string to match WalletAccount type
         network: "ETH",
         provider: wallet.id
       };

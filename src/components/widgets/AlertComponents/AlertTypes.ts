@@ -38,5 +38,5 @@ export const INDICATOR_CONDITIONS = [
   { value: "divergence", label: "Shows Divergence" },
 ];
 
-// Re-export using 'export type' for isolatedModules
+// Use export type for type re-exports
 export type { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";

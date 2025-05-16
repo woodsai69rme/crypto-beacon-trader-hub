@@ -9,7 +9,6 @@ import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { 
-  AlertFormData, 
   AlertData, 
   PriceAlert, 
   VolumeAlert, 
@@ -23,7 +22,14 @@ const AlertsSystem = () => {
 
   const handleSubmit = () => {
     if (formData.type && formData.coinId) {
-      addAlert(formData as AlertFormData);
+      addAlert({
+        ...formData,
+        type: formData.type,
+        coinId: formData.coinId,
+        coinName: formData.coinName,
+        coinSymbol: formData.coinSymbol,
+        enabled: true,
+      });
       resetForm();
       setIsOpen(false);
     }

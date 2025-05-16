@@ -436,6 +436,13 @@ export interface RealTimePricesProps {
   initialCoins?: CoinOption[];
 }
 
+export interface RealTimePriceChartProps {
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+  coinId?: string;
+  availableCoins?: CoinOption[];
+}
+
 export interface ModelListProps {
   models: LocalModel[];
   onSelect: (model: LocalModel) => void;

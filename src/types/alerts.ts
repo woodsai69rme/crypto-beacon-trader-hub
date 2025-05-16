@@ -66,7 +66,7 @@ export interface PriceAlertFormData {
   percentageChange: number;
   notifyVia: Array<"email" | "app" | "push">;
   frequency?: AlertFrequency;
-  type?: 'price'; // Make type optional or add in component
+  type: 'price'; // Make type required
 }
 
 export interface VolumeAlertFormData {
@@ -77,7 +77,7 @@ export interface VolumeAlertFormData {
   frequency: AlertFrequency;
   enabled: boolean;
   notifyVia: Array<"email" | "app" | "push">;
-  type?: 'volume'; // Make type optional or add in component
+  type: 'volume'; // Make type required
 }
 
 export interface TechnicalAlertFormData {
@@ -90,5 +90,5 @@ export interface TechnicalAlertFormData {
   enabled: boolean;
   frequency?: AlertFrequency;
   notifyVia?: Array<"email" | "app" | "push">;
-  type?: 'technical'; // Make type optional or add in component
+  type: 'technical'; // Make type required
 }
