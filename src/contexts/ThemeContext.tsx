@@ -14,7 +14,7 @@ interface ThemeContextType {
 }
 
 // Create context with proper default values
-const ThemeContext = createContext<ThemeContextType>({
+export const ThemeContext = createContext<ThemeContextType>({
   theme: 'system',
   setTheme: () => {},
   colorScheme: 'default',

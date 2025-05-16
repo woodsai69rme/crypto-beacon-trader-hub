@@ -1,71 +1,56 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { WidgetComponentProps } from '@/types/trading';
+import { cn } from '@/lib/utils';
+import { Widget } from '@/types/trading';
+
+export interface WidgetComponentProps {
+  id: string;
+  type: string;
+  title: string;
+  onRemove: (id: string) => void;
+  widget?: Widget;
+  className?: string;
+}
 
 const WidgetComponent: React.FC<WidgetComponentProps> = ({ 
   id, 
   type, 
   title, 
   onRemove,
-  config,
-  widget
+  widget,
+  className 
 }) => {
-  const handleRemove = () => {
-    if (onRemove) {
-      onRemove(id);
-    }
-  };
-
-  // Render different content based on widget type
-  const renderWidgetContent = () => {
-    switch (type) {
-      case 'price-chart':
-        return <div className="h-40 flex items-center justify-center">Price Chart Content</div>;
-      case 'portfolio-summary':
-        return <div className="h-40 flex items-center justify-center">Portfolio Summary Content</div>;
-      case 'watchlist':
-        return <div className="h-40 flex items-center justify-center">Watchlist Content</div>;
-      case 'news':
-        return <div className="h-40 flex items-center justify-center">News Content</div>;
-      case 'alerts':
-        return <div className="h-40 flex items-center justify-center">Alerts Content</div>;
-      case 'trading':
-        return <div className="h-40 flex items-center justify-center">Trading Content</div>;
-      case 'aiTrading':
-        return <div className="h-40 flex items-center justify-center">AI Trading Content</div>;
-      case 'aiAnalysis':
-        return <div className="h-40 flex items-center justify-center">AI Analysis Content</div>;
-      case 'custom':
-        return widget?.customContent ? (
-          <div dangerouslySetInnerHTML={{ __html: widget.customContent }} />
-        ) : (
-          <div className="h-40 flex items-center justify-center">Custom Widget Content</div>
-        );
-      default:
-        return <div className="h-40 flex items-center justify-center">Widget Content</div>;
-    }
-  };
-
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between py-3">
-        <CardTitle className="text-base">{title}</CardTitle>
-        {onRemove && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={handleRemove}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+    <Card className={cn("relative", className)}>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-2 right-2 z-10 h-6 w-6"
+        onClick={() => onRemove(id)}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+      
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
+      
       <CardContent>
-        {renderWidgetContent()}
+        <div className="h-32 flex items-center justify-center">
+          {/* Placeholder content based on widget type */}
+          <div className="text-muted-foreground">
+            {type === 'chart' && 'Chart Widget'}
+            {type === 'table' && 'Table Widget'}
+            {type === 'stats' && 'Statistics Widget'}
+            {type === 'news' && 'News Widget'}
+            {type === 'alerts' && 'Alerts Widget'}
+            {type === 'portfolio' && 'Portfolio Widget'}
+            {type === 'custom' && 'Custom Widget'}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

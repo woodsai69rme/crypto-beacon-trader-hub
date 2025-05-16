@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Palette } from "lucide-react";
 import { SettingsComponentProps } from "./types";
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { ColorScheme } from "@/contexts/ThemeContext";
 
 const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {

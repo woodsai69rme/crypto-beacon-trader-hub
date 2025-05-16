@@ -116,3 +116,15 @@ export const fetchTopCryptoData = async (limit: number = 10): Promise<CryptoData
     }
   ].slice(0, limit);
 };
+
+// Add searchCoins function to resolve error in CryptoSearch component
+export const searchCoins = async (query: string): Promise<CryptoData[]> => {
+  const allCoins = await fetchTopCryptoData(20); // Fetch all available coins
+  
+  // Filter coins based on query matching name, symbol or id
+  return allCoins.filter(coin => 
+    coin.name.toLowerCase().includes(query.toLowerCase()) ||
+    coin.symbol.toLowerCase().includes(query.toLowerCase()) ||
+    coin.id.toLowerCase().includes(query.toLowerCase())
+  );
+};
