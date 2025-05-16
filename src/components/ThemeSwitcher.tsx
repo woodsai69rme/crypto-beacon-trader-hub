@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTheme, Theme, ColorScheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface ThemeOption {
   value: Theme | ColorScheme;
@@ -43,8 +42,7 @@ const ThemeSwitcher: React.FC = () => {
       localStorage.setItem("theme", value);
       toast({
         title: "Theme Updated",
-        description: `Changed to ${value} theme`,
-        duration: 2000
+        description: `Changed to ${value} theme`
       });
     }
   };
@@ -55,8 +53,7 @@ const ThemeSwitcher: React.FC = () => {
       localStorage.setItem("colorScheme", value);
       toast({
         title: "Style Updated",
-        description: `Changed to ${value.replace("-", " ")} style`,
-        duration: 2000
+        description: `Changed to ${value.replace("-", " ")} style`
       });
     }
   };

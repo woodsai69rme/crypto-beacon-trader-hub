@@ -18,8 +18,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
     setTheme(newTheme);
     toast({
       title: "Theme changed",
-      description: `Switched to ${newTheme} mode`,
-      duration: 2000,
+      description: `Switched to ${newTheme} mode`
     });
   };
 

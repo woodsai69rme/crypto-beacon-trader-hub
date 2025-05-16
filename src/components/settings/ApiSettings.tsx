@@ -7,6 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SettingsComponentProps } from './types';
 
 const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+  // Initialize api object if it doesn't exist
+  const formValues = form.getValues();
+  
+  if (!formValues.api) {
+    form.setValue("api", {
+      provider: "coingecko",
+      key: "",
+      refreshInterval: 30,
+      timeout: 10
+    });
+  }
+  
   return (
     <Card>
       <CardHeader>
@@ -67,53 +79,49 @@ const ApiSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="api.refreshInterval"
-          render={({ field }) => (
-            <FormItem>
+        <div className="space-y-4">
+          <div className="grid gap-4">
+            <FormItem className="flex flex-col">
               <FormLabel>Refresh Interval (seconds)</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   min={5}
                   max={3600}
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value) || 30)}
-                  value={field.value || 30}
+                  value={formValues.api?.refreshInterval || 30}
+                  onChange={(e) => {
+                    const value = Number(e.target.value) || 30;
+                    const newApi = { ...formValues.api, refreshInterval: value };
+                    form.setValue("api", newApi);
+                  }}
                 />
               </FormControl>
               <FormDescription>
                 How often to refresh data from the API.
               </FormDescription>
-              <FormMessage />
             </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="api.timeout"
-          render={({ field }) => (
-            <FormItem>
+            
+            <FormItem className="flex flex-col">
               <FormLabel>Timeout (seconds)</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   min={1}
                   max={60}
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value) || 10)}
-                  value={field.value || 10}
+                  value={formValues.api?.timeout || 10}
+                  onChange={(e) => {
+                    const value = Number(e.target.value) || 10;
+                    const newApi = { ...formValues.api, timeout: value };
+                    form.setValue("api", newApi);
+                  }}
                 />
               </FormControl>
               <FormDescription>
                 API request timeout duration.
               </FormDescription>
-              <FormMessage />
             </FormItem>
-          )}
-        />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

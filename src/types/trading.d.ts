@@ -1,4 +1,3 @@
-
 // Define interfaces for the trading module
 export interface CoinOption {
   id: string;
@@ -98,9 +97,9 @@ export interface SettingsFormValues {
   api: {
     provider: string;
     key: string;
+    refreshInterval: number;
+    timeout: number;
     selectedProvider?: string;
-    refreshInterval?: number;
-    timeout?: number;
   };
   display: {
     theme?: string;
@@ -108,6 +107,8 @@ export interface SettingsFormValues {
     defaultTab: string;
     compactMode: boolean;
     showAllDecimals?: boolean;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
   };
   displayName?: string;
   email?: string;

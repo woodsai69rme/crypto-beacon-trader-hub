@@ -7,19 +7,43 @@ import { Shield } from "lucide-react";
 import { SettingsComponentProps } from './types';
 
 const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  // Initialize privacy object if it doesn't exist
-  const formValues = form.getValues();
-  
-  if (!formValues.privacy) {
+  // Initialize privacy settings in the form
+  React.useEffect(() => {
+    const formValues = form.getValues();
+    
+    // Create default privacy values if they don't exist
+    if (!formValues.privacy) {
+      const privacyDefaults = {
+        showOnlineStatus: true,
+        sharePortfolio: false,
+        shareTrades: false,
+        dataCollection: true,
+        marketingConsent: false,
+        thirdPartySharing: false
+      };
+
+      // Update form with privacy defaults
+      form.setValue("privacy", privacyDefaults);
+    }
+  }, [form]);
+
+  // Get current values safely
+  const privacyValues = form.getValues().privacy || {
+    showOnlineStatus: true,
+    sharePortfolio: false,
+    shareTrades: false,
+    dataCollection: true,
+    marketingConsent: false,
+    thirdPartySharing: false
+  };
+
+  // Helper function to update privacy settings
+  const updatePrivacySetting = (field: string, value: boolean) => {
     form.setValue("privacy", {
-      showOnlineStatus: true,
-      sharePortfolio: false,
-      shareTrades: false,
-      dataCollection: true,
-      marketingConsent: false,
-      thirdPartySharing: false
+      ...privacyValues,
+      [field]: value
     });
-  }
+  };
 
   return (
     <Card>
@@ -34,131 +58,95 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <FormField
-          control={form.control}
-          name="privacy.showOnlineStatus"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <div className="space-y-0.5">
-                <FormLabel>Show Online Status</FormLabel>
-                <FormDescription>
-                  Show when you're active on the platform to other users
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value as boolean}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <FormItem className="flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <FormLabel>Show Online Status</FormLabel>
+            <FormDescription>
+              Show when you're active on the platform to other users
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={privacyValues.showOnlineStatus}
+              onCheckedChange={(checked) => updatePrivacySetting('showOnlineStatus', checked)}
+            />
+          </FormControl>
+        </FormItem>
         
-        <FormField
-          control={form.control}
-          name="privacy.sharePortfolio"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <div className="space-y-0.5">
-                <FormLabel>Share Portfolio</FormLabel>
-                <FormDescription>
-                  Let others see your portfolio composition (but not values)
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value as boolean}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <FormItem className="flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <FormLabel>Share Portfolio</FormLabel>
+            <FormDescription>
+              Let others see your portfolio composition (but not values)
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={privacyValues.sharePortfolio}
+              onCheckedChange={(checked) => updatePrivacySetting('sharePortfolio', checked)}
+            />
+          </FormControl>
+        </FormItem>
         
-        <FormField
-          control={form.control}
-          name="privacy.shareTrades"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <div className="space-y-0.5">
-                <FormLabel>Share Trades</FormLabel>
-                <FormDescription>
-                  Let others see your recent trades (anonymized)
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value as boolean}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <FormItem className="flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <FormLabel>Share Trades</FormLabel>
+            <FormDescription>
+              Let others see your recent trades (anonymized)
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={privacyValues.shareTrades}
+              onCheckedChange={(checked) => updatePrivacySetting('shareTrades', checked)}
+            />
+          </FormControl>
+        </FormItem>
         
-        <FormField
-          control={form.control}
-          name="privacy.dataCollection"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <div className="space-y-0.5">
-                <FormLabel>Usage Data Collection</FormLabel>
-                <FormDescription>
-                  Allow collection of anonymized usage data to improve the platform
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value as boolean}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <FormItem className="flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <FormLabel>Usage Data Collection</FormLabel>
+            <FormDescription>
+              Allow collection of anonymized usage data to improve the platform
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={privacyValues.dataCollection}
+              onCheckedChange={(checked) => updatePrivacySetting('dataCollection', checked)}
+            />
+          </FormControl>
+        </FormItem>
         
-        <FormField
-          control={form.control}
-          name="privacy.marketingConsent"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <div className="space-y-0.5">
-                <FormLabel>Marketing Communications</FormLabel>
-                <FormDescription>
-                  Receive newsletters and promotional emails
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value as boolean}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <FormItem className="flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <FormLabel>Marketing Communications</FormLabel>
+            <FormDescription>
+              Receive newsletters and promotional emails
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={privacyValues.marketingConsent}
+              onCheckedChange={(checked) => updatePrivacySetting('marketingConsent', checked)}
+            />
+          </FormControl>
+        </FormItem>
         
-        <FormField
-          control={form.control}
-          name="privacy.thirdPartySharing"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <div className="space-y-0.5">
-                <FormLabel>Third-Party Data Sharing</FormLabel>
-                <FormDescription>
-                  Allow sharing of data with trusted partners
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value as boolean}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <FormItem className="flex flex-row items-center justify-between">
+          <div className="space-y-0.5">
+            <FormLabel>Third-Party Data Sharing</FormLabel>
+            <FormDescription>
+              Allow sharing of data with trusted partners
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={privacyValues.thirdPartySharing}
+              onCheckedChange={(checked) => updatePrivacySetting('thirdPartySharing', checked)}
+            />
+          </FormControl>
+        </FormItem>
       </CardContent>
     </Card>
   );
