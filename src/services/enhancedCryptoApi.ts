@@ -1,3 +1,4 @@
+
 /**
  * Enhanced Crypto API Service
  * Provides advanced cryptocurrency data and analysis functions.
@@ -285,5 +286,6 @@ async function fetchTopCryptoData(limit: number): Promise<CoinOption[]> {
   return trendingCoins;
 }
 
-// Re-export these functions for convenience
-export { fetchHistoricalData, fetchCoinDetails, fetchCoinHistory };
+// IMPORTANT: Remove the duplicate exports at the bottom
+// We already exported the functions at the top of the file
+// export { fetchHistoricalData, fetchCoinDetails, fetchCoinHistory };

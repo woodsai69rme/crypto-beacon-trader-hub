@@ -1,3 +1,4 @@
+
 import { TradingPosition } from "./trading";
 
 export interface WidgetComponentProps {
@@ -88,4 +89,11 @@ export interface MarketData {
   volume: number;
   timestamp: number;
   // Add more properties as needed
+}
+
+// Add the TradingPosition type since it's imported in other files
+export enum TradingPosition {
+  LONG = 'long',
+  SHORT = 'short',
+  NEUTRAL = 'neutral',
 }

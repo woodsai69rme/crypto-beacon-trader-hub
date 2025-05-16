@@ -1,5 +1,4 @@
 
-
 // Basic trading types
 export interface CoinOption {
   id: string;

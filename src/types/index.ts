@@ -5,3 +5,6 @@ export * from './trading.d';
 export * from './alerts';
 export * from './currency.d';
 export * from './settings.d';
+
+// Re-export the TradingPosition type from trading.ts
+export { TradingPosition } from './trading';
