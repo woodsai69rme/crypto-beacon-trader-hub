@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AITradingStrategy, BacktestResults } from "@/types/trading";
-import { Robot, Play, Pause, LineChart, Settings, Trash2, BarChart2 } from "lucide-react";
+import { Bot, Play, Pause, LineChart, Settings, Trash2, BarChart2 } from "lucide-react";
 import { formatPrice } from '@/services/cryptoService';
 import { toast } from '@/components/ui/use-toast';
 
@@ -217,7 +216,7 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Robot className="h-5 w-5" />
+          <Bot className="h-5 w-5" />
           AI Trading Bots
         </CardTitle>
         <CardDescription>
@@ -243,7 +242,7 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
               Filters
             </Button>
             <Button variant="default" size="sm" className="whitespace-nowrap">
-              <Robot className="h-4 w-4 mr-2" />
+              <Bot className="h-4 w-4 mr-2" />
               Create Bot
             </Button>
           </div>
@@ -332,7 +331,7 @@ const AiTradingBotList: React.FC<AiTradingBotListProps> = ({
           </div>
         ) : (
           <div className="text-center p-8 bg-muted rounded-md">
-            <Robot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-medium mb-2">No Trading Bots Found</h3>
             <p className="text-muted-foreground mb-4">
               {searchTerm ? 'No bots match your search criteria' : 'You haven\'t created any trading bots yet'}

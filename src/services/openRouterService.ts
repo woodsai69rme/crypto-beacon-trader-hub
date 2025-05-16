@@ -69,6 +69,11 @@ class OpenRouterService {
     this.removeOpenRouterApiKey();
   }
 
+  // Check if API is configured
+  public isConfigured(): boolean {
+    return this.hasApiKey();
+  }
+
   // Fetch available models from OpenRouter API
   public async getModels(): Promise<any> {
     const apiKey = this.getOpenRouterApiKey();
@@ -145,7 +150,10 @@ export const useOpenRouterApiKey = () => {
     hasApiKey: openRouterService.hasApiKey(),
     setApiKey: openRouterService.setApiKey.bind(openRouterService),
     clearApiKey: openRouterService.clearApiKey.bind(openRouterService),
-    getModels: openRouterService.getModels.bind(openRouterService)
+    getModels: openRouterService.getModels.bind(openRouterService),
+    isConfigured: openRouterService.isConfigured.bind(openRouterService),
+    saveApiKey: openRouterService.saveOpenRouterApiKey.bind(openRouterService),
+    removeApiKey: openRouterService.removeOpenRouterApiKey.bind(openRouterService)
   };
 };
 // Export models for direct use

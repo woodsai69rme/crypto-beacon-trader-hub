@@ -15,10 +15,9 @@ export interface CoinOption {
 
 // Adding the PricePoint interface that was missing
 export interface PricePoint {
-  time: number;
+  timestamp: number;
   price: number;
   volume?: number;
-  marketCap?: number;
 }
 
 export interface Trade {
