@@ -527,7 +527,7 @@ export const convertCurrency = (amount: number, from: SupportedCurrency, to: Sup
   return amount * (rates[from]?.[to] || 1);
 };
 
-// Make sure we export fetchCoinDetails function
+// Fetch coin details
 export const fetchCoinDetails = async (coinId: string): Promise<CoinOption> => {
   try {
     const data = await fetchCryptoData(coinId);
@@ -562,11 +562,4 @@ export const fetchCoinDetails = async (coinId: string): Promise<CoinOption> => {
  */
 export const fetchCoinHistory = async (coinId: string, days: number | string = 7): Promise<PricePoint[]> => {
   return fetchHistoricalData(coinId, days);
-};
-
-// Export consolidated functions without duplicates
-export {
-  fetchMarketCorrelationData,
-  fetchMultipleCryptoData,
-  fetchTopCryptoData
 };

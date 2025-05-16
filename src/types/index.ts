@@ -1,10 +1,9 @@
 
-// Export common types that are used across the application
+// Re-export all types from the trading module
 export * from './trading';
-export * from './trading.d';
-export * from './alerts';
-export * from './currency.d';
-export * from './settings.d';
 
-// Re-export the TradingPosition type from trading.ts
-export { TradingPosition } from './trading';
+// Re-export any other type modules as needed
+// export * from './alerts';
+// export * from './settings';
+// export * from './api';
+// export * from './currency';

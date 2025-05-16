@@ -1,5 +1,5 @@
 
-import { TradingPosition } from "./trading";
+// Trading related type definitions
 
 export interface WidgetComponentProps {
   id: string;
@@ -84,14 +84,12 @@ export interface TradingStrategy {
   name: string;
   description: string;
   parameters: any;
-  // Add more properties as needed
 }
 
 export interface TradingPair {
   symbol: string;
   baseAsset: string;
   quoteAsset: string;
-  // Add more properties as needed
 }
 
 export interface MarketData {
@@ -99,10 +97,9 @@ export interface MarketData {
   price: number;
   volume: number;
   timestamp: number;
-  // Add more properties as needed
 }
 
-// Define the TradingPosition type here
+// Define the TradingPosition enum
 export enum TradingPosition {
   LONG = 'long',
   SHORT = 'short',
@@ -139,17 +136,22 @@ export interface CryptoData {
   current_price?: number;
   market_cap?: number;
   market_cap_rank?: number;
+  price?: number; // Added to match usage in components
+  priceChange?: number; // Added to match usage in components
 }
 
 export interface Trade {
   id: string;
   coinId: string;
   coinName: string;
+  coinSymbol?: string;
   type: 'buy' | 'sell';
   price: number;
   quantity: number;
   total: number;
   timestamp: number;
+  amount?: number; // Added for backward compatibility
+  totalValue?: number; // Added for backward compatibility
 }
 
 export interface WalletAccount {
@@ -164,6 +166,9 @@ export interface WalletAccount {
     quantity: number;
     averagePrice: number;
   }[];
+  network?: string; // Added for compatibility with existing components
+  address?: string; // Added for compatibility with existing components
+  provider?: string; // Added for compatibility with existing components
 }
 
 export interface WalletProvider {
@@ -172,6 +177,7 @@ export interface WalletProvider {
   icon: string;
   description: string;
   supported: boolean;
+  logo?: string; // Added for compatibility with existing components
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive';
@@ -192,12 +198,19 @@ export interface DetachableDashboardProps {
   onClose: () => void;
   isDetached?: boolean;
   children?: React.ReactNode;
+  initialCoinId?: string; // Added for compatibility
+  refreshInterval?: number; // Added for compatibility
+  darkMode?: boolean; // Added for compatibility
 }
 
 export interface LiveAnalyticsDashboardProps {
   refreshInterval?: number;
   availableCoins?: CoinOption[];
   apiUsageStats?: ApiUsageStats;
+  showDetailedView?: boolean; // Added for compatibility
+  initialCoinId?: string;  // Added for compatibility
+  onAlertTriggered?: (alert: any) => void;  // Added for compatibility
+  darkMode?: boolean;  // Added for compatibility
 }
 
 export interface ApiProvider {
@@ -212,6 +225,7 @@ export interface ApiProvider {
   apiKeyName?: string;
   authMethod?: 'header' | 'query';
   defaultHeaders?: Record<string, string>;
+  usageLimit?: number; // Added for compatibility
 }
 
 export interface ApiEndpoint {
@@ -221,6 +235,10 @@ export interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   description?: string;
   requiredParams?: string[];
+  url?: string; // Added for compatibility
+  responseTime?: number; // Added for compatibility
+  lastUsed?: string; // Added for compatibility
+  requiresAuth?: boolean; // Added for compatibility
 }
 
 export interface ApiUsageStats {
@@ -231,10 +249,15 @@ export interface ApiUsageStats {
   rateLimit: number;
   rateLimitRemaining: number;
   rateLimitReset: number;
+  maxUsage?: number; // Added for compatibility
+  currentUsage?: number; // Added for compatibility
+  service?: string; // Added for compatibility
 }
 
-export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red';
+// Update Theme type to include custom themes
+export type Theme = 'light' | 'dark' | 'system' | 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
+
+export type ColorScheme = 'blue' | 'green' | 'orange' | 'purple' | 'red' | Theme;
 
 export interface CryptoChartData {
   prices: [number, number][];

@@ -8,7 +8,8 @@ import { toast } from "@/components/ui/use-toast";
 import { 
   fetchCoinDetails as fetchCoinDetailsFromService,
   fetchHistoricalData as fetchHistoricalDataFromService,
-  fetchCoinHistory as fetchCoinHistoryFromService
+  fetchCoinHistory as fetchCoinHistoryFromService,
+  fetchMarketCorrelationData as fetchMarketCorrelationDataFromService
 } from './cryptoService';
 
 // Cache for storing recent API responses
@@ -19,6 +20,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 export const fetchHistoricalData = fetchHistoricalDataFromService;
 export const fetchCoinHistory = fetchCoinHistoryFromService;
 export const fetchCoinDetails = fetchCoinDetailsFromService;
+export const fetchMarketCorrelationData = fetchMarketCorrelationDataFromService;
 
 /**
  * Get trending cryptocurrencies
