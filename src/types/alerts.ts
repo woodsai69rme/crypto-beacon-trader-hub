@@ -1,41 +1,38 @@
 
-export interface PriceAlert {
-  id: string;
-  createdAt: Date;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  targetPrice: number;
-  isAbove: boolean;
-  enabled: boolean;
-  recurring: boolean;
-  percentageChange: number;
-  notifyVia: ("email" | "app" | "push")[];
-}
+export type AlertFrequency = 'once' | 'daily' | 'hourly' | 'always';
 
-export type AlertFrequency = "1h" | "4h" | "24h";
-
-export interface VolumeAlert {
+export interface AlertBase {
   id: string;
-  createdAt: Date;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  volumeThreshold: number;
   enabled: boolean;
   frequency: AlertFrequency;
   notifyVia: ("email" | "app" | "push")[];
 }
 
-export interface PatternAlert {
-  id: string;
-  createdAt: Date;
+export interface PriceAlert extends AlertBase {
+  type: 'price';
   coinId: string;
   coinName: string;
   coinSymbol: string;
-  pattern: string;
-  enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
+  targetPrice: number;
+  isAbove: boolean;
 }
 
-export type AlertType = "price" | "volume" | "pattern";
+export interface VolumeAlert extends AlertBase {
+  type: 'volume';
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  volumeThreshold: number;
+}
+
+export interface TechnicalAlert extends AlertBase {
+  type: 'technical';
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  indicator: string;
+  condition: string;
+  value: number;
+}
+
+export type Alert = PriceAlert | VolumeAlert | TechnicalAlert;

@@ -4,7 +4,7 @@ export interface CoinOption {
   id: string;
   name: string;
   symbol: string;
-  price?: number;
+  price: number;
   priceChange?: number;
   changePercent?: number;
   image?: string;
@@ -40,12 +40,12 @@ export interface Trade {
   coinName: string;
   type: 'buy' | 'sell';
   price: number;
-  quantity: number;
+  quantity?: number;
+  amount?: number;
   total: number;
+  totalValue?: number;
   timestamp: number | string;
   coinSymbol?: string;
-  amount?: number;
-  totalValue?: number;
   fees?: number;
   currency?: SupportedCurrency;
   currentValue?: number;
@@ -63,8 +63,7 @@ export interface PricePoint {
   close?: number;
   high?: number;
   low?: number;
-  // Needed for compatibility with some components
-  time?: number;
+  time?: number; // Add time property for compatibility
 }
 
 export interface WalletAccount {
@@ -165,6 +164,8 @@ export interface ApiProvider {
   status?: string;
   endpoint?: string;
   usageLimit?: number;
+  website?: string;
+  docs?: string;
 }
 
 export interface ApiEndpoint {
@@ -210,7 +211,7 @@ export interface DetachableDashboardProps {
 export interface LiveAnalyticsDashboardProps {
   refreshInterval?: number;
   availableCoins?: CoinOption[];
-  apiUsageStats?: ApiUsageStats;
+  apiUsageStats?: ApiUsageStats[];
   initialCoinId?: string;
   showDetailedView?: boolean;
   onAlertTriggered?: (alert: any) => void;
@@ -248,10 +249,7 @@ export interface SettingsFormValues {
   username?: string;
   contactEmail?: string;
   userLanguage?: string;
-  theme?: {
-    mode: 'dark' | 'light' | 'system';
-    accentColor: string;
-  } | string;
+  theme?: Theme;
   display?: {
     showPortfolio: boolean;
     showBalances: boolean;
@@ -317,5 +315,33 @@ export interface SettingsFormValues {
   };
 }
 
-// Alert types
-export type AlertFrequency = 'once' | 'daily' | 'hourly' | 'always';
+// AI Trading types
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  timeframe?: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  parameters?: Record<string, any>;
+}
+
+export interface AIStrategyParameters {
+  buySignalThreshold: number;
+  sellSignalThreshold: number;
+  stopLossPercentage: number;
+  takeProfitPercentage: number;
+  maxOpenPositions: number;
+  positionSizePercentage: number;
+}
+
+export interface PaperTradingConfig {
+  enabled: boolean;
+  initialBalance: number;
+  currency: string;
+  slippageModel: 'none' | 'simple' | 'realistic';
+  slippagePercentage: number;
+  maxTradeSize: number;
+  includeFees: boolean;
+  feePercentage: number;
+}

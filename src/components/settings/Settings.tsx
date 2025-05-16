@@ -22,7 +22,8 @@ const settingsFormSchema = z.object({
   language: z.string().optional(),
   currency: z.object({
     defaultCurrency: z.enum(["USD", "AUD", "EUR", "GBP"]),
-    showPriceInBTC: z.boolean()
+    showConversion: z.boolean().default(true),
+    showPriceInBTC: z.boolean().optional()
   }),
   api: z.object({
     provider: z.string(),
@@ -32,15 +33,20 @@ const settingsFormSchema = z.object({
   }),
   display: z.object({
     showPortfolio: z.boolean(),
-    defaultTab: z.string(),
+    showBalances: z.boolean().default(true),
+    defaultTab: z.string().optional(),
     compactMode: z.boolean(),
     animationsEnabled: z.boolean().optional(),
     highContrastMode: z.boolean().optional(),
     colorScheme: z.string().optional()
   }).optional(),
   notifications: z.object({
-    email: z.boolean(),
-    push: z.boolean(),
+    enableEmail: z.boolean().default(true),
+    enablePush: z.boolean().default(true),
+    alertPrice: z.boolean().default(true),
+    alertNews: z.boolean().default(false),
+    email: z.boolean().optional(),
+    push: z.boolean().optional(),
     trades: z.boolean().optional(),
     pricing: z.boolean().optional(),
     news: z.boolean().optional(),
@@ -92,6 +98,7 @@ export const Settings: React.FC = () => {
       theme: 'light',
       currency: {
         defaultCurrency: 'AUD',
+        showConversion: true,
         showPriceInBTC: false
       },
       api: {
@@ -102,6 +109,7 @@ export const Settings: React.FC = () => {
       },
       display: {
         showPortfolio: true,
+        showBalances: true,
         defaultTab: 'overview',
         compactMode: false,
         animationsEnabled: true,
@@ -109,6 +117,10 @@ export const Settings: React.FC = () => {
         colorScheme: 'default'
       },
       notifications: {
+        enableEmail: true,
+        enablePush: true,
+        alertPrice: true,
+        alertNews: false,
         email: true,
         push: true,
         trades: true,

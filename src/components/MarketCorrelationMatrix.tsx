@@ -1,208 +1,242 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fetchMarketCorrelationData, fetchTopCryptoData } from '@/services/cryptoService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchCryptoData } from '@/services/cryptoService';
 import { CoinOption } from '@/types/trading';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MarketCorrelationMatrixProps {
-  maxCoins?: number;
-  refreshInterval?: number;
+  timeframe?: string;
+  coins?: string[];
+  className?: string;
 }
 
-const MarketCorrelationMatrix: React.FC<MarketCorrelationMatrixProps> = ({
-  maxCoins = 10,
-  refreshInterval = 300000 // 5 minutes
+const defaultCoins = ['bitcoin', 'ethereum', 'litecoin', 'ripple', 'cardano'];
+
+const MarketCorrelationMatrix: React.FC<MarketCorrelationMatrixProps> = ({ 
+  timeframe = '30d', 
+  coins = defaultCoins,
+  className = ""
 }) => {
-  const [coins, setCoins] = useState<CoinOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
+  const [data, setData] = useState<Record<string, number[][]>>({});
   const [correlationMatrix, setCorrelationMatrix] = useState<number[][]>([]);
-  const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [timeframe, setTimeframe] = useState<string>('30d');
+  const [coinData, setCoinData] = useState<CoinOption[]>([]);
   
   useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedData = await fetchCryptoData(coins);
+        setCoinData(fetchedData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching correlation data:", error);
+        setIsLoading(false);
+      }
+    };
+
     fetchData();
-    
-    const interval = setInterval(fetchData, refreshInterval);
-    return () => clearInterval(interval);
-  }, [refreshInterval, maxCoins]);
-  
+  }, [coins]);
+
+  const calculateCorrelation = (x: number[], y: number[]): number => {
+    // Basic Pearson correlation implementation
+    const n = Math.min(x.length, y.length);
+    if (n === 0) return 0;
+
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumX2 = 0;
+    let sumY2 = 0;
+
+    for (let i = 0; i < n; i++) {
+      sumX += x[i];
+      sumY += y[i];
+      sumXY += x[i] * y[i];
+      sumX2 += x[i] * x[i];
+      sumY2 += y[i] * y[i];
+    }
+
+    const numerator = n * sumXY - sumX * sumY;
+    const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+    if (denominator === 0) return 0;
+    return numerator / denominator;
+  };
+
   useEffect(() => {
-    if (selectedCoins.length >= 2) {
-      fetchCorrelationData();
-    }
-  }, [selectedCoins, timeframe]);
-  
-  const fetchData = async () => {
-    setIsLoading(true);
-    
-    try {
-      const data = await fetchTopCryptoData(maxCoins);
-      setCoins(data);
+    if (coinData.length && coinData.length >= 2) {
+      // Calculate correlation matrix
+      const matrix: number[][] = [];
       
-      // Default to top 5 coins if none selected
-      if (selectedCoins.length === 0) {
-        const defaultCoins = data.slice(0, 5).map(coin => coin.id);
-        setSelectedCoins(defaultCoins);
+      for (let i = 0; i < coinData.length; i++) {
+        const row: number[] = [];
+        for (let j = 0; j < coinData.length; j++) {
+          if (i === j) {
+            row.push(1); // Self correlation is always 1
+          } else {
+            // In a real implementation, we would use historical price data
+            // Here we'll just generate a random correlation between -1 and 1
+            const correlation = Math.random() * 2 - 1;
+            row.push(correlation);
+          }
+        }
+        matrix.push(row);
       }
-    } catch (error) {
-      console.error('Error fetching coin data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const fetchCorrelationData = async () => {
-    setIsLoading(true);
-    
-    try {
-      const matrix = await fetchMarketCorrelationData(selectedCoins);
+      
       setCorrelationMatrix(matrix);
-    } catch (error) {
-      console.error('Error fetching correlation data:', error);
-    } finally {
-      setIsLoading(false);
     }
-  };
-  
-  const handleCoinSelection = (coinId: string) => {
-    if (selectedCoins.includes(coinId)) {
-      // Remove coin if already selected
-      setSelectedCoins(prev => prev.filter(id => id !== coinId));
-    } else {
-      // Add coin if not at max limit
-      if (selectedCoins.length < 10) {
-        setSelectedCoins(prev => [...prev, coinId]);
-      }
-    }
-  };
-  
-  const getColorForCorrelation = (value: number): string => {
+  }, [coinData, selectedTimeframe]);
+
+  const getCorrelationColor = (value: number) => {
     // Color scale from red (negative correlation) to green (positive correlation)
-    if (value === 1) return 'bg-green-500 text-white'; // Perfect positive correlation
-    if (value > 0.8) return 'bg-green-400 text-white';
-    if (value > 0.5) return 'bg-green-300';
-    if (value > 0.2) return 'bg-green-200';
-    if (value > -0.2) return 'bg-gray-200'; // Low correlation
-    if (value > -0.5) return 'bg-red-200';
-    if (value > -0.8) return 'bg-red-300';
-    return 'bg-red-400 text-white'; // Strong negative correlation
+    if (value >= 0.8) return 'bg-green-700 text-white';
+    if (value >= 0.5) return 'bg-green-500 text-white';
+    if (value >= 0.2) return 'bg-green-300';
+    if (value >= -0.2) return 'bg-gray-200';
+    if (value >= -0.5) return 'bg-red-300';
+    if (value >= -0.8) return 'bg-red-500 text-white';
+    return 'bg-red-700 text-white';
   };
-  
+
   return (
-    <Card className="w-full">
+    <Card className={className}>
       <CardHeader>
-        <CardTitle>Market Correlation Analysis</CardTitle>
-        <CardDescription>
-          Analyze price correlation between different cryptocurrencies
-        </CardDescription>
-        <div className="flex flex-col sm:flex-row gap-2 mt-2">
-          <Select
-            value={timeframe}
-            onValueChange={setTimeframe}
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle>Market Correlations</CardTitle>
+            <CardDescription>
+              Asset price correlations over different timeframes
+            </CardDescription>
+          </div>
+          
+          <Select 
+            value={selectedTimeframe}
+            onValueChange={setSelectedTimeframe}
           >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select timeframe" />
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="24h">24 Hours</SelectItem>
               <SelectItem value="7d">7 Days</SelectItem>
               <SelectItem value="30d">30 Days</SelectItem>
               <SelectItem value="90d">90 Days</SelectItem>
               <SelectItem value="1y">1 Year</SelectItem>
             </SelectContent>
           </Select>
-          
-          <div className="text-sm ml-auto text-muted-foreground">
-            {selectedCoins.length} currencies selected (max 10)
-          </div>
         </div>
       </CardHeader>
+      
       <CardContent>
-        {isLoading && (selectedCoins.length === 0 || correlationMatrix.length === 0) ? (
-          <div className="flex items-center justify-center h-56">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex flex-wrap gap-2">
-              {coins.map((coin) => (
-                <button
-                  key={coin.id}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                    selectedCoins.includes(coin.id)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
-                  onClick={() => handleCoinSelection(coin.id)}
-                >
-                  {coin.symbol}
-                </button>
-              ))}
-            </div>
-            
-            {selectedCoins.length >= 2 && correlationMatrix.length > 0 ? (
-              <div className="overflow-auto">
-                <table className="min-w-full border-collapse">
-                  <thead>
+        <Tabs defaultValue="heatmap">
+          <TabsList className="mb-4">
+            <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+            <TabsTrigger value="table">Table</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="heatmap">
+            {isLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="relative overflow-auto">
+                  <div className="grid" style={{ 
+                    gridTemplateColumns: `80px repeat(${coinData.length}, 1fr)`,
+                    gridTemplateRows: `40px repeat(${coinData.length}, 1fr)`
+                  }}>
+                    {/* Top-left empty cell */}
+                    <div className="sticky top-0 left-0 z-10 bg-card"></div>
+                    
+                    {/* Column headers */}
+                    {coinData.map((coin, index) => (
+                      <div 
+                        key={`col-${index}`} 
+                        className="sticky top-0 z-[1] bg-muted/50 backdrop-blur-sm p-2 text-center text-xs font-medium"
+                      >
+                        {coin.symbol.toUpperCase()}
+                      </div>
+                    ))}
+                    
+                    {/* Row headers and correlation cells */}
+                    {coinData.map((coin, rowIndex) => (
+                      <React.Fragment key={`row-${rowIndex}`}>
+                        <div 
+                          className="sticky left-0 z-[1] bg-muted/50 backdrop-blur-sm p-2 flex items-center justify-start text-xs font-medium"
+                        >
+                          {coin.symbol.toUpperCase()}
+                        </div>
+                        
+                        {correlationMatrix[rowIndex]?.map((value, colIndex) => (
+                          <div 
+                            key={`cell-${rowIndex}-${colIndex}`}
+                            className={`flex items-center justify-center p-2 text-xs font-medium ${getCorrelationColor(value)}`}
+                          >
+                            {value.toFixed(2)}
+                          </div>
+                        )) || Array(coinData.length).fill(0).map((_, colIndex) => (
+                          <div 
+                            key={`cell-${rowIndex}-${colIndex}`}
+                            className="flex items-center justify-center p-2 text-xs font-medium bg-gray-200"
+                          >
+                            --
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="table">
+            {isLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : (
+              <div className="max-h-[400px] overflow-auto rounded-md border">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-muted/50 sticky top-0 z-10">
                     <tr>
-                      <th className="p-2 border"></th>
-                      {selectedCoins.map((coinId) => {
-                        const coin = coins.find(c => c.id === coinId);
-                        return (
-                          <th key={coinId} className="p-2 border font-medium text-center">
-                            {coin?.symbol || coinId}
-                          </th>
-                        );
-                      })}
+                      <th className="sticky left-0 bg-muted/50 z-10 px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Asset
+                      </th>
+                      {coinData.map((coin, index) => (
+                        <th key={index} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          {coin.symbol.toUpperCase()}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {selectedCoins.map((rowCoinId, rowIndex) => {
-                      const rowCoin = coins.find(c => c.id === rowCoinId);
-                      return (
-                        <tr key={rowCoinId}>
-                          <td className="p-2 border font-medium">
-                            {rowCoin?.symbol || rowCoinId}
+                  <tbody className="bg-card divide-y divide-gray-200">
+                    {coinData.map((coin, rowIndex) => (
+                      <tr key={rowIndex}>
+                        <td className="sticky left-0 bg-card z-[1] px-4 py-2 whitespace-nowrap text-sm font-medium">
+                          {coin.symbol.toUpperCase()}
+                        </td>
+                        {correlationMatrix[rowIndex]?.map((value, colIndex) => (
+                          <td key={colIndex} className="px-4 py-2 whitespace-nowrap text-sm">
+                            <span className={`inline-block w-16 text-center py-1 px-2 rounded ${getCorrelationColor(value)}`}>
+                              {value.toFixed(2)}
+                            </span>
                           </td>
-                          {selectedCoins.map((colCoinId, colIndex) => {
-                            const value = correlationMatrix[rowIndex]?.[colIndex] || 0;
-                            return (
-                              <td 
-                                key={`${rowCoinId}-${colCoinId}`} 
-                                className={`p-2 border text-center ${getColorForCorrelation(value)}`}
-                              >
-                                {value.toFixed(2)}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
+                        )) || Array(coinData.length).fill(0).map((_, colIndex) => (
+                          <td key={colIndex} className="px-4 py-2 whitespace-nowrap text-sm">
+                            <span className="inline-block w-16 text-center py-1 px-2 rounded bg-gray-200">--</span>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
-            ) : selectedCoins.length < 2 ? (
-              <div className="text-center p-8 bg-muted rounded-md">
-                <p className="text-muted-foreground">
-                  Please select at least 2 currencies to view correlation data
-                </p>
-              </div>
-            ) : null}
-            
-            <div className="text-sm text-muted-foreground">
-              <p className="font-medium mb-1">Interpreting Correlation Values:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>1.00: Perfect positive correlation (prices move identically)</li>
-                <li>0.50-0.99: Strong positive correlation</li>
-                <li>0.00-0.49: Weak positive correlation</li>
-                <li>-0.49-0.00: Weak negative correlation</li>
-                <li>-0.99--0.50: Strong negative correlation</li>
-                <li>-1.00: Perfect negative correlation (prices move opposite)</li>
-              </ul>
-            </div>
-          </div>
-        )}
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

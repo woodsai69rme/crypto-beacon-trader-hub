@@ -40,8 +40,9 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
   }, [form]);
 
   const updatePrivacyValue = (key: string, checked: boolean) => {
+    const currentPrivacy = { ...privacyValues };
     const updatedPrivacy = {
-      ...privacyValues,
+      ...currentPrivacy,
       [key]: checked
     };
     form.setValue("privacy", updatedPrivacy);
@@ -139,7 +140,7 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <div className="space-y-0.5">
             <FormLabel>Third-Party Data Sharing</FormLabel>
             <FormDescription>
-              Allow sharing of data with trusted partners
+              Allow sharing your data with trusted partners
             </FormDescription>
           </div>
           <FormControl>

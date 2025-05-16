@@ -10,6 +10,7 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
   colorScheme: ColorScheme;
   setColorScheme: (scheme: ColorScheme) => void;
+  resolvedTheme: 'light' | 'dark';
 }
 
 // Create context with proper default values
@@ -18,11 +19,13 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
   colorScheme: 'blue',
   setColorScheme: () => {},
+  resolvedTheme: 'dark'
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('system');
   const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
 
   // Initialize theme from localStorage on component mount
   useEffect(() => {
@@ -35,11 +38,27 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (storedColorScheme && ['blue', 'green', 'orange', 'purple', 'red'].includes(storedColorScheme)) {
       setColorScheme(storedColorScheme);
     }
+
+    // Set initial resolved theme
+    updateResolvedTheme(storedTheme || 'system');
   }, []);
+
+  // Function to update the resolved theme based on system preference and theme setting
+  const updateResolvedTheme = (themeValue: Theme) => {
+    if (themeValue === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setResolvedTheme(isDark ? 'dark' : 'light');
+    } else {
+      setResolvedTheme(themeValue === 'dark' ? 'dark' : 'light');
+    }
+  };
 
   // Update localStorage when theme changes
   useEffect(() => {
     localStorage.setItem('theme', theme);
+
+    // Update resolved theme
+    updateResolvedTheme(theme);
 
     // Apply theme to document
     if (theme === 'dark' || 
@@ -58,11 +77,31 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     document.documentElement.setAttribute('data-color-scheme', colorScheme);
   }, [colorScheme]);
 
+  // Listen for system preference changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = () => {
+      if (theme === 'system') {
+        setResolvedTheme(mediaQuery.matches ? 'dark' : 'light');
+        if (mediaQuery.matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
+
   const contextValue: ThemeContextType = {
     theme,
     setTheme,
     colorScheme,
-    setColorScheme
+    setColorScheme,
+    resolvedTheme
   };
 
   return (
@@ -73,4 +112,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 // Export the useTheme hook directly from here
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
