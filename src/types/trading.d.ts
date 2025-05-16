@@ -13,7 +13,7 @@ export interface CryptoData {
   id: string;
   name: string;
   symbol: string;
-  prices: PricePoint[];
+  prices?: PricePoint[];
   marketCap?: number | number[];
   volumes?: number[];
   change24h?: number;
@@ -22,6 +22,8 @@ export interface CryptoData {
   changePercent?: number;
   volume?: number;
   price?: number;
+  image?: string;
+  rank?: number;
 }
 
 export interface AITradingStrategy {
@@ -138,11 +140,13 @@ export interface Widget {
   size: WidgetSize;
   position?: { x: number; y: number };
   config?: Record<string, any>;
+  customContent?: string;
+  lastUpdated?: Date;
 }
 
 export type WidgetType = 'price' | 'chart' | 'news' | 'portfolio' | 'trades' | 'alerts' | 'ai-insights' | 'watchlist' | 'market-depth' | 'order-book' | 'custom' | 'price-chart' | 'portfolio-summary' | 'trading' | 'aiTrading' | 'aiAnalysis';
 
-export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large';
+export type WidgetSize = 'small' | 'medium' | 'large' | 'x-large' | 'wide' | 'tall' | 'full';
 
 export interface WidgetComponentProps {
   id: string;
@@ -202,8 +206,8 @@ export interface EnhancedPortfolioBenchmarkingProps {
 }
 
 export interface DetachableDashboardProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   botId?: string;
   initialCoinId?: string;
   refreshInterval?: number;
@@ -240,11 +244,4 @@ export interface TradingAccount {
   currency: SupportedCurrency;
   trades: Trade[];
   createdAt: string;
-}
-
-// Add a declared module for the ui components to support additional variants
-declare module '@/components/ui/badge' {
-  interface BadgeProps {
-    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'pending' | 'warning';
-  }
 }

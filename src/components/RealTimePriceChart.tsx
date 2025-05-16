@@ -1,250 +1,144 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { PricePoint } from '@/types/trading';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTheme } from '@/hooks/use-theme';
-import { Loader2 } from 'lucide-react';
-import { useCurrency } from '@/hooks/use-currency';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CoinOption, PricePoint } from '@/types/trading';
+import { fetchHistoricalData, fetchCoinDetails } from '@/services/enhancedCryptoApi';
+import { format, parseISO } from 'date-fns';
+import { useTheme } from 'next-themes';
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { CryptoSearch } from '../CryptoSearch';
 
 interface RealTimePriceChartProps {
-  coinId: string;
-  priceData?: PricePoint[];
-  timeframe?: string;
-  isLoading?: boolean;
-  onTimeframeChange?: (timeframe: string) => void;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  coinId?: string;
+  availableCoins?: CoinOption[];
 }
 
-const timeframes = [
-  { value: '1h', label: '1 Hour' },
-  { value: '24h', label: '24 Hours' },
-  { value: '7d', label: '7 Days' },
-  { value: '30d', label: '30 Days' },
-  { value: '90d', label: '90 Days' },
-  { value: '1y', label: '1 Year' },
-];
+const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({ selectedCoinId, onSelectCoin, coinId, availableCoins }) => {
+  const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
+  const [coinDetails, setCoinDetails] = useState<CoinOption | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { theme } = useTheme();
+  const { toast } = useToast();
+  const [internalCoinId, setInternalCoinId] = useState(selectedCoinId || coinId || 'bitcoin');
 
-const formatDate = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
-
-const formatDateAxis = (timestamp: number, timeframe?: string): string => {
-  const date = new Date(timestamp);
-  
-  if (timeframe === '1h') {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else if (timeframe === '24h') {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  }
-};
-
-const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
-  coinId,
-  priceData = [],
-  timeframe = '24h',
-  isLoading: externalLoading = false,
-  onTimeframeChange
-}) => {
-  const { resolvedTheme } = useTheme();
-  const { formatValue } = useCurrency();
-  const [data, setData] = useState<PricePoint[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(externalLoading);
-  const [error, setError] = useState<string | null>(null);
-  
+  // Update internalCoinId when selectedCoinId or coinId prop changes
   useEffect(() => {
-    if (priceData && priceData.length > 0) {
-      setData(priceData);
-    } else {
-      // In a real app, fetch data from API
-      setData(generateDummyData(coinId, timeframe));
+    if (selectedCoinId) {
+      setInternalCoinId(selectedCoinId);
+    } else if (coinId) {
+      setInternalCoinId(coinId);
     }
-  }, [coinId, timeframe, priceData]);
-  
-  // Generate dummy data for the chart
-  const generateDummyData = (coinId: string, timeframe: string): PricePoint[] => {
-    const now = Date.now();
-    const dummyData: PricePoint[] = [];
-    const basePrice = coinId === 'bitcoin' ? 60000 : 
-                      coinId === 'ethereum' ? 3000 : 
-                      coinId === 'solana' ? 150 : 1000;
-    
-    let points = 24; // Default for 24h
-    let interval = 60 * 60 * 1000; // 1 hour in milliseconds
-    
-    switch (timeframe) {
-      case '1h':
-        points = 60;
-        interval = 60 * 1000; // 1 minute
-        break;
-      case '7d':
-        points = 7 * 24;
-        break;
-      case '30d':
-        points = 30;
-        interval = 24 * 60 * 60 * 1000; // 1 day
-        break;
-      case '90d':
-        points = 90;
-        interval = 24 * 60 * 60 * 1000; // 1 day
-        break;
-      case '1y':
-        points = 12;
-        interval = 30 * 24 * 60 * 60 * 1000; // 1 month
-        break;
-    }
-    
-    // Generate random price movements
-    let price = basePrice;
-    for (let i = points; i >= 0; i--) {
-      const time = now - i * interval;
-      
-      // Add some randomness to the price
-      const change = (Math.random() - 0.5) * basePrice * 0.02;
-      price = Math.max(0, price + change);
-      
-      dummyData.push({
-        time,
-        price,
-        volume: Math.random() * basePrice * 10
+  }, [selectedCoinId, coinId]);
+
+  const fetchChartData = useCallback(async (coinId: string) => {
+    setIsLoading(true);
+    try {
+      const historicalData = await fetchHistoricalData(coinId, '30');
+      if (historicalData && historicalData.length > 0) {
+        setPriceHistory(historicalData);
+      } else {
+        toast({
+          title: "Could not load chart data",
+          description: "No historical data found for the selected coin.",
+          variant: "destructive",
+        });
+        setPriceHistory([]);
+      }
+    } catch (error) {
+      console.error("Error fetching historical data:", error);
+      toast({
+        title: "Error loading chart data",
+        description: "Failed to retrieve historical data. Please try again later.",
+        variant: "destructive",
       });
+      setPriceHistory([]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    return dummyData;
+  }, [toast]);
+
+  const fetchDetails = useCallback(async (coinId: string) => {
+    try {
+      const details = await fetchCoinDetails(coinId);
+      setCoinDetails(details);
+    } catch (error) {
+      console.error("Error fetching coin details:", error);
+      setCoinDetails(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchChartData(internalCoinId);
+    fetchDetails(internalCoinId);
+  }, [internalCoinId, fetchChartData, fetchDetails]);
+
+  const handleCoinSelect = (coin: CoinOption) => {
+    setInternalCoinId(coin.id);
+    onSelectCoin?.(coin.id);
   };
-  
-  const handleTimeframeChange = (value: string) => {
-    if (onTimeframeChange) {
-      onTimeframeChange(value);
+
+  const formatDate = (timestamp: number) => {
+    try {
+      const date = parseISO(new Date(timestamp).toISOString());
+      return format(date, 'MMM dd, yyyy');
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return 'Invalid Date';
     }
   };
-  
-  const calculateChange = () => {
-    if (data.length < 2) return { value: 0, percent: 0 };
-    
-    const firstPrice = data[0].price;
-    const lastPrice = data[data.length - 1].price;
-    const change = lastPrice - firstPrice;
-    const percentChange = (change / firstPrice) * 100;
-    
-    return { value: change, percent: percentChange };
-  };
-  
-  const change = calculateChange();
-  const isPositive = change.value >= 0;
-  
-  const priceColor = resolvedTheme === 'dark' ? '#4ADE80' : '#16A34A';
-  const gridColor = resolvedTheme === 'dark' ? '#333333' : '#E5E7EB';
-  const textColor = resolvedTheme === 'dark' ? '#FFFFFF' : '#000000';
-  
-  return (
-    <Card className="w-full h-[400px]">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle className="text-xl flex items-center">
-            Price Chart
-            {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-          </CardTitle>
-          <CardDescription>
-            {coinId.charAt(0).toUpperCase() + coinId.slice(1)} price data
-          </CardDescription>
+
+  const chartData = priceHistory.map((point) => ({
+    price: point.price,
+    timestamp: point.timestamp,
+    date: point.date,
+    volume: point.volume
+}));
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 bg-secondary rounded-md text-secondary-foreground">
+          <p className="label">{`Date: ${formatDate(payload[0].payload.timestamp)}`}</p>
+          <p className="label">{`Price: $${payload[0].value.toFixed(2)}`}</p>
         </div>
-        <Select
-          value={timeframe}
-          onValueChange={handleTimeframeChange}
-        >
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Select timeframe" />
-          </SelectTrigger>
-          <SelectContent>
-            {timeframes.map((tf) => (
-              <SelectItem key={tf.value} value={tf.value}>
-                {tf.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="flex items-center justify-between">
+        <CardTitle>
+          {coinDetails ? `${coinDetails.name} Price Chart` : "Price Chart"}
+        </CardTitle>
       </CardHeader>
-      
-      <CardContent className="pt-0">
-        {isLoading && data.length === 0 ? (
-          <div className="flex items-center justify-center h-[300px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-center">
-            <p className="text-destructive mb-4">{error}</p>
-            <Button variant="outline" onClick={() => setData(generateDummyData(coinId, timeframe))}>Retry</Button>
+      <CardContent>
+        <div className="mb-4">
+          <CryptoSearch onSelect={handleCoinSelect} placeholder="Search for a cryptocurrency..." />
+        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Skeleton className="w-full h-full" />
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={data}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-              <XAxis 
-                dataKey="time" 
-                tickFormatter={(value) => formatDateAxis(value, timeframe)} 
-                stroke={textColor}
-                tick={{ fill: textColor }}
-              />
-              <YAxis 
-                domain={['auto', 'auto']}
-                tickFormatter={(value) => formatValue(value)}
-                stroke={textColor}
-                tick={{ fill: textColor }}
-              />
-              <Tooltip 
-                formatter={(value) => formatValue(value as number)} 
-                labelFormatter={(timestamp) => new Date(timestamp as number).toLocaleString()}
-                contentStyle={{
-                  backgroundColor: resolvedTheme === 'dark' ? '#1F2937' : '#FFFFFF',
-                  borderColor: gridColor
-                }}
-              />
-              <Line
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tickFormatter={formatDate} />
+              <YAxis tickFormatter={(value) => `$${value.toFixed(2)}`} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
                 type="monotone"
                 dataKey="price"
-                stroke={priceColor}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 6 }}
+                stroke={theme === "dark" ? "#8884d8" : "#82ca9d"}
+                fill={theme === "dark" ? "#3f3f3f" : "#c8e6c9"}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
-        )}
-        
-        {data.length > 0 && (
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <div className="text-sm">
-              <span className="text-muted-foreground">Low: </span>
-              <span className="font-medium">
-                {formatValue(Math.min(...data.map(point => point.price)))}
-              </span>
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">High: </span>
-              <span className="font-medium">
-                {formatValue(Math.max(...data.map(point => point.price)))}
-              </span>
-            </div>
-            <div className="text-sm text-right">
-              <span className="text-muted-foreground">Change: </span>
-              <span className={`font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                {isPositive ? '+' : ''}{change.percent.toFixed(2)}%
-              </span>
-            </div>
-          </div>
         )}
       </CardContent>
     </Card>

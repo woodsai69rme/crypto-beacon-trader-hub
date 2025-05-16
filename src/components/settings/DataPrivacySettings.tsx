@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Shield } from "lucide-react";
 import { SettingsComponentProps } from './types';
@@ -63,10 +63,8 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Switch
               checked={privacyValues.showOnlineStatus}
               onCheckedChange={(checked) => {
-                form.setValue("privacy", {
-                  ...privacyValues,
-                  showOnlineStatus: checked
-                });
+                const updatedPrivacy = { ...privacyValues, showOnlineStatus: checked };
+                form.setValue("privacy", updatedPrivacy);
               }}
             />
           </FormControl>
@@ -83,10 +81,8 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Switch
               checked={privacyValues.sharePortfolio}
               onCheckedChange={(checked) => {
-                form.setValue("privacy", {
-                  ...privacyValues,
-                  sharePortfolio: checked
-                });
+                const updatedPrivacy = { ...privacyValues, sharePortfolio: checked };
+                form.setValue("privacy", updatedPrivacy);
               }}
             />
           </FormControl>
@@ -103,10 +99,8 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Switch
               checked={privacyValues.shareTrades}
               onCheckedChange={(checked) => {
-                form.setValue("privacy", {
-                  ...privacyValues,
-                  shareTrades: checked
-                });
+                const updatedPrivacy = { ...privacyValues, shareTrades: checked };
+                form.setValue("privacy", updatedPrivacy);
               }}
             />
           </FormControl>
@@ -123,10 +117,8 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Switch
               checked={privacyValues.dataCollection}
               onCheckedChange={(checked) => {
-                form.setValue("privacy", {
-                  ...privacyValues,
-                  dataCollection: checked
-                });
+                const updatedPrivacy = { ...privacyValues, dataCollection: checked };
+                form.setValue("privacy", updatedPrivacy);
               }}
             />
           </FormControl>
@@ -143,10 +135,8 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Switch
               checked={privacyValues.marketingConsent}
               onCheckedChange={(checked) => {
-                form.setValue("privacy", {
-                  ...privacyValues,
-                  marketingConsent: checked
-                });
+                const updatedPrivacy = { ...privacyValues, marketingConsent: checked };
+                form.setValue("privacy", updatedPrivacy);
               }}
             />
           </FormControl>
@@ -163,10 +153,8 @@ const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Switch
               checked={privacyValues.thirdPartySharing}
               onCheckedChange={(checked) => {
-                form.setValue("privacy", {
-                  ...privacyValues,
-                  thirdPartySharing: checked
-                });
+                const updatedPrivacy = { ...privacyValues, thirdPartySharing: checked };
+                form.setValue("privacy", updatedPrivacy);
               }}
             />
           </FormControl>

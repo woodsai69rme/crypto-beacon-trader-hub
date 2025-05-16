@@ -4,3 +4,4 @@ export * from './trading';
 export * from './trading.d';
 export * from './alerts';
 export * from './currency.d';
+export * from './settings.d';
