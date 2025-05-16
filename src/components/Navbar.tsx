@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -22,7 +21,7 @@ import {
   DropdownMenuTrigger
 } from './ui/dropdown-menu';
 import ThemeSwitcher from './ThemeSwitcher';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/hooks/use-theme';
 
 const Navbar = () => {
   const { colorScheme } = useTheme();

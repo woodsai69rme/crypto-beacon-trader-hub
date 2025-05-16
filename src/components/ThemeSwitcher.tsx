@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { useTheme, Theme, ColorScheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Palette } from 'lucide-react';
+import { useTheme } from '@/hooks/use-theme';
 import {
   DropdownMenu,
   DropdownMenuContent,
