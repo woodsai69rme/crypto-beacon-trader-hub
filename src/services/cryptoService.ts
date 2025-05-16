@@ -564,5 +564,10 @@ export const fetchCoinHistory = async (coinId: string, days: number | string = 7
   return fetchHistoricalData(coinId, days);
 };
 
-// Make sure these functions are exported
-export { fetchHistoricalData, fetchCoinDetails };
+// Export key functions (but avoid duplicates)
+export { 
+  fetchCryptoData,
+  fetchMultipleCryptoData,
+  fetchTopCryptoData,
+  fetchMarketCorrelationData
+};

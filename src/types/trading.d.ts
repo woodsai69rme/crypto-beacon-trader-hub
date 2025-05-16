@@ -1,4 +1,5 @@
 
+
 // Basic trading types
 export interface CoinOption {
   id: string;
@@ -216,6 +217,7 @@ export interface SettingsFormValues {
     coins: string[];
     showVolume: boolean;
     showPercentChange: boolean;
+    autoPause: boolean;
   };
   account: {
     twoFactor: boolean;

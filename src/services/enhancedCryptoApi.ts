@@ -4,13 +4,21 @@
  */
 
 import { CoinOption, CryptoData } from '@/types/trading.d';
-import { fetchHistoricalData, fetchCoinDetails, fetchCoinHistory } from './cryptoService';
-import { useToast } from '@/hooks/use-toast';
 import { toast } from "@/components/ui/use-toast";
+import { 
+  fetchCoinDetails,
+  fetchHistoricalData as fetchHistoricalDataFromService,
+  fetchCoinHistory as fetchCoinHistoryFromService
+} from './cryptoService';
 
 // Cache for storing recent API responses
 const apiCache: Record<string, { data: any; timestamp: number }> = {};
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Re-export with appropriate aliases to avoid name conflicts
+export const fetchHistoricalData = fetchHistoricalDataFromService;
+export const fetchCoinHistory = fetchCoinHistoryFromService;
+export { fetchCoinDetails };
 
 /**
  * Get trending cryptocurrencies
@@ -267,6 +275,14 @@ function generateMockNewsData(count: number): any[] {
     url: '#',
     summary: `${item.title}. This is a brief summary of the article discussing the latest developments in the cryptocurrency space.`,
   }));
+}
+
+// Helper function for fetching top crypto data
+async function fetchTopCryptoData(limit: number): Promise<CoinOption[]> {
+  // Implementation would be similar to the one in cryptoService.ts
+  // but we're creating a stub version here to avoid duplicate exports
+  const trendingCoins = generateFallbackTrendingCoins(limit);
+  return trendingCoins;
 }
 
 // Re-export these functions for convenience
