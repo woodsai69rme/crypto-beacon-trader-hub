@@ -9,10 +9,10 @@ import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { 
   AlertData,
-  AlertFormData,
   PriceAlert, 
   VolumeAlert, 
-  TechnicalAlert
+  TechnicalAlert,
+  AlertFormData
 } from "@/types/alerts";
 
 const AlertsSystem = () => {
@@ -82,7 +82,7 @@ const AlertsSystem = () => {
         } as TechnicalAlert;
       }
       
-      addAlert(alertData);
+      addAlert(alertData as AlertData);
       resetForm();
       setIsOpen(false);
     }
@@ -101,7 +101,7 @@ const AlertsSystem = () => {
         <AlertHeader />
         
         <AlertFormSheet 
-          formData={formData}
+          formData={formData as AlertFormData}
           onFormChange={updateFormData}
           onSubmit={handleSubmit}
         />

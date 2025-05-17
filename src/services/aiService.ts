@@ -1,24 +1,6 @@
 
 import { AITradingBot, AITradingStrategy, AIStrategyParameters } from '@/types/trading';
-
-// Define the missing types that are imported in the original file
-export interface AIModelConfig {
-  id: string;
-  name: string;
-  provider: string;
-  endpoint: string;
-  apiKey?: string;
-  parameters?: Record<string, any>;
-}
-
-export interface BacktestResults {
-  totalTrades: number;
-  winRate: number;
-  profitLoss: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
-  trades: any[];
-}
+import { AIModelConfig, BacktestResults } from '@/types/trading';
 
 // Implement mock functions
 export const fetchAiModels = async (): Promise<AIModelConfig[]> => {
@@ -157,6 +139,26 @@ export const getStrategies = async (): Promise<AITradingStrategy[]> => {
     }
   ];
 };
+
+// Export availableStrategies as a constant for components that need it
+export const availableStrategies = [
+  {
+    id: 'trend-following',
+    name: 'Trend Following'
+  },
+  {
+    id: 'mean-reversion',
+    name: 'Mean Reversion'
+  },
+  {
+    id: 'breakout',
+    name: 'Breakout Trading'
+  },
+  {
+    id: 'sentiment-based',
+    name: 'Sentiment Analysis'
+  }
+];
 
 export const runBacktest = async (
   strategyId: string,

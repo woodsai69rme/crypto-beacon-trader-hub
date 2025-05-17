@@ -11,6 +11,7 @@ const initialCoins: CoinOption[] = [
     image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
     price: 65000,
     value: 'bitcoin',
+    label: 'Bitcoin (BTC)',
     priceChange: 2.5,
     changePercent: 2.5,
     marketCap: 1250000000000,
@@ -23,6 +24,7 @@ const initialCoins: CoinOption[] = [
     image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
     price: 3500,
     value: 'ethereum',
+    label: 'Ethereum (ETH)',
     priceChange: 1.2,
     changePercent: 1.2,
     marketCap: 420000000000,
@@ -35,6 +37,7 @@ const initialCoins: CoinOption[] = [
     image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
     price: 140,
     value: 'solana',
+    label: 'Solana (SOL)',
     priceChange: 3.8,
     changePercent: 3.8,
     marketCap: 62000000000,
@@ -47,6 +50,7 @@ const initialCoins: CoinOption[] = [
     image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
     price: 0.45,
     value: 'cardano',
+    label: 'Cardano (ADA)',
     priceChange: -0.5,
     changePercent: -0.5,
     marketCap: 16000000000,
@@ -59,6 +63,7 @@ const initialCoins: CoinOption[] = [
     image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
     price: 0.56,
     value: 'xrp',
+    label: 'XRP (XRP)',
     priceChange: 1.1,
     changePercent: 1.1,
     marketCap: 31000000000,
@@ -77,6 +82,8 @@ interface TradingContextType {
   selectedCoin: CoinOption | null;
   setSelectedCoin: (coin: CoinOption | null) => void;
   refreshCoins: () => void;
+  account?: TradingAccount;
+  activeCurrency?: string;
 }
 
 const TradingContext = createContext<TradingContextType>({
@@ -89,13 +96,15 @@ const TradingContext = createContext<TradingContextType>({
   deleteTrade: () => {},
   selectedCoin: null,
   setSelectedCoin: () => {},
-  refreshCoins: () => {}
+  refreshCoins: () => {},
+  activeCurrency: 'AUD'
 });
 
 export const TradingProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(null);
+  const activeCurrency = 'AUD';
   
   // Sample account
   const initialAccount: TradingAccount = {
@@ -152,7 +161,7 @@ export const TradingProvider: React.FC<{children: React.ReactNode}> = ({ childre
     // In a real app, this would fetch fresh data from an API
     setCoins(prevCoins => prevCoins.map(coin => ({
       ...coin,
-      price: coin.price * (1 + (Math.random() * 0.04 - 0.02)), // Random price change ±2%
+      price: coin.price ? coin.price * (1 + (Math.random() * 0.04 - 0.02)) : 0, // Random price change ±2%
       priceChange: Math.random() * 5 - 2.5, // Random price change between -2.5% and 2.5%
       changePercent: Math.random() * 5 - 2.5
     })));
@@ -182,7 +191,9 @@ export const TradingProvider: React.FC<{children: React.ReactNode}> = ({ childre
       deleteTrade,
       selectedCoin,
       setSelectedCoin,
-      refreshCoins
+      refreshCoins,
+      account: initialAccount,
+      activeCurrency
     }}>
       {children}
     </TradingContext.Provider>

@@ -1,6 +1,6 @@
 
 import { PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
-export { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from '@/types/alerts';
+export type { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from '@/types/alerts';
 
 // List of supported cryptocurrencies for alerts
 export const COIN_OPTIONS = [

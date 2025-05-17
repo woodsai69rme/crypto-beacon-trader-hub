@@ -83,7 +83,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
           <FormItem>
             <FormLabel>Contact Email</FormLabel>
             <FormControl>
-              <Input placeholder="Your Contact Email" type="email" {...form.register('contactEmail')} />
+              <Input placeholder="Your Contact Email" type="email" {...form.register('email')} />
             </FormControl>
             <FormDescription>
               This is the email address that we will use to contact you.
@@ -94,9 +94,9 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
             <FormLabel>Language</FormLabel>
             <Select
               onValueChange={(value) => {
-                form.setValue('userLanguage', value, { shouldValidate: true });
+                form.setValue('language', value, { shouldValidate: true });
               }}
-              defaultValue={form.getValues('userLanguage') || 'en'}
+              defaultValue={form.getValues('language') || 'en'}
             >
               <FormControl>
                 <SelectTrigger>

@@ -1,6 +1,5 @@
 
 import { UseFormReturn } from "react-hook-form";
-import { SettingsFormValues } from "@/types/trading";
 
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
@@ -12,6 +11,8 @@ export interface SettingsFormValues {
   email?: string;
   username?: string;
   language?: string;
+  contactEmail?: string;
+  userLanguage?: string;
   currency?: {
     defaultCurrency: string;
     showConversion: boolean;
