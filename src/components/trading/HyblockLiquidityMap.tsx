@@ -11,17 +11,25 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { HyblockLiquidityMapProps, HyblockLiquidityZone } from "./types";
+import { HyblockLiquidityMapProps } from "./types";
+
+interface LiquidityZone {
+  min: number;
+  max: number;
+  strength: number;
+  type: 'buy' | 'sell';
+}
 
 const HyblockLiquidityMap: React.FC<HyblockLiquidityMapProps> = ({
-  symbol = "BTC/USD",
-  timeframe = "1D"
+  coinId = "bitcoin",
+  timeframe = "1D",
+  symbol = "BTC/USD"
 }) => {
   const [selectedSymbol, setSelectedSymbol] = useState(symbol);
   const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
   const [isLoading, setIsLoading] = useState(false);
   
-  const liquidityZones: HyblockLiquidityZone[] = [
+  const liquidityZones: LiquidityZone[] = [
     { min: 67000, max: 68500, strength: 85, type: 'sell' },
     { min: 64200, max: 65000, strength: 65, type: 'sell' },
     { min: 62000, max: 62800, strength: 45, type: 'buy' },

@@ -8,42 +8,29 @@ import { Languages } from '@/constants/languages';
 import { UseFormReturn } from 'react-hook-form';
 import { SettingsFormValues } from './types';
 import { Globe2 } from "lucide-react";
-import { SupportedCurrency } from '@/types/trading';
+import { SupportedCurrency } from './types';
 
 interface GeneralSettingsProps {
   form: UseFormReturn<SettingsFormValues>;
 }
 
 const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState<{ code: SupportedCurrency; label: string } | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>('USD');
 
   useEffect(() => {
     // Initialize selected currency from form values
-    const defaultCurrency = form.getValues('currency')?.defaultCurrency;
-    if (defaultCurrency) {
-      const initialCurrency = {
-        code: defaultCurrency as SupportedCurrency,
-        label: defaultCurrency,
-      };
-      setSelectedCurrency(initialCurrency);
+    const currentCurrency = form.getValues('currency');
+    if (currentCurrency) {
+      setSelectedCurrency(currentCurrency as SupportedCurrency);
     }
   }, [form]);
 
   const handleCurrencyChange = (currencyCode: string) => {
     const typedCurrencyCode = currencyCode as SupportedCurrency;
-    const newCurrency = {
-      code: typedCurrencyCode,
-      label: currencyCode,
-    };
-    setSelectedCurrency(newCurrency);
+    setSelectedCurrency(typedCurrencyCode);
 
-    const updatedOptions = {
-      defaultCurrency: typedCurrencyCode,
-      showConversion: true,
-      showPriceInBTC: false
-    };
-
-    form.setValue('currency', updatedOptions, { shouldValidate: true });
+    // Set the currency directly as a string
+    form.setValue('currency', typedCurrencyCode, { shouldValidate: true });
   };
 
   return (
@@ -120,7 +107,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
             <FormLabel>Currency</FormLabel>
             <Select
               onValueChange={handleCurrencyChange}
-              defaultValue={form.getValues('currency')?.defaultCurrency || 'USD'}
+              defaultValue={form.getValues('currency') || 'USD'}
             >
               <FormControl>
                 <SelectTrigger>

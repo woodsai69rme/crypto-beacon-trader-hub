@@ -1,3 +1,4 @@
+
 // Create or update the trading types
 export interface CoinOption {
   id: string;
@@ -6,11 +7,11 @@ export interface CoinOption {
   image?: string;
   price?: number;
   value: string;
-  label?: string;
-  priceChange?: number;
-  changePercent?: number;
-  marketCap?: number;
-  volume?: number;
+  label: string;
+  priceChange: number;
+  changePercent: number;
+  marketCap: number;
+  volume: number;
 }
 
 export interface FakeTradingFormProps {
@@ -47,7 +48,7 @@ export interface TradingAccount {
   provider?: string;
   isActive?: boolean;
   lastUpdated?: string;
-  initialBalance?: number;
+  initialBalance: number;
   trades?: Trade[];
   assets?: Array<{
     coinId: string;
@@ -145,54 +146,14 @@ export interface BacktestResults {
   trades: any[];
 }
 
-export interface FibonacciAnalysisProps {
-  coinId: string;
-  timeRange?: string;
-  data?: PricePoint[];
-  height?: number;
-  width?: string;
+export interface PricePoint {
+  timestamp: string | number;
+  price: number;
+  volume?: number;
 }
 
-export interface FibonacciLevels {
-  level: number;
-  value: number;
-  color: string;
-}
-
-export interface HyblockLiquidityMapProps {
-  coinId: string;
-  timeframe?: string;
-  width?: string;
-  height?: number;
-  showControls?: boolean;
-}
-
-export interface HyblockLiquidityZone {
-  priceRange: [number, number];
-  volume: number;
-  type: 'buy' | 'sell';
-  strength: number;
-}
-
-export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
-
-export interface AlertFormData {
-  type: 'price' | 'volume' | 'technical';
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  frequency?: AlertFrequency;
-  notifyVia?: Array<"email" | "app" | "push">;
-  targetPrice?: number;
-  isAbove?: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  volumeThreshold?: number;
-  indicator?: string;
-  condition?: string;
-  value?: number;
-}
+export type Theme = 'light' | 'dark' | 'system';
+export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
 
 export interface CryptoData {
   id: string;
@@ -215,86 +176,12 @@ export interface CryptoData {
   current_price?: number;
 }
 
-export interface SettingsFormValues {
-  displayName?: string;
-  username?: string;
-  contactEmail?: string;
-  userLanguage?: string;
-  theme: Theme;
-  display?: {
-    showPortfolio: boolean;
-    showBalances?: boolean;
-    compactMode: boolean;
-    defaultTab?: string;
-    colorScheme?: string;
-    animationsEnabled?: boolean;
-    highContrastMode?: boolean;
-  };
-  currency?: {
-    defaultCurrency: SupportedCurrency;
-    showConversion: boolean;
-    showPriceInBTC?: boolean;
-  };
-  notifications?: {
-    enablePush: boolean;
-    enableEmail: boolean;
-    alertPrice: boolean;
-    alertNews: boolean;
-    email?: boolean;
-    push?: boolean;
-    trades?: boolean;
-    pricing?: boolean;
-    news?: boolean;
-    priceAlerts?: boolean;
-  };
-  api?: {
-    provider: string;
-    refreshInterval?: number;
-    key?: string;
-    timeout?: number;
-  };
-  privacy?: {
-    showOnlineStatus: boolean;
-    sharePortfolio: boolean;
-    shareTrades: boolean;
-    dataCollection: boolean;
-    marketingConsent: boolean;
-    thirdPartySharing: boolean;
-  };
-  appearance?: {
-    densityMode?: 'compact' | 'comfortable' | 'spacious';
-    fontScale?: number;
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-  account?: {
-    twoFactor?: boolean;
-    loginAlerts?: boolean;
-    twoFactorEnabled?: boolean;
-  };
-  ticker?: {
-    enabled: boolean;
-    position: 'top' | 'bottom';
-    speed: number;
-    direction: 'ltr' | 'rtl';
-    coins?: string[];
-    showVolume?: boolean;
-    showPercentChange?: boolean;
-    autoPause: boolean;
-  };
-  tradingPreferences?: {
-    autoConfirm: boolean;
-    showAdvanced?: boolean;
-    defaultAsset?: string;
-    defaultTradeSize?: number;
-    riskLevel?: 'low' | 'medium' | 'high';
-    tradingStrategy?: string;
-    defaultLeverage?: number;
-    showPnL?: boolean;
-    defaultTimeframe?: string;
-  };
-  language?: string;
-  email?: string;
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  isRunning: boolean;
+  lastStarted?: Date;
+  apiKey?: string;
+  params?: Record<string, any>;
 }

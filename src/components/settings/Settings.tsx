@@ -10,7 +10,7 @@ import AppearanceSettings from "./AppearanceSettings";
 import NotificationSettings from "./NotificationSettings";
 import ApiSettings from "./ApiSettings";
 import DataPrivacySettings from "./DataPrivacySettings";
-import { SettingsFormValues } from "@/types/trading";
+import { SettingsFormValues } from "./types";
 import { useToast } from '@/hooks/use-toast';
 
 // Define the form schema
@@ -20,11 +20,7 @@ const settingsFormSchema = z.object({
   email: z.string().email().optional(),
   username: z.string().optional(),
   language: z.string().optional(),
-  currency: z.object({
-    defaultCurrency: z.enum(["USD", "AUD", "EUR", "GBP"]),
-    showConversion: z.boolean().default(true),
-    showPriceInBTC: z.boolean().optional()
-  }),
+  currency: z.string(),
   api: z.object({
     provider: z.string(),
     key: z.string().optional(),
@@ -75,7 +71,19 @@ const settingsFormSchema = z.object({
     position: z.string(),
     speed: z.number(),
     direction: z.string(),
-    autoPause: z.boolean()
+    autoPause: z.boolean(),
+    coins: z.array(z.string()).optional()
+  }).optional(),
+  tradingPreferences: z.object({
+    autoConfirm: z.boolean(),
+    showAdvanced: z.boolean().optional(),
+    defaultAsset: z.string().optional(),
+    defaultTradeSize: z.number().optional(),
+    riskLevel: z.enum(['low', 'medium', 'high']).optional(),
+    tradingStrategy: z.string().optional(),
+    defaultLeverage: z.number().optional(),
+    showPnL: z.boolean().optional(),
+    defaultTimeframe: z.string().optional()
   }).optional()
 });
 
@@ -96,11 +104,7 @@ export const Settings: React.FC = () => {
     // Default settings with AUD as the default currency
     return {
       theme: 'light',
-      currency: {
-        defaultCurrency: 'AUD',
-        showConversion: true,
-        showPriceInBTC: false
-      },
+      currency: 'AUD',
       api: {
         provider: 'coingecko',
         key: '',
@@ -109,7 +113,6 @@ export const Settings: React.FC = () => {
       },
       display: {
         showPortfolio: true,
-        showBalances: true,
         defaultTab: 'overview',
         compactMode: false,
         animationsEnabled: true,
@@ -117,16 +120,12 @@ export const Settings: React.FC = () => {
         colorScheme: 'default'
       },
       notifications: {
-        enableEmail: true,
-        enablePush: true,
-        alertPrice: true,
-        alertNews: false,
         email: true,
         push: true,
+        priceAlerts: true,
         trades: true,
         pricing: true,
-        news: false,
-        priceAlerts: true
+        news: false
       },
       privacy: {
         showOnlineStatus: true,
@@ -135,8 +134,15 @@ export const Settings: React.FC = () => {
         dataCollection: true,
         marketingConsent: false,
         thirdPartySharing: false
+      },
+      tradingPreferences: {
+        autoConfirm: true,
+        showAdvanced: false,
+        defaultAsset: 'BTC',
+        defaultTradeSize: 0.1,
+        riskLevel: 'medium'
       }
-    };
+    } as SettingsFormValues;
   };
   
   const form = useForm<SettingsFormValues>({

@@ -10,7 +10,7 @@ export interface SettingsFormValues {
   username?: string;
   contactEmail?: string;
   userLanguage?: string;
-  currency: SupportedCurrency;
+  currency: string;
   display: {
     showPortfolio: boolean;
     defaultTab: string;

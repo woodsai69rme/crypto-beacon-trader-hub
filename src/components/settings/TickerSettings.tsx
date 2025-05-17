@@ -5,11 +5,28 @@ import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { UseFormReturn } from 'react-hook-form';
 import { Settings } from 'lucide-react';
-import { SettingsFormValues, SettingsComponentProps } from './types';
+import { SettingsComponentProps } from './types';
 
 const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+  // Initialize ticker if it doesn't exist
+  const ensureTickerSettings = () => {
+    const current = form.getValues();
+    if (!current.ticker) {
+      form.setValue("ticker", {
+        enabled: true,
+        position: 'top',
+        direction: 'ltr',
+        speed: 3,
+        autoPause: true,
+        coins: ['BTC', 'ETH', 'SOL']
+      });
+    }
+    return current.ticker || {};
+  };
+  
+  ensureTickerSettings();
+
   return (
     <Card>
       <CardHeader>
@@ -28,7 +45,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <FormLabel>Enable Ticker</FormLabel>
             <Switch 
               checked={form.watch("ticker.enabled")} 
-              onCheckedChange={(value) => form.setValue("ticker", {...form.getValues().ticker, enabled: value}, { shouldValidate: true })}
+              onCheckedChange={(value) => {
+                const ticker = ensureTickerSettings();
+                form.setValue("ticker", { ...ticker, enabled: value }, { shouldValidate: true });
+              }}
             />
           </div>
           <FormDescription>
@@ -40,7 +60,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormLabel>Position</FormLabel>
           <Select 
             value={form.watch("ticker.position")} 
-            onValueChange={(value: "top" | "bottom") => form.setValue("ticker", {...form.getValues().ticker, position: value}, { shouldValidate: true })}
+            onValueChange={(value: "top" | "bottom") => {
+              const ticker = ensureTickerSettings();
+              form.setValue("ticker", { ...ticker, position: value }, { shouldValidate: true });
+            }}
             disabled={!form.watch("ticker.enabled")}
           >
             <FormControl>
@@ -65,11 +88,12 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               type="number" 
               min="1" 
               max="10" 
-              value={form.watch("ticker.speed")} 
+              value={form.watch("ticker.speed") || 3} 
               onChange={(e) => {
                 const value = parseInt(e.target.value);
                 if (!isNaN(value)) {
-                  form.setValue("ticker", {...form.getValues().ticker, speed: value}, { shouldValidate: true });
+                  const ticker = ensureTickerSettings();
+                  form.setValue("ticker", { ...ticker, speed: value }, { shouldValidate: true });
                 }
               }}
               disabled={!form.watch("ticker.enabled")}
@@ -84,7 +108,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormLabel>Direction</FormLabel>
           <Select 
             value={form.watch("ticker.direction")} 
-            onValueChange={(value: "ltr" | "rtl") => form.setValue("ticker", {...form.getValues().ticker, direction: value}, { shouldValidate: true })}
+            onValueChange={(value: "ltr" | "rtl") => {
+              const ticker = ensureTickerSettings();
+              form.setValue("ticker", { ...ticker, direction: value }, { shouldValidate: true });
+            }}
             disabled={!form.watch("ticker.enabled")}
           >
             <FormControl>
@@ -107,7 +134,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <FormLabel>Auto-pause on hover</FormLabel>
             <Switch 
               checked={form.watch("ticker.autoPause")} 
-              onCheckedChange={(value) => form.setValue("ticker", {...form.getValues().ticker, autoPause: value}, { shouldValidate: true })}
+              onCheckedChange={(value) => {
+                const ticker = ensureTickerSettings();
+                form.setValue("ticker", { ...ticker, autoPause: value }, { shouldValidate: true });
+              }}
               disabled={!form.watch("ticker.enabled")}
             />
           </div>
@@ -115,25 +145,6 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             Pause ticker when cursor hovers over it
           </FormDescription>
         </FormItem>
-        
-        {/* This field was causing errors, since it's not needed for basic functionality, I'm commenting it out */}
-        {/* <FormItem>
-          <FormLabel>Featured Coins</FormLabel>
-          <FormControl>
-            <Input 
-              placeholder="BTC, ETH, SOL, ADA" 
-              value={form.watch("ticker.coins")?.join(", ") || ""}
-              onChange={(e) => {
-                const coins = e.target.value.split(",").map(c => c.trim());
-                form.setValue("ticker", {...form.getValues().ticker, coins}, { shouldValidate: true });
-              }}
-              disabled={!form.watch("ticker.enabled")}
-            />
-          </FormControl>
-          <FormDescription>
-            Comma-separated list of coins to feature in the ticker
-          </FormDescription>
-        </FormItem> */}
       </CardContent>
     </Card>
   );

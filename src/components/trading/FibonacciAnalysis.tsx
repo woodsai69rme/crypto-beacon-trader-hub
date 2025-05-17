@@ -5,9 +5,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineChart, TrendingDown, TrendingUp, AlertCircle, Download } from "lucide-react";
-import { FibonacciAnalysisProps, FibonacciLevels } from "./types";
+import { FibonacciAnalysisProps } from "./types";
+
+interface FibLevels {
+  level0: number;
+  level236: number;
+  level382: number;
+  level500: number;
+  level618: number;
+  level786: number;
+  level1000: number;
+}
 
 const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({ 
+  coinId = "bitcoin",
+  timeRange = "1D",
   symbol = "BTC/USD",
   timeframe = "1D"
 }) => {
@@ -15,7 +27,7 @@ const FibonacciAnalysis: React.FC<FibonacciAnalysisProps> = ({
   const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
   const [trend, setTrend] = useState<'up' | 'down'>('up');
   
-  const fibLevels: FibonacciLevels = {
+  const fibLevels: FibLevels = {
     level0: 67890.00,
     level236: 65230.45,
     level382: 63450.67,
