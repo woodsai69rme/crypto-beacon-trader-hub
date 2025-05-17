@@ -71,7 +71,6 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                     const prefs = ensureTradingPreferences();
                     form.setValue("tradingPreferences", {
                       ...prefs,
-                      autoConfirm: prefs.autoConfirm,
                       showAdvanced: checked
                     });
                   }}
@@ -91,7 +90,6 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 const prefs = ensureTradingPreferences();
                 form.setValue("tradingPreferences", {
                   ...prefs,
-                  autoConfirm: prefs.autoConfirm,
                   defaultAsset: value
                 });
               }}
@@ -122,7 +120,6 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 const prefs = ensureTradingPreferences();
                 form.setValue("tradingPreferences", {
                   ...prefs,
-                  autoConfirm: prefs.autoConfirm,
                   riskLevel: value
                 });
               }}
@@ -157,7 +154,6 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                     const prefs = ensureTradingPreferences();
                     form.setValue("tradingPreferences", {
                       ...prefs,
-                      autoConfirm: prefs.autoConfirm,
                       defaultTradeSize: value
                     });
                   }

@@ -1,18 +1,13 @@
 
-import React from 'react';
-import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Bell } from "lucide-react";
+import React from "react";
 
-export const AlertHeader = () => {
+export const AlertHeader: React.FC = () => {
   return (
-    <div className="mb-4">
-      <SheetTitle className="flex items-center">
-        <Bell className="h-5 w-5 mr-2" />
-        Price Alerts
-      </SheetTitle>
-      <SheetDescription>
-        Get notified when assets hit your target prices
-      </SheetDescription>
+    <div>
+      <h2 className="text-lg font-semibold">Trading Alerts</h2>
+      <p className="text-sm text-muted-foreground mt-1">
+        Create and manage your price, volume, and technical alerts
+      </p>
     </div>
   );
 };

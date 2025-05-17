@@ -1,44 +1,57 @@
 
 import { useState } from 'react';
-import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
-// Import the types from alerts.ts instead of trading.ts
 import { AlertFormData, AlertFrequency } from '@/types/alerts';
 
-const defaultAlert: Partial<AlertFormData> = {
-  coinId: "bitcoin",
-  coinName: "Bitcoin",
-  coinSymbol: "BTC",
-  targetPrice: 0,
-  type: 'price',
-  frequency: 'once' as AlertFrequency,
-  isAbove: true,
-  enabled: true,
-  recurring: false,
-  percentageChange: 0,
-  notifyVia: ["app"] as ("email" | "app" | "push")[]
-};
+export const useAlertForm = (initialType: 'price' | 'volume' | 'technical' = 'price') => {
+  const [formData, setFormData] = useState<AlertFormData>({
+    type: initialType,
+    coinId: '',
+    coinName: '',
+    coinSymbol: '',
+    enabled: true,
+    notifyVia: ['app'],
+    frequency: 'once' as AlertFrequency,
+    // Price alert specific fields
+    targetPrice: 0,
+    isAbove: true,
+    recurring: false,
+    percentageChange: 0,
+    // Volume alert specific fields
+    volumeThreshold: 0,
+    // Technical alert specific fields
+    indicator: '',
+    condition: '',
+    value: 0
+  });
 
-export const useAlertForm = () => {
-  const [formData, setFormData] = useState<Partial<AlertFormData>>(defaultAlert);
-  
-  const resetForm = () => setFormData(defaultAlert);
-  
-  const updateCoin = (coinId: string) => {
-    const selectedCoin = COIN_OPTIONS.find(coin => coin.id === coinId);
-    if (selectedCoin) {
-      setFormData(prev => ({
-        ...prev,
-        coinId: selectedCoin.id,
-        coinName: selectedCoin.name,
-        coinSymbol: selectedCoin.symbol
-      }));
-    }
+  const updateFormData = (data: Partial<AlertFormData>) => {
+    setFormData(prev => ({ ...prev, ...data }));
   };
-  
+
+  const resetForm = () => {
+    setFormData({
+      type: initialType,
+      coinId: '',
+      coinName: '',
+      coinSymbol: '',
+      enabled: true,
+      notifyVia: ['app'],
+      frequency: 'once',
+      targetPrice: 0,
+      isAbove: true,
+      recurring: false,
+      percentageChange: 0,
+      volumeThreshold: 0,
+      indicator: '',
+      condition: '',
+      value: 0
+    });
+  };
+
   return {
     formData,
-    setFormData,
+    updateFormData,
     resetForm,
-    updateCoin
+    setFormData
   };
 };

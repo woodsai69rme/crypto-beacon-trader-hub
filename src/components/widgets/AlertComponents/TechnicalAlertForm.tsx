@@ -1,233 +1,208 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { Input } from "@/components/ui/input";
-import { Plus, AlertTriangle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { TechnicalAlertFormData, COIN_OPTIONS } from "./AlertTypes";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertFrequency, TechnicalAlertFormData } from "@/types/alerts";
+import { COIN_OPTIONS, TECHNICAL_INDICATORS } from './AlertTypes';
 import { validateFormFields } from "@/utils/formValidation";
-import { createNumberRangeRule } from "@/utils/formValidation";
-import { handleError } from "@/utils/errorHandling";
-import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/loading-skeleton";
 
 interface TechnicalAlertFormProps {
   formData: TechnicalAlertFormData;
-  setFormData: (data: TechnicalAlertFormData) => void;
-  onSubmit: () => void;
-  isLoading?: boolean;
+  setFormData: React.Dispatch<React.SetStateAction<TechnicalAlertFormData>>;
+  onSubmit?: () => void;
 }
-
-const INDICATOR_DESCRIPTIONS: Record<string, string> = {
-  "RSI": "Relative Strength Index - measures momentum on a scale of 0-100. Values over 70 indicate overbought conditions, while values under 30 indicate oversold conditions.",
-  "MACD": "Moving Average Convergence Divergence - shows the relationship between two moving averages of a security's price.",
-  "Bollinger Bands": "Bollinger Bands - consists of a middle band being a moving average, and two outer bands that are standard deviations away from the middle band.",
-  "Moving Average": "Moving Average - smooths out price data to create a single flowing line, making it easier to identify the direction of the trend.",
-  "Stochastic": "Stochastic Oscillator - compares a particular closing price of a security to a range of its prices over a certain period of time."
-};
-
-const CONDITION_DESCRIPTIONS: Record<string, string> = {
-  "above": "Alert triggers when indicator value moves above the specified threshold",
-  "below": "Alert triggers when indicator value moves below the specified threshold",
-  "crosses above": "Alert triggers when indicator value crosses from below to above the specified threshold",
-  "crosses below": "Alert triggers when indicator value crosses from above to below the specified threshold"
-};
-
-const VALUE_RANGES: Record<string, {min: number, max: number, default: number}> = {
-  "RSI": { min: 0, max: 100, default: 70 },
-  "MACD": { min: -100, max: 100, default: 0 },
-  "Bollinger Bands": { min: 0, max: 3, default: 2 },
-  "Moving Average": { min: 1, max: 500, default: 50 },
-  "Stochastic": { min: 0, max: 100, default: 80 }
-};
 
 const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({ 
   formData, 
-  setFormData, 
-  onSubmit,
-  isLoading = false
+  setFormData,
+  onSubmit
 }) => {
-  const [tooltipText, setTooltipText] = useState<string>("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Create validation rules for the value field
-      const customValidations: Record<string, Function[]> = {
-        value: [
-          createNumberRangeRule(
-            VALUE_RANGES[formData.indicator]?.min || 0,
-            VALUE_RANGES[formData.indicator]?.max || 100
-          )
-        ]
-      };
-      
-      // Basic field validation with custom validations
-      const isValid = validateFormFields(
-        formData,
-        ["coinId", "indicator", "condition", "value"],
-        customValidations
-      );
-      
-      if (!isValid) {
-        return;
-      }
-
-      toast({
-        title: "Technical Alert Created",
-        description: `${formData.coinSymbol} alert will trigger when ${formData.indicator} is ${formData.condition} ${formData.value}`,
+  const handleCoinChange = (value: string) => {
+    const selectedCoin = COIN_OPTIONS.find(coin => coin.id === value);
+    if (selectedCoin) {
+      setFormData({
+        ...formData,
+        coinId: selectedCoin.id,
+        coinName: selectedCoin.name,
+        coinSymbol: selectedCoin.symbol
       });
-
-      onSubmit();
-    } catch (error) {
-      handleError(error, "error", "Technical Alert");
     }
   };
 
-  const handleCoinChange = (value: string) => {
-    const coin = COIN_OPTIONS[value];
+  const handleIndicatorChange = (value: string) => {
     setFormData({
       ...formData,
-      coinId: value,
-      coinName: coin.name,
-      coinSymbol: coin.symbol
+      indicator: value
     });
-  };
-  
-  const handleIndicatorChange = (value: string) => {
-    setFormData({ 
-      ...formData, 
-      indicator: value,
-      // Set a sensible default value based on the indicator
-      value: VALUE_RANGES[value]?.default || 0
-    });
-    setTooltipText(INDICATOR_DESCRIPTIONS[value] || "");
-  };
-  
-  const handleConditionChange = (value: string) => {
-    setFormData({ 
-      ...formData, 
-      condition: value 
-    });
-    setTooltipText(CONDITION_DESCRIPTIONS[value] || "");
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <Skeleton variant="rectangular" height={300} />
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleConditionChange = (value: string) => {
+    setFormData({
+      ...formData,
+      condition: value
+    });
+  };
+
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    
+    // Validate the value is within acceptable ranges (for example, RSI between 0-100)
+    const isValid = validateFormFields(value, [
+      (val) => (isNaN(val) ? "Must be a number" : true),
+      (val) => (val < 0 || val > 100 ? "Value must be between 0 and 100" : true)
+    ]);
+    
+    if (isValid === true) {
+      setFormData({
+        ...formData,
+        value: value
+      });
+    }
+  };
+
+  const handleFrequencyChange = (value: string) => {
+    setFormData({
+      ...formData,
+      frequency: value as AlertFrequency
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSubmit) {
+      onSubmit();
+    }
+  };
+
+  const getConditionsForIndicator = (indicator: string) => {
+    switch (indicator) {
+      case 'rsi':
+        return [
+          { id: 'overbought', label: 'Overbought' },
+          { id: 'oversold', label: 'Oversold' }
+        ];
+      case 'macd':
+        return [
+          { id: 'cross_up', label: 'Bullish Cross' },
+          { id: 'cross_down', label: 'Bearish Cross' }
+        ];
+      case 'bb':
+        return [
+          { id: 'upper_touch', label: 'Price Touches Upper Band' },
+          { id: 'lower_touch', label: 'Price Touches Lower Band' }
+        ];
+      default:
+        return [
+          { id: 'cross_up', label: 'Cross Above' },
+          { id: 'cross_down', label: 'Cross Below' }
+        ];
+    }
+  };
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
-            {tooltipText && (
-              <div className="bg-muted p-2 rounded-md text-xs text-muted-foreground mb-4 flex items-start">
-                <AlertTriangle className="h-4 w-4 mr-2 mt-0.5" />
-                <span>{tooltipText}</span>
-              </div>
-            )}
-            
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Coin</label>
-              <Select 
-                value={formData.coinId}
-                onValueChange={handleCoinChange}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
-                  <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                  <SelectItem value="solana">Solana (SOL)</SelectItem>
-                  <SelectItem value="cardano">Cardano (ADA)</SelectItem>
-                  <SelectItem value="ripple">XRP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Indicator</label>
-              <Select
-                value={formData.indicator}
-                onValueChange={handleIndicatorChange}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="RSI">RSI</SelectItem>
-                  <SelectItem value="MACD">MACD</SelectItem>
-                  <SelectItem value="Bollinger Bands">Bollinger Bands</SelectItem>
-                  <SelectItem value="Moving Average">Moving Average</SelectItem>
-                  <SelectItem value="Stochastic">Stochastic</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium">Condition</label>
-                <Select
-                  value={formData.condition}
-                  onValueChange={handleConditionChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="above">Above</SelectItem>
-                    <SelectItem value="below">Below</SelectItem>
-                    <SelectItem value="crosses above">Crosses Above</SelectItem>
-                    <SelectItem value="crosses below">Crosses Below</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium">Value</label>
-                <Input
-                  type="number"
-                  value={formData.value?.toString() || ""}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    value: parseFloat(e.target.value) || 0 
-                  })}
-                  min={VALUE_RANGES[formData.indicator]?.min}
-                  max={VALUE_RANGES[formData.indicator]?.max}
-                  step="0.1"
-                />
-                {formData.indicator && (
-                  <div className="text-xs text-muted-foreground">
-                    Range: {VALUE_RANGES[formData.indicator]?.min} - {VALUE_RANGES[formData.indicator]?.max}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <Button type="submit" className="w-full">
-              <Plus className="mr-1 h-4 w-4" />
-              Add Technical Alert
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="coin-select">Cryptocurrency</Label>
+        <Select 
+          value={formData.coinId} 
+          onValueChange={handleCoinChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select coin" />
+          </SelectTrigger>
+          <SelectContent>
+            {COIN_OPTIONS.map(coin => (
+              <SelectItem key={coin.id} value={coin.id}>
+                {coin.name} ({coin.symbol})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="indicator">Technical Indicator</Label>
+        <Select 
+          value={formData.indicator} 
+          onValueChange={handleIndicatorChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select indicator" />
+          </SelectTrigger>
+          <SelectContent>
+            {TECHNICAL_INDICATORS.map(indicator => (
+              <SelectItem key={indicator.id} value={indicator.id}>
+                {indicator.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {formData.indicator && (
+        <div className="space-y-2">
+          <Label htmlFor="condition">Condition</Label>
+          <Select 
+            value={formData.condition} 
+            onValueChange={handleConditionChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select condition" />
+            </SelectTrigger>
+            <SelectContent>
+              {getConditionsForIndicator(formData.indicator).map(condition => (
+                <SelectItem key={condition.id} value={condition.id}>
+                  {condition.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      
+      <div className="space-y-2">
+        <Label htmlFor="value">Value</Label>
+        <Input 
+          id="value"
+          type="number"
+          value={formData.value || ''}
+          onChange={handleValueChange}
+          placeholder="Enter value"
+          min="0"
+          max="100"
+          step="0.1"
+        />
+        <p className="text-xs text-muted-foreground">
+          Enter the threshold value for this technical indicator.
+        </p>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="frequency">Alert Frequency</Label>
+        <Select 
+          value={formData.frequency || 'once'} 
+          onValueChange={handleFrequencyChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select frequency" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="once">Once</SelectItem>
+            <SelectItem value="recurring">Every occurrence</SelectItem>
+            <SelectItem value="daily">Daily</SelectItem>
+            <SelectItem value="hourly">Hourly</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {onSubmit && (
+        <Button type="submit" className="w-full mt-4">
+          Create Technical Alert
+        </Button>
+      )}
+    </form>
   );
 };
 

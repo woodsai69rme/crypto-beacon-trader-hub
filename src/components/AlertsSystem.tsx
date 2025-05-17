@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,10 +8,10 @@ import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { 
   AlertData,
+  AlertFormData,
   PriceAlert, 
   VolumeAlert, 
-  TechnicalAlert,
-  AlertFormData
+  TechnicalAlert
 } from "@/types/alerts";
 
 const AlertsSystem = () => {
@@ -30,7 +29,9 @@ const AlertsSystem = () => {
 
   // Create a type-safe form data setter
   const updateFormData = (data: Partial<AlertFormData>) => {
-    setFormData(prev => ({ ...prev, ...data }));
+    // Keep the type consistent by ensuring we always have a valid type
+    const updatedType = data.type || formData.type;
+    setFormData(prev => ({ ...prev, ...data, type: updatedType }));
   };
 
   const resetForm = () => {
@@ -47,47 +48,7 @@ const AlertsSystem = () => {
 
   const handleSubmit = () => {
     if (formData.coinId) {
-      const baseAlertData = {
-        id: Date.now().toString(),
-        createdAt: new Date(),
-        enabled: true,
-        coinId: formData.coinId,
-        coinName: formData.coinName,
-        coinSymbol: formData.coinSymbol,
-        notifyVia: formData.notifyVia || ['app'],
-        frequency: formData.frequency || 'once'
-      };
-      
-      // Create the appropriate alert type
-      let alertData: AlertData;
-      
-      // Explicitly cast to the correct type based on formData.type
-      if (formData.type === 'price') {
-        alertData = {
-          ...baseAlertData,
-          type: 'price' as const,
-          targetPrice: formData.targetPrice || 0,
-          isAbove: formData.isAbove || true,
-          recurring: formData.recurring || false,
-          percentageChange: formData.percentageChange || 0
-        } as PriceAlert;
-      } else if (formData.type === 'volume') {
-        alertData = {
-          ...baseAlertData,
-          type: 'volume' as const,
-          volumeThreshold: formData.volumeThreshold || 0
-        } as VolumeAlert;
-      } else {
-        alertData = {
-          ...baseAlertData,
-          type: 'technical' as const,
-          indicator: formData.indicator || '',
-          condition: formData.condition || '',
-          value: formData.value || 0
-        } as TechnicalAlert;
-      }
-      
-      addAlert(alertData);
+      addAlert(formData);
       resetForm();
       setIsOpen(false);
     }

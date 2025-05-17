@@ -76,6 +76,7 @@ export interface AITradingBot {
   successRate?: number;
   trades?: number;
   totalTrades?: number;
+  pair?: string;
   performance?: {
     winRate: number;
     trades: number;
@@ -124,6 +125,35 @@ export interface RealTimePriceChartProps {
   height?: number;
   width?: string;
   showControls?: boolean;
+}
+
+export interface RealTimePricesProps {
+  coins: CoinOption[];
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
+  isLoading?: boolean;
+  initialCoins?: CoinOption[];
+}
+
+export interface WalletConnectionProps {
+  supportedWallets: Array<{
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    supported: boolean;
+    logo?: string;
+    isConnected?: boolean;
+    isInstalled?: boolean;
+  }>;
+  onConnect: (account: WalletAccount) => void;
+}
+
+export interface WalletAccount {
+  id: string;
+  address: string;
+  provider: string;
+  balance?: number;
 }
 
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
@@ -184,4 +214,17 @@ export interface LocalModel {
   lastStarted?: Date;
   apiKey?: string;
   params?: Record<string, any>;
+}
+
+export interface OpenRouterRequest {
+  model: string;
+  messages: Array<{role: string, content: string}>;
+  temperature?: number;
+  max_tokens?: number;
+}
+
+export interface CryptoChartData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
 }

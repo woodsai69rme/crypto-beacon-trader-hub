@@ -56,3 +56,25 @@ export interface FakeTradingFormProps {
   initialCoinId?: string;
   advancedMode?: boolean;
 }
+
+export interface RealTimePricesProps {
+  coins: CoinOption[];
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
+  isLoading?: boolean;
+  initialCoins?: CoinOption[];
+}
+
+export interface WalletConnectionProps {
+  supportedWallets: Array<{
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    supported: boolean;
+    logo?: string;
+    isConnected?: boolean;
+    isInstalled?: boolean;
+  }>;
+  onConnect: (account: any) => void;
+}

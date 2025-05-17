@@ -15,4 +15,20 @@ export const createNumberRangeRule = (min: number, max: number, errorMessage: st
   };
 };
 
+/**
+ * Validates form fields against specified rules
+ * @param value The value to validate
+ * @param rules Array of validation rules to apply
+ * @returns String error message or true if validation passes
+ */
+export const validateFormFields = (value: any, rules: ((value: any) => string | true)[]) => {
+  for (const rule of rules) {
+    const result = rule(value);
+    if (result !== true) {
+      return result;
+    }
+  }
+  return true;
+};
+
 export default createNumberRangeRule;
