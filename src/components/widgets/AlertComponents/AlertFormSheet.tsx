@@ -26,16 +26,18 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     ...formData,
     type: 'price' as const,
     targetPrice: formData.targetPrice || 0,
-    isAbove: formData.isAbove || true,
-    recurring: formData.recurring || false,
-    percentageChange: formData.percentageChange || 0
+    isAbove: formData.isAbove ?? true,
+    recurring: formData.recurring ?? false,
+    percentageChange: formData.percentageChange || 0,
+    notifyVia: formData.notifyVia || ['app']
   };
 
   const volumeAlertData = {
     ...formData,
     type: 'volume' as const,
     volumeThreshold: formData.volumeThreshold || 0,
-    frequency: formData.frequency || 'once'
+    frequency: formData.frequency || 'once',
+    notifyVia: formData.notifyVia || ['app']
   };
 
   const technicalAlertData = {
@@ -43,7 +45,20 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     type: 'technical' as const,
     indicator: formData.indicator || '',
     condition: formData.condition || '',
-    value: formData.value || 0
+    value: formData.value || 0,
+    notifyVia: formData.notifyVia || ['app']
+  };
+
+  const handlePriceFormChange = (data: Partial<typeof priceAlertData>) => {
+    onFormChange(data);
+  };
+
+  const handleVolumeFormChange = (data: Partial<typeof volumeAlertData>) => {
+    onFormChange(data);
+  };
+
+  const handleTechnicalFormChange = (data: Partial<typeof technicalAlertData>) => {
+    onFormChange(data);
   };
 
   return (
@@ -62,7 +77,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="price" className="mt-4">
           <PriceAlertForm 
             formData={priceAlertData} 
-            setFormData={(data) => onFormChange(data)} 
+            setFormData={handlePriceFormChange} 
             onSubmit={onSubmit}
           />
         </TabsContent>
@@ -70,7 +85,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="volume" className="mt-4">
           <VolumeAlertForm 
             formData={volumeAlertData} 
-            setFormData={(data) => onFormChange(data)}
+            setFormData={handleVolumeFormChange}
             onSubmit={onSubmit}
           />
         </TabsContent>
@@ -78,7 +93,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="technical" className="mt-4">
           <TechnicalAlertForm 
             formData={technicalAlertData} 
-            setFormData={(data) => onFormChange(data)}
+            setFormData={handleTechnicalFormChange}
             onSubmit={onSubmit}
           />
         </TabsContent>

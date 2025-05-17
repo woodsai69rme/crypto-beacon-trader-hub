@@ -1,4 +1,3 @@
-
 // Define basic trading types
 export interface CoinOption {
   id: string;
@@ -120,7 +119,7 @@ export interface TradingAccount {
   }>;
   isActive?: boolean;
   lastUpdated?: string;
-  initialBalance?: number;
+  initialBalance: number;
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive';

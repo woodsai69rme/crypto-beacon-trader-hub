@@ -53,6 +53,7 @@ export interface TechnicalAlert extends BaseAlertData {
 
 export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
 
+// Form data types for different alert types
 export interface PriceAlertFormData {
   coinId: string;
   coinName: string;
@@ -76,7 +77,6 @@ export interface VolumeAlertFormData {
   enabled: boolean;
   notifyVia: Array<"email" | "app" | "push">;
   type: 'volume';
-  onSubmit?: () => void;
 }
 
 export interface TechnicalAlertFormData {
@@ -88,6 +88,6 @@ export interface TechnicalAlertFormData {
   value: number;
   enabled: boolean;
   frequency?: AlertFrequency;
-  notifyVia?: Array<"email" | "app" | "push">;
+  notifyVia: Array<"email" | "app" | "push">;
   type: 'technical';
 }

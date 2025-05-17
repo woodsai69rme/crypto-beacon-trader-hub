@@ -50,7 +50,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 form.setValue("ticker", { 
                   ...ticker, 
                   enabled: value 
-                }, { shouldValidate: true });
+                });
               }}
             />
           </div>
@@ -68,7 +68,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               form.setValue("ticker", { 
                 ...ticker,
                 position: value 
-              }, { shouldValidate: true });
+              });
             }}
             disabled={!form.watch("ticker.enabled")}
           >
@@ -102,7 +102,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                   form.setValue("ticker", { 
                     ...ticker,
                     speed: value 
-                  }, { shouldValidate: true });
+                  });
                 }
               }}
               disabled={!form.watch("ticker.enabled")}
@@ -122,7 +122,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               form.setValue("ticker", { 
                 ...ticker, 
                 direction: value 
-              }, { shouldValidate: true });
+              });
             }}
             disabled={!form.watch("ticker.enabled")}
           >
@@ -151,7 +151,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 form.setValue("ticker", { 
                   ...ticker, 
                   autoPause: value 
-                }, { shouldValidate: true });
+                });
               }}
               disabled={!form.watch("ticker.enabled")}
             />

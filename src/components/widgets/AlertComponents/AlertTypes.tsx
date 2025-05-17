@@ -1,6 +1,15 @@
 
 import { CoinOption } from "@/types/trading";
 
+// Technical indicators for alerts with correct properties
+export const TECHNICAL_INDICATORS = [
+  { id: 'rsi', value: 'rsi', label: 'RSI (Relative Strength Index)' },
+  { id: 'macd', value: 'macd', label: 'MACD (Moving Average Convergence Divergence)' },
+  { id: 'sma', value: 'sma', label: 'SMA (Simple Moving Average)' },
+  { id: 'ema', value: 'ema', label: 'EMA (Exponential Moving Average)' },
+  { id: 'bb', value: 'bb', label: 'Bollinger Bands' }
+];
+
 // Sample coin options for alert forms
 export const COIN_OPTIONS: CoinOption[] = [
   { 
@@ -85,13 +94,13 @@ export const CONDITIONS = {
   ]
 };
 
-// Technical indicators for alerts
-export const TECHNICAL_INDICATORS = [
-  { id: 'rsi', label: 'RSI (Relative Strength Index)' },
-  { id: 'macd', label: 'MACD (Moving Average Convergence Divergence)' },
-  { id: 'sma', label: 'SMA (Simple Moving Average)' },
-  { id: 'ema', label: 'EMA (Exponential Moving Average)' },
-  { id: 'bb', label: 'Bollinger Bands' }
+// Technical conditions
+export const TECHNICAL_CONDITIONS = [
+  { id: 'above', value: 'above', label: 'Above' },
+  { id: 'below', value: 'below', label: 'Below' },
+  { id: 'crosses_above', value: 'crosses_above', label: 'Crosses Above' },
+  { id: 'crosses_below', value: 'crosses_below', label: 'Crosses Below' },
+  { id: 'equals', value: 'equals', label: 'Equals' }
 ];
 
 // Available notification methods

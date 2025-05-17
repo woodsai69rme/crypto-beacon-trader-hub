@@ -80,23 +80,23 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     switch (indicator) {
       case 'rsi':
         return [
-          { id: 'overbought', value: 'overbought', label: 'Overbought' },
-          { id: 'oversold', value: 'oversold', label: 'Oversold' }
+          { value: 'overbought', label: 'Overbought' },
+          { value: 'oversold', label: 'Oversold' }
         ];
       case 'macd':
         return [
-          { id: 'cross_up', value: 'cross_up', label: 'Bullish Cross' },
-          { id: 'cross_down', value: 'cross_down', label: 'Bearish Cross' }
+          { value: 'cross_up', label: 'Bullish Cross' },
+          { value: 'cross_down', label: 'Bearish Cross' }
         ];
       case 'bb':
         return [
-          { id: 'upper_touch', value: 'upper_touch', label: 'Price Touches Upper Band' },
-          { id: 'lower_touch', value: 'lower_touch', label: 'Price Touches Lower Band' }
+          { value: 'upper_touch', label: 'Price Touches Upper Band' },
+          { value: 'lower_touch', label: 'Price Touches Lower Band' }
         ];
       default:
         return [
-          { id: 'cross_up', value: 'cross_up', label: 'Cross Above' },
-          { id: 'cross_down', value: 'cross_down', label: 'Cross Below' }
+          { value: 'cross_up', label: 'Cross Above' },
+          { value: 'cross_down', label: 'Cross Below' }
         ];
     }
   };
@@ -153,7 +153,7 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
             </SelectTrigger>
             <SelectContent>
               {getConditionsForIndicator(formData.indicator).map(condition => (
-                <SelectItem key={condition.id} value={condition.id}>
+                <SelectItem key={condition.value} value={condition.value}>
                   {condition.label}
                 </SelectItem>
               ))}
