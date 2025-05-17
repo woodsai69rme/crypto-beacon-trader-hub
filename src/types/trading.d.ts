@@ -211,11 +211,11 @@ export interface WalletProvider {
   name: string;
   logo?: string;
   icon: string;
-  supportedChains?: string[];
   description?: string;
   isInstalled?: boolean;
   isConnected?: boolean;
   supported: boolean;
+  supportedChains?: string[];
 }
 
 export interface WalletAccount {
@@ -400,6 +400,33 @@ export interface AITradingBot {
   };
 }
 
+export interface AIStrategyParameters {
+  buySignalThreshold: number;
+  sellSignalThreshold: number;
+  stopLossPercentage: number;
+  takeProfitPercentage: number;
+  timeframe: string;
+  maxPositions: number;
+}
+
+export interface AIModelConfig {
+  id: string;
+  name: string;
+  provider: string;
+  endpoint: string;
+  apiKey?: string;
+  parameters?: Record<string, any>;
+}
+
+export interface BacktestResults {
+  totalTrades: number;
+  winRate: number;
+  profitLoss: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  trades: any[];
+}
+
 export interface PaperTradingConfig {
   enabled: boolean;
   initialBalance: number;
@@ -444,8 +471,8 @@ export interface RealTimePricesProps {
 }
 
 export interface RealTimePriceChartProps {
-  selectedCoinId?: string;
-  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
   coinId?: string;
   availableCoins?: CoinOption[];
   currency?: string;

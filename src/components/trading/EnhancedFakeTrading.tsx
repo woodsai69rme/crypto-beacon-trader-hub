@@ -1,140 +1,73 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUpCircle, ArrowDownCircle, BarChart } from "lucide-react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { CoinOption, Trade } from '@/types/trading';
 import FakeTradingForm from './FakeTradingForm';
-import { Trade, CoinOption } from '@/types/trading';
-import { fetchTopCryptoData } from '@/services/cryptoService';
-import LoadingSpinner from './LoadingSpinner';
+import { useTradingContext } from '@/contexts/TradingContext';
 
-const EnhancedFakeTrading: React.FC = () => {
-  const [trades, setTrades] = useState<Trade[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("trading");
-  const [advancedMode, setAdvancedMode] = useState(false);
-  const [availableCoins, setAvailableCoins] = useState<CoinOption[]>([]);
-  
-  useEffect(() => {
-    const loadCoins = async () => {
-      try {
-        setIsLoading(true);
-        const coins = await fetchTopCryptoData(10);
-        setAvailableCoins(coins.map(coin => ({
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol,
-          price: coin.price || 0,
-          priceChange: coin.priceChange || 0,
-          changePercent: coin.changePercent || 0,
-          value: coin.id,
-          label: `${coin.name} (${coin.symbol})`
-        })));
-      } catch (error) {
-        console.error('Failed to fetch coins:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadCoins();
-  }, []);
+interface EnhancedFakeTradingProps {
+  onTrade?: (trade: Trade) => void;
+}
+
+const EnhancedFakeTrading: React.FC<EnhancedFakeTradingProps> = ({ onTrade }) => {
+  const { coins, addTrade } = useTradingContext();
+  const [activeTab, setActiveTab] = useState<string>('basic');
   
   const handleTrade = (trade: Trade) => {
-    setTrades(prevTrades => [...prevTrades, trade]);
+    addTrade(trade);
+    if (onTrade) {
+      onTrade(trade);
+    }
   };
   
-  const calculateProfitLoss = () => {
-    return trades.reduce((total, trade) => {
-      const tradeValue = trade.type === 'buy' 
-        ? -1 * trade.totalValue 
-        : trade.totalValue;
-      return total + tradeValue;
-    }, 0);
-  };
+  // Find first coin for price display
+  const bitcoinData = coins.find(coin => coin.id === 'bitcoin');
+  const currentPrice = bitcoinData?.price || 0;
+  // Use changePercent if available or fall back to other price change properties
+  const priceChange = bitcoinData?.changePercent || bitcoinData?.priceChange || 0;
+  const isPriceUp = priceChange >= 0;
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BarChart className="h-5 w-5" />
-          Paper Trading
-        </CardTitle>
-        <CardDescription>Practice trading without risking real money</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Demo Trading</CardTitle>
+            <CardDescription>Practice trading with virtual assets</CardDescription>
+          </div>
+          {bitcoinData && (
+            <div className="text-right">
+              <div className="font-medium">${currentPrice.toLocaleString()}</div>
+              <Badge variant={isPriceUp ? "success" : "destructive"} className="font-mono">
+                {isPriceUp ? '+' : ''}{priceChange.toFixed(2)}%
+              </Badge>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="trading">Trading</TabsTrigger>
-            <TabsTrigger value="history">Trade History</TabsTrigger>
+        <Tabs defaultValue="basic" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="basic">Basic</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="trading">
-            {isLoading ? (
-              <LoadingSpinner size="lg" />
-            ) : (
-              <FakeTradingForm 
-                onTrade={handleTrade} 
-                availableCoins={availableCoins}
-                advancedMode={advancedMode}
-              />
-            )}
+          <TabsContent value="basic" className="space-y-4">
+            <FakeTradingForm 
+              onTrade={handleTrade} 
+              availableCoins={coins}
+              advancedMode={false}
+            />
           </TabsContent>
           
-          <TabsContent value="history">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Your Trades</h3>
-                <div className="text-sm">
-                  <span className="font-medium">P&L: </span>
-                  <span className={calculateProfitLoss() >= 0 ? "text-green-500" : "text-red-500"}>
-                    {calculateProfitLoss() >= 0 ? '+' : ''}
-                    ${calculateProfitLoss().toFixed(2)}
-                  </span>
-                </div>
-              </div>
-              
-              {trades.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No trades yet. Start trading to see your history.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {trades.map((trade, index) => (
-                    <div 
-                      key={trade.id || index}
-                      className={`flex items-center justify-between p-3 border rounded ${
-                        trade.type === 'buy' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {trade.type === 'buy' ? (
-                          <ArrowUpCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <ArrowDownCircle className="h-5 w-5 text-red-500" />
-                        )}
-                        <div>
-                          <div className="font-medium">
-                            {trade.type === 'buy' ? 'Bought' : 'Sold'} {trade.coinName}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(trade.timestamp || Date.now()).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">
-                          ${trade.totalValue.toFixed(2)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Price: ${trade.price.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          <TabsContent value="advanced" className="space-y-4">
+            <FakeTradingForm 
+              onTrade={handleTrade} 
+              availableCoins={coins}
+              advancedMode={true}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

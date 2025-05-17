@@ -25,7 +25,8 @@ export const useAlerts = () => {
 
   const addAlert = (alertData: AlertData) => {
     // Ensure the alert data has the correct type
-    setAlerts(prev => [...prev, alertData as AlertData]);
+    const typedAlertData: AlertData = alertData;
+    setAlerts(prev => [...prev, typedAlertData]);
   };
 
   const removeAlert = (id: string) => {

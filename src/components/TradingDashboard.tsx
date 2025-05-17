@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { WalletProvider } from '@/types/trading';
 
@@ -12,8 +11,7 @@ const walletProviders: WalletProvider[] = [
     icon: 'metamask-icon',
     supported: true,
     isInstalled: window.ethereum?.isMetaMask,
-    isConnected: false,
-    supportedChains: ['ethereum', 'polygon', 'bsc']
+    isConnected: false
   },
   {
     id: 'walletconnect',
@@ -23,8 +21,7 @@ const walletProviders: WalletProvider[] = [
     icon: 'walletconnect-icon',
     supported: true,
     isInstalled: false,
-    isConnected: false,
-    supportedChains: ['ethereum', 'polygon', 'solana']
+    isConnected: false
   },
   {
     id: 'coinbase',
@@ -34,8 +31,7 @@ const walletProviders: WalletProvider[] = [
     icon: 'coinbase-icon',
     supported: true,
     isInstalled: window.ethereum?.isCoinbaseWallet,
-    isConnected: false,
-    supportedChains: ['ethereum', 'polygon', 'avalanche']
+    isConnected: false
   },
   {
     id: 'phantom',
@@ -45,8 +41,7 @@ const walletProviders: WalletProvider[] = [
     icon: 'phantom-icon',
     supported: true,
     isInstalled: true,
-    isConnected: false,
-    supportedChains: ['solana']
+    isConnected: false
   }
 ];
 

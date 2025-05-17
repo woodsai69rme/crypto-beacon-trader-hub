@@ -1,5 +1,11 @@
 
+import { UseFormReturn } from 'react-hook-form';
 import { SupportedCurrency, Theme, ColorScheme } from "@/types/trading";
+
+// Settings component props interface
+export interface SettingsComponentProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
 
 // Import settings form types from trading.d.ts
 export interface SettingsFormValues {

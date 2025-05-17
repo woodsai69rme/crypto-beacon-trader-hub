@@ -9,6 +9,7 @@ import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { 
   AlertData,
+  AlertFormData,
   PriceAlert, 
   VolumeAlert, 
   TechnicalAlert
@@ -16,7 +17,7 @@ import {
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
-  const [formData, setFormData] = useState<Partial<AlertData>>({
+  const [formData, setFormData] = useState<AlertFormData>({
     type: 'price',
     coinId: '',
     coinName: '',
@@ -28,7 +29,7 @@ const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Create a type-safe form data setter
-  const updateFormData = (data: Partial<AlertData>) => {
+  const updateFormData = (data: Partial<AlertFormData>) => {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
@@ -60,24 +61,24 @@ const AlertsSystem = () => {
         alertData = {
           ...baseAlertData,
           type: 'price',
-          targetPrice: (formData as any).targetPrice || 0,
-          isAbove: (formData as any).isAbove || true,
-          recurring: (formData as any).recurring || false,
-          percentageChange: (formData as any).percentageChange || 0
+          targetPrice: formData.targetPrice || 0,
+          isAbove: formData.isAbove || true,
+          recurring: formData.recurring || false,
+          percentageChange: formData.percentageChange || 0
         } as PriceAlert;
       } else if (formData.type === 'volume') {
         alertData = {
           ...baseAlertData,
           type: 'volume',
-          volumeThreshold: (formData as any).volumeThreshold || 0
+          volumeThreshold: formData.volumeThreshold || 0
         } as VolumeAlert;
       } else {
         alertData = {
           ...baseAlertData,
           type: 'technical',
-          indicator: (formData as any).indicator || '',
-          condition: (formData as any).condition || '',
-          value: (formData as any).value || 0
+          indicator: formData.indicator || '',
+          condition: formData.condition || '',
+          value: formData.value || 0
         } as TechnicalAlert;
       }
       

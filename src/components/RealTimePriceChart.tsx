@@ -54,13 +54,11 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const historyData = await fetchCryptoHistory(
-        coinId,
-        selectedTimeframe
-      );
+      // Updated to use correct parameters
+      const historyData = await fetchCryptoHistory(coinId, selectedTimeframe);
       
       // Transform the data
-      const transformedData: PricePoint[] = historyData.map((point) => ({
+      const transformedData: PricePoint[] = historyData.map((point: PricePoint) => ({
         timestamp: point.timestamp,
         price: point.price,
         // Add the time property for compatibility
