@@ -1,179 +1,192 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-  TradingAccount,
-  CoinOption,
-  Trade,
-  SupportedCurrency,
-} from '@/types/trading';
+import { CoinOption, Trade, TradingAccount } from '@/types/trading';
 
-// Mock data for initial state
-const mockCoins: CoinOption[] = [
+// Sample coin data
+const initialCoins: CoinOption[] = [
   {
     id: 'bitcoin',
     name: 'Bitcoin',
     symbol: 'BTC',
+    image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
     price: 65000,
+    value: 'bitcoin',
     priceChange: 2.5,
     changePercent: 2.5,
-    image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
-    value: 'bitcoin',
-    label: 'Bitcoin (BTC)',
+    marketCap: 1250000000000,
+    volume: 35000000000
   },
   {
     id: 'ethereum',
     name: 'Ethereum',
     symbol: 'ETH',
+    image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
     price: 3500,
-    priceChange: 3.2,
-    changePercent: 3.2,
-    image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
     value: 'ethereum',
-    label: 'Ethereum (ETH)',
+    priceChange: 1.2,
+    changePercent: 1.2,
+    marketCap: 420000000000,
+    volume: 15000000000
   },
   {
     id: 'solana',
     name: 'Solana',
     symbol: 'SOL',
-    price: 150,
-    priceChange: -1.8,
-    changePercent: -1.8,
-    image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+    image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
+    price: 140,
     value: 'solana',
-    label: 'Solana (SOL)',
+    priceChange: 3.8,
+    changePercent: 3.8,
+    marketCap: 62000000000,
+    volume: 4800000000
   },
   {
     id: 'cardano',
     name: 'Cardano',
     symbol: 'ADA',
+    image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
     price: 0.45,
-    priceChange: 1.2,
-    changePercent: 1.2,
-    image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png',
     value: 'cardano',
-    label: 'Cardano (ADA)',
+    priceChange: -0.5,
+    changePercent: -0.5,
+    marketCap: 16000000000,
+    volume: 500000000
   },
   {
-    id: 'chainlink',
-    name: 'Chainlink',
-    symbol: 'LINK',
-    price: 15.8,
-    priceChange: 5.6,
-    changePercent: 5.6,
-    image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
-    value: 'chainlink',
-    label: 'Chainlink (LINK)',
+    id: 'xrp',
+    name: 'XRP',
+    symbol: 'XRP',
+    image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
+    price: 0.56,
+    value: 'xrp',
+    priceChange: 1.1,
+    changePercent: 1.1,
+    marketCap: 31000000000,
+    volume: 1200000000
   }
 ];
 
-const initialAccount: TradingAccount = {
-  id: 'default-account',
-  name: 'Default Account',
-  trades: [
-    {
-      id: 'trade-1',
-      coinId: 'bitcoin',
-      coinName: 'Bitcoin',
-      coinSymbol: 'BTC',
-      type: 'buy',
-      amount: 0.05,
-      price: 62000,
-      totalValue: 3100,
-      timestamp: new Date().toISOString(),
-      currency: 'USD',
-      total: 3100,
-    },
-    {
-      id: 'trade-2',
-      coinId: 'ethereum',
-      coinName: 'Ethereum',
-      coinSymbol: 'ETH',
-      type: 'buy',
-      amount: 1.2,
-      price: 3200,
-      totalValue: 3840,
-      timestamp: new Date().toISOString(),
-      currency: 'USD',
-      total: 3840,
-    }
-  ],
-  balance: 25000,
-  currency: 'USD',
-  createdAt: new Date().toISOString(),
-  address: '0x1234567890abcdef1234567890abcdef12345678',
-  network: 'Ethereum',
-  initialBalance: 25000
-};
-
 interface TradingContextType {
-  account: TradingAccount | null;
-  activeCurrency: SupportedCurrency;
   coins: CoinOption[];
-  isLoading: boolean;
-  addTrade: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
-  setActiveCurrency: (currency: SupportedCurrency) => void;
-  getOwnedCoinAmount: (coinId: string) => number;
+  trades: Trade[];
+  accounts: TradingAccount[];
+  selectedAccount: TradingAccount | null;
+  addTrade: (trade: Trade) => void;
+  updateTrade: (id: string, updates: Partial<Trade>) => void;
+  deleteTrade: (id: string) => void;
+  selectedCoin: CoinOption | null;
+  setSelectedCoin: (coin: CoinOption | null) => void;
+  refreshCoins: () => void;
 }
 
-const TradingContext = createContext<TradingContextType | undefined>(undefined);
+const TradingContext = createContext<TradingContextType>({
+  coins: [],
+  trades: [],
+  accounts: [],
+  selectedAccount: null,
+  addTrade: () => {},
+  updateTrade: () => {},
+  deleteTrade: () => {},
+  selectedCoin: null,
+  setSelectedCoin: () => {},
+  refreshCoins: () => {}
+});
 
 export const TradingProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [account, setAccount] = useState<TradingAccount | null>(initialAccount);
-  const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>('USD');
-  const [coins, setCoins] = useState<CoinOption[]>(mockCoins);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const addTrade = (trade: Omit<Trade, 'id' | 'timestamp'>) => {
-    if (!account) return;
-
-    const newTrade: Trade = {
-      ...trade,
-      id: `trade-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-    };
-
-    setAccount({
-      ...account,
-      trades: [...(account.trades || []), newTrade],
-      balance:
-        trade.type === 'buy'
-          ? account.balance - (trade.totalValue || 0)
-          : account.balance + (trade.totalValue || 0),
-    });
+  const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(null);
+  
+  // Sample account
+  const initialAccount: TradingAccount = {
+    id: 'demo-account',
+    name: 'Demo Trading Account',
+    address: '0x1234...5678',
+    balance: 10000,
+    currency: 'USD',
+    network: 'ethereum',
+    isActive: true,
+    initialBalance: 10000,
+    assets: [
+      {
+        coinId: 'bitcoin',
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        quantity: 0.05,
+        averagePrice: 65000,
+        currentPrice: 65000
+      },
+      {
+        coinId: 'ethereum',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        quantity: 1.5,
+        averagePrice: 3200,
+        currentPrice: 3500
+      }
+    ]
   };
-
-  const getOwnedCoinAmount = (coinId: string): number => {
-    if (!account || !account.trades) return 0;
-
-    return account.trades.reduce((total, trade) => {
-      if (trade.coinId !== coinId) return total;
-      return trade.type === 'buy'
-        ? total + (trade.amount || 0)
-        : total - (trade.amount || 0);
-    }, 0);
+  
+  const [accounts, setAccounts] = useState<TradingAccount[]>([initialAccount]);
+  const [selectedAccount, setSelectedAccount] = useState<TradingAccount | null>(initialAccount);
+  
+  // Function to add a new trade
+  const addTrade = (trade: Trade) => {
+    setTrades(prevTrades => [...prevTrades, trade]);
   };
-
-  // You can add effects to fetch real data here
-
+  
+  // Function to update an existing trade
+  const updateTrade = (id: string, updates: Partial<Trade>) => {
+    setTrades(prevTrades => prevTrades.map(trade => 
+      trade.id === id ? { ...trade, ...updates } : trade
+    ));
+  };
+  
+  // Function to delete a trade
+  const deleteTrade = (id: string) => {
+    setTrades(prevTrades => prevTrades.filter(trade => trade.id !== id));
+  };
+  
+  // Function to refresh coin prices
+  const refreshCoins = () => {
+    // In a real app, this would fetch fresh data from an API
+    setCoins(prevCoins => prevCoins.map(coin => ({
+      ...coin,
+      price: coin.price * (1 + (Math.random() * 0.04 - 0.02)), // Random price change ±2%
+      priceChange: Math.random() * 5 - 2.5, // Random price change between -2.5% and 2.5%
+      changePercent: Math.random() * 5 - 2.5
+    })));
+  };
+  
+  // Auto-refresh prices every 30 seconds
+  useEffect(() => {
+    const intervalId = setInterval(refreshCoins, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  // Initial coin selection
+  useEffect(() => {
+    if (coins.length > 0 && !selectedCoin) {
+      setSelectedCoin(coins[0]);
+    }
+  }, [coins, selectedCoin]);
+  
   return (
     <TradingContext.Provider value={{
-      account,
-      activeCurrency,
       coins,
-      isLoading,
+      trades,
+      accounts,
+      selectedAccount,
       addTrade,
-      setActiveCurrency,
-      getOwnedCoinAmount,
+      updateTrade,
+      deleteTrade,
+      selectedCoin,
+      setSelectedCoin,
+      refreshCoins
     }}>
       {children}
     </TradingContext.Provider>
   );
 };
 
-export const useTradingContext = (): TradingContextType => {
-  const context = useContext(TradingContext);
-  if (context === undefined) {
-    throw new Error('useTradingContext must be used within a TradingProvider');
-  }
-  return context;
-};
+export const useTradingContext = () => useContext(TradingContext);

@@ -1,19 +1,28 @@
 
-import { UseFormReturn } from 'react-hook-form';
-import { SupportedCurrency, Theme, ColorScheme } from "@/types/trading";
+import { UseFormReturn } from "react-hook-form";
+import { SettingsFormValues } from "@/types/trading";
 
-// Settings component props interface
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
 }
 
-// Import settings form types from trading.d.ts
 export interface SettingsFormValues {
-  theme: Theme;
+  theme: string;
   displayName?: string;
+  email?: string;
   username?: string;
-  contactEmail?: string;
-  userLanguage?: string;
+  language?: string;
+  currency?: {
+    defaultCurrency: string;
+    showConversion: boolean;
+    showPriceInBTC?: boolean;
+  };
+  api?: {
+    provider: string;
+    key?: string;
+    refreshInterval?: number;
+    timeout?: number;
+  };
   display?: {
     showPortfolio: boolean;
     showBalances?: boolean;
@@ -23,14 +32,9 @@ export interface SettingsFormValues {
     highContrastMode?: boolean;
     colorScheme?: string;
   };
-  currency?: {
-    defaultCurrency: SupportedCurrency;
-    showConversion: boolean;
-    showPriceInBTC?: boolean;
-  };
   notifications?: {
-    enablePush: boolean;
     enableEmail: boolean;
+    enablePush: boolean;
     alertPrice: boolean;
     alertNews: boolean;
     email?: boolean;
@@ -40,12 +44,6 @@ export interface SettingsFormValues {
     news?: boolean;
     priceAlerts?: boolean;
   };
-  api?: {
-    provider: string;
-    key: string;
-    refreshInterval?: number;
-    timeout?: number;
-  };
   privacy?: {
     showOnlineStatus: boolean;
     sharePortfolio: boolean;
@@ -53,7 +51,10 @@ export interface SettingsFormValues {
     dataCollection: boolean;
     marketingConsent: boolean;
     thirdPartySharing: boolean;
-    publicProfile?: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
   };
   appearance?: {
     colorScheme: string;
@@ -61,62 +62,11 @@ export interface SettingsFormValues {
     animationsEnabled: boolean;
     highContrastMode: boolean;
   };
-  account?: {
-    twoFactorEnabled: boolean;
-    loginAlerts: boolean;
-  };
   ticker?: {
     enabled: boolean;
-    position: 'top' | 'bottom';
+    position: string;
     speed: number;
-    direction: 'ltr' | 'rtl';
-    coins: string[];
-    showVolume: boolean;
-    showPercentChange: boolean;
+    direction: string;
     autoPause: boolean;
   };
-  tradingPreferences?: {
-    autoConfirm: boolean;
-    showAdvanced?: boolean;
-    defaultAsset?: string;
-    defaultTradeSize?: number;
-    riskLevel?: 'low' | 'medium' | 'high';
-    tradingStrategy?: string;
-    defaultLeverage?: number;
-    showPnL?: boolean;
-    defaultTimeframe?: string;
-  };
-  exportFormat?: "CSV" | "JSON" | "PDF";
-  layout?: string;
-  sidebar?: {
-    expanded: boolean;
-    position: "left" | "right";
-    visible: boolean;
-  };
-  bio?: string;
-}
-
-// User UI settings
-export interface UISettings {
-  theme: Theme;
-  colorScheme: ColorScheme;
-  compactMode: boolean;
-  animationsEnabled: boolean;
-  highContrastMode: boolean;
-  sidebarExpanded: boolean;
-  sidebarPosition: 'left' | 'right';
-  defaultTab: string;
-  showBalances: boolean;
-}
-
-// Ticker settings
-export interface TickerSettings {
-  enabled: boolean;
-  position: 'top' | 'bottom';
-  speed: number;
-  direction: 'ltr' | 'rtl';
-  coins: string[];
-  showVolume: boolean;
-  showPercentChange: boolean;
-  autoPause: boolean;
 }

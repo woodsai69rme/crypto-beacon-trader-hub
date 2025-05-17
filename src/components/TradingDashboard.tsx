@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { WalletProvider } from '@/types/trading';
 
@@ -10,7 +11,7 @@ const walletProviders: WalletProvider[] = [
     description: 'Connect to your MetaMask wallet',
     icon: 'metamask-icon',
     supported: true,
-    isInstalled: window.ethereum?.isMetaMask,
+    isInstalled: typeof window !== 'undefined' && window.ethereum?.isMetaMask,
     isConnected: false
   },
   {
@@ -30,7 +31,7 @@ const walletProviders: WalletProvider[] = [
     description: 'Connect to Coinbase Wallet',
     icon: 'coinbase-icon',
     supported: true,
-    isInstalled: window.ethereum?.isCoinbaseWallet,
+    isInstalled: typeof window !== 'undefined' && window.ethereum?.isCoinbaseWallet,
     isConnected: false
   },
   {
