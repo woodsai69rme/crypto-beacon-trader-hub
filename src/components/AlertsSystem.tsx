@@ -1,39 +1,34 @@
+
 import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { useAlerts } from "@/hooks/use-alerts";
-import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { 
-  AlertData, 
+  AlertData,
   PriceAlert, 
   VolumeAlert, 
-  TechnicalAlert,
-  AlertFormData
+  TechnicalAlert
 } from "@/types/alerts";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
-  const [formData, setFormData] = useState<AlertFormData>({
+  const [formData, setFormData] = useState<Partial<AlertData>>({
     type: 'price',
     coinId: '',
     coinName: '',
     coinSymbol: '',
-    targetPrice: 0,
-    isAbove: true,
     enabled: true,
-    recurring: false,
-    percentageChange: 0,
     notifyVia: ['app'],
     frequency: 'once'
   });
   const [isOpen, setIsOpen] = useState(false);
 
   // Create a type-safe form data setter
-  const updateFormData = (data: Partial<AlertFormData>) => {
+  const updateFormData = (data: Partial<AlertData>) => {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
@@ -43,11 +38,7 @@ const AlertsSystem = () => {
       coinId: '',
       coinName: '',
       coinSymbol: '',
-      targetPrice: 0,
-      isAbove: true,
       enabled: true,
-      recurring: false,
-      percentageChange: 0,
       notifyVia: ['app'],
       frequency: 'once'
     });
@@ -55,12 +46,41 @@ const AlertsSystem = () => {
 
   const handleSubmit = () => {
     if (formData.coinId) {
-      const alertData: AlertData = {
+      const baseAlertData = {
         ...formData,
         id: Date.now().toString(),
         createdAt: new Date(),
         enabled: true,
-      } as AlertData; // Use type assertion here
+      };
+      
+      // Create the appropriate alert type
+      let alertData: AlertData;
+      
+      if (formData.type === 'price') {
+        alertData = {
+          ...baseAlertData,
+          type: 'price',
+          targetPrice: (formData as any).targetPrice || 0,
+          isAbove: (formData as any).isAbove || true,
+          recurring: (formData as any).recurring || false,
+          percentageChange: (formData as any).percentageChange || 0
+        } as PriceAlert;
+      } else if (formData.type === 'volume') {
+        alertData = {
+          ...baseAlertData,
+          type: 'volume',
+          volumeThreshold: (formData as any).volumeThreshold || 0
+        } as VolumeAlert;
+      } else {
+        alertData = {
+          ...baseAlertData,
+          type: 'technical',
+          indicator: (formData as any).indicator || '',
+          condition: (formData as any).condition || '',
+          value: (formData as any).value || 0
+        } as TechnicalAlert;
+      }
+      
       addAlert(alertData);
       resetForm();
       setIsOpen(false);

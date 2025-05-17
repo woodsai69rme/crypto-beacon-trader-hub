@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   TradingAccount,
@@ -133,22 +134,22 @@ export const TradingProvider: React.FC<{children: React.ReactNode}> = ({ childre
 
     setAccount({
       ...account,
-      trades: [...account.trades, newTrade],
+      trades: [...(account.trades || []), newTrade],
       balance:
         trade.type === 'buy'
-          ? account.balance - trade.totalValue
-          : account.balance + trade.totalValue,
+          ? account.balance - (trade.totalValue || 0)
+          : account.balance + (trade.totalValue || 0),
     });
   };
 
   const getOwnedCoinAmount = (coinId: string): number => {
-    if (!account) return 0;
+    if (!account || !account.trades) return 0;
 
     return account.trades.reduce((total, trade) => {
       if (trade.coinId !== coinId) return total;
       return trade.type === 'buy'
-        ? total + trade.amount
-        : total - trade.amount;
+        ? total + (trade.amount || 0)
+        : total - (trade.amount || 0);
     }, 0);
   };
 

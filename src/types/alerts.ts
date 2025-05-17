@@ -78,6 +78,7 @@ export interface VolumeAlertFormData {
   enabled: boolean;
   notifyVia: Array<"email" | "app" | "push">;
   type: 'volume';
+  onSubmit?: () => void;
 }
 
 export interface TechnicalAlertFormData {

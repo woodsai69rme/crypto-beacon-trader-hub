@@ -1,3 +1,4 @@
+
 import { ReactNode } from 'react';
 
 // Widget related types
@@ -74,6 +75,8 @@ export interface CoinOption {
   value: string;
   label?: string;
   rank?: number;
+  currentPrice?: number;
+  priceChangePercentage24h?: number;
 }
 
 // Price chart data types
@@ -112,6 +115,7 @@ export interface Trade {
   strategyId?: string;
   fees?: number;
   tags?: string[];
+  address?: string;
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive' | 'completed' | 'failed' | 'cancelled';
@@ -258,11 +262,11 @@ export enum TradingPosition {
 
 // Settings form values
 export interface SettingsFormValues {
+  theme: Theme;
   displayName?: string;
   username?: string;
   contactEmail?: string;
   userLanguage?: string;
-  theme?: Theme;
   display?: {
     showPortfolio: boolean;
     showBalances?: boolean;
@@ -388,6 +392,12 @@ export interface AITradingBot {
   successRate?: number;
   profitLoss?: number;
   totalTrades?: number;
+  description?: string;
+  performance?: {
+    winRate: number;
+    trades: number;
+    profit: number;
+  };
 }
 
 export interface PaperTradingConfig {
@@ -434,10 +444,18 @@ export interface RealTimePricesProps {
 }
 
 export interface RealTimePriceChartProps {
-  selectedCoinId: string;
-  onSelectCoin: (coinId: string) => void;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
   coinId?: string;
   availableCoins?: CoinOption[];
+  currency?: string;
+  timeframe?: string;
+  height?: number | string;
+  autoUpdate?: boolean;
+  updateInterval?: number;
+  showControls?: boolean;
+  showVolume?: boolean;
+  onDataUpdate?: (data: PricePoint[]) => void;
 }
 
 export interface ModelListProps {
@@ -484,9 +502,9 @@ export interface TickerSettings {
   position: 'top' | 'bottom';
   speed: number;
   direction: 'ltr' | 'rtl';
-  coins?: string[];
-  showVolume?: boolean;
-  showPercentChange?: boolean;
+  coins: string[];
+  showVolume: boolean;
+  showPercentChange: boolean;
   autoPause: boolean;
 }
 

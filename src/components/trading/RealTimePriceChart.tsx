@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CoinOption } from '@/types/trading';
 
-// Define the props interface
+// Use the interface from types/trading.d.ts
 interface RealTimePriceChartProps {
   selectedCoinId: string;
   onSelectCoin: (coinId: string) => void;

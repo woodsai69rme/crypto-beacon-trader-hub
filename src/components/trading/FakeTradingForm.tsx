@@ -1,138 +1,146 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CoinOption, FakeTradingFormProps, Trade } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
 
 const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ 
-  onTrade,
+  onTrade, 
   availableCoins = [],
   initialCoinId,
-  advancedMode = false
+  advancedMode = false 
 }) => {
-  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId || (availableCoins.length > 0 ? availableCoins[0].id : ''));
-  const [tradeAmount, setTradeAmount] = useState<string>('100');
+  const [selectedCoinId, setSelectedCoinId] = useState(initialCoinId || (availableCoins[0]?.id || ''));
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+  const [amount, setAmount] = useState('');
+  const [price, setPrice] = useState('');
   
+  // Find the selected coin
   const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);
   
-  const handleTrade = () => {
-    if (!selectedCoin) return;
+  // Set the current price when coin changes
+  useEffect(() => {
+    if (selectedCoin && selectedCoin.price) {
+      setPrice(selectedCoin.price.toString());
+    }
+  }, [selectedCoinId, selectedCoin]);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const amount = parseFloat(tradeAmount);
-    if (isNaN(amount) || amount <= 0) return;
+    if (!selectedCoin || !amount || !price) return;
+    
+    const amountValue = parseFloat(amount);
+    const priceValue = parseFloat(price);
+    
+    if (isNaN(amountValue) || isNaN(priceValue)) return;
+    
+    const totalValue = amountValue * priceValue;
     
     const trade: Trade = {
-      id: uuidv4(),
-      coinId: selectedCoin.id,
+      id: `trade-${Date.now()}`,
+      coinId: selectedCoinId,
       coinName: selectedCoin.name,
       coinSymbol: selectedCoin.symbol,
       type: tradeType,
-      price: selectedCoin.price || 0,
-      amount: amount,
-      totalValue: amount * (selectedCoin.price || 0),
+      amount: amountValue,
+      price: priceValue,
+      totalValue,
       timestamp: new Date().toISOString(),
-      currency: 'AUD',
-      total: amount * (selectedCoin.price || 0),
-      address: '', // Add required fields
-      network: ''
+      total: totalValue,
+      status: 'completed'
     };
     
     onTrade(trade);
     
-    // Reset form after trade
-    setTradeAmount('100');
+    // Reset form
+    setAmount('');
+    setTradeType('buy');
   };
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Paper Trading</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Select Coin</label>
-            <select
-              className="w-full border rounded p-2"
-              value={selectedCoinId}
-              onChange={(e) => setSelectedCoinId(e.target.value)}
-            >
-              {availableCoins.map(coin => (
-                <option key={coin.id} value={coin.id}>
-                  {coin.name} ({coin.symbol})
-                </option>
-              ))}
-            </select>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="coin-select">Select Coin</Label>
+        <Select value={selectedCoinId} onValueChange={setSelectedCoinId}>
+          <SelectTrigger id="coin-select">
+            <SelectValue placeholder="Select coin" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableCoins.map(coin => (
+              <SelectItem key={coin.id} value={coin.id}>
+                {coin.name} ({coin.symbol.toUpperCase()})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div>
+        <Label htmlFor="trade-type">Trade Type</Label>
+        <RadioGroup
+          id="trade-type"
+          value={tradeType}
+          onValueChange={(value) => setTradeType(value as 'buy' | 'sell')}
+          className="flex space-x-4"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="buy" id="buy" />
+            <Label htmlFor="buy" className="cursor-pointer">Buy</Label>
           </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Trade Type</label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={tradeType === 'buy' ? 'default' : 'outline'}
-                onClick={() => setTradeType('buy')}
-                className="flex-1"
-              >
-                Buy
-              </Button>
-              <Button
-                type="button"
-                variant={tradeType === 'sell' ? 'default' : 'outline'}
-                onClick={() => setTradeType('sell')}
-                className="flex-1"
-              >
-                Sell
-              </Button>
-            </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="sell" id="sell" />
+            <Label htmlFor="sell" className="cursor-pointer">Sell</Label>
           </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Amount (AUD)</label>
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              value={tradeAmount}
-              onChange={(e) => setTradeAmount(e.target.value)}
-            />
-          </div>
-          
-          {advancedMode && (
-            <div className="space-y-2 bg-muted p-3 rounded">
-              <h3 className="text-sm font-medium">Advanced Options</h3>
-              <p className="text-xs text-muted-foreground">
-                Additional trading options are available in advanced mode
-              </p>
-              
-              {/* Render advanced options here */}
-            </div>
-          )}
-          
-          <div className="pt-2">
-            <Button
-              type="button"
-              onClick={handleTrade}
-              className="w-full"
-              disabled={!selectedCoin || !tradeAmount}
-            >
-              {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol}
-            </Button>
-          </div>
-          
-          {selectedCoin && (
-            <div className="text-sm text-muted-foreground pt-2">
-              <p>
-                Current Price: ${selectedCoin.price?.toFixed(2) || 'N/A'}
-              </p>
-              <p>
-                Total: ${(parseFloat(tradeAmount) * (selectedCoin.price || 0)).toFixed(2)}
-              </p>
-            </div>
-          )}
+        </RadioGroup>
+      </div>
+      
+      <div>
+        <Label htmlFor="amount">Amount</Label>
+        <Input
+          id="amount"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Enter amount"
+          step="0.000001"
+          min="0"
+        />
+      </div>
+      
+      {advancedMode && (
+        <div>
+          <Label htmlFor="price">Price (AUD)</Label>
+          <Input
+            id="price"
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="Enter price"
+            step="0.01"
+            min="0"
+          />
         </div>
-      </CardContent>
-    </Card>
+      )}
+      
+      <div>
+        <p className="text-sm text-muted-foreground mb-1">Current Price: ${selectedCoin?.price?.toLocaleString() || 'N/A'}</p>
+        <p className="text-sm text-muted-foreground mb-3">
+          Total Value: ${amount && price ? (parseFloat(amount) * parseFloat(price)).toLocaleString() : '0.00'}
+        </p>
+      </div>
+      
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={!selectedCoinId || !amount || !price}
+      >
+        {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol?.toUpperCase()}
+      </Button>
+    </form>
   );
 };
 

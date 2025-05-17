@@ -1,50 +1,46 @@
 
-import { ReactNode } from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { SupportedCurrency } from '@/types/trading';
+import { SupportedCurrency, Theme, ColorScheme } from "@/types/trading";
 
+// Import settings form types from trading.d.ts
 export interface SettingsFormValues {
-  theme: string;
-  colorScheme?: string;
+  theme: Theme;
   displayName?: string;
   username?: string;
   contactEmail?: string;
   userLanguage?: string;
-  currency: {
+  display?: {
+    showPortfolio: boolean;
+    showBalances?: boolean;
+    defaultTab?: string;
+    compactMode: boolean;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
+    colorScheme?: string;
+  };
+  currency?: {
     defaultCurrency: SupportedCurrency;
     showConversion: boolean;
     showPriceInBTC?: boolean;
   };
-  display: {
-    showPortfolio: boolean;
-    defaultTab: string;
-    compactMode: boolean;
-    colorScheme?: string;
-    animationsEnabled?: boolean;
-    highContrastMode?: boolean;
-    showBalances?: boolean;
-  };
-  notifications: {
-    email: boolean;
-    push: boolean;
-    priceAlerts: boolean;
+  notifications?: {
+    enablePush: boolean;
+    enableEmail: boolean;
+    alertPrice: boolean;
+    alertNews: boolean;
+    email?: boolean;
+    push?: boolean;
     trades?: boolean;
     pricing?: boolean;
     news?: boolean;
-    marketUpdates?: boolean;
-    newsletterAndPromotions?: boolean;
-    enableEmail?: boolean;
-    enablePush?: boolean;
-    alertPrice?: boolean;
-    alertNews?: boolean;
+    priceAlerts?: boolean;
   };
-  api: {
+  api?: {
     provider: string;
     key: string;
     refreshInterval?: number;
     timeout?: number;
   };
-  privacy: {
+  privacy?: {
     showOnlineStatus: boolean;
     sharePortfolio: boolean;
     shareTrades: boolean;
@@ -53,7 +49,7 @@ export interface SettingsFormValues {
     thirdPartySharing: boolean;
     publicProfile?: boolean;
   };
-  appearance: {
+  appearance?: {
     colorScheme: string;
     compactMode: boolean;
     animationsEnabled: boolean;
@@ -63,49 +59,26 @@ export interface SettingsFormValues {
     twoFactorEnabled: boolean;
     loginAlerts: boolean;
   };
-  trading?: {
-    defaultOrder?: "market" | "limit";
-    confirmTradeExecutions?: boolean;
-    showPriceAlerts?: boolean;
-    autoSyncExchanges?: boolean;
-    tradingViewCharts?: boolean;
-    defaultTradingPair?: string;
-    autoConfirm?: boolean;
-    showAdvanced?: boolean;
-    defaultAsset?: string;
-    defaultTradeSize?: number;
-    riskLevel?: "high" | "low" | "medium";
-    tradingStrategy?: string;
-    defaultLeverage?: number;
-    showPnL?: boolean;
-    defaultTimeframe?: string;
+  ticker?: {
+    enabled: boolean;
+    position: 'top' | 'bottom';
+    speed: number;
+    direction: 'ltr' | 'rtl';
+    coins: string[];
+    showVolume: boolean;
+    showPercentChange: boolean;
+    autoPause: boolean;
   };
   tradingPreferences?: {
     autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
-    defaultTradeSize: number;
-    riskLevel: "high" | "low" | "medium";
+    showAdvanced?: boolean;
+    defaultAsset?: string;
+    defaultTradeSize?: number;
+    riskLevel?: 'low' | 'medium' | 'high';
     tradingStrategy?: string;
     defaultLeverage?: number;
     showPnL?: boolean;
     defaultTimeframe?: string;
-  };
-  dataPrivacy?: {
-    storeHistory?: boolean;
-    anonymizeData?: boolean;
-    enableTracking?: boolean;
-    shareAnalytics?: boolean;
-  };
-  ticker?: {
-    enabled: boolean;
-    position: "top" | "bottom";
-    direction: "ltr" | "rtl";
-    speed: number;
-    autoPause: boolean;
-    coins?: string[];
-    showVolume?: boolean;
-    showPercentChange?: boolean;
   };
   exportFormat?: "CSV" | "JSON" | "PDF";
   layout?: string;
@@ -117,13 +90,27 @@ export interface SettingsFormValues {
   bio?: string;
 }
 
-export interface SettingsComponentProps {
-  form: UseFormReturn<SettingsFormValues>;
+// User UI settings
+export interface UISettings {
+  theme: Theme;
+  colorScheme: ColorScheme;
+  compactMode: boolean;
+  animationsEnabled: boolean;
+  highContrastMode: boolean;
+  sidebarExpanded: boolean;
+  sidebarPosition: 'left' | 'right';
+  defaultTab: string;
+  showBalances: boolean;
 }
 
-export interface SettingsTabProps {
-  title: string;
-  description?: string;
-  icon?: ReactNode;
-  children: ReactNode;
+// Ticker settings
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom';
+  speed: number;
+  direction: 'ltr' | 'rtl';
+  coins: string[];
+  showVolume: boolean;
+  showPercentChange: boolean;
+  autoPause: boolean;
 }

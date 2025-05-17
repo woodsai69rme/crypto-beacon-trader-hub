@@ -56,17 +56,16 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
       setIsLoading(true);
       const historyData = await fetchCryptoHistory(
         coinId,
-        selectedTimeframe,
-        currency
+        selectedTimeframe
       );
       
       // Transform the data
-      const transformedData: PricePoint[] = historyData.map((point: [number, number]) => ({
-        timestamp: point[0],
-        price: point[1],
+      const transformedData: PricePoint[] = historyData.map((point) => ({
+        timestamp: point.timestamp,
+        price: point.price,
         // Add the time property for compatibility
-        time: point[0],
-        date: new Date(point[0]).toLocaleDateString(),
+        time: point.timestamp,
+        date: new Date(point.timestamp).toLocaleDateString(),
       }));
       
       setData(transformedData);
@@ -78,7 +77,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [coinId, selectedTimeframe, currency, onDataUpdate]);
+  }, [coinId, selectedTimeframe, onDataUpdate]);
 
   // Initial data load
   useEffect(() => {
