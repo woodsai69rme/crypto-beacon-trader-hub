@@ -20,3 +20,17 @@ export interface ModelPerformanceData {
   successRate: number;
   lastUpdated: string;
 }
+
+export interface CoinOption {
+  id: string;
+  name: string;
+  symbol: string;
+  price?: number;
+  priceChange: number;
+  changePercent: number;
+  marketCap?: number;
+  volume?: number;
+  image?: string;
+  value: string;
+  label: string;
+}

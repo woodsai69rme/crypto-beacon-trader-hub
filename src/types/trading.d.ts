@@ -71,7 +71,7 @@ export interface CoinOption {
   marketCap?: number;
   volume?: number;
   image?: string;
-  value?: string;
+  value: string;
   label?: string;
   rank?: number;
 }
@@ -480,10 +480,6 @@ export interface TradingAccount {
   initialBalance?: number;
 }
 
-// Import and re-export alert types using export type for proper TypeScript support
-import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts';
-export type { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData };
-
 // Additional types for UI components
 export interface TickerSettings {
   enabled: boolean;
@@ -498,3 +494,13 @@ export interface SidebarSettings {
   position: 'left' | 'right';
   visible: boolean;
 }
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioId?: string;
+  timeframe?: string;
+  benchmark?: string;
+}
+
+// Import and re-export alert types using export type for proper TypeScript support
+import type { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts';
+export type { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData };

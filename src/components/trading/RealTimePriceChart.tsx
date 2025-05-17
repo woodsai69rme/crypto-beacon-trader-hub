@@ -1,184 +1,137 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, BarChart, CandlestickChart, ArrowLeft, ArrowRight, ZoomIn, ZoomOut } from "lucide-react";
-import { RealTimePriceChartProps, CoinOption } from '@/types/trading';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { fetchCoinPriceHistory } from "@/services/cryptoService";
+import { RealTimePriceChartProps, PricePoint } from "@/types/trading";
 
 const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   selectedCoinId,
   onSelectCoin,
   availableCoins = []
 }) => {
-  const [chartType, setChartType] = useState<'line' | 'candle' | 'bar'>('line');
-  const [timeframe, setTimeframe] = useState<string>('7d');
-  const [priceData, setPriceData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const chartRef = useRef<any>(null);
-  
+  const [historicalData, setHistoricalData] = useState<PricePoint[]>([]);
+  const [timeframe, setTimeframe] = useState<number>(7);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const loadHistoricalData = async () => {
       if (!selectedCoinId) return;
       
       setIsLoading(true);
       try {
-        // Mock data fetch - in a real app, replace with actual API call
-        // Replace fetchCoinPriceHistory with a fetch function that exists in your app
-        const mockData = Array(30).fill(null).map((_, i) => ({
-          timestamp: Date.now() - (i * 86400000),
-          price: 50000 - (Math.random() * 5000),
-          volume: Math.random() * 10000000
-        }));
-        
-        setPriceData(mockData);
+        const data = await fetchCoinPriceHistory(selectedCoinId, timeframe);
+        setHistoricalData(data);
       } catch (error) {
-        console.error("Error fetching price data:", error);
+        console.error("Failed to fetch price history:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    
-    fetchData();
-    
-    // Set up polling for real-time updates
-    const interval = setInterval(fetchData, 60000); // Update every minute
-    
-    return () => clearInterval(interval);
+
+    loadHistoricalData();
   }, [selectedCoinId, timeframe]);
-  
-  const handleZoomIn = () => {
-    // Implement zoom functionality
-    console.log("Zoom in");
+
+  const formatXAxis = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString();
   };
-  
-  const handleZoomOut = () => {
-    // Implement zoom functionality
-    console.log("Zoom out");
-  };
-  
-  const handleScrollLeft = () => {
-    // Scroll chart to the left
-    console.log("Scroll left");
-  };
-  
-  const handleScrollRight = () => {
-    // Scroll chart to the right
-    console.log("Scroll right");
-  };
-  
-  const handleDateSelect = (date: string) => {
-    // Scroll to specific date - convert string to number for index
-    const index = parseInt(date, 10) || 0;
-    if (chartRef.current?.scrollToIndex) {
-      chartRef.current.scrollToIndex(index);
-    }
-  };
-  
-  const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);
-  
+
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle>
-              {selectedCoin?.name || 'Price Chart'}
-            </CardTitle>
-            {selectedCoin && (
-              <span className="text-sm text-muted-foreground">
-                {selectedCoin.symbol.toUpperCase()}
-              </span>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {selectedCoin?.name || "Price Chart"} ({selectedCoin?.symbol || ""})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Button 
+              variant={timeframe === 1 ? "default" : "outline"} 
+              onClick={() => setTimeframe(1)}
+              size="sm"
+            >
+              24h
+            </Button>
+            <Button 
+              variant={timeframe === 7 ? "default" : "outline"} 
+              onClick={() => setTimeframe(7)}
+              size="sm"
+            >
+              7d
+            </Button>
+            <Button 
+              variant={timeframe === 30 ? "default" : "outline"} 
+              onClick={() => setTimeframe(30)}
+              size="sm"
+            >
+              30d
+            </Button>
+            <Button 
+              variant={timeframe === 90 ? "default" : "outline"} 
+              onClick={() => setTimeframe(90)}
+              size="sm"
+            >
+              90d
+            </Button>
+          </div>
+
+          <div className="h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <p>Loading price data...</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={historicalData}
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="timestamp" 
+                    tickFormatter={formatXAxis}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis 
+                    domain={['auto', 'auto']}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip 
+                    labelFormatter={(value) => new Date(Number(value)).toLocaleDateString()}
+                    formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Price']}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="price" 
+                    stroke="#8884d8" 
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             )}
           </div>
           
-          <div className="flex items-center gap-2">
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Timeframe" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1d">1 Day</SelectItem>
-                <SelectItem value="7d">7 Days</SelectItem>
-                <SelectItem value="30d">30 Days</SelectItem>
-                <SelectItem value="90d">90 Days</SelectItem>
-                <SelectItem value="1y">1 Year</SelectItem>
-                <SelectItem value="max">All Time</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'line' | 'candle' | 'bar')}>
-              <TabsList className="h-8">
-                <TabsTrigger value="line" className="px-2">
-                  <LineChart className="h-4 w-4" />
-                </TabsTrigger>
-                <TabsTrigger value="candle" className="px-2">
-                  <CandlestickChart className="h-4 w-4" />
-                </TabsTrigger>
-                <TabsTrigger value="bar" className="px-2">
-                  <BarChart className="h-4 w-4" />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+              {availableCoins.slice(0, 6).map(coin => (
+                <Button
+                  key={coin.id}
+                  variant={selectedCoinId === coin.id ? "default" : "outline"}
+                  onClick={() => onSelectCoin(coin.id)}
+                  size="sm"
+                  className="justify-start overflow-hidden"
+                >
+                  {coin.symbol}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
-      </CardHeader>
-      
-      <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-[300px]">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        ) : (
-          <div className="relative">
-            <div className="h-[300px] w-full">
-              {/* Chart would be rendered here using a library like recharts, d3, etc. */}
-              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                Chart visualization would be rendered here
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-1">
-                <Button variant="outline" size="icon" onClick={handleScrollLeft}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleScrollRight}>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <Button variant="outline" size="icon" onClick={handleZoomIn}>
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleZoomOut}>
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {selectedCoin && (
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            <div>
-              <div className="text-sm text-muted-foreground">Price</div>
-              <div className="font-medium">${selectedCoin.price?.toLocaleString()}</div>
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">24h Change</div>
-              <div className={`font-medium ${(selectedCoin.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {(selectedCoin.changePercent || 0) >= 0 ? '+' : ''}{selectedCoin.changePercent?.toFixed(2)}%
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Volume</div>
-              <div className="font-medium">${selectedCoin.volume?.toLocaleString()}</div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

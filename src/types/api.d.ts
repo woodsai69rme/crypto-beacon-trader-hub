@@ -17,7 +17,7 @@ export interface ApiProvider {
   rateLimitPerMonth?: number;
   defaultHeaders?: Record<string, string>;
   defaultParams?: Record<string, string>;
-  endpoints?: ApiEndpoint[];
+  endpoints?: ApiEndpoint[] | Record<string, string>;
   apiKey?: string;
   apiSecret?: string;
   website?: string;

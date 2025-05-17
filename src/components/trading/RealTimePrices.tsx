@@ -2,10 +2,9 @@
 import React from 'react';
 import { RealTimePricesProps, CoinOption } from '@/types/trading';
 
-// Update component to match the RealTimePricesProps interface
 const RealTimePrices: React.FC<RealTimePricesProps> = ({ 
   coins = [], 
-  refreshInterval, // keep this prop even though we're not using it in this component
+  refreshInterval,
   onSelectCoin,
   selectedCoinId,
   isLoading,
