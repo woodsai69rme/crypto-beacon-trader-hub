@@ -94,10 +94,10 @@ export interface AITradingStrategy {
   parameters?: Record<string, any>;
   indicators?: string[];
   performance?: {
-    accuracy: number;
-    returns: number;
-    sharpeRatio: number;
-    maxDrawdown: number;
+    accuracy?: number;
+    returns?: number;
+    sharpeRatio?: number;
+    maxDrawdown?: number;
   };
 }
 

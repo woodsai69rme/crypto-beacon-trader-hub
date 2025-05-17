@@ -37,12 +37,12 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   }, [form, theme, colorScheme]);
 
   const handleThemeChange = (value: string) => {
-    setTheme(value);
+    setTheme();
     form.setValue("theme", value);
   };
 
   const handleColorSchemeChange = (value: string) => {
-    setColorScheme(value);
+    setColorScheme();
     form.setValue("display.colorScheme", value);
   };
   

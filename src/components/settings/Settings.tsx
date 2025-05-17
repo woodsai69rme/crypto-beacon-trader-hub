@@ -29,7 +29,6 @@ const settingsFormSchema = z.object({
   }),
   display: z.object({
     showPortfolio: z.boolean(),
-    showBalances: z.boolean().default(true),
     defaultTab: z.string().optional(),
     compactMode: z.boolean(),
     animationsEnabled: z.boolean().optional(),
@@ -37,16 +36,14 @@ const settingsFormSchema = z.object({
     colorScheme: z.string().optional()
   }).optional(),
   notifications: z.object({
-    enableEmail: z.boolean().default(true),
-    enablePush: z.boolean().default(true),
-    alertPrice: z.boolean().default(true),
-    alertNews: z.boolean().default(false),
     email: z.boolean().optional(),
     push: z.boolean().optional(),
+    priceAlerts: z.boolean().optional(),
     trades: z.boolean().optional(),
     pricing: z.boolean().optional(),
     news: z.boolean().optional(),
-    priceAlerts: z.boolean().optional()
+    marketUpdates: z.boolean().optional(),
+    newsletterAndPromotions: z.boolean().optional()
   }).optional(),
   privacy: z.object({
     showOnlineStatus: z.boolean(),
@@ -190,19 +187,19 @@ export const Settings: React.FC = () => {
             </TabsList>
             
             <TabsContent value="appearance">
-              <AppearanceSettings form={form} />
+              <AppearanceSettings form={form as any} />
             </TabsContent>
             
             <TabsContent value="notifications">
-              <NotificationSettings form={form} />
+              <NotificationSettings form={form as any} />
             </TabsContent>
             
             <TabsContent value="api">
-              <ApiSettings form={form} />
+              <ApiSettings form={form as any} />
             </TabsContent>
             
             <TabsContent value="privacy">
-              <DataPrivacySettings form={form} />
+              <DataPrivacySettings form={form as any} />
             </TabsContent>
           </Tabs>
           

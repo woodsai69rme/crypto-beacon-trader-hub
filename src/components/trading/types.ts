@@ -16,16 +16,13 @@ export interface FibonacciAnalysisProps {
 }
 
 export interface FibonacciLevels {
-  level: number;
-  value: number;
-  color: string;
-  level0?: number;
-  level236?: number;
-  level382?: number;
-  level500?: number;
-  level618?: number;
-  level786?: number;
-  level1000?: number;
+  level0: number;
+  level236: number;
+  level382: number;
+  level500: number;
+  level618: number;
+  level786: number;
+  level1000: number;
 }
 
 export interface HyblockLiquidityMapProps {
@@ -38,12 +35,11 @@ export interface HyblockLiquidityMapProps {
 }
 
 export interface HyblockLiquidityZone {
-  priceRange: [number, number];
+  min: number;
+  max: number;
   volume: number;
   type: 'buy' | 'sell';
   strength: number;
-  min?: number;
-  max?: number;
 }
 
 export interface RealTimePriceChartProps {

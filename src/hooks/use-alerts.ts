@@ -1,58 +1,96 @@
 
-import { useState, useEffect } from 'react';
-import { AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
+import { useState, useEffect, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency } from '@/types/alerts';
 
 export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<AlertData[]>(() => {
-    // Load from localStorage if available
-    try {
-      const saved = localStorage.getItem('alerts');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('Error loading alerts from localStorage:', error);
-      return [];
-    }
-  });
-
-  // Save to localStorage when alerts change
+  const [alerts, setAlerts] = useState<AlertData[]>([]);
+  
+  // Load alerts from localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('alerts', JSON.stringify(alerts));
+      const savedAlerts = localStorage.getItem('cryptoAlerts');
+      if (savedAlerts) {
+        setAlerts(JSON.parse(savedAlerts));
+      }
     } catch (error) {
-      console.error('Error saving alerts to localStorage:', error);
+      console.error('Error loading alerts:', error);
+    }
+  }, []);
+
+  // Save alerts to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('cryptoAlerts', JSON.stringify(alerts));
+    } catch (error) {
+      console.error('Error saving alerts:', error);
     }
   }, [alerts]);
 
-  const addAlert = (alertData: AlertData) => {
-    // Ensure we're adding a properly typed AlertData object
-    if (alertData.type === 'price') {
-      setAlerts(prev => [...prev, alertData as PriceAlert]);
-    } else if (alertData.type === 'volume') {
-      setAlerts(prev => [...prev, alertData as VolumeAlert]);
-    } else if (alertData.type === 'technical') {
-      setAlerts(prev => [...prev, alertData as TechnicalAlert]);
+  // Add a new alert
+  const addAlert = useCallback((alertFormData: AlertFormData) => {
+    const now = new Date();
+    
+    // Ensure required fields have default values
+    const baseAlert = {
+      id: uuidv4(),
+      createdAt: now,
+      coinId: alertFormData.coinId,
+      coinName: alertFormData.coinName,
+      coinSymbol: alertFormData.coinSymbol,
+      enabled: alertFormData.enabled ?? true,
+      frequency: alertFormData.frequency ?? 'once',
+      notifyVia: alertFormData.notifyVia ?? ['app'],
+    };
+    
+    // Create type-specific alert
+    let newAlert: AlertData;
+    
+    if (alertFormData.type === 'price') {
+      newAlert = {
+        ...baseAlert,
+        type: 'price',
+        targetPrice: alertFormData.targetPrice ?? 0,
+        isAbove: alertFormData.isAbove ?? true,
+        recurring: alertFormData.recurring ?? false,
+        percentageChange: alertFormData.percentageChange ?? 0,
+      } as PriceAlert;
+    } else if (alertFormData.type === 'volume') {
+      newAlert = {
+        ...baseAlert,
+        type: 'volume',
+        volumeThreshold: alertFormData.volumeThreshold ?? 0,
+      } as VolumeAlert;
+    } else {
+      // Technical alert
+      newAlert = {
+        ...baseAlert,
+        type: 'technical',
+        indicator: alertFormData.indicator ?? '',
+        condition: alertFormData.condition ?? '',
+        value: alertFormData.value ?? 0,
+      } as TechnicalAlert;
     }
-  };
+    
+    setAlerts(prev => [...prev, newAlert]);
+  }, []);
 
-  const removeAlert = (id: string) => {
+  // Remove an alert
+  const removeAlert = useCallback((id: string) => {
     setAlerts(prev => prev.filter(alert => alert.id !== id));
-  };
+  }, []);
 
-  const updateAlert = (id: string, updates: Partial<AlertData>) => {
+  // Toggle an alert's enabled status
+  const toggleAlert = useCallback((id: string) => {
     setAlerts(prev => prev.map(alert => 
-      alert.id === id ? { ...alert, ...updates } : alert
+      alert.id === id ? { ...alert, enabled: !alert.enabled } : alert
     ));
-  };
-
-  const clearAlerts = () => {
-    setAlerts([]);
-  };
+  }, []);
 
   return {
     alerts,
     addAlert,
     removeAlert,
-    updateAlert,
-    clearAlerts
+    toggleAlert
   };
 };

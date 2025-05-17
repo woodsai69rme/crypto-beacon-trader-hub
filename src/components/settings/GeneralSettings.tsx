@@ -15,7 +15,7 @@ interface GeneralSettingsProps {
 }
 
 const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>('USD');
+  const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>('AUD');
 
   useEffect(() => {
     // Initialize selected currency from form values
@@ -107,7 +107,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
             <FormLabel>Currency</FormLabel>
             <Select
               onValueChange={handleCurrencyChange}
-              defaultValue={form.getValues('currency') || 'USD'}
+              defaultValue={form.getValues('currency') || 'AUD'}
             >
               <FormControl>
                 <SelectTrigger>

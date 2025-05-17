@@ -47,7 +47,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               checked={form.watch("ticker.enabled")} 
               onCheckedChange={(value) => {
                 const ticker = ensureTickerSettings();
-                form.setValue("ticker", { ...ticker, enabled: value }, { shouldValidate: true });
+                form.setValue("ticker", { 
+                  ...ticker, 
+                  enabled: value 
+                }, { shouldValidate: true });
               }}
             />
           </div>
@@ -62,7 +65,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             value={form.watch("ticker.position")} 
             onValueChange={(value: "top" | "bottom") => {
               const ticker = ensureTickerSettings();
-              form.setValue("ticker", { ...ticker, position: value }, { shouldValidate: true });
+              form.setValue("ticker", { 
+                ...ticker,
+                position: value 
+              }, { shouldValidate: true });
             }}
             disabled={!form.watch("ticker.enabled")}
           >
@@ -93,7 +99,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 const value = parseInt(e.target.value);
                 if (!isNaN(value)) {
                   const ticker = ensureTickerSettings();
-                  form.setValue("ticker", { ...ticker, speed: value }, { shouldValidate: true });
+                  form.setValue("ticker", { 
+                    ...ticker,
+                    speed: value 
+                  }, { shouldValidate: true });
                 }
               }}
               disabled={!form.watch("ticker.enabled")}
@@ -110,7 +119,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             value={form.watch("ticker.direction")} 
             onValueChange={(value: "ltr" | "rtl") => {
               const ticker = ensureTickerSettings();
-              form.setValue("ticker", { ...ticker, direction: value }, { shouldValidate: true });
+              form.setValue("ticker", { 
+                ...ticker, 
+                direction: value 
+              }, { shouldValidate: true });
             }}
             disabled={!form.watch("ticker.enabled")}
           >
@@ -136,7 +148,10 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               checked={form.watch("ticker.autoPause")} 
               onCheckedChange={(value) => {
                 const ticker = ensureTickerSettings();
-                form.setValue("ticker", { ...ticker, autoPause: value }, { shouldValidate: true });
+                form.setValue("ticker", { 
+                  ...ticker, 
+                  autoPause: value 
+                }, { shouldValidate: true });
               }}
               disabled={!form.watch("ticker.enabled")}
             />
