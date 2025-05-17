@@ -12,13 +12,45 @@ import {
   AlertData, 
   PriceAlert, 
   VolumeAlert, 
-  TechnicalAlert 
+  TechnicalAlert,
+  AlertFormData
 } from "@/types/alerts";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
-  const { formData, setFormData, resetForm } = useAlertForm();
+  const [formData, setFormData] = useState<AlertFormData>({
+    type: 'price',
+    coinId: '',
+    coinName: '',
+    coinSymbol: '',
+    targetPrice: 0,
+    isAbove: true,
+    enabled: true,
+    recurring: false,
+    percentageChange: 0,
+    notifyVia: ['app']
+  });
   const [isOpen, setIsOpen] = useState(false);
+
+  // Create a type-safe form data setter
+  const updateFormData = (data: AlertFormData) => {
+    setFormData(data);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      type: 'price',
+      coinId: '',
+      coinName: '',
+      coinSymbol: '',
+      targetPrice: 0,
+      isAbove: true,
+      enabled: true,
+      recurring: false,
+      percentageChange: 0,
+      notifyVia: ['app']
+    });
+  };
 
   const handleSubmit = () => {
     if (formData.type && formData.coinId) {
@@ -49,7 +81,7 @@ const AlertsSystem = () => {
         
         <AlertFormSheet 
           formData={formData}
-          onFormChange={setFormData}
+          onFormChange={updateFormData}
           onSubmit={handleSubmit}
         />
         

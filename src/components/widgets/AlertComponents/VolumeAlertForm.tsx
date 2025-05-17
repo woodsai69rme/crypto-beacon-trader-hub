@@ -3,14 +3,15 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertFrequency } from "@/types/alerts";
 
-// Fix the frequency value to use the AlertFrequency type
-const VolumeAlertForm: React.FC<{
+interface VolumeAlertFormProps {
   formData: {
     frequency: AlertFrequency;
     [key: string]: any;
   };
   setFormData: (data: any) => void;
-}> = ({ formData, setFormData }) => {
+}
+
+const VolumeAlertForm: React.FC<VolumeAlertFormProps> = ({ formData, setFormData }) => {
   return (
     <Select
       value={formData.frequency}
@@ -27,6 +28,9 @@ const VolumeAlertForm: React.FC<{
         <SelectItem value="recurring">Recurring</SelectItem>
         <SelectItem value="daily">Daily</SelectItem>
         <SelectItem value="hourly">Hourly</SelectItem>
+        <SelectItem value="1h">Every Hour</SelectItem>
+        <SelectItem value="4h">Every 4 Hours</SelectItem>
+        <SelectItem value="24h">Every 24 Hours</SelectItem>
       </SelectContent>
     </Select>
   );

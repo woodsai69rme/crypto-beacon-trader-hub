@@ -1,10 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WalletProvider, WalletAccount, WalletConnectionProps } from '@/types/trading';
+import { WalletProvider, WalletAccount } from '@/types/trading';
 import { Wallet, Check } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
+
+interface WalletConnectionProps {
+  onConnect: (account: WalletAccount) => void;
+  supportedWallets: WalletProvider[];
+}
 
 const WalletConnector: React.FC<WalletConnectionProps> = ({ 
   onConnect, 

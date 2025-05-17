@@ -2,7 +2,16 @@
 import { useState, useEffect } from "react";
 import { Theme, ColorScheme } from "@/types/trading";
 
-export const useTheme = () => {
+// Define the return type of the useTheme hook for better TypeScript support
+export interface UseThemeReturn {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  colorScheme: ColorScheme;
+  setColorScheme: (colorScheme: ColorScheme) => void;
+  resolvedTheme: 'light' | 'dark';
+}
+
+export const useTheme = (): UseThemeReturn => {
   // Initialize from localStorage or defaults
   const [theme, setThemeState] = useState<Theme>(() => {
     try {

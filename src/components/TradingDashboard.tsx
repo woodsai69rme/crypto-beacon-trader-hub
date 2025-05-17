@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +11,7 @@ const TradingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("realtime");
   const [connectedAccount, setConnectedAccount] = useState<WalletAccount | null>(null);
   
-  // List of supported wallets
+  // List of supported wallets with all required properties
   const supportedWallets: WalletProvider[] = [
     {
       id: "metamask",
@@ -22,7 +21,8 @@ const TradingDashboard: React.FC = () => {
       description: "https://metamask.io/",
       supported: true,
       isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isMetaMask,
-      isConnected: false
+      isConnected: false,
+      supportedChains: ["ethereum", "polygon", "optimism", "arbitrum"]
     },
     {
       id: "trustwallet",
@@ -32,7 +32,8 @@ const TradingDashboard: React.FC = () => {
       description: "https://trustwallet.com/",
       supported: true,
       isInstalled: false,
-      isConnected: false
+      isConnected: false,
+      supportedChains: ["ethereum", "binance-smart-chain"]
     },
     {
       id: "coinbase",
@@ -42,7 +43,8 @@ const TradingDashboard: React.FC = () => {
       description: "https://www.coinbase.com/wallet",
       supported: true,
       isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isCoinbaseWallet,
-      isConnected: false
+      isConnected: false,
+      supportedChains: ["ethereum", "polygon", "avalanche"]
     },
     {
       id: "walletconnect",
@@ -52,7 +54,8 @@ const TradingDashboard: React.FC = () => {
       description: "https://walletconnect.com/",
       supported: true,
       isInstalled: true, // WalletConnect doesn't require installation
-      isConnected: false
+      isConnected: false,
+      supportedChains: ["ethereum", "polygon", "optimism", "arbitrum", "binance-smart-chain"]
     }
   ];
   

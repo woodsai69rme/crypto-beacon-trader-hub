@@ -14,6 +14,9 @@ export const ALERT_FREQUENCIES = [
   { value: "recurring", label: "Recurring" },
   { value: "daily", label: "Daily" },
   { value: "hourly", label: "Hourly" },
+  { value: "1h", label: "Every Hour" },
+  { value: "4h", label: "Every 4 Hours" },
+  { value: "24h", label: "Every 24 Hours" },
 ];
 
 export const NOTIFICATION_CHANNELS = [

@@ -1,4 +1,3 @@
-
 import { ReactNode } from 'react';
 
 // Widget related types
@@ -207,12 +206,12 @@ export interface WalletProvider {
   id: string;
   name: string;
   logo?: string;
-  icon?: string;
+  icon: string;
   supportedChains?: string[];
   description?: string;
   isInstalled?: boolean;
   isConnected?: boolean;
-  supported?: boolean;
+  supported: boolean;
 }
 
 export interface WalletAccount {
@@ -456,21 +455,6 @@ export interface ModelPerformanceProps {
   model: LocalModel;
 }
 
-export interface WalletConnectionProps {
-  onConnect: (account: WalletAccount) => void;
-  supportedWallets: WalletProvider[];
-}
-
-export interface TradingFormProps {
-  balance: number;
-  availableCoins: CoinOption[];
-  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
-  getOwnedCoinAmount: (coinId: string) => number;
-  activeCurrency: SupportedCurrency;
-  onCurrencyChange?: (currency: SupportedCurrency) => void;
-  conversionRate?: number;
-}
-
 // TradingAccount type
 export interface TradingAccount {
   id: string;
@@ -496,6 +480,21 @@ export interface TradingAccount {
   initialBalance?: number;
 }
 
-// Import and re-export alert types
+// Import and re-export alert types using export type for proper TypeScript support
 import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts';
 export type { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData };
+
+// Additional types for UI components
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom';
+  speed: number;
+  direction: 'ltr' | 'rtl';
+  coins: string[];
+}
+
+export interface SidebarSettings {
+  expanded: boolean;
+  position: 'left' | 'right';
+  visible: boolean;
+}

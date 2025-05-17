@@ -1,165 +1,138 @@
 
 import React, { useState } from 'react';
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
-import { Label } from "@/components/ui/label";
-import { FakeTradingFormProps, Trade } from '@/types/trading';
+import { CoinOption, FakeTradingFormProps, Trade } from '@/types/trading';
+import { v4 as uuidv4 } from 'uuid';
 
 const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ 
-  onTrade, 
-  advancedMode = false,
-  availableCoins = [
-    { id: 'BTC', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1.2, changePercent: 1.2, value: 'BTC', label: 'Bitcoin (BTC)' },
-    { id: 'ETH', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 2.5, changePercent: 2.5, value: 'ETH', label: 'Ethereum (ETH)' },
-    { id: 'SOL', name: 'Solana', symbol: 'SOL', price: 100, priceChange: 3.7, changePercent: 3.7, value: 'SOL', label: 'Solana (SOL)' },
-    { id: 'ADA', name: 'Cardano', symbol: 'ADA', price: 1.2, priceChange: -0.5, changePercent: -0.5, value: 'ADA', label: 'Cardano (ADA)' }
-  ],
-  initialCoinId
+  onTrade,
+  availableCoins = [],
+  initialCoinId,
+  advancedMode = false
 }) => {
-  const [asset, setAsset] = useState(initialCoinId || '');
-  const [price, setPrice] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [type, setType] = useState<'buy' | 'sell'>('buy');
-  const [tradeDate, setTradeDate] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
+  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId || (availableCoins.length > 0 ? availableCoins[0].id : ''));
+  const [tradeAmount, setTradeAmount] = useState<string>('100');
+  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const selectedCoin = availableCoins.find(coin => coin.id === selectedCoinId);
+  
+  const handleTrade = () => {
+    if (!selectedCoin) return;
     
-    // Validate input
-    if (!asset || !price || !quantity || !tradeDate) {
-      toast({
-        title: "Missing Fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
+    const amount = parseFloat(tradeAmount);
+    if (isNaN(amount) || amount <= 0) return;
     
-    const priceValue = parseFloat(price);
-    const quantityValue = parseFloat(quantity);
-    const totalValue = priceValue * quantityValue;
-    
-    const newTrade: Trade = {
-      id: `trade-${Date.now()}`,
-      coinId: asset,
-      coinName: asset,
-      coinSymbol: asset,
-      price: priceValue,
-      amount: quantityValue,
-      type,
-      timestamp: tradeDate,
-      currency: 'USD',
-      totalValue,
-      total: totalValue,
-      tags: advancedMode ? tags : []
+    const trade: Trade = {
+      id: uuidv4(),
+      coinId: selectedCoin.id,
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol,
+      type: tradeType,
+      price: selectedCoin.price || 0,
+      amount: amount,
+      totalValue: amount * (selectedCoin.price || 0),
+      timestamp: new Date().toISOString(),
+      status: 'completed',
+      currency: 'AUD',
+      total: amount * (selectedCoin.price || 0),
     };
     
-    onTrade(newTrade);
+    onTrade(trade);
     
-    // Reset form
-    setAsset('');
-    setPrice('');
-    setQuantity('');
-    setTradeDate('');
-    setTags([]);
-    
-    toast({
-      title: "Trade Added",
-      description: `Successfully added ${type} trade for ${quantity} ${asset}`,
-    });
+    // Reset form after trade
+    setTradeAmount('100');
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="asset">Asset</Label>
-        <Select value={asset} onValueChange={setAsset}>
-          <SelectTrigger id="asset">
-            <SelectValue placeholder="Select Asset" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableCoins.map(coin => (
-              <SelectItem key={coin.id} value={coin.id}>
-                {coin.name} ({coin.symbol})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="price">Price</Label>
-          <Input
-            id="price"
-            placeholder="Enter price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            type="number"
-            min="0"
-            step="0.01"
-          />
+    <Card>
+      <CardHeader>
+        <CardTitle>Paper Trading</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Coin</label>
+            <select
+              className="w-full border rounded p-2"
+              value={selectedCoinId}
+              onChange={(e) => setSelectedCoinId(e.target.value)}
+            >
+              {availableCoins.map(coin => (
+                <option key={coin.id} value={coin.id}>
+                  {coin.name} ({coin.symbol})
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Trade Type</label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={tradeType === 'buy' ? 'default' : 'outline'}
+                onClick={() => setTradeType('buy')}
+                className="flex-1"
+              >
+                Buy
+              </Button>
+              <Button
+                type="button"
+                variant={tradeType === 'sell' ? 'default' : 'outline'}
+                onClick={() => setTradeType('sell')}
+                className="flex-1"
+              >
+                Sell
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Amount (AUD)</label>
+            <input
+              type="text"
+              className="w-full border rounded p-2"
+              value={tradeAmount}
+              onChange={(e) => setTradeAmount(e.target.value)}
+            />
+          </div>
+          
+          {advancedMode && (
+            <div className="space-y-2 bg-muted p-3 rounded">
+              <h3 className="text-sm font-medium">Advanced Options</h3>
+              <p className="text-xs text-muted-foreground">
+                Additional trading options are available in advanced mode
+              </p>
+              
+              {/* Render advanced options here */}
+            </div>
+          )}
+          
+          <div className="pt-2">
+            <Button
+              type="button"
+              onClick={handleTrade}
+              className="w-full"
+              disabled={!selectedCoin || !tradeAmount}
+            >
+              {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol}
+            </Button>
+          </div>
+          
+          {selectedCoin && (
+            <div className="text-sm text-muted-foreground pt-2">
+              <p>
+                Current Price: ${selectedCoin.price?.toFixed(2) || 'N/A'}
+              </p>
+              <p>
+                Total: ${(parseFloat(tradeAmount) * (selectedCoin.price || 0)).toFixed(2)}
+              </p>
+            </div>
+          )}
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="quantity">Quantity</Label>
-          <Input
-            id="quantity"
-            placeholder="Enter quantity"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            type="number"
-            min="0"
-            step="0.0001"
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="date">Trade Date</Label>
-        <Input
-          id="date"
-          type="date"
-          value={tradeDate}
-          onChange={(e) => setTradeDate(e.target.value)}
-        />
-      </div>
-      
-      {advancedMode && (
-        <div className="space-y-2">
-          <Label htmlFor="tags">Tags (comma-separated)</Label>
-          <Input
-            id="tags"
-            placeholder="e.g., long-term, dip-buy"
-            onChange={(e) => setTags(e.target.value.split(',').map(tag => tag.trim()))}
-          />
-        </div>
-      )}
-      
-      <div className="grid grid-cols-2 gap-4">
-        <Button
-          type="button"
-          className={`w-full ${type === 'buy' ? 'bg-green-500 hover:bg-green-600' : 'bg-muted hover:bg-muted/80'}`}
-          onClick={() => setType('buy')}
-        >
-          Buy
-        </Button>
-        <Button
-          type="button"
-          className={`w-full ${type === 'sell' ? 'bg-red-500 hover:bg-red-600' : 'bg-muted hover:bg-muted/80'}`}
-          onClick={() => setType('sell')}
-        >
-          Sell
-        </Button>
-      </div>
-      
-      <Button type="submit" className="w-full">
-        Add Trade
-      </Button>
-    </form>
+      </CardContent>
+    </Card>
   );
 };
 

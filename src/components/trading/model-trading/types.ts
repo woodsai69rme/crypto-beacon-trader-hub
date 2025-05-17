@@ -1,19 +1,22 @@
 
-import { LocalModel as BaseLocalModel } from "@/types/trading";
+import { LocalModel } from "@/types/trading";
 
-export type LocalModel = BaseLocalModel;
-
-export interface ModelStatus {
-  isRunning: boolean;
-  lastStarted?: Date;
-  lastStopped?: Date;
-  performance?: {
-    accuracy: number;
-    predictions: number;
-    successRate: number;
-  };
+export interface ModelRunningTabProps {
+  activeModels: LocalModel[];
+  inactiveModels: LocalModel[];
+  onActivateModel: (modelId: string) => void;
+  onDeactivateModel: (modelId: string) => void;
+  isLoading?: boolean;
 }
 
 export interface ModelPerformanceProps {
   model: LocalModel;
+}
+
+export interface ModelPerformanceData {
+  accuracy: number;
+  returns: number;
+  predictions: number; 
+  successRate: number;
+  lastUpdated: string;
 }

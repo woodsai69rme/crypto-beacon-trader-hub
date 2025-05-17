@@ -1,5 +1,5 @@
 
-export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly';
+export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
 
 export interface BaseAlertData {
   id?: string;
@@ -11,7 +11,7 @@ export interface BaseAlertData {
   notifyVia?: Array<"email" | "app" | "push">;
   createdAt?: Date | string;
   lastTriggered?: string;
-  type: string;
+  type: 'price' | 'volume' | 'technical';
 }
 
 export interface PriceAlert extends BaseAlertData {
@@ -66,7 +66,7 @@ export interface PriceAlertFormData {
   percentageChange: number;
   notifyVia: Array<"email" | "app" | "push">;
   frequency?: AlertFrequency;
-  type: 'price'; // Make type required
+  type: 'price';
 }
 
 export interface VolumeAlertFormData {
@@ -77,7 +77,7 @@ export interface VolumeAlertFormData {
   frequency: AlertFrequency;
   enabled: boolean;
   notifyVia: Array<"email" | "app" | "push">;
-  type: 'volume'; // Make type required
+  type: 'volume';
 }
 
 export interface TechnicalAlertFormData {
@@ -90,5 +90,5 @@ export interface TechnicalAlertFormData {
   enabled: boolean;
   frequency?: AlertFrequency;
   notifyVia?: Array<"email" | "app" | "push">;
-  type: 'technical'; // Make type required
+  type: 'technical';
 }
