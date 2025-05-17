@@ -52,3 +52,42 @@ export interface TechnicalAlert extends BaseAlertData {
 }
 
 export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
+
+export interface PriceAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  isAbove: boolean;
+  enabled: boolean;
+  recurring: boolean;
+  percentageChange: number;
+  notifyVia: Array<"email" | "app" | "push">;
+  frequency?: AlertFrequency;
+  type: 'price';
+}
+
+export interface VolumeAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  volumeThreshold: number;
+  frequency: AlertFrequency;
+  enabled: boolean;
+  notifyVia: Array<"email" | "app" | "push">;
+  type: 'volume';
+  onSubmit?: () => void;
+}
+
+export interface TechnicalAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  indicator: string;
+  condition: string;
+  value: number;
+  enabled: boolean;
+  frequency?: AlertFrequency;
+  notifyVia?: Array<"email" | "app" | "push">;
+  type: 'technical';
+}

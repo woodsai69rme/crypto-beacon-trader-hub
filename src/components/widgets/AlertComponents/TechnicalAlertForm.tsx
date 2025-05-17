@@ -80,23 +80,23 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     switch (indicator) {
       case 'rsi':
         return [
-          { id: 'overbought', label: 'Overbought' },
-          { id: 'oversold', label: 'Oversold' }
+          { id: 'overbought', value: 'overbought', label: 'Overbought' },
+          { id: 'oversold', value: 'oversold', label: 'Oversold' }
         ];
       case 'macd':
         return [
-          { id: 'cross_up', label: 'Bullish Cross' },
-          { id: 'cross_down', label: 'Bearish Cross' }
+          { id: 'cross_up', value: 'cross_up', label: 'Bullish Cross' },
+          { id: 'cross_down', value: 'cross_down', label: 'Bearish Cross' }
         ];
       case 'bb':
         return [
-          { id: 'upper_touch', label: 'Price Touches Upper Band' },
-          { id: 'lower_touch', label: 'Price Touches Lower Band' }
+          { id: 'upper_touch', value: 'upper_touch', label: 'Price Touches Upper Band' },
+          { id: 'lower_touch', value: 'lower_touch', label: 'Price Touches Lower Band' }
         ];
       default:
         return [
-          { id: 'cross_up', label: 'Cross Above' },
-          { id: 'cross_down', label: 'Cross Below' }
+          { id: 'cross_up', value: 'cross_up', label: 'Cross Above' },
+          { id: 'cross_down', value: 'cross_down', label: 'Cross Below' }
         ];
     }
   };

@@ -45,20 +45,20 @@ export const COIN_OPTIONS = [
 
 // Technical indicators supported by alerts
 export const TECHNICAL_INDICATORS = [
-  { value: 'RSI', label: 'RSI (Relative Strength Index)' },
-  { value: 'MACD', label: 'MACD (Moving Average Convergence Divergence)' },
-  { value: 'MA', label: 'MA (Moving Average)' },
-  { value: 'EMA', label: 'EMA (Exponential Moving Average)' },
-  { value: 'VWAP', label: 'VWAP (Volume Weighted Average Price)' },
-  { value: 'BB', label: 'Bollinger Bands' },
-  { value: 'STOCH', label: 'Stochastic Oscillator' },
+  { id: 'rsi', value: 'RSI', label: 'RSI (Relative Strength Index)' },
+  { id: 'macd', value: 'MACD', label: 'MACD (Moving Average Convergence Divergence)' },
+  { id: 'ma', value: 'MA', label: 'MA (Moving Average)' },
+  { id: 'ema', value: 'EMA', label: 'EMA (Exponential Moving Average)' },
+  { id: 'vwap', value: 'VWAP', label: 'VWAP (Volume Weighted Average Price)' },
+  { id: 'bb', value: 'BB', label: 'Bollinger Bands' },
+  { id: 'stoch', value: 'STOCH', label: 'Stochastic Oscillator' },
 ];
 
 // Technical indicator conditions
 export const TECHNICAL_CONDITIONS = [
-  { value: 'above', label: 'Above' },
-  { value: 'below', label: 'Below' },
-  { value: 'crosses_above', label: 'Crosses Above' },
-  { value: 'crosses_below', label: 'Crosses Below' },
-  { value: 'equals', label: 'Equals' },
+  { id: 'above', value: 'above', label: 'Above' },
+  { id: 'below', value: 'below', label: 'Below' },
+  { id: 'crosses_above', value: 'crosses_above', label: 'Crosses Above' },
+  { id: 'crosses_below', value: 'crosses_below', label: 'Crosses Below' },
+  { id: 'equals', value: 'equals', label: 'Equals' },
 ];

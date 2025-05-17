@@ -1,5 +1,6 @@
 
-// Create or update the trading types
+export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
+
 export interface CoinOption {
   id: string;
   name: string;
@@ -125,6 +126,8 @@ export interface RealTimePriceChartProps {
   height?: number;
   width?: string;
   showControls?: boolean;
+  symbol?: string;
+  timeframe?: string;
 }
 
 export interface RealTimePricesProps {
@@ -133,6 +136,7 @@ export interface RealTimePricesProps {
   selectedCoinId?: string;
   isLoading?: boolean;
   initialCoins?: CoinOption[];
+  refreshInterval?: number;
 }
 
 export interface WalletConnectionProps {
@@ -149,11 +153,41 @@ export interface WalletConnectionProps {
   onConnect: (account: WalletAccount) => void;
 }
 
-export interface WalletAccount {
-  id: string;
-  address: string;
-  provider: string;
-  balance?: number;
+export interface FibonacciAnalysisProps {
+  coinId: string;
+  timeRange?: string;
+  data?: PricePoint[];
+  height?: number;
+  width?: string;
+  symbol?: string;
+  timeframe?: string;
+}
+
+export interface FibonacciLevels {
+  level0: number;
+  level236: number;
+  level382: number;
+  level500: number;
+  level618: number;
+  level786: number;
+  level1000: number;
+}
+
+export interface HyblockLiquidityMapProps {
+  coinId: string;
+  timeframe?: string;
+  width?: string;
+  height?: number;
+  showControls?: boolean;
+  symbol?: string;
+}
+
+export interface HyblockLiquidityZone {
+  min: number;
+  max: number;
+  volume: number;
+  type: 'buy' | 'sell';
+  strength: number;
 }
 
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
@@ -227,4 +261,22 @@ export interface CryptoChartData {
   prices: [number, number][];
   market_caps: [number, number][];
   total_volumes: [number, number][];
+}
+
+export interface WalletAccount {
+  id?: string;
+  address: string;
+  provider?: string;
+  balance?: number;
+}
+
+export interface PaperTradingConfig {
+  enabled: boolean;
+  initialBalance: number;
+  currency: string;
+  slippageModel: 'none' | 'simple' | 'realistic';
+  slippagePercentage: number;
+  maxTradeSize: number;
+  includeFees: boolean;
+  feePercentage: number;
 }

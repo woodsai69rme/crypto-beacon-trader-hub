@@ -21,6 +21,31 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     onFormChange({ type: type as 'price' | 'volume' | 'technical' });
   };
 
+  // Create specific typed data for each form type
+  const priceAlertData = {
+    ...formData,
+    type: 'price' as const,
+    targetPrice: formData.targetPrice || 0,
+    isAbove: formData.isAbove || true,
+    recurring: formData.recurring || false,
+    percentageChange: formData.percentageChange || 0
+  };
+
+  const volumeAlertData = {
+    ...formData,
+    type: 'volume' as const,
+    volumeThreshold: formData.volumeThreshold || 0,
+    frequency: formData.frequency || 'once'
+  };
+
+  const technicalAlertData = {
+    ...formData,
+    type: 'technical' as const,
+    indicator: formData.indicator || '',
+    condition: formData.condition || '',
+    value: formData.value || 0
+  };
+
   return (
     <div className="mt-6">
       <Tabs 
@@ -36,7 +61,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         
         <TabsContent value="price" className="mt-4">
           <PriceAlertForm 
-            formData={{...formData, type: 'price'}} 
+            formData={priceAlertData} 
             setFormData={(data) => onFormChange(data)} 
             onSubmit={onSubmit}
           />
@@ -44,7 +69,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         
         <TabsContent value="volume" className="mt-4">
           <VolumeAlertForm 
-            formData={{...formData, type: 'volume'}} 
+            formData={volumeAlertData} 
             setFormData={(data) => onFormChange(data)}
             onSubmit={onSubmit}
           />
@@ -52,7 +77,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         
         <TabsContent value="technical" className="mt-4">
           <TechnicalAlertForm 
-            formData={{...formData, type: 'technical'}} 
+            formData={technicalAlertData} 
             setFormData={(data) => onFormChange(data)}
             onSubmit={onSubmit}
           />
