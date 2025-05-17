@@ -28,4 +28,3 @@ export const searchCoins = async (query: string) => {
            coin.symbol.toLowerCase().includes(query.toLowerCase())
   );
 };
-

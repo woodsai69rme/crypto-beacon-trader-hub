@@ -159,8 +159,8 @@ export const fetchTopCryptoData = async (limit: number = 10): Promise<CoinOption
   }
 };
 
-// Alias for backward compatibility
-export const fetchCryptoData = fetchTopCryptoData;
+// Explicitly export fetchCoinData as an alias for fetchTopCryptoData - this was missing
+export const fetchCoinData = fetchTopCryptoData;
 
 // Fetch historical price data for a specific coin
 export const fetchCryptoHistory = async (coinId: string, days: number = 7): Promise<PricePoint[]> => {
