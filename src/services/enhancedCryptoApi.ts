@@ -1,6 +1,6 @@
 
 import { CryptoData } from '@/types/trading';
-import { fetchTopCryptoData as fetchTopCryptoDataImpl, searchCoins as searchCoinsImpl } from './cryptoService';
+import { fetchTopCryptoData as fetchTopCryptoDataImpl, fetchCoinData } from './cryptoService';
 
 // Wrapper around fetchTopCryptoData to ensure type compatibility with CryptoData[]
 export const fetchTopCryptoData = async (limit: number = 10): Promise<CryptoData[]> => {
@@ -20,5 +20,12 @@ export const fetchTopCryptoData = async (limit: number = 10): Promise<CryptoData
   }));
 };
 
-// Re-export the searchCoins function
-export const searchCoins = searchCoinsImpl;
+// Export the searchCoins function
+export const searchCoins = async (query: string) => {
+  const allCoins = await fetchCoinData();
+  return allCoins.filter(
+    coin => coin.name.toLowerCase().includes(query.toLowerCase()) || 
+           coin.symbol.toLowerCase().includes(query.toLowerCase())
+  );
+};
+

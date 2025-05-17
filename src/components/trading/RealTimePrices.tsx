@@ -1,6 +1,15 @@
 
 import React from 'react';
-import { RealTimePricesProps, CoinOption } from '@/types/trading';
+import { CoinOption } from '@/types/trading';
+
+export interface RealTimePricesProps {
+  coins?: CoinOption[]; 
+  refreshInterval?: number;
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
+  isLoading?: boolean;
+  initialCoins?: CoinOption[];
+}
 
 const RealTimePrices: React.FC<RealTimePricesProps> = ({ 
   coins = [], 
@@ -35,3 +44,4 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({
 };
 
 export default RealTimePrices;
+

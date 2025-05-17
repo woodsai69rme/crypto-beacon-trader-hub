@@ -80,6 +80,9 @@ export const fetchCoinData = async (limit = 10): Promise<CoinOption[]> => {
   });
 };
 
+// Add the missing fetchTopCryptoData function (alias to fetchCoinData for compatibility)
+export const fetchTopCryptoData = fetchCoinData;
+
 // Simulated price history data for coins
 export const fetchCoinHistory = async (
   coinId: string, 
@@ -112,3 +115,38 @@ export const fetchCoinHistory = async (
 
 // Create alias for backward compatibility
 export const fetchCoinPriceHistory = fetchCoinHistory;
+
+// Add formatPrice utility function
+export const formatPrice = (price?: number): string => {
+  if (price === undefined) return '$0.00';
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(price);
+};
+
+// Add fetchCryptoHistory function for RealTimePriceChart.tsx
+export const fetchCryptoHistory = async (
+  coinId: string,
+  timeframe: string = '7d',
+  currency: string = 'aud'
+): Promise<[number, number][]> => {
+  // Convert timeframe to days
+  let days = 7;
+  switch (timeframe) {
+    case '24h': days = 1; break;
+    case '7d': days = 7; break;
+    case '30d': days = 30; break;
+    case '90d': days = 90; break;
+    case '1y': days = 365; break;
+    default: days = parseInt(timeframe) || 7;
+  }
+
+  const pricePoints = await fetchCoinHistory(coinId, days);
+  
+  // Transform to the format expected by RealTimePriceChart
+  return pricePoints.map(point => [point.timestamp, point.price]);
+};
+
