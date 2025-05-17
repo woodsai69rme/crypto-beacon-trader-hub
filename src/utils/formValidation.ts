@@ -5,7 +5,7 @@
  * @param requiredFields Array of field names that are required
  * @returns Boolean indicating if the form data is valid
  */
-export const validateFormFields = (formData: any, requiredFields: string[]): boolean => {
+export const validateFormFields = (formData: any, requiredFields: string[], customValidations?: Record<string, Function[]>): boolean => {
   if (!formData) return false;
   
   for (const field of requiredFields) {
@@ -21,6 +21,16 @@ export const validateFormFields = (formData: any, requiredFields: string[]): boo
     if (typeof value === 'number' && isNaN(value)) {
       console.error(`Field "${field}" must be a valid number`);
       return false;
+    }
+    
+    // Apply custom validations if provided
+    if (customValidations && customValidations[field]) {
+      const validationFunctions = customValidations[field];
+      for (const validate of validationFunctions) {
+        if (!validate(value)) {
+          return false;
+        }
+      }
     }
   }
   
@@ -59,9 +69,26 @@ export const validateNumberRange = (value: number, min: number, max: number): bo
   return value >= min && value <= max;
 };
 
+/**
+ * Creates a validation rule for number ranges
+ * @param min The minimum allowed value
+ * @param max The maximum allowed value
+ * @returns A function that validates if a value is within the specified range
+ */
+export const createNumberRangeRule = (min: number, max: number) => {
+  return (value: number) => {
+    const isValid = validateNumberRange(value, min, max);
+    if (!isValid) {
+      console.error(`Value ${value} must be between ${min} and ${max}`);
+    }
+    return isValid;
+  };
+};
+
 export default {
   validateFormFields,
   validateEmail,
   validatePasswordStrength,
-  validateNumberRange
+  validateNumberRange,
+  createNumberRangeRule
 };

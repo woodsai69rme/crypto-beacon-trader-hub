@@ -1,525 +1,333 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
-import { AITradingStrategy, TradingAccount, Trade } from "@/types/trading";
-import { createTrade } from "@/services/aiTradingService";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  AITradingBot, 
+  AITradingStrategy, 
+  TradingAccount,
+  LocalModel,
+  PaperTradingConfig
+} from '@/types/trading';
+
+// Mock data for strategies and bots
+const DEFAULT_STRATEGIES: AITradingStrategy[] = [
+  {
+    id: 'trend-following',
+    name: 'Trend Following',
+    description: 'A strategy that follows the market trend, buying in an uptrend and selling in a downtrend',
+    type: 'trend',
+    riskLevel: 'medium',
+    parameters: {
+      lookbackPeriod: 14,
+      entryThreshold: 0.05,
+      exitThreshold: -0.03,
+      stopLoss: 0.1
+    },
+    indicators: ['MA', 'MACD'],
+    performance: {
+      accuracy: 68,
+      returns: 12.5,
+      sharpeRatio: 1.8,
+      maxDrawdown: 15
+    }
+  },
+  {
+    id: 'mean-reversion',
+    name: 'Mean Reversion',
+    description: 'A strategy that assumes prices will revert to their historical average',
+    type: 'mean-reversion',
+    riskLevel: 'low',
+    parameters: {
+      meanPeriod: 20,
+      entryDeviation: 2,
+      exitDeviation: 0.5,
+      stopLoss: 0.15
+    },
+    indicators: ['RSI', 'Bollinger Bands'],
+    performance: {
+      accuracy: 72,
+      returns: 8.2,
+      sharpeRatio: 1.5,
+      maxDrawdown: 12
+    }
+  }
+];
+
+const DEFAULT_BOTS: AITradingBot[] = [
+  {
+    id: 'bot-1',
+    name: 'BTC Trend Follower',
+    description: 'Bitcoin trend following strategy',
+    strategy: DEFAULT_STRATEGIES[0],
+    strategyId: DEFAULT_STRATEGIES[0].id,
+    strategyName: DEFAULT_STRATEGIES[0].name,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    lastRun: new Date().toISOString(),
+    model: 'DeepSeek R1',
+    asset: 'bitcoin',
+    accuracy: 68,
+    successRate: 0.68,
+    trades: 145,
+    totalTrades: 145,
+    performance: {
+      winRate: 0.68,
+      trades: 145,
+      profit: 2350
+    },
+    profitLoss: 2350
+  },
+  {
+    id: 'bot-2',
+    name: 'ETH Mean Reverter',
+    description: 'Ethereum mean reversion strategy',
+    strategy: DEFAULT_STRATEGIES[1],
+    strategyId: DEFAULT_STRATEGIES[1].id,
+    strategyName: DEFAULT_STRATEGIES[1].name,
+    status: 'paused',
+    createdAt: new Date().toISOString(),
+    lastRun: new Date().toISOString(),
+    model: 'GPT-4',
+    asset: 'ethereum',
+    accuracy: 72,
+    successRate: 0.72,
+    trades: 120,
+    totalTrades: 120,
+    performance: {
+      winRate: 0.72,
+      trades: 120,
+      profit: 1850
+    },
+    profitLoss: 1850
+  }
+];
+
+// Default values for the context
+const DEFAULT_TRADING_ACCOUNT: TradingAccount = {
+  id: 'ai-trading-account',
+  name: 'AI Trading Account',
+  balance: 10000,
+  initialBalance: 10000,
+  trades: [],
+  currency: 'USD',
+  createdAt: new Date().toISOString(),
+  type: 'paper',
+  address: '0x0000000000000000000000000000000000000000',
+  network: 'paper',
+  assets: []
+};
+
+const DEFAULT_CONFIG: PaperTradingConfig = {
+  enabled: true,
+  initialBalance: 10000,
+  currency: 'USD',
+  slippageModel: 'simple',
+  slippagePercentage: 0.1,
+  maxTradeSize: 1000,
+  includeFees: true,
+  feePercentage: 0.1
+};
 
 interface AiTradingContextType {
-  isLoading: boolean;
   strategies: AITradingStrategy[];
-  activeStrategyId: string | null;
-  setActiveStrategyId: (id: string | null) => void;
-  addStrategy: (strategy: AITradingStrategy) => Promise<void>;
-  updateStrategy: (id: string, updates: Partial<AITradingStrategy>) => Promise<void>;
-  deleteStrategy: (id: string) => Promise<void>;
-  startStrategy: (id: string) => Promise<void>;
-  stopStrategy: (id: string) => Promise<void>;
-  addOrder: (order: Partial<Trade>) => Promise<void>;
-  aiTradingStats: {
-    totalAlgos: number;
-    activeAlgos: number;
-    totalTrades: number;
-    winRate: number;
-    profitFactor: number;
-    netPnl: number;
-  };
-  aiTradingAccounts: TradingAccount[];
-  createAiTradingAccount: (name: string, initialBalance: number) => Promise<void>;
-  deleteAiTradingAccount: (id: string) => Promise<void>;
-  selectedAccountId: string | null;
-  setSelectedAccountId: (id: string | null) => void;
-  getFundingAccount: () => TradingAccount | null;
+  bots: AITradingBot[];
+  account: TradingAccount;
+  paperTradingConfig: PaperTradingConfig;
+  selectedStrategy: AITradingStrategy | null;
+  selectedBot: AITradingBot | null;
+  localModels: LocalModel[];
+  createBot: (name: string, strategyId: string, asset: string, model: string) => AITradingBot;
+  toggleBotStatus: (id: string) => void;
+  deleteBot: (id: string) => void;
+  updateBot: (id: string, updates: Partial<AITradingBot>) => void;
+  selectStrategy: (id: string) => void;
+  selectBot: (id: string) => void;
+  getAvailableModels: () => string[];
 }
 
-const AiTradingContext = createContext<AiTradingContextType | undefined>(undefined);
+// Create the context
+const AiTradingContext = createContext<AiTradingContextType>({
+  strategies: DEFAULT_STRATEGIES,
+  bots: DEFAULT_BOTS,
+  account: DEFAULT_TRADING_ACCOUNT,
+  paperTradingConfig: DEFAULT_CONFIG,
+  selectedStrategy: null,
+  selectedBot: null,
+  localModels: [],
+  createBot: () => DEFAULT_BOTS[0],
+  toggleBotStatus: () => {},
+  deleteBot: () => {},
+  updateBot: () => {},
+  selectStrategy: () => {},
+  selectBot: () => {},
+  getAvailableModels: () => []
+});
 
-export function AiTradingProvider({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [strategies, setStrategies] = useState<AITradingStrategy[]>([]);
-  const [activeStrategyId, setActiveStrategyId] = useState<string | null>(null);
-  const [aiTradingAccounts, setAiTradingAccounts] = useState<TradingAccount[]>([]);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+// Create the provider component
+export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
+}) => {
+  const [strategies, setStrategies] = useState<AITradingStrategy[]>(DEFAULT_STRATEGIES);
+  const [bots, setBots] = useState<AITradingBot[]>(DEFAULT_BOTS);
+  const [account, setAccount] = useState<TradingAccount>(DEFAULT_TRADING_ACCOUNT);
+  const [paperTradingConfig, setPaperTradingConfig] = useState<PaperTradingConfig>(DEFAULT_CONFIG);
+  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
+  const [selectedBot, setSelectedBot] = useState<AITradingBot | null>(null);
+  const [localModels, setLocalModels] = useState<LocalModel[]>([
+    {
+      id: 'local-1',
+      name: 'Local LLaMA',
+      endpoint: 'http://localhost:11434/v1',
+      type: 'trading',
+      isConnected: false
+    }
+  ]);
 
-  // Load from localStorage on mount
+  // Load data from localStorage on mount if available
   useEffect(() => {
-    const loadData = () => {
-      const savedStrategies = localStorage.getItem('ai-trading-strategies');
-      const savedActiveStrategy = localStorage.getItem('ai-trading-active-strategy');
-      const savedAccounts = localStorage.getItem('ai-trading-accounts');
-      const savedSelectedAccount = localStorage.getItem('ai-trading-selected-account');
-
-      if (savedStrategies) {
-        try {
-          setStrategies(JSON.parse(savedStrategies));
-        } catch (e) {
-          console.error('Error parsing strategies from localStorage:', e);
-        }
-      } else {
-        // Initialize with default strategies
-        setStrategies([
-          {
-            id: 'strategy-1',
-            name: 'BTC Trend Follower',
-            description: 'AI-powered trend following strategy for Bitcoin',
-            type: 'trend-following',
-            timeframe: '1h',
-            parameters: {
-              fastEMA: 12,
-              slowEMA: 26,
-              signalLine: 9
-            },
-            indicators: ['ema', 'macd', 'rsi'],
-            performance: {
-              winRate: 62.5,
-              profitFactor: 1.8,
-              sharpeRatio: 1.4,
-              trades: 48,
-              profitLoss: 2450,
-              drawdown: 12.3,
-              returns: 18.7
-            },
-            riskLevel: 'medium'
-          },
-          {
-            id: 'strategy-2',
-            name: 'ETH Breakout',
-            description: 'Volatility breakout strategy for Ethereum',
-            type: 'breakout',
-            timeframe: '4h',
-            parameters: {
-              volatilityPeriod: 20,
-              breakoutFactor: 2.5
-            },
-            indicators: ['bollinger', 'atr', 'volume'],
-            performance: {
-              winRate: 58.2,
-              profitFactor: 1.6,
-              sharpeRatio: 1.2,
-              trades: 67,
-              profitLoss: 1850,
-              drawdown: 15.7,
-              returns: 14.2
-            },
-            riskLevel: 'medium'
-          }
-        ]);
+    try {
+      const savedBots = localStorage.getItem('aiBots');
+      if (savedBots) {
+        setBots(JSON.parse(savedBots));
       }
-
-      if (savedActiveStrategy) {
-        setActiveStrategyId(savedActiveStrategy);
+      
+      const savedAccount = localStorage.getItem('aiTradingAccount');
+      if (savedAccount) {
+        setAccount(JSON.parse(savedAccount));
       }
-
-      if (savedAccounts) {
-        try {
-          setAiTradingAccounts(JSON.parse(savedAccounts));
-        } catch (e) {
-          console.error('Error parsing accounts from localStorage:', e);
-        }
-      } else {
-        // Initialize with a default account
-        const defaultAccount: TradingAccount = {
-          id: 'ai-account-1',
-          name: 'AI Trading Account',
-          balance: 10000,
-          initialBalance: 10000,
-          trades: [],
-          currency: 'USD',
-          createdAt: new Date().toISOString(),
-          type: 'ai'
-        };
-        setAiTradingAccounts([defaultAccount]);
-      }
-
-      if (savedSelectedAccount) {
-        setSelectedAccountId(savedSelectedAccount);
-      } else if (aiTradingAccounts.length > 0) {
-        setSelectedAccountId(aiTradingAccounts[0].id);
-      }
-    };
-
-    loadData();
+    } catch (error) {
+      console.error('Error loading AI trading data:', error);
+    }
   }, []);
-
-  // Save to localStorage when data changes
+  
+  // Save data to localStorage when it changes
   useEffect(() => {
-    if (strategies.length > 0) {
-      localStorage.setItem('ai-trading-strategies', JSON.stringify(strategies));
-    }
-    if (activeStrategyId) {
-      localStorage.setItem('ai-trading-active-strategy', activeStrategyId);
-    }
-    if (aiTradingAccounts.length > 0) {
-      localStorage.setItem('ai-trading-accounts', JSON.stringify(aiTradingAccounts));
-    }
-    if (selectedAccountId) {
-      localStorage.setItem('ai-trading-selected-account', selectedAccountId);
-    }
-  }, [strategies, activeStrategyId, aiTradingAccounts, selectedAccountId]);
-
-  // Add a new strategy
-  const addStrategy = async (strategy: AITradingStrategy): Promise<void> => {
-    setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setStrategies([...strategies, strategy]);
-      
-      toast({
-        title: "Strategy Added",
-        description: `${strategy.name} has been added to your strategies`,
-      });
-      
+      localStorage.setItem('aiBots', JSON.stringify(bots));
     } catch (error) {
-      console.error("Error adding strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add strategy",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Error saving AI bots:', error);
     }
-  };
-
-  // Update an existing strategy
-  const updateStrategy = async (id: string, updates: Partial<AITradingStrategy>): Promise<void> => {
-    setIsLoading(true);
+  }, [bots]);
+  
+  useEffect(() => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const updatedStrategies = strategies.map(strategy => {
-        if (strategy.id === id) {
-          return { ...strategy, ...updates };
-        }
-        return strategy;
-      });
-      
-      setStrategies(updatedStrategies);
-      
-      toast({
-        title: "Strategy Updated",
-        description: "Your strategy has been updated",
-      });
-      
+      localStorage.setItem('aiTradingAccount', JSON.stringify(account));
     } catch (error) {
-      console.error("Error updating strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update strategy",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Error saving AI trading account:', error);
     }
-  };
-
-  // Delete a strategy
-  const deleteStrategy = async (id: string): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const filteredStrategies = strategies.filter(strategy => strategy.id !== id);
-      setStrategies(filteredStrategies);
-      
-      if (activeStrategyId === id) {
-        setActiveStrategyId(null);
-      }
-      
-      toast({
-        title: "Strategy Deleted",
-        description: "The strategy has been removed",
-      });
-      
-    } catch (error) {
-      console.error("Error deleting strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete strategy",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Start a strategy
-  const startStrategy = async (id: string): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setActiveStrategyId(id);
-      
-      toast({
-        title: "Strategy Started",
-        description: "Your AI trading strategy is now active",
-      });
-      
-    } catch (error) {
-      console.error("Error starting strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to start strategy",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Stop a strategy
-  const stopStrategy = async (id: string): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (activeStrategyId === id) {
-        setActiveStrategyId(null);
-      }
-      
-      toast({
-        title: "Strategy Stopped",
-        description: "Your AI trading strategy has been deactivated",
-      });
-      
-    } catch (error) {
-      console.error("Error stopping strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to stop strategy",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Add an order/trade from AI
-  const addOrder = async (orderDetails: Partial<Trade>): Promise<void> => {
-    if (!selectedAccountId) {
-      toast({
-        title: "No Account Selected",
-        description: "Please select an AI trading account first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const account = aiTradingAccounts.find(acc => acc.id === selectedAccountId);
-      
-      if (!account) {
-        throw new Error("Account not found");
-      }
-      
-      // Create a new trade with unique ID
-      const newTrade = createTrade(
-        orderDetails.coinId || "bitcoin", 
-        orderDetails.coinName || "Bitcoin", 
-        orderDetails.coinSymbol || "BTC", 
-        orderDetails.type || "buy", 
-        orderDetails.amount || 0.1, 
-        orderDetails.price || 60000, 
-        activeStrategyId || undefined
-      );
-      
-      // Update account with new trade and adjust balance
-      const updatedAccounts = aiTradingAccounts.map(acc => {
-        if (acc.id === selectedAccountId) {
-          const updatedBalance = newTrade.type === "buy" 
-            ? acc.balance - newTrade.totalValue 
-            : acc.balance + newTrade.totalValue;
-          
-          return {
-            ...acc,
-            balance: updatedBalance,
-            trades: [...acc.trades, newTrade]
-          };
-        }
-        return acc;
-      });
-      
-      setAiTradingAccounts(updatedAccounts);
-      
-      toast({
-        title: `${newTrade.type === "buy" ? "Buy" : "Sell"} Order Executed`,
-        description: `${newTrade.type === "buy" ? "Purchased" : "Sold"} ${newTrade.amount} ${newTrade.coinSymbol} at $${newTrade.price}`,
-      });
-      
-    } catch (error) {
-      console.error("Error adding order:", error);
-      toast({
-        title: "Error",
-        description: "Failed to execute order",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Create a new AI trading account
-  const createAiTradingAccount = async (name: string, initialBalance: number): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newAccount: TradingAccount = {
-        id: `ai-account-${Date.now()}`,
-        name,
-        balance: initialBalance,
-        initialBalance,
-        trades: [],
-        currency: "USD",
-        createdAt: new Date().toISOString(),
-        type: "ai"
-      };
-      
-      setAiTradingAccounts([...aiTradingAccounts, newAccount]);
-      setSelectedAccountId(newAccount.id);
-      
-      toast({
-        title: "Account Created",
-        description: `${name} has been created with ${initialBalance} USD`,
-      });
-      
-    } catch (error) {
-      console.error("Error creating account:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create account",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Delete an AI trading account
-  const deleteAiTradingAccount = async (id: string): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const filteredAccounts = aiTradingAccounts.filter(account => account.id !== id);
-      setAiTradingAccounts(filteredAccounts);
-      
-      if (selectedAccountId === id) {
-        setSelectedAccountId(filteredAccounts.length > 0 ? filteredAccounts[0].id : null);
-      }
-      
-      toast({
-        title: "Account Deleted",
-        description: "The AI trading account has been removed",
-      });
-      
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete account",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Get the currently selected funding account
-  const getFundingAccount = (): TradingAccount | null => {
-    if (!selectedAccountId) return null;
-    return aiTradingAccounts.find(account => account.id === selectedAccountId) || null;
-  };
-
-  // Calculate AI trading statistics based on accounts and trades
-  const calculateAiTradingStats = () => {
-    let totalTrades = 0;
-    let winningTrades = 0;
-    let grossProfit = 0;
-    let grossLoss = 0;
-    let netPnl = 0;
+  }, [account]);
+  
+  // Create a new bot
+  const createBot = (name: string, strategyId: string, asset: string, model: string): AITradingBot => {
+    const strategy = strategies.find(s => s.id === strategyId);
     
-    const activeStrategiesCount = activeStrategyId ? 1 : 0;
+    if (!strategy) {
+      throw new Error('Strategy not found');
+    }
     
-    // Calculate stats from all AI trading accounts
-    aiTradingAccounts.forEach(account => {
-      account.trades.forEach(trade => {
-        if (!trade.botGenerated) return; // Skip manual trades
-        
-        totalTrades++;
-        
-        // For completed trades with profitLoss calculated
-        if (trade.profitLoss !== undefined) {
-          if (trade.profitLoss >= 0) {
-            winningTrades++;
-            grossProfit += trade.profitLoss;
-          } else {
-            grossLoss += Math.abs(trade.profitLoss);
-          }
-          netPnl += trade.profitLoss;
-        }
-      });
-    });
-    
-    // Calculate win rate and profit factor
-    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
-    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : 0;
-    
-    return {
-      totalAlgos: strategies.length,
-      activeAlgos: activeStrategiesCount,
-      totalTrades,
-      winRate,
-      profitFactor,
-      netPnl
+    const newBot: AITradingBot = {
+      id: `bot-${Date.now()}`,
+      name,
+      description: `${asset} trading bot using ${strategy.name}`,
+      strategy: strategy,
+      strategyId: strategyId,
+      strategyName: strategy.name,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      model,
+      asset,
+      accuracy: 0,
+      successRate: 0,
+      trades: 0,
+      totalTrades: 0,
+      performance: {
+        winRate: 0,
+        trades: 0,
+        profit: 0
+      },
+      profitLoss: 0
     };
+    
+    setBots(prev => [...prev, newBot]);
+    return newBot;
   };
-
-  const aiTradingStats = calculateAiTradingStats();
-
+  
+  // Toggle bot active/paused status
+  const toggleBotStatus = (id: string) => {
+    setBots(prev => prev.map(bot => {
+      if (bot.id !== id) return bot;
+      
+      const newStatus = bot.status === 'active' ? 'paused' : 'active';
+      return { ...bot, status: newStatus };
+    }));
+  };
+  
+  // Delete a bot
+  const deleteBot = (id: string) => {
+    setBots(prev => prev.filter(bot => bot.id !== id));
+    
+    // If selected bot was deleted, clear selection
+    if (selectedBot?.id === id) {
+      setSelectedBot(null);
+    }
+  };
+  
+  // Update a bot
+  const updateBot = (id: string, updates: Partial<AITradingBot>) => {
+    setBots(prev => prev.map(bot => 
+      bot.id === id ? { ...bot, ...updates } : bot
+    ));
+    
+    // If updating the selected bot, update selection
+    if (selectedBot?.id === id) {
+      setSelectedBot(prev => prev ? { ...prev, ...updates } : null);
+    }
+  };
+  
+  // Select a strategy
+  const selectStrategy = (id: string) => {
+    const strategy = strategies.find(s => s.id === id) || null;
+    setSelectedStrategy(strategy);
+  };
+  
+  // Select a bot
+  const selectBot = (id: string) => {
+    const bot = bots.find(b => b.id === id) || null;
+    setSelectedBot(bot);
+  };
+  
+  // Get available models
+  const getAvailableModels = () => {
+    const openRouterModels = ['DeepSeek R1', 'GPT-4', 'Claude 3', 'Gemini 1.5'];
+    const localModelNames = localModels.filter(m => m.isConnected).map(m => m.name);
+    
+    return [...openRouterModels, ...localModelNames];
+  };
+  
   return (
     <AiTradingContext.Provider
       value={{
-        isLoading,
         strategies,
-        activeStrategyId,
-        setActiveStrategyId,
-        addStrategy,
-        updateStrategy,
-        deleteStrategy,
-        startStrategy,
-        stopStrategy,
-        addOrder,
-        aiTradingStats,
-        aiTradingAccounts,
-        createAiTradingAccount,
-        deleteAiTradingAccount,
-        selectedAccountId,
-        setSelectedAccountId,
-        getFundingAccount
+        bots,
+        account,
+        paperTradingConfig,
+        selectedStrategy,
+        selectedBot,
+        localModels,
+        createBot,
+        toggleBotStatus,
+        deleteBot,
+        updateBot,
+        selectStrategy,
+        selectBot,
+        getAvailableModels,
       }}
     >
       {children}
     </AiTradingContext.Provider>
   );
-}
+};
 
-export function useAiTrading() {
-  const context = useContext(AiTradingContext);
-  if (context === undefined) {
-    throw new Error("useAiTrading must be used within an AiTradingProvider");
-  }
-  return context;
-}
+// Custom hook for accessing the context
+export const useAiTrading = () => useContext(AiTradingContext);
+
+export default AiTradingContext;

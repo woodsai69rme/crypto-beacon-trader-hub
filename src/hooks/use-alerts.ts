@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { AlertData } from '@/types/alerts';
+import { AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
 
 export const useAlerts = () => {
   const [alerts, setAlerts] = useState<AlertData[]>(() => {
@@ -24,7 +24,14 @@ export const useAlerts = () => {
   }, [alerts]);
 
   const addAlert = (alertData: AlertData) => {
-    setAlerts(prev => [...prev, alertData]);
+    // Ensure we're adding a properly typed AlertData object
+    if (alertData.type === 'price') {
+      setAlerts(prev => [...prev, alertData as PriceAlert]);
+    } else if (alertData.type === 'volume') {
+      setAlerts(prev => [...prev, alertData as VolumeAlert]);
+    } else if (alertData.type === 'technical') {
+      setAlerts(prev => [...prev, alertData as TechnicalAlert]);
+    }
   };
 
   const removeAlert = (id: string) => {

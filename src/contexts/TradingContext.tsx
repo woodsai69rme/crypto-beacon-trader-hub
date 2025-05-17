@@ -1,9 +1,9 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CoinOption, Trade, TradingAccount } from '@/types/trading';
 
-// Define mock data for initial coins
-const initialCoins: CoinOption[] = [
+// Sample coin data
+const DEFAULT_COINS: CoinOption[] = [
   {
     id: 'bitcoin',
     name: 'Bitcoin',
@@ -14,8 +14,8 @@ const initialCoins: CoinOption[] = [
     label: 'Bitcoin (BTC)',
     priceChange: 2.5,
     changePercent: 2.5,
-    marketCap: 1260000000000,
-    volume: 45000000000
+    marketCap: 1200000000000,
+    volume: 35000000000
   },
   {
     id: 'ethereum',
@@ -25,10 +25,10 @@ const initialCoins: CoinOption[] = [
     price: 3500,
     value: 'ethereum',
     label: 'Ethereum (ETH)',
-    priceChange: 5.2,
-    changePercent: 5.2,
+    priceChange: -1.2,
+    changePercent: -1.2,
     marketCap: 420000000000,
-    volume: 25000000000
+    volume: 18000000000
   },
   {
     id: 'solana',
@@ -38,10 +38,10 @@ const initialCoins: CoinOption[] = [
     price: 140,
     value: 'solana',
     label: 'Solana (SOL)',
-    priceChange: -1.8,
-    changePercent: -1.8,
-    marketCap: 63000000000,
-    volume: 8000000000
+    priceChange: 5.3,
+    changePercent: 5.3,
+    marketCap: 56000000000,
+    volume: 4200000000
   },
   {
     id: 'cardano',
@@ -51,10 +51,10 @@ const initialCoins: CoinOption[] = [
     price: 0.45,
     value: 'cardano',
     label: 'Cardano (ADA)',
-    priceChange: 0.3,
-    changePercent: 0.3,
-    marketCap: 16000000000,
-    volume: 500000000
+    priceChange: -0.8,
+    changePercent: -0.8,
+    marketCap: 15000000000,
+    volume: 780000000
   },
   {
     id: 'ripple',
@@ -64,132 +64,130 @@ const initialCoins: CoinOption[] = [
     price: 0.56,
     value: 'ripple',
     label: 'XRP (XRP)',
-    priceChange: 1.2,
-    changePercent: 1.2,
-    marketCap: 31000000000,
-    volume: 1800000000
+    priceChange: 0.2,
+    changePercent: 0.2,
+    marketCap: 30000000000,
+    volume: 1500000000
   }
 ];
 
-// Define mock data for initial account
-const initialAccount: TradingAccount = {
-  id: 'demo-account',
-  name: 'Demo Trading Account',
+const DEFAULT_ACCOUNT: TradingAccount = {
+  id: 'default',
+  name: 'Paper Trading Account',
   balance: 10000,
   currency: 'USD',
-  address: '0x0000000000000000000000000000000000000000',
-  network: 'demo',
-  isActive: true,
+  trades: [],
   initialBalance: 10000,
-  assets: [
-    {
-      coinId: 'bitcoin',
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      quantity: 0.05,
-      averagePrice: 50000,
-      currentPrice: 65000,
-    },
-    {
-      coinId: 'ethereum',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      quantity: 1.5,
-      averagePrice: 3000,
-      currentPrice: 3500,
-    }
-  ]
+  isActive: true,
+  address: '0x0000000000000000000000000000000000000000',
+  network: 'paper',
+  assets: []
 };
 
-// Trading context type definition
 interface TradingContextType {
   coins: CoinOption[];
   trades: Trade[];
-  account?: TradingAccount;
-  activeCurrency?: string;
+  selectedCoin: CoinOption | null;
+  setCoin: (coin: CoinOption) => void;
+  setCoins: (coins: CoinOption[]) => void;
   addTrade: (trade: Trade) => void;
-  removeTrade: (id: string) => void;
-  clearTrades: () => void;
-  setCoinPrice: (coinId: string, newPrice: number) => void;
+  account: TradingAccount;
+  activeCurrency: string;
+  toggleCurrency: (currency: string) => void;
 }
 
-// Create the context with a default value
 const TradingContext = createContext<TradingContextType>({
-  coins: [],
+  coins: DEFAULT_COINS,
   trades: [],
+  selectedCoin: null,
+  setCoin: () => {},
+  setCoins: () => {},
   addTrade: () => {},
-  removeTrade: () => {},
-  clearTrades: () => {},
-  setCoinPrice: () => {},
+  account: DEFAULT_ACCOUNT,
+  activeCurrency: 'USD',
+  toggleCurrency: () => {}
 });
 
-// Custom hook to use the trading context
-export const useTradingContext = () => useContext(TradingContext);
-
-// Provider component
-interface TradingProviderProps {
-  children: ReactNode;
-}
-
-export const TradingProvider = ({ children }: TradingProviderProps) => {
-  const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
+export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [coins, setCoins] = useState<CoinOption[]>(DEFAULT_COINS);
+  const [selectedCoin, setSelectedCoin] = useState<CoinOption | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [account, setAccount] = useState<TradingAccount>(initialAccount);
-  const activeCurrency = 'USD';
-
-  // Load saved trades from localStorage
+  const [account, setAccount] = useState<TradingAccount>(DEFAULT_ACCOUNT);
+  const [activeCurrency, setActiveCurrency] = useState('USD');
+  
+  // Load trades from localStorage
   useEffect(() => {
-    const savedTrades = localStorage.getItem('trades');
-    if (savedTrades) {
-      try {
+    try {
+      const savedTrades = localStorage.getItem('trades');
+      if (savedTrades) {
         setTrades(JSON.parse(savedTrades));
-      } catch (error) {
-        console.error('Failed to parse saved trades', error);
       }
+      
+      const savedAccount = localStorage.getItem('tradingAccount');
+      if (savedAccount) {
+        setAccount(JSON.parse(savedAccount));
+      }
+    } catch (error) {
+      console.error('Error loading trades or account:', error);
     }
   }, []);
-
+  
   // Save trades to localStorage when they change
   useEffect(() => {
-    localStorage.setItem('trades', JSON.stringify(trades));
+    try {
+      localStorage.setItem('trades', JSON.stringify(trades));
+    } catch (error) {
+      console.error('Error saving trades:', error);
+    }
   }, [trades]);
-
-  // Add a new trade
+  
+  // Save account to localStorage when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('tradingAccount', JSON.stringify(account));
+    } catch (error) {
+      console.error('Error saving account:', error);
+    }
+  }, [account]);
+  
+  const setCoin = (coin: CoinOption) => setSelectedCoin(coin);
+  
   const addTrade = (trade: Trade) => {
     setTrades(prev => [...prev, trade]);
+    
+    // Update account balance based on trade
+    const updatedAccount = { ...account };
+    if (trade.type === 'buy') {
+      updatedAccount.balance -= trade.totalValue || 0;
+    } else {
+      updatedAccount.balance += trade.totalValue || 0;
+    }
+    setAccount(updatedAccount);
   };
 
-  // Remove a trade by ID
-  const removeTrade = (id: string) => {
-    setTrades(prev => prev.filter(trade => trade.id !== id));
+  const toggleCurrency = (currency: string) => {
+    setActiveCurrency(currency);
   };
-
-  // Clear all trades
-  const clearTrades = () => {
-    setTrades([]);
-  };
-
-  // Update coin price
-  const setCoinPrice = (coinId: string, newPrice: number) => {
-    setCoins(prev => 
-      prev.map(coin => 
-        coin.id === coinId ? { ...coin, price: newPrice } : coin
-      )
-    );
-  };
-
+  
   return (
-    <TradingContext.Provider value={{ 
-      coins, 
-      trades, 
-      account, 
-      activeCurrency,
-      addTrade, 
-      removeTrade, 
-      clearTrades,
-      setCoinPrice
-    }}>
+    <TradingContext.Provider 
+      value={{
+        coins,
+        trades,
+        selectedCoin,
+        setCoin,
+        setCoins,
+        addTrade,
+        account,
+        activeCurrency,
+        toggleCurrency
+      }}
+    >
       {children}
     </TradingContext.Provider>
   );
 };
+
+export const useTradingContext = () => useContext(TradingContext);
+
+export default TradingContext;

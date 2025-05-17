@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
-import { AlertFormData, AlertFrequency } from '@/types/trading';
+// Import the types from alerts.ts instead of trading.ts
+import { AlertFormData, AlertFrequency } from '@/types/alerts';
 
 const defaultAlert: Partial<AlertFormData> = {
   coinId: "bitcoin",
@@ -23,13 +24,15 @@ export const useAlertForm = () => {
   const resetForm = () => setFormData(defaultAlert);
   
   const updateCoin = (coinId: string) => {
-    const selectedCoin = COIN_OPTIONS[coinId];
-    setFormData(prev => ({
-      ...prev,
-      coinId: selectedCoin.id,
-      coinName: selectedCoin.name,
-      coinSymbol: selectedCoin.symbol
-    }));
+    const selectedCoin = COIN_OPTIONS.find(coin => coin.id === coinId);
+    if (selectedCoin) {
+      setFormData(prev => ({
+        ...prev,
+        coinId: selectedCoin.id,
+        coinName: selectedCoin.name,
+        coinSymbol: selectedCoin.symbol
+      }));
+    }
   };
   
   return {

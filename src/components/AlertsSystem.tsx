@@ -61,10 +61,11 @@ const AlertsSystem = () => {
       // Create the appropriate alert type
       let alertData: AlertData;
       
+      // Explicitly cast to the correct type based on formData.type
       if (formData.type === 'price') {
         alertData = {
           ...baseAlertData,
-          type: 'price',
+          type: 'price' as const,
           targetPrice: formData.targetPrice || 0,
           isAbove: formData.isAbove || true,
           recurring: formData.recurring || false,
@@ -73,13 +74,13 @@ const AlertsSystem = () => {
       } else if (formData.type === 'volume') {
         alertData = {
           ...baseAlertData,
-          type: 'volume',
+          type: 'volume' as const,
           volumeThreshold: formData.volumeThreshold || 0
         } as VolumeAlert;
       } else {
         alertData = {
           ...baseAlertData,
-          type: 'technical',
+          type: 'technical' as const,
           indicator: formData.indicator || '',
           condition: formData.condition || '',
           value: formData.value || 0

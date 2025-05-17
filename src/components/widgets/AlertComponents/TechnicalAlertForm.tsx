@@ -12,7 +12,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { TechnicalAlertFormData, COIN_OPTIONS } from "./AlertTypes";
-import { validateFormFields, createNumberRangeRule } from "@/utils/formValidation";
+import { validateFormFields } from "@/utils/formValidation";
+import { createNumberRangeRule } from "@/utils/formValidation";
 import { handleError } from "@/utils/errorHandling";
 import { toast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/loading-skeleton";
@@ -59,18 +60,21 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
     e.preventDefault();
     
     try {
-      // Basic field validation
+      // Create validation rules for the value field
+      const customValidations: Record<string, Function[]> = {
+        value: [
+          createNumberRangeRule(
+            VALUE_RANGES[formData.indicator]?.min || 0,
+            VALUE_RANGES[formData.indicator]?.max || 100
+          )
+        ]
+      };
+      
+      // Basic field validation with custom validations
       const isValid = validateFormFields(
         formData,
         ["coinId", "indicator", "condition", "value"],
-        {
-          value: [
-            createNumberRangeRule(
-              VALUE_RANGES[formData.indicator]?.min,
-              VALUE_RANGES[formData.indicator]?.max
-            )
-          ]
-        }
+        customValidations
       );
       
       if (!isValid) {
