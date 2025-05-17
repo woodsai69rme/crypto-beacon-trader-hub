@@ -9,10 +9,10 @@ import { SettingsComponentProps } from "./types";
 
 const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   React.useEffect(() => {
-    // Initialize tradingPreferences if they don't exist
+    // Initialize trading if it doesn't exist
     const currentValues = form.getValues();
-    if (!currentValues.tradingPreferences) {
-      form.setValue('tradingPreferences', {
+    if (!currentValues.trading) {
+      form.setValue('trading', {
         autoConfirm: false,
         showAdvanced: false,
         defaultAsset: 'bitcoin',
@@ -45,10 +45,10 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={form.getValues()?.tradingPreferences?.autoConfirm || false}
+                checked={form.getValues()?.trading?.autoConfirm || false}
                 onCheckedChange={(checked) => {
-                  const currentPrefs = form.getValues()?.tradingPreferences || { autoConfirm: false };
-                  form.setValue('tradingPreferences', {
+                  const currentPrefs = form.getValues()?.trading || { autoConfirm: false };
+                  form.setValue('trading', {
                     ...currentPrefs,
                     autoConfirm: checked
                   }, { shouldValidate: true });
@@ -66,10 +66,10 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={form.getValues()?.tradingPreferences?.showAdvanced || false}
+                checked={form.getValues()?.trading?.showAdvanced || false}
                 onCheckedChange={(checked) => {
-                  const currentPrefs = form.getValues()?.tradingPreferences || { autoConfirm: false };
-                  form.setValue('tradingPreferences', {
+                  const currentPrefs = form.getValues()?.trading || { autoConfirm: false };
+                  form.setValue('trading', {
                     ...currentPrefs,
                     showAdvanced: checked
                   }, { shouldValidate: true });
@@ -81,10 +81,10 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <div className="space-y-2">
             <FormLabel>Default Asset</FormLabel>
             <Select
-              value={form.getValues()?.tradingPreferences?.defaultAsset || 'bitcoin'}
+              value={form.getValues()?.trading?.defaultAsset || 'bitcoin'}
               onValueChange={(value) => {
-                const currentPrefs = form.getValues()?.tradingPreferences || { autoConfirm: false };
-                form.setValue('tradingPreferences', {
+                const currentPrefs = form.getValues()?.trading || { autoConfirm: false };
+                form.setValue('trading', {
                   ...currentPrefs,
                   defaultAsset: value
                 }, { shouldValidate: true });

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
@@ -20,17 +19,17 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     }
     
     // Initialize display object with proper values
-    const formValues = form.getValues();
-    if (!formValues.display) {
-      form.setValue("display", {
+    const currentValues = form.getValues();
+    if (!currentValues.display) {
+      form.setValue('display', {
         showPortfolio: true,
         showBalances: true,
-        defaultTab: "overview",
+        defaultTab: 'overview',
         compactMode: false,
         animationsEnabled: true,
         highContrastMode: false,
-        colorScheme: colorScheme
-      });
+        colorScheme: 'system'
+      }, { shouldValidate: false });
     }
   }, [form, theme, colorScheme]);
 

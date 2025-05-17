@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchCryptoData } from '@/services/cryptoService';
+import { fetchTopCryptoData } from '@/services/cryptoService';
 import { CoinOption } from '@/types/trading';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -30,7 +29,7 @@ const MarketCorrelationMatrix: React.FC<MarketCorrelationMatrixProps> = ({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const fetchedData = await fetchCryptoData(coins);
+        const fetchedData = await fetchTopCryptoData(coins);
         setCoinData(fetchedData);
         setIsLoading(false);
       } catch (error) {

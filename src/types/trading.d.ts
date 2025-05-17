@@ -377,19 +377,16 @@ export interface AiBotTradingProps {
 export interface AITradingBot {
   id: string;
   name: string;
-  description: string;
-  strategy: AITradingStrategy;
-  pair?: string;
-  status: 'active' | 'paused' | 'stopped';
+  model: string;
+  status: 'active' | 'paused' | 'stopped' | 'error';
+  strategy: string;
+  asset: string;
   createdAt: string;
   lastRun?: string;
-  profitLoss?: number;
-  totalTrades?: number;
-  performance?: {
-    winRate: number;
-    trades: number;
-    profit: number;
-  };
+  accuracy?: number;
+  trades?: number;
+  successRate?: number;
+  profitLoss?: number; // Add this property
 }
 
 export interface PaperTradingConfig {

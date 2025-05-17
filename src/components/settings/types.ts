@@ -18,6 +18,7 @@ export interface SettingsFormValues {
     colorScheme?: string;
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
+    showBalances?: boolean; // Add this property
   };
   notifications: {
     email: boolean;
@@ -28,6 +29,10 @@ export interface SettingsFormValues {
     news?: boolean;
     marketUpdates?: boolean;
     newsletterAndPromotions?: boolean;
+    enableEmail?: boolean; // Add these properties
+    enablePush?: boolean;
+    alertPrice?: boolean;
+    alertNews?: boolean;
   };
   api: {
     provider: string;
@@ -83,6 +88,9 @@ export interface SettingsFormValues {
     direction: "ltr" | "rtl";
     speed: number;
     autoPause: boolean;
+    coins?: string[]; // Add this property
+    showVolume?: boolean;
+    showPercentChange?: boolean;
   };
   exportFormat?: "CSV" | "JSON" | "PDF";
   layout?: string;
@@ -92,6 +100,13 @@ export interface SettingsFormValues {
     visible: boolean;
   };
   bio?: string;
+  tradingPreferences?: { // Add this property
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+    defaultTradeSize: number;
+    riskLevel: "high" | "low" | "medium";
+  };
 }
 
 export interface SettingsComponentProps {

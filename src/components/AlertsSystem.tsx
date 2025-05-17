@@ -28,13 +28,14 @@ const AlertsSystem = () => {
     enabled: true,
     recurring: false,
     percentageChange: 0,
-    notifyVia: ['app']
+    notifyVia: ['app'],
+    frequency: 'once' // Add required property
   });
   const [isOpen, setIsOpen] = useState(false);
 
   // Create a type-safe form data setter
-  const updateFormData = (data: AlertFormData) => {
-    setFormData(data);
+  const updateFormData = (data: Partial<AlertFormData>) => {
+    setFormData(prev => ({ ...prev, ...data }));
   };
 
   const resetForm = () => {
@@ -48,7 +49,8 @@ const AlertsSystem = () => {
       enabled: true,
       recurring: false,
       percentageChange: 0,
-      notifyVia: ['app']
+      notifyVia: ['app'],
+      frequency: 'once' // Add required property
     });
   };
 

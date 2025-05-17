@@ -1,145 +1,142 @@
-
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User } from "lucide-react";
-import { SettingsComponentProps } from "./types";
-import { SupportedCurrency } from "@/types/trading";
+import { Input } from "@/components/ui/input";
+import { Languages } from '@/constants/languages';
+import { UseFormReturn } from 'react-hook-form';
+import { SettingsFormValues } from '@/types/trading';
+import { Globe2, User, Mail } from "lucide-react";
+import { SupportedCurrency } from '@/types/trading';
 
-const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
+interface GeneralSettingsProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
+
+const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
+  const [selectedCurrency, setSelectedCurrency] = useState<{ code: string; label: string } | null>(null);
+
+  useEffect(() => {
+    // Initialize selected currency from form values
+    const defaultCurrency = form.getValues('currency')?.defaultCurrency;
+    if (defaultCurrency) {
+      const initialCurrency = {
+        code: defaultCurrency,
+        label: defaultCurrency,
+      };
+      setSelectedCurrency(initialCurrency);
+    }
+  }, [form]);
+
+  const handleCurrencyChange = (currencyCode: string) => {
+    const newCurrency = {
+      code: currencyCode,
+      label: currencyCode,
+    };
+    setSelectedCurrency(newCurrency);
+
+    const updatedOptions = {
+      defaultCurrency: newCurrency.code,
+      showConversion: true,
+      showPriceInBTC: false
+    };
+
+    form.setValue('currency', updatedOptions, { shouldValidate: true });
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5" />
+          <Globe2 className="h-5 w-5" />
           General Settings
         </CardTitle>
+        <CardDescription>
+          Manage your basic account settings and preferences
+        </CardDescription>
       </CardHeader>
-
+      
       <CardContent className="space-y-6">
-        {/* Display Name */}
-        <FormField
-          control={form.control}
-          name="displayName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Display Name</FormLabel>
+        <div className="space-y-4">
+          <FormItem>
+            <FormLabel>Display Name</FormLabel>
+            <FormControl>
+              <Input placeholder="Your Display Name" {...form.register('displayName')} />
+            </FormControl>
+            <FormDescription>
+              This is the name that will be displayed to other users.
+            </FormDescription>
+          </FormItem>
+          
+          <FormItem>
+            <FormLabel>Username</FormLabel>
+            <FormControl>
+              <Input placeholder="Your Username" {...form.register('username')} />
+            </FormControl>
+            <FormDescription>
+              This is your unique username. It cannot be changed.
+            </FormDescription>
+          </FormItem>
+          
+          <FormItem>
+            <FormLabel>Contact Email</FormLabel>
+            <FormControl>
+              <Input placeholder="Your Contact Email" type="email" {...form.register('contactEmail')} />
+            </FormControl>
+            <FormDescription>
+              This is the email address that we will use to contact you.
+            </FormDescription>
+          </FormItem>
+          
+          <FormItem>
+            <FormLabel>Language</FormLabel>
+            <Select
+              onValueChange={(value) => {
+                form.setValue('userLanguage', value, { shouldValidate: true });
+              }}
+              defaultValue={form.getValues('userLanguage') || 'en'}
+            >
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a language" />
+                </SelectTrigger>
               </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-
-        {/* Username */}
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
+              <SelectContent>
+                {Languages.map((language) => (
+                  <SelectItem key={language.code} value={language.code}>
+                    {language.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              This is the language that will be used throughout the app.
+            </FormDescription>
+          </FormItem>
+          
+          <FormItem>
+            <FormLabel>Currency</FormLabel>
+            <Select
+              onValueChange={handleCurrencyChange}
+              defaultValue={form.getValues('currency')?.defaultCurrency || 'USD'}
+            >
               <FormControl>
-                <Input placeholder="john_doe" {...field} />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a currency" />
+                </SelectTrigger>
               </FormControl>
-              <FormDescription>
-                Your unique username for login.
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-
-        {/* Contact Email */}
-        <FormField
-          control={form.control}
-          name="contactEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="john.doe@example.com" type="email" {...field} />
-              </FormControl>
-              <FormDescription>
-                Your email for notifications and communication.
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-
-        {/* Language */}
-        <FormField
-          control={form.control}
-          name="userLanguage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Language</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your language" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="en-au">English (Australia)</SelectItem>
-                  <SelectItem value="fr">Français</SelectItem>
-                  <SelectItem value="de">Deutsch</SelectItem>
-                  <SelectItem value="es">Español</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Your preferred language for the interface.
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-
-        {/* Currency */}
-        <FormField
-          control={form.control}
-          name="currency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Default Currency</FormLabel>
-              <Select 
-                onValueChange={(val) => {
-                  const currentCurrency = form.getValues().currency || { 
-                    defaultCurrency: 'AUD' as SupportedCurrency, 
-                    showConversion: true 
-                  };
-                  form.setValue("currency", {
-                    ...currentCurrency,
-                    defaultCurrency: val as SupportedCurrency
-                  });
-                }} 
-                value={
-                  typeof field.value === 'object' && field.value !== null
-                    ? (field.value as any).defaultCurrency
-                    : 'AUD'
-                }
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your default currency" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
-                  <SelectItem value="USD">US Dollar (USD)</SelectItem>
-                  <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                  <SelectItem value="GBP">British Pound (GBP)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                All values will be shown in this currency by default.
-              </FormDescription>
-            </FormItem>
-          )}
-        />
+              <SelectContent>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="GBP">GBP</SelectItem>
+                <SelectItem value="AUD">AUD</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              This is the currency that will be used throughout the app.
+            </FormDescription>
+          </FormItem>
+        </div>
       </CardContent>
     </Card>
   );

@@ -42,4 +42,4 @@ export const INDICATOR_CONDITIONS = [
 ];
 
 // Use export type for type re-exports
-export type { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";
+export type { AlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";

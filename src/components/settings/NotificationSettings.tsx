@@ -13,16 +13,16 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     
     if (!formValues.notifications) {
       const notificationsDefaults = {
-        enablePush: true,
-        enableEmail: true,
-        alertPrice: true,
-        alertNews: false,
         email: true,
         push: true,
+        priceAlerts: true,
         trades: true,
         pricing: true,
         news: false,
-        priceAlerts: true
+        enableEmail: true, // Added these properties
+        enablePush: true,
+        alertPrice: true,
+        alertNews: false
       };
       
       // Update form with notification defaults
@@ -33,16 +33,16 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   // Get current values safely 
   const notificationsValues = React.useMemo(() => {
     const values = form.getValues().notifications || {
-      enablePush: true,
-      enableEmail: true,
-      alertPrice: true,
-      alertNews: false,
       email: true,
       push: true,
+      priceAlerts: true,
       trades: true,
       pricing: true,
       news: false,
-      priceAlerts: true
+      enableEmail: true, // Added these properties
+      enablePush: true,
+      alertPrice: true,
+      alertNews: false
     };
     return values;
   }, [form]);
@@ -72,10 +72,10 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={notificationsValues.enableEmail}
+                checked={notificationsValues.email || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications.enableEmail", checked, { shouldValidate: false });
                   form.setValue("notifications.email", checked, { shouldValidate: false });
+                  form.setValue("notifications.enableEmail", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -90,10 +90,10 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             </div>
             <FormControl>
               <Switch
-                checked={notificationsValues.enablePush}
+                checked={notificationsValues.push || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications.enablePush", checked, { shouldValidate: false });
                   form.setValue("notifications.push", checked, { shouldValidate: false });
+                  form.setValue("notifications.enablePush", checked, { shouldValidate: false });
                 }}
               />
             </FormControl>
