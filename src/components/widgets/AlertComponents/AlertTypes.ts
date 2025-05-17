@@ -1,5 +1,7 @@
 
 import { PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
+
+// Use 'export type' for re-exporting types with isolatedModules enabled
 export type { PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from '@/types/alerts';
 
 // List of supported cryptocurrencies for alerts

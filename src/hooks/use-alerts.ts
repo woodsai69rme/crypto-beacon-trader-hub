@@ -24,7 +24,7 @@ export const useAlerts = () => {
   }, [alerts]);
 
   const addAlert = (alertData: AlertData) => {
-    setAlerts(prev => [...prev, alertData as AlertData]);
+    setAlerts(prev => [...prev, alertData]);
   };
 
   const removeAlert = (id: string) => {

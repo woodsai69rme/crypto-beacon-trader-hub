@@ -48,10 +48,14 @@ const AlertsSystem = () => {
   const handleSubmit = () => {
     if (formData.coinId) {
       const baseAlertData = {
-        ...formData,
         id: Date.now().toString(),
         createdAt: new Date(),
         enabled: true,
+        coinId: formData.coinId,
+        coinName: formData.coinName,
+        coinSymbol: formData.coinSymbol,
+        notifyVia: formData.notifyVia || ['app'],
+        frequency: formData.frequency || 'once'
       };
       
       // Create the appropriate alert type
@@ -82,7 +86,7 @@ const AlertsSystem = () => {
         } as TechnicalAlert;
       }
       
-      addAlert(alertData as AlertData);
+      addAlert(alertData);
       resetForm();
       setIsOpen(false);
     }
@@ -101,7 +105,7 @@ const AlertsSystem = () => {
         <AlertHeader />
         
         <AlertFormSheet 
-          formData={formData as AlertFormData}
+          formData={formData}
           onFormChange={updateFormData}
           onSubmit={handleSubmit}
         />

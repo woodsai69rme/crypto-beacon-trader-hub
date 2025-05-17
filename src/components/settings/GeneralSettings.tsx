@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Languages } from '@/constants/languages';
 import { UseFormReturn } from 'react-hook-form';
 import { SettingsFormValues } from './types';
-import { Globe2, User, Mail } from "lucide-react";
+import { Globe2 } from "lucide-react";
 import { SupportedCurrency } from '@/types/trading';
 
 interface GeneralSettingsProps {

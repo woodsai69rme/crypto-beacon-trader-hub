@@ -40,12 +40,34 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({
       timestamp: new Date().toISOString(),
       currency: 'USD',
       total: totalValue,
+      status: 'completed'
     };
     
     onTrade(trade);
     
     // Reset form
     setAmount('');
+  };
+  
+  // Add any advanced mode components or options based on the advancedMode prop
+  const renderAdvancedOptions = () => {
+    if (!advancedMode) return null;
+    
+    return (
+      <div className="space-y-2 mt-4 border-t pt-4">
+        <h4 className="text-sm font-medium">Advanced Options</h4>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <label className="text-xs">Stop Loss</label>
+            <Input type="number" placeholder="0.00" disabled={tradeType !== 'buy'} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs">Take Profit</label>
+            <Input type="number" placeholder="0.00" disabled={tradeType !== 'buy'} />
+          </div>
+        </div>
+      </div>
+    );
   };
   
   return (
@@ -109,6 +131,8 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({
               min="0"
             />
           </div>
+          
+          {renderAdvancedOptions()}
           
           {selectedCoin && amount && (
             <div className="border rounded-md p-3 bg-muted/50">

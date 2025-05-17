@@ -53,6 +53,7 @@ export interface Trade {
   botGenerated?: boolean;
   strategyId?: string;
   tags?: string[];
+  status?: string;
 }
 
 export interface PricePoint {
@@ -95,6 +96,7 @@ export interface WalletProvider {
   logo?: string;
   isInstalled?: boolean;
   isConnected?: boolean;
+  supportedChains?: string[];
 }
 
 export interface TradingAccount {
@@ -118,6 +120,7 @@ export interface TradingAccount {
   }>;
   isActive?: boolean;
   lastUpdated?: string;
+  initialBalance?: number;
 }
 
 export type TransactionStatusVariant = 'pending' | 'success' | 'warning' | 'destructive';
@@ -280,7 +283,7 @@ export interface SettingsFormValues {
   username?: string;
   contactEmail?: string;
   userLanguage?: string;
-  theme?: Theme;
+  theme: Theme;
   display?: {
     showPortfolio: boolean;
     showBalances?: boolean;
@@ -339,9 +342,9 @@ export interface SettingsFormValues {
     position: 'top' | 'bottom';
     speed: number;
     direction: 'ltr' | 'rtl';
-    coins: string[];
-    showVolume: boolean;
-    showPercentChange: boolean;
+    coins?: string[];
+    showVolume?: boolean;
+    showPercentChange?: boolean;
     autoPause: boolean;
   };
   tradingPreferences?: {
@@ -355,6 +358,8 @@ export interface SettingsFormValues {
     showPnL?: boolean;
     defaultTimeframe?: string;
   };
+  language?: string;
+  email?: string;
 }
 
 // AI Trading types
@@ -366,6 +371,7 @@ export interface AITradingStrategy {
   timeframe?: string;
   riskLevel: 'low' | 'medium' | 'high';
   parameters?: Record<string, any>;
+  indicators?: string[];
 }
 
 export interface AITradingBot {
@@ -376,11 +382,20 @@ export interface AITradingBot {
   status: 'active' | 'paused' | 'stopped';
   createdAt: string;
   lastRun?: string;
+  model?: string;
+  strategyId?: string;
+  strategyName?: string;
+  asset?: string;
+  accuracy?: number;
+  successRate?: number;
+  trades?: number;
+  totalTrades?: number;
   performance?: {
     winRate: number;
     trades: number;
     profit: number;
   };
+  profitLoss?: number;
 }
 
 export interface AIStrategyParameters {
@@ -388,8 +403,8 @@ export interface AIStrategyParameters {
   sellSignalThreshold: number;
   stopLossPercentage: number;
   takeProfitPercentage: number;
-  maxOpenPositions: number;
-  positionSizePercentage: number;
+  timeframe: string;
+  maxPositions: number;
 }
 
 export interface PaperTradingConfig {
@@ -432,11 +447,20 @@ export interface FakeTradingFormProps {
   onTrade: (trade: Trade) => void;
   availableCoins: CoinOption[];
   initialCoinId?: string;
+  advancedMode?: boolean; // Added this property
 }
 
 export interface RealTimePricesProps {
   coins?: CoinOption[];
   refreshInterval?: number;
+}
+
+export interface RealTimePriceChartProps {
+  coinId: string;
+  timeRange: string;
+  height?: number;
+  width?: string;
+  showControls?: boolean;
 }
 
 export interface AiBotTradingProps {
@@ -455,58 +479,50 @@ export interface TradingFormProps {
   availableCoins?: CoinOption[];
 }
 
-// Alert system types
-export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly';
+// Additional types for missing interfaces
+export interface AIModelConfig {
+  id: string;
+  name: string;
+  provider: string;
+  endpoint: string;
+  apiKey?: string;
+  parameters?: Record<string, any>;
+}
 
-export interface BaseAlertData {
-  id?: string;
+export interface BacktestResults {
+  totalTrades: number;
+  winRate: number;
+  profitLoss: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  trades: any[];
+}
+
+export interface FibonacciAnalysisProps {
   coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  frequency?: AlertFrequency;
-  notifyVia?: Array<"email" | "app" | "push">;
-  createdAt?: Date | string;
-  lastTriggered?: string;
-  type?: string;
+  timeRange?: string;
+  data?: PricePoint[];
+  height?: number;
+  width?: string;
 }
 
-export interface PriceAlert extends BaseAlertData {
-  type: 'price';
-  targetPrice: number;
-  isAbove: boolean;
-  recurring: boolean;
-  percentageChange: number;
-}
-
-export interface VolumeAlert extends BaseAlertData {
-  type: 'volume';
-  volumeThreshold: number;
-}
-
-export interface TechnicalAlert extends BaseAlertData {
-  type: 'technical';
-  indicator: string;
-  condition: string;
+export interface FibonacciLevels {
+  level: number;
   value: number;
+  color: string;
 }
 
-export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
-
-export interface AlertFormData {
-  type: 'price' | 'volume' | 'technical';
+export interface HyblockLiquidityMapProps {
   coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: Array<"email" | "app" | "push">;
-  targetPrice?: number;
-  isAbove?: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  volumeThreshold?: number;
-  indicator?: string;
-  condition?: string;
-  value?: number;
+  timeframe?: string;
+  width?: string;
+  height?: number;
+  showControls?: boolean;
+}
+
+export interface HyblockLiquidityZone {
+  priceRange: [number, number];
+  volume: number;
+  type: 'buy' | 'sell';
+  strength: number;
 }
