@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { WalletProvider } from '@/types/trading';
 
@@ -9,9 +10,10 @@ const walletProviders: WalletProvider[] = [
     logo: 'https://metamask.io/images/metamask-fox.svg',
     description: 'Connect to your MetaMask wallet',
     icon: 'metamask-icon',
-    supported: ['ethereum', 'polygon', 'bsc'],
+    supported: true,
     isInstalled: window.ethereum?.isMetaMask,
-    isConnected: false
+    isConnected: false,
+    supportedChains: ['ethereum', 'polygon', 'bsc']
   },
   {
     id: 'walletconnect',
@@ -19,9 +21,10 @@ const walletProviders: WalletProvider[] = [
     logo: 'https://walletconnect.org/walletconnect-logo.png',
     description: 'Connect via WalletConnect',
     icon: 'walletconnect-icon',
-    supported: ['ethereum', 'polygon', 'solana'],
+    supported: true,
     isInstalled: false,
-    isConnected: false
+    isConnected: false,
+    supportedChains: ['ethereum', 'polygon', 'solana']
   },
   {
     id: 'coinbase',
@@ -29,9 +32,10 @@ const walletProviders: WalletProvider[] = [
     logo: 'https://coinbase.com/assets/press/coinbase-icon.png',
     description: 'Connect to Coinbase Wallet',
     icon: 'coinbase-icon',
-    supported: ['ethereum', 'polygon', 'avalanche'],
+    supported: true,
     isInstalled: window.ethereum?.isCoinbaseWallet,
-    isConnected: false
+    isConnected: false,
+    supportedChains: ['ethereum', 'polygon', 'avalanche']
   },
   {
     id: 'phantom',
@@ -39,9 +43,10 @@ const walletProviders: WalletProvider[] = [
     logo: 'https://phantom.app/img/phantom.png',
     description: 'Connect to Phantom Wallet',
     icon: 'phantom-icon',
-    supported: ['solana'],
+    supported: true,
     isInstalled: true,
-    isConnected: false
+    isConnected: false,
+    supportedChains: ['solana']
   }
 ];
 

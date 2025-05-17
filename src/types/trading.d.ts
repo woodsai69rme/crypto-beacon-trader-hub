@@ -386,7 +386,8 @@ export interface AITradingBot {
   accuracy?: number;
   trades?: number;
   successRate?: number;
-  profitLoss?: number; // Add this property
+  profitLoss?: number;
+  totalTrades?: number;
 }
 
 export interface PaperTradingConfig {
@@ -477,13 +478,16 @@ export interface TradingAccount {
   initialBalance?: number;
 }
 
-// Additional types for UI components
+// Add these exports for UI context
 export interface TickerSettings {
   enabled: boolean;
   position: 'top' | 'bottom';
   speed: number;
   direction: 'ltr' | 'rtl';
-  coins: string[];
+  coins?: string[];
+  showVolume?: boolean;
+  showPercentChange?: boolean;
+  autoPause: boolean;
 }
 
 export interface SidebarSettings {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
@@ -5,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Languages } from '@/constants/languages';
 import { UseFormReturn } from 'react-hook-form';
-import { SettingsFormValues } from '@/types/trading';
+import { SettingsFormValues } from './types';
 import { Globe2, User, Mail } from "lucide-react";
 import { SupportedCurrency } from '@/types/trading';
 
@@ -14,14 +15,14 @@ interface GeneralSettingsProps {
 }
 
 const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState<{ code: string; label: string } | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<{ code: SupportedCurrency; label: string } | null>(null);
 
   useEffect(() => {
     // Initialize selected currency from form values
     const defaultCurrency = form.getValues('currency')?.defaultCurrency;
     if (defaultCurrency) {
       const initialCurrency = {
-        code: defaultCurrency,
+        code: defaultCurrency as SupportedCurrency,
         label: defaultCurrency,
       };
       setSelectedCurrency(initialCurrency);
@@ -29,14 +30,15 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
   }, [form]);
 
   const handleCurrencyChange = (currencyCode: string) => {
+    const typedCurrencyCode = currencyCode as SupportedCurrency;
     const newCurrency = {
-      code: currencyCode,
+      code: typedCurrencyCode,
       label: currencyCode,
     };
     setSelectedCurrency(newCurrency);
 
     const updatedOptions = {
-      defaultCurrency: newCurrency.code,
+      defaultCurrency: typedCurrencyCode,
       showConversion: true,
       showPriceInBTC: false
     };

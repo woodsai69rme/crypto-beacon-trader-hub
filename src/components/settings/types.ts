@@ -10,7 +10,11 @@ export interface SettingsFormValues {
   username?: string;
   contactEmail?: string;
   userLanguage?: string;
-  currency: SupportedCurrency;
+  currency: {
+    defaultCurrency: SupportedCurrency;
+    showConversion: boolean;
+    showPriceInBTC?: boolean;
+  };
   display: {
     showPortfolio: boolean;
     defaultTab: string;
@@ -18,7 +22,7 @@ export interface SettingsFormValues {
     colorScheme?: string;
     animationsEnabled?: boolean;
     highContrastMode?: boolean;
-    showBalances?: boolean; // Add this property
+    showBalances?: boolean;
   };
   notifications: {
     email: boolean;
@@ -29,7 +33,7 @@ export interface SettingsFormValues {
     news?: boolean;
     marketUpdates?: boolean;
     newsletterAndPromotions?: boolean;
-    enableEmail?: boolean; // Add these properties
+    enableEmail?: boolean;
     enablePush?: boolean;
     alertPrice?: boolean;
     alertNews?: boolean;
@@ -66,11 +70,22 @@ export interface SettingsFormValues {
     autoSyncExchanges?: boolean;
     tradingViewCharts?: boolean;
     defaultTradingPair?: string;
-    autoConfirm: boolean;
+    autoConfirm?: boolean;
     showAdvanced?: boolean;
     defaultAsset?: string;
     defaultTradeSize?: number;
     riskLevel?: "high" | "low" | "medium";
+    tradingStrategy?: string;
+    defaultLeverage?: number;
+    showPnL?: boolean;
+    defaultTimeframe?: string;
+  };
+  tradingPreferences?: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
+    defaultTradeSize: number;
+    riskLevel: "high" | "low" | "medium";
     tradingStrategy?: string;
     defaultLeverage?: number;
     showPnL?: boolean;
@@ -88,7 +103,7 @@ export interface SettingsFormValues {
     direction: "ltr" | "rtl";
     speed: number;
     autoPause: boolean;
-    coins?: string[]; // Add this property
+    coins?: string[];
     showVolume?: boolean;
     showPercentChange?: boolean;
   };
@@ -100,13 +115,6 @@ export interface SettingsFormValues {
     visible: boolean;
   };
   bio?: string;
-  tradingPreferences?: { // Add this property
-    autoConfirm: boolean;
-    showAdvanced: boolean;
-    defaultAsset: string;
-    defaultTradeSize: number;
-    riskLevel: "high" | "low" | "medium";
-  };
 }
 
 export interface SettingsComponentProps {

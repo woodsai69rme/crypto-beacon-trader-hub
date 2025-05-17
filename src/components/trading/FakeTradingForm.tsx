@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,9 +32,10 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({
       amount: amount,
       totalValue: amount * (selectedCoin.price || 0),
       timestamp: new Date().toISOString(),
-      status: 'completed',
       currency: 'AUD',
       total: amount * (selectedCoin.price || 0),
+      address: '', // Add required fields
+      network: ''
     };
     
     onTrade(trade);

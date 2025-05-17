@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUpCircle, ArrowDownCircle, BarChart } from "lucide-react";
 import FakeTradingForm from './FakeTradingForm';
 import { Trade, CoinOption } from '@/types/trading';
-import { fetchCoinData } from '@/services/cryptoService';
+import { fetchTopCryptoData } from '@/services/cryptoService';
 import LoadingSpinner from './LoadingSpinner';
 
 const EnhancedFakeTrading: React.FC = () => {
@@ -19,14 +19,14 @@ const EnhancedFakeTrading: React.FC = () => {
     const loadCoins = async () => {
       try {
         setIsLoading(true);
-        const coins = await fetchCoinData(10);
+        const coins = await fetchTopCryptoData(10);
         setAvailableCoins(coins.map(coin => ({
           id: coin.id,
           name: coin.name,
           symbol: coin.symbol,
-          price: coin.currentPrice || 0,
-          priceChange: coin.priceChangePercentage24h || 0,
-          changePercent: coin.priceChangePercentage24h || 0,
+          price: coin.price || 0,
+          priceChange: coin.priceChange || 0,
+          changePercent: coin.changePercent || 0,
           value: coin.id,
           label: `${coin.name} (${coin.symbol})`
         })));
@@ -75,7 +75,7 @@ const EnhancedFakeTrading: React.FC = () => {
             ) : (
               <FakeTradingForm 
                 onTrade={handleTrade} 
-                availableCoins={availableCoins} 
+                availableCoins={availableCoins}
                 advancedMode={advancedMode}
               />
             )}

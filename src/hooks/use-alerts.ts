@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { AlertData, AlertFormData } from '@/types/alerts';
+import { AlertData } from '@/types/alerts';
 
 export const useAlerts = () => {
   const [alerts, setAlerts] = useState<AlertData[]>(() => {
@@ -23,13 +23,8 @@ export const useAlerts = () => {
     }
   }, [alerts]);
 
-  const addAlert = (formData: AlertFormData) => {
-    const newAlert: AlertData = {
-      id: Date.now().toString(),
-      ...formData,
-      createdAt: new Date()
-    } as AlertData;
-    setAlerts(prev => [...prev, newAlert]);
+  const addAlert = (alertData: AlertData) => {
+    setAlerts(prev => [...prev, alertData]);
   };
 
   const removeAlert = (id: string) => {

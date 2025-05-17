@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   TradingAccount,
@@ -100,6 +99,9 @@ const initialAccount: TradingAccount = {
   balance: 25000,
   currency: 'USD',
   createdAt: new Date().toISOString(),
+  address: '0x1234567890abcdef1234567890abcdef12345678',
+  network: 'Ethereum',
+  initialBalance: 25000
 };
 
 interface TradingContextType {

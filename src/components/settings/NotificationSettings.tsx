@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
@@ -19,7 +18,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         trades: true,
         pricing: true,
         news: false,
-        enableEmail: true, // Added these properties
+        enableEmail: true,
         enablePush: true,
         alertPrice: true,
         alertNews: false
@@ -39,7 +38,7 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       trades: true,
       pricing: true,
       news: false,
-      enableEmail: true, // Added these properties
+      enableEmail: true,
       enablePush: true,
       alertPrice: true,
       alertNews: false
@@ -75,7 +74,9 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 checked={notificationsValues.email || false}
                 onCheckedChange={(checked) => {
                   form.setValue("notifications.email", checked, { shouldValidate: false });
-                  form.setValue("notifications.enableEmail", checked, { shouldValidate: false });
+                  // Instead of setting enableEmail directly, update notifications object
+                  const updatedNotifications = { ...notificationsValues, email: checked, enableEmail: checked };
+                  form.setValue("notifications", updatedNotifications, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -93,7 +94,9 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 checked={notificationsValues.push || false}
                 onCheckedChange={(checked) => {
                   form.setValue("notifications.push", checked, { shouldValidate: false });
-                  form.setValue("notifications.enablePush", checked, { shouldValidate: false });
+                  // Instead of setting enablePush directly, update notifications object
+                  const updatedNotifications = { ...notificationsValues, push: checked, enablePush: checked };
+                  form.setValue("notifications", updatedNotifications, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -131,8 +134,13 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.pricing || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications.pricing", checked, { shouldValidate: false });
-                  form.setValue("notifications.alertPrice", checked, { shouldValidate: false });
+                  // Update both properties in the notifications object
+                  const updatedNotifications = { 
+                    ...notificationsValues, 
+                    pricing: checked, 
+                    alertPrice: checked 
+                  };
+                  form.setValue("notifications", updatedNotifications, { shouldValidate: false });
                 }}
               />
             </FormControl>
@@ -149,8 +157,13 @@ const NotificationSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <Switch
                 checked={notificationsValues.news || false}
                 onCheckedChange={(checked) => {
-                  form.setValue("notifications.news", checked, { shouldValidate: false });
-                  form.setValue("notifications.alertNews", checked, { shouldValidate: false });
+                  // Update both properties in the notifications object
+                  const updatedNotifications = { 
+                    ...notificationsValues,
+                    news: checked,
+                    alertNews: checked 
+                  };
+                  form.setValue("notifications", updatedNotifications, { shouldValidate: false });
                 }}
               />
             </FormControl>

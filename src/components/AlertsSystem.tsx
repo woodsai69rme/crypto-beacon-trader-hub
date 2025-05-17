@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ const AlertsSystem = () => {
     recurring: false,
     percentageChange: 0,
     notifyVia: ['app'],
-    frequency: 'once' // Add required property
+    frequency: 'once'
   });
   const [isOpen, setIsOpen] = useState(false);
 
@@ -50,20 +49,19 @@ const AlertsSystem = () => {
       recurring: false,
       percentageChange: 0,
       notifyVia: ['app'],
-      frequency: 'once' // Add required property
+      frequency: 'once'
     });
   };
 
   const handleSubmit = () => {
-    if (formData.type && formData.coinId) {
-      addAlert({
+    if (formData.coinId) {
+      const alertData: AlertData = {
         ...formData,
-        type: formData.type,
-        coinId: formData.coinId,
-        coinName: formData.coinName,
-        coinSymbol: formData.coinSymbol,
+        id: Date.now().toString(),
+        createdAt: new Date(),
         enabled: true,
-      });
+      } as AlertData; // Use type assertion here
+      addAlert(alertData);
       resetForm();
       setIsOpen(false);
     }
