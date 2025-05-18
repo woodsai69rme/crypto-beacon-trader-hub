@@ -39,6 +39,7 @@ export interface AITradingStrategy {
   parameters?: AIStrategyParameters;
   indicators?: string[];
   performance?: AIStrategyPerformance;
+  timeframe?: string;
 }
 
 export interface TradingAccount {
