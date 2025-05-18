@@ -57,13 +57,13 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </FormControl>
             </div>
             <FormDescription>
-              Automatically confirm trades without prompting
+              Automatically confirm trades without showing confirmation dialog
             </FormDescription>
           </FormItem>
-
+          
           <FormItem>
             <div className="flex items-center justify-between">
-              <FormLabel>Show advanced trading options</FormLabel>
+              <FormLabel>Show advanced options</FormLabel>
               <FormControl>
                 <Switch 
                   checked={form.watch("tradingPreferences.showAdvanced")} 
@@ -78,14 +78,14 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </FormControl>
             </div>
             <FormDescription>
-              Display advanced trading features like limit orders and stop-losses
+              Display advanced trading options in the interface
             </FormDescription>
           </FormItem>
           
           <FormItem>
             <FormLabel>Default Asset</FormLabel>
             <Select 
-              value={form.watch("tradingPreferences.defaultAsset") || "BTC"} 
+              value={form.watch("tradingPreferences.defaultAsset")} 
               onValueChange={(value) => {
                 const prefs = ensureTradingPreferences();
                 form.setValue("tradingPreferences", {
@@ -96,27 +96,27 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a default asset" />
+                  <SelectValue placeholder="Select asset" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
                 <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
                 <SelectItem value="SOL">Solana (SOL)</SelectItem>
-                <SelectItem value="ADA">Cardano (ADA)</SelectItem>
-                <SelectItem value="XRP">XRP</SelectItem>
+                <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              The asset that will be selected by default when opening the trade form
+              Default asset selected when opening trading interface
             </FormDescription>
           </FormItem>
           
           <FormItem>
             <FormLabel>Risk Level</FormLabel>
             <Select 
-              value={form.watch("tradingPreferences.riskLevel") || "medium"} 
-              onValueChange={(value: 'low' | 'medium' | 'high') => {
+              value={form.watch("tradingPreferences.riskLevel")} 
+              onValueChange={(value: "low" | "medium" | "high") => {
                 const prefs = ensureTradingPreferences();
                 form.setValue("tradingPreferences", {
                   ...prefs,
@@ -136,7 +136,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               </SelectContent>
             </Select>
             <FormDescription>
-              Determines stop-loss and take-profit defaults
+              Default risk level for trading strategies
             </FormDescription>
           </FormItem>
           
@@ -145,8 +145,8 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <FormControl>
               <Input 
                 type="number" 
-                min="0.001" 
-                step="0.001"
+                min="0.01" 
+                step="0.01"
                 value={form.watch("tradingPreferences.defaultTradeSize") || 0.1} 
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
@@ -161,7 +161,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               />
             </FormControl>
             <FormDescription>
-              Default size for trades (in crypto units)
+              Default amount for new trades
             </FormDescription>
           </FormItem>
         </div>

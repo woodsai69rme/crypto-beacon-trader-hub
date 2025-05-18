@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";
 import PriceAlertForm from "./PriceAlertForm";
@@ -37,7 +37,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
   // Create proper wrapper functions that maintain the correct typing
   const handlePriceFormWrapper = (data: Partial<PriceAlertFormData> | ((prev: PriceAlertFormData) => PriceAlertFormData)) => {
     if (typeof data === 'function') {
-      // Handle function setState style
+      // Handle function setState style by applying the function to current data
       const updatedData = data(priceAlertData);
       handlePriceFormChange(updatedData);
     } else {
