@@ -1,88 +1,34 @@
-export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
 
-export interface CoinOption {
-  id: string;
-  name: string;
-  symbol: string;
-  image?: string;
-  price?: number;
-  value: string;
-  label: string;
-  priceChange: number;
-  changePercent: number;
-  marketCap: number;
-  volume: number;
+export interface AIStrategyParameters {
+  buySignalThreshold?: number;
+  sellSignalThreshold?: number;
+  stopLossPercentage?: number;
+  takeProfitPercentage?: number;
+  timeframe?: string;
+  maxPositions?: number;
+  lookbackPeriod?: number;
+  entryThreshold?: number;
+  exitThreshold?: number;
+  stopLoss?: number;
+  meanPeriod?: number;
+  entryDeviation?: number;
+  exitDeviation?: number;
+  momentumPeriod?: number;
+  consolidationPeriod?: number;
+  volatilityThreshold?: number;
+  upperLimit?: number;
+  lowerLimit?: number;
+  gridLines?: number;
+  maFast?: number;
+  maSlow?: number;
+  deviationThreshold?: number;
 }
 
-export interface FakeTradingFormProps {
-  onTrade: (trade: Trade) => void;
-  availableCoins: CoinOption[];
-  initialCoinId?: string;
-  advancedMode?: boolean;
-}
-
-export interface Trade {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  type: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  totalValue: number;
-  timestamp: string;
-  currency: string;
-  total: number;
-  status?: string;
-}
-
-export interface TradingAccount {
-  id: string;
-  name: string;
-  address: string;
-  balance: number;
-  currency: string;
-  network: string;
-  createdAt?: string;
-  type?: string;
-  provider?: string;
-  isActive?: boolean;
-  lastUpdated?: string;
-  initialBalance: number;
-  trades?: Trade[];
-  assets?: Array<{
-    coinId: string;
-    name: string;
-    symbol: string;
-    quantity: number;
-    averagePrice: number;
-    currentPrice?: number;
-  }>;
-}
-
-export interface AITradingBot {
-  id: string;
-  name: string;
-  description?: string;
-  strategy: AITradingStrategy | string;
-  status: 'active' | 'paused' | 'stopped';
-  createdAt: string;
-  lastRun?: string;
-  model?: string;
-  strategyId?: string;
-  strategyName?: string;
-  asset?: string;
-  accuracy?: number;
-  successRate?: number;
-  trades?: number;
-  totalTrades?: number;
-  pair?: string;
-  performance?: {
-    winRate: number;
-    trades: number;
-    profit: number;
-  };
-  profitLoss?: number;
+export interface AIStrategyPerformance {
+  accuracy: number;
+  returns: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
 }
 
 export interface AITradingStrategy {
@@ -90,114 +36,80 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: string;
-  timeframe?: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  parameters?: Record<string, any>;
+  riskLevel: string;
+  parameters?: AIStrategyParameters;
   indicators?: string[];
-  performance?: {
-    accuracy?: number;
-    returns?: number;
-    sharpeRatio?: number;
-    maxDrawdown?: number;
-  };
+  performance?: AIStrategyPerformance;
 }
 
-export interface AIStrategyParameters {
-  buySignalThreshold: number;
-  sellSignalThreshold: number;
-  stopLossPercentage: number;
-  takeProfitPercentage: number;
-  timeframe: string;
-  maxPositions: number;
-}
-
-export interface WalletProvider {
+export interface TradingAccount {
   id: string;
   name: string;
-  icon: string;
-  description: string;
-  supportedChains?: string[];
+  balance: number;
+  initialBalance: number;
+  trades: any[];
+  currency: string;
+  createdAt: string;
+  type: string;
+  address: string;
+  network: string;
+  assets: any[];
+  provider?: string;
+  lastUpdated?: string;
+  isActive?: boolean;
 }
 
-export interface RealTimePriceChartProps {
-  coinId: string;
-  timeRange: string;
-  height?: number;
-  width?: string;
-  showControls?: boolean;
-  symbol?: string;
-  timeframe?: string;
+export interface PaperTradingConfig {
+  enabled: boolean;
+  initialBalance: number;
+  currency: string;
+  slippageModel: string;
+  slippagePercentage: number;
+  maxTradeSize: number;
+  includeFees: boolean;
+  feePercentage: number;
 }
 
-export interface RealTimePricesProps {
-  coins: CoinOption[];
-  onSelectCoin?: (coinId: string) => void;
-  selectedCoinId?: string;
-  isLoading?: boolean;
-  initialCoins?: CoinOption[];
-  refreshInterval?: number;
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: string;
+  isConnected: boolean;
 }
-
-export interface WalletConnectionProps {
-  supportedWallets: Array<{
-    id: string;
-    name: string;
-    icon: string;
-    description: string;
-    supported: boolean;
-    logo?: string;
-    isConnected?: boolean;
-    isInstalled?: boolean;
-  }>;
-  onConnect: (account: WalletAccount) => void;
-}
-
-export interface FibonacciAnalysisProps {
-  coinId: string;
-  timeRange?: string;
-  data?: PricePoint[];
-  height?: number;
-  width?: string;
-  symbol?: string;
-  timeframe?: string;
-}
-
-export interface FibonacciLevels {
-  level0: number;
-  level236: number;
-  level382: number;
-  level500: number;
-  level618: number;
-  level786: number;
-  level1000: number;
-}
-
-export interface HyblockLiquidityMapProps {
-  coinId: string;
-  timeframe?: string;
-  width?: string;
-  height?: number;
-  showControls?: boolean;
-  symbol?: string;
-}
-
-export interface HyblockLiquidityZone {
-  min: number;
-  max: number;
-  volume: number;
-  type: 'buy' | 'sell';
-  strength: number;
-}
-
-export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD';
 
 export interface AIModelConfig {
   id: string;
   name: string;
   provider: string;
   endpoint: string;
-  apiKey?: string;
   parameters?: Record<string, any>;
+}
+
+export type SupportedCurrency = string;
+
+export interface AITradingBot {
+  id: string;
+  name: string;
+  description: string;
+  strategy: AITradingStrategy;
+  strategyId: string;
+  strategyName: string;
+  status: string;
+  createdAt: string;
+  lastRun?: string;
+  model: string;
+  asset: string;
+  accuracy?: number;
+  successRate?: number;
+  trades?: number;
+  totalTrades?: number;
+  performance?: {
+    winRate: number;
+    trades: number;
+    profit: number;
+  };
+  profitLoss?: number;
 }
 
 export interface BacktestResults {
@@ -209,73 +121,88 @@ export interface BacktestResults {
   trades: any[];
 }
 
-export interface PricePoint {
-  timestamp: string | number;
-  price: number;
-  volume?: number;
-}
-
-export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
-
-export interface CryptoData {
-  id: string;
-  symbol: string;
-  name: string;
-  price?: number;
-  currentPrice?: number;
-  priceChange?: number;
-  changePercent?: number;
-  priceChangePercentage24h?: number;
-  marketCap?: number;
-  volume?: number;
-  totalVolume?: number;
-  high24h?: number;
-  low24h?: number;
-  market_cap?: number;
-  market_cap_rank?: number;
-  fully_diluted_valuation?: number;
-  image?: string;
-  current_price?: number;
-}
-
-export interface LocalModel {
-  id: string;
-  name: string;
-  endpoint: string;
-  isRunning: boolean;
-  lastStarted?: Date;
-  apiKey?: string;
-  params?: Record<string, any>;
-}
-
-export interface OpenRouterRequest {
-  model: string;
-  messages: Array<{role: string, content: string}>;
-  temperature?: number;
-  max_tokens?: number;
-}
-
-export interface CryptoChartData {
-  prices: [number, number][];
-  market_caps: [number, number][];
-  total_volumes: [number, number][];
-}
-
-export interface WalletAccount {
-  id?: string;
-  address: string;
-  provider?: string;
-  balance?: number;
-}
-
-export interface PaperTradingConfig {
-  enabled: boolean;
-  initialBalance: number;
-  currency: string;
-  slippageModel: 'none' | 'simple' | 'realistic';
-  slippagePercentage: number;
-  maxTradeSize: number;
-  includeFees: boolean;
-  feePercentage: number;
+export interface SettingsFormValues {
+  theme: string;
+  colorScheme?: string;
+  displayName?: string;
+  username?: string;
+  contactEmail?: string;
+  userLanguage?: string;
+  currency: SupportedCurrency;
+  display: {
+    showPortfolio: boolean;
+    defaultTab: string;
+    compactMode: boolean;
+    colorScheme?: string;
+    animationsEnabled?: boolean;
+    highContrastMode?: boolean;
+  };
+  notifications: {
+    email: boolean;
+    push: boolean;
+    priceAlerts: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
+    marketUpdates?: boolean;
+    newsletterAndPromotions?: boolean;
+  };
+  api: {
+    provider: string;
+    key: string;
+    refreshInterval?: number;
+    timeout?: number;
+  };
+  privacy: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+    dataCollection: boolean;
+    marketingConsent: boolean;
+    thirdPartySharing: boolean;
+    publicProfile?: boolean;
+  };
+  appearance: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
+  tradingPreferences?: {
+    autoConfirm: boolean;
+    showAdvanced?: boolean;
+    defaultAsset?: string;
+    defaultTradeSize?: number;
+    riskLevel?: "medium" | "low" | "high";
+    tradingStrategy?: string;
+    defaultLeverage?: number;
+    showPnL?: boolean;
+    defaultTimeframe?: string;
+  };
+  dataPrivacy?: {
+    storeHistory?: boolean;
+    anonymizeData?: boolean;
+    enableTracking?: boolean;
+    shareAnalytics?: boolean;
+  };
+  ticker?: {
+    enabled: boolean;
+    position: "top" | "bottom";
+    direction: "ltr" | "rtl";
+    speed: number;
+    autoPause: boolean;
+    coins?: string[];
+  };
+  exportFormat?: "CSV" | "JSON" | "PDF";
+  layout?: string;
+  sidebar?: {
+    expanded: boolean;
+    position: "left" | "right";
+    visible: boolean;
+  };
+  bio?: string;
 }

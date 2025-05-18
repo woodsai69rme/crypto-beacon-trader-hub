@@ -397,6 +397,13 @@ const EnhancedAlertSystem = () => {
     }
   };
   
+  const handleTechnicalAlertChange = (data: Partial<TechnicalAlertFormData>) => {
+    setNewTechnicalAlert((prev) => ({
+      ...prev,
+      ...data
+    }));
+  };
+  
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -429,7 +436,13 @@ const EnhancedAlertSystem = () => {
             <TabsContent value="price" className="space-y-4">
               <PriceAlertForm 
                 formData={newPriceAlert}
-                setFormData={setNewPriceAlert}
+                setFormData={(data) => {
+                  if (typeof data === 'function') {
+                    setNewPriceAlert(data);
+                  } else {
+                    setNewPriceAlert(prev => ({...prev, ...data}));
+                  }
+                }}
                 onSubmit={addPriceAlert}
               />
             </TabsContent>
@@ -437,7 +450,13 @@ const EnhancedAlertSystem = () => {
             <TabsContent value="volume" className="space-y-4">
               <VolumeAlertForm 
                 formData={newVolumeAlert}
-                setFormData={setNewVolumeAlert}
+                setFormData={(data) => {
+                  if (typeof data === 'function') {
+                    setNewVolumeAlert(data);
+                  } else {
+                    setNewVolumeAlert(prev => ({...prev, ...data}));
+                  }
+                }}
                 onSubmit={addVolumeAlert}
               />
             </TabsContent>
@@ -445,7 +464,13 @@ const EnhancedAlertSystem = () => {
             <TabsContent value="technical" className="space-y-4">
               <TechnicalAlertForm
                 formData={newTechnicalAlert}
-                setFormData={setNewTechnicalAlert}
+                setFormData={(data) => {
+                  if (typeof data === 'function') {
+                    setNewTechnicalAlert(data);
+                  } else {
+                    setNewTechnicalAlert(prev => ({...prev, ...data}));
+                  }
+                }}
                 onSubmit={addTechnicalAlert}
               />
             </TabsContent>

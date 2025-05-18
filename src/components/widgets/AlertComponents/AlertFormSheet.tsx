@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";
 import PriceAlertForm from "./PriceAlertForm";
@@ -34,6 +34,34 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     onFormChange(data);
   };
 
+  // Wrapper functions to handle the setState actions
+  const handlePriceFormWrapper = (value: React.SetStateAction<PriceAlertFormData>) => {
+    if (typeof value === 'function') {
+      const updatedState = value(priceAlertData);
+      handlePriceFormChange(updatedState);
+    } else {
+      handlePriceFormChange(value);
+    }
+  };
+
+  const handleVolumeFormWrapper = (value: React.SetStateAction<VolumeAlertFormData>) => {
+    if (typeof value === 'function') {
+      const updatedState = value(volumeAlertData);
+      handleVolumeFormChange(updatedState);
+    } else {
+      handleVolumeFormChange(value);
+    }
+  };
+
+  const handleTechnicalFormWrapper = (value: React.SetStateAction<TechnicalAlertFormData>) => {
+    if (typeof value === 'function') {
+      const updatedState = value(technicalAlertData);
+      handleTechnicalFormChange(updatedState);
+    } else {
+      handleTechnicalFormChange(value);
+    }
+  };
+
   // Create the properly typed data for each form
   const priceAlertData: PriceAlertFormData = {
     type: 'price',
@@ -44,7 +72,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     isAbove: formData.isAbove ?? true,
     recurring: formData.recurring ?? false,
     percentageChange: formData.percentageChange || 0,
-    enabled: formData.enabled,
+    enabled: formData.enabled ?? true,
     notifyVia: formData.notifyVia || ['app'],
     frequency: formData.frequency
   };
@@ -56,7 +84,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     coinSymbol: formData.coinSymbol,
     volumeThreshold: formData.volumeThreshold || 0,
     frequency: formData.frequency || 'once',
-    enabled: formData.enabled,
+    enabled: formData.enabled ?? true,
     notifyVia: formData.notifyVia || ['app']
   };
 
@@ -68,7 +96,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     indicator: formData.indicator || '',
     condition: formData.condition || '',
     value: formData.value || 0,
-    enabled: formData.enabled,
+    enabled: formData.enabled ?? true,
     frequency: formData.frequency,
     notifyVia: formData.notifyVia || ['app']
   };
@@ -89,7 +117,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="price" className="mt-4">
           <PriceAlertForm 
             formData={priceAlertData} 
-            setFormData={handlePriceFormChange} 
+            setFormData={handlePriceFormWrapper} 
             onSubmit={onSubmit}
           />
         </TabsContent>
@@ -97,7 +125,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="volume" className="mt-4">
           <VolumeAlertForm 
             formData={volumeAlertData} 
-            setFormData={handleVolumeFormChange}
+            setFormData={handleVolumeFormWrapper}
             onSubmit={onSubmit}
           />
         </TabsContent>
@@ -105,7 +133,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="technical" className="mt-4">
           <TechnicalAlertForm 
             formData={technicalAlertData} 
-            setFormData={handleTechnicalFormChange}
+            setFormData={handleTechnicalFormWrapper}
             onSubmit={onSubmit}
           />
         </TabsContent>

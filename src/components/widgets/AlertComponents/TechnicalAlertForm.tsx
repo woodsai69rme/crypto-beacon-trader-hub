@@ -4,13 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertFrequency, TechnicalAlertFormData } from "@/types/alerts";
+import { AlertFrequency, TechnicalAlertFormData } from '@/types/alerts';
 import { COIN_OPTIONS, TECHNICAL_INDICATORS } from './AlertTypes';
 import { validateFormFields } from "@/utils/formValidation";
 
 interface TechnicalAlertFormProps {
   formData: TechnicalAlertFormData;
-  setFormData: (data: Partial<TechnicalAlertFormData>) => void;
+  setFormData: React.Dispatch<React.SetStateAction<TechnicalAlertFormData>>;
   onSubmit?: () => void;
 }
 

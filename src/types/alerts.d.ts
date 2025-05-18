@@ -21,7 +21,7 @@ export interface AlertFormData {
 
 export interface BaseAlertData {
   id: string;
-  createdAt: Date;
+  createdAt: Date | string;
   type: 'price' | 'volume' | 'technical';
   coinId: string;
   coinName: string;

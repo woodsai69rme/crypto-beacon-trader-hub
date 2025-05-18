@@ -45,7 +45,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormLabel>Auto-confirm trades</FormLabel>
               <FormControl>
                 <Switch 
-                  checked={form.watch("tradingPreferences")?.autoConfirm} 
+                  checked={form.watch("tradingPreferences.autoConfirm")} 
                   onCheckedChange={(checked) => {
                     const prefs = ensureTradingPreferences();
                     form.setValue("tradingPreferences", {
@@ -66,7 +66,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormLabel>Show advanced trading options</FormLabel>
               <FormControl>
                 <Switch 
-                  checked={form.watch("tradingPreferences")?.showAdvanced} 
+                  checked={form.watch("tradingPreferences.showAdvanced")} 
                   onCheckedChange={(checked) => {
                     const prefs = ensureTradingPreferences();
                     form.setValue("tradingPreferences", {
@@ -85,7 +85,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormItem>
             <FormLabel>Default Asset</FormLabel>
             <Select 
-              value={form.watch("tradingPreferences")?.defaultAsset || "BTC"} 
+              value={form.watch("tradingPreferences.defaultAsset") || "BTC"} 
               onValueChange={(value) => {
                 const prefs = ensureTradingPreferences();
                 form.setValue("tradingPreferences", {
@@ -115,7 +115,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <FormItem>
             <FormLabel>Risk Level</FormLabel>
             <Select 
-              value={form.watch("tradingPreferences")?.riskLevel || "medium"} 
+              value={form.watch("tradingPreferences.riskLevel") || "medium"} 
               onValueChange={(value: 'low' | 'medium' | 'high') => {
                 const prefs = ensureTradingPreferences();
                 form.setValue("tradingPreferences", {
@@ -147,7 +147,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 type="number" 
                 min="0.001" 
                 step="0.001"
-                value={form.watch("tradingPreferences")?.defaultTradeSize || 0.1} 
+                value={form.watch("tradingPreferences.defaultTradeSize") || 0.1} 
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value)) {
