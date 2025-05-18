@@ -1,4 +1,3 @@
-
 export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
 
 export interface CoinOption {

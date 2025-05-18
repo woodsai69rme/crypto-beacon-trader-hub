@@ -10,7 +10,7 @@ import { validateFormFields } from "@/utils/formValidation";
 
 interface TechnicalAlertFormProps {
   formData: TechnicalAlertFormData;
-  setFormData: React.Dispatch<React.SetStateAction<TechnicalAlertFormData>>;
+  setFormData: (data: Partial<TechnicalAlertFormData>) => void;
   onSubmit?: () => void;
 }
 
@@ -133,7 +133,7 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
           </SelectTrigger>
           <SelectContent>
             {TECHNICAL_INDICATORS.map(indicator => (
-              <SelectItem key={indicator.id} value={indicator.id}>
+              <SelectItem key={indicator.value} value={indicator.value}>
                 {indicator.label}
               </SelectItem>
             ))}

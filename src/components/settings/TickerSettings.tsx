@@ -48,7 +48,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               onCheckedChange={(value) => {
                 const ticker = ensureTickerSettings();
                 form.setValue("ticker", { 
-                  ...ticker, 
+                  ...ticker,
                   enabled: value 
                 });
               }}
@@ -120,7 +120,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             onValueChange={(value: "ltr" | "rtl") => {
               const ticker = ensureTickerSettings();
               form.setValue("ticker", { 
-                ...ticker, 
+                ...ticker,
                 direction: value 
               });
             }}
@@ -149,7 +149,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               onCheckedChange={(value) => {
                 const ticker = ensureTickerSettings();
                 form.setValue("ticker", { 
-                  ...ticker, 
+                  ...ticker,
                   autoPause: value 
                 });
               }}

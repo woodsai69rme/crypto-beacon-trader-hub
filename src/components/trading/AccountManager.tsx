@@ -15,6 +15,7 @@ const mockAccounts: TradingAccount[] = [
     name: 'Binance Account',
     address: '0x1234567890abcdef',
     balance: 24563.98,
+    initialBalance: 20000,
     network: 'ETH',
     currency: 'AUD', // Default to AUD as per requirements
     createdAt: '2023-07-15T10:30:00Z',
@@ -34,6 +35,7 @@ const mockAccounts: TradingAccount[] = [
     name: 'Coinbase Pro',
     address: '0xabcdef1234567890',
     balance: 12450.34,
+    initialBalance: 10000,
     network: 'ETH',
     currency: 'AUD',
     createdAt: '2023-05-10T08:20:00Z',
@@ -53,6 +55,7 @@ const mockAccounts: TradingAccount[] = [
     name: 'Paper Trading',
     address: '0x0987654321fedcba',
     balance: 32500.00,
+    initialBalance: 30000,
     network: 'Paper',
     currency: 'AUD',
     createdAt: '2023-08-05T16:15:00Z',
