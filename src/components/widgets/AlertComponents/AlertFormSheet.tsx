@@ -119,7 +119,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="price" className="mt-4">
           <PriceAlertForm 
             formData={priceAlertData} 
-            setFormData={handlePriceFormChange}
+            setFormData={handlePriceFormWrapper}
             onSubmit={onSubmit}
           />
         </TabsContent>
@@ -127,7 +127,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="volume" className="mt-4">
           <VolumeAlertForm 
             formData={volumeAlertData} 
-            setFormData={handleVolumeFormChange}
+            setFormData={handleVolumeFormWrapper}
             onSubmit={onSubmit}
           />
         </TabsContent>
@@ -135,7 +135,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         <TabsContent value="technical" className="mt-4">
           <TechnicalAlertForm 
             formData={technicalAlertData} 
-            setFormData={handleTechnicalFormChange}
+            setFormData={handleTechnicalFormWrapper}
             onSubmit={onSubmit}
           />
         </TabsContent>
