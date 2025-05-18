@@ -1,4 +1,3 @@
-
 export interface AIStrategyParameters {
   buySignalThreshold?: number;
   sellSignalThreshold?: number;

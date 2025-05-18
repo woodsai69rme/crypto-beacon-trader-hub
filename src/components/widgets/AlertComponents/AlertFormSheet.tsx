@@ -34,31 +34,33 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
     onFormChange(data);
   };
 
-  // Wrapper functions to handle the setState actions
-  const handlePriceFormWrapper = (value: React.SetStateAction<PriceAlertFormData>) => {
-    if (typeof value === 'function') {
-      const updatedState = value(priceAlertData);
-      handlePriceFormChange(updatedState);
+  // Create proper wrapper functions that maintain the correct typing
+  const handlePriceFormWrapper = (data: Partial<PriceAlertFormData> | ((prev: PriceAlertFormData) => PriceAlertFormData)) => {
+    if (typeof data === 'function') {
+      // Handle function setState style
+      const updatedData = data(priceAlertData);
+      handlePriceFormChange(updatedData);
     } else {
-      handlePriceFormChange(value);
+      // Handle object style
+      handlePriceFormChange(data);
     }
   };
 
-  const handleVolumeFormWrapper = (value: React.SetStateAction<VolumeAlertFormData>) => {
-    if (typeof value === 'function') {
-      const updatedState = value(volumeAlertData);
-      handleVolumeFormChange(updatedState);
+  const handleVolumeFormWrapper = (data: Partial<VolumeAlertFormData> | ((prev: VolumeAlertFormData) => VolumeAlertFormData)) => {
+    if (typeof data === 'function') {
+      const updatedData = data(volumeAlertData);
+      handleVolumeFormChange(updatedData);
     } else {
-      handleVolumeFormChange(value);
+      handleVolumeFormChange(data);
     }
   };
 
-  const handleTechnicalFormWrapper = (value: React.SetStateAction<TechnicalAlertFormData>) => {
-    if (typeof value === 'function') {
-      const updatedState = value(technicalAlertData);
-      handleTechnicalFormChange(updatedState);
+  const handleTechnicalFormWrapper = (data: Partial<TechnicalAlertFormData> | ((prev: TechnicalAlertFormData) => TechnicalAlertFormData)) => {
+    if (typeof data === 'function') {
+      const updatedData = data(technicalAlertData);
+      handleTechnicalFormChange(updatedData);
     } else {
-      handleTechnicalFormChange(value);
+      handleTechnicalFormChange(data);
     }
   };
 

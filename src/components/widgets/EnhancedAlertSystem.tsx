@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash, Check, X, ArrowUp, ArrowDown, Settings, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { PriceAlert, VolumeAlert, AlertFrequency } from "@/types/alerts";
+import { PriceAlert, VolumeAlert, AlertFrequency, TechnicalAlertFormData } from "@/types/alerts";
 import { COIN_OPTIONS } from "./AlertComponents/AlertTypes";
 import PriceAlertForm from "./AlertComponents/PriceAlertForm";
 import VolumeAlertForm from "./AlertComponents/VolumeAlertForm";

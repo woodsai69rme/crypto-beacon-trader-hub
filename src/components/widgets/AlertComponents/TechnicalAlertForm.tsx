@@ -10,7 +10,7 @@ import { validateFormFields } from "@/utils/formValidation";
 
 interface TechnicalAlertFormProps {
   formData: TechnicalAlertFormData;
-  setFormData: React.Dispatch<React.SetStateAction<TechnicalAlertFormData>>;
+  setFormData: React.Dispatch<React.SetStateAction<TechnicalAlertFormData>> | ((data: Partial<TechnicalAlertFormData>) => void);
   onSubmit?: () => void;
 }
 
@@ -22,27 +22,33 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
   const handleCoinChange = (value: string) => {
     const selectedCoin = COIN_OPTIONS.find(coin => coin.id === value);
     if (selectedCoin) {
-      setFormData({
-        ...formData,
-        coinId: selectedCoin.id,
-        coinName: selectedCoin.name,
-        coinSymbol: selectedCoin.symbol
-      });
+      if (typeof setFormData === 'function') {
+        setFormData({
+          ...formData,
+          coinId: selectedCoin.id,
+          coinName: selectedCoin.name,
+          coinSymbol: selectedCoin.symbol
+        });
+      }
     }
   };
 
   const handleIndicatorChange = (value: string) => {
-    setFormData({
-      ...formData,
-      indicator: value
-    });
+    if (typeof setFormData === 'function') {
+      setFormData({
+        ...formData,
+        indicator: value
+      });
+    }
   };
 
   const handleConditionChange = (value: string) => {
-    setFormData({
-      ...formData,
-      condition: value
-    });
+    if (typeof setFormData === 'function') {
+      setFormData({
+        ...formData,
+        condition: value
+      });
+    }
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +60,7 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
       (val) => (val < 0 || val > 100 ? "Value must be between 0 and 100" : true)
     ]);
     
-    if (isValid === true) {
+    if (isValid === true && typeof setFormData === 'function') {
       setFormData({
         ...formData,
         value: value
@@ -63,10 +69,12 @@ const TechnicalAlertForm: React.FC<TechnicalAlertFormProps> = ({
   };
 
   const handleFrequencyChange = (value: string) => {
-    setFormData({
-      ...formData,
-      frequency: value as AlertFrequency
-    });
+    if (typeof setFormData === 'function') {
+      setFormData({
+        ...formData,
+        frequency: value as AlertFrequency
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
