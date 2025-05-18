@@ -1,145 +1,194 @@
+import React, { useState } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { toast } from "@/components/ui/use-toast"
+import { useTradingContext } from '@/contexts/TradingContext';
+import { CoinOption } from '@/types/trading';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import React from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from "@/types/alerts";
-import PriceAlertForm from "./PriceAlertForm";
-import VolumeAlertForm from "./VolumeAlertForm";
-import TechnicalAlertForm from "./TechnicalAlertForm";
-
-interface AlertFormSheetProps {
-  formData: AlertFormData;
-  onFormChange: (data: Partial<AlertFormData>) => void;
-  onSubmit: () => void;
+interface PriceAlertFormData {
+  coin: string;
+  threshold: number;
+  direction: 'above' | 'below';
+  notify: boolean;
 }
 
-export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
-  formData,
-  onFormChange,
-  onSubmit
-}) => {
-  const handleTypeChange = (type: string) => {
-    onFormChange({ type: type as 'price' | 'volume' | 'technical' });
+interface VolumeAlertFormData {
+  coin: string;
+  threshold: number;
+  notify: boolean;
+}
+
+const AlertFormSheet = () => {
+  const { coins } = useTradingContext();
+  const [open, setOpen] = React.useState(false)
+  const [priceAlertFormData, setPriceAlertFormData] = useState<PriceAlertFormData>({
+    coin: coins[0]?.id || '',
+    threshold: 0,
+    direction: 'above',
+    notify: false,
+  });
+
+  const [volumeAlertFormData, setVolumeAlertFormData] = useState<VolumeAlertFormData>({
+    coin: coins[0]?.id || '',
+    threshold: 0,
+    notify: false,
+  });
+
+  const handlePriceAlertChange = (data: Partial<PriceAlertFormData>) => {
+    setPriceAlertFormData(prevState => ({
+      ...prevState,
+      ...data
+    }));
   };
 
-  // Create handlers for each form type that convert the input to the general AlertFormData
-  const handlePriceFormChange = (data: Partial<PriceAlertFormData>) => {
-    onFormChange(data);
+  const handleVolumeAlertChange = (data: Partial<VolumeAlertFormData>) => {
+    setVolumeAlertFormData(prevState => ({
+      ...prevState,
+      ...data
+    }));
   };
 
-  const handleVolumeFormChange = (data: Partial<VolumeAlertFormData>) => {
-    onFormChange(data);
-  };
-
-  const handleTechnicalFormChange = (data: Partial<TechnicalAlertFormData>) => {
-    onFormChange(data);
-  };
-
-  // Create proper wrapper functions that maintain the correct typing
-  const handlePriceFormWrapper = (data: Partial<PriceAlertFormData> | ((prev: PriceAlertFormData) => PriceAlertFormData)) => {
-    if (typeof data === 'function') {
-      // Handle function setState style by applying the function to current data
-      const updatedData = data(priceAlertData);
-      handlePriceFormChange(updatedData);
-    } else {
-      // Handle object style
-      handlePriceFormChange(data);
+  const handleCreatePriceAlert = () => {
+    if (!priceAlertFormData.coin || priceAlertFormData.threshold <= 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields with valid values.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    toast({
+      title: "Success",
+      description: `Price alert created for ${priceAlertFormData.coin} when price goes ${priceAlertFormData.direction} ${priceAlertFormData.threshold}.`,
+    });
+    setOpen(false);
   };
 
-  const handleVolumeFormWrapper = (data: Partial<VolumeAlertFormData> | ((prev: VolumeAlertFormData) => VolumeAlertFormData)) => {
-    if (typeof data === 'function') {
-      const updatedData = data(volumeAlertData);
-      handleVolumeFormChange(updatedData);
-    } else {
-      handleVolumeFormChange(data);
+  const handleCreateVolumeAlert = () => {
+    if (!volumeAlertFormData.coin || volumeAlertFormData.threshold <= 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields with valid values.",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const handleTechnicalFormWrapper = (data: Partial<TechnicalAlertFormData> | ((prev: TechnicalAlertFormData) => TechnicalAlertFormData)) => {
-    if (typeof data === 'function') {
-      const updatedData = data(technicalAlertData);
-      handleTechnicalFormChange(updatedData);
-    } else {
-      handleTechnicalFormChange(data);
-    }
-  };
-
-  // Create the properly typed data for each form
-  const priceAlertData: PriceAlertFormData = {
-    type: 'price',
-    coinId: formData.coinId,
-    coinName: formData.coinName,
-    coinSymbol: formData.coinSymbol,
-    targetPrice: formData.targetPrice || 0,
-    isAbove: formData.isAbove ?? true,
-    recurring: formData.recurring ?? false,
-    percentageChange: formData.percentageChange || 0,
-    enabled: formData.enabled ?? true,
-    notifyVia: formData.notifyVia || ['app'],
-    frequency: formData.frequency
-  };
-
-  const volumeAlertData: VolumeAlertFormData = {
-    type: 'volume',
-    coinId: formData.coinId,
-    coinName: formData.coinName,
-    coinSymbol: formData.coinSymbol,
-    volumeThreshold: formData.volumeThreshold || 0,
-    frequency: formData.frequency || 'once',
-    enabled: formData.enabled ?? true,
-    notifyVia: formData.notifyVia || ['app']
-  };
-
-  const technicalAlertData: TechnicalAlertFormData = {
-    type: 'technical',
-    coinId: formData.coinId,
-    coinName: formData.coinName,
-    coinSymbol: formData.coinSymbol,
-    indicator: formData.indicator || '',
-    condition: formData.condition || '',
-    value: formData.value || 0,
-    enabled: formData.enabled ?? true,
-    frequency: formData.frequency,
-    notifyVia: formData.notifyVia || ['app']
+    toast({
+      title: "Success",
+      description: `Volume alert created for ${volumeAlertFormData.coin} when volume exceeds ${volumeAlertFormData.threshold}.`,
+    });
+    setOpen(false);
   };
 
   return (
-    <div className="mt-6">
-      <Tabs 
-        value={formData.type} 
-        onValueChange={handleTypeChange}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="price">Price</TabsTrigger>
-          <TabsTrigger value="volume">Volume</TabsTrigger>
-          <TabsTrigger value="technical">Technical</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="price" className="mt-4">
-          <PriceAlertForm 
-            formData={priceAlertData} 
-            setFormData={handlePriceFormWrapper}
-            onSubmit={onSubmit}
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline">Create Alert</Button>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Create a New Alert</SheetTitle>
+          <SheetDescription>
+            Set up real-time notifications for price and volume movements.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="grid gap-4 py-4">
+          <Label htmlFor="coin">Cryptocurrency</Label>
+          <Select onValueChange={(value) => handlePriceAlertChange({ coin: value })} defaultValue={priceAlertFormData.coin}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              {coins.map((coin: CoinOption) => (
+                <SelectItem key={coin.id} value={coin.id}>{coin.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Label htmlFor="threshold">Price Threshold</Label>
+          <Input
+            id="threshold"
+            type="number"
+            placeholder="Enter threshold"
+            value={priceAlertFormData.threshold.toString()}
+            onChange={(e) => handlePriceAlertChange({ threshold: parseFloat(e.target.value) })}
           />
-        </TabsContent>
-        
-        <TabsContent value="volume" className="mt-4">
-          <VolumeAlertForm 
-            formData={volumeAlertData} 
-            setFormData={handleVolumeFormWrapper}
-            onSubmit={onSubmit}
+
+          <Label>Direction</Label>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={priceAlertFormData.direction === 'above' ? 'default' : 'outline'}
+              onClick={() => handlePriceAlertChange({ direction: 'above' })}
+            >
+              Above
+            </Button>
+            <Button
+              variant={priceAlertFormData.direction === 'below' ? 'default' : 'outline'}
+              onClick={() => handlePriceAlertChange({ direction: 'below' })}
+            >
+              Below
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="notify">Notify Me</Label>
+            <Switch
+              id="notify"
+              checked={priceAlertFormData.notify}
+              onCheckedChange={(checked) => handlePriceAlertChange({ notify: checked })}
+            />
+          </div>
+        </div>
+        <Button onClick={handleCreatePriceAlert}>Create Price Alert</Button>
+
+        <div className="grid gap-4 py-4">
+          <Label htmlFor="volumeCoin">Cryptocurrency</Label>
+          <Select onValueChange={(value) => handleVolumeAlertChange({ coin: value })} defaultValue={volumeAlertFormData.coin}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              {coins.map((coin: CoinOption) => (
+                <SelectItem key={coin.id} value={coin.id}>{coin.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Label htmlFor="volumeThreshold">Volume Threshold</Label>
+          <Input
+            id="volumeThreshold"
+            type="number"
+            placeholder="Enter volume threshold"
+            value={volumeAlertFormData.threshold.toString()}
+            onChange={(e) => handleVolumeAlertChange({ threshold: parseFloat(e.target.value) })}
           />
-        </TabsContent>
-        
-        <TabsContent value="technical" className="mt-4">
-          <TechnicalAlertForm 
-            formData={technicalAlertData} 
-            setFormData={handleTechnicalFormWrapper}
-            onSubmit={onSubmit}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-};
+
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="volumeNotify">Notify Me</Label>
+            <Switch
+              id="volumeNotify"
+              checked={volumeAlertFormData.notify}
+              onCheckedChange={(checked) => handleVolumeAlertChange({ notify: checked })}
+            />
+          </div>
+        </div>
+        <Button onClick={handleCreateVolumeAlert}>Create Volume Alert</Button>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+export default AlertFormSheet;

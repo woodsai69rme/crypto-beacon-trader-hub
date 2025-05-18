@@ -1,165 +1,148 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Settings } from 'lucide-react';
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
 import { SettingsComponentProps } from './types';
 
+interface TickerPreferences {
+  enabled: boolean;
+  position: 'top' | 'bottom';
+  direction: 'ltr' | 'rtl';
+  speed: number;
+  autoPause: boolean;
+  coins?: string[];
+}
+
 const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  // Initialize ticker if it doesn't exist
-  const ensureTickerSettings = () => {
+  // Initialize tickerPreferences if it doesn't exist
+  const ensureTickerPreferences = (): TickerPreferences => {
     const current = form.getValues();
-    if (!current.ticker) {
-      form.setValue("ticker", {
+    if (!current.tickerPreferences) {
+      form.setValue("tickerPreferences", {
         enabled: true,
         position: 'top',
         direction: 'ltr',
-        speed: 3,
+        speed: 5,
         autoPause: true,
-        coins: ['BTC', 'ETH', 'SOL']
+        coins: ['BTC', 'ETH', 'SOL', 'USDT', 'BNB']
       });
     }
-    return current.ticker || {};
+    return current.tickerPreferences as TickerPreferences || {
+      enabled: true,
+      position: 'top',
+      direction: 'ltr',
+      speed: 5,
+      autoPause: true,
+      coins: ['BTC', 'ETH', 'SOL', 'USDT', 'BNB']
+    };
   };
+
+  ensureTickerPreferences();
   
-  ensureTickerSettings();
+  const updateTickerPreferences = (updateData: Partial<TickerPreferences>) => {
+    const currentPrefs = ensureTickerPreferences();
+    form.setValue("tickerPreferences", {
+      ...currentPrefs,
+      ...updateData
+    });
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Ticker Settings
-        </CardTitle>
-        <CardDescription>
-          Configure how the ticker appears and behaves
-        </CardDescription>
+        <CardTitle>Price Ticker Settings</CardTitle>
       </CardHeader>
-      
       <CardContent className="space-y-6">
-        <FormItem>
-          <div className="flex items-center justify-between">
-            <FormLabel>Enable Ticker</FormLabel>
-            <Switch 
-              checked={form.watch("ticker.enabled")} 
-              onCheckedChange={(value) => {
-                const ticker = ensureTickerSettings();
-                form.setValue("ticker", { 
-                  ...ticker,
-                  enabled: value 
-                });
-              }}
-            />
-          </div>
-          <FormDescription>
-            Show price ticker at the top or bottom of the application
-          </FormDescription>
-        </FormItem>
-        
-        <FormItem>
-          <FormLabel>Position</FormLabel>
-          <Select 
-            value={form.watch("ticker.position")} 
-            onValueChange={(value: "top" | "bottom") => {
-              const ticker = ensureTickerSettings();
-              form.setValue("ticker", { 
-                ...ticker,
-                position: value 
-              });
+        <div className="flex items-center justify-between">
+          <Label htmlFor="ticker-enabled">Show Price Ticker</Label>
+          <Switch 
+            id="ticker-enabled" 
+            checked={form.watch("tickerPreferences.enabled")} 
+            onCheckedChange={(checked) => {
+              updateTickerPreferences({ enabled: checked });
             }}
-            disabled={!form.watch("ticker.enabled")}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select position" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="top">Top</SelectItem>
-              <SelectItem value="bottom">Bottom</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormDescription>
-            Where the ticker should be displayed
-          </FormDescription>
-        </FormItem>
+          />
+        </div>
         
-        <FormItem>
-          <FormLabel>Speed</FormLabel>
-          <FormControl>
-            <Input 
-              type="number" 
-              min="1" 
-              max="10" 
-              value={form.watch("ticker.speed") || 3} 
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                if (!isNaN(value)) {
-                  const ticker = ensureTickerSettings();
-                  form.setValue("ticker", { 
-                    ...ticker,
-                    speed: value 
-                  });
-                }
-              }}
-              disabled={!form.watch("ticker.enabled")}
-            />
-          </FormControl>
-          <FormDescription>
-            Ticker scroll speed (1 = slow, 10 = fast)
-          </FormDescription>
-        </FormItem>
-        
-        <FormItem>
-          <FormLabel>Direction</FormLabel>
-          <Select 
-            value={form.watch("ticker.direction")} 
-            onValueChange={(value: "ltr" | "rtl") => {
-              const ticker = ensureTickerSettings();
-              form.setValue("ticker", { 
-                ...ticker,
-                direction: value 
-              });
+        <div className="space-y-2">
+          <Label>Ticker Position</Label>
+          <RadioGroup 
+            value={form.watch("tickerPreferences.position")} 
+            onValueChange={(value) => {
+              updateTickerPreferences({ position: value as 'top' | 'bottom' });
             }}
-            disabled={!form.watch("ticker.enabled")}
+            className="flex space-x-4"
           >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select direction" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="ltr">Left to Right</SelectItem>
-              <SelectItem value="rtl">Right to Left</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormDescription>
-            Direction the ticker should scroll
-          </FormDescription>
-        </FormItem>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="top" id="position-top" />
+              <Label htmlFor="position-top">Top</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="bottom" id="position-bottom" />
+              <Label htmlFor="position-bottom">Bottom</Label>
+            </div>
+          </RadioGroup>
+        </div>
         
-        <FormItem>
-          <div className="flex items-center justify-between">
-            <FormLabel>Auto-pause on hover</FormLabel>
-            <Switch 
-              checked={form.watch("ticker.autoPause")} 
-              onCheckedChange={(value) => {
-                const ticker = ensureTickerSettings();
-                form.setValue("ticker", { 
-                  ...ticker,
-                  autoPause: value 
-                });
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between mb-2">
+              <Label>Ticker Speed: {form.watch("tickerPreferences.speed")}</Label>
+            </div>
+            <Slider
+              value={[form.watch("tickerPreferences.speed")]}
+              min={1}
+              max={10}
+              step={1}
+              onValueChange={(value) => {
+                updateTickerPreferences({ speed: value[0] });
               }}
-              disabled={!form.watch("ticker.enabled")}
             />
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>Slow</span>
+              <span>Fast</span>
+            </div>
           </div>
-          <FormDescription>
-            Pause ticker when cursor hovers over it
-          </FormDescription>
-        </FormItem>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Scroll Direction</Label>
+          <RadioGroup 
+            value={form.watch("tickerPreferences.direction")} 
+            onValueChange={(value) => {
+              updateTickerPreferences({ direction: value as 'ltr' | 'rtl' });
+            }}
+            className="flex space-x-4"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="ltr" id="direction-ltr" />
+              <Label htmlFor="direction-ltr">Left to Right</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="rtl" id="direction-rtl" />
+              <Label htmlFor="direction-rtl">Right to Left</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="ticker-autopause">Auto-pause on Hover</Label>
+            <p className="text-sm text-muted-foreground mt-1">
+              Automatically pause ticker when mouse hovers over it
+            </p>
+          </div>
+          <Switch 
+            id="ticker-autopause" 
+            checked={form.watch("tickerPreferences.autoPause")} 
+            onCheckedChange={(checked) => {
+              updateTickerPreferences({ autoPause: checked });
+            }}
+          />
+        </div>
       </CardContent>
     </Card>
   );

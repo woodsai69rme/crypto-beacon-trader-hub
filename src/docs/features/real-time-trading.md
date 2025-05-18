@@ -3,7 +3,7 @@
 
 ## Overview
 
-The Real-Time Trading module provides up-to-the-second market data and trading capabilities, allowing traders to react quickly to market movements and execute trades with minimal latency.
+The Real-Time Trading module provides up-to-the-second market data and trading capabilities, allowing traders to react quickly to market movements and execute trades with minimal latency. This module integrates tightly with our AI-powered analysis tools to provide actionable insights and automated trading strategies.
 
 ## Key Features
 
@@ -16,6 +16,7 @@ Our platform delivers continuously updated cryptocurrency prices from multiple s
 - Websocket-based connections for minimal latency
 - Fallback mechanisms to ensure uninterrupted data flow
 - Multi-source data aggregation for reliability
+- AUD as the primary base currency with multi-currency support
 
 **User Experience:**
 - Visual price change indicators with intuitive color coding
@@ -99,6 +100,63 @@ Our real-time data comes from multiple trusted sources:
 - Portfolio management
 - Alerts and notification systems
 
+## AI Trading Bot Features
+
+Our platform offers advanced AI trading bots that can execute trades automatically based on market conditions:
+
+### Bot Types:
+- **Grid Trading Bots**: Place buy and sell orders at regular price intervals to profit from range-bound markets
+- **DCA (Dollar Cost Averaging) Bots**: Automatically purchase fixed amounts at regular intervals to reduce volatility impact
+- **Arbitrage Bots**: Exploit price differences between exchanges
+- **Trend Following Bots**: Identify and follow market trends using AI pattern recognition
+- **Mean Reversion Bots**: Trade price reversals to the mean
+- **Sentiment-Based Bots**: Use AI analysis of news and social media to inform trading decisions
+
+### AI Model Integration:
+
+Our platform supports a hybrid approach to AI model integration:
+
+**Local AI Models**:
+- Run locally on user's device for enhanced privacy
+- Reduced latency for critical decisions
+- Support for popular open-source models
+- No ongoing API costs
+
+**Cloud AI Models**:
+- Access to state-of-the-art models via OpenRouter
+- Increased computational power for complex analyses
+- Regular updates without manual intervention
+- Scalability for demanding workloads
+
+### Performance Analytics:
+
+- Real-time tracking of bot performance
+- Detailed metrics including win rate, profit factor, Sharpe ratio
+- Historical backtesting capabilities
+- Automated parameter optimization
+
+## Social Trading Features
+
+Our platform includes comprehensive social trading capabilities:
+
+### Copy Trading:
+- Follow top-performing traders with transparent metrics
+- Automatic execution of trades at the same proportions
+- Configurable risk management settings
+- Performance tracking dashboards
+
+### Strategy Sharing:
+- Marketplace for trading strategies
+- Strategy ratings and reviews
+- Performance verification and transparency
+- Free and premium strategy options
+
+### Community Insights:
+- Trading signals from community experts
+- Sentiment analysis across the community
+- Discussion forums for market analysis
+- Leaderboards for top traders and strategies
+
 ## Mobile and Desktop Experience
 
 The real-time trading features are optimized for both desktop and mobile experiences:
@@ -132,3 +190,4 @@ Security is paramount in real-time trading:
 - **API Throttling Management**: Smart handling of API rate limits
 - **Custom Indicators**: Create your own real-time technical indicators
 - **Trading Bot Integration**: Connect the real-time data to your trading bots
+- **Custom Strategy Development**: Create and backtest your own trading strategies using our API

@@ -35,11 +35,16 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: string;
-  riskLevel: string;
-  parameters?: AIStrategyParameters;
-  indicators?: string[];
-  performance?: AIStrategyPerformance;
   timeframe?: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  parameters?: any;
+  indicators?: string[];
+  performance?: {
+    accuracy?: number;
+    returns?: number;
+    sharpeRatio?: number;
+    maxDrawdown?: number;
+  };
 }
 
 export interface TradingAccount {
@@ -205,4 +210,51 @@ export interface SettingsFormValues {
     visible: boolean;
   };
   bio?: string;
+}
+
+export interface CryptoData {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  market_cap?: number;
+  volume_24h?: number;
+  change_24h?: number;
+  price_history?: { timestamp: number; price: number }[];
+  fully_diluted_valuation?: number;
+  // Add any other properties that are used in the app
+}
+
+export interface CryptoChartData {
+  timestamp: number;
+  price: number;
+  volume?: number;
+}
+
+export interface ApiEndpoint {
+  path: string;
+  method: string;
+  description: string;
+  requiresAuth: boolean;
+  parameters?: Array<{
+    name: string;
+    description: string;
+    required: boolean;
+    type: string;
+    default?: string;
+  }>;
+  isActive?: boolean;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  description: string;
+  authType: 'header' | 'query' | 'apiKey'; // Added 'apiKey' as valid option
+  authKey: string;
+  enabled: boolean;
+  endpoints: Record<string, ApiEndpoint>;
+  apiKey?: string;
+  rateLimit?: number;
 }

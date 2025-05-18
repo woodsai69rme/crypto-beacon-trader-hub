@@ -7,9 +7,21 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { SettingsComponentProps } from './types';
 
+interface TradingPreferences {
+  autoConfirm: boolean;
+  showAdvanced?: boolean;
+  defaultAsset?: string;
+  defaultTradeSize?: number;
+  riskLevel?: 'low' | 'medium' | 'high';
+  tradingStrategy?: string;
+  defaultLeverage?: number;
+  showPnL?: boolean;
+  defaultTimeframe?: string;
+}
+
 const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   // Initialize tradingPreferences if it doesn't exist
-  const ensureTradingPreferences = () => {
+  const ensureTradingPreferences = (): TradingPreferences => {
     const current = form.getValues();
     if (!current.tradingPreferences) {
       form.setValue("tradingPreferences", {
@@ -24,10 +36,28 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         defaultTimeframe: '1d'
       });
     }
-    return current.tradingPreferences || {};
+    return current.tradingPreferences || {
+      autoConfirm: true,
+      showAdvanced: false,
+      defaultAsset: 'BTC',
+      defaultTradeSize: 0.1,
+      riskLevel: 'medium',
+      tradingStrategy: 'default',
+      defaultLeverage: 1,
+      showPnL: true,
+      defaultTimeframe: '1d'
+    };
   };
   
   ensureTradingPreferences();
+
+  const updateTradingPreferences = (updateData: Partial<TradingPreferences>) => {
+    const currentPrefs = ensureTradingPreferences();
+    form.setValue("tradingPreferences", {
+      ...currentPrefs,
+      ...updateData
+    });
+  };
 
   return (
     <Card>
@@ -47,9 +77,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 <Switch 
                   checked={form.watch("tradingPreferences.autoConfirm")} 
                   onCheckedChange={(checked) => {
-                    const prefs = ensureTradingPreferences();
-                    form.setValue("tradingPreferences", {
-                      ...prefs,
+                    updateTradingPreferences({
                       autoConfirm: checked
                     });
                   }}
@@ -68,9 +96,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 <Switch 
                   checked={form.watch("tradingPreferences.showAdvanced")} 
                   onCheckedChange={(checked) => {
-                    const prefs = ensureTradingPreferences();
-                    form.setValue("tradingPreferences", {
-                      ...prefs,
+                    updateTradingPreferences({
                       showAdvanced: checked
                     });
                   }}
@@ -87,9 +113,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Select 
               value={form.watch("tradingPreferences.defaultAsset")} 
               onValueChange={(value) => {
-                const prefs = ensureTradingPreferences();
-                form.setValue("tradingPreferences", {
-                  ...prefs,
+                updateTradingPreferences({
                   defaultAsset: value
                 });
               }}
@@ -117,9 +141,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             <Select 
               value={form.watch("tradingPreferences.riskLevel")} 
               onValueChange={(value: "low" | "medium" | "high") => {
-                const prefs = ensureTradingPreferences();
-                form.setValue("tradingPreferences", {
-                  ...prefs,
+                updateTradingPreferences({
                   riskLevel: value
                 });
               }}
@@ -151,9 +173,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value)) {
-                    const prefs = ensureTradingPreferences();
-                    form.setValue("tradingPreferences", {
-                      ...prefs,
+                    updateTradingPreferences({
                       defaultTradeSize: value
                     });
                   }

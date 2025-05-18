@@ -1,5 +1,6 @@
-
-import { CryptoData, CryptoChartData } from "@/types/trading";
+import axios from 'axios';
+import { CoinOption, CryptoData } from '@/types/trading';
+import type { CryptoChartData } from '@/types/trading';
 
 // Mock data for cryptocurrencies
 export const getMockCryptoData = (): CryptoData[] => {
@@ -168,3 +169,15 @@ export const fetchTopCoins = async (limit: number = 10): Promise<CryptoData[]> =
 
 // Export CryptoChartData type for proper usage
 export type { CryptoChartData } from '@/types/trading';
+
+// Update the CryptoData object to include the fully_diluted_valuation property
+const transformCoinData = (data: any): CryptoData => ({
+  id: data.id,
+  name: data.name,
+  symbol: data.symbol.toUpperCase(),
+  price: data.current_price,
+  market_cap: data.market_cap,
+  volume_24h: data.total_volume,
+  change_24h: data.price_change_percentage_24h,
+  fully_diluted_valuation: data.fully_diluted_valuation
+});
