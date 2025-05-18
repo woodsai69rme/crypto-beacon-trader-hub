@@ -1,256 +1,226 @@
 
-# Product Requirements Document (PRD)
+# Product Requirements Document
 
-## Crypto Beacon Trader Hub
+## Overview
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-05-06
+The Crypto Trading Platform is designed to provide users with professional-grade tools for cryptocurrency trading, portfolio management, and market analysis with a focus on supporting AUD as the primary currency.
 
-## 1. Introduction
+## Target Users
 
-### 1.1 Purpose
-This PRD outlines the requirements for the Crypto Beacon Trader Hub, a comprehensive cryptocurrency trading and portfolio management platform designed for both individual traders and institutions.
+- Individual cryptocurrency traders
+- Professional traders and portfolio managers
+- Institutional investors
+- AI-focused trading enthusiasts
+- Analysts and researchers
 
-### 1.2 Scope
-This document covers the functional and non-functional requirements for the complete platform, including trading features, portfolio management, AI capabilities, local model integration, and supporting infrastructure.
+## Key Requirements
 
-### 1.3 Target Audience
-- Cryptocurrency traders (individual and institutional)
-- Portfolio managers
-- Trading analysts and strategists
-- AI/ML enthusiasts applying models to trading
+### User Interface Requirements
 
-## 2. Product Overview
+1. **Dashboard**
+   - Real-time price ticker
+   - Portfolio overview
+   - Market summary
+   - Quick access to trading tools
+   - Customizable layout with widgets
 
-### 2.1 Product Vision
-To create the most comprehensive and accessible cryptocurrency trading platform that combines institutional-grade tools with cutting-edge AI capabilities, while respecting user privacy through local model training and inference.
+2. **Trading Interface**
+   - Support for multiple cryptocurrencies
+   - Real-time price data
+   - Order entry forms
+   - Trade history
+   - Position management
+   - Support for paper and live trading modes
 
-### 2.2 User Personas
+3. **Portfolio Management**
+   - Holdings visualization
+   - Performance metrics
+   - Asset allocation view
+   - Historical performance tracking
+   - Tax reporting tools
 
-#### 2.2.1 Active Trader (Alex)
-- Trades cryptocurrencies daily
-- Seeks advanced charting and analysis tools
-- Values real-time data and quick execution
-- Wants to leverage AI for trading insights
+### AI Trading Requirements
 
-#### 2.2.2 Portfolio Manager (Morgan)
-- Manages crypto portfolios for multiple clients
-- Needs portfolio allocation and performance tracking
-- Requires tax reporting and documentation
-- Looks for risk management tools
+1. **AI Trading Bots**
+   - Support for multiple trading strategies
+   - Customizable parameters
+   - Performance tracking
+   - Backtesting capabilities
+   - Paper and live trading modes
 
-#### 2.2.3 AI Enthusiast (Taylor)
-- Has ML/AI background
-- Wants to create and test trading models
-- Prioritizes data privacy and local processing
-- Seeks platform for model deployment and testing
+2. **Strategy Types**
+   - Trend following
+   - Mean reversion
+   - Scalping
+   - Breakout trading
+   - Grid trading
+   - Arbitrage
+   - Momentum
+   - Pattern recognition
+   - Sentiment-driven
+   - Custom strategies
 
-#### 2.2.4 Institutional Trader (Jordan)
-- Works at a trading firm
-- Needs advanced order book analysis
-- Requires multi-exchange execution capabilities
-- Values low-latency and high-reliability systems
+3. **AI Model Integration**
+   - OpenRouter API integration
+   - Support for local AI models
+   - Model performance metrics
+   - Strategy optimization
 
-## 3. Feature Requirements
+### Data Requirements
 
-### 3.1 Core Trading Platform
+1. **Real-time Data**
+   - Price data for major cryptocurrencies
+   - Market depth and order book data
+   - Trading volume metrics
+   - Technical indicators
 
-#### 3.1.1 Real-Time Market Data
-- **Must Have:** Real-time price updates from major exchanges
-- **Must Have:** Order book visualization
-- **Must Have:** Trading volume and depth charts
-- **Should Have:** Historical data access with flexible timeframes
-- **Should Have:** Custom alert creation for price movements
+2. **Historical Data**
+   - Price history at multiple timeframes
+   - Volume history
+   - Market events
+   - Technical indicator history
 
-#### 3.1.2 Trading Interface
-- **Must Have:** Buy/sell execution panel
-- **Must Have:** Order management system
-- **Must Have:** Position tracking
-- **Should Have:** Advanced order types (OCO, trailing stops)
-- **Could Have:** Trade journaling capability
+3. **News and Sentiment**
+   - Cryptocurrency news aggregation
+   - Sentiment analysis
+   - Fake news detection
+   - Social media trend analysis
 
-#### 3.1.3 Portfolio Management
-- **Must Have:** Holdings overview with real-time valuation
-- **Must Have:** Performance metrics (ROI, drawdowns)
-- **Must Have:** Asset allocation visualization
-- **Should Have:** Portfolio rebalancing tools
-- **Should Have:** Historical portfolio performance tracking
+### API Integration Requirements
 
-### 3.2 Advanced Analysis Tools
+1. **Exchange Integration**
+   - Support for major exchanges (Binance, Coinbase, Kraken, etc.)
+   - Real-time data streaming
+   - Order execution capabilities
+   - Account synchronization
 
-#### 3.2.1 Technical Analysis
-- **Must Have:** Multiple chart types and timeframes
-- **Must Have:** Standard technical indicators (RSI, MACD, etc.)
-- **Must Have:** Drawing tools for trend lines and patterns
-- **Should Have:** Automatic pattern recognition
-- **Could Have:** Custom indicator creation
+2. **External APIs**
+   - CoinGecko integration
+   - CryptoCompare integration
+   - News API integration
+   - Custom API management
 
-#### 3.2.2 Institutional-Grade Tools
-- **Must Have:** Liquidity heatmaps
-- **Must Have:** Fibonacci auto-extensions and retracements
-- **Must Have:** Trade probability calculations
-- **Should Have:** Market maker liquidity target tracking
-- **Should Have:** Advanced correlation analysis
+3. **Web3 Integration**
+   - Wallet connectivity
+   - DeFi protocol integration
+   - On-chain data analysis
+   - Cross-chain asset tracking
 
-### 3.3 AI and ML Capabilities
+### Security Requirements
 
-#### 3.3.1 AI Trading Dashboard
-- **Must Have:** AI-generated trading signals
-- **Must Have:** Real-time market sentiment analysis
-- **Must Have:** Performance metrics for AI predictions
-- **Should Have:** Customizable AI strategy parameters
-- **Should Have:** Backtesting capabilities for AI strategies
+1. **Authentication**
+   - Secure user authentication
+   - API key management
+   - Two-factor authentication
+   - Session management
 
-#### 3.3.2 Local AI Model Integration (MCP)
-- **Must Have:** Local model connection interface
-- **Must Have:** Model training on historical data
-- **Must Have:** Real-time inference capabilities
-- **Must Have:** Performance monitoring for models
-- **Should Have:** Model version control and comparison
+2. **Data Protection**
+   - Encrypted storage of sensitive data
+   - Secure API communication
+   - Privacy controls for user data
+   - Compliance with data regulations
 
-#### 3.3.3 AI Model Types
-- **Must Have:** Price prediction models
-- **Must Have:** Pattern recognition enhancers
-- **Must Have:** Sentiment analysis models
-- **Should Have:** Strategy optimization models
-- **Could Have:** Risk management models
+### Performance Requirements
 
-### 3.4 User Experience
+1. **Speed and Efficiency**
+   - Fast page load times
+   - Real-time data updates
+   - Efficient resource usage
+   - Mobile-friendly performance
 
-#### 3.4.1 Interface
-- **Must Have:** Responsive design for all devices
-- **Must Have:** Customizable dashboard layouts
-- **Must Have:** Dark/light mode with theme options
-- **Should Have:** Keyboard shortcuts for power users
-- **Could Have:** Accessibility features for diverse users
+2. **Reliability**
+   - Consistent uptime
+   - Graceful error handling
+   - Fallback mechanisms for API failures
+   - Data integrity protections
 
-#### 3.4.2 Notifications and Alerts
-- **Must Have:** Price alerts via in-app notifications
-- **Must Have:** Trading signals notifications
-- **Should Have:** Email alert options
-- **Should Have:** Custom alert conditions
-- **Could Have:** Mobile push notifications
+## Non-Functional Requirements
 
-### 3.5 Integration and Connectivity
+1. **Usability**
+   - Intuitive interface
+   - Responsive design for all devices
+   - Accessibility compliance
+   - Contextual help and tutorials
 
-#### 3.5.1 Exchange Connectivity
-- **Must Have:** Data integration with major exchanges
-- **Must Have:** API key management
-- **Should Have:** Direct trading via exchange APIs
-- **Could Have:** FIX protocol support for institutional users
+2. **Scalability**
+   - Support for growing user base
+   - Performance under load
+   - Efficient data handling for large portfolios
+   - Adaptable architecture
 
-#### 3.5.2 External Tools
-- **Must Have:** Data export capabilities (CSV, JSON)
-- **Should Have:** TradingView chart integration
-- **Could Have:** Integration with external portfolio trackers
+3. **Maintainability**
+   - Modular codebase
+   - Comprehensive documentation
+   - Testing framework
+   - Version control
 
-## 4. Non-Functional Requirements
+4. **Localization**
+   - Multi-currency support with focus on AUD
+   - Language localization capabilities
+   - Regional compliance considerations
+   - Time zone management
 
-### 4.1 Performance
-- Real-time data updates with < 500ms latency
-- Chart rendering performance optimization
-- Support for handling large historical datasets
-- Efficient memory management for mobile devices
+## Success Metrics
 
-### 4.2 Security
-- Secure API key storage
-- No storage of private keys or seeds
-- End-to-end encryption for sensitive data
-- Regular security audits and updates
+1. **User Engagement**
+   - Daily active users
+   - Session duration
+   - Feature utilization
+   - Return rate
 
-### 4.3 Privacy
-- Local processing of sensitive trading data
-- Opt-in only data sharing
-- Compliance with GDPR and other privacy regulations
-- Transparent data usage policies
+2. **Trading Performance**
+   - Trade volume
+   - Strategy performance
+   - AI model accuracy
+   - Portfolio growth
 
-### 4.4 Reliability
-- 99.9% uptime for core platform functions
-- Graceful degradation during API outages
-- Comprehensive error handling and user feedback
-- Data backup and recovery mechanisms
+3. **System Performance**
+   - API response times
+   - Page load speed
+   - Error rate
+   - Uptime percentage
 
-## 5. Technical Requirements
+## Implementation Priority
 
-### 5.1 Frontend
-- React with TypeScript for component development
-- Tailwind CSS for styling with component library support
-- Recharts and Nivo for data visualization
-- State management via Context API or Redux
-- WebSocket support for real-time data
+1. **High Priority**
+   - Core trading interface
+   - Real-time data integration
+   - Portfolio tracking
+   - Basic AI trading functionality
+   - Authentication system
 
-### 5.2 Backend Integration
-- REST API integration with multiple data providers
-- WebSocket connections for real-time updates
-- Secure credential management
-- Rate limiting and request optimization
+2. **Medium Priority**
+   - Advanced AI strategies
+   - API management tools
+   - News and sentiment analysis
+   - Web3 wallet integration
+   - Performance analytics
 
-### 5.3 AI and Data Processing
-- Local model training capabilities
-- Efficient data pipelines for model inference
-- Time-series data processing optimizations
-- Technical indicator calculation library
+3. **Low Priority**
+   - Social features
+   - Advanced charting tools
+   - Mobile optimizations
+   - Additional exchange integrations
+   - Enhanced notification system
 
-## 6. Constraints and Assumptions
+## Constraints and Assumptions
 
-### 6.1 Constraints
-- API rate limits from third-party data providers
-- Browser limitations for WebSocket connections
-- Mobile device performance constraints
-- Regulatory limitations in certain jurisdictions
+1. **Technical Constraints**
+   - Browser compatibility requirements
+   - API rate limits from external providers
+   - Data storage limitations
+   - Processing power for AI models
 
-### 6.2 Assumptions
-- Users have basic knowledge of cryptocurrency trading
-- Users provide their own exchange API keys
-- Internet connectivity is generally available
-- Users have moderate technical proficiency
+2. **Business Constraints**
+   - Regulatory compliance requirements
+   - API licensing costs
+   - User privacy concerns
+   - Market volatility considerations
 
-## 7. Success Metrics
+3. **Assumptions**
+   - Users have basic understanding of cryptocurrency trading
+   - Internet connectivity is generally reliable
+   - External APIs maintain consistent interfaces
+   - Market data is available 24/7
 
-### 7.1 Technical Metrics
-- Platform load time < 3 seconds
-- Real-time data latency < 500ms
-- Chart rendering performance < 100ms
-- API failure rate < 0.1%
-
-### 7.2 User Engagement Metrics
-- Daily active user growth
-- Feature usage distribution
-- User retention rate
-- Session duration and frequency
-
-### 7.3 Trading Performance Metrics
-- AI model prediction accuracy
-- Portfolio performance vs benchmarks
-- Alert effectiveness rate
-- Trading strategy success rate
-
-## 8. Milestone Plan
-
-### Phase 1: Core Platform (Q2 2025)
-- Basic trading interface
-- Real-time market data
-- Portfolio tracking
-- Standard technical analysis
-
-### Phase 2: Advanced Features (Q3 2025)
-- Institutional-grade tools
-- Enhanced technical analysis
-- Basic AI trading signals
-- Multi-exchange support
-
-### Phase 3: AI Capabilities (Q4 2025)
-- Full AI trading dashboard
-- Local model integration (MCP)
-- Advanced pattern recognition
-- Strategy optimization tools
-
-### Phase 4: Enterprise Features (Q1 2026)
-- Multi-user support
-- Enhanced security features
-- Institutional compliance tools
-- Advanced API integrations
-
-## 9. Approval
-
-This PRD is subject to review and approval by the product and development teams before implementation begins.
+This PRD serves as a living document and will be updated as requirements evolve during the development process.
