@@ -1,32 +1,16 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertFormData } from '@/types/alerts';
-
-interface PriceAlertFormData {
-  coin: string;
-  threshold: number;
-  direction: 'above' | 'below';
-  notify: boolean;
-}
-
-interface VolumeAlertFormData {
-  coin: string;
-  threshold: number;
-  notify: boolean;
-}
 
 interface AlertFormSheetProps {
   formData: AlertFormData;
@@ -34,68 +18,61 @@ interface AlertFormSheetProps {
   onSubmit: () => void;
 }
 
-export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ 
+const AlertFormSheet: React.FC<AlertFormSheetProps> = ({ 
   formData, 
   onFormChange, 
   onSubmit 
 }) => {
-  const [priceAlertFormData, setPriceAlertFormData] = useState<PriceAlertFormData>({
-    coin: '',
-    threshold: 0,
-    direction: 'above',
-    notify: false,
-  });
+  const { toast } = useToast();
 
-  const [volumeAlertFormData, setVolumeAlertFormData] = useState<VolumeAlertFormData>({
-    coin: '',
-    threshold: 0,
-    notify: false,
-  });
-
-  const handlePriceAlertChange = (data: Partial<PriceAlertFormData>) => {
-    setPriceAlertFormData(prevState => ({
-      ...prevState,
-      ...data
-    }));
-  };
-
-  const handleVolumeAlertChange = (data: Partial<VolumeAlertFormData>) => {
-    setVolumeAlertFormData(prevState => ({
-      ...prevState,
-      ...data
-    }));
-  };
-
-  const handleCreatePriceAlert = () => {
-    if (!priceAlertFormData.coin || priceAlertFormData.threshold <= 0) {
+  const validateForm = () => {
+    if (!formData.coinId) {
       toast({
         title: "Error",
-        description: "Please fill in all fields with valid values.",
+        description: "Please select a cryptocurrency",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
-    toast({
-      title: "Success",
-      description: `Price alert created for ${priceAlertFormData.coin} when price goes ${priceAlertFormData.direction} ${priceAlertFormData.threshold}.`,
-    });
-  };
-
-  const handleCreateVolumeAlert = () => {
-    if (!volumeAlertFormData.coin || volumeAlertFormData.threshold <= 0) {
+    if (formData.type === 'price' && !formData.targetPrice) {
       toast({
         title: "Error",
-        description: "Please fill in all fields with valid values.",
+        description: "Please enter a price threshold",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
-    toast({
-      title: "Success",
-      description: `Volume alert created for ${volumeAlertFormData.coin} when volume exceeds ${volumeAlertFormData.threshold}.`,
-    });
+    if (formData.type === 'volume' && !formData.volumeThreshold) {
+      toast({
+        title: "Error",
+        description: "Please enter a volume threshold",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (formData.type === 'technical' && (!formData.indicator || !formData.condition || !formData.value)) {
+      toast({
+        title: "Error",
+        description: "Please fill in all technical indicator details",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSubmit();
+      toast({
+        title: "Success",
+        description: `Alert created for ${formData.coinName}`,
+      });
+    }
   };
 
   return (
@@ -149,13 +126,13 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
         
         {formData.type === 'price' && (
           <>
-            <Label htmlFor="priceThreshold">Price Threshold</Label>
+            <Label htmlFor="targetPrice">Price Threshold</Label>
             <Input
-              id="priceThreshold"
+              id="targetPrice"
               type="number" 
               placeholder="Enter price threshold"
-              value={formData.priceThreshold?.toString() || ''}
-              onChange={(e) => onFormChange({ priceThreshold: parseFloat(e.target.value) })}
+              value={formData.targetPrice?.toString() || ''}
+              onChange={(e) => onFormChange({ targetPrice: parseFloat(e.target.value) })}
             />
             
             <div className="flex items-center space-x-2">
@@ -280,7 +257,7 @@ export const AlertFormSheet: React.FC<AlertFormSheetProps> = ({
       </div>
       
       <div className="flex justify-end mt-4">
-        <Button onClick={onSubmit}>
+        <Button onClick={handleSubmit}>
           Create Alert
         </Button>
       </div>

@@ -7,18 +7,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { SettingsComponentProps } from './types';
 
-interface TickerPreferences {
-  enabled: boolean;
-  position: 'top' | 'bottom';
-  direction: 'ltr' | 'rtl';
-  speed: number;
-  autoPause: boolean;
-  coins?: string[];
-}
-
 const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  // Initialize tickerPreferences if it doesn't exist
-  const ensureTickerPreferences = (): TickerPreferences => {
+  // Initialize ticker if it doesn't exist
+  const ensureTicker = () => {
     const current = form.getValues();
     if (!current.ticker) {
       form.setValue("ticker", {
@@ -30,7 +21,7 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         coins: ['BTC', 'ETH', 'SOL', 'USDT', 'BNB']
       });
     }
-    return current.ticker as TickerPreferences || {
+    return current.ticker || {
       enabled: true,
       position: 'top',
       direction: 'ltr',
@@ -40,12 +31,12 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
     };
   };
 
-  ensureTickerPreferences();
+  ensureTicker();
   
-  const updateTickerPreferences = (updateData: Partial<TickerPreferences>) => {
-    const currentPrefs = ensureTickerPreferences();
+  const updateTicker = (updateData: Partial<typeof ensureTicker>) => {
+    const currentTicker = ensureTicker();
     form.setValue("ticker", {
-      ...currentPrefs,
+      ...currentTicker,
       ...updateData
     });
   };
@@ -60,9 +51,9 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <Label htmlFor="ticker-enabled">Show Price Ticker</Label>
           <Switch 
             id="ticker-enabled" 
-            checked={form.watch("ticker.enabled")} 
+            checked={form.watch("ticker.enabled") || false} 
             onCheckedChange={(checked) => {
-              updateTickerPreferences({ enabled: checked });
+              updateTicker({ enabled: checked });
             }}
           />
         </div>
@@ -70,9 +61,9 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         <div className="space-y-2">
           <Label>Ticker Position</Label>
           <RadioGroup 
-            value={form.watch("ticker.position")} 
+            value={form.watch("ticker.position") || 'top'} 
             onValueChange={(value) => {
-              updateTickerPreferences({ position: value as 'top' | 'bottom' });
+              updateTicker({ position: value as 'top' | 'bottom' });
             }}
             className="flex space-x-4"
           >
@@ -90,15 +81,15 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         <div className="space-y-4">
           <div>
             <div className="flex justify-between mb-2">
-              <Label>Ticker Speed: {form.watch("ticker.speed")}</Label>
+              <Label>Ticker Speed: {form.watch("ticker.speed") || 5}</Label>
             </div>
             <Slider
-              value={[form.watch("ticker.speed")]}
+              value={[form.watch("ticker.speed") || 5]}
               min={1}
               max={10}
               step={1}
               onValueChange={(value) => {
-                updateTickerPreferences({ speed: value[0] });
+                updateTicker({ speed: value[0] });
               }}
             />
             <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -111,9 +102,9 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         <div className="space-y-2">
           <Label>Scroll Direction</Label>
           <RadioGroup 
-            value={form.watch("ticker.direction")} 
+            value={form.watch("ticker.direction") || 'ltr'} 
             onValueChange={(value) => {
-              updateTickerPreferences({ direction: value as 'ltr' | 'rtl' });
+              updateTicker({ direction: value as 'ltr' | 'rtl' });
             }}
             className="flex space-x-4"
           >
@@ -137,9 +128,9 @@ const TickerSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           </div>
           <Switch 
             id="ticker-autopause" 
-            checked={form.watch("ticker.autoPause")} 
+            checked={form.watch("ticker.autoPause") || false} 
             onCheckedChange={(checked) => {
-              updateTickerPreferences({ autoPause: checked });
+              updateTicker({ autoPause: checked });
             }}
           />
         </div>

@@ -23,7 +23,7 @@ export const useAlerts = () => {
     localStorage.setItem('crypto-alerts', JSON.stringify(alerts));
   }, [alerts]);
 
-  const addAlert = (formData: AlertFormData) => {
+  const addAlert = (formData: AlertFormData): AlertData => {
     const now = new Date().toISOString();
     let newAlert: AlertData;
 
@@ -31,25 +31,52 @@ export const useAlerts = () => {
     switch (formData.type) {
       case 'price':
         newAlert = {
-          ...formData,
           id: uuidv4(),
+          type: 'price',
+          coinId: formData.coinId,
+          coinName: formData.coinName,
+          coinSymbol: formData.coinSymbol,
+          enabled: formData.enabled,
+          notifyVia: formData.notifyVia,
+          frequency: formData.frequency,
           createdAt: now,
+          targetPrice: formData.targetPrice || 0,
+          isAbove: formData.isAbove || false,
+          recurring: formData.recurring || false,
+          percentageChange: formData.percentageChange || 0
         } as PriceAlert;
         break;
       
       case 'volume':
         newAlert = {
-          ...formData,
           id: uuidv4(),
+          type: 'volume',
+          coinId: formData.coinId,
+          coinName: formData.coinName,
+          coinSymbol: formData.coinSymbol,
+          enabled: formData.enabled,
+          notifyVia: formData.notifyVia,
+          frequency: formData.frequency,
           createdAt: now,
+          volumeThreshold: formData.volumeThreshold || 0
         } as VolumeAlert;
         break;
       
       case 'technical':
         newAlert = {
-          ...formData,
           id: uuidv4(),
+          type: 'technical',
+          coinId: formData.coinId,
+          coinName: formData.coinName,
+          coinSymbol: formData.coinSymbol,
+          enabled: formData.enabled,
+          notifyVia: formData.notifyVia,
+          frequency: formData.frequency,
           createdAt: now,
+          indicator: formData.indicator || '',
+          condition: formData.condition || '',
+          value: formData.value || 0,
+          timeframe: formData.timeframe
         } as TechnicalAlert;
         break;
       

@@ -1,33 +1,29 @@
 
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { Toaster } from "@/components/ui/toaster";
-
-// Import pages directly from their files
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import CustomDashboard from "./pages/CustomDashboard";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import AppLayout from "./components/layout/AppLayout";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import Dashboard from '@/pages/Dashboard';
+import Settings from '@/pages/Settings';
+import TradingDashboard from '@/components/TradingDashboard';
+import AiTradingBots from '@/pages/AiTradingBots';
+import { Toaster } from '@/components/ui/toaster';
+import Layout from '@/components/Layout';
+import AiChatAssistant from '@/components/AiChatAssistant';
 
 function App() {
   return (
-    <CurrencyProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <Layout>
         <Routes>
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<Index />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="custom-dashboard" element={<CustomDashboard />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/trading" element={<TradingDashboard />} />
+          <Route path="/ai-trading" element={<AiTradingBots />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
-      </BrowserRouter>
-      <Toaster />
-    </CurrencyProvider>
+        <AiChatAssistant />
+        <Toaster />
+      </Layout>
+    </ThemeProvider>
   );
 }
 

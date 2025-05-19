@@ -253,3 +253,15 @@ export interface ApiProvider {
   apiKey?: string;
   rateLimit?: number;
 }
+
+export interface WalletProvider {
+  id: string;
+  name: string;
+  logo?: string;
+  description: string;
+  icon: string;
+  supported: boolean;
+  isInstalled?: boolean;
+  isConnected?: boolean;
+  supportedChains?: string[];
+}
