@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -176,7 +175,7 @@ export const RealTimeMarketAnalytics: React.FC<AnalyticsProps> = ({ refreshInter
                       <span className="text-xs">Model source:</span>
                       <div className="flex items-center space-x-1">
                         <Button
-                          size="xs"
+                          size="sm"
                           variant={aiModelSource === 'local' ? 'default' : 'outline'}
                           className="h-6 text-xs"
                           onClick={() => setAiModelSource('local')}
@@ -184,7 +183,7 @@ export const RealTimeMarketAnalytics: React.FC<AnalyticsProps> = ({ refreshInter
                           Local
                         </Button>
                         <Button
-                          size="xs"
+                          size="sm"
                           variant={aiModelSource === 'cloud' ? 'default' : 'outline'}
                           className="h-6 text-xs"
                           onClick={() => setAiModelSource('cloud')}
@@ -365,7 +364,7 @@ export const RealTimeMarketAnalytics: React.FC<AnalyticsProps> = ({ refreshInter
                     <Tooltip />
                     <Bar 
                       dataKey="histogram" 
-                      fill={(entry) => entry.histogram >= 0 ? '#10b981' : '#ef4444'}
+                      fill="#10b981"
                     />
                   </BarChart>
                 </ResponsiveContainer>

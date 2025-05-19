@@ -1,9 +1,10 @@
+
 import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { useAlerts } from "@/hooks/use-alerts";
-import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
+import AlertFormSheet from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { 

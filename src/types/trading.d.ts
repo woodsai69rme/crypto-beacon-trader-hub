@@ -39,12 +39,7 @@ export interface AITradingStrategy {
   riskLevel: 'low' | 'medium' | 'high';
   parameters?: any;
   indicators?: string[];
-  performance?: {
-    accuracy?: number;
-    returns?: number;
-    sharpeRatio?: number;
-    maxDrawdown?: number;
-  };
+  performance?: AIStrategyPerformance;
 }
 
 export interface TradingAccount {

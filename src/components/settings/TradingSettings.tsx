@@ -52,7 +52,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   ensureTradingPreferences();
 
   const updateTradingPreferences = (updateData: Partial<TradingPreferences>) => {
-    const currentPrefs = ensureTradingPreferences();
+    const currentPrefs = form.getValues().tradingPreferences || ensureTradingPreferences();
     form.setValue("tradingPreferences", {
       ...currentPrefs,
       ...updateData
@@ -97,6 +97,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                   checked={form.watch("tradingPreferences.showAdvanced")} 
                   onCheckedChange={(checked) => {
                     updateTradingPreferences({
+                      autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
                       showAdvanced: checked
                     });
                   }}
@@ -114,6 +115,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               value={form.watch("tradingPreferences.defaultAsset")} 
               onValueChange={(value) => {
                 updateTradingPreferences({
+                  autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
                   defaultAsset: value
                 });
               }}
@@ -142,6 +144,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               value={form.watch("tradingPreferences.riskLevel")} 
               onValueChange={(value: "low" | "medium" | "high") => {
                 updateTradingPreferences({
+                  autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
                   riskLevel: value
                 });
               }}
@@ -174,6 +177,7 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value)) {
                     updateTradingPreferences({
+                      autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
                       defaultTradeSize: value
                     });
                   }

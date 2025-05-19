@@ -1,12 +1,10 @@
+
 import axios, { AxiosInstance } from 'axios';
 import { ApiProvider, ApiEndpoint } from '@/types/trading';
-import { coinGeckoProvider } from './api/apiProviderConfig';
+import { defaultProviders } from './apiProviderConfig';
 
-// Mock API providers for demonstration
-let providers: ApiProvider[] = [
-  coinGeckoProvider,
-  // Add more providers here
-];
+// Use default providers as initial providers
+let providers: ApiProvider[] = [...defaultProviders];
 
 // Generic function to make API requests
 async function makeApiRequest(
@@ -61,7 +59,7 @@ async function makeApiRequest(
   }
 }
 
-// Add the missing methods to the provider manager
+// Provider manager with complete methods
 const providerManager = {
   getAllProviders: () => [...providers],
   getProviderById: (id: string) => providers.find(p => p.id === id) || providers[0],
