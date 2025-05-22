@@ -92,7 +92,7 @@ export const useAlerts = () => {
         } as TechnicalAlert;
         break;
       default:
-        throw new Error(`Unknown alert type: ${formData.type}`);
+        throw new Error(`Unknown alert type: ${(formData as any).type}`);
     }
 
     setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
@@ -124,6 +124,10 @@ export const useAlerts = () => {
     );
   };
 
+  // Add these aliases for backward compatibility
+  const addAlert = createAlert;
+  const removeAlert = deleteAlert;
+
   return {
     alerts,
     isLoading,
@@ -132,6 +136,9 @@ export const useAlerts = () => {
     deleteAlert,
     getAlertById,
     filterAlerts,
+    // Add these aliases for backward compatibility
+    addAlert,
+    removeAlert
   };
 };
 

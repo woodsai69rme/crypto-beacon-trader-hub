@@ -1,10 +1,10 @@
 
-import { NotificationMethod, AlertFrequency, BaseAlert, PriceAlert, VolumeAlert, TechnicalAlert, AlertData, BaseAlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts.d';
-
 export type AlertType = 'price' | 'volume' | 'technical';
 export type AlertFormData = PriceAlertFormData | VolumeAlertFormData | TechnicalAlertFormData;
 
-export const createEmptyAlertFormData = (): AlertFormData => ({
+import { NotificationMethod, AlertFrequency, BaseAlert, PriceAlert, VolumeAlert, TechnicalAlert, AlertData, BaseAlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts.d';
+
+export const createEmptyAlertFormData = (): PriceAlertFormData => ({
   type: 'price',
   coinId: '',
   coinName: '',

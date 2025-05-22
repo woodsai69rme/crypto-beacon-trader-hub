@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -12,7 +13,7 @@ import { Plus, Bell, Pencil, Trash2 } from 'lucide-react';
 import { useAlerts } from '@/hooks/use-alerts';
 import { AlertBadge } from '@/components/widgets/AlertComponents/AlertBadge';
 import { AlertHeader } from '@/components/widgets/AlertComponents/AlertHeader';
-import { AlertForm } from '@/components/widgets/AlertComponents/AlertForm';
+import AlertForm from '@/components/widgets/AlertComponents/AlertForm';
 import {
   Table,
   TableBody,
@@ -27,13 +28,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "@/components/ui/use-toast"
 import { AlertData } from '@/types/alerts';
 
 const EnhancedAlertSystem: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"price" | "technical">("price");
-  const { alerts, addAlert, removeAlert, updateAlert } = useAlerts();
+  const { alerts, createAlert, deleteAlert, updateAlert } = useAlerts();
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<AlertData | null>(null);
 
@@ -50,11 +51,11 @@ const EnhancedAlertSystem: React.FC = () => {
   };
 
   const handleAddAlert = (alertData: any) => {
-    addAlert(alertData);
+    createAlert(alertData);
     toast({
       title: "Alert Created",
       description: `New ${alertData.type} alert for ${alertData.coinName} has been created.`,
-    })
+    });
   };
 
   const handleUpdateAlert = (alertId: string, updates: Partial<AlertData>) => {
@@ -62,15 +63,15 @@ const EnhancedAlertSystem: React.FC = () => {
     toast({
       title: "Alert Updated",
       description: `Alert ${alertId} has been updated successfully.`,
-    })
+    });
   };
 
   const handleRemoveAlert = (alertId: string) => {
-    removeAlert(alertId);
+    deleteAlert(alertId);
     toast({
       title: "Alert Removed",
       description: `Alert ${alertId} has been removed.`,
-    })
+    });
   };
 
   const handleEditAlert = (alert: AlertData) => {
@@ -84,7 +85,7 @@ const EnhancedAlertSystem: React.FC = () => {
     toast({
       title: "Alert Status Changed",
       description: `Alert ${alertId} has been ${enabled ? 'disabled' : 'enabled'}.`,
-    })
+    });
   };
 
   const activeAlertsCount = alerts.filter(alert => alert.enabled).length;

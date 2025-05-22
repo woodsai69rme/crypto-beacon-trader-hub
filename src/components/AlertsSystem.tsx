@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import {
 } from "@/types/alerts";
 
 const AlertsSystem = () => {
-  const { alerts, addAlert, removeAlert } = useAlerts();
+  const { alerts, createAlert, deleteAlert } = useAlerts();
   const [formData, setFormData] = useState<AlertFormData>({
     type: 'price',
     coinId: '',
@@ -49,7 +48,7 @@ const AlertsSystem = () => {
 
   const handleSubmit = () => {
     if (formData.coinId) {
-      addAlert(formData);
+      createAlert(formData);
       resetForm();
       setIsOpen(false);
     }
@@ -100,7 +99,7 @@ const AlertsSystem = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAlert(alert.id || '')}
+                    onClick={() => deleteAlert(alert.id)}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>

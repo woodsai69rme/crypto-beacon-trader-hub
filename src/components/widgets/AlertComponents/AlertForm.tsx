@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertFormData, NotificationMethod, AlertFrequency } from '@/types/alerts';
+import { AlertFormData, NotificationMethod, AlertFrequency, AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,39 +8,86 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface AlertFormProps {
-  formData: AlertFormData;
-  onChange: (data: Partial<AlertFormData>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  formData?: AlertFormData;
+  onChange?: (data: Partial<AlertFormData>) => void;
+  onSubmit?: (e: React.FormEvent) => void;
   isSubmitting?: boolean;
+  onClose?: () => void;
+  isEditMode?: boolean;
+  selectedAlert?: AlertData | null;
 }
 
 const AlertForm: React.FC<AlertFormProps> = ({
-  formData,
+  formData: propFormData,
   onChange,
-  onSubmit,
-  isSubmitting = false
+  onSubmit: propOnSubmit,
+  isSubmitting = false,
+  onClose,
+  isEditMode = false,
+  selectedAlert = null
 }) => {
-  const handleChange = (field: keyof AlertFormData, value: any) => {
-    onChange({ [field]: value });
+  const [internalFormData, setInternalFormData] = React.useState<AlertFormData>({
+    type: 'price',
+    coinId: '',
+    coinName: '',
+    coinSymbol: '',
+    enabled: true,
+    notifyVia: ['app'],
+    frequency: 'once'
+  });
+  
+  React.useEffect(() => {
+    if (propFormData) {
+      setInternalFormData(propFormData);
+    } else if (selectedAlert && isEditMode) {
+      // When in edit mode, populate form with selected alert data
+      const alertData = { ...selectedAlert } as any;
+      setInternalFormData(alertData);
+    }
+  }, [propFormData, selectedAlert, isEditMode]);
+
+  const handleChange = (field: string, value: any) => {
+    const updatedData = { ...internalFormData, [field]: value };
+    setInternalFormData(updatedData);
+    if (onChange) {
+      onChange(updatedData);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isEditMode && selectedAlert) {
+      // If in edit mode, call onSubmit with alert ID and updates
+      if (onSubmit) {
+        onSubmit(selectedAlert.id, internalFormData);
+      }
+    } else {
+      // For new alerts
+      if (propOnSubmit) {
+        propOnSubmit(e);
+      }
+    }
+    if (onClose) {
+      onClose();
+    }
   };
 
   const handleNotificationMethodChange = (method: NotificationMethod, isChecked: boolean) => {
     const updatedMethods = isChecked
-      ? [...(formData.notifyVia || []), method]
-      : (formData.notifyVia || []).filter(m => m !== method);
+      ? [...(internalFormData.notifyVia || []), method]
+      : (internalFormData.notifyVia || []).filter(m => m !== method);
 
-    onChange({ notifyVia: updatedMethods });
+    handleChange('notifyVia', updatedMethods);
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="alertType">Alert Type</Label>
         <Select
-          value={formData.type}
+          value={internalFormData.type}
           onValueChange={(value: 'price' | 'volume' | 'technical') => handleChange('type', value)}
         >
           <SelectTrigger id="alertType">
@@ -54,14 +101,14 @@ const AlertForm: React.FC<AlertFormProps> = ({
         </Select>
       </div>
 
-      {formData.type === 'price' && (
+      {internalFormData.type === 'price' && (
         <div className="space-y-4">
           <div>
             <Label htmlFor="targetPrice">Target Price</Label>
             <Input
               id="targetPrice"
               type="number"
-              value={formData.targetPrice || ''}
+              value={internalFormData.targetPrice || ''}
               onChange={(e) => handleChange('targetPrice', parseFloat(e.target.value))}
               placeholder="Enter target price"
             />
@@ -70,7 +117,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div className="flex items-center space-x-2">
             <Label htmlFor="isAbove">When price is:</Label>
             <RadioGroup
-              value={formData.isAbove ? 'above' : 'below'}
+              value={internalFormData.isAbove ? 'above' : 'below'}
               onValueChange={(value) => handleChange('isAbove', value === 'above')}
             >
               <div className="flex items-center space-x-2">
@@ -88,20 +135,20 @@ const AlertForm: React.FC<AlertFormProps> = ({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="recurring"
-                checked={formData.recurring}
+                checked={internalFormData.recurring}
                 onCheckedChange={(checked) => handleChange('recurring', !!checked)}
               />
               <Label htmlFor="recurring">Recurring alert</Label>
             </div>
           </div>
 
-          {formData.recurring && (
+          {internalFormData.recurring && (
             <div>
               <Label htmlFor="percentageChange">Percentage Change (%)</Label>
               <Input
                 id="percentageChange"
                 type="number"
-                value={formData.percentageChange || ''}
+                value={internalFormData.percentageChange || ''}
                 onChange={(e) => handleChange('percentageChange', parseFloat(e.target.value))}
                 placeholder="Enter percentage"
               />
@@ -110,25 +157,25 @@ const AlertForm: React.FC<AlertFormProps> = ({
         </div>
       )}
 
-      {formData.type === 'volume' && (
+      {internalFormData.type === 'volume' && (
         <div>
           <Label htmlFor="volumeThreshold">Volume Threshold</Label>
           <Input
             id="volumeThreshold"
             type="number"
-            value={formData.volumeThreshold || ''}
+            value={internalFormData.volumeThreshold || ''}
             onChange={(e) => handleChange('volumeThreshold', parseFloat(e.target.value))}
             placeholder="Enter volume threshold"
           />
         </div>
       )}
 
-      {formData.type === 'technical' && (
+      {internalFormData.type === 'technical' && (
         <div className="space-y-4">
           <div>
             <Label htmlFor="indicator">Technical Indicator</Label>
             <Select
-              value={formData.indicator || ''}
+              value={internalFormData.indicator || ''}
               onValueChange={(value) => handleChange('indicator', value)}
             >
               <SelectTrigger id="indicator">
@@ -146,7 +193,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div>
             <Label htmlFor="condition">Condition</Label>
             <Select
-              value={formData.condition || ''}
+              value={internalFormData.condition || ''}
               onValueChange={(value) => handleChange('condition', value)}
             >
               <SelectTrigger id="condition">
@@ -166,7 +213,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
             <Input
               id="value"
               type="number"
-              value={formData.value || ''}
+              value={internalFormData.value || ''}
               onChange={(e) => handleChange('value', parseFloat(e.target.value))}
               placeholder="Enter value"
             />
@@ -175,7 +222,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div>
             <Label htmlFor="timeframe">Timeframe</Label>
             <Select
-              value={formData.timeframe || ''}
+              value={internalFormData.timeframe || ''}
               onValueChange={(value) => handleChange('timeframe', value)}
             >
               <SelectTrigger id="timeframe">
@@ -200,7 +247,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="notify-app"
-              checked={formData.notifyVia?.includes('app')}
+              checked={internalFormData.notifyVia?.includes('app')}
               onCheckedChange={(checked) => handleNotificationMethodChange('app', !!checked)}
             />
             <Label htmlFor="notify-app">In-app</Label>
@@ -208,7 +255,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="notify-email"
-              checked={formData.notifyVia?.includes('email')}
+              checked={internalFormData.notifyVia?.includes('email')}
               onCheckedChange={(checked) => handleNotificationMethodChange('email', !!checked)}
             />
             <Label htmlFor="notify-email">Email</Label>
@@ -216,7 +263,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="notify-push"
-              checked={formData.notifyVia?.includes('push')}
+              checked={internalFormData.notifyVia?.includes('push')}
               onCheckedChange={(checked) => handleNotificationMethodChange('push', !!checked)}
             />
             <Label htmlFor="notify-push">Push</Label>
@@ -227,7 +274,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
       <div>
         <Label htmlFor="frequency">Alert Frequency</Label>
         <Select
-          value={formData.frequency || 'once'}
+          value={internalFormData.frequency || 'once'}
           onValueChange={(value: AlertFrequency) => handleChange('frequency', value)}
         >
           <SelectTrigger id="frequency">
@@ -244,14 +291,14 @@ const AlertForm: React.FC<AlertFormProps> = ({
       <div className="flex items-center space-x-2">
         <Switch
           id="enabled"
-          checked={formData.enabled}
+          checked={internalFormData.enabled}
           onCheckedChange={(checked) => handleChange('enabled', checked)}
         />
         <Label htmlFor="enabled">Enable Alert</Label>
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting...' : 'Create Alert'}
+        {isSubmitting ? 'Submitting...' : isEditMode ? 'Update Alert' : 'Create Alert'}
       </Button>
     </form>
   );
