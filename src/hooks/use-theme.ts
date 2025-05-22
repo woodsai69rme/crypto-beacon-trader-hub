@@ -3,9 +3,11 @@ import { useContext } from 'react';
 import { ThemeContext } from '@/contexts/ThemeContext';
 
 export const useTheme = () => {
-  const theme = useContext(ThemeContext);
-  if (!theme) {
+  const context = useContext(ThemeContext);
+  
+  if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  return theme;
+  
+  return context;
 };

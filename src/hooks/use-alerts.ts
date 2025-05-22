@@ -95,7 +95,7 @@ export const useAlerts = () => {
   const updateAlert = (alertId: string, updates: Partial<AlertData>) => {
     setAlerts(prevAlerts => 
       prevAlerts.map(alert => 
-        alert.id === alertId ? { ...alert, ...updates } : alert
+        alert.id === alertId ? { ...alert, ...updates } as AlertData : alert
       )
     );
   };

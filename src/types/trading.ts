@@ -385,19 +385,15 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: string;
-  timeframe?: string;
   riskLevel: 'low' | 'medium' | 'high';
   parameters?: Record<string, any>;
   indicators?: string[];
   performance?: {
     winRate?: number;
-    profitFactor?: number;
-    totalTrades?: number;
-    averageProfit?: number;
-    maxDrawdown?: number;
-    accuracy?: number;
-    returns?: number;
+    profitLoss?: number;
     sharpeRatio?: number;
+    maxDrawdown?: number;
+    totalTrades?: number;
   };
 }
 

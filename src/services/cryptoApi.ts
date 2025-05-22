@@ -1,4 +1,3 @@
-
 import { CryptoData, CryptoChartData } from '@/types/trading';
 
 // Mock data for Bitcoin price history
@@ -216,4 +215,25 @@ export const getTrendingCoins = async (): Promise<CryptoData[]> => {
       image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png'
     }
   ];
+};
+
+export const getCoinHistory = async (coinId: string, days: string | number = '7d') => {
+  // Implementation based on your API structure
+  try {
+    const response = await fetch(`/api/coins/${coinId}/market_chart?days=${days}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching coin history:', error);
+    throw error;
+  }
+};
+
+export const getTopCoins = async (limit: number = 10) => {
+  try {
+    const response = await fetch(`/api/coins/markets?limit=${limit}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching top coins:', error);
+    throw error;
+  }
 };

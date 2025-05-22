@@ -23,7 +23,7 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
+export const ThemeContext = createContext<ThemeContextType>({
   theme: 'dark',
   colorScheme: 'default',
   setTheme: () => {},
@@ -50,18 +50,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
   // Initialize theme from localStorage or default to system
   const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'dark';
     const storedTheme = localStorage.getItem(`${storageKey}-mode`);
     return (storedTheme as Theme) || 'dark';
   });
 
   // Initialize color scheme from localStorage or default
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+    if (typeof window === 'undefined') return 'default';
     const storedScheme = localStorage.getItem(`${storageKey}-color`);
     return (storedScheme as ColorScheme) || 'default';
   });
 
   // Update localStorage and document classes when theme changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem(`${storageKey}-mode`, theme);
     
     const root = window.document.documentElement;
@@ -80,6 +84,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   
   // Update localStorage and document classes when color scheme changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem(`${storageKey}-color`, colorScheme);
     
     const root = window.document.documentElement;
