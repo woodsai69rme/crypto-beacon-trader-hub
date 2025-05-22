@@ -1,7 +1,9 @@
-
 import axios, { AxiosInstance } from 'axios';
-import { ApiProvider, ApiEndpoint } from '@/types/trading';
-import { defaultProviders } from './apiProviderConfig';
+import { ApiProvider, ApiEndpoint } from '@/types/api';
+import apiProviders from './apiProviderConfig';
+
+// Fixed import - using the default export from apiProviderConfig
+const defaultProviders = apiProviders;
 
 // Use default providers as initial providers
 let providers: ApiProvider[] = [...defaultProviders];
@@ -95,6 +97,55 @@ const providerManager = {
     return providers.find(p => p.enabled) || providers[0];
   },
   getEnabledProviders: () => providers.filter(p => p.enabled)
+};
+
+export const fetchApiData = async (
+  providerId: string,
+  endpointId: string,
+  params?: Record<string, any>
+): Promise<any> => {
+  // Find the provider and endpoint
+  const provider = defaultProviders.find(p => p.id === providerId);
+  if (!provider) throw new Error(`Provider ${providerId} not found`);
+  
+  const endpoint = provider.endpoints[endpointId];
+  if (!endpoint) throw new Error(`Endpoint ${endpointId} not found for provider ${providerId}`);
+  
+  // Build the URL with query params
+  let url = `${provider.baseUrl}${endpoint.path}`;
+  
+  // Add auth if required
+  const headers: Record<string, string> = {};
+  const queryParams: Record<string, string> = { ...params };
+  
+  if (endpoint.requiresAuth && provider.apiKey) {
+    if (provider.authType === 'header') {
+      headers[provider.authKey || 'Authorization'] = `Bearer ${provider.apiKey}`;
+    } else if (provider.authType === 'query') {
+      queryParams[provider.authKey || 'api_key'] = provider.apiKey;
+    } else if (provider.authType === 'apiKey') {
+      queryParams[provider.authKey || 'apiKey'] = provider.apiKey;
+    }
+  }
+  
+  // Add query params to URL
+  if (Object.keys(queryParams).length > 0) {
+    const queryString = Object.entries(queryParams)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+    url += url.includes('?') ? `&${queryString}` : `?${queryString}`;
+  }
+  
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching data from ${providerId}/${endpointId}:`, error);
+    throw error;
+  }
 };
 
 export { makeApiRequest, providerManager };

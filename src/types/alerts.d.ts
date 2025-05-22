@@ -1,6 +1,6 @@
 
 export type AlertType = 'price' | 'volume' | 'technical';
-export type AlertFrequency = 'once' | 'always' | 'daily';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly' | '1h' | '4h' | '24h' | 'recurring';
 export type NotificationMethod = 'email' | 'app' | 'push';
 
 export interface AlertFormData {
@@ -56,3 +56,24 @@ export interface TechnicalAlert extends BaseAlert {
 }
 
 export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
+
+// Form data interfaces for specific alert types
+export interface PriceAlertFormData extends Omit<AlertFormData, 'type'> {
+  type: 'price';
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  percentageChange: number;
+}
+
+export interface VolumeAlertFormData extends Omit<AlertFormData, 'type'> {
+  type: 'volume';
+  volumeThreshold: number;
+}
+
+export interface TechnicalAlertFormData extends Omit<AlertFormData, 'type'> {
+  type: 'technical';
+  indicator: string;
+  condition: string;
+  value: number;
+}

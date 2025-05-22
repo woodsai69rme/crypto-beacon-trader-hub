@@ -50,6 +50,7 @@ export interface AITradingStrategy {
     averageProfit?: number;
     maxDrawdown?: number;
   };
+  indicators?: string[];
 }
 
 export interface TradingAccount {

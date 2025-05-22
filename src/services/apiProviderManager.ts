@@ -1,4 +1,21 @@
-import { ApiProvider, ApiEndpoint } from '@/types/trading';
+import { ApiProvider, ApiEndpoint } from '@/types/api';
+
+// Update this function to use proper ApiEndpoint type
+export const createEndpoint = (
+  path: string,
+  method: string,
+  description: string,
+  requiresAuth: boolean,
+  parameters: ApiEndpoint['parameters'] = []
+): ApiEndpoint => {
+  return {
+    path,
+    method,
+    description,
+    requiresAuth,
+    parameters
+  };
+};
 
 // Mock API providers
 const providers: ApiProvider[] = [
