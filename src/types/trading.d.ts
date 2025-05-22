@@ -1,4 +1,3 @@
-
 // Define interfaces for the trading module
 export interface CoinOption {
   id: string;
@@ -164,4 +163,21 @@ export interface Widget {
   type: string;
   title: string;
   config?: any;
+}
+
+// Add this if it doesn't exist already to ensure that NewsItem type is correctly defined
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  source: string;
+  timestamp: string;
+  url: string;
+}
+
+export interface NewsTickerProps {
+  items: NewsItem[];
+  speed?: number;
+  direction?: 'left' | 'right';
+  className?: string;
 }

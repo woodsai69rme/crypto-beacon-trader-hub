@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { NewsTickerProps } from "@/types/trading";
 
 const NewsTicker: React.FC<NewsTickerProps> = ({ 
-  items, 
+  items = [], // Provide default empty array
   speed = 30, 
   direction = 'left',
   className 
@@ -17,7 +17,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
   const [currentDirection, setCurrentDirection] = useState<'left' | 'right'>(direction);
   
   useEffect(() => {
-    if (!tickerRef.current || items.length === 0 || isPaused) return;
+    if (!tickerRef.current || !items || items.length === 0 || isPaused) return;
     
     const tickerContent = tickerRef.current;
     const animationName = `ticker-${currentDirection}`;
@@ -45,7 +45,8 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
     setCurrentDirection(prev => prev === 'left' ? 'right' : 'left');
   };
   
-  if (items.length === 0) {
+  // Guard against undefined items
+  if (!items || items.length === 0) {
     return null;
   }
 
@@ -101,16 +102,16 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
         {`
           @keyframes ticker-left {
             0% { transform: translateX(0); }
-            100% { transform: translateX(-${items.length * 300}px); }
+            100% { transform: translateX(-${(items.length || 1) * 300}px); }
           }
 
           @keyframes ticker-right {
-            0% { transform: translateX(-${items.length * 300}px); }
+            0% { transform: translateX(-${(items.length || 1) * 300}px); }
             100% { transform: translateX(0); }
           }
 
           .ticker-content {
-            animation: ticker-${currentDirection} ${items.length * speed}s linear infinite;
+            animation: ticker-${currentDirection} ${(items.length || 1) * speed}s linear infinite;
           }
 
           .animation-paused {

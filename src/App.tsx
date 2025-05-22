@@ -16,7 +16,7 @@ import PriceTicker from './components/tickers/PriceTicker';
 import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
 import { getTrendingCoins, getLatestNews } from './services/enhancedCryptoApi';
-import { CoinOption } from './types/trading';
+import { CoinOption, NewsItem } from './types/trading';
 
 const AppContent = () => {
   const { theme, colorScheme } = useTheme();
@@ -24,7 +24,7 @@ const AppContent = () => {
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [trendingCoins, setTrendingCoins] = useState<CoinOption[]>([]);
-  const [newsItems, setNewsItems] = useState<any[]>([]);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
   // Only show UI after component is mounted to avoid hydration issues
   useEffect(() => {
@@ -32,17 +32,26 @@ const AppContent = () => {
     
     // Fetch data for tickers
     const fetchData = async () => {
-      const coins = await getTrendingCoins();
-      setTrendingCoins(coins);
-      
-      const news = await getLatestNews();
-      setNewsItems(news.map(item => ({
-        id: item.id || `news-${Date.now()}-${Math.random()}`,
-        title: item.title,
-        source: item.source,
-        timestamp: item.published_at || new Date().toISOString(),
-        url: item.url || '#'
-      })));
+      try {
+        const coins = await getTrendingCoins();
+        setTrendingCoins(coins || []);
+        
+        const news = await getLatestNews();
+        if (news) {
+          setNewsItems(news.map(item => ({
+            id: item.id || `news-${Date.now()}-${Math.random()}`,
+            title: item.title || 'News update',
+            source: item.source || 'Crypto News',
+            timestamp: item.published_at || new Date().toISOString(),
+            url: item.url || '#'
+          })));
+        }
+      } catch (error) {
+        console.error("Error fetching ticker data:", error);
+        // Set some fallback data if the API fails
+        setTrendingCoins([]);
+        setNewsItems([]);
+      }
     };
     
     fetchData();
