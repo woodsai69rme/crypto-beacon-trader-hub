@@ -29,7 +29,7 @@ import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { AlertData } from '@/types/alerts';
+import { AlertData, AlertFormData } from '@/types/alerts';
 
 const EnhancedAlertSystem: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -50,7 +50,7 @@ const EnhancedAlertSystem: React.FC = () => {
     }
   };
 
-  const handleAddAlert = (alertData: any) => {
+  const handleAddAlert = (alertData: AlertFormData) => {
     createAlert(alertData);
     toast({
       title: "Alert Created",
@@ -58,11 +58,11 @@ const EnhancedAlertSystem: React.FC = () => {
     });
   };
 
-  const handleUpdateAlert = (alertId: string, updates: Partial<AlertData>) => {
-    updateAlert(alertId, updates);
+  const handleUpdateAlert = (alertId: string, updates: AlertFormData) => {
+    updateAlert(alertId, updates as Partial<AlertData>);
     toast({
       title: "Alert Updated",
-      description: `Alert ${alertId} has been updated successfully.`,
+      description: `Alert has been updated successfully.`,
     });
   };
 
@@ -70,7 +70,7 @@ const EnhancedAlertSystem: React.FC = () => {
     deleteAlert(alertId);
     toast({
       title: "Alert Removed",
-      description: `Alert ${alertId} has been removed.`,
+      description: `Alert has been removed.`,
     });
   };
 
@@ -84,8 +84,18 @@ const EnhancedAlertSystem: React.FC = () => {
     updateAlert(alertId, { enabled: !enabled });
     toast({
       title: "Alert Status Changed",
-      description: `Alert ${alertId} has been ${enabled ? 'disabled' : 'enabled'}.`,
+      description: `Alert has been ${enabled ? 'disabled' : 'enabled'}.`,
     });
+  };
+  
+  // Handle form submission based on mode (create or edit)
+  const handleFormSubmit = (alertId?: string, data?: AlertFormData) => {
+    if (isEditMode && selectedAlert && alertId && data) {
+      handleUpdateAlert(alertId, data);
+    } else if (data) {
+      handleAddAlert(data);
+    }
+    setOpen(false);
   };
 
   const activeAlertsCount = alerts.filter(alert => alert.enabled).length;
@@ -135,7 +145,7 @@ const EnhancedAlertSystem: React.FC = () => {
         </div>
 
         <AlertForm
-          onSubmit={isEditMode && selectedAlert ? handleUpdateAlert : handleAddAlert}
+          onSubmit={handleFormSubmit}
           onClose={() => setOpen(false)}
           isEditMode={isEditMode}
           selectedAlert={selectedAlert}

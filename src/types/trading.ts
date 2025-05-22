@@ -386,15 +386,22 @@ export interface AITradingStrategy {
   description: string;
   type: string;
   riskLevel: 'low' | 'medium' | 'high';
-  parameters?: Record<string, any>;
+  parameters: any;
   indicators?: string[];
-  performance?: {
-    winRate?: number;
-    profitLoss?: number;
-    sharpeRatio?: number;
-    maxDrawdown?: number;
-    totalTrades?: number;
-  };
+  performance?: AIStrategyPerformance;
+  timeframe?: string; // Add missing timeframe property
+}
+
+// Update the performance metrics to include accuracy and profitFactor
+export interface AIStrategyPerformance {
+  winRate?: number;
+  profitLoss?: number;
+  sharpeRatio?: number;
+  maxDrawdown?: number;
+  totalTrades?: number;
+  profitFactor?: number; // Add missing profitFactor property
+  accuracy?: number; // Add missing accuracy property
+  returns?: number; // Some files are using this property
 }
 
 export interface AITradingBot {

@@ -64,35 +64,41 @@ export const useAlerts = () => {
     let newAlert: AlertData;
 
     switch (formData.type) {
-      case 'price':
+      case 'price': {
+        const priceFormData = formData as PriceAlert;
         newAlert = {
           ...baseAlert,
           type: 'price',
-          targetPrice: formData.targetPrice || 0,
-          isAbove: formData.isAbove ?? true,
-          recurring: formData.recurring ?? false,
-          percentageChange: formData.percentageChange || 0,
-        } as PriceAlert;
+          targetPrice: priceFormData.targetPrice || 0,
+          isAbove: priceFormData.isAbove ?? true,
+          recurring: priceFormData.recurring ?? false,
+          percentageChange: priceFormData.percentageChange || 0,
+        };
         break;
-      case 'volume':
+      }
+      case 'volume': {
+        const volumeFormData = formData as VolumeAlert;
         newAlert = {
           ...baseAlert,
           type: 'volume',
-          volumeThreshold: formData.volumeThreshold || 0,
-        } as VolumeAlert;
+          volumeThreshold: volumeFormData.volumeThreshold || 0,
+        };
         break;
-      case 'technical':
+      }
+      case 'technical': {
+        const technicalFormData = formData as TechnicalAlert;
         newAlert = {
           ...baseAlert,
           type: 'technical',
-          indicator: formData.indicator || '',
-          condition: formData.condition || '',
-          value: formData.value || 0,
-          timeframe: formData.timeframe || '1d',
-        } as TechnicalAlert;
+          indicator: technicalFormData.indicator || '',
+          condition: technicalFormData.condition || '',
+          value: technicalFormData.value || 0,
+          timeframe: technicalFormData.timeframe || '1d',
+        };
         break;
+      }
       default:
-        throw new Error(`Unknown alert type: ${(formData as any).type}`);
+        throw new Error(`Unknown alert type: ${formData.type}`);
     }
 
     setAlerts((prevAlerts) => [...prevAlerts, newAlert]);

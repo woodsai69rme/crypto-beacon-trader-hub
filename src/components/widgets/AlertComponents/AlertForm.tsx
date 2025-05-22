@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AlertFormData, NotificationMethod, AlertFrequency, AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 interface AlertFormProps {
   formData?: AlertFormData;
   onChange?: (data: Partial<AlertFormData>) => void;
-  onSubmit?: (e: React.FormEvent) => void;
+  onSubmit?: (alertId?: string, data?: AlertFormData) => void;
   isSubmitting?: boolean;
   onClose?: () => void;
   isEditMode?: boolean;
@@ -35,7 +34,11 @@ const AlertForm: React.FC<AlertFormProps> = ({
     coinSymbol: '',
     enabled: true,
     notifyVia: ['app'],
-    frequency: 'once'
+    frequency: 'once',
+    targetPrice: 0,
+    isAbove: true,
+    recurring: false,
+    percentageChange: 0
   });
   
   React.useEffect(() => {
@@ -43,12 +46,12 @@ const AlertForm: React.FC<AlertFormProps> = ({
       setInternalFormData(propFormData);
     } else if (selectedAlert && isEditMode) {
       // When in edit mode, populate form with selected alert data
-      const alertData = { ...selectedAlert } as any;
+      const alertData = { ...selectedAlert } as AlertFormData;
       setInternalFormData(alertData);
     }
   }, [propFormData, selectedAlert, isEditMode]);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof AlertFormData, value: any) => {
     const updatedData = { ...internalFormData, [field]: value };
     setInternalFormData(updatedData);
     if (onChange) {
@@ -60,13 +63,13 @@ const AlertForm: React.FC<AlertFormProps> = ({
     e.preventDefault();
     if (isEditMode && selectedAlert) {
       // If in edit mode, call onSubmit with alert ID and updates
-      if (onSubmit) {
-        onSubmit(selectedAlert.id, internalFormData);
+      if (propOnSubmit) {
+        propOnSubmit(selectedAlert.id, internalFormData);
       }
     } else {
       // For new alerts
       if (propOnSubmit) {
-        propOnSubmit(e);
+        propOnSubmit(undefined, internalFormData);
       }
     }
     if (onClose) {
