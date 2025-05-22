@@ -1,81 +1,87 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import EnhancedCryptoChart from '@/components/EnhancedCryptoChart';
-import { getCoinHistory } from '@/services/cryptoApi';
 
-// Mock the API
-vi.mock('@/services/cryptoApi', () => ({
-  getCoinHistory: vi.fn()
+import { render, screen, act, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import EnhancedCryptoChart from '@/components/EnhancedCryptoChart';
+import { fetchCoinHistory } from '@/services/cryptoApi';
+
+// Mock the cryptoApi fetch function
+jest.mock('@/services/cryptoApi', () => ({
+  fetchCoinHistory: jest.fn(),
+  CryptoChartData: {},
+}));
+
+// Mock the toast notification
+jest.mock('@/components/ui/use-toast', () => ({
+  toast: jest.fn(),
 }));
 
 describe('EnhancedCryptoChart', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
-    
-    // Default mock implementation
-    (getCoinHistory as jest.Mock).mockResolvedValue({
-      prices: [[1609459200000, 29000], [1609545600000, 29500]]
-    });
+    jest.clearAllMocks();
   });
-  
+
+  const mockChartData = {
+    prices: [
+      [1617753600000, 55000], // April 7, 2021
+      [1617840000000, 56000], // April 8, 2021
+      [1617926400000, 58000], // April 9, 2021
+    ],
+  };
+
   it('renders loading state initially', () => {
-    render(
-      <EnhancedCryptoChart 
-        coin="Bitcoin" 
-        coinId="bitcoin" 
-        color="#F7931A" 
-      />
-    );
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    (fetchCoinHistory as jest.Mock).mockResolvedValue(mockChartData);
+    
+    render(<EnhancedCryptoChart coin="Bitcoin" />);
+    
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
-  
-  it('renders error state when API fails', async () => {
-    (getCoinHistory as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+  it('renders chart when data is loaded', async () => {
+    (fetchCoinHistory as jest.Mock).mockResolvedValue(mockChartData);
     
-    render(
-      <EnhancedCryptoChart 
-        coin="Bitcoin" 
-        coinId="bitcoin"
-        color="#F7931A"
-      />
-    );
+    render(<EnhancedCryptoChart coin="Bitcoin" />);
     
+    // Wait for the loading state to disappear
     await waitFor(() => {
-      expect(screen.getByText(/error/i)).toBeInTheDocument();
-    });
-  });
-  
-  it('renders chart when data loads successfully', async () => {
-    render(
-      <EnhancedCryptoChart 
-        coin="Bitcoin" 
-        coinId="bitcoin"
-        color="#F7931A"
-      />
-    );
-    
-    await waitFor(() => {
-      expect(getCoinHistory).toHaveBeenCalledWith('bitcoin', expect.anything());
-      // Verify chart renders (this will depend on your chart implementation)
-      // e.g., expect(screen.getByTestId('crypto-chart')).toBeInTheDocument();
-    });
-  });
-  
-  it('handles timeframe changes', async () => {
-    render(
-      <EnhancedCryptoChart 
-        coin="Bitcoin" 
-        coinId="bitcoin"
-        color="#F7931A"
-      />
-    );
-    
-    await waitFor(() => {
-      expect(getCoinHistory).toHaveBeenCalledWith('bitcoin', expect.anything());
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
     
-    // Test timeframe change if applicable
+    // Check that the chart container is rendered
+    expect(document.querySelector('.recharts-responsive-container')).toBeInTheDocument();
+  });
+
+  it('shows different time periods when buttons are clicked', async () => {
+    (fetchCoinHistory as jest.Mock).mockResolvedValue(mockChartData);
+    
+    render(<EnhancedCryptoChart coin="Bitcoin" />);
+    
+    // Wait for initial data to load
+    await waitFor(() => {
+      expect(fetchCoinHistory).toHaveBeenCalledWith("bitcoin", 7); // Default is 7 days
+    });
+    
+    // Click on 30D button
+    const thirtyDayButton = screen.getByRole('button', { name: /30D/i });
+    await act(async () => {
+      userEvent.click(thirtyDayButton);
+    });
+    
+    // Check that it fetched data with the new time period
+    await waitFor(() => {
+      expect(fetchCoinHistory).toHaveBeenCalledWith("bitcoin", 30);
+    });
+  });
+
+  it('handles API errors gracefully', async () => {
+    const error = new Error('Failed to fetch');
+    (fetchCoinHistory as jest.Mock).mockRejectedValue(error);
+    
+    render(<EnhancedCryptoChart coin="Bitcoin" />);
+    
+    // Check that it falls back to mock data and doesn't crash
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+      expect(document.querySelector('.recharts-responsive-container')).toBeInTheDocument();
+    });
   });
 });

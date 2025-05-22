@@ -1,19 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WalletProvider, WalletAccount } from '@/types/trading';
+import { WalletProvider, WalletAccount, WalletConnectionProps } from '@/types/trading';
 import { Wallet, Check } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 
-interface WalletConnectionProps {
-  onConnect: (account: WalletAccount) => void;
-  supportedWallets: WalletProvider[];
-}
-
-const WalletConnector: React.FC<WalletConnectionProps> = ({ 
-  onConnect, 
-  supportedWallets 
-}) => {
+const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supportedWallets }) => {
   const [connecting, setConnecting] = useState<string | null>(null);
   
   const handleConnect = async (wallet: WalletProvider) => {
@@ -38,7 +31,7 @@ const WalletConnector: React.FC<WalletConnectionProps> = ({
       // Mock account data - in a real implementation this would come from the wallet
       const mockAccount: WalletAccount = {
         address: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        balance: "10.0", // Using string to match WalletAccount type
+        balance: (Math.random() * 10).toFixed(4),
         network: "ETH",
         provider: wallet.id
       };

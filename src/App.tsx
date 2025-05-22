@@ -1,43 +1,33 @@
 
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import Dashboard from '@/pages/Dashboard';
-import Settings from '@/pages/Settings';
-import TradingDashboard from '@/components/TradingDashboard';
-import AiTradingBots from '@/components/trading/AiTradingBots';
-import { Toaster } from '@/components/ui/toaster';
-import Layout from '@/components/Layout';
-import AiChatAssistant from '@/components/AiChatAssistant';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { Toaster } from "@/components/ui/toaster";
+
+// Import pages directly from their files
+import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import CustomDashboard from "./pages/CustomDashboard";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+import AppLayout from "./components/layout/AppLayout";
 
 function App() {
   return (
-    <>
-      <Routes>
-        <Route path="/" element={
-          <Layout>
-            <Dashboard />
-          </Layout>
-        } />
-        <Route path="/trading" element={
-          <Layout>
-            <TradingDashboard />
-          </Layout>
-        } />
-        <Route path="/ai-trading" element={
-          <Layout>
-            <AiTradingBots />
-          </Layout>
-        } />
-        <Route path="/settings" element={
-          <Layout>
-            <Settings />
-          </Layout>
-        } />
-      </Routes>
-      <AiChatAssistant />
+    <CurrencyProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Index />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="custom-dashboard" element={<CustomDashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
       <Toaster />
-    </>
+    </CurrencyProvider>
   );
 }
 

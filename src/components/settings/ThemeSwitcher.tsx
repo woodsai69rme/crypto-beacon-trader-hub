@@ -15,7 +15,7 @@ import {
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 interface ThemeSwitcherProps {
   className?: string;
@@ -31,7 +31,6 @@ interface ColorSchemeOption {
 const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
   
   const colorSchemeOptions: ColorSchemeOption[] = [
     { 

@@ -1,33 +1,55 @@
 
-export interface ApiEndpoint {
-  id?: string;
-  name?: string;
-  path: string;
-  method: string;
-  description: string;
-  requiresAuth: boolean;
-  parameters?: Array<{
-    name: string;
-    description: string;
-    required: boolean;
-    type: string;
-    default?: string;
-  }>;
-  isActive?: boolean;
-  url?: string;
-  responseTime?: number;
-  lastUsed?: string;
-}
-
 export interface ApiProvider {
   id: string;
   name: string;
   baseUrl: string;
-  description: string;
-  authType?: 'header' | 'query' | 'apiKey';
-  authKey?: string;
-  enabled: boolean;
-  endpoints: Record<string, ApiEndpoint>;
+  description?: string;
+  logo?: string;
+  documentation?: string;
+  version?: string;
+  authMethod?: 'header' | 'query' | 'none';
+  apiKeyName?: string;
+  requiresAuth?: boolean;
+  enabled?: boolean;
+  priority?: number;
+  rateLimitPerMinute?: number;
+  rateLimitPerDay?: number;
+  rateLimitPerMonth?: number;
+  defaultHeaders?: Record<string, string>;
+  defaultParams?: Record<string, string>;
+  endpoints?: ApiEndpoint[];
   apiKey?: string;
-  rateLimit?: number;
+  apiSecret?: string;
+  website?: string;
+  docs?: string;
+  authRequired?: boolean;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  path: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  description?: string;
+  requiresAuth?: boolean;
+  params?: ApiParameter[];
+  headers?: ApiParameter[];
+  body?: ApiParameter[];
+  rateLimited?: boolean;
+  cacheDuration?: number; // in seconds
+}
+
+export interface ApiParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  description?: string;
+  defaultValue?: any;
+}
+
+export interface ApiUsageStats {
+  service: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime: string;
+  endpoint?: string;
 }

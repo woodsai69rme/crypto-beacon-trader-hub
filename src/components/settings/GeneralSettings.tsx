@@ -1,131 +1,143 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Languages } from '@/constants/languages';
-import { UseFormReturn } from 'react-hook-form';
-import { SettingsFormValues } from './types';
-import { Globe2 } from "lucide-react";
-import { SupportedCurrency } from './types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User } from "lucide-react";
+import { SettingsComponentProps } from './types';
+import { SupportedCurrency } from '@/types/trading';
 
-interface GeneralSettingsProps {
-  form: UseFormReturn<SettingsFormValues>;
-}
-
-const GeneralSettings: React.FC<GeneralSettingsProps> = ({ form }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>('AUD');
-
-  useEffect(() => {
-    // Initialize selected currency from form values
-    const currentCurrency = form.getValues('currency');
-    if (currentCurrency) {
-      setSelectedCurrency(currentCurrency as SupportedCurrency);
-    }
-  }, [form]);
-
-  const handleCurrencyChange = (currencyCode: string) => {
-    const typedCurrencyCode = currencyCode as SupportedCurrency;
-    setSelectedCurrency(typedCurrencyCode);
-
-    // Set the currency directly as a string
-    form.setValue('currency', typedCurrencyCode, { shouldValidate: true });
-  };
-
+const GeneralSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Globe2 className="h-5 w-5" />
+          <User className="h-5 w-5" />
           General Settings
         </CardTitle>
         <CardDescription>
-          Manage your basic account settings and preferences
+          Manage your account profile and preferences
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <FormItem>
-            <FormLabel>Display Name</FormLabel>
-            <FormControl>
-              <Input placeholder="Your Display Name" {...form.register('displayName')} />
-            </FormControl>
-            <FormDescription>
-              This is the name that will be displayed to other users.
-            </FormDescription>
-          </FormItem>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your display name" {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is the name displayed to other users
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
-          <FormItem>
-            <FormLabel>Username</FormLabel>
-            <FormControl>
-              <Input placeholder="Your Username" {...form.register('username')} />
-            </FormControl>
-            <FormDescription>
-              This is your unique username. It cannot be changed.
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <FormLabel>Contact Email</FormLabel>
-            <FormControl>
-              <Input placeholder="Your Contact Email" type="email" {...form.register('email')} />
-            </FormControl>
-            <FormDescription>
-              This is the email address that we will use to contact you.
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <FormLabel>Language</FormLabel>
-            <Select
-              onValueChange={(value) => {
-                form.setValue('language', value, { shouldValidate: true });
-              }}
-              defaultValue={form.getValues('language') || 'en'}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a language" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {Languages.map((language) => (
-                  <SelectItem key={language.code} value={language.code}>
-                    {language.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              This is the language that will be used throughout the app.
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <FormLabel>Currency</FormLabel>
-            <Select
-              onValueChange={handleCurrencyChange}
-              defaultValue={form.getValues('currency') || 'AUD'}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a currency" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-                <SelectItem value="GBP">GBP</SelectItem>
-                <SelectItem value="AUD">AUD</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              This is the currency that will be used throughout the app.
-            </FormDescription>
-          </FormItem>
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your username" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Used for your profile URL
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
+        
+        <FormField
+          control={form.control}
+          name="contactEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your email" type="email" {...field} />
+              </FormControl>
+              <FormDescription>
+                Your account email address
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="userLanguage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Language</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value as string}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="es">Spanish</SelectItem>
+                  <SelectItem value="fr">French</SelectItem>
+                  <SelectItem value="de">German</SelectItem>
+                  <SelectItem value="ja">Japanese</SelectItem>
+                  <SelectItem value="zh">Chinese</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Your preferred language for the interface
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="currency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Default Currency</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  // Handle currency as simple string value
+                  form.setValue("currency", value as SupportedCurrency);
+                }} 
+                value={typeof form.getValues().currency === "string" ? 
+                  form.getValues().currency as string : 
+                  (form.getValues().currency as any)?.defaultCurrency || "AUD"}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
+                  <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                  <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                  <SelectItem value="GBP">British Pound (GBP)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Your preferred currency for displaying values
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </CardContent>
     </Card>
   );

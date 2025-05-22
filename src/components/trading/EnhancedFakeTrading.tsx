@@ -1,74 +1,56 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { CoinOption, Trade } from '@/types/trading';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OrderBook from './OrderBook';
 import FakeTradingForm from './FakeTradingForm';
-import { useTradingContext } from '@/contexts/TradingContext';
+import TradingChart from './TradingChart';
+import { Trade } from '@/types/trading';
 
-interface EnhancedFakeTradingProps {
-  onTrade?: (trade: Trade) => void;
-}
+const EnhancedFakeTrading: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>('standard');
 
-const EnhancedFakeTrading: React.FC<EnhancedFakeTradingProps> = ({ onTrade }) => {
-  const { coins, addTrade } = useTradingContext();
-  const [activeTab, setActiveTab] = useState<string>('basic');
-  
-  const handleTrade = (trade: Trade) => {
-    addTrade(trade);
-    if (onTrade) {
-      onTrade(trade);
-    }
+  const handleAddTrade = (trade: Trade) => {
+    console.log("Trade added:", trade);
+    // Implementation for adding trade would be here
   };
-  
-  // Find first coin for price display
-  const bitcoinData = coins.find(coin => coin.id === 'bitcoin');
-  const currentPrice = bitcoinData?.price || 0;
-  // Use changePercent if available or fall back to other price change properties
-  const priceChange = bitcoinData?.changePercent || bitcoinData?.priceChange || 0;
-  const isPriceUp = priceChange >= 0;
-  
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Demo Trading</CardTitle>
-            <CardDescription>Practice trading with virtual assets</CardDescription>
-          </div>
-          {bitcoinData && (
-            <div className="text-right">
-              <div className="font-medium">${currentPrice.toLocaleString()}</div>
-              <Badge variant={isPriceUp ? "success" : "destructive"} className="font-mono">
-                {isPriceUp ? '+' : ''}{priceChange.toFixed(2)}%
-              </Badge>
-            </div>
-          )}
-        </div>
+        <CardTitle>Trading Interface</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="basic" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="basic">Basic</TabsTrigger>
+        <Tabs defaultValue="standard" onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3">
+            <TabsTrigger value="standard">Standard</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="analysis">Analysis</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="basic" className="space-y-4">
-            <FakeTradingForm 
-              onTrade={handleTrade} 
-              availableCoins={coins}
-              advancedMode={false}
-            />
-          </TabsContent>
-          
-          <TabsContent value="advanced" className="space-y-4">
-            <FakeTradingForm 
-              onTrade={handleTrade} 
-              availableCoins={coins}
-              advancedMode={true}
-            />
-          </TabsContent>
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <TradingChart 
+                coinId="bitcoin" 
+                showVolume={activeTab === 'advanced' || activeTab === 'analysis'}
+                showControls={activeTab === 'advanced' || activeTab === 'analysis'}
+              />
+            </div>
+            
+            <div className="space-y-6">
+              <TabsContent value="standard" className="m-0">
+                <FakeTradingForm onAddTrade={handleAddTrade} />
+              </TabsContent>
+              
+              <TabsContent value="advanced" className="m-0">
+                <FakeTradingForm onAddTrade={handleAddTrade} advancedMode={true} />
+              </TabsContent>
+              
+              <TabsContent value="analysis" className="m-0">
+                <OrderBook />
+              </TabsContent>
+            </div>
+          </div>
         </Tabs>
       </CardContent>
     </Card>

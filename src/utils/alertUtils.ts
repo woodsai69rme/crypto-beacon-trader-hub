@@ -1,5 +1,5 @@
 
-import { PriceAlert, VolumeAlert, AlertFrequency, NotificationMethod } from "@/types/alerts";
+import { PriceAlert, VolumeAlert, AlertFrequency } from "@/types/alerts";
 
 export const createPriceAlert = (formData: {
   coinId: string;
@@ -9,15 +9,12 @@ export const createPriceAlert = (formData: {
   isAbove: boolean;
   recurring?: boolean;
   percentageChange?: number;
-  notifyVia?: NotificationMethod[];
-  frequency?: AlertFrequency;
+  notifyVia?: ("email" | "app" | "push")[];
 }): PriceAlert => {
   return {
     id: `alert-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    type: 'price',
+    createdAt: new Date(),
     enabled: true,
-    frequency: formData.frequency || 'once',
     recurring: formData.recurring || false,
     percentageChange: formData.percentageChange || 0,
     notifyVia: formData.notifyVia || ["app"],
@@ -31,12 +28,11 @@ export const createVolumeAlert = (formData: {
   coinSymbol: string;
   volumeThreshold: number;
   frequency: AlertFrequency;
-  notifyVia?: NotificationMethod[];
+  notifyVia?: ("email" | "app" | "push")[];
 }): VolumeAlert => {
   return {
     id: `volume-alert-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    type: 'volume',
+    createdAt: new Date(),
     enabled: true,
     notifyVia: formData.notifyVia || ["app"],
     ...formData

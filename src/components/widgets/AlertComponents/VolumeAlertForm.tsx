@@ -1,119 +1,110 @@
 
-import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertFrequency, VolumeAlertFormData } from "@/types/alerts";
-import { COIN_OPTIONS } from './AlertTypes';
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { VolumeAlertFormData, COIN_OPTIONS } from "./AlertTypes";
 
 interface VolumeAlertFormProps {
   formData: VolumeAlertFormData;
-  setFormData: React.Dispatch<React.SetStateAction<VolumeAlertFormData>>;
-  onSubmit?: () => void;
+  setFormData: (data: VolumeAlertFormData) => void;
+  onSubmit: () => void;
 }
 
-const VolumeAlertForm: React.FC<VolumeAlertFormProps> = ({ 
-  formData, 
-  setFormData,
-  onSubmit
-}) => {
+const VolumeAlertForm: React.FC<VolumeAlertFormProps> = ({ formData, setFormData, onSubmit }) => {
   const handleCoinChange = (value: string) => {
-    const selectedCoin = COIN_OPTIONS.find(coin => coin.id === value);
-    if (selectedCoin) {
-      setFormData({
-        ...formData,
-        coinId: selectedCoin.id,
-        coinName: selectedCoin.name,
-        coinSymbol: selectedCoin.symbol
-      });
-    }
-  };
-
-  const handleFrequencyChange = (value: string) => {
+    const coin = COIN_OPTIONS[value];
     setFormData({
       ...formData,
-      frequency: value as AlertFrequency
+      coinId: value,
+      coinName: coin.name,
+      coinSymbol: coin.symbol
     });
   };
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    setFormData({
-      ...formData,
-      volumeThreshold: isNaN(value) ? 0 : value
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSubmit) {
-      onSubmit();
-    }
+  const handleNotifyViaToggle = (method: "app" | "email" | "push") => {
+    const newNotifyVia = formData.notifyVia.includes(method)
+      ? formData.notifyVia.filter(v => v !== method)
+      : [...formData.notifyVia, method];
+    
+    setFormData({ ...formData, notifyVia: newNotifyVia });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="coin-select">Cryptocurrency</Label>
-        <Select 
-          value={formData.coinId} 
-          onValueChange={handleCoinChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select coin" />
-          </SelectTrigger>
-          <SelectContent>
-            {COIN_OPTIONS.map(coin => (
-              <SelectItem key={coin.id} value={coin.id}>
-                {coin.name} ({coin.symbol})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="volume-threshold">Volume Threshold (%)</Label>
-        <Input 
-          id="volume-threshold"
-          type="number"
-          value={formData.volumeThreshold}
-          onChange={handleVolumeChange}
-          placeholder="Enter volume threshold"
-          min="0"
-          step="0.1"
-        />
-        <p className="text-xs text-muted-foreground">
-          Alert when volume increases by this percentage.
-        </p>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="frequency">Time Period</Label>
-        <Select 
-          value={formData.frequency}
-          onValueChange={handleFrequencyChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select frequency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1h">1 Hour</SelectItem>
-            <SelectItem value="4h">4 Hours</SelectItem>
-            <SelectItem value="24h">24 Hours</SelectItem>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="hourly">Hourly</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {onSubmit && (
-        <Button type="submit" className="w-full mt-4">
-          Create Volume Alert
-        </Button>
-      )}
-    </form>
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Coin</label>
+            <Select
+              value={formData.coinId}
+              onValueChange={handleCoinChange}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                <SelectItem value="solana">Solana (SOL)</SelectItem>
+                <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                <SelectItem value="ripple">XRP</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Volume Increase Threshold (%)</label>
+            <div className="flex items-center">
+              <Input
+                type="number"
+                min="1"
+                max="100"
+                value={formData.volumeThreshold || ""}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  volumeThreshold: parseFloat(e.target.value) || 0 
+                })}
+              />
+              <span className="ml-2">%</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">Timeframe</label>
+            <Select
+              value={formData.frequency}
+              onValueChange={(value: "1h" | "4h" | "24h") => setFormData({ 
+                ...formData, 
+                frequency: value
+              })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1h">1 Hour</SelectItem>
+                <SelectItem value="4h">4 Hours</SelectItem>
+                <SelectItem value="24h">24 Hours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button className="w-full" onClick={onSubmit}>
+            <Plus className="mr-1 h-4 w-4" />
+            Add Volume Alert
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

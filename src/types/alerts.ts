@@ -1,21 +1,21 @@
 
-export type AlertType = 'price' | 'volume' | 'technical';
-export type AlertFrequency = 'once' | 'always' | 'daily';
-export type NotificationMethod = 'app' | 'email' | 'push';
+// Define alert types for the application
+export type AlertFrequency = 'once' | 'recurring' | 'daily' | 'hourly';
 
-export interface BaseAlert {
-  id: string;
+export interface BaseAlertData {
+  id?: string;
+  type: string;
   coinId: string;
   coinName: string;
   coinSymbol: string;
-  type: AlertType;
   enabled: boolean;
-  notifyVia: NotificationMethod[];
   frequency: AlertFrequency;
-  createdAt: string;
+  notifyVia: Array<"email" | "app" | "push">;
+  createdAt?: string;
+  lastTriggered?: string;
 }
 
-export interface PriceAlert extends BaseAlert {
+export interface PriceAlert extends BaseAlertData {
   type: 'price';
   targetPrice: number;
   isAbove: boolean;
@@ -23,75 +23,16 @@ export interface PriceAlert extends BaseAlert {
   percentageChange: number;
 }
 
-export interface VolumeAlert extends BaseAlert {
+export interface VolumeAlert extends BaseAlertData {
   type: 'volume';
   volumeThreshold: number;
 }
 
-export interface TechnicalAlert extends BaseAlert {
+export interface TechnicalAlert extends BaseAlertData {
   type: 'technical';
   indicator: string;
   condition: string;
   value: number;
-  timeframe: string;
 }
 
 export type AlertData = PriceAlert | VolumeAlert | TechnicalAlert;
-
-// Form data types
-export interface BaseAlertFormData {
-  type: AlertType;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  notifyVia: NotificationMethod[];
-  frequency?: AlertFrequency;
-  targetPrice?: number; // Add missing fields needed in AlertForm
-  isAbove?: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  volumeThreshold?: number;
-  indicator?: string;
-  condition?: string;
-  value?: number;
-  timeframe?: string;
-}
-
-export interface PriceAlertFormData extends BaseAlertFormData {
-  type: 'price';
-  targetPrice?: number;
-  isAbove?: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-}
-
-export interface VolumeAlertFormData extends BaseAlertFormData {
-  type: 'volume';
-  volumeThreshold?: number;
-}
-
-export interface TechnicalAlertFormData extends BaseAlertFormData {
-  type: 'technical';
-  indicator?: string;
-  condition?: string;
-  value?: number;
-  timeframe?: string;
-}
-
-export type AlertFormData = PriceAlertFormData | VolumeAlertFormData | TechnicalAlertFormData;
-
-export const createEmptyAlertFormData = (): PriceAlertFormData => ({
-  type: 'price',
-  coinId: '',
-  coinName: '',
-  coinSymbol: '',
-  enabled: true,
-  notifyVia: ['app'],
-  frequency: 'once',
-  // Price alert specific fields
-  targetPrice: 0,
-  isAbove: true,
-  recurring: false,
-  percentageChange: 0,
-});

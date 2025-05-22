@@ -1,57 +1,39 @@
 
 import { useState } from 'react';
-import { AlertFormData, AlertFrequency } from '@/types/alerts';
+import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
+import { PriceAlert } from '@/types/alerts';
 
-export const useAlertForm = (initialType: 'price' | 'volume' | 'technical' = 'price') => {
-  const [formData, setFormData] = useState<AlertFormData>({
-    type: initialType,
-    coinId: '',
-    coinName: '',
-    coinSymbol: '',
-    enabled: true,
-    notifyVia: ['app'],
-    frequency: 'once' as AlertFrequency,
-    // Price alert specific fields
-    targetPrice: 0,
-    isAbove: true,
-    recurring: false,
-    percentageChange: 0,
-    // Volume alert specific fields
-    volumeThreshold: 0,
-    // Technical alert specific fields
-    indicator: '',
-    condition: '',
-    value: 0
-  });
+const defaultAlert = {
+  coinId: "bitcoin",
+  coinName: "Bitcoin",
+  coinSymbol: "BTC",
+  targetPrice: 0,
+  isAbove: true,
+  enabled: true,
+  recurring: false,
+  percentageChange: 0,
+  notifyVia: ["app"] as ("email" | "app" | "push")[]
+};
 
-  const updateFormData = (data: Partial<AlertFormData>) => {
-    setFormData(prev => ({ ...prev, ...data }));
+export const useAlertForm = () => {
+  const [formData, setFormData] = useState(defaultAlert);
+  
+  const resetForm = () => setFormData(defaultAlert);
+  
+  const updateCoin = (coinId: string) => {
+    const selectedCoin = COIN_OPTIONS[coinId];
+    setFormData(prev => ({
+      ...prev,
+      coinId: selectedCoin.id,
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol
+    }));
   };
-
-  const resetForm = () => {
-    setFormData({
-      type: initialType,
-      coinId: '',
-      coinName: '',
-      coinSymbol: '',
-      enabled: true,
-      notifyVia: ['app'],
-      frequency: 'once',
-      targetPrice: 0,
-      isAbove: true,
-      recurring: false,
-      percentageChange: 0,
-      volumeThreshold: 0,
-      indicator: '',
-      condition: '',
-      value: 0
-    });
-  };
-
+  
   return {
     formData,
-    updateFormData,
+    setFormData,
     resetForm,
-    setFormData
+    updateCoin
   };
 };

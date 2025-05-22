@@ -1,54 +1,23 @@
+
 import React, { useState } from "react";
 import { Bell, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { useAlerts } from "@/hooks/use-alerts";
-import AlertFormSheet from "./widgets/AlertComponents/AlertFormSheet";
+import { useAlertForm } from "@/hooks/use-alert-form";
+import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
-import { 
-  AlertData,
-  AlertFormData,
-  PriceAlert, 
-  VolumeAlert, 
-  TechnicalAlert
-} from "@/types/alerts";
+import { AlertFormData, AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from "@/types/trading";
 
 const AlertsSystem = () => {
-  const { alerts, createAlert, deleteAlert } = useAlerts();
-  const [formData, setFormData] = useState<AlertFormData>({
-    type: 'price',
-    coinId: '',
-    coinName: '',
-    coinSymbol: '',
-    enabled: true,
-    notifyVia: ['app'],
-    frequency: 'once'
-  });
+  const { alerts, addAlert, removeAlert } = useAlerts();
+  const { formData, setFormData, resetForm } = useAlertForm();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Create a type-safe form data setter
-  const updateFormData = (data: Partial<AlertFormData>) => {
-    // Keep the type consistent by ensuring we always have a valid type
-    const updatedType = data.type || formData.type;
-    setFormData(prev => ({ ...prev, ...data, type: updatedType }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      type: 'price',
-      coinId: '',
-      coinName: '',
-      coinSymbol: '',
-      enabled: true,
-      notifyVia: ['app'],
-      frequency: 'once'
-    });
-  };
-
   const handleSubmit = () => {
-    if (formData.coinId) {
-      createAlert(formData);
+    if (formData.type && formData.frequency) {
+      addAlert(formData as AlertFormData);
       resetForm();
       setIsOpen(false);
     }
@@ -68,7 +37,7 @@ const AlertsSystem = () => {
         
         <AlertFormSheet 
           formData={formData}
-          onFormChange={updateFormData}
+          onFormChange={setFormData}
           onSubmit={handleSubmit}
         />
         
@@ -99,7 +68,7 @@ const AlertsSystem = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => deleteAlert(alert.id)}
+                    onClick={() => removeAlert(alert.id || '')}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>

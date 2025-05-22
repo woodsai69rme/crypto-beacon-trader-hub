@@ -1,231 +1,276 @@
 
 # Developer Setup
 
-This guide provides instructions for setting up the Crypto Trading Platform development environment.
+## Crypto Beacon Trader Hub
 
-## Prerequisites
+**Version:** 1.0.0  
+**Last Updated:** 2025-05-06
 
-Ensure you have the following installed:
+This document provides instructions for setting up the development environment for the Crypto Beacon Trader Hub platform.
 
-- **Node.js** (v18 or later)
-- **npm** (v8 or later) or **yarn** (v1.22 or later)
-- **Git** for version control
-- A code editor (VS Code recommended)
+## 1. Prerequisites
 
-## Getting Started
+### 1.1 Required Software
 
-### Clone the Repository
+- **Node.js**: v18.0.0 or higher
+- **npm**: v8.0.0 or higher (included with Node.js)
+- **Git**: Latest version recommended
+
+### 1.2 Recommended Tools
+
+- **Visual Studio Code**: With extensions:
+  - ESLint
+  - Prettier
+  - Tailwind CSS IntelliSense
+  - TypeScript Hero
+  - Error Lens
+- **Chrome/Firefox**: With React Developer Tools extension
+- **Postman/Insomnia**: For API testing
+
+## 2. Setting Up the Development Environment
+
+### 2.1 Cloning the Repository
 
 ```bash
-git clone https://github.com/your-organization/crypto-trading-platform.git
-cd crypto-trading-platform
+# Clone the repository
+git clone https://github.com/your-username/crypto-beacon-trader-hub.git
+
+# Navigate to the project directory
+cd crypto-beacon-trader-hub
 ```
 
-### Install Dependencies
-
-Using npm:
+### 2.2 Installing Dependencies
 
 ```bash
+# Install project dependencies
 npm install
 ```
 
-Or using yarn:
+### 2.3 Environment Configuration
 
-```bash
-yarn install
-```
-
-### Environment Configuration
-
-1. Create a `.env.local` file in the project root:
+Create a `.env.local` file in the root directory with the following variables:
 
 ```
-# API Configuration
-VITE_API_BASE_URL=http://localhost:3000
-
-# Cryptocurrency APIs
+# API Keys (Optional - for full functionality)
 VITE_COINGECKO_API_KEY=your_coingecko_api_key
-VITE_CRYPTOCOMPARE_API_KEY=your_cryptocompare_api_key
+VITE_COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 
-# AI Services
-VITE_OPENROUTER_API_KEY=your_openrouter_api_key
+# Feature Flags
+VITE_ENABLE_LOCAL_MODELS=true
+VITE_ENABLE_ADVANCED_CHARTS=true
 
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Development Settings
+VITE_API_MOCKING=true
 ```
 
-2. Replace the placeholder values with your actual API keys
+Note: The application can run without API keys, but some features will use mocked data instead of live data.
 
-### Development Server
+## 3. Running the Application
 
-Start the development server:
+### 3.1 Development Server
 
 ```bash
+# Start the development server
 npm run dev
 ```
 
-Or with yarn:
+This will start the application on `http://localhost:5173` (or the next available port).
+
+### 3.2 Build for Production
 
 ```bash
-yarn dev
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-The application will be available at `http://localhost:5173` by default.
+### 3.3 Running Tests
 
-## Project Structure
+```bash
+# Run all tests
+npm test
 
-```
-crypto-trading-platform/
-├── public/                   # Static assets
-├── src/
-│   ├── components/           # React components
-│   │   ├── ui/               # UI components (shadcn)
-│   │   ├── charts/           # Chart components
-│   │   ├── dashboard/        # Dashboard components
-│   │   ├── settings/         # Settings components
-│   │   └── widgets/          # Widget components
-│   ├── contexts/             # React context providers
-│   ├── hooks/                # Custom React hooks
-│   ├── lib/                  # Utility functions
-│   ├── pages/                # Page components
-│   ├── services/             # API and service functions
-│   │   ├── api/              # API clients
-│   │   └── ai/               # AI service integrations
-│   ├── types/                # TypeScript type definitions
-│   ├── App.tsx               # Main application component
-│   └── main.tsx              # Entry point
-├── docs/                     # Documentation
-├── scripts/                  # Utility scripts
-├── .env.example              # Example environment variables
-├── index.html                # HTML entry point
-├── package.json              # Project dependencies and scripts
-├── tsconfig.json             # TypeScript configuration
-├── vite.config.ts            # Vite configuration
-└── README.md                 # Project overview
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
 ```
 
-## Available Scripts
+## 4. Development Workflow
 
-- `npm run dev`: Start development server
-- `npm run build`: Build for production
-- `npm run preview`: Preview production build
-- `npm run lint`: Run ESLint
-- `npm run lint:fix`: Fix linting issues
-- `npm run test`: Run tests
-- `npm run typecheck`: Run TypeScript type checking
+### 4.1 Branch Structure
 
-## Environment Variables
+- `main`: Production-ready code
+- `develop`: Primary development branch
+- `feature/*`: Feature branches
+- `bugfix/*`: Bug fix branches
+- `release/*`: Release preparation branches
 
-| Variable | Purpose | Required? |
-|----------|---------|-----------|
-| `VITE_API_BASE_URL` | Base URL for API requests | Yes |
-| `VITE_COINGECKO_API_KEY` | CoinGecko API key | For production |
-| `VITE_CRYPTOCOMPARE_API_KEY` | CryptoCompare API key | For production |
-| `VITE_OPENROUTER_API_KEY` | OpenRouter API key | For AI features |
-| `VITE_SUPABASE_URL` | Supabase project URL | Yes |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
+### 4.2 Commit Guidelines
 
-## External Services Setup
+We follow Conventional Commits specification:
 
-### Supabase
+```
+<type>[optional scope]: <description>
 
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Set up authentication providers
-3. Create database tables (refer to Database Schema documentation)
-4. Configure Row-Level Security policies
-5. Obtain URL and anon key for environment variables
+[optional body]
 
-### OpenRouter
+[optional footer(s)]
+```
 
-1. Sign up at [openrouter.ai](https://openrouter.ai)
-2. Create an API key
-3. Add the key to your environment variables
+Examples:
+- `feat: add local model connection interface`
+- `fix: resolve websocket reconnection issue`
+- `docs: update API documentation`
+- `style: format code with prettier`
 
-### CoinGecko and CryptoCompare
+### 4.3 Pull Request Process
 
-1. Sign up for developer accounts
-2. Generate API keys
-3. Add keys to environment variables
+1. Create a feature/bugfix branch from `develop`
+2. Make your changes
+3. Ensure all tests pass
+4. Submit a PR to the `develop` branch
+5. Address review comments
+6. Once approved, merge to `develop`
 
-## Development Guidelines
+## 5. Local MCP Integration
 
-### Code Style
+To test the local AI model integration features, you need to run a local MCP server:
 
-The project follows a consistent code style enforced by ESLint and Prettier:
+### 5.1 MCP Server Setup
 
-- Use TypeScript for type safety
-- Follow React functional component patterns
-- Maintain consistent file structure and naming conventions
-- Use ES6+ features appropriately
-- Document complex functions and components
+1. Clone the MCP server repository:
+   ```bash
+   git clone https://github.com/example/mcp-server.git
+   cd mcp-server
+   ```
 
-### Component Development
+2. Install dependencies and start the server:
+   ```bash
+   npm install
+   npm start
+   ```
 
-When creating new components:
+3. The MCP server will be available at `http://localhost:5000`
 
-1. Place them in the appropriate subdirectory
-2. Use TypeScript interfaces for props
-3. Implement responsive design
-4. Consider accessibility (ARIA attributes, keyboard navigation)
-5. Add appropriate tests
+### 5.2 Configuring the Application for Local Models
 
-### State Management
+In your `.env.local` file, ensure you have:
 
-- Use React Context for global state
-- Use hooks for component state
-- Follow unidirectional data flow principles
-- Minimize prop drilling
+```
+VITE_ENABLE_LOCAL_MODELS=true
+VITE_MCP_SERVER_URL=http://localhost:5000
+```
 
-### API Integration
+## 6. Code Structure
 
-- Use service functions for API calls
+### 6.1 Directory Structure
+
+```
+crypto-beacon-trader-hub/
+├── public/              # Static assets
+├── src/                 # Source code
+│   ├── components/      # React components
+│   │   ├── ui/          # UI components
+│   │   ├── charts/      # Chart components
+│   │   ├── trading/     # Trading-related components
+│   │   └── settings/    # Settings components
+│   ├── hooks/           # Custom React hooks
+│   ├── contexts/        # React context providers
+│   ├── services/        # API services and data fetching
+│   ├── utils/           # Utility functions
+│   ├── types/           # TypeScript type definitions
+│   ├── styles/          # Global styles
+│   ├── pages/           # Page components
+│   ├── assets/          # Images and other assets
+│   └── App.tsx          # Application entry point
+├── docs/                # Documentation
+├── tests/               # Test files
+├── vite.config.ts       # Vite configuration
+├── tsconfig.json        # TypeScript configuration
+├── tailwind.config.js   # Tailwind CSS configuration
+├── package.json         # npm package configuration
+└── README.md            # Project README
+```
+
+### 6.2 Coding Standards
+
+- Follow the TypeScript style guide
+- Use functional components with hooks
 - Implement proper error handling
-- Add appropriate loading states
-- Consider caching strategies
-- Follow API rate limit guidelines
+- Write unit tests for critical functionality
+- Document complex logic with comments
+- Use absolute imports with path aliases
 
-## Troubleshooting
+## 7. API Integration
 
-### Common Issues
+### 7.1 Available Data Sources
 
-**Network errors when fetching API data:**
-- Verify API keys in environment variables
-- Check API rate limits
-- Ensure network connectivity
+| API | Purpose | Documentation |
+|-----|---------|---------------|
+| CoinGecko | Cryptocurrency data | [CoinGecko API Docs](https://www.coingecko.com/api/documentation) |
+| Binance | Real-time market data | [Binance API Docs](https://binance-docs.github.io/apidocs/) |
+| CoinMarketCap | Market data and metadata | [CMC API Docs](https://coinmarketcap.com/api/documentation/v1/) |
 
-**Build errors:**
-- Run `npm run lint` to identify issues
-- Check for TypeScript errors with `npm run typecheck`
-- Verify import paths and component usage
+### 7.2 API Services
 
-**State management issues:**
-- Check context provider hierarchy
-- Verify state updates are properly handled
-- Use React DevTools to inspect component state
+API services are located in `src/services/` and implement a consistent interface for data fetching, caching, and error handling.
 
-### Getting Help
+### 7.3 API Mocking
 
-- Check the project documentation
-- Review existing GitHub issues
-- Join the developer Discord channel
-- Contact the core development team
+For development without API keys, enable API mocking:
 
-## Contribution Workflow
+```
+VITE_API_MOCKING=true
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
-6. Address review feedback
+Mock data is located in `src/mocks/` and closely resembles the structure of real API responses.
 
-## Additional Resources
+## 8. Troubleshooting
 
-- [React Documentation](https://reactjs.org/docs/getting-started.html)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Shadcn UI Documentation](https://ui.shadcn.com/)
-- [Supabase Documentation](https://supabase.com/docs)
-- [Vite Documentation](https://vitejs.dev/guide/)
+### 8.1 Common Issues
 
-This setup guide should help you get started with the Crypto Trading Platform development. For additional questions or issues, please refer to the project documentation or contact the development team.
+#### WebSocket Connection Errors
+- Check if the API key has WebSocket permissions
+- Ensure you're not hitting rate limits
+- Verify firewall/network settings
+
+#### MCP Server Connection Issues
+- Ensure the MCP server is running
+- Check CORS settings
+- Verify the MCP URL in `.env.local`
+
+#### Build Errors
+- Clear the `node_modules` and reinstall:
+  ```bash
+  rm -rf node_modules
+  npm install
+  ```
+- Check for TypeScript errors:
+  ```bash
+  npm run type-check
+  ```
+
+### 8.2 Getting Help
+
+- Check the [GitHub Issues](https://github.com/your-username/crypto-beacon-trader-hub/issues)
+- Join our [Discord community](https://discord.gg/example)
+- Contact support at support@example.com
+
+## 9. Additional Resources
+
+- [Project Documentation](https://docs.example.com)
+- [API Documentation](https://api-docs.example.com)
+- [Component Storybook](https://storybook.example.com)
+- [Design System](https://design.example.com)
+
+## 10. Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more information.
+
+---
+
+This setup guide should help you get started with developing for the Crypto Beacon Trader Hub platform. If you encounter any issues not covered here, please reach out to the development team.

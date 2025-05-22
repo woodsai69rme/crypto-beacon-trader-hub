@@ -1,37 +1,35 @@
 
-import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import React, { ReactNode } from 'react';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { BrowserRouter } from 'react-router-dom';
 
-interface WrapperProps {
-  children: React.ReactElement;
-  storageKey?: string;
-}
-
-// Create a new QueryClient instance for each test
-const createTestQueryClient = () => new QueryClient({
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
-      gcTime: Infinity,
     },
   },
 });
 
-export const TestWrapper: React.FC<WrapperProps> = ({ 
-  children,
-  storageKey = 'test-theme-key',
-}) => {
-  const queryClient = createTestQueryClient();
-  
+interface TestWrapperProps {
+  children: ReactNode;
+}
+
+export const TestWrapper: React.FC<TestWrapperProps> = ({ children }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider storageKey={storageKey}>
-          {children}
-        </ThemeProvider>
-      </BrowserRouter>
+      <ThemeProvider defaultTheme="dark" storageKey="crypto-app-theme-test">
+        <AuthProvider>
+          <CurrencyProvider>
+            <BrowserRouter>
+              {children}
+            </BrowserRouter>
+          </CurrencyProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

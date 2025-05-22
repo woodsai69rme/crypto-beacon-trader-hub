@@ -1,128 +1,100 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-export type Theme = 'light' | 'dark' | 'system';
-export type ColorScheme = 
-  | 'blue'
-  | 'green'
-  | 'orange'
-  | 'purple'
-  | 'red'
-  | 'default'
-  | 'midnight-tech'
-  | 'cyber-pulse'
-  | 'matrix-code'
-  | 'neon-future'
-  | 'sunset-gradient';
+import React, { createContext, useState, useEffect } from 'react';
+import { Theme, ColorScheme } from '@/types/trading';
 
 interface ThemeContextType {
   theme: Theme;
   colorScheme: ColorScheme;
   setTheme: (theme: Theme) => void;
-  setColorScheme: (scheme: ColorScheme) => void;
-  toggleTheme: () => void;
+  setColorScheme: (colorScheme: ColorScheme) => void;
+  resolvedTheme: 'light' | 'dark'; // Actual theme based on system preference if set to 'system'
 }
 
-export const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
-  colorScheme: 'default',
-  setTheme: () => {},
-  setColorScheme: () => {},
-  toggleTheme: () => {},
-});
+// Export the ThemeContext directly
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext);
+  const context = React.useContext(ThemeContext);
+  
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
+  
   return context;
 };
 
-interface ThemeProviderProps {
-  children: React.ReactNode;
-  storageKey?: string;
-}
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<Theme>('system');
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('default');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-  children,
-  storageKey = 'crypto-platform-theme',
-}) => {
-  // Initialize theme from localStorage or default to system
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    const storedTheme = localStorage.getItem(`${storageKey}-mode`);
-    return (storedTheme as Theme) || 'dark';
-  });
-
-  // Initialize color scheme from localStorage or default
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
-    if (typeof window === 'undefined') return 'default';
-    const storedScheme = localStorage.getItem(`${storageKey}-color`);
-    return (storedScheme as ColorScheme) || 'default';
-  });
-
-  // Update localStorage and document classes when theme changes
+  // Check for system preference on mount
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Check localStorage first
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme | null;
     
-    localStorage.setItem(`${storageKey}-mode`, theme);
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     
-    const root = window.document.documentElement;
+    if (savedColorScheme) {
+      setColorScheme(savedColorScheme);
+    }
     
-    root.classList.remove('light', 'dark');
+    // Initialize resolved theme based on system preference
+    updateResolvedTheme(savedTheme || 'system');
     
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-      root.classList.add(systemTheme);
+    // Set up event listener for system preference changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (theme === 'system') {
+        updateResolvedTheme('system');
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Update resolved theme when theme changes
+  useEffect(() => {
+    updateResolvedTheme(theme);
+  }, [theme]);
+
+  // Function to update resolved theme based on theme setting
+  const updateResolvedTheme = (currentTheme: Theme) => {
+    if (currentTheme === 'system') {
+      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setResolvedTheme(isDarkMode ? 'dark' : 'light');
     } else {
-      root.classList.add(theme);
+      setResolvedTheme(currentTheme as 'light' | 'dark');
     }
-  }, [theme, storageKey]);
-  
-  // Update localStorage and document classes when color scheme changes
+  };
+
+  // Save preferences when they change
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    localStorage.setItem('theme', theme);
+    localStorage.setItem('colorScheme', colorScheme);
     
-    localStorage.setItem(`${storageKey}-color`, colorScheme);
-    
-    const root = window.document.documentElement;
-    
-    // Remove all color scheme classes
-    root.classList.remove('blue-theme', 'green-theme', 'orange-theme', 'purple-theme', 'red-theme', 
-      'midnight-tech-theme', 'cyber-pulse-theme', 'matrix-code-theme', 'neon-future-theme', 'sunset-gradient-theme');
-    
-    // Add the selected color scheme class
-    if (colorScheme !== 'default') {
-      root.classList.add(`${colorScheme}-theme`);
+    // Apply theme to document
+    if (resolvedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
     }
-  }, [colorScheme, storageKey]);
-  
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
-  
-  const setColorScheme = (newScheme: ColorScheme) => {
-    setColorSchemeState(newScheme);
-  };
-  
-  const toggleTheme = () => {
-    setThemeState(prevTheme => 
-      prevTheme === 'dark' ? 'light' : 'dark'
-    );
-  };
-  
+    
+    // Apply color scheme
+    document.documentElement.setAttribute('data-color-scheme', colorScheme);
+  }, [theme, colorScheme, resolvedTheme]);
+
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      colorScheme, 
-      setTheme, 
-      setColorScheme,
-      toggleTheme 
-    }}>
+    <ThemeContext.Provider value={{ theme, colorScheme, setTheme, setColorScheme, resolvedTheme }}>
       {children}
     </ThemeContext.Provider>
   );
 };
+
+export default ThemeProvider;

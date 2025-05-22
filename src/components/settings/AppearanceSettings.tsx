@@ -6,43 +6,41 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Palette } from "lucide-react";
 import { SettingsComponentProps } from "./types";
+import { useTheme } from "@/hooks/use-theme";
+import { Theme, ColorScheme } from "@/types/trading";
 
 const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  const { theme, setTheme, colorScheme, setColorScheme } = { 
-    theme: 'light',
-    setTheme: () => {},
-    colorScheme: 'default',
-    setColorScheme: () => {}
-  };
+  const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
   
   // Update form with current theme values
   React.useEffect(() => {
     // Set theme value if not already set
     if (!form.getValues().theme) {
-      form.setValue("theme", theme as any);
+      form.setValue("theme", theme as Theme);
     }
     
     // Initialize display object with proper values
-    const currentValues = form.getValues();
-    if (!currentValues.display) {
-      form.setValue('display', {
+    const formValues = form.getValues();
+    if (!formValues.display) {
+      form.setValue("display", {
         showPortfolio: true,
-        defaultTab: 'overview',
+        showBalances: true,
+        defaultTab: "overview",
         compactMode: false,
         animationsEnabled: true,
         highContrastMode: false,
-        colorScheme: 'system'
-      }, { shouldValidate: false });
+        colorScheme: colorScheme
+      });
     }
   }, [form, theme, colorScheme]);
 
-  const handleThemeChange = (value: string) => {
-    setTheme();
+  const handleThemeChange = (value: Theme) => {
+    setTheme(value);
     form.setValue("theme", value);
   };
 
-  const handleColorSchemeChange = (value: string) => {
-    setColorScheme();
+  const handleColorSchemeChange = (value: ColorScheme) => {
+    setColorScheme(value);
     form.setValue("display.colorScheme", value);
   };
   
@@ -64,7 +62,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Theme</FormLabel>
                 <Select 
-                  onValueChange={(value) => handleThemeChange(value)} 
+                  onValueChange={(value) => handleThemeChange(value as Theme)} 
                   value={field.value || theme}
                 >
                   <FormControl>
@@ -88,7 +86,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
           <div className="space-y-2">
             <FormLabel>Color Scheme</FormLabel>
             <Select 
-              onValueChange={(value) => handleColorSchemeChange(value)} 
+              onValueChange={(value) => handleColorSchemeChange(value as ColorScheme)} 
               value={form.getValues().display?.colorScheme || colorScheme}
             >
               <FormControl>

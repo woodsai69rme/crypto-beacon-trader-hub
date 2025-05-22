@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { CryptoData, PricePoint, CoinOption } from '@/types/trading';
+import { fetchCryptoHistory } from '@/services/cryptoService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -53,17 +54,23 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Mock data for now
-      const mockHistoryData: PricePoint[] = Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (i * 86400000), // One day in milliseconds
-        price: Math.random() * 10000 + 20000,
-        volume: Math.random() * 5000000000,
-        time: Date.now() - (i * 86400000),
-        date: new Date(Date.now() - (i * 86400000)).toLocaleDateString()
+      const historyData = await fetchCryptoHistory(
+        coinId,
+        selectedTimeframe,
+        currency
+      );
+      
+      // Transform the data
+      const transformedData: PricePoint[] = historyData.map((point: [number, number]) => ({
+        timestamp: point[0],
+        price: point[1],
+        // Add the time property for compatibility
+        time: point[0],
+        date: new Date(point[0]).toLocaleDateString(),
       }));
       
-      setData(mockHistoryData);
-      if (onDataUpdate) onDataUpdate(mockHistoryData);
+      setData(transformedData);
+      if (onDataUpdate) onDataUpdate(transformedData);
       setError(null);
     } catch (err) {
       console.error('Error fetching chart data:', err);
@@ -71,7 +78,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [coinId, selectedTimeframe, onDataUpdate]);
+  }, [coinId, selectedTimeframe, currency, onDataUpdate]);
 
   // Initial data load
   useEffect(() => {
@@ -90,6 +97,17 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
       if (intervalId) clearInterval(intervalId);
     };
   }, [autoUpdate, fetchData, updateInterval]);
+
+  const handleCoinData = (coinData: CryptoData) => {
+    setSelectedCoin({
+      id: coinData.id,
+      name: coinData.name,
+      symbol: coinData.symbol,
+      price: coinData.current_price || 0,
+      value: coinData.id,
+      label: `${coinData.name} (${coinData.symbol.toUpperCase()})`
+    });
+  };
 
   const handleTimeframeChange = (tf: string) => {
     setSelectedTimeframe(tf);

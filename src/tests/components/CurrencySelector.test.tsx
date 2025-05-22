@@ -1,56 +1,56 @@
 
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import CurrencySelector from '@/components/trading/CurrencySelector';
-
-// Update the CurrencySelectorProps interface to include the disabled property
-interface CurrencySelectorProps {
-  activeCurrency: string;
-  onCurrencyChange: (currency: string) => void;
-  disabled?: boolean;
-}
+import { TestWrapper } from '../utils/TestWrapper';
 
 describe('CurrencySelector', () => {
-  const mockOnChange = vi.fn();
-  
-  beforeEach(() => {
-    mockOnChange.mockReset();
+  it('renders with the active currency', () => {
+    const handleChange = jest.fn();
+    
+    render(
+      <TestWrapper>
+        <CurrencySelector activeCurrency="USD" onCurrencyChange={handleChange} />
+      </TestWrapper>
+    );
+    
+    // The trigger should show the selected currency
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
   
-  it('renders correctly with default props', () => {
-    render(<CurrencySelector activeCurrency="AUD" onCurrencyChange={mockOnChange} />);
+  it('calls onChange when a different currency is selected', () => {
+    const handleChange = jest.fn();
     
-    expect(screen.getByText(/AUD/i)).toBeInTheDocument();
+    render(
+      <TestWrapper>
+        <CurrencySelector activeCurrency="USD" onCurrencyChange={handleChange} />
+      </TestWrapper>
+    );
+    
+    // Open the dropdown
+    fireEvent.click(screen.getByRole('combobox'));
+    
+    // Select AUD
+    fireEvent.click(screen.getByText('AUD'));
+    
+    // Check if the change handler was called with the right argument
+    expect(handleChange).toHaveBeenCalledWith('AUD');
   });
   
-  it('shows dropdown when clicked', async () => {
-    render(<CurrencySelector activeCurrency="AUD" onCurrencyChange={mockOnChange} />);
+  it('disables the selector when disabled prop is true', () => {
+    const handleChange = jest.fn();
     
-    const selector = screen.getByRole('button');
-    fireEvent.click(selector);
+    render(
+      <TestWrapper>
+        <CurrencySelector 
+          activeCurrency="USD" 
+          onCurrencyChange={handleChange} 
+          disabled={true}
+        />
+      </TestWrapper>
+    );
     
-    // Check for common currencies in the dropdown
-    expect(await screen.findByText(/USD/i)).toBeInTheDocument();
-  });
-  
-  it('calls onChange when a currency is selected', async () => {
-    render(<CurrencySelector activeCurrency="AUD" onCurrencyChange={mockOnChange} />);
-    
-    const selector = screen.getByRole('button');
-    fireEvent.click(selector);
-    
-    const usdOption = await screen.findByText(/USD/i);
-    fireEvent.click(usdOption);
-    
-    expect(mockOnChange).toHaveBeenCalledWith('USD');
-  });
-  
-  it('respects the disabled prop', () => {
-    render(<CurrencySelector activeCurrency="USD" onCurrencyChange={mockOnChange} disabled={true} />);
-    
-    const selector = screen.getByRole('button');
-    expect(selector).toBeDisabled();
+    // The trigger should be disabled
+    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 });

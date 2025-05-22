@@ -13,62 +13,56 @@ const mockAccounts: TradingAccount[] = [
   {
     id: '1',
     name: 'Binance Account',
-    address: '0x1234567890abcdef',
     balance: 24563.98,
-    initialBalance: 20000,
-    network: 'ETH',
     currency: 'AUD', // Default to AUD as per requirements
     createdAt: '2023-07-15T10:30:00Z',
     trades: [],
     provider: 'binance',
-    assets: [
-      { coinId: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', quantity: 0.5, averagePrice: 50000 },
-      { coinId: 'ethereum', name: 'Ethereum', symbol: 'ETH', quantity: 5.2, averagePrice: 3000 },
-      { coinId: 'solana', name: 'Solana', symbol: 'SOL', quantity: 45.8, averagePrice: 100 }
-    ],
+    assets: {
+      'bitcoin': 0.5,
+      'ethereum': 5.2,
+      'solana': 45.8
+    },
     lastUpdated: '2023-09-22T14:30:00Z',
     isActive: true,
+    initialBalance: 20000,
     type: 'exchange'
   },
   {
     id: '2',
     name: 'Coinbase Pro',
-    address: '0xabcdef1234567890',
     balance: 12450.34,
-    initialBalance: 10000,
-    network: 'ETH',
     currency: 'AUD',
     createdAt: '2023-05-10T08:20:00Z',
     trades: [],
     provider: 'coinbase',
-    assets: [
-      { coinId: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', quantity: 0.25, averagePrice: 48000 },
-      { coinId: 'ethereum', name: 'Ethereum', symbol: 'ETH', quantity: 2.8, averagePrice: 2800 },
-      { coinId: 'cardano', name: 'Cardano', symbol: 'ADA', quantity: 2500, averagePrice: 1.2 }
-    ],
+    assets: {
+      'bitcoin': 0.25,
+      'ethereum': 2.8,
+      'cardano': 2500
+    },
     lastUpdated: '2023-09-20T09:45:00Z',
     isActive: true,
+    initialBalance: 10000,
     type: 'exchange'
   },
   {
     id: '3',
     name: 'Paper Trading',
-    address: '0x0987654321fedcba',
     balance: 32500.00,
-    initialBalance: 30000,
-    network: 'Paper',
     currency: 'AUD',
     createdAt: '2023-08-05T16:15:00Z',
     trades: [],
     provider: 'paper',
-    assets: [
-      { coinId: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', quantity: 0.15, averagePrice: 45000 },
-      { coinId: 'ethereum', name: 'Ethereum', symbol: 'ETH', quantity: 1.5, averagePrice: 2500 },
-      { coinId: 'polkadot', name: 'Polkadot', symbol: 'DOT', quantity: 120, averagePrice: 10 },
-      { coinId: 'chainlink', name: 'Chainlink', symbol: 'LINK', quantity: 200, averagePrice: 15 }
-    ],
+    assets: {
+      'bitcoin': 0.15,
+      'ethereum': 1.5,
+      'polkadot': 120,
+      'chainlink': 200
+    },
     lastUpdated: '2023-09-21T11:20:00Z',
     isActive: true,
+    initialBalance: 25000,
     type: 'manual'
   }
 ];
@@ -86,17 +80,17 @@ const AccountManager: React.FC = () => {
     
     accounts.forEach(account => {
       if (account.assets) {
-        account.assets.forEach((asset) => {
-          if (assetCounts[asset.coinId]) {
-            assetCounts[asset.coinId] += asset.quantity;
+        Object.entries(account.assets).forEach(([asset, amount]) => {
+          if (assetCounts[asset]) {
+            assetCounts[asset] += amount;
           } else {
-            assetCounts[asset.coinId] = asset.quantity;
+            assetCounts[asset] = amount;
           }
         });
       }
     });
     
-    return Object.keys(assetCounts).length;
+    return assetCounts;
   };
   
   const handleAddAccount = () => {
@@ -166,7 +160,7 @@ const AccountManager: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold">{calculateTotalAssets()}</div>
+                <div className="text-2xl font-bold">{Object.keys(calculateTotalAssets()).length}</div>
                 <p className="text-sm text-muted-foreground">Unique Assets</p>
               </CardContent>
             </Card>
@@ -214,13 +208,13 @@ const AccountManager: React.FC = () => {
                     </div>
                   </div>
                   
-                  {account.assets && account.assets.length > 0 && (
+                  {account.assets && Object.keys(account.assets).length > 0 && (
                     <div className="mt-4">
                       <p className="text-sm font-medium mb-1">Assets:</p>
                       <div className="flex flex-wrap gap-2">
-                        {account.assets.map((asset) => (
-                          <div key={asset.coinId} className="bg-muted px-2 py-1 rounded-md text-xs">
-                            {asset.name}: {asset.quantity}
+                        {Object.entries(account.assets).map(([asset, amount]) => (
+                          <div key={asset} className="bg-muted px-2 py-1 rounded-md text-xs">
+                            {asset.charAt(0).toUpperCase() + asset.slice(1)}: {amount}
                           </div>
                         ))}
                       </div>

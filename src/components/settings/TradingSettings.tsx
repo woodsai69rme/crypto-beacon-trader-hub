@@ -1,193 +1,112 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { SettingsComponentProps } from './types';
-
-interface TradingPreferences {
-  autoConfirm: boolean;
-  showAdvanced?: boolean;
-  defaultAsset?: string;
-  defaultTradeSize?: number;
-  riskLevel?: 'low' | 'medium' | 'high';
-  tradingStrategy?: string;
-  defaultLeverage?: number;
-  showPnL?: boolean;
-  defaultTimeframe?: string;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart2 } from "lucide-react";
+import { SettingsComponentProps } from "./types";
 
 const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  // Initialize tradingPreferences if it doesn't exist
-  const ensureTradingPreferences = (): TradingPreferences => {
-    const current = form.getValues();
-    if (!current.tradingPreferences) {
-      form.setValue("tradingPreferences", {
-        autoConfirm: true,
+  React.useEffect(() => {
+    // Initialize tradingPreferences if they don't exist
+    const currentValues = form.getValues();
+    if (!currentValues.tradingPreferences) {
+      form.setValue('tradingPreferences', {
+        autoConfirm: false,
         showAdvanced: false,
-        defaultAsset: 'BTC',
-        defaultTradeSize: 0.1,
-        riskLevel: 'medium',
-        tradingStrategy: 'default',
-        defaultLeverage: 1,
-        showPnL: true,
-        defaultTimeframe: '1d'
+        defaultAsset: 'bitcoin',
+        defaultTradeSize: 100,
+        riskLevel: 'medium'
       });
     }
-    return current.tradingPreferences || {
-      autoConfirm: true,
-      showAdvanced: false,
-      defaultAsset: 'BTC',
-      defaultTradeSize: 0.1,
-      riskLevel: 'medium',
-      tradingStrategy: 'default',
-      defaultLeverage: 1,
-      showPnL: true,
-      defaultTimeframe: '1d'
-    };
-  };
-  
-  ensureTradingPreferences();
-
-  const updateTradingPreferences = (updateData: Partial<TradingPreferences>) => {
-    const currentPrefs = form.getValues().tradingPreferences || ensureTradingPreferences();
-    form.setValue("tradingPreferences", {
-      ...currentPrefs,
-      ...updateData
-    });
-  };
+  }, [form]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Trading Settings</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart2 className="h-5 w-5" />
+          Trading Preferences
+        </CardTitle>
         <CardDescription>
-          Configure your trading preferences
+          Configure your trading preferences and settings
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <FormItem>
-            <div className="flex items-center justify-between">
-              <FormLabel>Auto-confirm trades</FormLabel>
-              <FormControl>
-                <Switch 
-                  checked={form.watch("tradingPreferences.autoConfirm")} 
-                  onCheckedChange={(checked) => {
-                    updateTradingPreferences({
-                      autoConfirm: checked
-                    });
-                  }}
-                />
-              </FormControl>
+          <div className="flex flex-row items-center justify-between">
+            <div className="space-y-0.5">
+              <FormLabel>Auto Confirm Orders</FormLabel>
+              <FormDescription>
+                Skip confirmation dialogs for orders
+              </FormDescription>
             </div>
-            <FormDescription>
-              Automatically confirm trades without showing confirmation dialog
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <div className="flex items-center justify-between">
-              <FormLabel>Show advanced options</FormLabel>
-              <FormControl>
-                <Switch 
-                  checked={form.watch("tradingPreferences.showAdvanced")} 
-                  onCheckedChange={(checked) => {
-                    updateTradingPreferences({
-                      autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
-                      showAdvanced: checked
-                    });
-                  }}
-                />
-              </FormControl>
-            </div>
-            <FormDescription>
-              Display advanced trading options in the interface
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <FormLabel>Default Asset</FormLabel>
-            <Select 
-              value={form.watch("tradingPreferences.defaultAsset")} 
-              onValueChange={(value) => {
-                updateTradingPreferences({
-                  autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
-                  defaultAsset: value
-                });
-              }}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select asset" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-                <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                <SelectItem value="SOL">Solana (SOL)</SelectItem>
-                <SelectItem value="USDT">Tether (USDT)</SelectItem>
-                <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              Default asset selected when opening trading interface
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <FormLabel>Risk Level</FormLabel>
-            <Select 
-              value={form.watch("tradingPreferences.riskLevel")} 
-              onValueChange={(value: "low" | "medium" | "high") => {
-                updateTradingPreferences({
-                  autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
-                  riskLevel: value
-                });
-              }}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select risk level" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              Default risk level for trading strategies
-            </FormDescription>
-          </FormItem>
-          
-          <FormItem>
-            <FormLabel>Default Trade Size</FormLabel>
             <FormControl>
-              <Input 
-                type="number" 
-                min="0.01" 
-                step="0.01"
-                value={form.watch("tradingPreferences.defaultTradeSize") || 0.1} 
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value);
-                  if (!isNaN(value)) {
-                    updateTradingPreferences({
-                      autoConfirm: form.getValues().tradingPreferences?.autoConfirm || true,
-                      defaultTradeSize: value
-                    });
-                  }
+              <Switch
+                checked={form.getValues().tradingPreferences?.autoConfirm || false}
+                onCheckedChange={(checked) => {
+                  const updatedPrefs = {
+                    ...form.getValues().tradingPreferences,
+                    autoConfirm: checked
+                  };
+                  form.setValue("tradingPreferences", updatedPrefs);
                 }}
               />
             </FormControl>
+          </div>
+          
+          <div className="flex flex-row items-center justify-between">
+            <div className="space-y-0.5">
+              <FormLabel>Show Advanced Features</FormLabel>
+              <FormDescription>
+                Display advanced trading options and analytics
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={form.getValues().tradingPreferences?.showAdvanced || false}
+                onCheckedChange={(checked) => {
+                  const updatedPrefs = {
+                    ...form.getValues().tradingPreferences,
+                    showAdvanced: checked
+                  };
+                  form.setValue("tradingPreferences", updatedPrefs);
+                }}
+              />
+            </FormControl>
+          </div>
+          
+          <div className="space-y-2">
+            <FormLabel>Default Asset</FormLabel>
+            <Select
+              value={form.getValues().tradingPreferences?.defaultAsset || 'bitcoin'}
+              onValueChange={(value) => {
+                const updatedPrefs = {
+                  ...form.getValues().tradingPreferences,
+                  defaultAsset: value
+                };
+                form.setValue("tradingPreferences", updatedPrefs);
+              }}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select default asset" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                <SelectItem value="solana">Solana (SOL)</SelectItem>
+                <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                <SelectItem value="ripple">Ripple (XRP)</SelectItem>
+              </SelectContent>
+            </Select>
             <FormDescription>
-              Default amount for new trades
+              Asset to show by default in trading views
             </FormDescription>
-          </FormItem>
+          </div>
         </div>
       </CardContent>
     </Card>

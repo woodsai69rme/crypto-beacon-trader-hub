@@ -63,9 +63,8 @@ const MarketOverview: React.FC = () => {
         <CardContent>
           <RealTimePrices 
             coins={coins}
-            refreshInterval={60000}
             onSelectCoin={handleSelectCoin}
-            selectedCoinId={selectedCoinId || ''}
+            selectedCoinId={selectedCoinId}
             isLoading={isLoading}
           />
         </CardContent>

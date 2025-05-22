@@ -1,175 +1,149 @@
 
-import React from 'react';
-import { WalletProvider } from '@/types/trading';
-
-// Example implementation (partial)
-const walletProviders: WalletProvider[] = [
-  {
-    id: 'metamask',
-    name: 'MetaMask',
-    logo: 'https://metamask.io/images/metamask-fox.svg',
-    description: 'Connect to your MetaMask wallet',
-    icon: 'metamask-icon',
-    supported: true,
-    isInstalled: typeof window !== 'undefined' && window.ethereum?.isMetaMask,
-    isConnected: false
-  },
-  {
-    id: 'walletconnect',
-    name: 'WalletConnect',
-    logo: 'https://walletconnect.org/walletconnect-logo.png',
-    description: 'Connect via WalletConnect',
-    icon: 'walletconnect-icon',
-    supported: true,
-    isInstalled: false,
-    isConnected: false
-  },
-  {
-    id: 'coinbase',
-    name: 'Coinbase Wallet',
-    logo: 'https://coinbase.com/assets/press/coinbase-icon.png',
-    description: 'Connect to Coinbase Wallet',
-    icon: 'coinbase-icon',
-    supported: true,
-    isInstalled: typeof window !== 'undefined' && window.ethereum?.isCoinbaseWallet,
-    isConnected: false
-  },
-  {
-    id: 'phantom',
-    name: 'Phantom',
-    logo: 'https://phantom.app/img/phantom.png',
-    description: 'Connect to Phantom Wallet',
-    icon: 'phantom-icon',
-    supported: true,
-    isInstalled: true,
-    isConnected: false
-  }
-];
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LineChart, BarChart3, Wallet } from "lucide-react";
+import RealTimeTrading from './trading/RealTimeTrading';
+import WalletConnector from './wallets/WalletConnector';
+import { WalletAccount, WalletProvider } from '@/types/trading';
+import { toast } from '@/components/ui/use-toast';
 
 const TradingDashboard: React.FC = () => {
-  const [selectedWallet, setSelectedWallet] = React.useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = React.useState(false);
-  const [isConnected, setIsConnected] = React.useState(false);
-  const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
-  const [walletBalance, setWalletBalance] = React.useState<number | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const connectWallet = async (walletId: string) => {
-    setIsConnecting(true);
-    setError(null);
-    
-    try {
-      // Simulate wallet connection
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful connection
-      setSelectedWallet(walletId);
-      setIsConnected(true);
-      setWalletAddress('0x1234...5678');
-      setWalletBalance(1.234);
-      
-      console.log(`Connected to ${walletId}`);
-    } catch (err) {
-      console.error('Error connecting wallet:', err);
-      setError('Failed to connect wallet. Please try again.');
-    } finally {
-      setIsConnecting(false);
+  const [activeTab, setActiveTab] = useState<string>("realtime");
+  const [connectedAccount, setConnectedAccount] = useState<WalletAccount | null>(null);
+  
+  // List of supported wallets
+  const supportedWallets: WalletProvider[] = [
+    {
+      id: "metamask",
+      name: "MetaMask",
+      icon: "metamask-icon",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/800px-MetaMask_Fox.svg.png",
+      description: "https://metamask.io/",
+      supported: true,
+      isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isMetaMask,
+      isConnected: false
+    },
+    {
+      id: "trustwallet",
+      name: "Trust Wallet",
+      icon: "trust-wallet-icon",
+      logo: "https://trustwallet.com/assets/images/favicon.ico",
+      description: "https://trustwallet.com/",
+      supported: true,
+      isInstalled: false,
+      isConnected: false
+    },
+    {
+      id: "coinbase",
+      name: "Coinbase Wallet",
+      icon: "coinbase-icon",
+      logo: "https://www.coinbase.com/img/favicon.ico",
+      description: "https://www.coinbase.com/wallet",
+      supported: true,
+      isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isCoinbaseWallet,
+      isConnected: false
+    },
+    {
+      id: "walletconnect",
+      name: "WalletConnect",
+      icon: "walletconnect-icon",
+      logo: "https://avatars.githubusercontent.com/u/37784886",
+      description: "https://walletconnect.com/",
+      supported: true,
+      isInstalled: true, // WalletConnect doesn't require installation
+      isConnected: false
     }
+  ];
+  
+  // Handle wallet connection
+  const handleWalletConnect = (account: WalletAccount) => {
+    setConnectedAccount(account);
+    toast({
+      title: "Wallet Connected",
+      description: `Connected to ${account.network} network with address ${account.address.slice(0, 6)}...${account.address.slice(-4)}`,
+    });
   };
-
-  const disconnectWallet = () => {
-    setSelectedWallet(null);
-    setIsConnected(false);
-    setWalletAddress(null);
-    setWalletBalance(null);
-  };
-
+  
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Trading Dashboard</h1>
-      
-      {!isConnected ? (
-        <div className="bg-card rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Connect Wallet</h2>
-          <p className="text-muted-foreground mb-6">
-            Connect your wallet to start trading cryptocurrencies.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {walletProviders.map((wallet) => (
-              <button
-                key={wallet.id}
-                onClick={() => connectWallet(wallet.id)}
-                disabled={isConnecting}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center">
-                  {wallet.logo && (
-                    <img 
-                      src={wallet.logo} 
-                      alt={wallet.name} 
-                      className="w-8 h-8 mr-3" 
-                    />
-                  )}
-                  <div>
-                    <h3 className="font-medium">{wallet.name}</h3>
-                    <p className="text-sm text-muted-foreground">{wallet.description}</p>
-                  </div>
-                </div>
-                {wallet.isInstalled && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                    Installed
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          
-          {error && (
-            <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded">
-              {error}
-            </div>
-          )}
-          
-          {isConnecting && (
-            <div className="mt-4 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              <span className="ml-2">Connecting...</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-card rounded-lg p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Wallet Connected</h2>
-            <button
-              onClick={disconnectWallet}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90"
-            >
-              Disconnect
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 border rounded-lg">
-              <h3 className="text-sm text-muted-foreground mb-1">Wallet Address</h3>
-              <p className="font-mono">{walletAddress}</p>
-            </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <LineChart className="h-5 w-5" />
+            Trading Dashboard
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent>
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="realtime">Real-Time Trading</TabsTrigger>
+              <TabsTrigger value="wallet">Wallet Connection</TabsTrigger>
+              <TabsTrigger value="trading">Real Trading</TabsTrigger>
+            </TabsList>
             
-            <div className="p-4 border rounded-lg">
-              <h3 className="text-sm text-muted-foreground mb-1">Balance</h3>
-              <p className="text-xl font-semibold">{walletBalance} ETH</p>
-            </div>
-          </div>
-          
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Trading Options</h3>
-            <p className="text-muted-foreground">
-              Trading features will be implemented here.
-            </p>
-          </div>
-        </div>
-      )}
+            <TabsContent value="realtime">
+              <RealTimeTrading />
+            </TabsContent>
+            
+            <TabsContent value="wallet">
+              <WalletConnector 
+                supportedWallets={supportedWallets.map(wallet => ({
+                  ...wallet,
+                  isConnected: connectedAccount?.provider === wallet.id
+                }))}
+                onConnect={handleWalletConnect}
+              />
+            </TabsContent>
+            
+            <TabsContent value="trading">
+              {connectedAccount ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Real Trading
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-md">
+                        <div className="text-sm text-muted-foreground">Connected Wallet</div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-mono">{connectedAccount.address.slice(0, 6)}...{connectedAccount.address.slice(-4)}</div>
+                          <div className="font-medium">{connectedAccount.balance} {connectedAccount.network}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-center py-6">
+                        <p>Trading functionality is available with your connected wallet.</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          For security reasons, real trading requires additional setup.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="text-center py-12">
+                  <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-medium mb-2">No Wallet Connected</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Please connect a wallet to access real trading functionality
+                  </p>
+                  <button
+                    onClick={() => setActiveTab("wallet")}
+                    className="text-primary underline hover:text-primary/80"
+                  >
+                    Go to Wallet Connection
+                  </button>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };

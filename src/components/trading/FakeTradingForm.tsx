@@ -1,164 +1,154 @@
 
 import React, { useState } from 'react';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDownUp } from "lucide-react";
-import { FakeTradingFormProps, Trade, CoinOption } from '@/types/trading';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
+import { FakeTradingFormProps, Trade } from '@/types/trading';
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ 
-  onTrade, 
-  availableCoins = [],
-  initialCoinId,
-  advancedMode = false
-}) => {
-  const [coinId, setCoinId] = useState(initialCoinId || (availableCoins[0]?.id || ''));
-  const [amount, setAmount] = useState('');
-  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  
-  const selectedCoin = availableCoins.find(coin => coin.id === coinId);
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedMode = false }) => {
+  const [asset, setAsset] = useState('');
+  const [price, setPrice] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [type, setType] = useState<'buy' | 'sell'>('buy');
+  const [tradeDate, setTradeDate] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedCoin || !amount || parseFloat(amount) <= 0) return;
+    // Validate input
+    if (!asset || !price || !quantity || !tradeDate) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const price = selectedCoin.price || 0;
-    const quantity = parseFloat(amount);
-    const totalValue = price * quantity;
+    const priceValue = parseFloat(price);
+    const quantityValue = parseFloat(quantity);
+    const totalValue = priceValue * quantityValue;
     
-    const trade: Trade = {
+    const newTrade: Trade = {
       id: `trade-${Date.now()}`,
-      coinId: selectedCoin.id,
-      coinName: selectedCoin.name,
-      coinSymbol: selectedCoin.symbol,
-      type: tradeType,
-      amount: quantity,
-      price: price,
-      totalValue: totalValue,
-      timestamp: new Date().toISOString(),
+      coinId: asset,
+      coinName: asset,
+      coinSymbol: asset,
+      price: priceValue,
+      amount: quantityValue,
+      type,
+      timestamp: tradeDate,
       currency: 'USD',
+      totalValue,
       total: totalValue,
-      status: 'completed'
+      tags: advancedMode ? tags : []
     };
     
-    onTrade(trade);
+    onAddTrade(newTrade);
     
     // Reset form
-    setAmount('');
-  };
-  
-  // Add any advanced mode components or options based on the advancedMode prop
-  const renderAdvancedOptions = () => {
-    if (!advancedMode) return null;
+    setAsset('');
+    setPrice('');
+    setQuantity('');
+    setTradeDate('');
+    setTags([]);
     
-    return (
-      <div className="space-y-2 mt-4 border-t pt-4">
-        <h4 className="text-sm font-medium">Advanced Options</h4>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <label className="text-xs">Stop Loss</label>
-            <Input type="number" placeholder="0.00" disabled={tradeType !== 'buy'} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs">Take Profit</label>
-            <Input type="number" placeholder="0.00" disabled={tradeType !== 'buy'} />
-          </div>
-        </div>
-      </div>
-    );
+    toast({
+      title: "Trade Added",
+      description: `Successfully added ${type} trade for ${quantity} ${asset}`,
+    });
   };
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ArrowDownUp size={20} />
-          {advancedMode ? 'Advanced Trading' : 'Quick Trade'}
-        </CardTitle>
-      </CardHeader>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="asset">Asset</Label>
+        <Select value={asset} onValueChange={setAsset}>
+          <SelectTrigger id="asset">
+            <SelectValue placeholder="Select Asset" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+            <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+            <SelectItem value="SOL">Solana (SOL)</SelectItem>
+            <SelectItem value="ADA">Cardano (ADA)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Select Coin</label>
-            <Select value={coinId} onValueChange={setCoinId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a coin" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCoins.map(coin => (
-                  <SelectItem key={coin.id} value={coin.id}>
-                    {coin.name} ({coin.symbol.toUpperCase()})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Button
-                type="button"
-                variant={tradeType === 'buy' ? 'default' : 'outline'}
-                className="w-full"
-                onClick={() => setTradeType('buy')}
-              >
-                Buy
-              </Button>
-            </div>
-            <div>
-              <Button
-                type="button"
-                variant={tradeType === 'sell' ? 'default' : 'outline'}
-                className="w-full"
-                onClick={() => setTradeType('sell')}
-              >
-                Sell
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Amount</label>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={`Amount of ${selectedCoin?.symbol || 'coin'}`}
-              step="any"
-              min="0"
-            />
-          </div>
-          
-          {renderAdvancedOptions()}
-          
-          {selectedCoin && amount && (
-            <div className="border rounded-md p-3 bg-muted/50">
-              <div className="text-sm flex justify-between">
-                <span>Price:</span>
-                <span>${selectedCoin.price?.toLocaleString()}</span>
-              </div>
-              <div className="text-sm flex justify-between mt-1">
-                <span>Total:</span>
-                <span>
-                  ${(selectedCoin.price ? selectedCoin.price * parseFloat(amount || '0') : 0).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          )}
-          
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={!coinId || !amount || parseFloat(amount) <= 0}
-          >
-            {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin?.symbol?.toUpperCase()}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="price">Price</Label>
+          <Input
+            id="price"
+            placeholder="Enter price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            type="number"
+            min="0"
+            step="0.01"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="quantity">Quantity</Label>
+          <Input
+            id="quantity"
+            placeholder="Enter quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            type="number"
+            min="0"
+            step="0.0001"
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="date">Trade Date</Label>
+        <Input
+          id="date"
+          type="date"
+          value={tradeDate}
+          onChange={(e) => setTradeDate(e.target.value)}
+        />
+      </div>
+      
+      {advancedMode && (
+        <div className="space-y-2">
+          <Label htmlFor="tags">Tags (comma-separated)</Label>
+          <Input
+            id="tags"
+            placeholder="e.g., long-term, dip-buy"
+            onChange={(e) => setTags(e.target.value.split(',').map(tag => tag.trim()))}
+          />
+        </div>
+      )}
+      
+      <div className="grid grid-cols-2 gap-4">
+        <Button
+          type="button"
+          className={`w-full ${type === 'buy' ? 'bg-green-500 hover:bg-green-600' : 'bg-muted hover:bg-muted/80'}`}
+          onClick={() => setType('buy')}
+        >
+          Buy
+        </Button>
+        <Button
+          type="button"
+          className={`w-full ${type === 'sell' ? 'bg-red-500 hover:bg-red-600' : 'bg-muted hover:bg-muted/80'}`}
+          onClick={() => setType('sell')}
+        >
+          Sell
+        </Button>
+      </div>
+      
+      <Button type="submit" className="w-full">
+        Add Trade
+      </Button>
+    </form>
   );
 };
 
