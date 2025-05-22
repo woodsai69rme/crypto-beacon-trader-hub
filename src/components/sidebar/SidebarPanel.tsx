@@ -16,10 +16,12 @@ import {
   AreaChart,
   Sigma,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { 
   Tooltip,
   TooltipContent,
@@ -31,6 +33,7 @@ import { useUI } from '@/contexts/UIContext';
 const SidebarPanel: React.FC = () => {
   const { sidebarSettings, updateSidebarSettings } = useUI();
   const [isCollapsed, setIsCollapsed] = useState(sidebarSettings.defaultCollapsed || false);
+  const [activeItem, setActiveItem] = useState('Dashboard');
   
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -42,7 +45,7 @@ const SidebarPanel: React.FC = () => {
       items: [
         { icon: LayoutDashboard, label: 'Dashboard', href: '#' },
         { icon: LineChart, label: 'Trading', href: '#' },
-        { icon: Wallet, label: 'Portfolio', href: '#' },
+        { icon: Wallet, label: 'Portfolio', href: '#', badge: '3' },
       ]
     },
     {
@@ -51,13 +54,14 @@ const SidebarPanel: React.FC = () => {
         { icon: BarChart3, label: 'Market Data', href: '#' },
         { icon: AreaChart, label: 'Technical Analysis', href: '#' },
         { icon: Sigma, label: 'Fundamentals', href: '#' },
+        { icon: Globe, label: 'Global Markets', href: '#', badge: 'New' },
       ]
     },
     {
       section: 'AI Trading',
       items: [
-        { icon: Bot, label: 'AI Bots', href: '#' },
-        { icon: AlertTriangle, label: 'Alerts', href: '#' },
+        { icon: Bot, label: 'AI Bots', href: '#', badge: 'Pro' },
+        { icon: AlertTriangle, label: 'Alerts', href: '#', badge: '5' },
         { icon: FileText, label: 'Strategies', href: '#' },
       ]
     },
@@ -65,8 +69,8 @@ const SidebarPanel: React.FC = () => {
       section: 'Community',
       items: [
         { icon: BookOpen, label: 'News & Events', href: '#' },
-        { icon: Users, label: 'Social Trading', href: '#' },
-        { icon: Bell, label: 'Notifications', href: '#' },
+        { icon: Users, label: 'Social Trading', href: '#', badge: 'Beta' },
+        { icon: Bell, label: 'Notifications', href: '#', badge: '9+' },
       ]
     }
   ];
@@ -106,16 +110,42 @@ const SidebarPanel: React.FC = () => {
                           href={item.href}
                           className={cn(
                             "flex items-center px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
-                            isCollapsed ? "justify-center" : "justify-start"
+                            isCollapsed ? "justify-center" : "justify-start",
+                            activeItem === item.label ? "bg-accent text-accent-foreground" : ""
                           )}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setActiveItem(item.label);
+                          }}
                         >
                           <item.icon className={cn("h-5 w-5", isCollapsed ? "" : "mr-3")} />
-                          {!isCollapsed && <span>{item.label}</span>}
+                          {!isCollapsed && (
+                            <span className="flex-1">{item.label}</span>
+                          )}
+                          
+                          {!isCollapsed && item.badge && (
+                            <Badge variant={
+                              item.badge === 'New' || item.badge === 'Beta' ? "secondary" :
+                              item.badge === 'Pro' ? "outline" : "default"
+                            } className="ml-auto">
+                              {item.badge}
+                            </Badge>
+                          )}
                         </a>
                       </TooltipTrigger>
                       {isCollapsed && (
                         <TooltipContent side="right">
-                          {item.label}
+                          <div className="flex items-center gap-2">
+                            {item.label}
+                            {item.badge && (
+                              <Badge variant={
+                                item.badge === 'New' || item.badge === 'Beta' ? "secondary" :
+                                item.badge === 'Pro' ? "outline" : "default"
+                              } className="ml-auto">
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </div>
                         </TooltipContent>
                       )}
                     </Tooltip>

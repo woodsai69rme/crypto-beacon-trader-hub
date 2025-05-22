@@ -13,28 +13,6 @@ const AiTradingDashboard: React.FC = () => {
     setIsDetached(!isDetached);
   };
 
-  if (isDetached) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            AI Trading Dashboard
-          </CardTitle>
-          <CardDescription>
-            Dashboard is currently in detached mode. Click below to return to normal view.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center items-center py-12">
-          <Button onClick={toggleDetachedMode}>
-            Return to Dashboard
-          </Button>
-          <DetachedAiTradingDashboard onClose={toggleDetachedMode} />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="w-full">
       <CardHeader>
@@ -59,6 +37,13 @@ const AiTradingDashboard: React.FC = () => {
       <CardContent className="space-y-6">
         <AdvancedAiTradingDashboard />
       </CardContent>
+
+      {isDetached && (
+        <DetachedAiTradingDashboard 
+          onClose={toggleDetachedMode}
+          isDetached={true}
+        />
+      )}
     </Card>
   );
 };

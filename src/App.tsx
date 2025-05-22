@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard';
 import ThemeSwitcher from './components/settings/ThemeSwitcher';
 import { Toaster } from './components/ui/toaster';
 import { cn } from './lib/utils';
-import { GithubIcon, Menu, ChevronRight, LayoutDashboard, LineChart, Settings, BookOpen, Users, Bell } from 'lucide-react';
+import { GithubIcon, Menu, ChevronRight, LayoutDashboard, LineChart, Settings, BookOpen, Users, Bell, Bot, Wallet } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './components/ui/sheet';
 import { Separator } from './components/ui/separator';
@@ -74,7 +74,8 @@ const AppContent = () => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'trading', label: 'Trading', icon: LineChart },
-    { id: 'analysis', label: 'Market Analysis', icon: ChevronRight },
+    { id: 'portfolio', label: 'Portfolio', icon: Wallet },
+    { id: 'ai', label: 'AI Trading', icon: Bot },
     { id: 'news', label: 'News & Events', icon: BookOpen },
     { id: 'social', label: 'Community', icon: Users },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -100,7 +101,7 @@ const AppContent = () => {
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
               CT
             </div>
-            <h1 className="font-bold text-xl hidden md:block">Crypto Trading Platform</h1>
+            <h1 className="font-bold text-xl hidden md:block">Crypto Trader</h1>
           </div>
           
           <div className="hidden md:flex items-center space-x-1">
@@ -127,7 +128,7 @@ const AppContent = () => {
               
               <Button variant="outline" size="sm" className="hidden lg:flex items-center gap-2">
                 <GithubIcon size={16} />
-                <span>Star on GitHub</span>
+                <span>GitHub</span>
               </Button>
               <ThemeSwitcher />
             </div>
@@ -145,7 +146,7 @@ const AppContent = () => {
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                       CT
                     </div>
-                    <h2 className="font-bold text-lg">Crypto Trading</h2>
+                    <h2 className="font-bold text-lg">Crypto Trader</h2>
                   </div>
                   
                   <nav className="space-y-2 mb-auto">
@@ -171,7 +172,7 @@ const AppContent = () => {
                     <ThemeSwitcher className="self-start" />
                     <Button variant="outline" size="sm" className="flex items-center gap-2 self-start">
                       <GithubIcon size={16} />
-                      <span>Star on GitHub</span>
+                      <span>GitHub</span>
                     </Button>
                   </div>
                 </div>
