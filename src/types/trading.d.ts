@@ -65,12 +65,24 @@ export interface AITradingStrategy {
   implementation?: string;
   recommendation?: string;
   confidence?: number;
+  parameters?: Record<string, any>;
   backtestResults?: {
     winRate: number;
     profitFactor: number;
     maxDrawdown: number;
     sharpeRatio: number;
   };
+}
+
+export interface AIStrategyPerformance {
+  winRate?: number;
+  profitLoss?: number;
+  sharpeRatio?: number;
+  maxDrawdown?: number;
+  totalTrades?: number;
+  profitFactor?: number;
+  averageProfit?: number;
+  accuracy?: number;
 }
 
 export interface AiBotTradingProps {
@@ -137,4 +149,19 @@ export interface RealTimePricesProps {
   onSelectCoin?: (coinId: string) => void;
   selectedCoinId?: string;
   refreshInterval?: number;
+}
+
+export interface RealTimePriceChartProps {
+  coinId: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins: CoinOption[];
+  updateInterval?: number;
+}
+
+export interface Widget {
+  id: string;
+  type: string;
+  title: string;
+  config?: any;
 }

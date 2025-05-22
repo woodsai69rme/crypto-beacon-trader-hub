@@ -1,9 +1,10 @@
 
-// Assuming this is the main application layout
 import React from 'react';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
 import { AiTradingProvider } from '@/contexts/AiTradingContext';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { UIProvider } from '@/contexts/UIContext';
 
 export default function RootLayout({
   children,
@@ -18,10 +19,14 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <AiTradingProvider>
-            {children}
-            <Toaster />
-          </AiTradingProvider>
+          <UIProvider>
+            <CurrencyProvider>
+              <AiTradingProvider>
+                {children}
+                <Toaster />
+              </AiTradingProvider>
+            </CurrencyProvider>
+          </UIProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,386 +1,213 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Bot, Brain, TrendingUp, Activity, BarChart2, Play, Pause, Maximize2 } from "lucide-react";
-import { AITradingStrategy } from "@/types/trading";
-import ModelTrainingPanel from "./ModelTrainingPanel";
-import ModelConfigPanel from "./ModelConfigPanel";
-import LiveAnalyticsDashboard from "../analytics/LiveAnalyticsDashboard";
-
-// Mock strategies
-const strategies: AITradingStrategy[] = [
-  {
-    id: 'ai-trend-following-btc',
-    name: 'AI Trend Following BTC',
-    description: 'AI-powered trend following for Bitcoin',
-    type: 'trend-following',
-    timeframe: '4h',
-    parameters: {
-      lookbackPeriod: 14,
-      stopLoss: 2.5,
-      takeProfit: 5,
-      capitalAllocation: 10
-    }
-  },
-  {
-    id: 'ai-mean-reversion-eth',
-    name: 'AI Mean Reversion ETH',
-    description: 'AI-powered mean reversion for Ethereum',
-    type: 'mean-reversion',
-    timeframe: '1h',
-    parameters: {
-      lookbackPeriod: 24,
-      stopLoss: 3,
-      takeProfit: 4,
-      capitalAllocation: 15
-    }
-  },
-  {
-    id: 'ai-momentum-sol',
-    name: 'AI Momentum SOL',
-    description: 'AI-powered momentum strategy for Solana',
-    type: 'momentum',
-    timeframe: '1d',
-    parameters: {
-      lookbackPeriod: 7,
-      stopLoss: 5,
-      takeProfit: 10,
-      capitalAllocation: 8
-    }
-  },
-];
-
-interface BotConfig {
-  id: string;
-  name: string;
-  status: 'running' | 'stopped' | 'error';
-  performance: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    allTime: number;
-  };
-  trades: number;
-  winRate: number;
-}
-
-const bots: BotConfig[] = [
-  {
-    id: 'bot-1',
-    name: 'BTC Momentum Bot',
-    status: 'running',
-    performance: {
-      daily: 1.2,
-      weekly: 4.5,
-      monthly: 12.3,
-      allTime: 28.7
-    },
-    trades: 156,
-    winRate: 67.3
-  },
-  {
-    id: 'bot-2',
-    name: 'ETH Swing Trader',
-    status: 'stopped',
-    performance: {
-      daily: 0,
-      weekly: 2.1,
-      monthly: 8.9,
-      allTime: 15.2
-    },
-    trades: 94,
-    winRate: 61.8
-  },
-  {
-    id: 'bot-3',
-    name: 'SOL Breakout Bot',
-    status: 'error',
-    performance: {
-      daily: -0.8,
-      weekly: 3.2,
-      monthly: 9.5,
-      allTime: 22.1
-    },
-    trades: 127,
-    winRate: 64.5
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import AiTradingStrategySelector from './AiTradingStrategySelector';
+import { AITradingStrategy } from '@/types/trading';
 
 const AiTradingBots: React.FC = () => {
-  const [selectedModel, setSelectedModel] = useState<string>('lstm-attention');
-  const [timeframe, setTimeframe] = useState<string>('1h');
-  const [activeServerId, setActiveServerId] = useState<string>('local-server-1');
-  const [isTraining, setIsTraining] = useState<boolean>(false);
-  const [trainingProgress, setTrainingProgress] = useState<number>(0);
-  const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
-  const [activeBotTab, setActiveBotTab] = useState<string>("existing");
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>("trending");
+  const [activeBots, setActiveBots] = useState<AITradingStrategy[]>([]);
   
-  const startTraining = () => {
-    setIsTraining(true);
-    setTrainingProgress(0);
-    
-    // Simulate training progress
-    const interval = setInterval(() => {
-      setTrainingProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsTraining(false);
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 500);
+  // Mock data for trending strategies
+  const trendingStrategies: AITradingStrategy[] = [
+    {
+      id: "trend-following-1",
+      name: "Trend Following v2",
+      description: "Follows major market trends across multiple timeframes",
+      riskLevel: "medium",
+      profitPotential: "medium",
+      timeframe: "medium",
+      indicators: ["Moving Averages", "MACD", "Volume"],
+      triggers: ["Crossovers", "Volume Spikes"],
+      backtestResults: {
+        winRate: 62,
+        profitFactor: 1.8,
+        maxDrawdown: 12,
+        sharpeRatio: 1.4
+      }
+    },
+    {
+      id: "breakout-strategy",
+      name: "Breakout Strategy",
+      description: "Captures price movements after periods of consolidation",
+      riskLevel: "high",
+      profitPotential: "high",
+      timeframe: "short",
+      indicators: ["Bollinger Bands", "ATR", "Support/Resistance"],
+      triggers: ["Band Breakouts", "Volume Confirmation"],
+      backtestResults: {
+        winRate: 45,
+        profitFactor: 2.1,
+        maxDrawdown: 18,
+        sharpeRatio: 1.2
+      }
+    },
+    {
+      id: "mean-reversion",
+      name: "Mean Reversion",
+      description: "Takes advantage of price returning to average levels",
+      riskLevel: "low",
+      profitPotential: "low",
+      timeframe: "long",
+      indicators: ["RSI", "Stochastic", "Bollinger Bands"],
+      triggers: ["Oversold/Overbought", "Deviation from Mean"],
+      backtestResults: {
+        winRate: 73,
+        profitFactor: 1.5,
+        maxDrawdown: 8,
+        sharpeRatio: 1.7
+      }
+    }
+  ];
+  
+  const popularStrategies = [
+    // ... popular strategies similar to trending strategies
+    // Would populate with different strategies
+  ];
+  
+  const customStrategies = [
+    // ... custom strategies similar to trending strategies
+    // Would populate with user-created strategies
+  ];
+  
+  // Function to activate a bot
+  const activateBot = (bot: AITradingStrategy) => {
+    setActiveBots(prev => [...prev, bot]);
+    toast({
+      title: "Bot Activated",
+      description: `${bot.name} is now running.`,
+    });
   };
   
-  const toggleAnalytics = () => {
-    setShowAnalytics(!showAnalytics);
+  // Function to deactivate a bot
+  const deactivateBot = (botId: string) => {
+    setActiveBots(prev => prev.filter(bot => bot.id !== botId));
+    toast({
+      title: "Bot Deactivated",
+      description: "The trading bot has been stopped.",
+    });
+  };
+  
+  // Check if a bot is active
+  const isBotActive = (botId: string) => {
+    return activeBots.some(bot => bot.id === botId);
   };
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              AI Trading Bots
-            </CardTitle>
-            <CardDescription>
-              Deploy AI-powered trading bots with custom strategies
-            </CardDescription>
-          </div>
-          <div className="flex items-center mt-2 sm:mt-0">
-            <Button variant="outline" size="sm" onClick={toggleAnalytics} className="gap-2">
-              <BarChart2 className="h-4 w-4" />
-              {showAnalytics ? "Hide Analytics" : "Show Analytics"}
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {showAnalytics && (
-          <div className="mb-6">
-            <LiveAnalyticsDashboard />
-          </div>
-        )}
-      
-        <Tabs defaultValue={activeBotTab} onValueChange={setActiveBotTab}>
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="existing">Active Bots</TabsTrigger>
-            <TabsTrigger value="create">Create Bot</TabsTrigger>
-            <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          </TabsList>
-          
-          <div className="mt-6">
-            <TabsContent value="existing" className="m-0 space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Bot</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden sm:table-cell">Win Rate</TableHead>
-                    <TableHead>Performance</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bots.map((bot) => (
-                    <TableRow key={bot.id}>
-                      <TableCell className="font-medium">{bot.name}</TableCell>
-                      <TableCell>
-                        {bot.status === 'running' && (
-                          <Badge className="bg-green-500">Running</Badge>
-                        )}
-                        {bot.status === 'stopped' && (
-                          <Badge variant="outline">Stopped</Badge>
-                        )}
-                        {bot.status === 'error' && (
-                          <Badge variant="destructive">Error</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">{bot.winRate}%</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <span className={bot.performance.daily >= 0 ? 'text-green-500' : 'text-red-500'}>
-                            {bot.performance.daily >= 0 ? '+' : ''}{bot.performance.daily}%
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            ({bot.performance.allTime >= 0 ? '+' : ''}{bot.performance.allTime}% all-time)
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {bot.status === 'running' ? (
-                          <Button variant="ghost" size="sm">
-                            <Pause className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm">
-                            <Play className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              
-              <div className="pt-4">
-                <Button variant="outline" className="w-full">
-                  <Bot className="h-4 w-4 mr-2" />
-                  Deploy New Bot
-                </Button>
-              </div>
-            </TabsContent>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Trading Bots</CardTitle>
+          <CardDescription>
+            Deploy intelligent trading strategies powered by AI
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="trending">Trending</TabsTrigger>
+              <TabsTrigger value="popular">Popular</TabsTrigger>
+              <TabsTrigger value="custom">Custom</TabsTrigger>
+            </TabsList>
             
-            <TabsContent value="create" className="m-0 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Card>
-                    <CardHeader className="py-3">
-                      <CardTitle className="text-base">Bot Configuration</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="grid w-full items-center gap-1.5">
-                          <Label htmlFor="bot-name">Bot Name</Label>
-                          <input 
-                            id="bot-name"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            placeholder="Enter bot name"
-                          />
-                        </div>
-                        
-                        <div className="grid gap-2">
-                          <Label>Trading Pair</Label>
-                          <div className="flex gap-2">
-                            <Button variant="outline" className="flex-1">BTC/USD</Button>
-                            <Button variant="outline" className="flex-1">ETH/USD</Button>
-                            <Button variant="outline" className="flex-1">SOL/USD</Button>
+            <TabsContent value="trending" className="space-y-4">
+              {trendingStrategies.map(strategy => (
+                <Card key={strategy.id} className="overflow-hidden">
+                  <div className="flex flex-col md:flex-row">
+                    <div className="flex-1 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={`/avatars/bot-${Math.floor(Math.random() * 5) + 1}.png`} alt={strategy.name} />
+                            <AvatarFallback>AI</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-medium">{strategy.name}</h3>
+                            <p className="text-xs text-muted-foreground">{strategy.timeframe} term</p>
                           </div>
                         </div>
                         
-                        <div className="grid gap-2">
-                          <Label>Capital Allocation</Label>
-                          <div className="flex gap-2">
-                            <Button variant="outline" className="flex-1">5%</Button>
-                            <Button variant="outline" className="flex-1">10%</Button>
-                            <Button variant="outline" className="flex-1">25%</Button>
-                            <Button variant="outline" className="flex-1">50%</Button>
-                          </div>
-                        </div>
-                        
-                        <div className="grid gap-2">
-                          <Label>Risk Level</Label>
-                          <div className="flex gap-2">
-                            <Button variant="outline" className="flex-1">Low</Button>
-                            <Button variant="outline" className="flex-1">Medium</Button>
-                            <Button variant="outline" className="flex-1">High</Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Switch id="auto-compound" />
-                          <Label htmlFor="auto-compound">Auto-compound profits</Label>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Switch id="notification" defaultChecked />
-                          <Label htmlFor="notification">Receive trade notifications</Label>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <div>
-                  <ModelConfigPanel
-                    selectedModel={selectedModel}
-                    setSelectedModel={setSelectedModel}
-                    timeframe={timeframe}
-                    setTimeframe={setTimeframe}
-                    activeServerId={activeServerId}
-                    isTraining={isTraining}
-                    trainingProgress={trainingProgress}
-                    startTraining={startTraining}
-                  />
-                </div>
-              </div>
-              
-              <Button className="w-full">
-                <Bot className="h-4 w-4 mr-2" />
-                Deploy AI Trading Bot
-              </Button>
-            </TabsContent>
-            
-            <TabsContent value="strategies" className="m-0">
-              <div className="space-y-4">
-                {strategies.map(strategy => (
-                  <Card key={strategy.id}>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium flex items-center">
-                            <Brain className="h-4 w-4 mr-2" />
-                            {strategy.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {strategy.description}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline">{strategy.type}</Badge>
-                            <Badge variant="outline">{strategy.timeframe}</Badge>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <TrendingUp className="h-4 w-4 mr-2" />
-                          Backtest
-                        </Button>
+                        <Badge variant={
+                          strategy.riskLevel === "low" ? "outline" :
+                          strategy.riskLevel === "medium" ? "secondary" : "destructive"
+                        }>
+                          {strategy.riskLevel} risk
+                        </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                        {Object.entries(strategy.parameters).map(([key, value]) => (
-                          <div key={key} className="border rounded p-2">
-                            <div className="text-xs text-muted-foreground capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
-                            </div>
-                            <div className="font-medium">{value}</div>
-                          </div>
-                        ))}
+                      <p className="text-sm text-muted-foreground mb-4">{strategy.description}</p>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+                        <div>
+                          <div className="text-muted-foreground">Win Rate</div>
+                          <div className="font-medium">{strategy.backtestResults?.winRate}%</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Profit Factor</div>
+                          <div className="font-medium">{strategy.backtestResults?.profitFactor}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Max Drawdown</div>
+                          <div className="font-medium">{strategy.backtestResults?.maxDrawdown}%</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Sharpe Ratio</div>
+                          <div className="font-medium">{strategy.backtestResults?.sharpeRatio}</div>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                <div className="pt-2">
-                  <Button variant="outline" className="w-full">
-                    <Brain className="h-4 w-4 mr-2" />
-                    Create New Strategy
-                  </Button>
-                </div>
+                      
+                      <div className="flex justify-end">
+                        {isBotActive(strategy.id) ? (
+                          <Button variant="destructive" onClick={() => deactivateBot(strategy.id)}>
+                            Stop Bot
+                          </Button>
+                        ) : (
+                          <Button onClick={() => activateBot(strategy)}>
+                            Activate Bot
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </TabsContent>
+            
+            <TabsContent value="popular" className="space-y-4">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Popular strategies will be available soon.</p>
               </div>
             </TabsContent>
-          </div>
-        </Tabs>
-      </CardContent>
+            
+            <TabsContent value="custom" className="space-y-4">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">You don't have any custom strategies yet.</p>
+                <Button>Create Custom Strategy</Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
       
-      <CardFooter className="border-t pt-4 pb-0">
-        <div className="flex items-center w-full justify-between text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <Activity className="h-4 w-4 mr-1" />
-            <span>3 active bots</span>
-          </div>
-          <div>Last trade: 5 minutes ago</div>
-        </div>
-      </CardFooter>
-    </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Create New Strategy</CardTitle>
+          <CardDescription>
+            Design your own AI-powered trading strategy
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <AiTradingStrategySelector />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

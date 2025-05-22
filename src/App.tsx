@@ -11,6 +11,7 @@ import { Button } from './components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './components/ui/sheet';
 import { Separator } from './components/ui/separator';
 import { UIProvider, useUI } from './contexts/UIContext';
+import { CurrencyProvider } from './contexts/CurrencyContext';
 import PriceTicker from './components/tickers/PriceTicker';
 import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
@@ -151,50 +152,22 @@ const AppContent = () => {
         )}
       </main>
       
-      {/* News Ticker for larger screens */}
+      {/* Bottom News Ticker */}
       {showBottomTicker && (
-        <div className="hidden md:block border-t border-border">
-          <NewsTicker 
-            items={newsItems} 
-            speed={tickerSettings.speed} 
-            direction={tickerSettings.direction} 
-          />
-        </div>
+        <NewsTicker news={newsItems} speed={tickerSettings.speed} direction={tickerSettings.direction} />
       )}
-      
-      {/* Bottom Price Ticker */}
-      {showBottomTicker && (
-        <PriceTicker 
-          coins={trendingCoins} 
-          speed={tickerSettings.speed}
-          direction={tickerSettings.direction}
-        />
-      )}
-      
-      <footer className="border-t border-border py-4">
-        <div className="container">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <div>© 2025 Crypto Trading Platform</div>
-            <div className="flex space-x-4">
-              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
-            </div>
-          </div>
-        </div>
-      </footer>
-      
-      <Toaster />
     </div>
   );
 };
 
-function App() {
+const App = () => {
   return (
     <UIProvider>
-      <AppContent />
+      <CurrencyProvider>
+        <AppContent />
+      </CurrencyProvider>
     </UIProvider>
   );
-}
+};
 
 export default App;

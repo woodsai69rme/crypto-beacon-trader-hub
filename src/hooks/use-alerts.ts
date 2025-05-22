@@ -1,114 +1,146 @@
 
-import { useState, useEffect } from "react";
-import { PriceAlert, VolumeAlert } from "@/types/alerts";
+import { useState, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { 
+  AlertData, 
+  AlertType, 
+  AlertFormData, 
+  PriceAlert, 
+  VolumeAlert, 
+  PatternAlert,
+  TechnicalAlert
+} from "@/types/alerts";
 import { toast } from "@/components/ui/use-toast";
-import { handleError } from "@/utils/errorHandling";
-import { PriceAlertFormData } from "@/components/widgets/AlertComponents/AlertTypes";
 
 export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
-  const [volumeAlerts, setVolumeAlerts] = useState<VolumeAlert[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [alerts, setAlerts] = useState<AlertData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Load alerts from localStorage
-  useEffect(() => {
-    try {
-      setIsLoading(true);
-      const savedAlerts = localStorage.getItem("priceAlerts");
-      const savedVolumeAlerts = localStorage.getItem("volumeAlerts");
-      
-      if (savedAlerts) {
-        setAlerts(JSON.parse(savedAlerts));
-      }
-      
-      if (savedVolumeAlerts) {
-        setVolumeAlerts(JSON.parse(savedVolumeAlerts));
-      }
-    } catch (error) {
-      handleError(error, "warning", "Failed to load alerts");
-    } finally {
-      setIsLoading(false);
+  // Create a new alert
+  const createAlert = useCallback((formData: AlertFormData): AlertData => {
+    // Create a base alert with common properties
+    const baseAlert = {
+      id: uuidv4(),
+      createdAt: new Date(),
+      coinId: formData.coinId,
+      coinName: formData.coinName,
+      coinSymbol: formData.coinSymbol,
+      enabled: formData.enabled,
+      notifyVia: formData.notifyVia,
+    };
+
+    let newAlert: AlertData;
+
+    // Create specific alert type based on formData.type
+    switch (formData.type) {
+      case "price":
+        newAlert = {
+          ...baseAlert,
+          type: "price",
+          targetPrice: formData.targetPrice || 0,
+          isAbove: formData.isAbove || false,
+          recurring: formData.recurring || false,
+          percentageChange: formData.percentageChange || 0,
+        } as PriceAlert;
+        break;
+
+      case "volume":
+        newAlert = {
+          ...baseAlert,
+          type: "volume",
+          volumeThreshold: formData.volumeThreshold || 0,
+          frequency: formData.frequency || "24h",
+        } as VolumeAlert;
+        break;
+
+      case "pattern":
+        newAlert = {
+          ...baseAlert,
+          type: "pattern",
+          pattern: formData.pattern || "",
+        } as PatternAlert;
+        break;
+
+      case "technical":
+        newAlert = {
+          ...baseAlert,
+          type: "technical",
+          indicator: formData.indicator || "",
+          condition: formData.condition || "",
+          value: formData.value || 0,
+        } as TechnicalAlert;
+        break;
+
+      default:
+        throw new Error(`Unsupported alert type: ${formData.type}`);
     }
+
+    // Add the new alert to the state
+    setAlerts(prevAlerts => [...prevAlerts, newAlert]);
+
+    toast({
+      title: "Alert Created",
+      description: `${formData.coinName} alert has been created.`,
+    });
+
+    return newAlert;
   }, []);
 
-  // Save alerts to localStorage when they change
-  useEffect(() => {
-    if (!isLoading) {
-      try {
-        localStorage.setItem("priceAlerts", JSON.stringify(alerts));
-        localStorage.setItem("volumeAlerts", JSON.stringify(volumeAlerts));
-      } catch (error) {
-        handleError(error, "warning", "Failed to save alerts");
-      }
-    }
-  }, [alerts, volumeAlerts, isLoading]);
+  // Update an existing alert
+  const updateAlert = useCallback((id: string, updates: Partial<AlertData>) => {
+    setAlerts(prevAlerts => 
+      prevAlerts.map(alert => 
+        alert.id === id 
+          ? { ...alert, ...updates } as AlertData
+          : alert
+      )
+    );
 
-  const addAlert = async (newAlertData: PriceAlertFormData) => {
-    try {
-      // Validate required fields
-      if (!newAlertData.coinId || !newAlertData.coinName || !newAlertData.coinSymbol) {
-        throw new Error("Missing required alert information");
-      }
+    toast({
+      title: "Alert Updated",
+      description: "Your alert has been updated.",
+    });
+  }, []);
 
-      const alert: PriceAlert = {
-        id: Date.now().toString(),
-        createdAt: new Date(),
-        ...newAlertData,
-      };
-      
-      setAlerts(prevAlerts => [...prevAlerts, alert]);
-      
-      return alert;
-    } catch (error) {
-      handleError(error, "error", "Add Alert");
-      throw error;
-    }
-  };
+  // Delete an alert
+  const deleteAlert = useCallback((id: string) => {
+    setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
 
-  const removeAlert = async (id: string) => {
-    try {
-      setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
-      return true;
-    } catch (error) {
-      handleError(error, "error", "Remove Alert");
-      throw error;
+    toast({
+      title: "Alert Deleted",
+      description: "Your alert has been deleted.",
+    });
+  }, []);
+
+  // Get a specific alert by ID
+  const getAlertById = useCallback((id: string): AlertData => {
+    const alert = alerts.find(a => a.id === id);
+    if (!alert) {
+      throw new Error(`Alert with ID ${id} not found`);
     }
-  };
-  
-  const updateAlert = async (id: string, updatedData: Partial<PriceAlert>) => {
-    try {
-      setAlerts(prevAlerts => 
-        prevAlerts.map(alert => 
-          alert.id === id ? { ...alert, ...updatedData } : alert
-        )
-      );
-      return true;
-    } catch (error) {
-      handleError(error, "error", "Update Alert");
-      throw error;
-    }
-  };
-  
-  const toggleAlertEnabled = async (id: string) => {
-    try {
-      const alert = alerts.find(a => a.id === id);
-      if (!alert) throw new Error("Alert not found");
-      
-      await updateAlert(id, { enabled: !alert.enabled });
-      return !alert.enabled;
-    } catch (error) {
-      handleError(error, "error", "Toggle Alert");
-      throw error;
-    }
-  };
+    return alert;
+  }, [alerts]);
+
+  // Filter alerts by type and/or coinId
+  const filterAlerts = useCallback((type?: AlertType, coinId?: string): AlertData[] => {
+    return alerts.filter(alert => {
+      const typeMatch = type ? alert.type === type : true;
+      const coinMatch = coinId ? alert.coinId === coinId : true;
+      return typeMatch && coinMatch;
+    });
+  }, [alerts]);
 
   return {
     alerts,
-    volumeAlerts,
-    addAlert,
-    removeAlert,
+    isLoading,
+    createAlert,
     updateAlert,
-    toggleAlertEnabled,
-    isLoading
+    deleteAlert,
+    getAlertById,
+    filterAlerts,
   };
 };
+
+export type UseAlertsReturn = ReturnType<typeof useAlerts>;
+
+export default useAlerts;
