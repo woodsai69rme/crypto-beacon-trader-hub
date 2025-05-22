@@ -4,21 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-interface NewsItem {
-  id: string;
-  title: string;
-  source: string;
-  timestamp: string;
-  url: string;
-}
-
-interface NewsTickerProps {
-  items: NewsItem[];
-  speed?: number;
-  direction?: 'left' | 'right';
-  className?: string;
-}
+import { NewsTickerProps } from "@/types/trading";
 
 const NewsTicker: React.FC<NewsTickerProps> = ({ 
   items, 
@@ -110,6 +96,28 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
           ))}
         </div>
       </div>
+
+      <style>
+        {`
+          @keyframes ticker-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-${items.length * 300}px); }
+          }
+
+          @keyframes ticker-right {
+            0% { transform: translateX(-${items.length * 300}px); }
+            100% { transform: translateX(0); }
+          }
+
+          .ticker-content {
+            animation: ticker-${currentDirection} ${items.length * speed}s linear infinite;
+          }
+
+          .animation-paused {
+            animation-play-state: paused;
+          }
+        `}
+      </style>
     </div>
   );
 };

@@ -8,14 +8,21 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
+import { PriceAlert } from "@/types/alerts";
 
 const AlertsSystem = () => {
-  const { alerts, addAlert, removeAlert } = useAlerts();
+  const { alerts, createAlert, deleteAlert } = useAlerts();
   const { formData, setFormData, resetForm } = useAlertForm();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = () => {
-    addAlert(formData);
+    // Make sure to add the type property
+    const alertDataWithType = {
+      ...formData,
+      type: "price" // Default to price alert
+    };
+    
+    createAlert(alertDataWithType);
     resetForm();
     setIsOpen(false);
   };
@@ -52,13 +59,18 @@ const AlertsSystem = () => {
                   <div>
                     <p className="font-medium">{alert.coinName}</p>
                     <p className="text-sm text-muted-foreground">
-                      {alert.isAbove ? "Above" : "Below"} ${alert.targetPrice.toLocaleString()}
+                      {alert.type === "price" && 
+                        `${(alert as PriceAlert).isAbove ? "Above" : "Below"} $${(alert as PriceAlert).targetPrice.toLocaleString()}`
+                      }
+                      {alert.type === "volume" && "Volume Alert"}
+                      {alert.type === "pattern" && "Pattern Alert"}
+                      {alert.type === "technical" && "Technical Alert"}
                     </p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAlert(alert.id)}
+                    onClick={() => deleteAlert(alert.id)}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>

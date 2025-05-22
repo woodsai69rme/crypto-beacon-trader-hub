@@ -8,7 +8,8 @@ import {
   PriceAlert, 
   VolumeAlert, 
   PatternAlert,
-  TechnicalAlert
+  TechnicalAlert,
+  NotificationMethod
 } from "@/types/alerts";
 import { toast } from "@/components/ui/use-toast";
 
@@ -91,7 +92,7 @@ export const useAlerts = () => {
     setAlerts(prevAlerts => 
       prevAlerts.map(alert => 
         alert.id === id 
-          ? { ...alert, ...updates } as AlertData
+          ? { ...alert, ...updates }
           : alert
       )
     );

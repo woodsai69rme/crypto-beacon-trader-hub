@@ -164,130 +164,144 @@ export interface AITradingStrategy {
   implementation?: string;
   recommendation?: string;
   confidence?: number;
+  parameters?: Record<string, any>;
   backtestResults?: {
     winRate: number;
     profitFactor: number;
     maxDrawdown: number;
     sharpeRatio: number;
   };
+  type?: string;
 }
 
-// Trading strategy configuration
-export interface TradingStrategy {
-  id: string;
-  name: string;
-  description: string;
-  type: 'trend-following' | 'mean-reversion' | 'momentum' | 'sentiment' | 'custom';
-  timeframe: string;
-  parameters: any;
+// AI strategy performance metrics
+export interface AIStrategyPerformance {
+  winRate?: number;
+  profitLoss?: number;
+  sharpeRatio?: number;
+  maxDrawdown?: number;
+  totalTrades?: number;
+  profitFactor?: number;
+  averageProfit?: number;
+  accuracy?: number;
+}
+
+// AI bot trading props
+export interface AiBotTradingProps {
+  tradingBot: AITradingStrategy;
+  onStart: (botId: string, config: any) => void;
+  onStop: (botId: string) => void;
+  isRunning: boolean;
   performance?: {
-    winRate?: number;
-    profitFactor?: number;
-    drawdown?: number;
-    volatility?: number;
+    totalTrades: number;
+    winRate: number;
+    profitLoss: number;
+    startDate: string;
   };
 }
 
-// API provider information
-export interface ApiProvider {
+// Enhanced portfolio benchmarking props
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioData: any;
+  benchmarks: string[];
+  timeframe: string;
+}
+
+// ATO tax calculation
+export interface ATOTaxCalculation {
+  year: number;
+  gains: number;
+  losses: number;
+  netPosition: number;
+  taxableAmount: number;
+  taxOwed: number;
+  effectiveTaxRate: number;
+  transactions: {
+    date: string;
+    asset: string;
+    quantity: number;
+    costBase: number;
+    proceedsAmount: number;
+    gainLoss: number;
+    isShortTerm: boolean;
+  }[];
+  financialYear?: string;
+  taxableIncome?: number;
+  CGTDiscount?: number;
+  netCapitalGains?: number;
+  bracketInfo?: string;
+  incomeTax?: number;
+  medicareLevy?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
+  taxRefundOrOwed?: number;
+}
+
+// Ticker settings
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom' | 'both';
+  speed: number;
+  direction: 'left' | 'right';
+  autoPause: boolean;
+}
+
+// Sidebar settings
+export interface SidebarSettings {
+  enabled: boolean;
+  position: 'left' | 'right';
+  defaultCollapsed: boolean;
+  showLabels: boolean;
+  collapsed?: boolean;
+}
+
+// Settings form values
+export interface SettingsFormValues {
+  theme: string;
+  currency: string;
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    app: boolean;
+  };
+  tickerSettings: TickerSettings;
+  sidebarSettings: SidebarSettings;
+}
+
+// Trading account
+export interface TradingAccount {
   id: string;
   name: string;
-  baseUrl: string;
-  description?: string;
-  currentUsage: number;
-  maxUsage: number;
-  resetTime: string;
-  endpoint: string;
-  status: string;
-  website?: string;
-  docs?: string;
-  endpoints?: ApiEndpoint[];
-  isActive: boolean;
-  apiKey?: string;
-  usageLimit: number;
-  authMethod?: string;
-  apiKeyName?: string;
-  defaultHeaders?: Record<string, string>;
-  enabled?: boolean;
-  requiresAuth?: boolean;
-}
-
-// API usage metrics
-export interface ApiUsageMetrics {
-  provider: string;
-  endpoint: string;
-  requestCount: number;
-  successCount: number;
-  errorCount: number;
-  avgResponseTime: number;
-  lastUsed: string;
-  service?: string;
-  serviceName?: string;
-  serviceId?: string;
-  totalRequests?: number;
-  periodRequests?: number;
-  requestsLimit?: number;
-  averageResponseTime?: number;
-  errorRate?: number;
-  lastRequested?: string;
-  currentUsage: number;
-  maxUsage: number;
-  resetTime?: string;
-}
-
-// API usage stats
-export interface ApiUsageStats {
-  service: string;
+  trades: Trade[];
+  balance: number;
+  currency: SupportedCurrency;
+  createdAt: string;
+  type?: string;
   provider?: string;
-  currentUsage: number;
-  maxUsage: number;
-  endpoint?: string;
-  resetTime?: string;
-  
-  // Adding missing properties reported in errors
-  requestCount?: number;
-  successCount?: number;
-  errorCount?: number;
-  avgResponseTime?: number;
-  lastUsed?: string;
-  serviceName?: string;
-  serviceId?: string;
-  totalRequests?: number;
-  periodRequests?: number;
-  requestsLimit?: number;
-  averageResponseTime?: number;
-  errorRate?: number;
-  lastRequested?: string;
+  assets?: PortfolioAsset[];
+  lastUpdated?: string;
+  isActive?: boolean;
 }
 
-// Portfolio asset
-export interface PortfolioAsset {
-  coinId: string;
-  symbol: string;
-  name: string;
-  amount: number;
-  price: number;
-  value: number;
-  allocation: number;
-  change24h: number;
-  changePercent24h: number;
+// Widget types
+export type WidgetType = 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom' | 
+  'price-chart' | 'portfolio-summary' | 'watchlist' | 'trading' | 'aiTrading' | 
+  'aiAnalysis' | 'market-overview' | 'crypto-news';
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'flexible';
+
+// Widget definition
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  size?: WidgetSize;
+  position?: { x: number; y: number };
+  customContent?: string;
 }
 
-// Portfolio performance metrics
-export interface PortfolioPerformance {
-  currentValue: number;
-  previousValue: number;
-  change: number;
-  changePercent: number;
-  allTimeHigh: number;
-  allTimeLow: number;
-  dataPoints: {
-    timestamp: Date;
-    value: number;
-  }[];
-}
-
-// Currency types
+// Supported currencies
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
 // Trade definition
@@ -312,97 +326,31 @@ export interface Trade {
   tags?: string[];
 }
 
-// Trading account information
-export interface TradingAccount {
-  id: string;
-  name: string;
-  trades: Trade[];
-  balance: number;
-  currency: SupportedCurrency;
-  createdAt: string;
-}
-
-// Trading form props
-export interface TradingFormProps {
-  onAddTrade: (trade: Trade) => void;
-  defaultValues?: Partial<Trade>;
-}
-
-// Fake trading form props
-export interface FakeTradingFormProps extends TradingFormProps {
-  advancedMode?: boolean;
-}
-
-// Quantitative analysis props
-export interface QuantitativeAnalysisProps {
+// Portfolio asset
+export interface PortfolioAsset {
   coinId: string;
-  timeframe?: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  price: number;
+  value: number;
+  allocation: number;
+  change24h: number;
+  changePercent24h: number;
 }
 
-// AI bot trading props
-export interface AiBotTradingProps {
-  tradingBot: AITradingStrategy;
-  onStart: (botId: string, config: any) => void;
-  onStop: (botId: string) => void;
-  isRunning: boolean;
-  performance?: {
-    totalTrades: number;
-    winRate: number;
-    profitLoss: number;
-    startDate: string;
-  };
-}
-
-// Tax calculation interface
-export interface ATOTaxCalculation {
-  year: number;
-  gains: number;
-  losses: number;
-  netPosition: number;
-  taxableAmount: number;
-  taxOwed: number;
-  effectiveTaxRate: number;
-  transactions: {
-    date: string;
-    asset: string;
-    quantity: number;
-    costBase: number;
-    proceedsAmount: number;
-    gainLoss: number;
-    isShortTerm: boolean;
+// News ticker props
+export interface NewsTickerProps {
+  items: {
+    id: string;
+    title: string;
+    source: string;
+    timestamp: string;
+    url: string;
   }[];
-}
-
-// Ticker settings interface
-export interface TickerSettings {
-  enabled: boolean;
-  position: 'top' | 'bottom' | 'both';
-  speed: number;
-  direction: 'left' | 'right';
-  autoPause: boolean;
-}
-
-// Sidebar settings interface
-export interface SidebarSettings {
-  enabled: boolean;
-  position: 'left' | 'right';
-  defaultCollapsed: boolean;
-  showLabels: boolean;
-  collapsed?: boolean;
-}
-
-// Widget types
-export type WidgetType = 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom';
-export type WidgetSize = 'small' | 'medium' | 'large';
-
-// Widget definition
-export interface Widget {
-  id: string;
-  title: string;
-  type: WidgetType;
-  size?: WidgetSize;
-  position?: { x: number; y: number };
-  customContent?: string;
+  speed?: number;
+  direction?: 'left' | 'right';
+  className?: string;
 }
 
 // Detachable dashboard props

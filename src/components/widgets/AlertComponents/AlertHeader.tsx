@@ -1,29 +1,18 @@
 
-import React from 'react';
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useTheme } from '@/contexts/ThemeContext';
-import { Bell } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Bell } from "lucide-react";
+import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
-export const AlertHeader = () => {
-  const { colorScheme } = useTheme();
-
+export const AlertHeader: React.FC = () => {
   return (
-    <SheetHeader className={cn(
-      "pb-4 border-b border-border",
-      colorScheme === "neon-future" && "border-cyan-800/50"
-    )}>
-      <SheetTitle className="flex items-center gap-2">
-        <Bell className={cn(
-          "h-5 w-5",
-          colorScheme === "neon-future" && "text-cyan-400 neon-pulse"
-        )} />
-        <span className={cn(
-          colorScheme === "neon-future" && "text-cyan-400 neon-pulse"
-        )}>
-          Price Alerts
-        </span>
-      </SheetTitle>
-    </SheetHeader>
+    <div className="flex items-center gap-2 mb-6">
+      <Bell className="h-5 w-5" />
+      <div>
+        <SheetTitle>Price Alerts</SheetTitle>
+        <SheetDescription>
+          Get notified when cryptocurrencies hit your target prices
+        </SheetDescription>
+      </div>
+    </div>
   );
 };

@@ -1,39 +1,52 @@
 
-import { useState } from 'react';
-import { COIN_OPTIONS } from '@/components/widgets/AlertComponents/AlertTypes';
-import { PriceAlert } from '@/types/alerts';
+import { useState } from "react";
+import { AlertFormData, AlertType, NotificationMethod } from "@/types/alerts";
 
-const defaultAlert = {
-  coinId: "bitcoin",
-  coinName: "Bitcoin",
-  coinSymbol: "BTC",
+const defaultAlertFormData: AlertFormData = {
+  type: "price",
+  coinId: "",
+  coinName: "",
+  coinSymbol: "",
+  enabled: true,
+  notifyVia: ["app"],
   targetPrice: 0,
   isAbove: true,
-  enabled: true,
   recurring: false,
   percentageChange: 0,
-  notifyVia: ["app"] as ("email" | "app" | "push")[]
+  volumeThreshold: 0,
+  frequency: "24h",
+  indicator: "",
+  condition: "",
+  value: 0,
+  pattern: ""
 };
 
-export const useAlertForm = () => {
-  const [formData, setFormData] = useState(defaultAlert);
-  
-  const resetForm = () => setFormData(defaultAlert);
-  
-  const updateCoin = (coinId: string) => {
-    const selectedCoin = COIN_OPTIONS[coinId];
+export const useAlertForm = (initialData: Partial<AlertFormData> = {}) => {
+  const [formData, setFormData] = useState<AlertFormData>({
+    ...defaultAlertFormData,
+    ...initialData
+  });
+
+  const resetForm = () => {
+    setFormData(defaultAlertFormData);
+  };
+
+  const updateFormField = <K extends keyof AlertFormData>(
+    field: K,
+    value: AlertFormData[K]
+  ) => {
     setFormData(prev => ({
       ...prev,
-      coinId: selectedCoin.id,
-      coinName: selectedCoin.name,
-      coinSymbol: selectedCoin.symbol
+      [field]: value
     }));
   };
-  
+
   return {
     formData,
     setFormData,
     resetForm,
-    updateCoin
+    updateFormField
   };
 };
+
+export default useAlertForm;

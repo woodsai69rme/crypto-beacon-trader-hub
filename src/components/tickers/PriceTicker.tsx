@@ -115,7 +115,8 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
       </div>
       
       {/* Add CSS for animation */}
-      <style jsx global>{`
+      <style>
+        {`
         @keyframes scroll {
           0% { transform: translateX(0); }
           100% { transform: translateX(-${coins.length * 200}px); }
@@ -128,7 +129,8 @@ const PriceTicker: React.FC<PriceTickerProps> = ({
         .animation-play-state-paused {
           animation-play-state: paused;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

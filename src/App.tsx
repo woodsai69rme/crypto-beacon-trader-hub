@@ -36,7 +36,13 @@ const AppContent = () => {
       setTrendingCoins(coins);
       
       const news = await getLatestNews();
-      setNewsItems(news);
+      setNewsItems(news.map(item => ({
+        id: item.id || `news-${Date.now()}-${Math.random()}`,
+        title: item.title,
+        source: item.source,
+        timestamp: item.published_at || new Date().toISOString(),
+        url: item.url || '#'
+      })));
     };
     
     fetchData();
@@ -154,7 +160,11 @@ const AppContent = () => {
       
       {/* Bottom News Ticker */}
       {showBottomTicker && (
-        <NewsTicker news={newsItems} speed={tickerSettings.speed} direction={tickerSettings.direction} />
+        <NewsTicker 
+          items={newsItems} 
+          speed={tickerSettings.speed} 
+          direction={tickerSettings.direction} 
+        />
       )}
     </div>
   );

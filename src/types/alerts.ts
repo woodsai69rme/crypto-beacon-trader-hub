@@ -53,6 +53,7 @@ export interface TechnicalAlert {
   enabled: boolean;
   notifyVia: ("email" | "app" | "push")[];
   type: "technical";
+  timeframe?: string;
 }
 
 export type AlertData = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
