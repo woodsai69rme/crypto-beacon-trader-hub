@@ -13,16 +13,30 @@ import AiChatAssistant from '@/components/AiChatAssistant';
 function App() {
   return (
     <ThemeProvider>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/trading" element={<TradingDashboard />} />
-          <Route path="/ai-trading" element={<AiTradingBots />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-        <AiChatAssistant />
-        <Toaster />
-      </Layout>
+      <Routes>
+        <Route path="/" element={
+          <Layout>
+            <Dashboard />
+          </Layout>
+        } />
+        <Route path="/trading" element={
+          <Layout>
+            <TradingDashboard />
+          </Layout>
+        } />
+        <Route path="/ai-trading" element={
+          <Layout>
+            <AiTradingBots />
+          </Layout>
+        } />
+        <Route path="/settings" element={
+          <Layout>
+            <Settings />
+          </Layout>
+        } />
+      </Routes>
+      <AiChatAssistant />
+      <Toaster />
     </ThemeProvider>
   );
 }

@@ -35,11 +35,21 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: string;
-  timeframe?: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  parameters?: any;
-  indicators?: string[];
-  performance?: AIStrategyPerformance;
+  timeframe: string;
+  riskLevel: string;
+  parameters: {
+    lookbackPeriod: number;
+    stopLoss: number;
+    takeProfit: number;
+    capitalAllocation: number;
+  };
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    totalTrades?: number;
+    averageProfit?: number;
+    maxDrawdown?: number;
+  };
 }
 
 export interface TradingAccount {

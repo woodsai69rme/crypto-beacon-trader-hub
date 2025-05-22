@@ -18,6 +18,13 @@ const strategyPresets: AITradingStrategy[] = [
       stopLoss: 5,
       takeProfit: 15,
       capitalAllocation: 25
+    },
+    performance: {
+      winRate: 65,
+      profitFactor: 1.8,
+      totalTrades: 124,
+      averageProfit: 2.3,
+      maxDrawdown: 12
     }
   },
   {
@@ -32,6 +39,13 @@ const strategyPresets: AITradingStrategy[] = [
       stopLoss: 3,
       takeProfit: 10,
       capitalAllocation: 15
+    },
+    performance: {
+      winRate: 58,
+      profitFactor: 1.5,
+      totalTrades: 186,
+      averageProfit: 1.7,
+      maxDrawdown: 18
     }
   },
   {
@@ -46,6 +60,13 @@ const strategyPresets: AITradingStrategy[] = [
       stopLoss: 7,
       takeProfit: 20,
       capitalAllocation: 10
+    },
+    performance: {
+      winRate: 52,
+      profitFactor: 2.1,
+      totalTrades: 95,
+      averageProfit: 3.8,
+      maxDrawdown: 22
     }
   }
 ];
@@ -80,6 +101,13 @@ const AiTradingBots: React.FC = () => {
                     <p>Type: {strategy.type}</p>
                     <p>Timeframe: {strategy.timeframe}</p>
                     <p>Risk: {strategy.riskLevel}</p>
+                    {strategy.performance && (
+                      <div className="mt-2 pt-2 border-t">
+                        <p className="font-medium">Performance</p>
+                        <p>Win Rate: {strategy.performance.winRate}%</p>
+                        <p>Profit Factor: {strategy.performance.profitFactor}</p>
+                      </div>
+                    )}
                   </CardContent>
                   <CardFooter>
                     <button className="w-full bg-primary text-primary-foreground rounded-md p-2 hover:bg-primary/80 transition-colors">

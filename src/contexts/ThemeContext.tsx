@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Theme, ColorScheme } from '@/types/trading';
 
 interface ThemeContextType {
@@ -18,9 +18,7 @@ const defaultThemeContext: ThemeContextType = {
   resolvedTheme: 'light'
 };
 
-const ThemeContext = createContext<ThemeContextType>(defaultThemeContext);
-
-export const useTheme = () => useContext(ThemeContext);
+export const ThemeContext = createContext<ThemeContextType>(defaultThemeContext);
 
 interface ThemeProviderProps {
   children: ReactNode;

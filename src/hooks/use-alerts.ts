@@ -76,7 +76,7 @@ export const useAlerts = () => {
           indicator: formData.indicator || '',
           condition: formData.condition || '',
           value: formData.value || 0,
-          timeframe: formData.timeframe
+          timeframe: formData.timeframe || ''
         } as TechnicalAlert;
         break;
       
@@ -84,7 +84,7 @@ export const useAlerts = () => {
         throw new Error(`Invalid alert type: ${formData.type}`);
     }
 
-    setAlerts(prevAlerts => [...prevAlerts, newAlert]);
+    setAlerts((prevAlerts: AlertData[]) => [...prevAlerts, newAlert]);
     return newAlert;
   };
 
