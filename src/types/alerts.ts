@@ -47,6 +47,15 @@ export interface BaseAlertFormData {
   enabled: boolean;
   notifyVia: NotificationMethod[];
   frequency?: AlertFrequency;
+  targetPrice?: number; // Add missing fields needed in AlertForm
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  volumeThreshold?: number;
+  indicator?: string;
+  condition?: string;
+  value?: number;
+  timeframe?: string;
 }
 
 export interface PriceAlertFormData extends BaseAlertFormData {

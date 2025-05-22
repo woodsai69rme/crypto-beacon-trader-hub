@@ -1,3 +1,4 @@
+
 export interface AIStrategyParameters {
   buySignalThreshold?: number;
   sellSignalThreshold?: number;
@@ -24,10 +25,16 @@ export interface AIStrategyParameters {
 }
 
 export interface AIStrategyPerformance {
-  accuracy: number;
-  returns: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
+  accuracy?: number;
+  returns?: number;
+  sharpeRatio?: number;
+  maxDrawdown?: number;
+  winRate?: number;
+  profitFactor?: number;
+  totalTrades?: number;
+  averageProfit?: number; // Added missing property
+  profit?: number;
+  profitLoss?: number;
 }
 
 export interface AITradingStrategy {
@@ -36,7 +43,7 @@ export interface AITradingStrategy {
   description: string;
   type: string;
   riskLevel: string;
-  timeframe: string;
+  timeframe?: string; // Make timeframe optional
   parameters: {
     lookbackPeriod?: number;
     stopLoss?: number;

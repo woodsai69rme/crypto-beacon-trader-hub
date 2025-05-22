@@ -29,6 +29,7 @@ const demoBots: AITradingBot[] = [
       type: "trend_following",
       riskLevel: "medium",
       timeframe: "4h",
+      parameters: {}, // Add empty parameters object to fix the error
     },
     createdAt: new Date().toISOString(),
     profitLoss: 145.23,
@@ -51,6 +52,7 @@ const demoBots: AITradingBot[] = [
       type: "breakout",
       riskLevel: "high",
       timeframe: "1h",
+      parameters: {}, // Add empty parameters object to fix the error
     },
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     profitLoss: -23.45,
@@ -73,6 +75,7 @@ const demoBots: AITradingBot[] = [
       type: "dca",
       riskLevel: "low",
       timeframe: "1d",
+      parameters: {}, // Add empty parameters object to fix the error
     },
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     profitLoss: 320.18,

@@ -1,4 +1,3 @@
-
 import { AITradingStrategy, AIStrategyParameters, AITradingBot, BacktestResults, AIModelConfig } from '@/types/trading';
 
 // Mock strategies for use in the application
@@ -256,6 +255,7 @@ export const generateStrategyWithAI = async (
     description: description || "AI generated trading strategy based on user description",
     type: "hybrid",
     riskLevel: "medium",
+    parameters: {}, // Add empty parameters object
     indicators: ["RSI", "MACD", "Bollinger Bands", "Volume"],
     performance: {
       accuracy: 65,

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AlertFormData, NotificationMethod, AlertFrequency, AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
 import { Input } from '@/components/ui/input';
@@ -51,8 +52,8 @@ const AlertForm: React.FC<AlertFormProps> = ({
     }
   }, [propFormData, selectedAlert, isEditMode]);
 
-  const handleChange = (field: keyof AlertFormData, value: any) => {
-    const updatedData = { ...internalFormData, [field]: value };
+  const handleChange = (field: string, value: any) => {
+    const updatedData = { ...internalFormData, [field]: value } as AlertFormData;
     setInternalFormData(updatedData);
     if (onChange) {
       onChange(updatedData);
@@ -166,7 +167,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <Input
             id="volumeThreshold"
             type="number"
-            value={internalFormData.volumeThreshold || ''}
+            value={(internalFormData as VolumeAlert).volumeThreshold || ''}
             onChange={(e) => handleChange('volumeThreshold', parseFloat(e.target.value))}
             placeholder="Enter volume threshold"
           />
@@ -178,7 +179,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div>
             <Label htmlFor="indicator">Technical Indicator</Label>
             <Select
-              value={internalFormData.indicator || ''}
+              value={(internalFormData as TechnicalAlert).indicator || ''}
               onValueChange={(value) => handleChange('indicator', value)}
             >
               <SelectTrigger id="indicator">
@@ -196,7 +197,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div>
             <Label htmlFor="condition">Condition</Label>
             <Select
-              value={internalFormData.condition || ''}
+              value={(internalFormData as TechnicalAlert).condition || ''}
               onValueChange={(value) => handleChange('condition', value)}
             >
               <SelectTrigger id="condition">
@@ -216,7 +217,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
             <Input
               id="value"
               type="number"
-              value={internalFormData.value || ''}
+              value={(internalFormData as TechnicalAlert).value || ''}
               onChange={(e) => handleChange('value', parseFloat(e.target.value))}
               placeholder="Enter value"
             />
@@ -225,7 +226,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div>
             <Label htmlFor="timeframe">Timeframe</Label>
             <Select
-              value={internalFormData.timeframe || ''}
+              value={(internalFormData as TechnicalAlert).timeframe || ''}
               onValueChange={(value) => handleChange('timeframe', value)}
             >
               <SelectTrigger id="timeframe">

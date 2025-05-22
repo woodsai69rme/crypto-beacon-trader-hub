@@ -23,7 +23,7 @@ const strategyPresets: AITradingStrategy[] = [
       winRate: 65,
       profitFactor: 1.8,
       totalTrades: 124,
-      averageProfit: 2.3,
+      averageProfit: 2.3, // This is valid now that we've updated the type
       maxDrawdown: 12
     }
   },
@@ -42,9 +42,9 @@ const strategyPresets: AITradingStrategy[] = [
     },
     performance: {
       winRate: 58,
-      profitFactor: 1.5,
+      profitFactor: 1.5, // This is valid now that we've updated the type
       totalTrades: 186,
-      averageProfit: 1.7,
+      averageProfit: 1.7, // This is valid now that we've updated the type
       maxDrawdown: 18
     }
   },
@@ -63,9 +63,9 @@ const strategyPresets: AITradingStrategy[] = [
     },
     performance: {
       winRate: 52,
-      profitFactor: 2.1,
+      profitFactor: 2.1, // This is valid now that we've updated the type
       totalTrades: 95,
-      averageProfit: 3.8,
+      averageProfit: 3.8, // This is valid now that we've updated the type
       maxDrawdown: 22
     }
   }

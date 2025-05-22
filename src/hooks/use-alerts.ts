@@ -98,10 +98,10 @@ export const useAlerts = () => {
         break;
       }
       default:
-        throw new Error(`Unknown alert type: ${formData.type}`);
+        throw new Error(`Unknown alert type: ${(formData as any).type}`);
     }
 
-    setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+    setAlerts((prevAlerts) => [...prevAlerts, newAlert] as AlertData[]);
     
     return newAlert;
   };
