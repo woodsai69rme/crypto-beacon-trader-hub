@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert } from '@/types/alerts';
+import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency } from '@/types/alerts';
 import { v4 as uuidv4 } from 'uuid';
 
 export const useAlerts = () => {
@@ -38,7 +38,7 @@ export const useAlerts = () => {
           coinSymbol: formData.coinSymbol,
           enabled: formData.enabled,
           notifyVia: formData.notifyVia,
-          frequency: formData.frequency,
+          frequency: formData.frequency || 'once',
           createdAt: now,
           targetPrice: formData.targetPrice || 0,
           isAbove: formData.isAbove || false,
@@ -56,7 +56,7 @@ export const useAlerts = () => {
           coinSymbol: formData.coinSymbol,
           enabled: formData.enabled,
           notifyVia: formData.notifyVia,
-          frequency: formData.frequency,
+          frequency: formData.frequency || 'once',
           createdAt: now,
           volumeThreshold: formData.volumeThreshold || 0
         } as VolumeAlert;
@@ -71,7 +71,7 @@ export const useAlerts = () => {
           coinSymbol: formData.coinSymbol,
           enabled: formData.enabled,
           notifyVia: formData.notifyVia,
-          frequency: formData.frequency,
+          frequency: formData.frequency || 'once',
           createdAt: now,
           indicator: formData.indicator || '',
           condition: formData.condition || '',
@@ -84,7 +84,7 @@ export const useAlerts = () => {
         throw new Error(`Invalid alert type: ${formData.type}`);
     }
 
-    setAlerts((prevAlerts: AlertData[]) => [...prevAlerts, newAlert]);
+    setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
     return newAlert;
   };
 

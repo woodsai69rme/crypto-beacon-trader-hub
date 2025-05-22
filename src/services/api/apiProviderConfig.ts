@@ -1,75 +1,89 @@
 
-import { ApiProvider, ApiEndpoint } from '@/types/trading';
+import { ApiProvider, ApiEndpoint } from '@/types/api';
 
 export const coinGeckoEndpoints: Record<string, ApiEndpoint> = {
-  "coins": {
-    path: "/coins/markets",
-    method: "GET",
-    description: "Get cryptocurrency markets data",
+  ping: {
+    id: 'ping',
+    name: 'Ping',
+    path: '/ping',
+    method: 'GET',
+    description: 'Check API server status',
     requiresAuth: false
   },
-  "coin": {
-    path: "/coins/{id}",
-    method: "GET",
-    description: "Get cryptocurrency details by id",
+  coins: {
+    id: 'coins',
+    name: 'Coins List',
+    path: '/coins/list',
+    method: 'GET',
+    description: 'List all supported coins with id, name, and symbol',
     requiresAuth: false
   },
-  "ohlc": {
-    path: "/coins/{id}/ohlc",
-    method: "GET",
-    description: "Get cryptocurrency OHLC (Open High Low Close) data",
+  coinMarkets: {
+    id: 'coinMarkets',
+    name: 'Coin Markets',
+    path: '/coins/markets',
+    method: 'GET',
+    description: 'List all supported coins price, market cap, volume, and market related data',
     requiresAuth: false
   },
-  "global": {
-    path: "/global",
-    method: "GET",
-    description: "Get global cryptocurrency data",
+  coinData: {
+    id: 'coinData',
+    name: 'Coin Data',
+    path: '/coins/{id}',
+    method: 'GET',
+    description: 'Get current data for a coin',
     requiresAuth: false
   }
 };
 
-export const cryptoCompareEndpoints: Record<string, ApiEndpoint> = {
-  "price": {
-    path: "/data/price",
-    method: "GET",
-    description: "Get current price of a cryptocurrency",
+export const binanceEndpoints: Record<string, ApiEndpoint> = {
+  ticker24hr: {
+    id: 'ticker24hr',
+    name: '24hr Ticker',
+    path: '/ticker/24hr',
+    method: 'GET',
+    description: 'Get 24hr price change statistics for all symbols',
     requiresAuth: false
   },
-  "histoDay": {
-    path: "/data/v2/histoday",
-    method: "GET",
-    description: "Get historical daily data",
+  klines: {
+    id: 'klines',
+    name: 'Klines/Candlesticks',
+    path: '/klines',
+    method: 'GET',
+    description: 'Get kline/candlestick bars for a symbol',
     requiresAuth: false
   },
-  "news": {
-    path: "/data/v2/news/",
-    method: "GET",
-    description: "Get latest cryptocurrency news",
+  depth: {
+    id: 'depth',
+    name: 'Order Book Depth',
+    path: '/depth',
+    method: 'GET',
+    description: 'Get order book depth data',
     requiresAuth: false
   }
 };
 
-export const defaultProviders: ApiProvider[] = [
+export const apiProviders: ApiProvider[] = [
   {
-    id: "coingecko",
-    name: "CoinGecko",
-    baseUrl: "https://api.coingecko.com/api/v3",
-    description: "Provides comprehensive cryptocurrency data",
-    authType: "apiKey",
-    authKey: "x_cg_pro_api_key",
+    id: 'coingecko',
+    name: 'CoinGecko',
+    baseUrl: 'https://api.coingecko.com/api/v3',
+    description: 'Cryptocurrency data aggregator',
+    authType: 'query',
+    authKey: 'api_key',
     enabled: true,
-    endpoints: coinGeckoEndpoints,
-    rateLimit: 50
+    endpoints: coinGeckoEndpoints
   },
   {
-    id: "cryptocompare",
-    name: "CryptoCompare",
-    baseUrl: "https://min-api.cryptocompare.com",
-    description: "Offers real-time cryptocurrency prices and historical data",
-    authType: "apiKey",
-    authKey: "api_key",
-    enabled: false,
-    endpoints: cryptoCompareEndpoints,
-    rateLimit: 100
+    id: 'binance',
+    name: 'Binance',
+    baseUrl: 'https://api.binance.com/api/v3',
+    description: 'Binance cryptocurrency exchange',
+    authType: 'header',
+    authKey: 'X-MBX-APIKEY',
+    enabled: true,
+    endpoints: binanceEndpoints
   }
 ];
+
+export default apiProviders;
