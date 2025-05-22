@@ -1,136 +1,191 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, AlertFormData, AlertType } from '@/types/alerts';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from '@/components/ui/use-toast';
 
-interface AlertHook {
-  alerts: Alert[];
-  createAlert: (formData: AlertFormData) => void;
-  deleteAlert: (alertId: string) => void;
-  getAlertById: (alertId: string) => Alert | undefined;
-  getAlertsByType: (type: AlertType) => Alert[];
-}
+// Mock function to mimic API calls
+const mockSaveAlert = async (alert: Alert): Promise<Alert> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(alert);
+    }, 300);
+  });
+};
 
-export function useAlerts(): AlertHook {
+export function useAlerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const createAlert = (formData: AlertFormData) => {
-    const now = new Date();
-
-    // Create alert based on the type
-    let newAlert: Alert;
-    
-    switch (formData.type) {
-      case 'price':
-        newAlert = {
-          id: uuidv4(),
-          type: 'price',
-          coinId: formData.coinId || '',
-          coinName: formData.coinName || '',
-          coinSymbol: formData.coinSymbol || '',
-          enabled: formData.enabled || true,
-          notifyVia: formData.notifyVia || ['app'],
-          targetPrice: formData.targetPrice || 0,
-          isAbove: formData.isAbove || true,
-          recurring: formData.recurring || false,
-          percentageChange: formData.percentageChange,
-          createdAt: now,
-        };
-        break;
-      
-      case 'volume':
-        newAlert = {
-          id: uuidv4(),
-          type: 'volume',
-          coinId: formData.coinId || '',
-          coinName: formData.coinName || '',
-          coinSymbol: formData.coinSymbol || '',
-          enabled: formData.enabled || true,
-          notifyVia: formData.notifyVia || ['app'],
-          targetVolume: formData.targetVolume || 0,
-          isAbove: formData.isAbove || true,
-          createdAt: now,
-        };
-        break;
-      
-      case 'pattern':
-        newAlert = {
-          id: uuidv4(),
-          type: 'pattern',
-          coinId: formData.coinId || '',
-          coinName: formData.coinName || '',
-          coinSymbol: formData.coinSymbol || '',
-          enabled: formData.enabled || true,
-          notifyVia: formData.notifyVia || ['app'],
-          pattern: formData.pattern || '',
-          createdAt: now,
-        };
-        break;
-      
-      case 'technical':
-        newAlert = {
-          id: uuidv4(),
-          type: 'technical',
-          coinId: formData.coinId || '',
-          coinName: formData.coinName || '',
-          coinSymbol: formData.coinSymbol || '',
-          enabled: formData.enabled || true,
-          notifyVia: formData.notifyVia || ['app'],
-          indicator: formData.indicator || '',
-          threshold: formData.threshold || 0,
-          createdAt: now,
-        };
-        break;
-        
-      default:
-        // Default to price alert if type is invalid
-        newAlert = {
-          id: uuidv4(),
-          type: 'price',
-          coinId: formData.coinId || '',
-          coinName: formData.coinName || '',
-          coinSymbol: formData.coinSymbol || '',
-          enabled: formData.enabled || true,
-          notifyVia: formData.notifyVia || ['app'],
-          targetPrice: formData.targetPrice || 0,
-          isAbove: formData.isAbove || true,
-          recurring: formData.recurring || false,
-          createdAt: now,
-        };
+  // Load saved alerts on mount
+  useEffect(() => {
+    const savedAlerts = localStorage.getItem('crypto_alerts');
+    if (savedAlerts) {
+      try {
+        setAlerts(JSON.parse(savedAlerts));
+      } catch (err) {
+        console.error('Error loading saved alerts:', err);
+        setError(err instanceof Error ? err : new Error('Error loading alerts'));
+      }
     }
-    
-    setAlerts([...alerts, newAlert]);
-    
-    // For demo purposes, let's trigger a notification
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        // Check if we have notification permission
-        if (Notification.permission === 'granted') {
-          new Notification('Alert Created', {
-            body: `Alert created for ${newAlert.coinName}`,
-          });
-        }
-      }, 1000);
+  }, []);
+
+  // Save alerts to local storage when they change
+  useEffect(() => {
+    if (alerts.length > 0) {
+      localStorage.setItem('crypto_alerts', JSON.stringify(alerts));
+    }
+  }, [alerts]);
+
+  // Create a new alert
+  const createAlert = async (data: AlertFormData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const newAlertBase = {
+        id: uuidv4(),
+        type: data.type,
+        coinId: data.coinId,
+        coinName: data.coinName,
+        coinSymbol: data.coinSymbol,
+        enabled: data.enabled,
+        notifyVia: data.notifyVia,
+        createdAt: new Date(),
+      };
+
+      let newAlert: Alert;
+
+      // Create the specific alert type
+      switch (data.type) {
+        case 'price':
+          newAlert = {
+            ...newAlertBase,
+            type: 'price',
+            targetPrice: data.targetPrice || 0,
+            isAbove: data.isAbove || false,
+            recurring: data.recurring || false,
+            percentageChange: data.percentageChange,
+          };
+          break;
+        case 'volume':
+          newAlert = {
+            ...newAlertBase,
+            type: 'volume',
+            targetVolume: data.targetVolume || 0,
+            isAbove: data.isAbove || false,
+          };
+          break;
+        case 'pattern':
+          newAlert = {
+            ...newAlertBase,
+            type: 'pattern',
+            pattern: data.pattern || '',
+          };
+          break;
+        case 'technical':
+          newAlert = {
+            ...newAlertBase,
+            type: 'technical',
+            indicator: data.indicator || '',
+            threshold: data.threshold || 0,
+          };
+          break;
+        default:
+          throw new Error(`Unsupported alert type: ${data.type}`);
+      }
+
+      // Call the API (mock)
+      const savedAlert = await mockSaveAlert(newAlert);
+      setAlerts((prev) => [...prev, savedAlert]);
+
+      toast({
+        title: 'Alert Created',
+        description: `Alert for ${data.coinName} has been created.`,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error creating alert'));
+      
+      toast({
+        title: 'Error',
+        description: 'Failed to create alert. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const deleteAlert = (alertId: string) => {
-    setAlerts(alerts.filter(alert => alert.id !== alertId));
+  // Delete an alert
+  const deleteAlert = async (id: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // In a real app, make an API call here
+      const filteredAlerts = alerts.filter((alert) => alert.id !== id);
+      setAlerts(filteredAlerts);
+      
+      if (filteredAlerts.length === 0) {
+        localStorage.removeItem('crypto_alerts');
+      } else {
+        localStorage.setItem('crypto_alerts', JSON.stringify(filteredAlerts));
+      }
+
+      toast({
+        title: 'Alert Deleted',
+        description: 'The alert has been deleted successfully.',
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error deleting alert'));
+      
+      toast({
+        title: 'Error',
+        description: 'Failed to delete alert. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getAlertById = (alertId: string) => {
-    return alerts.find(alert => alert.id === alertId);
-  };
+  // Toggle an alert's enabled state
+  const toggleAlert = async (id: string, enabled: boolean) => {
+    setLoading(true);
+    setError(null);
 
-  const getAlertsByType = (type: AlertType) => {
-    return alerts.filter(alert => alert.type === type);
+    try {
+      const updatedAlerts = alerts.map((alert) =>
+        alert.id === id ? { ...alert, enabled } : alert
+      );
+      
+      setAlerts(updatedAlerts);
+      localStorage.setItem('crypto_alerts', JSON.stringify(updatedAlerts));
+
+      toast({
+        title: enabled ? 'Alert Enabled' : 'Alert Disabled',
+        description: `The alert has been ${enabled ? 'enabled' : 'disabled'}.`,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error updating alert'));
+      
+      toast({
+        title: 'Error',
+        description: 'Failed to update alert. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
     alerts,
+    loading,
+    error,
     createAlert,
     deleteAlert,
-    getAlertById,
-    getAlertsByType,
+    toggleAlert,
   };
 }

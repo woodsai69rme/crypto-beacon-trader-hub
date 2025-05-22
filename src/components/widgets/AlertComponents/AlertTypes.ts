@@ -1,4 +1,5 @@
-import { AlertFrequency } from "@/types/alerts";
+
+import { AlertFrequency, NotificationMethod } from "@/types/trading";
 
 export interface PriceAlertFormData {
   coinId: string;
@@ -9,7 +10,7 @@ export interface PriceAlertFormData {
   recurring: boolean;
   percentageChange: number;
   enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
+  notifyVia: NotificationMethod[];
 }
 
 export interface VolumeAlertFormData {
@@ -19,7 +20,7 @@ export interface VolumeAlertFormData {
   volumeThreshold: number;
   frequency: AlertFrequency;
   enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
+  notifyVia: NotificationMethod[];
 }
 
 export interface TechnicalAlertFormData {

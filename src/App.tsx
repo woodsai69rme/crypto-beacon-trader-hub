@@ -16,6 +16,7 @@ import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
 import { getTrendingCoins, getLatestNews } from './services/enhancedCryptoApi';
 import { CoinOption, NewsItem } from '@/types/trading';
+import AlertsSystem from './components/AlertsSystem';
 
 const AppContent = () => {
   const { theme, colorScheme } = useTheme();
@@ -119,11 +120,7 @@ const AppContent = () => {
           
           <div className="flex items-center space-x-2">
             <div className="hidden md:flex items-center space-x-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-600" />
-                <span className="sr-only">Notifications</span>
-              </Button>
+              <AlertsSystem />
               
               <Button variant="outline" size="sm" className="hidden lg:flex items-center gap-2">
                 <GithubIcon size={16} />

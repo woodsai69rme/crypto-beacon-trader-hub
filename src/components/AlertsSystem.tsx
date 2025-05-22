@@ -10,67 +10,6 @@ import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
 import { AlertType, PriceAlert, Alert, AlertFormData } from "@/types/alerts";
 
-// Ensure we have the necessary types
-declare module "@/types/alerts" {
-  export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
-  export type NotificationMethod = 'email' | 'push' | 'app';
-
-  export interface BaseAlert {
-    id: string;
-    type: AlertType;
-    coinId: string;
-    coinName: string;
-    coinSymbol: string;
-    enabled: boolean;
-    notifyVia: NotificationMethod[];
-    createdAt?: Date;
-  }
-
-  export interface PriceAlert extends BaseAlert {
-    type: 'price';
-    targetPrice: number;
-    isAbove: boolean;
-    recurring: boolean;
-    percentageChange?: number;
-  }
-
-  export interface VolumeAlert extends BaseAlert {
-    type: 'volume';
-    targetVolume: number;
-    isAbove: boolean;
-  }
-
-  export interface PatternAlert extends BaseAlert {
-    type: 'pattern';
-    pattern: string;
-  }
-
-  export interface TechnicalAlert extends BaseAlert {
-    type: 'technical';
-    indicator: string;
-    threshold: number;
-  }
-
-  export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
-
-  export interface AlertFormData {
-    type: AlertType;
-    coinId: string;
-    coinName: string;
-    coinSymbol: string;
-    enabled: boolean;
-    notifyVia: NotificationMethod[];
-    targetPrice?: number;
-    isAbove?: boolean;
-    recurring?: boolean;
-    percentageChange?: number;
-    targetVolume?: number;
-    pattern?: string;
-    indicator?: string;
-    threshold?: number;
-  }
-}
-
 const AlertsSystem = () => {
   const { alerts, createAlert, deleteAlert } = useAlerts();
   const { formData, setFormData, resetForm } = useAlertForm();
@@ -78,9 +17,20 @@ const AlertsSystem = () => {
 
   const handleSubmit = () => {
     // Create the correct alert type
+    if (!formData.coinId || !formData.coinName || !formData.coinSymbol) {
+      console.error("Missing required coin information");
+      return;
+    }
+    
+    // Ensure required fields are present
     const alertData: AlertFormData = {
       ...formData,
-      type: formData.type as AlertType, // Ensure correct type
+      type: formData.type as AlertType,
+      coinId: formData.coinId,
+      coinName: formData.coinName,
+      coinSymbol: formData.coinSymbol,
+      enabled: formData.enabled === undefined ? true : formData.enabled,
+      notifyVia: formData.notifyVia || ['app']
     };
     
     createAlert(alertData);

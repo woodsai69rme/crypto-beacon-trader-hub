@@ -15,6 +15,9 @@ const defaultFormData: Partial<AlertFormData> = {
   notifyVia: ['app'],
   isAbove: true,
   recurring: false,
+  coinId: '',
+  coinName: '',
+  coinSymbol: '',
 };
 
 export function useAlertForm(): AlertFormHook {

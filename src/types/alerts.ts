@@ -1,6 +1,7 @@
 
 export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
 export type NotificationMethod = 'email' | 'push' | 'app';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly';
 
 export interface BaseAlert {
   id: string;

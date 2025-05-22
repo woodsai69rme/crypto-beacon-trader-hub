@@ -5,6 +5,7 @@ export interface SettingsFormValues {
   theme: string;
   currency: SupportedCurrency;
   language: string;
+  bio?: string;
   notifications: {
     email: boolean;
     push: boolean;
@@ -34,6 +35,12 @@ export interface SettingsFormValues {
     position: string;
     collapsed: boolean;
     showLabels: boolean;
+    autoHide?: boolean;
+  };
+  tradingPreferences?: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
   };
   email?: string;
   username?: string;

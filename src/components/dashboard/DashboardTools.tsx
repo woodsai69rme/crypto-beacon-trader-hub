@@ -1,8 +1,8 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,7 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 
 // Add useForm hook for TickerSettings
 import { useForm } from "react-hook-form";
-import { SettingsFormValues } from "@/types/trading";
+import { SettingsFormValues } from "@/components/settings/types";
 
 const TickerSettings: React.FC<{
   form: any;
@@ -29,8 +29,8 @@ const TickerSettings: React.FC<{
           <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
             <FormField
               control={form.control}
-              name="ticker.enabled"
-              defaultValue={defaultValues?.ticker?.enabled ?? true}
+              name="tickerSettings.enabled"
+              defaultValue={defaultValues?.tickerSettings?.enabled ?? true}
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
                   <div className="space-y-0.5">
@@ -49,8 +49,8 @@ const TickerSettings: React.FC<{
             
             <FormField
               control={form.control}
-              name="ticker.position"
-              defaultValue={defaultValues?.ticker?.position ?? "top"}
+              name="tickerSettings.position"
+              defaultValue={defaultValues?.tickerSettings?.position ?? "top"}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ticker Position</FormLabel>
@@ -73,8 +73,8 @@ const TickerSettings: React.FC<{
             
             <FormField
               control={form.control}
-              name="ticker.speed"
-              defaultValue={defaultValues?.ticker?.speed ?? 50}
+              name="tickerSettings.speed"
+              defaultValue={defaultValues?.tickerSettings?.speed ?? 50}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ticker Speed</FormLabel>
@@ -94,8 +94,8 @@ const TickerSettings: React.FC<{
             
             <FormField
               control={form.control}
-              name="ticker.direction"
-              defaultValue={defaultValues?.ticker?.direction ?? "left"}
+              name="tickerSettings.direction"
+              defaultValue={defaultValues?.tickerSettings?.direction ?? "left"}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ticker Direction</FormLabel>
@@ -111,26 +111,6 @@ const TickerSettings: React.FC<{
                     </SelectContent>
                   </Select>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="ticker.autoPause"
-              defaultValue={defaultValues?.ticker?.autoPause ?? false}
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Auto Pause on Hover</FormLabel>
-                    <FormDescription>Pause the ticker when the mouse hovers over it.</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
                 </FormItem>
               )}
             />
@@ -159,8 +139,8 @@ const SidebarSettings: React.FC<{
           <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
             <FormField
               control={form.control}
-              name="sidebar.enabled"
-              defaultValue={defaultValues?.sidebar?.enabled ?? true}
+              name="sidebarSettings.enabled"
+              defaultValue={defaultValues?.sidebarSettings?.enabled ?? true}
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
                   <div className="space-y-0.5">
@@ -179,8 +159,8 @@ const SidebarSettings: React.FC<{
             
             <FormField
               control={form.control}
-              name="sidebar.position"
-              defaultValue={defaultValues?.sidebar?.position ?? "left"}
+              name="sidebarSettings.position"
+              defaultValue={defaultValues?.sidebarSettings?.position ?? "left"}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sidebar Position</FormLabel>
@@ -202,33 +182,13 @@ const SidebarSettings: React.FC<{
             
             <FormField
               control={form.control}
-              name="sidebar.collapsed"
-              defaultValue={defaultValues?.sidebar?.collapsed ?? false}
+              name="sidebarSettings.defaultCollapsed"
+              defaultValue={defaultValues?.sidebarSettings?.defaultCollapsed ?? false}
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
                   <div className="space-y-0.5">
                     <FormLabel>Start Collapsed</FormLabel>
                     <FormDescription>Start the sidebar in a collapsed state.</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="sidebar.autoHide"
-              defaultValue={defaultValues?.sidebar?.autoHide ?? false}
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Auto Hide on Mobile</FormLabel>
-                    <FormDescription>Automatically hide the sidebar on mobile devices.</FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -252,28 +212,27 @@ const DashboardTools: React.FC = () => {
   // Create a form for ticker settings
   const tickerSettingsForm = useForm<SettingsFormValues>({
     defaultValues: {
+      tickerSettings: {
+        enabled: true,
+        position: 'top',
+        speed: 50,
+        direction: 'left'
+      },
       notifications: {
         email: true,
         push: true,
-        trades: true,
-        pricing: true,
-        news: false,
-      },
-      tradingPreferences: {
-        autoConfirm: false,
-        showAdvanced: true,
-        defaultAsset: "BTC"
+        app: true,
+        trades: true
       }
     }
   });
   
   const sidebarSettingsForm = useForm<SettingsFormValues>({
     defaultValues: {
-      sidebar: {
+      sidebarSettings: {
         enabled: true,
         position: "left",
-        collapsed: false,
-        autoHide: true,
+        defaultCollapsed: false
       }
     }
   });
@@ -290,12 +249,17 @@ const DashboardTools: React.FC = () => {
           });
         }} 
         defaultValues={{
+          tickerSettings: {
+            enabled: true,
+            position: 'top',
+            speed: 50,
+            direction: 'left'
+          },
           notifications: {
             email: true,
             push: true,
-            trades: true,
-            pricing: true,
-            news: false,
+            app: true,
+            trades: true
           }
         }}
       />
@@ -310,11 +274,10 @@ const DashboardTools: React.FC = () => {
           });
         }}
         defaultValues={{
-          sidebar: {
+          sidebarSettings: {
             enabled: true,
             position: "left",
-            collapsed: false,
-            autoHide: true,
+            defaultCollapsed: false
           }
         }}
       />

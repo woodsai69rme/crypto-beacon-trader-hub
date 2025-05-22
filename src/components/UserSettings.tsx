@@ -33,8 +33,7 @@ const formSchema = z.object({
     email: z.boolean().default(false),
     push: z.boolean().default(false),
     trades: z.boolean().default(false),
-    pricing: z.boolean().default(false),
-    news: z.boolean().default(false),
+    // Remove pricing and news fields
   }),
   tradingPreferences: z.object({
     autoConfirm: z.boolean().default(false),
@@ -47,7 +46,7 @@ const UserSettings: React.FC = () => {
   const { toast } = useToast();
   
   // Default form values
-  const defaultValues: SettingsFormValues = {
+  const defaultValues = {
     displayName: "John Doe",
     email: "john.doe@example.com",
     theme: "light",
@@ -55,8 +54,6 @@ const UserSettings: React.FC = () => {
       email: true,
       push: false,
       trades: true,
-      pricing: false,
-      news: true,
     },
     tradingPreferences: {
       autoConfirm: false,
@@ -65,12 +62,12 @@ const UserSettings: React.FC = () => {
     },
   };
 
-  const form = useForm<SettingsFormValues>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
 
-  function onSubmit(values: SettingsFormValues) {
+  function onSubmit(values: any) {
     toast({
       title: "Settings updated",
       description: "Your settings have been updated successfully.",
@@ -95,257 +92,154 @@ const UserSettings: React.FC = () => {
               <TabsTrigger value="trading">Trading</TabsTrigger>
             </TabsList>
             
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <TabsContent value="profile" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="displayName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Display Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          This is your public display name.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <TabsContent value="profile" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <FormLabel>Display Name</FormLabel>
+                    <Input 
+                      {...form.register("displayName")}
+                      placeholder="John Doe" 
+                    />
+                    <FormDescription>
+                      This is your public display name.
+                    </FormDescription>
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="john.doe@example.com" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Your email address.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-2">
+                    <FormLabel>Email</FormLabel>
+                    <Input 
+                      {...form.register("email")}
+                      placeholder="john.doe@example.com"
+                    />
+                    <FormDescription>
+                      Your email address.
+                    </FormDescription>
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="theme"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Theme</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a theme" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
-                            <SelectItem value="system">System</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Select your preferred theme.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="notifications" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="notifications.email"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Email Notifications</FormLabel>
-                          <FormDescription>
-                            Receive notifications via email.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-2">
+                    <FormLabel>Theme</FormLabel>
+                    <Select 
+                      onValueChange={(value) => form.setValue("theme", value)}
+                      defaultValue={form.getValues("theme")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a theme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Light</SelectItem>
+                        <SelectItem value="dark">Dark</SelectItem>
+                        <SelectItem value="system">System</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select your preferred theme.
+                    </FormDescription>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="notifications" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Email Notifications</FormLabel>
+                      <FormDescription>
+                        Receive notifications via email.
+                      </FormDescription>
+                    </div>
+                    <Switch
+                      checked={form.watch("notifications.email")}
+                      onCheckedChange={(checked) => form.setValue("notifications.email", checked)}
+                    />
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="notifications.push"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Push Notifications</FormLabel>
-                          <FormDescription>
-                            Receive push notifications on your devices.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Push Notifications</FormLabel>
+                      <FormDescription>
+                        Receive push notifications on your devices.
+                      </FormDescription>
+                    </div>
+                    <Switch
+                      checked={form.watch("notifications.push")}
+                      onCheckedChange={(checked) => form.setValue("notifications.push", checked)}
+                    />
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="notifications.trades"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Trading Notifications</FormLabel>
-                          <FormDescription>
-                            Get notified about your trades.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Trading Notifications</FormLabel>
+                      <FormDescription>
+                        Get notified about your trades.
+                      </FormDescription>
+                    </div>
+                    <Switch
+                      checked={form.watch("notifications.trades")}
+                      onCheckedChange={(checked) => form.setValue("notifications.trades", checked)}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="trading" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Auto-Confirm Orders</FormLabel>
+                      <FormDescription>
+                        Skip confirmation dialog for orders.
+                      </FormDescription>
+                    </div>
+                    <Switch
+                      checked={form.watch("tradingPreferences.autoConfirm")}
+                      onCheckedChange={(checked) => form.setValue("tradingPreferences.autoConfirm", checked)}
+                    />
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="notifications.pricing"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Price Alerts</FormLabel>
-                          <FormDescription>
-                            Get notified about significant price changes.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Show Advanced Features</FormLabel>
+                      <FormDescription>
+                        Display advanced trading features.
+                      </FormDescription>
+                    </div>
+                    <Switch
+                      checked={form.watch("tradingPreferences.showAdvanced")}
+                      onCheckedChange={(checked) => form.setValue("tradingPreferences.showAdvanced", checked)}
+                    />
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="notifications.news"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">News Alerts</FormLabel>
-                          <FormDescription>
-                            Receive important news about your assets.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="trading" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="tradingPreferences.autoConfirm"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Auto-Confirm Orders</FormLabel>
-                          <FormDescription>
-                            Skip confirmation dialog for orders.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="tradingPreferences.showAdvanced"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Show Advanced Features</FormLabel>
-                          <FormDescription>
-                            Display advanced trading features.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="tradingPreferences.defaultAsset"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Default Asset</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a default asset" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
-                            <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                            <SelectItem value="solana">Solana (SOL)</SelectItem>
-                            <SelectItem value="cardano">Cardano (ADA)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Asset to show by default in trading interfaces.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                
-                <Button type="submit">Save changes</Button>
-              </form>
-            </Form>
+                  <div className="space-y-2">
+                    <FormLabel>Default Asset</FormLabel>
+                    <Select 
+                      onValueChange={(value) => form.setValue("tradingPreferences.defaultAsset", value)}
+                      defaultValue={form.getValues("tradingPreferences.defaultAsset")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a default asset" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                        <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                        <SelectItem value="solana">Solana (SOL)</SelectItem>
+                        <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Asset to show by default in trading interfaces.
+                    </FormDescription>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <div className="flex justify-between mt-6">
+                <Button variant="outline">Cancel</Button>
+                <Button type="submit">Save Changes</Button>
+              </div>
+            </form>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline">Cancel</Button>
-          <Button onClick={form.handleSubmit(onSubmit)}>Save Changes</Button>
-        </CardFooter>
       </Card>
     </div>
   );

@@ -2,6 +2,66 @@
 // Support AUD as default currency
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'CHF';
 
+// Alert system types
+export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
+export type NotificationMethod = 'email' | 'push' | 'app';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly';
+
+export interface BaseAlert {
+  id: string;
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  createdAt?: Date;
+}
+
+export interface PriceAlert extends BaseAlert {
+  type: 'price';
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  percentageChange?: number;
+}
+
+export interface VolumeAlert extends BaseAlert {
+  type: 'volume';
+  targetVolume: number;
+  isAbove: boolean;
+}
+
+export interface PatternAlert extends BaseAlert {
+  type: 'pattern';
+  pattern: string;
+}
+
+export interface TechnicalAlert extends BaseAlert {
+  type: 'technical';
+  indicator: string;
+  threshold: number;
+}
+
+export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
+
+export interface AlertFormData {
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  targetVolume?: number;
+  pattern?: string;
+  indicator?: string;
+  threshold?: number;
+}
+
 // News and ticker types
 export interface NewsItem {
   id: string;
@@ -165,7 +225,7 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
   timeframe: string;
   parameters: {
     riskLevel: string;
@@ -206,7 +266,7 @@ export interface Trade {
 export interface LocalModel {
   id: string;
   name: string;
-  type: 'cloud' | 'local' | 'api';
+  type: 'cloud' | 'local' | 'api' | 'prediction' | 'sentiment' | 'trading' | 'analysis';
   endpoint: string;
   apiKey?: string;
   isConnected: boolean;
@@ -224,7 +284,7 @@ export interface ModelListProps {
   models: LocalModel[];
   onConnect: (model: LocalModel) => void;
   onDisconnect: (modelId: string) => void;
-  onDelete: (modelId: string) => void;
+  onDelete?: (modelId: string) => void;
   onSelect?: (model: LocalModel) => void;
 }
 
@@ -251,6 +311,7 @@ export interface SettingsFormValues {
   theme: string;
   currency: SupportedCurrency;
   language: string;
+  bio?: string;
   notifications: {
     email: boolean;
     push: boolean;
@@ -280,10 +341,17 @@ export interface SettingsFormValues {
     position: string;
     collapsed: boolean;
     showLabels: boolean;
+    autoHide?: boolean;
+  };
+  tradingPreferences?: {
+    autoConfirm: boolean;
+    showAdvanced: boolean;
+    defaultAsset: string;
   };
   email?: string;
   username?: string;
   displayName?: string;
+  apiKeys?: Record<string, string>;
 }
 
 export interface ModelPerformanceProps {
@@ -296,65 +364,6 @@ export interface ModelPerformanceProps {
   };
   isRunning?: boolean;
   performanceData?: any;
-}
-
-// Alert system types
-export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
-export type NotificationMethod = 'email' | 'push' | 'app';
-
-export interface BaseAlert {
-  id: string;
-  type: AlertType;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  notifyVia: NotificationMethod[];
-  createdAt?: Date;
-}
-
-export interface PriceAlert extends BaseAlert {
-  type: 'price';
-  targetPrice: number;
-  isAbove: boolean;
-  recurring: boolean;
-  percentageChange?: number;
-}
-
-export interface VolumeAlert extends BaseAlert {
-  type: 'volume';
-  targetVolume: number;
-  isAbove: boolean;
-}
-
-export interface PatternAlert extends BaseAlert {
-  type: 'pattern';
-  pattern: string;
-}
-
-export interface TechnicalAlert extends BaseAlert {
-  type: 'technical';
-  indicator: string;
-  threshold: number;
-}
-
-export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
-
-export interface AlertFormData {
-  type: AlertType;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  enabled: boolean;
-  notifyVia: NotificationMethod[];
-  targetPrice?: number;
-  isAbove?: boolean;
-  recurring?: boolean;
-  percentageChange?: number;
-  targetVolume?: number;
-  pattern?: string;
-  indicator?: string;
-  threshold?: number;
 }
 
 // Tax calculation types
