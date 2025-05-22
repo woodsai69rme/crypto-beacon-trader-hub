@@ -1,3 +1,4 @@
+
 // Define interfaces for the trading module
 export interface CoinOption {
   id: string;
@@ -36,6 +37,21 @@ export interface TradingAccount {
   balance: number;
   currency: SupportedCurrency;
   createdAt: string;
+  type?: 'live' | 'paper' | 'demo';
+  provider?: string;
+  assets?: PortfolioAsset[];
+  lastUpdated?: string;
+  isActive?: boolean;
+  initialBalance?: number;
+}
+
+export interface PortfolioAsset {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  amount: number;
+  averageBuyPrice: number;
+  currentPrice?: number;
 }
 
 export interface TradingFormProps {
@@ -65,6 +81,7 @@ export interface AITradingStrategy {
   recommendation?: string;
   confidence?: number;
   parameters?: Record<string, any>;
+  tags?: string[];
   backtestResults?: {
     winRate: number;
     profitFactor: number;
@@ -114,6 +131,16 @@ export interface ATOTaxCalculation {
     gainLoss: number;
     isShortTerm: boolean;
   }[];
+  financialYear?: string;
+  taxableIncome?: number;
+  CGTDiscount?: number;
+  netCapitalGains?: number;
+  bracketInfo?: string;
+  incomeTax?: number;
+  medicareLevy?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
+  taxRefundOrOwed?: number;
 }
 
 export interface TickerSettings {
@@ -128,6 +155,7 @@ export interface SidebarSettings {
   enabled: boolean;
   position: 'left' | 'right';
   defaultCollapsed: boolean;
+  collapsed?: boolean;
   showLabels: boolean;
 }
 
@@ -165,14 +193,13 @@ export interface Widget {
   config?: any;
 }
 
-// Add this if it doesn't exist already to ensure that NewsItem type is correctly defined
-
 export interface NewsItem {
   id: string;
   title: string;
   source: string;
   timestamp: string;
   url: string;
+  published_at?: string;
 }
 
 export interface NewsTickerProps {
@@ -180,4 +207,158 @@ export interface NewsTickerProps {
   speed?: number;
   direction?: 'left' | 'right';
   className?: string;
+}
+
+export type WidgetType = string;
+
+export interface SettingsFormValues {
+  theme: string;
+  currency: string;
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    app: boolean;
+  };
+  tickerSettings: TickerSettings;
+  sidebarSettings: SidebarSettings;
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  apiKey?: string;
+  type: 'local' | 'cloud';
+  status: 'connected' | 'disconnected' | 'error';
+  description?: string;
+  isDefault?: boolean;
+  lastUsed?: string;
+  contextSize?: number;
+  maxTokens?: number;
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (modelId: string) => void;
+  onAdd: () => void;
+  onEdit: (modelId: string) => void;
+  onDelete: (modelId: string) => void;
+  selectedModelId?: string;
+}
+
+export interface ModelPerformanceProps {
+  modelId: string;
+  timeframe?: '1d' | '1w' | '1m' | 'all';
+}
+
+// Alert types
+export type AlertType = 'price' | 'volume' | 'news' | 'pattern' | 'whale';
+export type AlertFrequency = 'once' | 'daily' | 'always';
+export type NotificationMethod = 'email' | 'app' | 'push';
+
+export interface AlertBase {
+  id: string;
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  createdAt: Date;
+}
+
+export interface PriceAlert extends AlertBase {
+  type: 'price';
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  percentageChange?: number;
+}
+
+export interface VolumeAlert extends AlertBase {
+  type: 'volume';
+  volumeThreshold: number;
+  frequency: AlertFrequency;
+}
+
+export interface NewsAlert extends AlertBase {
+  type: 'news';
+  keywords: string[];
+  sources?: string[];
+  sentiment?: 'positive' | 'negative' | 'any';
+}
+
+export interface PatternAlert extends AlertBase {
+  type: 'pattern';
+  pattern: string;
+  timeframe: string;
+  confirmationNeeded: boolean;
+}
+
+export interface WhaleAlert extends AlertBase {
+  type: 'whale';
+  threshold: number;
+  trackExchanges: boolean;
+  trackWallets: boolean;
+}
+
+export type AlertData = PriceAlert | VolumeAlert | NewsAlert | PatternAlert | WhaleAlert;
+
+export interface AlertFormData {
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  volumeThreshold?: number;
+  frequency?: AlertFrequency;
+  keywords?: string[];
+  sources?: string[];
+  sentiment?: 'positive' | 'negative' | 'any';
+  pattern?: string;
+  timeframe?: string;
+  confirmationNeeded?: boolean;
+  threshold?: number;
+  trackExchanges?: boolean;
+  trackWallets?: boolean;
+}
+
+export interface ApiProvider {
+  id: string;
+  name: string;
+  type: 'exchange' | 'data' | 'news';
+  apiKey: string;
+  apiSecret?: string;
+  status: 'active' | 'inactive' | 'error';
+  lastUsed?: Date;
+  rateLimit?: number;
+  tier?: 'free' | 'basic' | 'pro' | 'enterprise';
+}
+
+export interface ApiUsageStats {
+  provider: string;
+  calls: number;
+  quota: number;
+  resetTime: string;
+  lastCalled: string;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  coins: CoinOption[];
+  timeframe?: '1d' | '1w' | '1m' | '3m' | '1y' | 'all';
+  portfolioPerformance?: {
+    totalValue: number;
+    profitLoss: number;
+    profitLossPercentage: number;
+    history: Array<{
+      timestamp: string;
+      value: number;
+    }>;
+  };
 }

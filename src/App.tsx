@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard';
 import ThemeSwitcher from './components/settings/ThemeSwitcher';
 import { Toaster } from './components/ui/toaster';
 import { cn } from './lib/utils';
-import { GithubIcon, Menu } from 'lucide-react';
+import { GithubIcon, Menu, ChevronRight, LayoutDashboard, LineChart, Settings, BookOpen, Users, Bell } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './components/ui/sheet';
 import { Separator } from './components/ui/separator';
@@ -25,6 +25,7 @@ const AppContent = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [trendingCoins, setTrendingCoins] = useState<CoinOption[]>([]);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [activePage, setActivePage] = useState('dashboard');
 
   // Only show UI after component is mounted to avoid hydration issues
   useEffect(() => {
@@ -69,6 +70,16 @@ const AppContent = () => {
   const showBottomTicker = tickerSettings.enabled && (tickerSettings.position === 'bottom' || tickerSettings.position === 'both');
   const showSidebar = sidebarSettings.enabled;
 
+  // Nav items for the sidebar and mobile menu
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'trading', label: 'Trading', icon: LineChart },
+    { id: 'analysis', label: 'Market Analysis', icon: ChevronRight },
+    { id: 'news', label: 'News & Events', icon: BookOpen },
+    { id: 'social', label: 'Community', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
   return (
     <div className={cn(
       "app min-h-screen flex flex-col bg-background text-foreground",
@@ -92,9 +103,29 @@ const AppContent = () => {
             <h1 className="font-bold text-xl hidden md:block">Crypto Trading Platform</h1>
           </div>
           
+          <div className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <Button 
+                key={item.id}
+                variant={activePage === item.id ? "secondary" : "ghost"} 
+                onClick={() => setActivePage(item.id)}
+                className="flex items-center gap-1.5"
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Button>
+            ))}
+          </div>
+          
           <div className="flex items-center space-x-2">
             <div className="hidden md:flex items-center space-x-2">
-              <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-600" />
+                <span className="sr-only">Notifications</span>
+              </Button>
+              
+              <Button variant="outline" size="sm" className="hidden lg:flex items-center gap-2">
                 <GithubIcon size={16} />
                 <span>Star on GitHub</span>
               </Button>
@@ -118,18 +149,20 @@ const AppContent = () => {
                   </div>
                   
                   <nav className="space-y-2 mb-auto">
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
-                      Dashboard
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
-                      Trading
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
-                      Market Analysis
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
-                      Settings
-                    </Button>
+                    {navItems.map((item) => (
+                      <Button 
+                        key={item.id}
+                        variant={activePage === item.id ? "secondary" : "ghost"} 
+                        className="w-full justify-start gap-3"
+                        onClick={() => {
+                          setActivePage(item.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </Button>
+                    ))}
                   </nav>
                   
                   <Separator className="my-4" />
@@ -175,6 +208,8 @@ const AppContent = () => {
           direction={tickerSettings.direction} 
         />
       )}
+      
+      <Toaster />
     </div>
   );
 };

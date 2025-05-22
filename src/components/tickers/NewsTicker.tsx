@@ -16,8 +16,11 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [currentDirection, setCurrentDirection] = useState<'left' | 'right'>(direction);
   
+  // Guard against undefined items early
+  const safeItems = items || [];
+  
   useEffect(() => {
-    if (!tickerRef.current || !items || items.length === 0 || isPaused) return;
+    if (!tickerRef.current || safeItems.length === 0 || isPaused) return;
     
     const tickerContent = tickerRef.current;
     const animationName = `ticker-${currentDirection}`;
@@ -27,7 +30,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
     tickerContent.offsetHeight; // Trigger reflow
     
     // Apply animation with dynamic speed
-    const animationDuration = `${items.length * speed}s`;
+    const animationDuration = `${safeItems.length * speed}s`;
     tickerContent.style.animation = `${animationName} ${animationDuration} linear infinite`;
     
     return () => {
@@ -35,7 +38,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
         tickerContent.style.animation = 'none';
       }
     };
-  }, [items, speed, isPaused, currentDirection]);
+  }, [safeItems, speed, isPaused, currentDirection]);
 
   const togglePause = () => {
     setIsPaused(prev => !prev);
@@ -45,8 +48,8 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
     setCurrentDirection(prev => prev === 'left' ? 'right' : 'left');
   };
   
-  // Guard against undefined items
-  if (!items || items.length === 0) {
+  // Guard against empty items
+  if (safeItems.length === 0) {
     return null;
   }
 
@@ -81,7 +84,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
           ref={tickerRef}
           className="ticker-content inline-flex"
         >
-          {[...items, ...items].map((item, index) => (
+          {[...safeItems, ...safeItems].map((item, index) => (
             <a 
               key={`${item.id}-${index}`}
               href={item.url}
@@ -92,33 +95,31 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
               <span className="font-semibold text-primary">{item.source}</span>
               <span className="mx-2">•</span>
               <span>{item.title}</span>
-              <span className="ml-2 text-sm text-muted-foreground">{item.timestamp}</span>
+              <span className="ml-2 text-sm text-muted-foreground">{new Date(item.timestamp).toLocaleDateString()}</span>
             </a>
           ))}
         </div>
       </div>
 
-      <style>
-        {`
-          @keyframes ticker-left {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-${(items.length || 1) * 300}px); }
-          }
+      <style jsx>{`
+        @keyframes ticker-left {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-${(safeItems.length || 1) * 300}px); }
+        }
 
-          @keyframes ticker-right {
-            0% { transform: translateX(-${(items.length || 1) * 300}px); }
-            100% { transform: translateX(0); }
-          }
+        @keyframes ticker-right {
+          0% { transform: translateX(-${(safeItems.length || 1) * 300}px); }
+          100% { transform: translateX(0); }
+        }
 
-          .ticker-content {
-            animation: ticker-${currentDirection} ${(items.length || 1) * speed}s linear infinite;
-          }
+        .ticker-content {
+          animation: ticker-${currentDirection} ${(safeItems.length || 1) * speed}s linear infinite;
+        }
 
-          .animation-paused {
-            animation-play-state: paused;
-          }
-        `}
-      </style>
+        .animation-paused {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 };

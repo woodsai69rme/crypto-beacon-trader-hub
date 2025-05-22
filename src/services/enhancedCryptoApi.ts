@@ -1,14 +1,14 @@
 
 // If this file doesn't exist or needs to be updated
-import { CoinOption, NewsItem } from "@/types/trading";
+import { CoinOption, NewsItem, CryptoData } from "@/types/trading";
 
 // Mock data for development or fallback
 const mockTrendingCoins: CoinOption[] = [
-  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 53000, change24h: 2.3 },
-  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3100, change24h: 1.7 },
-  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.51, change24h: -0.8 },
-  { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.42, change24h: 3.2 },
-  { id: "solana", name: "Solana", symbol: "SOL", price: 143, change24h: 5.9 },
+  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 53000, priceChange: 2.3, changePercent: 2.3 },
+  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3100, priceChange: 1.7, changePercent: 1.7 },
+  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.51, priceChange: -0.8, changePercent: -0.8 },
+  { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.42, priceChange: 3.2, changePercent: 3.2 },
+  { id: "solana", name: "Solana", symbol: "SOL", price: 143, priceChange: 5.9, changePercent: 5.9 },
 ];
 
 const mockNewsItems: NewsItem[] = [
@@ -104,6 +104,44 @@ export const searchCoins = async (query: string): Promise<CoinOption[]> => {
     return filteredCoins;
   } catch (error) {
     console.error("Error searching coins:", error);
+    return []; // Return empty array as fallback
+  }
+};
+
+/**
+ * Fetch historical price data for a coin
+ * @param coinId The ID of the coin
+ * @param days Number of days of history to fetch
+ * @returns Array of price data points
+ */
+export const fetchCoinHistory = async (coinId: string, days = 7) => {
+  try {
+    // In a real app, this would be an API call
+    // const response = await fetch(`https://api.example.com/coins/${coinId}/history?days=${days}`);
+    // return await response.json();
+    
+    // Mock implementation - generate random price history
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const startPrice = mockTrendingCoins.find(c => c.id === coinId)?.price || 1000;
+    
+    const priceHistory = Array.from({ length: days * 24 }, (_, i) => {
+      const timestamp = new Date(now - (days * oneDayMs) + (i * oneDayMs / 24));
+      // Generate slightly random price based on the starting price
+      const randomFactor = 0.98 + (Math.random() * 0.04); // ±2%
+      const price = startPrice * (1 + (i * 0.001)) * randomFactor;
+      
+      return {
+        timestamp: timestamp.toISOString(),
+        price
+      };
+    });
+    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return priceHistory;
+  } catch (error) {
+    console.error("Error fetching coin history:", error);
     return []; // Return empty array as fallback
   }
 };
