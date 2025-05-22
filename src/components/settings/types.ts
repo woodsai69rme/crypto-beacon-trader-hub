@@ -1,58 +1,42 @@
 
-import { UseFormReturn } from "react-hook-form";
+import { SupportedCurrency } from "@/types/trading";
 
 export interface SettingsFormValues {
-  displayName?: string;
-  email?: string;
-  username?: string;
-  bio?: string;
-  theme?: string;
-  language?: string;
-  appearance?: {
-    colorScheme?: string;
-    compactMode?: boolean;
-    animationsEnabled?: boolean;
-    highContrastMode?: boolean;
-  };
-  notifications?: {
-    email?: boolean;
-    push?: boolean;
+  theme: string;
+  currency: SupportedCurrency;
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    app: boolean;
     trades?: boolean;
-    pricing?: boolean;
-    news?: boolean;
   };
-  privacy?: {
-    showOnlineStatus?: boolean;
-    sharePortfolio?: boolean;
-    shareTrades?: boolean;
-    dataCollection?: boolean;
-    marketingConsent?: boolean;
-    thirdPartySharing?: boolean;
+  tickerSettings: {
+    enabled: boolean;
+    position: 'top' | 'bottom' | 'both';
+    speed: number;
+    direction: 'left' | 'right';
   };
-  account?: {
-    twoFactorEnabled?: boolean;
-    loginAlerts?: boolean;
-  };
-  tradingPreferences?: {
-    autoConfirm?: boolean;
-    showAdvanced?: boolean;
-    defaultAsset?: string;
+  sidebarSettings: {
+    enabled: boolean;
+    position: 'left' | 'right';
+    defaultCollapsed: boolean;
   };
   ticker?: {
-    enabled?: boolean;
-    position?: string;
-    speed?: number;
-    direction?: string;
-    autoPause?: boolean;
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
   };
   sidebar?: {
-    enabled?: boolean;
-    position?: string;
-    collapsed?: boolean;
-    showLabels?: boolean;
+    enabled: boolean;
+    position: string;
+    collapsed: boolean;
+    showLabels: boolean;
   };
-}
-
-export interface SettingsComponentProps {
-  form: UseFormReturn<SettingsFormValues>;
+  email?: string;
+  username?: string;
+  displayName?: string;
+  apiKeys?: Record<string, string>;
 }

@@ -1,66 +1,44 @@
 
-export interface PriceAlert {
+export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
+export type NotificationMethod = 'email' | 'push' | 'app';
+
+export interface BaseAlert {
   id: string;
-  createdAt: Date;
+  type: AlertType;
   coinId: string;
   coinName: string;
   coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  createdAt?: Date;
+}
+
+export interface PriceAlert extends BaseAlert {
+  type: 'price';
   targetPrice: number;
   isAbove: boolean;
-  enabled: boolean;
   recurring: boolean;
-  percentageChange: number;
-  notifyVia: ("email" | "app" | "push")[];
-  type: "price";
+  percentageChange?: number;
 }
 
-export type AlertFrequency = "1h" | "4h" | "24h";
-
-export interface VolumeAlert {
-  id: string;
-  createdAt: Date;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  volumeThreshold: number;
-  enabled: boolean;
-  frequency: AlertFrequency;
-  notifyVia: ("email" | "app" | "push")[];
-  type: "volume";
+export interface VolumeAlert extends BaseAlert {
+  type: 'volume';
+  targetVolume: number;
+  isAbove: boolean;
 }
 
-export interface PatternAlert {
-  id: string;
-  createdAt: Date;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
+export interface PatternAlert extends BaseAlert {
+  type: 'pattern';
   pattern: string;
-  enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
-  type: "pattern";
 }
 
-export interface TechnicalAlert {
-  id: string;
-  createdAt: Date;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
+export interface TechnicalAlert extends BaseAlert {
+  type: 'technical';
   indicator: string;
-  condition: string;
-  value: number;
-  enabled: boolean;
-  notifyVia: ("email" | "app" | "push")[];
-  type: "technical";
-  timeframe?: string;
+  threshold: number;
 }
 
-export type AlertData = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
-
-export type AlertType = "price" | "volume" | "pattern" | "technical";
-
-export type NotificationMethod = "email" | "app" | "push";
+export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
 
 export interface AlertFormData {
   type: AlertType;
@@ -69,23 +47,12 @@ export interface AlertFormData {
   coinSymbol: string;
   enabled: boolean;
   notifyVia: NotificationMethod[];
-  
-  // Price alert fields
   targetPrice?: number;
   isAbove?: boolean;
   recurring?: boolean;
   percentageChange?: number;
-  
-  // Volume alert fields
-  volumeThreshold?: number;
-  frequency?: AlertFrequency;
-  
-  // Technical alert fields
-  indicator?: string;
-  condition?: string;
-  value?: number;
-  timeframe?: string;
-  
-  // Pattern alert fields
+  targetVolume?: number;
   pattern?: string;
+  indicator?: string;
+  threshold?: number;
 }

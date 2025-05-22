@@ -1,9 +1,10 @@
 
-import { LocalModel } from "./types";
+import { LocalModel } from '@/types/trading';
 
 export interface ModelRunningTabProps {
-  selectedModel: LocalModel | null;
+  model: LocalModel;
   isRunning: boolean;
-  onStopModel: () => void;
-  onStartModel: (model: LocalModel) => void;
+  onStart: () => void;
+  onStop: () => void;
+  results: any[];
 }

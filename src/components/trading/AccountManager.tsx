@@ -1,189 +1,163 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { PlusCircle, RefreshCw, Settings, Link, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
-import { TradingAccount, PortfolioAsset } from "@/types/trading";
 
-// Mock data for trading accounts
-const mockAccounts: TradingAccount[] = [
-  {
-    id: "acc-1",
-    name: "Binance Main",
-    type: "exchange",
-    provider: "Binance",
-    balance: 4230.50,
-    currency: "USD",
-    createdAt: "2025-05-02T10:34:12Z",
-    lastUpdated: "2025-05-02T10:34:12Z",
-    isActive: true,
-    assets: [
-      { coinId: "btc", coinSymbol: "BTC", coinName: "Bitcoin", amount: 0.05, averagePrice: 0, value: 3276.18 },
-      { coinId: "eth", coinSymbol: "ETH", coinName: "Ethereum", amount: 0.28, averagePrice: 0, value: 957.82 }
-    ]
-  },
-  {
-    id: "acc-2",
-    name: "KuCoin Trading",
-    type: "exchange",
-    provider: "KuCoin",
-    balance: 1850.75,
-    currency: "USD",
-    createdAt: "2025-05-01T15:22:45Z",
-    lastUpdated: "2025-05-01T15:22:45Z",
-    isActive: true,
-    assets: [
-      { coinId: "sol", coinSymbol: "SOL", coinName: "Solana", amount: 10.5, averagePrice: 0, value: 1543.28 },
-      { coinId: "ada", coinSymbol: "ADA", coinName: "Cardano", amount: 500, averagePrice: 0, value: 307.47 }
-    ]
-  },
-  {
-    id: "acc-3",
-    name: "Metamask Wallet",
-    type: "wallet",
-    provider: "MetaMask",
-    balance: 2145.30,
-    currency: "USD",
-    createdAt: "2025-04-30T22:17:39Z",
-    lastUpdated: "2025-04-30T22:17:39Z",
-    isActive: false,
-    assets: [
-      { coinId: "eth", coinSymbol: "ETH", coinName: "Ethereum", amount: 0.62, averagePrice: 0, value: 2145.30 }
-    ]
-  }
-];
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TradingAccount, PortfolioAsset } from '@/types/trading';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
-const AccountManager: React.FC = () => {
-  const [accounts, setAccounts] = useState<TradingAccount[]>(mockAccounts);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  const refreshAccounts = () => {
-    setIsRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1500);
+interface AccountManagerProps {
+  accounts: TradingAccount[];
+  onAddAccount: (account: Omit<TradingAccount, 'id' | 'createdAt'>) => void;
+  activeAccountId?: string;
+  onSelectAccount: (accountId: string) => void;
+}
+
+const AccountManager: React.FC<AccountManagerProps> = ({
+  accounts,
+  onAddAccount,
+  activeAccountId,
+  onSelectAccount,
+}) => {
+  const { formatCurrency } = useCurrency();
+  const [isAdding, setIsAdding] = useState(false);
+  const [newAccountName, setNewAccountName] = useState('');
+  const [newAccountBalance, setNewAccountBalance] = useState(10000);
+  const [accountType, setAccountType] = useState<'paper' | 'exchange'>('paper');
+
+  const handleAddAccount = () => {
+    const mockAssets: PortfolioAsset[] = [
+      {
+        coinId: 'bitcoin',
+        coinName: 'Bitcoin',
+        coinSymbol: 'BTC',
+        amount: 0.5,
+        averagePrice: 45000,
+        value: 22500,
+        allocation: 45,
+        change24h: 1200,
+        changePercent24h: 2.7,
+      },
+      {
+        coinId: 'ethereum',
+        coinName: 'Ethereum',
+        coinSymbol: 'ETH',
+        amount: 5,
+        averagePrice: 3000,
+        value: 15000,
+        allocation: 30,
+        change24h: 500,
+        changePercent24h: 3.5,
+      },
+      {
+        coinId: 'cardano',
+        coinName: 'Cardano',
+        coinSymbol: 'ADA',
+        amount: 10000,
+        averagePrice: 1.2,
+        value: 12000,
+        allocation: 25,
+        change24h: -600,
+        changePercent24h: -4.8,
+      }
+    ];
+
+    onAddAccount({
+      name: newAccountName || `Account ${accounts.length + 1}`,
+      balance: newAccountBalance,
+      currency: 'AUD',
+      type: accountType,
+      assets: accountType === 'exchange' ? mockAssets : [],
+      isActive: true,
+    });
+
+    setIsAdding(false);
+    setNewAccountName('');
+    setNewAccountBalance(10000);
+    setAccountType('paper');
   };
-  
-  const formatLastUpdated = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-  
+
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Trading Accounts</CardTitle>
-            <CardDescription>
-              Manage your connected exchange accounts and wallets
-            </CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={refreshAccounts} disabled={isRefreshing}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-            <Button size="sm">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Account
-            </Button>
-          </div>
-        </div>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-medium">Trading Accounts</CardTitle>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setIsAdding(!isAdding)}
+        >
+          {isAdding ? 'Cancel' : 'Add Account'}
+        </Button>
       </CardHeader>
-      
       <CardContent>
-        {accounts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Link className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-1">No accounts connected</h3>
-            <p className="text-muted-foreground mb-4 text-center max-w-sm">
-              Connect your first exchange account or wallet to start trading
-            </p>
-            <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Connect Account
-            </Button>
+        {isAdding ? (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium block mb-1">Account Name</label>
+              <Input
+                placeholder="My Trading Account"
+                value={newAccountName}
+                onChange={(e) => setNewAccountName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">Initial Balance</label>
+              <Input
+                type="number"
+                placeholder="10000"
+                value={newAccountBalance}
+                onChange={(e) => setNewAccountBalance(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">Account Type</label>
+              <Select value={accountType} onValueChange={(value: 'paper' | 'exchange') => setAccountType(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="paper">Paper Trading</SelectItem>
+                  <SelectItem value="exchange">Exchange Account</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleAddAccount} className="w-full">Create Account</Button>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="hidden md:table-cell">Balance</TableHead>
-                <TableHead className="hidden md:table-cell">Assets</TableHead>
-                <TableHead className="hidden lg:table-cell">Last Updated</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.name}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${account.provider.toLowerCase()}.png`}
-                        alt={account.provider}
-                        className="w-5 h-5"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/generic.png";
-                        }}
-                      />
-                      {account.provider}
+          <div className="space-y-2">
+            {accounts.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4">No accounts found. Create an account to start trading.</p>
+            ) : (
+              accounts.map((account) => (
+                <div
+                  key={account.id}
+                  className={`p-3 rounded-lg border cursor-pointer ${
+                    activeAccountId === account.id ? 'bg-primary/10 border-primary' : 'bg-card border-border hover:bg-secondary/50'
+                  }`}
+                  onClick={() => onSelectAccount(account.id)}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{account.name}</div>
+                      <div className="text-sm text-muted-foreground">{account.type === 'paper' ? 'Paper Trading' : 'Exchange Account'}</div>
                     </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    ${account.balance.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {account.assets?.length || 0} assets
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-muted-foreground">
-                    {formatLastUpdated(account.lastUpdated || account.createdAt)}
-                  </TableCell>
-                  <TableCell>
-                    {account.isActive ? (
-                      <Badge className="flex items-center gap-1 bg-green-500/10 text-green-500 hover:bg-green-500/20">
-                        <CheckCircle className="h-3 w-3" />
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        Inactive
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    <div className="text-right">
+                      <div className="font-medium">{formatCurrency(account.balance)}</div>
+                      <div className="text-xs text-muted-foreground">Available Balance</div>
+                    </div>
+                  </div>
+                  {account.assets && account.assets.length > 0 && (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {account.assets.length} asset{account.assets.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         )}
       </CardContent>
-      
-      <CardFooter className="border-t p-4">
-        <div className="w-full flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
-          <span>
-            Connected Accounts: {accounts.length} ({accounts.filter(a => a.isActive).length} active)
-          </span>
-          <span className="mt-2 sm:mt-0">
-            Total Balance: ${accounts.reduce((sum, acc) => sum + acc.balance, 0).toLocaleString()}
-          </span>
-        </div>
-      </CardFooter>
     </Card>
   );
 };

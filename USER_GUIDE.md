@@ -1,325 +1,291 @@
 
 # User Guide - Crypto Beacon Trader Hub
 
-Welcome to Crypto Beacon Trader Hub, your all-in-one platform for cryptocurrency trading, portfolio management, and market analysis. This guide will help you navigate the platform and make the most of its features.
+Welcome to Crypto Beacon Trader Hub! This comprehensive guide will help you navigate and make the most of our platform's powerful cryptocurrency trading and analytics features.
 
-## 📋 Table of Contents
+## Table of Contents
 
 1. [Getting Started](#getting-started)
 2. [Dashboard Overview](#dashboard-overview)
-3. [Portfolio Management](#portfolio-management)
-4. [Watchlist](#watchlist)
-5. [Trading Tools](#trading-tools)
-6. [Market Analysis](#market-analysis)
-7. [Technical Analysis](#technical-analysis)
-8. [API Management](#api-management)
-9. [Tax Calculation](#tax-calculation)
-10. [Settings & Preferences](#settings--preferences)
-11. [Mobile Access](#mobile-access)
-12. [Troubleshooting](#troubleshooting)
+3. [Trading Tools](#trading-tools)
+4. [Portfolio Management](#portfolio-management)
+5. [Analytics Features](#analytics-features)
+6. [AI Trading Features](#ai-trading-features)
+7. [Settings and Preferences](#settings-and-preferences)
+8. [Mobile Usage](#mobile-usage)
+9. [Tips and Best Practices](#tips-and-best-practices)
+10. [Troubleshooting](#troubleshooting)
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Creating Your Account
 
-1. Visit the Crypto Beacon Trader Hub website
-2. Click on "Sign Up" in the top right corner
-3. Enter your email address and a secure password
-4. Verify your email address
-5. Complete your profile setup
+1. Visit [Crypto Beacon Trader Hub](https://cryptobeacontrader.com) and click "Sign Up"
+2. Enter your email address and create a secure password
+3. Verify your email address through the confirmation link
+4. Complete your profile setup
 
-### First-Time Setup Wizard
+### Initial Setup
 
-After logging in for the first time, the setup wizard will guide you through:
+1. **Choose Your Base Currency**: The default is AUD (Australian Dollar), but you can select USD, EUR, GBP, and others in Settings
+2. **Theme Selection**: Choose between light and dark mode, plus additional theme options
+3. **Notification Preferences**: Configure how you'd like to receive alerts
+4. **Dashboard Customization**: Arrange the widgets according to your preferences
 
-1. Setting your preferred currency
-2. Choosing a theme (light/dark mode)
-3. Setting up your initial portfolio
-4. Configuring your dashboard layout
+## Dashboard Overview
 
-## 📊 Dashboard Overview
+The dashboard provides a comprehensive view of your cryptocurrency portfolio, market data, and trading tools.
 
-The dashboard is your command center for all cryptocurrency activities. It is divided into several sections:
+### Key Features
 
-### Navigation Tabs
+- **Price Ticker**: Real-time cryptocurrency price updates at the top of your screen
+- **Portfolio Summary**: Your current holdings, total value, and performance metrics
+- **Watchlist**: Quick access to cryptocurrencies you're monitoring
+- **News Feed**: Latest cryptocurrency news and market developments
+- **Quick Trading**: Execute trades directly from the dashboard
+- **Market Overview**: High-level view of market performance
 
-- **Overview**: Quick snapshot of the market and your portfolio
-- **Portfolio**: Detailed view of your holdings and performance
-- **Watchlist**: Track coins of interest
-- **Trading**: Execute trades and view history
-- **Analysis**: Market analysis tools and insights
-- **Tools**: Additional utilities including tax calculators
+### Customization Options
 
-### Customizing Your Dashboard
+- **Add/Remove Widgets**: Customize which widgets appear on your dashboard
+- **Rearrange Layout**: Drag and drop widgets to your preferred positions
+- **Resize Widgets**: Adjust the size of individual widgets
+- **Save Layouts**: Create and save multiple dashboard configurations
 
-1. Click on the "Customize" button in the top right corner
-2. Drag and drop widgets to rearrange them
-3. Click the "+" icon to add new widgets
-4. Click the gear icon on any widget to configure its settings
-5. Click "Save Layout" when you're satisfied with your changes
+## Trading Tools
 
-## 💼 Portfolio Management
+### Paper Trading
 
-### Adding Assets
+Practice trading with virtual currency before risking real funds.
 
-#### Manual Entry
+1. Navigate to the Trading tab and select "Paper Trading"
+2. You'll start with a virtual balance of 100,000 AUD (or your selected currency)
+3. Execute buy and sell orders as you would with real trades
+4. Monitor your performance and refine your strategies
 
-1. Navigate to the Portfolio tab
-2. Click "Add Transaction"
-3. Choose the coin, transaction type (buy/sell), amount, price, and date
-4. Add optional details like fees, notes, or tags
-5. Click "Save Transaction"
+### Real-Time Trading
 
-#### Exchange Import
-
-1. Go to the Portfolio tab
-2. Click "Connect Exchange"
-3. Select your exchange from the list
-4. Follow the instructions to securely connect your API keys
-5. Review imported transactions and confirm
-
-### Viewing Portfolio Performance
-
-- **Overview Panel**: Total value, 24h change, all-time profit/loss
-- **Allocation Chart**: Visual breakdown of your portfolio by asset
-- **Performance Chart**: Historical value of your portfolio over time
-- **Benchmarking**: Compare your performance against BTC, ETH, or S&P 500
-
-### Portfolio Analysis
-
-- **Risk Assessment**: Volatility metrics and exposure analysis
-- **Diversification Score**: Evaluation of your portfolio's diversity
-- **Correlation Analysis**: How your assets move in relation to each other
-- **Performance Attribution**: Which assets are driving your returns
-
-## 👁️ Watchlist
-
-### Creating a Watchlist
-
-1. Go to the Watchlist tab
-2. Click "Create New Watchlist"
-3. Name your watchlist (e.g., "DeFi Tokens", "Top 10")
-4. Add coins using the search function
-5. Customize the columns you want to see
-6. Click "Save Watchlist"
-
-### Setting Price Alerts
-
-1. Find the coin you want to monitor in your watchlist
-2. Click the bell icon next to it
-3. Choose your alert conditions:
-   - Price above/below a certain value
-   - Percentage change within a time period
-   - Volume spike alert
-4. Choose notification method (email, push, in-app)
-5. Click "Save Alert"
-
-### Watchlist Features
-
-- Real-time price updates
-- Color-coded price change indicators
-- Quick-add to portfolio function
-- Customizable columns (price, 24h change, market cap, etc.)
-- Sorting and filtering options
-
-## 📈 Trading Tools
-
-### Executing Trades
-
-1. Navigate to the Trading tab
-2. Select the coin you wish to trade
-3. Choose buy or sell
-4. Enter the amount or value
-5. Review the transaction details
-6. Confirm and execute
+1. Select a cryptocurrency from the dropdown menu
+2. Enter the amount you wish to buy or sell
+3. Review the trade details, including fees and total cost
+4. Confirm the transaction
+5. Track your order status in real-time
 
 ### Order Types
 
-- **Market Order**: Execute immediately at current market price
-- **Limit Order**: Set your desired price for execution
-- **Stop Loss**: Set a price to sell if the market moves against you
-- **Take Profit**: Set a price to sell if you reach your profit target
+- **Market Order**: Execute immediately at the current market price
+- **Limit Order**: Set a specific price at which you want to buy or sell
+- **Stop Order**: Create an order that activates when the price reaches a certain level
+- **Stop-Limit Order**: Combines features of stop and limit orders for more control
 
 ### Trading History
 
-- View all past transactions
-- Filter by coin, type, date range
-- Export history for record keeping
-- Performance analytics by trade
+Access your complete trading history with detailed analytics:
 
-## 📊 Market Analysis
+- Filter by date range, cryptocurrency, or order type
+- Export transaction history for tax and record-keeping purposes
+- Analyze your trading performance with visual charts
 
-### Market Overview
+## Portfolio Management
 
-- Global market metrics (total market cap, BTC dominance, etc.)
-- Trending coins and movers
-- Market sentiment indicators
-- Volume analysis
+### Tracking Your Assets
 
-### Correlation Matrix
+The Portfolio section provides a comprehensive view of your cryptocurrency holdings:
 
-1. Navigate to Analysis tab and select "Market Correlations"
-2. View the heat map showing correlations between assets
-3. Select specific coins to analyze in detail
-4. Adjust the timeframe to see how correlations change over time
+- Total portfolio value in your preferred currency
+- Performance metrics (daily, weekly, monthly, all-time)
+- Asset allocation breakdown
+- Individual asset performance
 
-### Sentiment Analysis
+### Portfolio Analytics
 
-- Social media sentiment tracking
-- News impact analysis
-- Fear & Greed index
-- Trading volume analysis
+- **Performance Benchmarking**: Compare your portfolio against BTC, ETH, or market indices
+- **Risk Analysis**: View volatility metrics and risk assessment
+- **Historical Performance**: Track your portfolio value over time
+- **What-If Analysis**: Simulate how portfolio changes would affect performance
 
-## 📉 Technical Analysis
+### Portfolio Optimization
 
-### Chart Types
+Receive AI-powered suggestions to optimize your portfolio:
 
-- **Line Chart**: Simple price over time
-- **Candlestick Chart**: Open, high, low, close values
-- **Area Chart**: Price with volume visualization
+1. Navigate to Portfolio > Optimization
+2. Select your investment goals and risk tolerance
+3. Review the suggested portfolio adjustments
+4. Implement changes directly or save recommendations for later
 
-### Using Technical Indicators
+## Analytics Features
 
-1. Open any coin's chart
-2. Click the Indicators button
-3. Select from popular indicators:
-   - Moving Averages (SMA, EMA)
-   - Oscillators (RSI, MACD, Stochastic)
-   - Volatility (Bollinger Bands, ATR)
-   - Volume indicators
-4. Customize indicator parameters
-5. Apply to your chart
+### Market Correlations
 
-### Drawing Tools
+Understand how different cryptocurrencies move in relation to each other:
 
-- Trend lines
-- Support/Resistance levels
-- Fibonacci retracements
-- Patterns and shapes
+1. Go to Analytics > Correlations
+2. Select cryptocurrencies to compare
+3. Choose a timeframe (24h, 7d, 30d, 90d, 1y)
+4. View the correlation coefficient and visual representation
 
-## 🔌 API Management
+### Technical Analysis
 
-### Adding an API Provider
+Access powerful technical analysis tools:
 
-1. Go to the Tools tab and select "API Management"
-2. Click "Add API Provider"
-3. Select from pre-configured providers or add a custom one
-4. Enter your API credentials securely
-5. Test the connection
-6. Save your configuration
+- Multiple chart types (candlestick, line, area)
+- Over 50 technical indicators
+- Drawing tools for trendlines and patterns
+- Multiple timeframes from minutes to months
+- Save and share analysis views
 
-### Monitoring API Usage
+### API Management
 
-- View real-time API usage metrics
-- Monitor rate limits and quotas
-- Set alerts for approaching limits
-- Optimize API calls to reduce usage
+Monitor your API usage across different cryptocurrency data providers:
 
-### Managing Multiple Providers
+1. Go to Tools > API Management
+2. View current usage levels and rate limits
+3. Configure API providers and endpoints
+4. Track historical API consumption
 
-- Set priority levels for data sources
-- Configure failover mechanisms
-- Compare data quality between providers
-- Enable/disable providers as needed
+### Tax Calculation
 
-## 💰 Tax Calculation
+Simplify your cryptocurrency tax reporting:
 
-### Setting Up Tax Reporting
+1. Navigate to Tools > Tax Calculator
+2. Select the tax year and jurisdiction
+3. Import or review your trading history
+4. Generate capital gains reports
+5. Export in formats compatible with popular tax software
 
-1. Navigate to the Tools tab and select "Tax Calculator"
-2. Set your country/jurisdiction
-3. Specify the tax year
-4. Choose your calculation method (FIFO, LIFO, etc.)
-5. Import or select transactions to include
+## AI Trading Features
 
-### Generating Tax Reports
+### AI Trading Strategies
 
-1. Review your transaction history for the period
-2. Click "Generate Tax Report"
-3. Review the calculated capital gains/losses
-4. Export in your preferred format (PDF, CSV)
-5. Save for your records or share with your tax professional
+The platform offers multiple AI-powered trading strategies:
 
-### Tax Features
+- **Trend Following**: Identifies and follows market trends
+- **Mean Reversion**: Capitalizes on price movements returning to the mean
+- **Breakout Trading**: Spots and trades price breakouts
+- **Sentiment Analysis**: Trades based on market sentiment
+- **Pattern Recognition**: Identifies chart patterns for trading opportunities
+- **Custom Strategies**: Create your own strategies or modify existing ones
 
-- Capital gains calculation
-- Income categorization (mining, staking, etc.)
-- Tax loss harvesting suggestions
-- Multiple jurisdiction support
-- Year-over-year comparison
+### Setting Up AI Trading
 
-## ⚙️ Settings & Preferences
+1. Navigate to Trading > AI Trading
+2. Select an AI model from the available options
+3. Choose a trading strategy
+4. Configure parameters (risk level, timeframe, etc.)
+5. Start with paper trading to test performance
+6. Monitor and adjust as needed
 
-### Account Settings
+### Backtesting Strategies
 
-- Update personal information
-- Change password and security settings
-- Configure two-factor authentication
-- Manage email notifications
+Test your strategies against historical data:
 
-### Display Preferences
+1. Go to AI Trading > Backtesting
+2. Select a strategy and timeframe
+3. Configure parameters
+4. Run the backtest
+5. Analyze performance metrics (win rate, profit/loss, drawdown, Sharpe ratio)
+6. Refine your strategy based on results
 
-- Toggle between light and dark mode
-- Set your preferred currency
-- Choose time zone
-- Configure price display format
-- Set chart default preferences
+## Settings and Preferences
+
+### General Settings
+
+- **Base Currency**: Change from AUD to other supported currencies
+- **Language**: Select your preferred language
+- **Theme**: Choose between light, dark, and specialty themes
+- **Default View**: Set your preferred starting page
 
 ### Notification Settings
 
-1. Go to Settings > Notifications
-2. Configure which alerts you receive
-3. Choose notification methods (email, push, in-app)
-4. Set quiet hours
-5. Customize notification frequency
+Configure how and when you receive notifications:
 
-## 📱 Mobile Access
+- Price alerts
+- Trading signals
+- News updates
+- Portfolio performance alerts
+- System announcements
 
-### Responsive Web Design
+### API Configuration
 
-- Access all features through your mobile browser
-- Optimized interface adjusts to screen size
-- Touch-friendly controls
-- Reduced data mode for slower connections
+Connect to cryptocurrency exchanges and data providers:
+
+1. Go to Settings > API Configuration
+2. Enter your API keys for supported exchanges
+3. Configure permissions and access limits
+4. Test connections to ensure they're working properly
+
+### Security Settings
+
+- Two-factor authentication setup
+- API key management
+- Session settings
+- Login history and device management
+
+## Mobile Usage
+
+The platform is fully responsive and optimized for mobile devices.
 
 ### Mobile-Specific Features
 
-- Simplified dashboard for quick checks
-- Touch-optimized charts
-- Quick actions for common tasks
-- Offline mode for basic portfolio viewing
+- Simplified navigation menu
+- Touch-optimized trading interface
+- Push notifications
+- Compact dashboard layout
+- Offline mode for portfolio viewing
 
-## ❓ Troubleshooting
+### Mobile Navigation Tips
+
+- Swipe between tabs for quick navigation
+- Use landscape mode for chart analysis
+- Long-press on assets for quick action menu
+- Pull down to refresh market data
+
+## Tips and Best Practices
+
+### Trading Best Practices
+
+- Start with paper trading to practice strategies
+- Set stop losses to manage risk
+- Don't invest more than you can afford to lose
+- Diversify your portfolio
+- Keep track of your trading history for tax purposes
+
+### Platform Optimization
+
+- Use keyboard shortcuts for faster navigation
+- Create saved views for frequent analyses
+- Set up personalized alerts for important events
+- Regularly review and adjust your portfolio
+- Export data regularly for backup purposes
+
+### Data Interpretation
+
+- Understand the difference between correlation and causation
+- Consider multiple timeframes when making trading decisions
+- Look at volume alongside price movements
+- Use multiple indicators for confirmation
+- Consider market sentiment and news impact
+
+## Troubleshooting
 
 ### Common Issues
 
-**Issue**: Portfolio value seems incorrect
-**Solution**: Check that all transactions are properly recorded and that the pricing source is accurate. You can manually refresh price data from the portfolio page.
-
-**Issue**: Charts are not loading
-**Solution**: Try changing the data source in the API Management section, or check your internet connection.
-
-**Issue**: API connection fails
-**Solution**: Verify your API keys are correct and have not expired. Check that you have the proper permissions enabled on your exchange account.
+- **Data Not Updating**: Try refreshing the page or check your internet connection
+- **Charts Not Loading**: Clear browser cache or try a different browser
+- **API Connection Issues**: Verify API keys and check service status
+- **Portfolio Discrepancy**: Ensure all exchanges are properly connected
+- **Performance Issues**: Close unused tabs or try reducing the number of widgets
 
 ### Getting Help
 
-- Visit the Help Center for detailed guides
-- Use the in-app chat support
-- Email support@cryptobeaconhub.com
-- Join our community forums for peer assistance
-
-### Feedback & Feature Requests
-
-We're constantly improving! To suggest new features or improvements:
-
-1. Click the Feedback button in the bottom right
-2. Describe your idea or issue
-3. Add any relevant screenshots
-4. Submit your feedback
-
-Our team reviews all feedback and prioritizes features based on user demand.
+- **Help Center**: Access our comprehensive knowledge base
+- **Chat Support**: Available 24/7 for immediate assistance
+- **Email Support**: For more complex issues requiring detailed responses
+- **Community Forum**: Connect with other users and share experiences
+- **Feedback**: Submit feature requests or report bugs
 
 ---
 
-Thank you for choosing Crypto Beacon Trader Hub for your cryptocurrency trading and portfolio management needs. We're excited to help you navigate the crypto markets with confidence!
+Thank you for choosing Crypto Beacon Trader Hub! We're constantly improving our platform based on user feedback, so please don't hesitate to contact us with suggestions or questions.
+
+Happy trading!

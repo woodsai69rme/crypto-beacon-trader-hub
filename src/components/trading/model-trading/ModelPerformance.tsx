@@ -1,137 +1,119 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { ModelPerformanceProps } from './types';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, TrendingDown, Zap, Activity } from 'lucide-react';
+import { LocalModel } from '@/types/trading';
 
-const ModelPerformance: React.FC<ModelPerformanceProps> = ({
-  model,
-  isRunning,
-  performanceData
+export interface ModelPerformanceProps {
+  model: LocalModel;
+  performance: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+  isRunning?: boolean;
+  performanceData?: any;
+}
+
+const ModelPerformance: React.FC<ModelPerformanceProps> = ({ 
+  model, 
+  performance,
+  isRunning = false
 }) => {
-  const [historicalData, setHistoricalData] = useState<any[]>([]);
-  
-  // Generate mock performance data
-  useEffect(() => {
-    const initialData = [];
-    const now = new Date();
-    
-    // Generate data points for the past 20 minutes
-    for (let i = 20; i > 0; i--) {
-      const timestamp = new Date(now.getTime() - i * 60000).toLocaleTimeString();
-      const accuracy = model?.performance?.accuracy 
-        ? model.performance.accuracy * (0.9 + Math.random() * 0.2)
-        : 0.5 + Math.random() * 0.3;
-      
-      initialData.push({
-        timestamp,
-        accuracy: parseFloat(accuracy.toFixed(3)),
-        confidence: parseFloat((accuracy * (0.8 + Math.random() * 0.4)).toFixed(3))
-      });
+  const getStatusColor = (value: number, metric: 'accuracy' | 'returns' | 'sharpeRatio' | 'maxDrawdown') => {
+    switch (metric) {
+      case 'accuracy':
+        return value >= 70 ? 'bg-green-500' : value >= 50 ? 'bg-amber-500' : 'bg-red-500';
+      case 'returns':
+        return value >= 30 ? 'bg-green-500' : value >= 0 ? 'bg-amber-500' : 'bg-red-500';
+      case 'sharpeRatio':
+        return value >= 1.5 ? 'bg-green-500' : value >= 1.0 ? 'bg-amber-500' : 'bg-red-500';
+      case 'maxDrawdown':
+        return value <= 15 ? 'bg-green-500' : value <= 25 ? 'bg-amber-500' : 'bg-red-500';
+      default:
+        return 'bg-blue-500';
     }
-    
-    setHistoricalData(initialData);
-    
-    // If running, update periodically
-    if (isRunning) {
-      const interval = setInterval(() => {
-        setHistoricalData(prev => {
-          const lastAccuracy = prev[prev.length - 1].accuracy;
-          const newAccuracy = Math.max(0, Math.min(1, 
-            lastAccuracy + (Math.random() * 0.1 - 0.05)
-          ));
-          
-          const timestamp = new Date().toLocaleTimeString();
-          return [
-            ...prev.slice(1),
-            {
-              timestamp,
-              accuracy: parseFloat(newAccuracy.toFixed(3)),
-              confidence: parseFloat((newAccuracy * (0.8 + Math.random() * 0.4)).toFixed(3))
-            }
-          ];
-        });
-      }, 5000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [model, isRunning]);
-  
-  if (!model) return null;
-  
+  };
+
   return (
     <Card>
-      <CardContent className="p-6">
-        <h3 className="text-lg font-medium mb-4">Performance Metrics</h3>
-        
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Accuracy</div>
-            <div className="text-xl font-bold">
-              {model.performance?.accuracy ? (model.performance.accuracy * 100).toFixed(1) : 'N/A'}%
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Returns</div>
-            <div className="text-xl font-bold">
-              {model.performance?.returns ? model.performance.returns.toFixed(1) : 'N/A'}%
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
-            <div className="text-xl font-bold">
-              {model.performance?.sharpeRatio ? model.performance.sharpeRatio.toFixed(2) : 'N/A'}
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Max Drawdown</div>
-            <div className="text-xl font-bold">
-              {model.performance?.maxDrawdown ? model.performance.maxDrawdown.toFixed(1) : 'N/A'}%
-            </div>
-          </div>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-medium">{model.name} Performance</CardTitle>
+          {isRunning ? (
+            <Badge className="bg-green-500">Running</Badge>
+          ) : (
+            <Badge variant="outline">Idle</Badge>
+          )}
         </div>
-        
-        <h4 className="font-medium text-sm text-muted-foreground mb-2">Real-time Performance</h4>
-        <div className="h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={historicalData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-              <XAxis 
-                dataKey="timestamp" 
-                tick={{ fontSize: 10 }} 
-                tickLine={false}
-                minTickGap={30}
-              />
-              <YAxis 
-                domain={[0, 1]} 
-                tick={{ fontSize: 10 }} 
-                tickFormatter={(value) => `${value * 100}%`}
-                tickLine={false}
-              />
-              <Tooltip 
-                formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`]} 
-                labelFormatter={(label) => `Time: ${label}`}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="accuracy" 
-                stroke="#3b82f6" 
-                dot={false}
-                name="Accuracy"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="confidence" 
-                stroke="#10b981" 
-                dot={false} 
-                strokeDasharray="4 4"
-                name="Confidence"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm flex items-center gap-1">
+                <Activity className="h-4 w-4" />
+                Accuracy
+              </span>
+              <span className="text-sm font-medium">{performance.accuracy}%</span>
+            </div>
+            <Progress value={performance.accuracy} className={getStatusColor(performance.accuracy, 'accuracy')} />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm flex items-center gap-1">
+                <TrendingUp className="h-4 w-4" />
+                Returns
+              </span>
+              <span className="text-sm font-medium">{performance.returns}%</span>
+            </div>
+            <Progress value={performance.returns > 0 ? Math.min(performance.returns, 100) : 0} className={getStatusColor(performance.returns, 'returns')} />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm flex items-center gap-1">
+                <Zap className="h-4 w-4" />
+                Sharpe Ratio
+              </span>
+              <span className="text-sm font-medium">{performance.sharpeRatio.toFixed(2)}</span>
+            </div>
+            <Progress 
+              value={Math.min(performance.sharpeRatio * 33.3, 100)} 
+              className={getStatusColor(performance.sharpeRatio, 'sharpeRatio')}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm flex items-center gap-1">
+                <TrendingDown className="h-4 w-4" />
+                Max Drawdown
+              </span>
+              <span className="text-sm font-medium">-{performance.maxDrawdown}%</span>
+            </div>
+            <Progress 
+              value={Math.min(100 - performance.maxDrawdown, 100)} 
+              className={getStatusColor(performance.maxDrawdown, 'maxDrawdown')}
+            />
+          </div>
+          
+          <div className="border-t pt-4 mt-2">
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className="bg-secondary/50 p-2 rounded">
+                <div className="text-xs text-muted-foreground">First Used</div>
+                <div className="font-medium">{model.lastUsed ? new Date(model.lastUsed).toLocaleDateString() : 'Never'}</div>
+              </div>
+              <div className="bg-secondary/50 p-2 rounded">
+                <div className="text-xs text-muted-foreground">Type</div>
+                <div className="font-medium capitalize">{model.type}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

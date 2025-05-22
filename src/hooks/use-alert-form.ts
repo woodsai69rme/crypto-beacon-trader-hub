@@ -1,52 +1,40 @@
 
-import { useState } from "react";
-import { AlertFormData, AlertType, NotificationMethod } from "@/types/alerts";
+import { useState } from 'react';
+import { AlertFormData, AlertType, NotificationMethod } from '@/types/alerts';
 
-const defaultAlertFormData: AlertFormData = {
-  type: "price",
-  coinId: "",
-  coinName: "",
-  coinSymbol: "",
+interface AlertFormHook {
+  formData: Partial<AlertFormData>;
+  setFormData: (data: Partial<AlertFormData>) => void;
+  updateField: (field: keyof AlertFormData, value: any) => void;
+  resetForm: () => void;
+}
+
+const defaultFormData: Partial<AlertFormData> = {
+  type: 'price',
   enabled: true,
-  notifyVia: ["app"],
-  targetPrice: 0,
+  notifyVia: ['app'],
   isAbove: true,
   recurring: false,
-  percentageChange: 0,
-  volumeThreshold: 0,
-  frequency: "24h",
-  indicator: "",
-  condition: "",
-  value: 0,
-  pattern: ""
 };
 
-export const useAlertForm = (initialData: Partial<AlertFormData> = {}) => {
-  const [formData, setFormData] = useState<AlertFormData>({
-    ...defaultAlertFormData,
-    ...initialData
-  });
+export function useAlertForm(): AlertFormHook {
+  const [formData, setFormData] = useState<Partial<AlertFormData>>(defaultFormData);
 
-  const resetForm = () => {
-    setFormData(defaultAlertFormData);
+  const updateField = (field: keyof AlertFormData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
-  const updateFormField = <K extends keyof AlertFormData>(
-    field: K,
-    value: AlertFormData[K]
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const resetForm = () => {
+    setFormData(defaultFormData);
   };
 
   return {
     formData,
     setFormData,
+    updateField,
     resetForm,
-    updateFormField
   };
-};
-
-export default useAlertForm;
+}

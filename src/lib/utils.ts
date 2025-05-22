@@ -56,3 +56,85 @@ export function debounce<T extends (...args: any[]) => any>(
     }, delay);
   };
 }
+
+export function calculateCorrelation(x: number[], y: number[]): number {
+  const n = Math.min(x.length, y.length);
+  if (n === 0) return 0;
+
+  // Calculate mean of x and y
+  const xMean = x.reduce((sum, val) => sum + val, 0) / n;
+  const yMean = y.reduce((sum, val) => sum + val, 0) / n;
+
+  // Calculate numerator and denominators
+  let numerator = 0;
+  let denominatorX = 0;
+  let denominatorY = 0;
+
+  for (let i = 0; i < n; i++) {
+    const xDiff = x[i] - xMean;
+    const yDiff = y[i] - yMean;
+    numerator += xDiff * yDiff;
+    denominatorX += xDiff * xDiff;
+    denominatorY += yDiff * yDiff;
+  }
+
+  // Calculate correlation
+  const denominator = Math.sqrt(denominatorX * denominatorY);
+  if (denominator === 0) return 0;
+  
+  return numerator / denominator;
+}
+
+export function getRandomColor(): string {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+export function generateMockTimeSeriesData(
+  days: number, 
+  startValue: number = 100, 
+  volatility: number = 0.02
+): { date: string; value: number }[] {
+  const result = [];
+  let currentValue = startValue;
+  const today = new Date();
+  
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    
+    // Random walk with drift
+    const change = (Math.random() - 0.5) * volatility * currentValue;
+    currentValue = Math.max(0.1, currentValue + change);
+    
+    result.push({
+      date: formatDate(date),
+      value: currentValue,
+    });
+  }
+  
+  return result;
+}
+
+export function generateCorrelationData(
+  assets: string[], 
+  correlationMatrix: number[][]
+): any[] {
+  const result = [];
+  
+  for (let i = 0; i < assets.length; i++) {
+    for (let j = i + 1; j < assets.length; j++) {
+      result.push({
+        x: assets[i],
+        y: assets[j],
+        z: correlationMatrix[i][j],
+      });
+    }
+  }
+  
+  return result;
+}

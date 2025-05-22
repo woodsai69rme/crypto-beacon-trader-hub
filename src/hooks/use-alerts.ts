@@ -1,147 +1,136 @@
 
-import { useState, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { 
-  AlertData, 
-  AlertType, 
-  AlertFormData, 
-  PriceAlert, 
-  VolumeAlert, 
-  PatternAlert,
-  TechnicalAlert,
-  NotificationMethod
-} from "@/types/alerts";
-import { toast } from "@/components/ui/use-toast";
+import { useState } from 'react';
+import { Alert, AlertFormData, AlertType } from '@/types/alerts';
+import { v4 as uuidv4 } from 'uuid';
 
-export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<AlertData[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+interface AlertHook {
+  alerts: Alert[];
+  createAlert: (formData: AlertFormData) => void;
+  deleteAlert: (alertId: string) => void;
+  getAlertById: (alertId: string) => Alert | undefined;
+  getAlertsByType: (type: AlertType) => Alert[];
+}
 
-  // Create a new alert
-  const createAlert = useCallback((formData: AlertFormData): AlertData => {
-    // Create a base alert with common properties
-    const baseAlert = {
-      id: uuidv4(),
-      createdAt: new Date(),
-      coinId: formData.coinId,
-      coinName: formData.coinName,
-      coinSymbol: formData.coinSymbol,
-      enabled: formData.enabled,
-      notifyVia: formData.notifyVia,
-    };
+export function useAlerts(): AlertHook {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
-    let newAlert: AlertData;
+  const createAlert = (formData: AlertFormData) => {
+    const now = new Date();
 
-    // Create specific alert type based on formData.type
+    // Create alert based on the type
+    let newAlert: Alert;
+    
     switch (formData.type) {
-      case "price":
+      case 'price':
         newAlert = {
-          ...baseAlert,
-          type: "price",
+          id: uuidv4(),
+          type: 'price',
+          coinId: formData.coinId || '',
+          coinName: formData.coinName || '',
+          coinSymbol: formData.coinSymbol || '',
+          enabled: formData.enabled || true,
+          notifyVia: formData.notifyVia || ['app'],
           targetPrice: formData.targetPrice || 0,
-          isAbove: formData.isAbove || false,
+          isAbove: formData.isAbove || true,
           recurring: formData.recurring || false,
-          percentageChange: formData.percentageChange || 0,
-        } as PriceAlert;
+          percentageChange: formData.percentageChange,
+          createdAt: now,
+        };
         break;
-
-      case "volume":
+      
+      case 'volume':
         newAlert = {
-          ...baseAlert,
-          type: "volume",
-          volumeThreshold: formData.volumeThreshold || 0,
-          frequency: formData.frequency || "24h",
-        } as VolumeAlert;
+          id: uuidv4(),
+          type: 'volume',
+          coinId: formData.coinId || '',
+          coinName: formData.coinName || '',
+          coinSymbol: formData.coinSymbol || '',
+          enabled: formData.enabled || true,
+          notifyVia: formData.notifyVia || ['app'],
+          targetVolume: formData.targetVolume || 0,
+          isAbove: formData.isAbove || true,
+          createdAt: now,
+        };
         break;
-
-      case "pattern":
+      
+      case 'pattern':
         newAlert = {
-          ...baseAlert,
-          type: "pattern",
-          pattern: formData.pattern || "",
-        } as PatternAlert;
+          id: uuidv4(),
+          type: 'pattern',
+          coinId: formData.coinId || '',
+          coinName: formData.coinName || '',
+          coinSymbol: formData.coinSymbol || '',
+          enabled: formData.enabled || true,
+          notifyVia: formData.notifyVia || ['app'],
+          pattern: formData.pattern || '',
+          createdAt: now,
+        };
         break;
-
-      case "technical":
+      
+      case 'technical':
         newAlert = {
-          ...baseAlert,
-          type: "technical",
-          indicator: formData.indicator || "",
-          condition: formData.condition || "",
-          value: formData.value || 0,
-        } as TechnicalAlert;
+          id: uuidv4(),
+          type: 'technical',
+          coinId: formData.coinId || '',
+          coinName: formData.coinName || '',
+          coinSymbol: formData.coinSymbol || '',
+          enabled: formData.enabled || true,
+          notifyVia: formData.notifyVia || ['app'],
+          indicator: formData.indicator || '',
+          threshold: formData.threshold || 0,
+          createdAt: now,
+        };
         break;
-
+        
       default:
-        throw new Error(`Unsupported alert type: ${formData.type}`);
+        // Default to price alert if type is invalid
+        newAlert = {
+          id: uuidv4(),
+          type: 'price',
+          coinId: formData.coinId || '',
+          coinName: formData.coinName || '',
+          coinSymbol: formData.coinSymbol || '',
+          enabled: formData.enabled || true,
+          notifyVia: formData.notifyVia || ['app'],
+          targetPrice: formData.targetPrice || 0,
+          isAbove: formData.isAbove || true,
+          recurring: formData.recurring || false,
+          createdAt: now,
+        };
     }
-
-    // Add the new alert to the state
-    setAlerts(prevAlerts => [...prevAlerts, newAlert]);
-
-    toast({
-      title: "Alert Created",
-      description: `${formData.coinName} alert has been created.`,
-    });
-
-    return newAlert;
-  }, []);
-
-  // Update an existing alert
-  const updateAlert = useCallback((id: string, updates: Partial<AlertData>) => {
-    setAlerts(prevAlerts => 
-      prevAlerts.map(alert => 
-        alert.id === id 
-          ? { ...alert, ...updates }
-          : alert
-      )
-    );
-
-    toast({
-      title: "Alert Updated",
-      description: "Your alert has been updated.",
-    });
-  }, []);
-
-  // Delete an alert
-  const deleteAlert = useCallback((id: string) => {
-    setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
-
-    toast({
-      title: "Alert Deleted",
-      description: "Your alert has been deleted.",
-    });
-  }, []);
-
-  // Get a specific alert by ID
-  const getAlertById = useCallback((id: string): AlertData => {
-    const alert = alerts.find(a => a.id === id);
-    if (!alert) {
-      throw new Error(`Alert with ID ${id} not found`);
+    
+    setAlerts([...alerts, newAlert]);
+    
+    // For demo purposes, let's trigger a notification
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        // Check if we have notification permission
+        if (Notification.permission === 'granted') {
+          new Notification('Alert Created', {
+            body: `Alert created for ${newAlert.coinName}`,
+          });
+        }
+      }, 1000);
     }
-    return alert;
-  }, [alerts]);
+  };
 
-  // Filter alerts by type and/or coinId
-  const filterAlerts = useCallback((type?: AlertType, coinId?: string): AlertData[] => {
-    return alerts.filter(alert => {
-      const typeMatch = type ? alert.type === type : true;
-      const coinMatch = coinId ? alert.coinId === coinId : true;
-      return typeMatch && coinMatch;
-    });
-  }, [alerts]);
+  const deleteAlert = (alertId: string) => {
+    setAlerts(alerts.filter(alert => alert.id !== alertId));
+  };
+
+  const getAlertById = (alertId: string) => {
+    return alerts.find(alert => alert.id === alertId);
+  };
+
+  const getAlertsByType = (type: AlertType) => {
+    return alerts.filter(alert => alert.type === type);
+  };
 
   return {
     alerts,
-    isLoading,
     createAlert,
-    updateAlert,
     deleteAlert,
     getAlertById,
-    filterAlerts,
+    getAlertsByType,
   };
-};
-
-export type UseAlertsReturn = ReturnType<typeof useAlerts>;
-
-export default useAlerts;
+}

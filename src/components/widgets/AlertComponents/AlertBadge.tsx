@@ -1,26 +1,16 @@
 
-import React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
 
 interface AlertBadgeProps {
   count: number;
-  className?: string;
 }
 
-export const AlertBadge: React.FC<AlertBadgeProps> = ({
-  count,
-  className
-}) => {
+export const AlertBadge: React.FC<AlertBadgeProps> = ({ count }) => {
   if (count === 0) return null;
   
   return (
-    <span
-      className={cn(
-        "absolute -top-1 -right-1 h-4 min-w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center px-1",
-        className
-      )}
-    >
-      {count > 99 ? "99+" : count}
-    </span>
+    <div className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+      {count > 9 ? '9+' : count}
+    </div>
   );
 };

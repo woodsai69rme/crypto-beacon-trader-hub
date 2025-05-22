@@ -1,7 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { NewsTickerProps } from '@/types/trading';
 
 const NewsTicker: React.FC<NewsTickerProps> = ({
@@ -43,6 +42,17 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
     return null;
   }
 
+  const keyframesStyle = `
+    @keyframes ticker-slide {
+      0% {
+        transform: translateX(${directionValue === -1 ? containerWidth : -tickerWidth}px);
+      }
+      100% {
+        transform: translateX(${directionValue === -1 ? -tickerWidth : containerWidth}px);
+      }
+    }
+  `;
+
   return (
     <div
       ref={containerRef}
@@ -55,7 +65,10 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
         className="flex items-center whitespace-nowrap"
         style={{
           transform: `translateX(${directionValue === -1 ? 0 : -tickerWidth}px)`,
-          animation: `${isPaused ? 'paused' : 'running'} ${duration}s linear infinite`,
+          animationPlayState: isPaused ? 'paused' : 'running',
+          animationDuration: `${duration}s`,
+          animationTimingFunction: 'linear',
+          animationIterationCount: 'infinite',
           animationName: 'ticker-slide',
         }}
       >
@@ -74,18 +87,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
         ))}
       </div>
       
-      <style>
-        {`
-          @keyframes ticker-slide {
-            0% {
-              transform: translateX(${directionValue === -1 ? containerWidth : -tickerWidth}px);
-            }
-            100% {
-              transform: translateX(${directionValue === -1 ? -tickerWidth : containerWidth}px);
-            }
-          }
-        `}
-      </style>
+      <style dangerouslySetInnerHTML={{ __html: keyframesStyle }} />
     </div>
   );
 };

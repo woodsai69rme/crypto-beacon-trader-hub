@@ -1,186 +1,288 @@
 
-# Developer Guide
+# Crypto Beacon Trader Hub - Developer Guide
 
-This guide provides all the necessary information for developers working on the Crypto Beacon Trader Hub project.
+## Overview
 
-## 📂 Project Structure
+This document provides comprehensive guidance for developers working on the Crypto Beacon Trader Hub platform. It covers the project's architecture, development workflow, coding standards, and technical details.
+
+## Project Structure
 
 ```
-crypto-beacon-trader/
-├── public/
-│   └── assets/
-├── src/
-│   ├── components/
-│   │   ├── api/             # API-related components
-│   │   ├── charts/          # Chart components
-│   │   ├── dashboard/       # Dashboard components
-│   │   ├── MarketCorrelations/  # Market correlation analysis
-│   │   ├── portfolio/       # Portfolio components
-│   │   ├── tax/             # Tax calculation components
-│   │   ├── trading/         # Trading components
-│   │   ├── ui/              # UI components (shadcn)
-│   │   └── widgets/         # Dashboard widgets
-│   ├── hooks/               # Custom React hooks
-│   ├── lib/                 # Utility functions and libraries
-│   ├── services/            # API services and data fetching
-│   ├── types/               # TypeScript type definitions
-│   ├── App.tsx              # Main App component
-│   ├── index.tsx            # Entry point
-│   └── main.tsx             # Vite entry
-└── ...config files
+/src
+  /components       # Reusable React components
+    /ui             # Basic UI components from shadcn/ui
+    /widgets        # Complex widget components
+    /dashboard      # Dashboard-specific components
+    /trading        # Trading-related components
+    /portfolio      # Portfolio management components
+    /analytics      # Analytics and data visualization components
+    /settings       # Settings-related components
+    /tickers        # Ticker and news components
+  /contexts         # React Context providers
+  /hooks            # Custom React hooks
+  /lib              # Utility functions and helpers
+  /services         # API and data services
+  /types            # TypeScript type definitions
+  /styles           # Global CSS and styles
+  App.tsx           # Main application component
+  main.tsx          # Application entry point
 ```
 
-## 🧰 Development Tools
+## Getting Started
 
-- **Code Editor**: VSCode with the following extensions:
-  - ESLint
-  - Prettier
-  - Tailwind CSS IntelliSense
-  - TypeScript Vue Plugin
+### Prerequisites
 
-## 🪝 Coding Standards
+- Node.js (v16 or higher)
+- npm or yarn
 
-### TypeScript
+### Installation
 
-- Always define proper types for all components, functions, and variables
-- Avoid using `any` type unless absolutely necessary
-- Use interfaces for objects and type aliases for unions/intersections
-- Export types from a centralized location (e.g., `types/trading.ts`)
+```bash
+# Clone the repository
+git clone https://github.com/your-username/crypto-beacon-trader-hub.git
+cd crypto-beacon-trader-hub
 
-### React Components
+# Install dependencies
+npm install
+# or
+yarn install
 
-- Use functional components with hooks
-- Organize imports in the following order:
-  1. React and React hooks
-  2. Third-party libraries
-  3. Local components
-  4. Local utilities, helpers, and types
-  5. Styles
-- Use named exports for components
-- Break large components into smaller, reusable pieces
+# Start the development server
+npm run dev
+# or
+yarn dev
+```
 
-### Naming Conventions
+Visit `http://localhost:5173` to see the application running.
 
-- **Files & Folders**: PascalCase for components, camelCase for utilities
-- **Components**: PascalCase (e.g., `DashboardOverview.tsx`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useMediaQuery.ts`)
-- **Interfaces**: PascalCase with descriptive names (e.g., `ApiProviderProps`)
-- **Type Aliases**: PascalCase (e.g., `DashboardTab`)
-- **Constants**: UPPER_SNAKE_CASE for truly constant values
+## Development Workflow
 
-### Component Architecture
+### Branch Strategy
 
-- Use the Atomic Design methodology where possible:
-  - **Atoms**: Basic UI elements (buttons, inputs)
-  - **Molecules**: Simple combinations of atoms (form fields)
-  - **Organisms**: Complex UI sections (header, sidebar)
-  - **Templates**: Page layouts
-  - **Pages**: Specific instances of templates
-
-## 🔄 Git Workflow
-
-### Branch Naming
-
+- `main`: Production-ready code
+- `develop`: Integration branch for features
 - `feature/feature-name`: For new features
-- `bugfix/issue-description`: For bug fixes
-- `refactor/component-name`: For code refactoring
-- `docs/documentation-update`: For documentation updates
-- `release/vX.X.X`: For release preparation
+- `bugfix/bug-name`: For bug fixes
+- `refactor/refactor-name`: For code refactoring
 
-### Commit Messages
+### Commit Guidelines
 
-Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+We follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
 
 ```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
+feat: add new feature
+fix: fix bug
+docs: update documentation
+style: update styling
+refactor: refactor code
+test: add or update tests
+chore: update build tasks, configs, etc.
 ```
 
-Types:
-- **feat**: A new feature
-- **fix**: A bug fix
-- **docs**: Documentation changes
-- **style**: Code style changes (formatting, semicolons)
-- **refactor**: Code refactoring
-- **perf**: Performance improvements
-- **test**: Adding or modifying tests
-- **chore**: Changes to the build process or auxiliary tools
+### Development Process
 
-### Pull Request Process
+1. Create a feature branch from `develop`
+2. Implement your changes with frequent atomic commits
+3. Write or update tests and documentation
+4. Create a pull request to `develop`
+5. Address code review feedback
+6. Merge to `develop` once approved
 
-1. Create a new branch from `main`
-2. Implement your changes
-3. Ensure code passes linting and tests
-4. Create a pull request with a clear description
-5. Request code review from teammates
-6. Address any feedback
-7. Merge after approval
+## Coding Standards
 
-## 🧪 Testing
+### General Guidelines
 
-- Write unit tests for utility functions
-- Write component tests for key UI components
-- Use integration tests for complex workflows
+- Use TypeScript for type safety
+- Follow functional component patterns with hooks
+- Keep components small and focused on a single responsibility
+- Use context for state that needs to be shared across components
+- Use ShadCN UI components whenever possible
+- Follow the DRY principle (Don't Repeat Yourself)
 
-## 📝 Documentation
+### File Naming
 
-- Document all exported functions, types, and components
-- Use JSDoc comments for detailed documentation
-- Keep the README.md updated with new features and changes
-- Update this DEV_GUIDE.md when development processes change
+- Use PascalCase for components: `PortfolioSummary.tsx`
+- Use kebab-case for utility files: `format-currency.ts`
+- Use camelCase for hooks: `usePortfolio.ts`
+- React components should have `.tsx` extension
+- Utility files should have `.ts` extension
 
-## 🏃‍♂️ Common Tasks
+### Imports
 
-### Adding a New Component
+Organize imports in the following order:
 
-1. Create a new file in the appropriate directory
-2. Import necessary dependencies
-3. Define the component's props interface
-4. Implement the component
-5. Export the component
-6. Use the component where needed
+1. React and external libraries
+2. UI components
+3. Local components
+4. Hooks and contexts
+5. Utilities and helpers
+6. Types
+7. Assets (images, icons, etc.)
 
-### Adding a New API Service
+Example:
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Button, Card, CardContent } from '@/components/ui/';
+import PortfolioChart from './PortfolioChart';
+import { usePortfolio } from '@/hooks/usePortfolio';
+import { formatCurrency } from '@/lib/utils';
+import { PortfolioAsset } from '@/types/trading';
+import { ChartIcon } from '@/assets/icons';
+```
 
-1. Create a new file in `src/services/`
-2. Define the API endpoints and response types
-3. Implement the service functions
-4. Export the functions
-5. Use the service in components
+### Component Structure
 
-### Adding a New Page
+```typescript
+import React from 'react';
+import { ComponentProps } from '@/types';
 
-1. Create a new component in the appropriate directory
-2. Add a new route in the router configuration
-3. Update the navigation components to include the new page
+interface MyComponentProps {
+  // Props definition
+}
 
-## 🚀 Deployment
+const MyComponent: React.FC<MyComponentProps> = ({ prop1, prop2 }) => {
+  // State and hooks
 
-The project is deployed using:
+  // Event handlers
 
-1. Build the application:
+  // Helper functions
+
+  // UI rendering
+  return (
+    <div>
+      {/* Component content */}
+    </div>
+  );
+};
+
+export default MyComponent;
+```
+
+### State Management
+
+- Use React Context for global state
+- Use component state for local state
+- Keep state as close as possible to where it's used
+- Update state immutably
+
+### Error Handling
+
+- Use try/catch blocks for API calls and async operations
+- Display meaningful error messages to users
+- Log errors to console in development
+- Consider implementing error boundaries for critical components
+
+## API Integration
+
+### Data Fetching
+
+- Use custom hooks for data fetching
+- Implement proper error handling and loading states
+- Include caching and re-fetching strategies
+- Use Tanstack Query for complex data fetching scenarios
+
+Example:
+```typescript
+const { data, isLoading, error } = useQuery({
+  queryKey: ['crypto-prices'],
+  queryFn: fetchCryptoPrices,
+  staleTime: 60000, // 1 minute
+});
+```
+
+### Mock Services
+
+For development without real APIs:
+- Create mock services in the `services/mock` directory
+- Use the same interface as the real services
+- Toggle between real and mock services using environment variables
+
+## Testing
+
+### Component Testing
+
+- Test component rendering and interactions
+- Mock external dependencies
+- Test different states (loading, error, success)
+
+### Hook Testing
+
+- Test custom hooks in isolation
+- Verify state updates and side effects
+
+### Utility Testing
+
+- Test utility functions with various inputs
+- Include edge cases
+
+## Build and Deployment
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Production Build
+
 ```bash
 npm run build
 ```
 
-2. Test the production build locally:
+### Testing the Build Locally
+
 ```bash
 npm run preview
 ```
 
-3. Deploy to production:
-```bash
-npm run deploy
-```
+## Documentation
 
-## 📚 Resources
+- Document complex components with JSDoc comments
+- Keep README.md updated with the latest setup and usage instructions
+- Update this developer guide when introducing significant changes
 
-- [React Documentation](https://react.dev)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs)
-- [Shadcn UI Documentation](https://ui.shadcn.com/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Recharts Documentation](https://recharts.org/en-US)
-- [Vite Documentation](https://vitejs.dev/guide)
+## Troubleshooting
+
+### Common Issues
+
+1. **Build failures due to type errors**
+   - Run `tsc --noEmit` to check for type errors
+   - Fix all type errors before committing
+
+2. **Styling inconsistencies**
+   - Use the design system components
+   - Check Tailwind CSS classes for conflicts
+   - Use the browser inspector to debug CSS issues
+
+3. **State management problems**
+   - Check React DevTools to inspect component hierarchy
+   - Verify that context providers are properly set up
+   - Ensure state updates are triggering re-renders properly
+
+## Performance Optimization
+
+- Use React.memo for expensive render operations
+- Implement virtualization for long lists (react-window or react-virtualized)
+- Optimize dependency arrays in useEffect and useMemo hooks
+- Use web workers for CPU-intensive operations
+- Implement code splitting with React.lazy
+
+## Security Best Practices
+
+- Never store sensitive information in client-side code
+- Implement proper authentication and authorization
+- Sanitize user inputs to prevent XSS attacks
+- Use HTTPS for all API calls
+- Follow the principle of least privilege
+
+## Contribution Guidelines
+
+1. Follow the coding standards and development workflow
+2. Write meaningful commit messages
+3. Update documentation as needed
+4. Include tests for new features
+5. Request code reviews from team members
+
+## License
+
+This project is covered by the license specified in the LICENSE file at the root of the repository.

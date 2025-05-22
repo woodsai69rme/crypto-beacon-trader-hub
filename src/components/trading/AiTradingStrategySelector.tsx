@@ -1,213 +1,205 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AITradingStrategy } from "@/types/trading";
-import { ChevronRight, BarChart, TrendingUp, AlignJustify, MessageCircle, BrainCircuit, Clock } from "lucide-react";
 
-// Mock strategies
-const strategies: AITradingStrategy[] = [
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { AITradingStrategy } from '@/types/trading';
+
+interface AiTradingStrategySelectorProps {
+  strategies: AITradingStrategy[];
+  selectedStrategy?: string;
+  onSelectStrategy: (strategyId: string) => void;
+}
+
+// Updated mock strategies with string timeframes
+const mockStrategies: AITradingStrategy[] = [
   {
-    id: "trend-1",
-    name: "MACD Trend Follower",
-    description: "Uses MACD to identify and follow market trends",
-    type: "trend-following",
-    timeframe: "1h",
+    id: 'trend-follower',
+    name: 'Trend Follower',
+    description: 'Follows established market trends using multiple moving averages and momentum indicators.',
+    type: 'trend-following',
+    timeframe: '1h',
     parameters: {
-      riskLevel: "medium",
-      macdFastPeriod: 12,
-      macdSlowPeriod: 26,
-      macdSignalPeriod: 9,
-      stopLossPercentage: 2,
-      takeProfitPercentage: 4
+      riskLevel: 'medium',
+      backtestResults: {
+        winRate: 65,
+        profitFactor: 1.8,
+        sharpeRatio: 1.5,
+        drawdown: 18,
+        returns: 42
+      }
     },
-    riskLevel: "medium",
-    creator: "system",
-    tags: ["macd", "trend", "momentum"]
+    indicators: ['MA', 'MACD', 'RSI'],
+    tags: ['trend', 'momentum', 'technical']
   },
   {
-    id: "mean-1",
-    name: "Bollinger Mean Reversion",
-    description: "Identifies overbought and oversold conditions using Bollinger Bands",
-    type: "mean-reversion",
-    timeframe: "4h",
+    id: 'breakout-hunter',
+    name: 'Breakout Hunter',
+    description: 'Identifies and trades breakouts from key support and resistance levels.',
+    type: 'breakout',
+    timeframe: '4h',
     parameters: {
-      riskLevel: "low",
-      bbPeriod: 20,
-      bbDeviation: 2,
-      rsiPeriod: 14,
-      rsiOverbought: 70,
-      rsiOversold: 30,
-      stopLossPercentage: 1.5,
-      takeProfitPercentage: 3
+      riskLevel: 'high',
+      backtestResults: {
+        winRate: 55,
+        profitFactor: 2.1,
+        sharpeRatio: 1.7,
+        drawdown: 25,
+        returns: 68
+      }
     },
-    riskLevel: "low",
-    creator: "system",
-    tags: ["bollinger", "rsi", "mean-reversion"]
+    indicators: ['Bollinger Bands', 'Volume', 'ATR'],
+    tags: ['volatility', 'breakout', 'volume']
   },
   {
-    id: "breakout-1",
-    name: "Volume Breakout Detector",
-    description: "Detects price breakouts confirmed by volume spikes",
-    type: "breakout",
-    timeframe: "1d",
+    id: 'mean-reverter',
+    name: 'Mean Reversion',
+    description: 'Capitalizes on price deviations from historical averages.',
+    type: 'mean-reversion',
+    timeframe: '1d',
     parameters: {
-      riskLevel: "high",
-      lookbackPeriod: 20,
-      volumeThreshold: 2,
-      priceDeviation: 3,
-      stopLossPercentage: 4,
-      takeProfitPercentage: 8
+      riskLevel: 'medium',
+      backtestResults: {
+        winRate: 72,
+        profitFactor: 1.6,
+        sharpeRatio: 1.4,
+        drawdown: 15,
+        returns: 35
+      }
     },
-    riskLevel: "high",
-    creator: "system",
-    tags: ["breakout", "volume", "momentum"]
+    indicators: ['RSI', 'Stochastic', 'Bollinger Bands'],
+    tags: ['overbought', 'oversold', 'oscillator']
   },
   {
-    id: "sentiment-1",
-    name: "News Sentiment Analyzer",
-    description: "Trades based on sentiment analysis of news and social media",
-    type: "sentiment",
-    timeframe: "1d",
+    id: 'sentiment-trader',
+    name: 'Sentiment Analyzer',
+    description: 'Trades based on market sentiment derived from news and social media.',
+    type: 'sentiment',
+    timeframe: '1d',
     parameters: {
-      riskLevel: "medium",
-      sentimentThreshold: 0.7,
-      newsSourceCount: 5,
-      sentimentPeriod: 24,
-      stopLossPercentage: 3,
-      takeProfitPercentage: 6
+      riskLevel: 'high',
+      backtestResults: {
+        winRate: 60,
+        profitFactor: 1.9,
+        sharpeRatio: 1.6,
+        drawdown: 22,
+        returns: 58
+      }
     },
-    riskLevel: "medium",
-    creator: "system",
-    tags: ["sentiment", "news", "social"]
+    indicators: ['Sentiment Score', 'Social Volume', 'News Impact'],
+    tags: ['sentiment', 'news', 'social']
   },
   {
-    id: "ml-1",
-    name: "ML Price Predictor",
-    description: "Uses machine learning to predict price movements",
-    type: "machine-learning",
-    timeframe: "1d",
+    id: 'ml-predictor',
+    name: 'ML Predictor',
+    description: 'Uses machine learning to predict price movements based on historical patterns.',
+    type: 'machine-learning',
+    timeframe: '1d',
     parameters: {
-      riskLevel: "high",
-      features: ["price", "volume", "rsi", "macd", "sentiment"],
-      lookbackPeriods: 30,
-      predictionHorizon: 5,
-      confidenceThreshold: 0.75,
-      stopLossPercentage: 3,
-      takeProfitPercentage: 6
+      riskLevel: 'medium',
+      backtestResults: {
+        winRate: 68,
+        profitFactor: 2.0,
+        sharpeRatio: 1.8,
+        drawdown: 20,
+        returns: 62
+      }
     },
-    riskLevel: "high",
-    creator: "system",
-    tags: ["machine-learning", "ai", "prediction"]
+    indicators: ['ML Score', 'Confidence', 'Pattern Recognition'],
+    tags: ['machine learning', 'prediction', 'pattern']
   },
   {
-    id: "mtf-1",
-    name: "Multi-Timeframe Momentum",
-    description: "Analyzes market momentum across multiple timeframes",
-    type: "multi-timeframe",
-    timeframe: "4h",
+    id: 'multi-timeframe',
+    name: 'Multi-Timeframe',
+    description: 'Analyzes multiple timeframes to identify high-probability trading opportunities.',
+    type: 'multi-timeframe',
+    timeframe: '4h',
     parameters: {
-      riskLevel: "medium",
-      timeframes: ["1h", "4h", "1d"],
-      indicators: ["rsi", "macd", "adx"],
-      minConfirmations: 2,
-      stopLossPercentage: 2.5,
-      takeProfitPercentage: 5
+      riskLevel: 'low',
+      backtestResults: {
+        winRate: 70,
+        profitFactor: 1.7,
+        sharpeRatio: 1.5,
+        drawdown: 12,
+        returns: 38
+      }
     },
-    riskLevel: "medium",
-    creator: "system",
-    tags: ["multi-timeframe", "momentum", "confluence"]
+    indicators: ['MA Alignments', 'Trend Strength', 'Confluence'],
+    tags: ['multi-timeframe', 'confluence', 'alignment']
   }
 ];
 
-type StrategyType = "all" | "trend-following" | "mean-reversion" | "breakout" | "sentiment" | "machine-learning" | "multi-timeframe";
-
-const AiTradingStrategySelector: React.FC = () => {
-  const [selectedType, setSelectedType] = useState<StrategyType>("all");
-  
-  const filteredStrategies = selectedType === "all" 
-    ? strategies 
-    : strategies.filter(strategy => strategy.type === selectedType);
-
+const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
+  strategies = mockStrategies,
+  selectedStrategy,
+  onSelectStrategy
+}) => {
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle>AI Trading Strategies</CardTitle>
-        <CardDescription>
-          Select an AI-powered trading strategy to deploy
-        </CardDescription>
       </CardHeader>
-      
       <CardContent>
-        <Tabs defaultValue="all" onValueChange={(value) => setSelectedType(value as StrategyType)}>
-          <TabsList className="mb-6 grid grid-cols-3 md:grid-cols-7">
-            <TabsTrigger value="all" className="flex items-center gap-1">
-              <AlignJustify className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">All</span>
-            </TabsTrigger>
-            <TabsTrigger value="trend-following" className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Trend</span>
-            </TabsTrigger>
-            <TabsTrigger value="mean-reversion" className="flex items-center gap-1">
-              <BarChart className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Mean</span>
-            </TabsTrigger>
-            <TabsTrigger value="breakout" className="flex items-center gap-1">
-              <ChevronRight className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Breakout</span>
-            </TabsTrigger>
-            <TabsTrigger value="sentiment" className="flex items-center gap-1">
-              <MessageCircle className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Sentiment</span>
-            </TabsTrigger>
-            <TabsTrigger value="machine-learning" className="flex items-center gap-1">
-              <BrainCircuit className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">ML</span>
-            </TabsTrigger>
-            <TabsTrigger value="multi-timeframe" className="flex items-center gap-1">
-              <Clock className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">MTF</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredStrategies.map((strategy) => (
-              <Card key={strategy.id} className="bg-card">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-base">{strategy.name}</CardTitle>
-                      <CardDescription>{strategy.description}</CardDescription>
+        <ScrollArea className="h-[400px] pr-4">
+          <div className="space-y-3">
+            {strategies.map((strategy) => (
+              <div
+                key={strategy.id}
+                className={`p-3 border rounded-md hover:bg-accent cursor-pointer ${
+                  selectedStrategy === strategy.id ? 'border-primary bg-primary/10' : 'border-border'
+                }`}
+                onClick={() => onSelectStrategy(strategy.id)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">{strategy.name}</h3>
+                  <Badge 
+                    variant={
+                      strategy.parameters.riskLevel === 'low' ? 'outline' : 
+                      strategy.parameters.riskLevel === 'medium' ? 'secondary' : 'destructive'
+                    }
+                  >
+                    {strategy.parameters.riskLevel}
+                  </Badge>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mb-2">{strategy.description}</p>
+                
+                <div className="flex flex-wrap gap-1 mt-1 mb-2">
+                  {strategy.indicators?.map((indicator, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {indicator}
+                    </Badge>
+                  ))}
+                </div>
+                
+                {strategy.parameters.backtestResults && (
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <div className="font-medium">Win Rate</div>
+                      <div className="text-accent-foreground">{strategy.parameters.backtestResults.winRate}%</div>
                     </div>
-                    <Badge variant="outline">{strategy.riskLevel}</Badge>
+                    <div>
+                      <div className="font-medium">Sharpe Ratio</div>
+                      <div className="text-accent-foreground">{strategy.parameters.backtestResults.sharpeRatio}</div>
+                    </div>
+                    <div>
+                      <div className="font-medium">Returns</div>
+                      <div className="text-accent-foreground">{strategy.parameters.backtestResults.returns}%</div>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0 pb-4">
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {strategy.type}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {strategy.timeframe}
-                    </Badge>
-                    {strategy.tags && strategy.tags.slice(0, 2).map((tag, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <Button className="w-full">
-                    Select Strategy
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </CardContent>
-              </Card>
+                )}
+                
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {strategy.tags?.map((tag, index) => (
+                    <span key={index} className="text-xs bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-        </Tabs>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

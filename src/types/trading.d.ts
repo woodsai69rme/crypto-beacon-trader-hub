@@ -128,15 +128,16 @@ export interface TradingAccount {
 }
 
 export interface PortfolioAsset {
+  id?: string;
   coinId: string;
   coinSymbol: string;
   coinName: string;
   amount: number;
   averagePrice: number;
   value?: number;
-  symbol?: string; // Add for backward compatibility
-  name?: string; // Add for backward compatibility
-  price?: number; // Add for backward compatibility
+  symbol?: string;
+  name?: string;
+  price?: number;
   allocation?: number;
   change24h?: number;
   changePercent24h?: number;
@@ -165,7 +166,7 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: string;
-  timeframe: string; // Changed from enum to string to support "1h", "4h", etc.
+  timeframe: string;
   parameters: {
     riskLevel: string;
     strategyType?: string;
@@ -179,8 +180,8 @@ export interface AITradingStrategy {
   };
   tags?: string[];
   creator?: string;
-  riskLevel?: string; // Added for backward compatibility
-  indicators?: string[]; // Added for backward compatibility
+  riskLevel?: string;
+  indicators?: string[];
 }
 
 export interface Trade {
@@ -211,6 +212,12 @@ export interface LocalModel {
   isConnected: boolean;
   lastUsed?: string;
   description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
 }
 
 export interface ModelListProps {
@@ -274,6 +281,9 @@ export interface SettingsFormValues {
     collapsed: boolean;
     showLabels: boolean;
   };
+  email?: string;
+  username?: string;
+  displayName?: string;
 }
 
 export interface ModelPerformanceProps {
@@ -284,4 +294,102 @@ export interface ModelPerformanceProps {
     sharpeRatio: number;
     maxDrawdown: number;
   };
+  isRunning?: boolean;
+  performanceData?: any;
+}
+
+// Alert system types
+export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
+export type NotificationMethod = 'email' | 'push' | 'app';
+
+export interface BaseAlert {
+  id: string;
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  createdAt?: Date;
+}
+
+export interface PriceAlert extends BaseAlert {
+  type: 'price';
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  percentageChange?: number;
+}
+
+export interface VolumeAlert extends BaseAlert {
+  type: 'volume';
+  targetVolume: number;
+  isAbove: boolean;
+}
+
+export interface PatternAlert extends BaseAlert {
+  type: 'pattern';
+  pattern: string;
+}
+
+export interface TechnicalAlert extends BaseAlert {
+  type: 'technical';
+  indicator: string;
+  threshold: number;
+}
+
+export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
+
+export interface AlertFormData {
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  targetVolume?: number;
+  pattern?: string;
+  indicator?: string;
+  threshold?: number;
+}
+
+// Tax calculation types
+export interface TaxBracket {
+  bracket: string;
+  rate: string;
+  min: number;
+  max: number;
+}
+
+export interface ATOTaxCalculation {
+  year: number;
+  gains: number;
+  losses: number;
+  netPosition: number;
+  taxableAmount: number;
+  taxOwed: number;
+  effectiveTaxRate: number;
+  transactions: {
+    date: string;
+    asset: string;
+    quantity: number;
+    costBase: number;
+    proceedsAmount: number;
+    gainLoss: number;
+    isShortTerm: boolean;
+  }[];
+  financialYear?: string;
+  taxableIncome?: number;
+  CGTDiscount?: number;
+  netCapitalGains?: number;
+  bracketInfo?: TaxBracket;
+  incomeTax?: number;
+  medicareLevy?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
+  taxRefundOrOwed?: number;
 }

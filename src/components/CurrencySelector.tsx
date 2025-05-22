@@ -8,17 +8,22 @@ interface CurrencySelectorProps {
   onChange?: (currency: SupportedCurrency) => void;
   disabled?: boolean;
   className?: string;
+  useActiveCurrency?: boolean;
 }
 
 const CurrencySelector: React.FC<CurrencySelectorProps> = ({ 
   onChange,
   disabled = false,
-  className = ""
+  className = "",
+  useActiveCurrency = false
 }) => {
-  const { currency, setCurrency } = useCurrency();
+  const { currency, setCurrency, activeCurrency, setActiveCurrency } = useCurrency();
+  
+  const currentCurrency = useActiveCurrency ? activeCurrency : currency;
+  const setCurrencyValue = useActiveCurrency ? setActiveCurrency : setCurrency;
   
   const handleCurrencyChange = (value: SupportedCurrency) => {
-    setCurrency(value);
+    setCurrencyValue(value);
     if (onChange) {
       onChange(value);
     }
@@ -26,7 +31,7 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   
   return (
     <Select
-      value={currency}
+      value={currentCurrency}
       onValueChange={handleCurrencyChange as (value: string) => void}
       disabled={disabled}
     >
@@ -38,6 +43,9 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
         <SelectItem value="USD">USD</SelectItem>
         <SelectItem value="EUR">EUR</SelectItem>
         <SelectItem value="GBP">GBP</SelectItem>
+        <SelectItem value="JPY">JPY</SelectItem>
+        <SelectItem value="CAD">CAD</SelectItem>
+        <SelectItem value="CHF">CHF</SelectItem>
       </SelectContent>
     </Select>
   );

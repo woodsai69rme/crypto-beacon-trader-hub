@@ -1,267 +1,205 @@
 
-/**
- * Crypto Service
- * Provides functions for fetching cryptocurrency data from external APIs.
- */
+import { CryptoData, CoinOption } from '@/types/trading';
+import { generateMockTimeSeriesData } from '@/lib/utils';
 
-import { CoinOption, CryptoData } from "@/types/trading";
-import { toast } from "@/hooks/use-toast";
+// Mock data for demonstration
+const mockCoins: CoinOption[] = [
+  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 50000, priceChange: 1000, value: "bitcoin", label: "Bitcoin (BTC)" },
+  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3000, priceChange: 100, value: "ethereum", label: "Ethereum (ETH)" },
+  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.5, priceChange: 0.02, value: "ripple", label: "XRP (XRP)" },
+  { id: "cardano", name: "Cardano", symbol: "ADA", price: 1.2, priceChange: 0.05, value: "cardano", label: "Cardano (ADA)" },
+  { id: "solana", name: "Solana", symbol: "SOL", price: 150, priceChange: 7, value: "solana", label: "Solana (SOL)" },
+  { id: "polkadot", name: "Polkadot", symbol: "DOT", price: 20, priceChange: 1, value: "polkadot", label: "Polkadot (DOT)" },
+  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.2, priceChange: 0.01, value: "dogecoin", label: "Dogecoin (DOGE)" },
+  { id: "avalanche", name: "Avalanche", symbol: "AVAX", price: 80, priceChange: 3, value: "avalanche", label: "Avalanche (AVAX)" },
+  { id: "chainlink", name: "Chainlink", symbol: "LINK", price: 18, priceChange: 0.7, value: "chainlink", label: "Chainlink (LINK)" },
+  { id: "litecoin", name: "Litecoin", symbol: "LTC", price: 150, priceChange: 5, value: "litecoin", label: "Litecoin (LTC)" },
+];
 
-// Cache data to reduce API calls
-const dataCache: { 
-  [key: string]: { 
-    data: any; 
-    timestamp: number; 
-    expiry: number; 
-  } 
-} = {};
-
-// Default cache expiry time in milliseconds (5 minutes)
-const DEFAULT_CACHE_EXPIRY = 5 * 60 * 1000;
-
-/**
- * Check if cached data is valid
- */
-const isValidCache = (cacheKey: string): boolean => {
-  if (!dataCache[cacheKey]) return false;
-  return Date.now() < dataCache[cacheKey].timestamp + dataCache[cacheKey].expiry;
-};
-
-/**
- * Get data from cache
- */
-const getFromCache = (cacheKey: string): any => {
-  return dataCache[cacheKey].data;
-};
-
-/**
- * Set data in cache
- */
-const setInCache = (cacheKey: string, data: any, expiry: number = DEFAULT_CACHE_EXPIRY): void => {
-  dataCache[cacheKey] = {
-    data,
-    timestamp: Date.now(),
-    expiry
-  };
-};
-
-/**
- * Fetch top cryptocurrencies by market cap
- */
-export async function fetchTopCryptoData(limit: number = 10, cache: boolean = true): Promise<CoinOption[]> {
-  const cacheKey = `top-crypto-${limit}`;
-  
-  if (cache && isValidCache(cacheKey)) {
-    return getFromCache(cacheKey);
-  }
-  
-  try {
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const processedData = convertToCoinOptions(data);
-    
-    if (cache) {
-      setInCache(cacheKey, processedData);
-    }
-    
-    return processedData;
-  } catch (error) {
-    console.error("Error fetching top crypto data:", error);
-    toast({
-      title: "Data Fetch Error",
-      description: "Failed to fetch cryptocurrency data. Using fallback data.",
-      variant: "destructive",
-    });
-    
-    // Return fallback data if API fails
-    return generateFallbackData(limit);
-  }
+// Function to fetch all available coins
+export async function fetchCoins(): Promise<CoinOption[]> {
+  // In a real application, this would fetch from an API
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(mockCoins);
+    }, 500);
+  });
 }
 
-/**
- * Fetch data for multiple cryptocurrencies by their IDs
- */
-export async function fetchMultipleCryptoData(coinIds: string[]): Promise<CryptoData[]> {
-  if (!coinIds.length) return [];
-  
-  const idsString = coinIds.join(',');
-  const cacheKey = `multi-crypto-${idsString}`;
-  
-  if (isValidCache(cacheKey)) {
-    return getFromCache(cacheKey);
-  }
-  
-  try {
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${idsString}&order=market_cap_desc&per_page=${coinIds.length}&page=1&sparkline=false`);
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const processedData: CryptoData[] = data.map((coin: any) => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol,
-      price: coin.current_price,
-      priceChange: coin.price_change_24h || 0,
-      changePercent: coin.price_change_percentage_24h || 0,
-      marketCap: coin.market_cap,
-      volume: coin.total_volume,
-      image: coin.image
-    }));
-    
-    setInCache(cacheKey, processedData);
-    return processedData;
-  } catch (error) {
-    console.error("Error fetching multiple crypto data:", error);
-    toast({
-      title: "Data Fetch Error",
-      description: "Failed to fetch cryptocurrency data. Using cached or fallback data.",
-      variant: "destructive",
-    });
-    
-    // Generate fallback data for the specified coins
-    return coinIds.map((id, index) => generateFallbackCoin(id, index));
-  }
+// Function to fetch a specific coin by ID
+export async function fetchCoinById(id: string): Promise<CoinOption | undefined> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const coin = mockCoins.find(coin => coin.id === id);
+      resolve(coin);
+    }, 300);
+  });
 }
 
-/**
- * Fetch historical data for a cryptocurrency
- */
-export async function fetchHistoricalData(
+// Function to fetch historical coin data
+export async function fetchCoinHistory(
   coinId: string,
-  days: number = 30,
-  interval: string = 'daily'
-): Promise<{ timestamps: number[]; prices: number[] }> {
-  const cacheKey = `historical-${coinId}-${days}-${interval}`;
-  
-  if (isValidCache(cacheKey)) {
-    return getFromCache(cacheKey);
-  }
-  
-  try {
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`);
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const processedData = {
-      timestamps: data.prices.map((item: [number, number]) => item[0]),
-      prices: data.prices.map((item: [number, number]) => item[1])
-    };
-    
-    setInCache(cacheKey, processedData);
-    return processedData;
-  } catch (error) {
-    console.error(`Error fetching historical data for ${coinId}:`, error);
-    toast({
-      title: "Data Fetch Error",
-      description: "Failed to fetch historical price data. Using fallback data.",
-      variant: "destructive",
-    });
-    
-    // Return fallback historical data
-    return generateFallbackHistoricalData(days);
+  timeframe: string = '30d'
+): Promise<{ date: string; price: number }[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Generate mock historical data based on timeframe
+      const days = timeframeToDays(timeframe);
+      const coin = mockCoins.find(c => c.id === coinId);
+      let startPrice = coin ? coin.price * 0.8 : 1000; // 20% lower than current price
+      
+      const data = generateMockTimeSeriesData(days, startPrice, 0.03)
+        .map(item => ({ date: item.date, price: item.value }));
+      
+      resolve(data);
+    }, 800);
+  });
+}
+
+// Function to convert timeframe string to number of days
+function timeframeToDays(timeframe: string): number {
+  switch (timeframe) {
+    case '1d': return 1;
+    case '7d': return 7;
+    case '30d': return 30;
+    case '90d': return 90;
+    case '180d': return 180;
+    case '1y': return 365;
+    case 'max': return 1825; // 5 years
+    default: return 30;
   }
 }
 
-/**
- * Convert raw API data to CoinOption format
- */
-export function convertToCoinOptions(data: any[]): CoinOption[] {
-  return data.map(coin => ({
-    id: coin.id,
-    name: coin.name,
-    symbol: coin.symbol.toUpperCase(),
-    price: coin.current_price || 0,
-    priceChange: coin.price_change_24h || 0,
-    changePercent: coin.price_change_percentage_24h || 0,
-    marketCap: coin.market_cap,
-    volume: coin.total_volume,
-    image: coin.image,
-    value: coin.id,
-    label: coin.name
-  }));
+// Function to fetch market data
+export async function fetchMarketData(): Promise<any> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        totalMarketCap: 2340000000000, // $2.34 trillion
+        totalVolume24h: 125000000000,  // $125 billion
+        btcDominance: 42.5,            // 42.5%
+        totalCryptocurrencies: 10482,
+        totalExchanges: 567,
+        lastUpdated: new Date().toISOString(),
+      });
+    }, 600);
+  });
 }
 
-/**
- * Generate fallback data when API fails
- */
-function generateFallbackData(count: number): CoinOption[] {
-  const fallbackCoins = [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1500, changePercent: 3.0, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 100, changePercent: 3.3, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 120, priceChange: 5, changePercent: 4.2, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
-    { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 1.2, priceChange: 0.05, changePercent: 4.1, image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png' },
-    { id: 'ripple', name: 'XRP', symbol: 'XRP', price: 0.75, priceChange: 0.02, changePercent: 2.7, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' },
-    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT', price: 22, priceChange: 0.8, changePercent: 3.6, image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png' },
-    { id: 'polygon', name: 'Polygon', symbol: 'MATIC', price: 1.8, priceChange: 0.09, changePercent: 5.0, image: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png' },
-    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX', price: 85, priceChange: 3.2, changePercent: 3.8, image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png' },
-    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', price: 28, priceChange: 1.1, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png' },
-    { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', price: 18, priceChange: 0.7, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png' },
-  ];
-  
-  // Return requested number of coins
-  const result = fallbackCoins.slice(0, count).map(coin => ({
-    ...coin,
-    value: coin.id,
-    label: coin.name
-  }));
-  
-  return result;
+// Function to fetch news items
+export async function fetchCryptoNews(limit: number = 10): Promise<any[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        {
+          id: 'news-1',
+          title: 'Bitcoin Sets New All-Time High Above $75,000',
+          source: 'CryptoNews',
+          timestamp: '2023-05-10T14:30:00Z',
+          url: 'https://example.com/news/bitcoin-ath',
+        },
+        {
+          id: 'news-2',
+          title: 'Ethereum Completes Major Network Upgrade',
+          source: 'BlockchainTimes',
+          timestamp: '2023-05-10T12:15:00Z',
+          url: 'https://example.com/news/ethereum-upgrade',
+        },
+        {
+          id: 'news-3',
+          title: 'Regulatory Framework Announced for Crypto in Australia',
+          source: 'CryptoDaily',
+          timestamp: '2023-05-10T09:45:00Z',
+          url: 'https://example.com/news/australia-regulation',
+        },
+        {
+          id: 'news-4',
+          title: 'Major Bank Launches Cryptocurrency Custody Service',
+          source: 'FinanceToday',
+          timestamp: '2023-05-09T16:20:00Z',
+          url: 'https://example.com/news/bank-custody',
+        },
+        {
+          id: 'news-5',
+          title: 'DeFi Protocol Reports Record Volume',
+          source: 'DeFiInsider',
+          timestamp: '2023-05-09T11:10:00Z',
+          url: 'https://example.com/news/defi-volume',
+        },
+        {
+          id: 'news-6',
+          title: 'NFT Market Shows Signs of Recovery',
+          source: 'ArtTech',
+          timestamp: '2023-05-09T08:30:00Z',
+          url: 'https://example.com/news/nft-recovery',
+        },
+        {
+          id: 'news-7',
+          title: 'New Stablecoin Regulation Proposed',
+          source: 'CryptoRegulation',
+          timestamp: '2023-05-08T18:45:00Z',
+          url: 'https://example.com/news/stablecoin-regulation',
+        },
+        {
+          id: 'news-8',
+          title: 'Major Exchange Expands to Australian Market',
+          source: 'ExchangeNews',
+          timestamp: '2023-05-08T14:20:00Z',
+          url: 'https://example.com/news/exchange-australia',
+        },
+        {
+          id: 'news-9',
+          title: 'Cryptocurrency Mining Becomes More Energy Efficient',
+          source: 'GreenBlockchain',
+          timestamp: '2023-05-08T10:15:00Z',
+          url: 'https://example.com/news/mining-efficiency',
+        },
+        {
+          id: 'news-10',
+          title: 'Layer-2 Solutions See Increased Adoption',
+          source: 'ScalingNews',
+          timestamp: '2023-05-07T16:50:00Z',
+          url: 'https://example.com/news/layer2-adoption',
+        },
+      ].slice(0, limit));
+    }, 500);
+  });
 }
 
-/**
- * Generate fallback data for a specific coin
- */
-function generateFallbackCoin(coinId: string, index: number = 0): CryptoData {
-  const fallbackCoins = [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1500, changePercent: 3.0, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 100, changePercent: 3.3, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 120, priceChange: 5, changePercent: 4.2, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
-  ];
-  
-  const fallbackCoin = fallbackCoins.find(coin => coin.id === coinId);
-  
-  if (fallbackCoin) {
-    return { ...fallbackCoin };
-  }
-  
-  // If coin not found in fallback list, generate a random one
-  return {
-    id: coinId,
-    name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
-    symbol: coinId.substring(0, 3).toUpperCase(),
-    price: 10 + Math.random() * 90,
-    priceChange: Math.random() * 10 - 5,
-    changePercent: Math.random() * 10 - 5,
-    image: undefined
-  };
-}
-
-/**
- * Generate fallback historical data
- */
-function generateFallbackHistoricalData(days: number): { timestamps: number[]; prices: number[] } {
-  const timestamps: number[] = [];
-  const prices: number[] = [];
-  const now = Date.now();
-  const dayInMs = 24 * 60 * 60 * 1000;
-  let price = 100; // Starting price
-  
-  for (let i = days; i >= 0; i--) {
-    timestamps.push(now - i * dayInMs);
-    price = price * (1 + (Math.random() * 0.1 - 0.05)); // Random price change ±5%
-    prices.push(price);
-  }
-  
-  return { timestamps, prices };
+// Function to fetch API usage statistics
+export async function fetchApiUsage(): Promise<any[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        {
+          service: 'CoinGecko',
+          currentUsage: 85,
+          maxUsage: 100,
+          endpoint: '/coins/markets',
+          resetTime: '2023-05-10T18:00:00Z',
+        },
+        {
+          service: 'CryptoCompare',
+          currentUsage: 450,
+          maxUsage: 1000,
+          endpoint: '/data/pricemulti',
+          resetTime: '2023-05-10T23:59:59Z',
+        },
+        {
+          service: 'Binance',
+          currentUsage: 120,
+          maxUsage: 1200,
+          endpoint: '/api/v3/ticker/price',
+          resetTime: '2023-05-11T00:00:00Z',
+        },
+        {
+          service: 'CoinMarketCap',
+          currentUsage: 8,
+          maxUsage: 10,
+          endpoint: '/v1/cryptocurrency/listings/latest',
+          resetTime: '2023-05-10T20:00:00Z',
+        },
+      ]);
+    }, 700);
+  });
 }
