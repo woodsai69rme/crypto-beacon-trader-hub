@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ const mapToCryptoData = (data: any): CryptoData => {
     name: data.name,
     symbol: data.symbol,
     price: data.price || 0,
-    priceChange: data.changePercent || 0, // Ensure priceChange is included
+    priceChange: data.priceChange || data.changePercent || 0, // Ensure priceChange is included
     image: data.image,
     marketCap: data.marketCap,
     volume: data.volume,
@@ -39,7 +40,7 @@ export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
   const strongestCorrelations = findStrongestCorrelations(
     correlationMatrix,
     selectedCoin.id,
-    coins,
+    coins.map(coin => mapToCryptoData(coin)),
     5
   );
   

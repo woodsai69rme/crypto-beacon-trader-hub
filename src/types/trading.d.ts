@@ -86,6 +86,24 @@ export interface ApiUsageStats {
   resetTime: string;
 }
 
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  requiresAuth: boolean;
+  apiKey?: string;
+  isActive: boolean;
+  endpoints: ApiEndpoint[];
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  requiresAuth: boolean;
+}
+
 export interface LiveAnalyticsDashboardProps {
   initialCoinId?: string;
   refreshInterval?: number;
@@ -110,13 +128,35 @@ export interface TradingAccount {
 }
 
 export interface PortfolioAsset {
-  id?: string;
   coinId: string;
   coinSymbol: string;
   coinName: string;
   amount: number;
   averagePrice: number;
   value?: number;
+  symbol?: string; // Add for backward compatibility
+  name?: string; // Add for backward compatibility
+  price?: number; // Add for backward compatibility
+  allocation?: number;
+  change24h?: number;
+  changePercent24h?: number;
+}
+
+// Trading form props
+export interface TradingFormProps {
+  selectedCoin?: CoinOption;
+  onTrade?: (trade: Trade) => void;
+  initialValues?: Partial<{
+    type: 'buy' | 'sell';
+    amount: number;
+    price: number;
+  }>;
+}
+
+// Fake trading form props
+export interface FakeTradingFormProps {
+  selectedCoin?: CoinOption;
+  onTrade?: (trade: Trade) => void;
 }
 
 // AI Trading types
@@ -124,8 +164,8 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'custom';
-  timeframe: string; // "1h" | "4h" | "1d" etc.
+  type: string;
+  timeframe: string; // Changed from enum to string to support "1h", "4h", etc.
   parameters: {
     riskLevel: string;
     strategyType?: string;
@@ -138,6 +178,9 @@ export interface AITradingStrategy {
     }
   };
   tags?: string[];
+  creator?: string;
+  riskLevel?: string; // Added for backward compatibility
+  indicators?: string[]; // Added for backward compatibility
 }
 
 export interface Trade {
@@ -153,6 +196,9 @@ export interface Trade {
   currency: string;
   botGenerated?: boolean;
   strategyId?: string;
+  fees?: number;
+  coin?: string;
+  total: number;
 }
 
 // Local Model types
@@ -172,6 +218,16 @@ export interface ModelListProps {
   onConnect: (model: LocalModel) => void;
   onDisconnect: (modelId: string) => void;
   onDelete: (modelId: string) => void;
+  onSelect?: (model: LocalModel) => void;
+}
+
+// Enhanced Portfolio Benchmarking Props
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioData?: any;
+  benchmarks?: string[];
+  timeframe?: string;
+  portfolioPerformance?: number[];
+  portfolioDates?: string[];
 }
 
 // Context types
@@ -179,6 +235,8 @@ export interface CurrencyContextType {
   currency: SupportedCurrency;
   setCurrency: (currency: SupportedCurrency) => void;
   formatCurrency: (amount: number) => string;
+  activeCurrency: SupportedCurrency;
+  setActiveCurrency: (currency: SupportedCurrency) => void;
 }
 
 // Settings types
@@ -202,5 +260,28 @@ export interface SettingsFormValues {
     enabled: boolean;
     position: 'left' | 'right';
     defaultCollapsed: boolean;
+  };
+  ticker?: {
+    enabled: boolean;
+    position: string;
+    speed: number;
+    direction: string;
+    autoPause: boolean;
+  };
+  sidebar?: {
+    enabled: boolean;
+    position: string;
+    collapsed: boolean;
+    showLabels: boolean;
+  };
+}
+
+export interface ModelPerformanceProps {
+  model: LocalModel;
+  performance: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
   };
 }

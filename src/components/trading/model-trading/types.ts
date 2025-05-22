@@ -1,6 +1,5 @@
 
-// Fix re-exporting using 'export type'
-export type { AITradingStrategy } from '@/types/trading';
+import { LocalModel } from '@/types/trading';
 
 // Define interfaces for model trading
 export interface ModelTradingProps {
@@ -72,4 +71,14 @@ export interface ModelTradingContextType {
   modelResults: ModelResult[];
   backtestResults: BacktestResult | null;
   runBacktest: (days: number) => Promise<void>;
+}
+
+export interface ModelPerformanceProps {
+  model: LocalModel;
+  performance: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
 }

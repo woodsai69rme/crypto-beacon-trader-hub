@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, RefreshCw, Settings, Link, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
-import { TradingAccount } from "@/types/trading";
+import { TradingAccount, PortfolioAsset } from "@/types/trading";
 
 // Mock data for trading accounts
 const mockAccounts: TradingAccount[] = [
@@ -16,11 +15,12 @@ const mockAccounts: TradingAccount[] = [
     provider: "Binance",
     balance: 4230.50,
     currency: "USD",
+    createdAt: "2025-05-02T10:34:12Z",
     lastUpdated: "2025-05-02T10:34:12Z",
     isActive: true,
     assets: [
-      { id: "btc", symbol: "BTC", name: "Bitcoin", amount: 0.05, value: 3276.18 },
-      { id: "eth", symbol: "ETH", name: "Ethereum", amount: 0.28, value: 957.82 }
+      { coinId: "btc", coinSymbol: "BTC", coinName: "Bitcoin", amount: 0.05, averagePrice: 0, value: 3276.18 },
+      { coinId: "eth", coinSymbol: "ETH", coinName: "Ethereum", amount: 0.28, averagePrice: 0, value: 957.82 }
     ]
   },
   {
@@ -30,11 +30,12 @@ const mockAccounts: TradingAccount[] = [
     provider: "KuCoin",
     balance: 1850.75,
     currency: "USD",
+    createdAt: "2025-05-01T15:22:45Z",
     lastUpdated: "2025-05-01T15:22:45Z",
     isActive: true,
     assets: [
-      { id: "sol", symbol: "SOL", name: "Solana", amount: 10.5, value: 1543.28 },
-      { id: "ada", symbol: "ADA", name: "Cardano", amount: 500, value: 307.47 }
+      { coinId: "sol", coinSymbol: "SOL", coinName: "Solana", amount: 10.5, averagePrice: 0, value: 1543.28 },
+      { coinId: "ada", coinSymbol: "ADA", coinName: "Cardano", amount: 500, averagePrice: 0, value: 307.47 }
     ]
   },
   {
@@ -44,10 +45,11 @@ const mockAccounts: TradingAccount[] = [
     provider: "MetaMask",
     balance: 2145.30,
     currency: "USD",
+    createdAt: "2025-04-30T22:17:39Z",
     lastUpdated: "2025-04-30T22:17:39Z",
     isActive: false,
     assets: [
-      { id: "eth", symbol: "ETH", name: "Ethereum", amount: 0.62, value: 2145.30 }
+      { coinId: "eth", coinSymbol: "ETH", coinName: "Ethereum", amount: 0.62, averagePrice: 0, value: 2145.30 }
     ]
   }
 ];
@@ -142,7 +144,7 @@ const AccountManager: React.FC = () => {
                     {account.assets?.length || 0} assets
                   </TableCell>
                   <TableCell className="hidden lg:table-cell text-muted-foreground">
-                    {formatLastUpdated(account.lastUpdated)}
+                    {formatLastUpdated(account.lastUpdated || account.createdAt)}
                   </TableCell>
                   <TableCell>
                     {account.isActive ? (

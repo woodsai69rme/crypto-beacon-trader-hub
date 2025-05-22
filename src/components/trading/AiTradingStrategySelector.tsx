@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +15,7 @@ const strategies: AITradingStrategy[] = [
     type: "trend-following",
     timeframe: "1h",
     parameters: {
-      rsiPeriod: 14,
+      riskLevel: "medium",
       macdFastPeriod: 12,
       macdSlowPeriod: 26,
       macdSignalPeriod: 9,
@@ -34,6 +33,7 @@ const strategies: AITradingStrategy[] = [
     type: "mean-reversion",
     timeframe: "4h",
     parameters: {
+      riskLevel: "low",
       bbPeriod: 20,
       bbDeviation: 2,
       rsiPeriod: 14,
@@ -53,6 +53,7 @@ const strategies: AITradingStrategy[] = [
     type: "breakout",
     timeframe: "1d",
     parameters: {
+      riskLevel: "high",
       lookbackPeriod: 20,
       volumeThreshold: 2,
       priceDeviation: 3,
@@ -70,6 +71,7 @@ const strategies: AITradingStrategy[] = [
     type: "sentiment",
     timeframe: "1d",
     parameters: {
+      riskLevel: "medium",
       sentimentThreshold: 0.7,
       newsSourceCount: 5,
       sentimentPeriod: 24,
@@ -87,6 +89,7 @@ const strategies: AITradingStrategy[] = [
     type: "machine-learning",
     timeframe: "1d",
     parameters: {
+      riskLevel: "high",
       features: ["price", "volume", "rsi", "macd", "sentiment"],
       lookbackPeriods: 30,
       predictionHorizon: 5,
@@ -105,6 +108,7 @@ const strategies: AITradingStrategy[] = [
     type: "multi-timeframe",
     timeframe: "4h",
     parameters: {
+      riskLevel: "medium",
       timeframes: ["1h", "4h", "1d"],
       indicators: ["rsi", "macd", "adx"],
       minConfirmations: 2,
@@ -188,7 +192,7 @@ const AiTradingStrategySelector: React.FC = () => {
                     <Badge variant="secondary" className="text-xs">
                       {strategy.timeframe}
                     </Badge>
-                    {strategy.tags.slice(0, 2).map((tag, i) => (
+                    {strategy.tags && strategy.tags.slice(0, 2).map((tag, i) => (
                       <Badge key={i} variant="outline" className="text-xs">
                         {tag}
                       </Badge>

@@ -2,9 +2,10 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { SupportedCurrency } from '@/types/trading';
 
 interface CurrencySelectorProps {
-  onChange?: (currency: string) => void;
+  onChange?: (currency: SupportedCurrency) => void;
   disabled?: boolean;
   className?: string;
 }
@@ -14,10 +15,10 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   disabled = false,
   className = ""
 }) => {
-  const { activeCurrency, setActiveCurrency } = useCurrency();
+  const { currency, setCurrency } = useCurrency();
   
-  const handleCurrencyChange = (value: string) => {
-    setActiveCurrency(value);
+  const handleCurrencyChange = (value: SupportedCurrency) => {
+    setCurrency(value);
     if (onChange) {
       onChange(value);
     }
@@ -25,8 +26,8 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   
   return (
     <Select
-      value={activeCurrency}
-      onValueChange={handleCurrencyChange}
+      value={currency}
+      onValueChange={handleCurrencyChange as (value: string) => void}
       disabled={disabled}
     >
       <SelectTrigger className={`w-24 ${className}`}>

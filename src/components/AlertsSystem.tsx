@@ -8,7 +8,7 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
-import { PriceAlert } from "@/types/alerts";
+import { PriceAlert, AlertType, NotificationMethod, AlertFormData } from "@/types/alerts";
 
 const AlertsSystem = () => {
   const { alerts, createAlert, deleteAlert } = useAlerts();
@@ -16,10 +16,10 @@ const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = () => {
-    // Make sure to add the type property
-    const alertDataWithType = {
+    // Make sure to properly type the alert data
+    const alertDataWithType: AlertFormData = {
       ...formData,
-      type: "price" // Default to price alert
+      type: formData.type as AlertType // Ensure correct type
     };
     
     createAlert(alertDataWithType);

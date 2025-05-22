@@ -1,125 +1,91 @@
 
-import React, { useEffect, useRef, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, PauseCircle, PlayCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { NewsTickerProps } from "@/types/trading";
+import React, { useEffect, useRef, useState } from 'react';
+import { ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { NewsTickerProps } from '@/types/trading';
 
-const NewsTicker: React.FC<NewsTickerProps> = ({ 
-  items = [], // Provide default empty array
-  speed = 30, 
+const NewsTicker: React.FC<NewsTickerProps> = ({
+  items = [],
+  speed = 30,
   direction = 'left',
-  className 
+  className = ''
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const tickerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentDirection, setCurrentDirection] = useState<'left' | 'right'>(direction);
-  
-  // Guard against undefined items early
-  const safeItems = items || [];
+  const [tickerWidth, setTickerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
   
   useEffect(() => {
-    if (!tickerRef.current || safeItems.length === 0 || isPaused) return;
+    if (tickerRef.current && containerRef.current) {
+      setTickerWidth(tickerRef.current.offsetWidth);
+      setContainerWidth(containerRef.current.offsetWidth);
+    }
     
-    const tickerContent = tickerRef.current;
-    const animationName = `ticker-${currentDirection}`;
-    
-    // Reset animation
-    tickerContent.style.animation = 'none';
-    tickerContent.offsetHeight; // Trigger reflow
-    
-    // Apply animation with dynamic speed
-    const animationDuration = `${safeItems.length * speed}s`;
-    tickerContent.style.animation = `${animationName} ${animationDuration} linear infinite`;
-    
-    return () => {
-      if (tickerContent) {
-        tickerContent.style.animation = 'none';
+    const handleResize = () => {
+      if (tickerRef.current && containerRef.current) {
+        setTickerWidth(tickerRef.current.offsetWidth);
+        setContainerWidth(containerRef.current.offsetWidth);
       }
     };
-  }, [safeItems, speed, isPaused, currentDirection]);
-
-  const togglePause = () => {
-    setIsPaused(prev => !prev);
-  };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [items]);
   
-  const changeDirection = () => {
-    setCurrentDirection(prev => prev === 'left' ? 'right' : 'left');
-  };
+  const directionValue = direction === 'left' ? -1 : 1;
+  const duration = Math.max(tickerWidth / speed * 10, 10);
   
-  // Guard against empty items
-  if (safeItems.length === 0) {
+  if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <div className={cn("relative overflow-hidden", className)}>
-      <div className="absolute top-1/2 left-2 z-10 -translate-y-1/2 space-y-1 flex flex-col opacity-70 hover:opacity-100 transition-opacity">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-          onClick={togglePause}
-        >
-          {isPaused ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-          onClick={changeDirection}
-        >
-          {currentDirection === 'left' ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-        </Button>
+    <div
+      ref={containerRef}
+      className={`w-full bg-muted overflow-hidden border-y ${className}`}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div
+        ref={tickerRef}
+        className="flex items-center whitespace-nowrap"
+        style={{
+          transform: `translateX(${directionValue === -1 ? 0 : -tickerWidth}px)`,
+          animation: `${isPaused ? 'paused' : 'running'} ${duration}s linear infinite`,
+          animationName: 'ticker-slide',
+        }}
+      >
+        {items.map((item, index) => (
+          <a
+            key={`${item.id}-${index}`}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center px-4 py-1.5 mx-3 hover:bg-secondary/50 rounded transition-colors"
+          >
+            <span className="font-semibold text-foreground">{item.source}:</span>
+            <span className="ml-2 text-foreground/80 mr-2">{item.title}</span>
+            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+          </a>
+        ))}
       </div>
       
-      <div 
-        className={cn(
-          "ticker-container whitespace-nowrap",
-          isPaused && "animation-paused"
-        )}
-      >
-        <div 
-          ref={tickerRef}
-          className="ticker-content inline-flex"
-        >
-          {[...safeItems, ...safeItems].map((item, index) => (
-            <a 
-              key={`${item.id}-${index}`}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ticker-item inline-block px-4 py-2 hover:bg-accent/50 transition-colors"
-            >
-              <span className="font-semibold text-primary">{item.source}</span>
-              <span className="mx-2">•</span>
-              <span>{item.title}</span>
-              <span className="ml-2 text-sm text-muted-foreground">{new Date(item.timestamp).toLocaleDateString()}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes ticker-left {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-${(safeItems.length || 1) * 300}px); }
-        }
-
-        @keyframes ticker-right {
-          0% { transform: translateX(-${(safeItems.length || 1) * 300}px); }
-          100% { transform: translateX(0); }
-        }
-
-        .ticker-content {
-          animation: ticker-${currentDirection} ${(safeItems.length || 1) * speed}s linear infinite;
-        }
-
-        .animation-paused {
-          animation-play-state: paused;
-        }
-      `}</style>
+      <style>
+        {`
+          @keyframes ticker-slide {
+            0% {
+              transform: translateX(${directionValue === -1 ? containerWidth : -tickerWidth}px);
+            }
+            100% {
+              transform: translateX(${directionValue === -1 ? -tickerWidth : containerWidth}px);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

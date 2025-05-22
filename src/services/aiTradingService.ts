@@ -1,146 +1,185 @@
 
-import { AITradingStrategy, Trade, TradingAccount } from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
+import { AITradingStrategy, Trade } from '@/types/trading';
 
-interface AIAnalysisResult {
-  recommendation: 'buy' | 'sell' | 'hold';
-  confidence: number;
-  reasoning: string;
-  suggestedAmount?: number;
-  riskLevel: 'low' | 'medium' | 'high';
-}
-
+// Available strategies for the AI Trading system
 export const AVAILABLE_STRATEGIES: AITradingStrategy[] = [
   {
-    id: 'trend-following-ai',
-    name: 'AI Trend Following',
-    description: 'Uses machine learning to identify and follow market trends',
+    id: 'trend-follow-1',
+    name: 'Trend Following',
+    description: 'Identifies and follows market trends using moving averages',
     type: 'trend-following',
-    timeframe: '1d',
-    parameters: {
-      riskLevel: 'medium',
-      backtestResults: {
-        winRate: 0.68,
-        profitFactor: 1.85,
-        sharpeRatio: 1.42,
-        drawdown: 15,
-        returns: 45
-      }
-    }
-  },
-  {
-    id: 'mean-reversion-ai',
-    name: 'AI Mean Reversion',
-    description: 'Identifies overbought and oversold conditions using AI',
-    type: 'mean-reversion',
     timeframe: '4h',
     parameters: {
       riskLevel: 'medium',
+      strategyType: 'trend',
       backtestResults: {
-        winRate: 0.72,
-        profitFactor: 1.95,
-        sharpeRatio: 1.65,
-        drawdown: 12,
-        returns: 52
+        winRate: 62.5,
+        profitFactor: 1.85,
+        sharpeRatio: 1.32,
+        drawdown: 12.4,
+        returns: 18.7
       }
-    }
+    },
+    tags: ['momentum', 'trend', 'moving-average']
   },
   {
-    id: 'sentiment-analysis',
-    name: 'AI Sentiment Trading',
-    description: 'Analyzes market sentiment using NLP',
-    type: 'custom',
+    id: 'mean-rev-1',
+    name: 'Mean Reversion',
+    description: 'Capitalizes on price returning to average after deviation',
+    type: 'mean-reversion',
+    timeframe: '1h',
+    parameters: {
+      riskLevel: 'low',
+      strategyType: 'reversion',
+      backtestResults: {
+        winRate: 68.2,
+        profitFactor: 1.53,
+        sharpeRatio: 1.12,
+        drawdown: 8.6,
+        returns: 12.3
+      }
+    },
+    tags: ['reversion', 'oscillator', 'overbought']
+  },
+  {
+    id: 'breakout-1',
+    name: 'Breakout Detection',
+    description: 'Identifies key levels and trades breakouts with volume confirmation',
+    type: 'breakout',
     timeframe: '1d',
     parameters: {
-      strategyType: 'sentiment',
       riskLevel: 'high',
+      strategyType: 'breakout',
       backtestResults: {
-        winRate: 0.65,
-        profitFactor: 2.1,
-        sharpeRatio: 1.38,
-        drawdown: 22,
-        returns: 75
+        winRate: 52.1,
+        profitFactor: 2.34,
+        sharpeRatio: 1.65,
+        drawdown: 18.2,
+        returns: 26.7
       }
-    }
+    },
+    tags: ['breakout', 'volume', 'resistance']
+  },
+  {
+    id: 'sentiment-1',
+    name: 'News Sentiment',
+    description: 'Analyzes news and social media for sentiment-based trading signals',
+    type: 'sentiment',
+    timeframe: '1d',
+    parameters: {
+      riskLevel: 'medium',
+      strategyType: 'sentiment',
+      backtestResults: {
+        winRate: 58.9,
+        profitFactor: 1.62,
+        sharpeRatio: 1.25,
+        drawdown: 14.8,
+        returns: 16.3
+      }
+    },
+    tags: ['news', 'sentiment', 'nlp']
   }
 ];
 
-export async function analyzeMarketConditions(
-  strategy: AITradingStrategy,
-  coinId: string,
-  historicalData: any[]
-): Promise<AIAnalysisResult> {
-  // Simulate AI analysis
-  await new Promise(resolve => setTimeout(resolve, 1000));
+// Mock AI trading functions
+export const createTradingBot = async (strategy: AITradingStrategy): Promise<{success: boolean, botId: string}> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    botId: `bot-${Date.now()}-${Math.random().toString(36).substring(7)}`
+  };
+};
+
+export const getStrategyPerformance = async (strategyId: string): Promise<{
+  profit: number;
+  trades: number;
+  winRate: number;
+  drawdown: number;
+}> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 600));
+  return {
+    profit: Math.random() * 20 - 5, // -5% to +15%
+    trades: Math.floor(Math.random() * 50) + 10,
+    winRate: Math.random() * 30 + 50, // 50% to 80%
+    drawdown: Math.random() * 15 + 5 // 5% to 20%
+  };
+};
+
+export const getTrades = async (botId: string): Promise<Trade[]> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500));
   
-  const random = Math.random();
-  const confidence = 0.5 + (Math.random() * 0.4); // 50-90% confidence
-  const riskLevel = strategy.parameters.riskLevel as 'low' | 'medium' | 'high';
+  // Generate some mock trades
+  const trades: Trade[] = [];
+  const coins = ['BTC', 'ETH', 'SOL', 'ADA', 'DOT'];
+  const coinNames = {
+    'BTC': 'Bitcoin',
+    'ETH': 'Ethereum',
+    'SOL': 'Solana',
+    'ADA': 'Cardano',
+    'DOT': 'Polkadot'
+  };
+  
+  const now = Date.now();
+  const dayInMs = 24 * 60 * 60 * 1000;
+  
+  for (let i = 0; i < 8; i++) {
+    const coinIndex = Math.floor(Math.random() * coins.length);
+    const coinSymbol = coins[coinIndex];
+    const coinName = coinNames[coinSymbol as keyof typeof coinNames];
+    const type = Math.random() > 0.5 ? 'buy' : 'sell';
+    const price = coinSymbol === 'BTC' ? 
+      Math.random() * 5000 + 60000 : 
+      coinSymbol === 'ETH' ? 
+        Math.random() * 500 + 3000 : 
+        Math.random() * 50 + 50;
+    
+    const amount = Math.random() * (coinSymbol === 'BTC' ? 0.1 : 5) + 0.01;
+    const totalValue = price * amount;
+    
+    trades.push({
+      id: `trade-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      coinId: coinSymbol.toLowerCase(),
+      coinName,
+      coinSymbol,
+      type,
+      amount,
+      price,
+      totalValue,
+      total: totalValue,
+      timestamp: new Date(now - Math.random() * 7 * dayInMs).toISOString(),
+      currency: 'AUD',
+      botGenerated: true,
+      strategyId: botId
+    });
+  }
+  
+  return trades.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+};
+
+export const runBacktest = async (
+  strategyId: string, 
+  params: any, 
+  days: number = 30
+): Promise<{
+  returns: number;
+  trades: number;
+  winRate: number;
+  profitFactor: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+}> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 1500));
   
   return {
-    recommendation: random > 0.6 ? 'buy' : random > 0.3 ? 'hold' : 'sell',
-    confidence,
-    reasoning: `Analysis based on ${strategy.type} strategy shows favorable conditions`,
-    suggestedAmount: Math.random() * 0.5, // 0-0.5 units
-    riskLevel
+    returns: Math.random() * 25 - 5, // -5% to +20%
+    trades: Math.floor(Math.random() * 100) + 20,
+    winRate: Math.random() * 30 + 50, // 50% to 80%
+    profitFactor: Math.random() * 1 + 1.2, // 1.2 to 2.2
+    sharpeRatio: Math.random() * 1.5 + 0.5, // 0.5 to 2.0
+    maxDrawdown: Math.random() * 20 + 5 // 5% to 25%
   };
-}
-
-export async function executeAITrade(
-  strategy: AITradingStrategy,
-  account: TradingAccount,
-  coinData: { id: string; price: number; name: string; symbol: string },
-  analysis: AIAnalysisResult
-): Promise<Trade | null> {
-  try {
-    if (analysis.recommendation === 'hold') {
-      toast({
-        title: "AI Analysis Result",
-        description: "Current market conditions suggest holding position",
-      });
-      return null;
-    }
-
-    const tradeAmount = analysis.suggestedAmount || 0.1;
-    const totalValue = tradeAmount * coinData.price;
-
-    if (analysis.recommendation === 'buy' && account.balance < totalValue) {
-      toast({
-        title: "Insufficient Balance",
-        description: "Cannot execute buy trade due to insufficient funds",
-        variant: "destructive"
-      });
-      return null;
-    }
-
-    const trade: Trade = {
-      id: `ai-trade-${Date.now()}`,
-      coinId: coinData.id,
-      coinName: coinData.name,
-      coinSymbol: coinData.symbol,
-      type: analysis.recommendation,
-      amount: tradeAmount,
-      price: coinData.price,
-      totalValue,
-      timestamp: new Date().toISOString(),
-      currency: "USD",
-      botGenerated: true,
-      strategyId: strategy.id
-    };
-
-    toast({
-      title: "AI Trade Executed",
-      description: `${analysis.recommendation.toUpperCase()} ${tradeAmount} ${coinData.symbol} at $${coinData.price}`,
-    });
-
-    return trade;
-  } catch (error) {
-    console.error("Error executing AI trade:", error);
-    toast({
-      title: "Trade Error",
-      description: "Failed to execute AI trade",
-      variant: "destructive"
-    });
-    return null;
-  }
-}
+};
