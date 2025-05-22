@@ -18,10 +18,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SettingsFormValues } from "@/components/settings/types";
 import { useToast } from "@/components/ui/use-toast";
 
-// Define specific form schema for this component
-const userFormSchema = z.object({
+const formSchema = z.object({
   displayName: z.string().min(2, {
     message: "Display name must be at least 2 characters.",
   }),
@@ -43,13 +43,11 @@ const userFormSchema = z.object({
   }),
 });
 
-type UserFormValues = z.infer<typeof userFormSchema>;
-
 const UserSettings: React.FC = () => {
   const { toast } = useToast();
   
   // Default form values
-  const defaultValues: UserFormValues = {
+  const defaultValues: SettingsFormValues = {
     displayName: "John Doe",
     email: "john.doe@example.com",
     theme: "light",
@@ -67,12 +65,12 @@ const UserSettings: React.FC = () => {
     },
   };
 
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userFormSchema),
+  const form = useForm<SettingsFormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues,
   });
 
-  function onSubmit(values: UserFormValues) {
+  function onSubmit(values: SettingsFormValues) {
     toast({
       title: "Settings updated",
       description: "Your settings have been updated successfully.",

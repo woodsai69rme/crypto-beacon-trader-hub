@@ -1,387 +1,481 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Key, Plus, Trash2 } from 'lucide-react';
 import { ApiProvider, ApiEndpoint } from '@/types/trading';
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Check, Clock, Eye, Key, RefreshCw, X } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { toast } from '@/hooks/use-toast';
 
-const ApiProviderManagement = () => {
-  const [activeTab, setActiveTab] = useState("coingecko");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const mockApiProviders: ApiProvider[] = [
+const ApiProviderManagement: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("market-data");
+  const [isAddingProvider, setIsAddingProvider] = useState(false);
+  const [isEditingEndpoint, setIsEditingEndpoint] = useState(false);
+  const [newProvider, setNewProvider] = useState<Partial<ApiProvider>>({
+    name: '',
+    description: '',
+    baseUrl: '',
+    apiKey: '',
+    usageLimit: 1000,
+    currentUsage: 0,
+    maxUsage: 1000,
+    resetTime: new Date().toISOString(),
+    endpoint: '',
+    status: 'ok',
+    isActive: true,
+    endpoints: []
+  });
+  
+  // Mock providers for demonstration
+  const [providers, setProviders] = useState<ApiProvider[]>([
     {
-      id: "coingecko",
+      id: "coingecko-1",
       name: "CoinGecko",
-      enabled: true,
       baseUrl: "https://api.coingecko.com/api/v3",
-      description: "Market data, prices, and coin information",
-      endpoints: {
-        "coins": "/coins",
-        "markets": "/coins/markets",
-        "ping": "/ping"
-      },
-      requiresAuth: true,
-      apiKey: "xxxxxxxxxxxxxxxxxxxxxxxx",
-      apiKeyName: "x_cg_pro_api_key",
+      description: "Comprehensive cryptocurrency data API",
+      currentUsage: 5243,
+      maxUsage: 10000,
+      resetTime: "2023-05-02T00:00:00Z",
+      endpoint: "coins/markets",
+      status: "ok",
+      website: "https://www.coingecko.com",
+      docs: "https://www.coingecko.com/api/documentation",
+      endpoints: [
+        {
+          id: "cg-markets",
+          name: "Markets",
+          path: "/coins/markets",
+          method: "GET",
+          description: "Get cryptocurrency prices, market cap, volume, and market related data",
+          url: "/coins/markets",
+          responseTime: 245,
+          lastUsed: "2023-05-01T12:30:45Z",
+          requiresAuth: true
+        },
+        {
+          id: "cg-coin",
+          name: "Coin Details",
+          path: "/coins/{id}",
+          method: "GET",
+          description: "Get current data for a coin",
+          url: "/coins/{id}",
+          responseTime: 187,
+          lastUsed: "2023-05-01T11:22:18Z",
+          requiresAuth: true
+        },
+        {
+          id: "cg-chart",
+          name: "Market Chart",
+          path: "/coins/{id}/market_chart",
+          method: "GET",
+          description: "Get historical market data include price, market cap, and 24h volume",
+          url: "/coins/{id}/market_chart",
+          responseTime: 320,
+          lastUsed: "2023-05-01T10:15:30Z",
+          requiresAuth: true
+        }
+      ],
+      isActive: true,
+      apiKey: "CG_API_KEY_REDACTED",
+      usageLimit: 10000,
       authMethod: "header",
-      defaultHeaders: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      }
+      apiKeyName: "X-CG-API-KEY",
+      defaultHeaders: {},
+      enabled: true
     },
     {
-      id: "binance",
+      id: "binance-1",
       name: "Binance",
-      enabled: true,
       baseUrl: "https://api.binance.com/api/v3",
-      description: "Real-time trading data and order management",
-      endpoints: {
-        "ticker": "/ticker/24hr",
-        "depth": "/depth",
-        "trades": "/trades"
-      },
-      requiresAuth: false,
-      defaultHeaders: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      }
+      description: "Cryptocurrency exchange API",
+      currentUsage: 8754,
+      maxUsage: 20000,
+      resetTime: "2023-05-02T00:00:00Z",
+      endpoint: "ticker/24hr",
+      status: "ok",
+      website: "https://www.binance.com",
+      docs: "https://binance-docs.github.io/apidocs/",
+      endpoints: [
+        {
+          id: "bn-ticker",
+          name: "Ticker",
+          path: "/ticker/24hr",
+          method: "GET",
+          description: "24 hour rolling window price change statistics",
+          url: "/ticker/24hr",
+          responseTime: 110,
+          lastUsed: "2023-05-01T13:40:22Z",
+          requiresAuth: true
+        },
+        {
+          id: "bn-klines",
+          name: "Klines",
+          path: "/klines",
+          method: "GET",
+          description: "Kline/candlestick data",
+          url: "/klines",
+          responseTime: 165,
+          lastUsed: "2023-05-01T13:25:40Z",
+          requiresAuth: true
+        },
+        {
+          id: "bn-depth",
+          name: "Order Book",
+          path: "/depth",
+          method: "GET",
+          description: "Order book depth",
+          url: "/depth",
+          responseTime: 95,
+          lastUsed: "2023-05-01T13:10:05Z",
+          requiresAuth: true
+        }
+      ],
+      isActive: true,
+      apiKey: "BINANCE_API_KEY_REDACTED",
+      usageLimit: 20000,
+      authMethod: "query",
+      apiKeyName: "api_key",
+      defaultHeaders: {},
+      enabled: true
     },
     {
-      id: "kraken",
+      id: "kraken-1",
       name: "Kraken",
-      enabled: false,
-      baseUrl: "https://api.kraken.com/0/public",
-      description: "Price data and trading information",
-      endpoints: {
-        "ticker": "/Ticker",
-        "ohlc": "/OHLC",
-        "depth": "/Depth"
-      },
-      requiresAuth: true,
-      apiKey: "",
-      apiKeyName: "API-Key",
+      baseUrl: "https://api.kraken.com/0",
+      description: "Digital asset exchange API",
+      currentUsage: 2134,
+      maxUsage: 5000,
+      resetTime: "2023-05-02T00:00:00Z",
+      endpoint: "public/Ticker",
+      status: "ok",
+      website: "https://www.kraken.com",
+      docs: "https://docs.kraken.com/rest/",
+      endpoints: [
+        {
+          id: "kr-ticker",
+          name: "Ticker Information",
+          path: "/public/Ticker",
+          method: "GET",
+          description: "Get ticker information",
+          url: "/public/Ticker",
+          responseTime: 180,
+          lastUsed: "2023-05-01T11:05:15Z",
+          requiresAuth: true
+        },
+        {
+          id: "kr-ohlc",
+          name: "OHLC Data",
+          path: "/public/OHLC",
+          method: "GET",
+          description: "Open, high, low, close data",
+          url: "/public/OHLC",
+          responseTime: 210,
+          lastUsed: "2023-05-01T10:55:30Z",
+          requiresAuth: true
+        },
+        {
+          id: "kr-orderbook",
+          name: "Order Book",
+          path: "/public/Depth",
+          method: "GET",
+          description: "Market depth",
+          url: "/public/Depth",
+          responseTime: 165,
+          lastUsed: "2023-05-01T10:30:20Z",
+          requiresAuth: true
+        }
+      ],
+      isActive: true,
+      apiKey: "KRAKEN_API_KEY_REDACTED",
+      usageLimit: 5000,
       authMethod: "header",
-      defaultHeaders: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      }
+      apiKeyName: "API-Key",
+      defaultHeaders: {},
+      enabled: true
     }
-  ];
-
-  const mockApiEndpoints: Record<string, ApiEndpoint[]> = {
-    coingecko: [
-      {
-        id: "coins",
-        name: "Coin List",
-        path: "/coins/list",
-        method: "GET",
-        description: "Get list of all coins with id, name, symbol",
-        url: "https://api.coingecko.com/api/v3/coins/list",
-        responseTime: 235,
-        lastUsed: "2023-06-15T14:34:21Z",
-        requiresAuth: true
-      },
-      {
-        id: "markets",
-        name: "Coin Markets",
-        path: "/coins/markets",
-        method: "GET",
-        description: "Get list of all supported coins price, market cap, volume, and market related data",
-        url: "https://api.coingecko.com/api/v3/coins/markets",
-        responseTime: 312,
-        lastUsed: "2023-06-15T15:12:45Z",
-        requiresAuth: true
-      },
-      {
-        id: "ping",
-        name: "Ping",
-        path: "/ping",
-        method: "GET",
-        description: "Check API server status",
-        url: "https://api.coingecko.com/api/v3/ping",
-        responseTime: 87,
-        lastUsed: "2023-06-15T15:30:12Z",
-        requiresAuth: true
-      }
-    ],
-    binance: [
-      {
-        id: "ticker",
-        name: "24hr Ticker Price Change",
-        path: "/ticker/24hr",
-        method: "GET",
-        description: "24 hour rolling window price change statistics",
-        url: "https://api.binance.com/api/v3/ticker/24hr",
-        responseTime: 145,
-        lastUsed: "2023-06-15T16:22:09Z",
-        requiresAuth: true
-      },
-      {
-        id: "depth",
-        name: "Order Book",
-        path: "/depth",
-        method: "GET",
-        description: "Get order book depth data",
-        url: "https://api.binance.com/api/v3/depth",
-        responseTime: 187,
-        lastUsed: "2023-06-15T16:45:33Z",
-        requiresAuth: true
-      },
-      {
-        id: "trades",
-        name: "Recent Trades List",
-        path: "/trades",
-        method: "GET",
-        description: "Get recent trades",
-        url: "https://api.binance.com/api/v3/trades",
-        responseTime: 124,
-        lastUsed: "2023-06-15T17:01:18Z",
-        requiresAuth: true
-      }
-    ],
-    kraken: [
-      {
-        id: "ticker",
-        name: "Ticker Information",
-        path: "/Ticker",
-        method: "GET",
-        description: "Get ticker information",
-        url: "https://api.kraken.com/0/public/Ticker",
-        responseTime: 198,
-        lastUsed: "2023-06-10T09:45:12Z",
-        requiresAuth: true
-      },
-      {
-        id: "ohlc",
-        name: "OHLC Data",
-        path: "/OHLC",
-        method: "GET",
-        description: "Get OHLC data",
-        url: "https://api.kraken.com/0/public/OHLC",
-        responseTime: 267,
-        lastUsed: "2023-06-09T14:23:05Z",
-        requiresAuth: true
-      },
-      {
-        id: "depth",
-        name: "Order Book",
-        path: "/Depth",
-        method: "GET",
-        description: "Get order book",
-        url: "https://api.kraken.com/0/public/Depth",
-        responseTime: 212,
-        lastUsed: "2023-06-08T17:51:44Z",
-        requiresAuth: true
-      }
-    ]
-  };
-
-  const [providers, setProviders] = useState<ApiProvider[]>(mockApiProviders);
-  const [endpoints, setEndpoints] = useState<Record<string, ApiEndpoint[]>>(mockApiEndpoints);
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({
-    coingecko: 'xxxxxxxxxxxxxxxxxxxxxxxx',
-    binance: '',
-    kraken: ''
-  });
-  const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({
-    coingecko: false,
-    binance: false,
-    kraken: false
-  });
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    
-    // Simulate API refresh
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast({
-        title: "API Status Refreshed",
-        description: "API provider status has been updated."
-      });
-    }, 1000);
-  };
-
-  const handleToggleProvider = (id: string, enabled: boolean) => {
-    setProviders(providers.map(provider => 
-      provider.id === id ? { ...provider, enabled } : provider
-    ));
-    
-    toast({
-      title: `API ${enabled ? 'Enabled' : 'Disabled'}`,
-      description: `${providers.find(p => p.id === id)?.name} API has been ${enabled ? 'enabled' : 'disabled'}.`
-    });
-  };
-
-  const handleApiKeyChange = (id: string, value: string) => {
-    setApiKeys(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleSaveApiKey = (id: string) => {
-    const provider = providers.find(p => p.id === id);
-    if (!provider) return;
-    
-    toast({
-      title: "API Key Saved",
-      description: `${provider.name} API key has been updated.`
-    });
-  };
-
-  const handleToggleShowApiKey = (id: string) => {
-    setShowApiKey(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const activeProvider = providers.find(p => p.id === activeTab) || providers[0];
-  const activeEndpoints = endpoints[activeTab] || [];
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">API Providers</h2>
-        <Button 
-          onClick={handleRefresh} 
-          variant="outline" 
-          size="sm" 
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh Status
-        </Button>
-      </div>
+  ]);
+  
+  const handleAddProvider = () => {
+    if (newProvider.name && newProvider.baseUrl) {
+      const provider: ApiProvider = {
+        id: `provider-${Date.now()}`,
+        name: newProvider.name || '',
+        baseUrl: newProvider.baseUrl || '',
+        description: newProvider.description || '',
+        currentUsage: 0, 
+        maxUsage: newProvider.usageLimit || 1000,
+        resetTime: new Date().toISOString(),
+        endpoint: '',
+        status: 'ok',
+        endpoints: [],
+        isActive: true,
+        apiKey: newProvider.apiKey || '',
+        usageLimit: newProvider.usageLimit || 1000,
+        enabled: true
+      };
       
-      <Card>
-        <CardContent className="p-0">
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex border-b">
-              <TabsList className="h-14">
-                {providers.map(provider => (
-                  <TabsTrigger 
-                    key={provider.id} 
-                    value={provider.id}
-                    className="flex items-center gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary"
-                  >
-                    {provider.name}
-                    <Badge 
-                      variant={provider.enabled ? "default" : "secondary"}
-                      className={`${provider.enabled ? 'bg-green-500' : 'bg-slate-400'} rounded-full h-2 w-2 p-0`}
+      setProviders([...providers, provider]);
+      setIsAddingProvider(false);
+      setNewProvider({
+        name: '',
+        description: '',
+        baseUrl: '',
+        apiKey: ''
+      });
+    }
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>API Providers</CardTitle>
+            <CardDescription>
+              Manage your cryptocurrency data providers and endpoints
+            </CardDescription>
+          </div>
+          <Dialog open={isAddingProvider} onOpenChange={setIsAddingProvider}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Provider
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add API Provider</DialogTitle>
+                <DialogDescription>
+                  Enter the details of the new API provider you want to connect.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Provider Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g. CoinGecko"
+                    value={newProvider.name}
+                    onChange={(e) => setNewProvider({...newProvider, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="baseUrl">Base URL</Label>
+                  <Input
+                    id="baseUrl"
+                    placeholder="e.g. https://api.example.com/v1"
+                    value={newProvider.baseUrl}
+                    onChange={(e) => setNewProvider({...newProvider, baseUrl: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    placeholder="Brief description of the API"
+                    value={newProvider.description}
+                    onChange={(e) => setNewProvider({...newProvider, description: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="apiKey">API Key</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="apiKey"
+                      placeholder="Your API key"
+                      type="password"
+                      value={newProvider.apiKey}
+                      onChange={(e) => setNewProvider({...newProvider, apiKey: e.target.value})}
                     />
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-            
-            {providers.map(provider => (
-              <TabsContent key={provider.id} value={provider.id} className="p-6 space-y-6">
-                <div className="flex justify-between">
-                  <div>
-                    <h3 className="text-lg font-medium">{provider.name} API</h3>
-                    <p className="text-muted-foreground">{provider.description}</p>
+                    <Button variant="outline" size="icon">
+                      <Key className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Enabled</span>
-                    <Switch 
-                      checked={provider.enabled} 
-                      onCheckedChange={(checked) => handleToggleProvider(provider.id, checked)} 
-                    />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="usageLimit">Usage Limit</Label>
+                  <Input
+                    id="usageLimit"
+                    type="number"
+                    placeholder="Requests per day"
+                    value={newProvider.usageLimit}
+                    onChange={(e) => setNewProvider({...newProvider, usageLimit: parseInt(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddingProvider(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddProvider}>
+                  Add Provider
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <Tabs defaultValue="market-data" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="market-data">Market Data</TabsTrigger>
+            <TabsTrigger value="trading-apis">Trading APIs</TabsTrigger>
+            <TabsTrigger value="other">Other</TabsTrigger>
+          </TabsList>
+          
+          {/* Market Data Providers */}
+          <TabsContent value="market-data">
+            {providers.filter(p => p.id.includes("coingecko") || p.id.includes("kraken")).map((provider) => (
+              <div key={provider.id} className="mb-6 border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{provider.name}</h3>
+                    <p className="text-sm text-muted-foreground">{provider.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">Active</span>
+                      <Switch 
+                        checked={provider.isActive} 
+                        onCheckedChange={(checked) => {
+                          const updatedProviders = providers.map(p => 
+                            p.id === provider.id ? {...p, isActive: checked} : p
+                          );
+                          setProviders(updatedProviders);
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Endpoints</h4>
                   <div className="space-y-2">
-                    <h4 className="font-medium">API Configuration</h4>
-                    <div>
-                      <div className="text-sm text-muted-foreground mb-1">Base URL</div>
-                      <div className="font-mono text-sm bg-muted p-2 rounded">{provider.baseUrl}</div>
-                    </div>
-                  </div>
-                  
-                  {provider.requiresAuth && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Authentication</h4>
-                      <div className="flex items-end gap-2">
-                        <div className="flex-1">
-                          <div className="text-sm text-muted-foreground mb-1">API Key</div>
-                          <div className="flex">
-                            <Input 
-                              type={showApiKey[provider.id] ? "text" : "password"} 
-                              value={apiKeys[provider.id]} 
-                              onChange={(e) => handleApiKeyChange(provider.id, e.target.value)}
-                              placeholder="Enter API key"
-                              className="font-mono"
-                            />
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleToggleShowApiKey(provider.id)}
-                              className="ml-2"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                    {provider.endpoints?.map((endpoint) => (
+                      <div key={endpoint.id} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
+                        <div>
+                          <span className="text-sm font-medium">{endpoint.name}</span>
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">{endpoint.method}</span>
+                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.path}</span>
                           </div>
                         </div>
-                        <Button 
-                          onClick={() => handleSaveApiKey(provider.id)} 
-                          disabled={!apiKeys[provider.id]}
-                        >
-                          Save Key
-                        </Button>
+                        <div className="text-xs text-muted-foreground">
+                          <span>{endpoint.responseTime}ms</span>
+                          <span className="mx-2">•</span>
+                          <span>Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Available Endpoints</h4>
-                      <Badge variant="outline">
-                        {activeEndpoints.length} endpoints
-                      </Badge>
-                    </div>
-                    
-                    <div className="border rounded-md">
-                      {activeEndpoints.map((endpoint, index) => (
-                        <div key={endpoint.id}>
-                          <div className="flex justify-between items-center p-3 hover:bg-muted/50">
-                            <div>
-                              <div className="font-medium">{endpoint.name}</div>
-                              <div className="text-sm text-muted-foreground">{endpoint.description}</div>
-                              <div className="flex items-center mt-1 space-x-2">
-                                <Badge variant="outline" className="font-mono text-xs">
-                                  {endpoint.method}
-                                </Badge>
-                                <span className="text-xs font-mono text-muted-foreground">
-                                  {endpoint.path}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <div className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                                <span className="text-sm">{endpoint.responseTime}ms</span>
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-                          {index < activeEndpoints.length - 1 && <Separator />}
-                        </div>
-                      ))}
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-between items-center">
+                  <Button variant="ghost" size="sm" onClick={() => setIsEditingEndpoint(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Endpoint
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    <span>{provider.currentUsage} / {provider.maxUsage} requests used</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+          
+          {/* Trading APIs */}
+          <TabsContent value="trading-apis">
+            {providers.filter(p => p.id.includes("binance")).map((provider) => (
+              <div key={provider.id} className="mb-6 border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{provider.name}</h3>
+                    <p className="text-sm text-muted-foreground">{provider.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">Active</span>
+                      <Switch 
+                        checked={provider.isActive} 
+                        onCheckedChange={(checked) => {
+                          const updatedProviders = providers.map(p => 
+                            p.id === provider.id ? {...p, isActive: checked} : p
+                          );
+                          setProviders(updatedProviders);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
-              </TabsContent>
+                
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Endpoints</h4>
+                  <div className="space-y-2">
+                    {provider.endpoints?.map((endpoint) => (
+                      <div key={endpoint.id} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
+                        <div>
+                          <span className="text-sm font-medium">{endpoint.name}</span>
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">{endpoint.method}</span>
+                            <span className="text-xs ml-2 text-muted-foreground">{endpoint.path}</span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span>{endpoint.responseTime}ms</span>
+                          <span className="mx-2">•</span>
+                          <span>Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-between items-center">
+                  <Button variant="ghost" size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Endpoint
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    <span>{provider.currentUsage} / {provider.maxUsage} requests used</span>
+                  </div>
+                </div>
+              </div>
             ))}
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+            
+            {/* Add provider button */}
+            <Button variant="outline" className="w-full" onClick={() => setIsAddingProvider(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Trading API
+            </Button>
+          </TabsContent>
+          
+          {/* Other APIs */}
+          <TabsContent value="other">
+            <div className="flex items-center justify-center h-48 border rounded-lg">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-2">No other APIs configured yet</p>
+                <Button onClick={() => setIsAddingProvider(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add API Provider
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 

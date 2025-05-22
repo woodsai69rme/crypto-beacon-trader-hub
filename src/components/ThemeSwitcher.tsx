@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useTheme, Theme, ColorScheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Palette } from 'lucide-react';
-import { useTheme } from '@/hooks/use-theme';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
-import { Theme, ColorScheme } from '@/types/trading';
+import { toast } from '@/components/ui/use-toast';
 
 interface ThemeOption {
   value: Theme | ColorScheme;
@@ -23,41 +22,41 @@ interface ThemeOption {
 
 const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
-  const { toast } = useToast();
 
   // Define theme options
   const themeOptions: ThemeOption[] = [
     { value: "dark", label: "Dark", description: "Dark theme with deep backgrounds" },
-    { value: "light", label: "Light", description: "Light theme with bright backgrounds" },
-    { value: "system", label: "System", description: "Follow system preferences" }
+    { value: "light", label: "Light", description: "Light theme with bright backgrounds" }
   ];
 
   // Define color scheme options
   const colorSchemeOptions: ThemeOption[] = [
-    { value: "blue", label: "Default Blue", description: "Standard blue color scheme" },
-    { value: "green", label: "Green", description: "Nature-inspired green theme" },
-    { value: "purple", label: "Purple", description: "Elegant purple style" },
-    { value: "orange", label: "Orange", description: "Warm orange theme" },
-    { value: "red", label: "Red", description: "Bold red accents" }
+    { value: "default", label: "Default", description: "Standard color scheme" },
+    { value: "midnight-tech", label: "Midnight Tech", description: "Deep blue tech-inspired theme" },
+    { value: "cyber-pulse", label: "Cyber Pulse", description: "Vibrant purple cyberpunk style" },
+    { value: "matrix-code", label: "Matrix Code", description: "Green-tinted hacker aesthetic" }
   ];
 
   const handleThemeChange = (value: string) => {
-    if (value === "light" || value === "dark" || value === "system") {
+    if (value === "light" || value === "dark") {
       setTheme(value as Theme);
+      localStorage.setItem("theme", value);
       toast({
         title: "Theme Updated",
-        description: `Changed to ${value === "system" ? "system default" : value} theme`
+        description: `Changed to ${value} theme`,
+        duration: 2000
       });
     }
   };
 
   const handleColorSchemeChange = (value: string) => {
-    if (["blue", "green", "orange", "purple", "red", "default", "midnight-tech", 
-         "cyber-pulse", "matrix-code", "neon-future", "sunset-gradient"].includes(value)) {
+    if (["default", "midnight-tech", "cyber-pulse", "matrix-code"].includes(value)) {
       setColorScheme(value as ColorScheme);
+      localStorage.setItem("colorScheme", value);
       toast({
         title: "Style Updated",
-        description: `Changed to ${value.replace("-", " ")} style`
+        description: `Changed to ${value.replace("-", " ")} style`,
+        duration: 2000
       });
     }
   };
@@ -79,7 +78,7 @@ const ThemeSwitcher: React.FC = () => {
           {themeOptions.map((option) => (
             <DropdownMenuItem
               key={option.value}
-              onClick={() => handleThemeChange(option.value as string)}
+              onClick={() => handleThemeChange(option.value)}
               className="flex items-center justify-between"
             >
               <div className="flex flex-col">
@@ -100,7 +99,7 @@ const ThemeSwitcher: React.FC = () => {
           {colorSchemeOptions.map((option) => (
             <DropdownMenuItem
               key={option.value}
-              onClick={() => handleColorSchemeChange(option.value as string)}
+              onClick={() => handleColorSchemeChange(option.value)}
               className="flex items-center justify-between"
             >
               <div className="flex flex-col">

@@ -1,218 +1,210 @@
 
-import React from 'react';
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "@/components/ui/form";
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import AppearanceSettings from "./AppearanceSettings";
+import { toast } from "@/hooks/use-toast";
+import { UseFormReturn } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
 import NotificationSettings from "./NotificationSettings";
-import ApiSettings from "./ApiSettings";
-import DataPrivacySettings from "./DataPrivacySettings";
-import { SettingsFormValues } from "@/types/trading";
-import { useToast } from '@/hooks/use-toast';
+import AppearanceSettings from "./AppearanceSettings";
+import PrivacySettings from "./PrivacySettings";
+import TradingSettings from "./TradingSettings";
+import OpenRouterSettings from "./OpenRouterSettings";
+import TickerSettings from "./TickerSettings";
+import { SettingsFormValues } from "./types";
+import { User, Settings2, Bell, Shield, BarChart2, UserCircle, Key, Gauge, Sidebar as SidebarIcon } from "lucide-react";
 
-// Define the form schema
-const settingsFormSchema = z.object({
-  theme: z.string().optional(),
-  displayName: z.string().optional(),
-  email: z.string().email().optional(),
-  username: z.string().optional(),
-  language: z.string().optional(),
-  currency: z.object({
-    defaultCurrency: z.enum(["USD", "AUD", "EUR", "GBP"]),
-    showConversion: z.boolean().default(true),
-    showPriceInBTC: z.boolean().optional()
-  }),
-  api: z.object({
-    provider: z.string(),
-    key: z.string().optional(),
-    refreshInterval: z.number().optional(),
-    timeout: z.number().optional()
-  }),
-  display: z.object({
-    showPortfolio: z.boolean(),
-    showBalances: z.boolean().default(true),
-    defaultTab: z.string().optional(),
-    compactMode: z.boolean(),
-    animationsEnabled: z.boolean().optional(),
-    highContrastMode: z.boolean().optional(),
-    colorScheme: z.string().optional()
-  }).optional(),
-  notifications: z.object({
-    enableEmail: z.boolean().default(true),
-    enablePush: z.boolean().default(true),
-    alertPrice: z.boolean().default(true),
-    alertNews: z.boolean().default(false),
-    email: z.boolean().optional(),
-    push: z.boolean().optional(),
-    trades: z.boolean().optional(),
-    pricing: z.boolean().optional(),
-    news: z.boolean().optional(),
-    priceAlerts: z.boolean().optional()
-  }).optional(),
-  privacy: z.object({
-    showOnlineStatus: z.boolean(),
-    sharePortfolio: z.boolean(),
-    shareTrades: z.boolean(),
-    dataCollection: z.boolean(),
-    marketingConsent: z.boolean(),
-    thirdPartySharing: z.boolean()
-  }).optional(),
-  account: z.object({
-    twoFactorEnabled: z.boolean(),
-    loginAlerts: z.boolean()
-  }).optional(),
-  appearance: z.object({
-    colorScheme: z.string(),
-    compactMode: z.boolean(),
-    animationsEnabled: z.boolean(),
-    highContrastMode: z.boolean()
-  }).optional(),
-  ticker: z.object({
-    enabled: z.boolean(),
-    position: z.string(),
-    speed: z.number(),
-    direction: z.string(),
-    autoPause: z.boolean()
-  }).optional()
-});
+interface SettingsProps {
+  form: UseFormReturn<SettingsFormValues>;
+}
 
-export const Settings: React.FC = () => {
-  const { toast } = useToast();
+const Settings: React.FC<SettingsProps> = ({ form }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  // Load settings from localStorage or use defaults
-  const loadSettings = (): SettingsFormValues => {
-    try {
-      const savedSettings = localStorage.getItem('appSettings');
-      if (savedSettings) {
-        return JSON.parse(savedSettings);
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
+  const onSubmit = async (data: SettingsFormValues) => {
+    setIsLoading(true);
     
-    // Default settings with AUD as the default currency
-    return {
-      theme: 'light',
-      currency: {
-        defaultCurrency: 'AUD',
-        showConversion: true,
-        showPriceInBTC: false
-      },
-      api: {
-        provider: 'coingecko',
-        key: '',
-        refreshInterval: 30,
-        timeout: 10
-      },
-      display: {
-        showPortfolio: true,
-        showBalances: true,
-        defaultTab: 'overview',
-        compactMode: false,
-        animationsEnabled: true,
-        highContrastMode: false,
-        colorScheme: 'default'
-      },
-      notifications: {
-        enableEmail: true,
-        enablePush: true,
-        alertPrice: true,
-        alertNews: false,
-        email: true,
-        push: true,
-        trades: true,
-        pricing: true,
-        news: false,
-        priceAlerts: true
-      },
-      privacy: {
-        showOnlineStatus: true,
-        sharePortfolio: false,
-        shareTrades: false,
-        dataCollection: true,
-        marketingConsent: false,
-        thirdPartySharing: false
-      }
-    };
-  };
-  
-  const form = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsFormSchema),
-    defaultValues: loadSettings(),
-    mode: "onChange"
-  });
-
-  // Save settings to localStorage
-  const onSubmit = (values: SettingsFormValues) => {
     try {
-      localStorage.setItem('appSettings', JSON.stringify(values));
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated."
+        title: "Settings updated",
+        description: "Your settings have been saved successfully."
       });
       
-      console.log('Settings saved:', values);
+      console.log("Settings saved:", data);
     } catch (error) {
       toast({
-        title: "Error saving settings",
-        description: "There was an error saving your settings.",
+        title: "Error",
+        description: "There was a problem updating your settings.",
         variant: "destructive"
       });
-      console.error('Error saving settings:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="container py-10 max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings and preferences</p>
-      </div>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Tabs defaultValue="appearance" className="w-full">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4 w-full max-w-md">
-              <TabsTrigger value="appearance">Appearance</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="api">API Settings</TabsTrigger>
-              <TabsTrigger value="privacy">Privacy</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="appearance">
-              <AppearanceSettings form={form} />
-            </TabsContent>
-            
-            <TabsContent value="notifications">
-              <NotificationSettings form={form} />
-            </TabsContent>
-            
-            <TabsContent value="api">
-              <ApiSettings form={form} />
-            </TabsContent>
-            
-            <TabsContent value="privacy">
-              <DataPrivacySettings form={form} />
-            </TabsContent>
-          </Tabs>
-          
-          <div className="flex gap-2">
-            <Button type="submit">Save Settings</Button>
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => form.reset(loadSettings())}
-            >
-              Reset
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Card>
+          <CardContent className="p-0">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid grid-cols-2 md:grid-cols-8">
+                <TabsTrigger value="profile" className="flex items-center gap-1">
+                  <UserCircle className="h-4 w-4" />
+                  <span className="hidden md:inline">Profile</span>
+                </TabsTrigger>
+                <TabsTrigger value="appearance" className="flex items-center gap-1">
+                  <Settings2 className="h-4 w-4" />
+                  <span className="hidden md:inline">Appearance</span>
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="flex items-center gap-1">
+                  <Bell className="h-4 w-4" />
+                  <span className="hidden md:inline">Notifications</span>
+                </TabsTrigger>
+                <TabsTrigger value="privacy" className="flex items-center gap-1">
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden md:inline">Privacy</span>
+                </TabsTrigger>
+                <TabsTrigger value="trading" className="flex items-center gap-1">
+                  <BarChart2 className="h-4 w-4" />
+                  <span className="hidden md:inline">Trading</span>
+                </TabsTrigger>
+                <TabsTrigger value="ticker" className="flex items-center gap-1">
+                  <Gauge className="h-4 w-4" />
+                  <span className="hidden md:inline">Ticker</span>
+                </TabsTrigger>
+                <TabsTrigger value="sidebar" className="flex items-center gap-1">
+                  <SidebarIcon className="h-4 w-4" />
+                  <span className="hidden md:inline">Sidebar</span>
+                </TabsTrigger>
+                <TabsTrigger value="integrations" className="flex items-center gap-1">
+                  <Key className="h-4 w-4" />
+                  <span className="hidden md:inline">Integrations</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <div className="p-6">
+                <TabsContent value="profile">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">Profile Settings</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Update your account information and public profile
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="font-medium">Email</label>
+                          <Input 
+                            {...form.register("email")}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="font-medium">Username</label>
+                          <Input 
+                            {...form.register("username")}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="font-medium">Display Name</label>
+                          <Input 
+                            {...form.register("displayName")}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="font-medium">Bio</label>
+                          <Textarea 
+                            {...form.register("bio")}
+                            className="h-32"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Write a short description about yourself. This will be visible on your public profile.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="appearance">
+                  <AppearanceSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="notifications">
+                  <NotificationSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="privacy">
+                  <PrivacySettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="trading">
+                  <TradingSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="ticker">
+                  <TickerSettings form={form} />
+                </TabsContent>
+                
+                <TabsContent value="sidebar">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">Sidebar Settings</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Configure sidebar appearance and behavior
+                      </p>
+                    </div>
+                    
+                    {form.getValues().sidebar && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                          <CardContent className="p-4">
+                            <TickerSettings form={form} />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="integrations">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">API Integrations</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Configure external API integrations for enhanced functionality
+                      </p>
+                    </div>
+                    
+                    <OpenRouterSettings />
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </CardContent>
+        </Card>
+        
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Saving..." : "Save Settings"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };
 

@@ -8,20 +8,6 @@ import { BarChart2 } from "lucide-react";
 import { SettingsComponentProps } from "./types";
 
 const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  React.useEffect(() => {
-    // Initialize tradingPreferences if they don't exist
-    const currentValues = form.getValues();
-    if (!currentValues.tradingPreferences) {
-      form.setValue('tradingPreferences', {
-        autoConfirm: false,
-        showAdvanced: false,
-        defaultAsset: 'bitcoin',
-        defaultTradeSize: 100,
-        riskLevel: 'medium'
-      });
-    }
-  }, [form]);
-
   return (
     <Card>
       <CardHeader>
@@ -36,77 +22,77 @@ const TradingSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Auto Confirm Orders</FormLabel>
-              <FormDescription>
-                Skip confirmation dialogs for orders
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().tradingPreferences?.autoConfirm || false}
-                onCheckedChange={(checked) => {
-                  const updatedPrefs = {
-                    ...form.getValues().tradingPreferences,
-                    autoConfirm: checked
-                  };
-                  form.setValue("tradingPreferences", updatedPrefs);
-                }}
-              />
-            </FormControl>
-          </div>
+          <FormField
+            control={form.control}
+            name="tradingPreferences.autoConfirm"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Auto Confirm Orders</FormLabel>
+                  <FormDescription>
+                    Skip confirmation dialogs for orders
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Show Advanced Features</FormLabel>
-              <FormDescription>
-                Display advanced trading options and analytics
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().tradingPreferences?.showAdvanced || false}
-                onCheckedChange={(checked) => {
-                  const updatedPrefs = {
-                    ...form.getValues().tradingPreferences,
-                    showAdvanced: checked
-                  };
-                  form.setValue("tradingPreferences", updatedPrefs);
-                }}
-              />
-            </FormControl>
-          </div>
+          <FormField
+            control={form.control}
+            name="tradingPreferences.showAdvanced"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>Show Advanced Features</FormLabel>
+                  <FormDescription>
+                    Display advanced trading options and analytics
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           
-          <div className="space-y-2">
-            <FormLabel>Default Asset</FormLabel>
-            <Select
-              value={form.getValues().tradingPreferences?.defaultAsset || 'bitcoin'}
-              onValueChange={(value) => {
-                const updatedPrefs = {
-                  ...form.getValues().tradingPreferences,
-                  defaultAsset: value
-                };
-                form.setValue("tradingPreferences", updatedPrefs);
-              }}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select default asset" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
-                <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                <SelectItem value="solana">Solana (SOL)</SelectItem>
-                <SelectItem value="cardano">Cardano (ADA)</SelectItem>
-                <SelectItem value="ripple">Ripple (XRP)</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              Asset to show by default in trading views
-            </FormDescription>
-          </div>
+          <FormField
+            control={form.control}
+            name="tradingPreferences.defaultAsset"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Default Asset</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select default asset" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
+                    <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
+                    <SelectItem value="solana">Solana (SOL)</SelectItem>
+                    <SelectItem value="cardano">Cardano (ADA)</SelectItem>
+                    <SelectItem value="ripple">Ripple (XRP)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Asset to show by default in trading views
+                </FormDescription>
+              </FormItem>
+            )}
+          />
         </div>
       </CardContent>
     </Card>

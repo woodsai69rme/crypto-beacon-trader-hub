@@ -8,7 +8,6 @@ import { useAlertForm } from "@/hooks/use-alert-form";
 import { AlertFormSheet } from "./widgets/AlertComponents/AlertFormSheet";
 import { AlertHeader } from "./widgets/AlertComponents/AlertHeader";
 import { AlertBadge } from "./widgets/AlertComponents/AlertBadge";
-import { AlertFormData, AlertData, PriceAlert, VolumeAlert, TechnicalAlert } from "@/types/trading";
 
 const AlertsSystem = () => {
   const { alerts, addAlert, removeAlert } = useAlerts();
@@ -16,11 +15,9 @@ const AlertsSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = () => {
-    if (formData.type && formData.frequency) {
-      addAlert(formData as AlertFormData);
-      resetForm();
-      setIsOpen(false);
-    }
+    addAlert(formData);
+    resetForm();
+    setIsOpen(false);
   };
 
   return (
@@ -47,7 +44,7 @@ const AlertsSystem = () => {
             <p className="mt-2 text-sm text-muted-foreground">No active alerts.</p>
           ) : (
             <div className="mt-2 space-y-2">
-              {alerts.map((alert: AlertData) => (
+              {alerts.map((alert) => (
                 <div 
                   key={alert.id} 
                   className="flex items-center justify-between rounded-md border border-border bg-background p-2"
@@ -55,20 +52,13 @@ const AlertsSystem = () => {
                   <div>
                     <p className="font-medium">{alert.coinName}</p>
                     <p className="text-sm text-muted-foreground">
-                      {alert.type === 'price' ? 
-                        `${(alert as PriceAlert).isAbove ? "Above" : "Below"} $${(alert as PriceAlert).targetPrice?.toLocaleString() || 0}` 
-                        : 
-                        alert.type === 'volume' ? 
-                          `Volume > ${(alert as VolumeAlert).volumeThreshold}` 
-                          : 
-                          `${(alert as TechnicalAlert).indicator} ${(alert as TechnicalAlert).condition}`
-                      }
+                      {alert.isAbove ? "Above" : "Below"} ${alert.targetPrice.toLocaleString()}
                     </p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeAlert(alert.id || '')}
+                    onClick={() => removeAlert(alert.id)}
                   >
                     <Trash className="h-4 w-4 text-destructive" />
                   </Button>

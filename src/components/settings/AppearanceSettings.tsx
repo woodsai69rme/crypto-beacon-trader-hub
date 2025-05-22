@@ -6,42 +6,31 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Palette } from "lucide-react";
 import { SettingsComponentProps } from "./types";
-import { useTheme } from "@/hooks/use-theme";
-import { Theme, ColorScheme } from "@/types/trading";
+import { ColorScheme, useTheme } from "@/contexts/ThemeContext";
 
 const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
   const { theme, setTheme, colorScheme, setColorScheme } = useTheme();
   
-  // Update form with current theme values
-  React.useEffect(() => {
-    // Set theme value if not already set
-    if (!form.getValues().theme) {
-      form.setValue("theme", theme as Theme);
-    }
-    
-    // Initialize display object with proper values
-    const formValues = form.getValues();
-    if (!formValues.display) {
-      form.setValue("display", {
-        showPortfolio: true,
-        showBalances: true,
-        defaultTab: "overview",
-        compactMode: false,
-        animationsEnabled: true,
-        highContrastMode: false,
-        colorScheme: colorScheme
-      });
-    }
-  }, [form, theme, colorScheme]);
+  // Initialize appearance object if it doesn't exist
+  if (!form.getValues().appearance) {
+    form.setValue("appearance", {
+      colorScheme: colorScheme,
+      compactMode: false,
+      animationsEnabled: true,
+      highContrastMode: false
+    });
+  }
 
-  const handleThemeChange = (value: Theme) => {
-    setTheme(value);
+  const handleThemeChange = (value: string) => {
+    setTheme(value as "light" | "dark");
     form.setValue("theme", value);
   };
 
-  const handleColorSchemeChange = (value: ColorScheme) => {
-    setColorScheme(value);
-    form.setValue("display.colorScheme", value);
+  const handleColorSchemeChange = (value: string) => {
+    setColorScheme(value as ColorScheme);
+    if (form.getValues().appearance) {
+      form.setValue("appearance.colorScheme", value);
+    }
   };
   
   return (
@@ -62,7 +51,7 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
               <FormItem>
                 <FormLabel>Theme</FormLabel>
                 <Select 
-                  onValueChange={(value) => handleThemeChange(value as Theme)} 
+                  onValueChange={(value) => handleThemeChange(value)} 
                   value={field.value || theme}
                 >
                   <FormControl>
@@ -83,81 +72,103 @@ const AppearanceSettings: React.FC<SettingsComponentProps> = ({ form }) => {
             )}
           />
           
-          <div className="space-y-2">
-            <FormLabel>Color Scheme</FormLabel>
-            <Select 
-              onValueChange={(value) => handleColorSchemeChange(value as ColorScheme)} 
-              value={form.getValues().display?.colorScheme || colorScheme}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a color scheme" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="midnight-tech">Midnight Tech</SelectItem>
-                <SelectItem value="cyber-pulse">Cyber Pulse</SelectItem>
-                <SelectItem value="matrix-code">Matrix Code</SelectItem>
-                <SelectItem value="neon-future">Neon Future</SelectItem>
-                <SelectItem value="sunset-gradient">Sunset Gradient</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              Choose your preferred theme style
-            </FormDescription>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Compact Mode</FormLabel>
-              <FormDescription>
-                Use a more compact interface layout
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().display?.compactMode || false}
-                onCheckedChange={(checked) => {
-                  form.setValue("display.compactMode", checked, { shouldValidate: false });
-                }}
+          {form.getValues().appearance && (
+            <>
+              <FormField
+                control={form.control}
+                name="appearance.colorScheme"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color Scheme</FormLabel>
+                    <Select 
+                      onValueChange={(value) => handleColorSchemeChange(value)} 
+                      value={field.value || colorScheme}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a color scheme" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="default">Default</SelectItem>
+                        <SelectItem value="midnight-tech">Midnight Tech</SelectItem>
+                        <SelectItem value="cyber-pulse">Cyber Pulse</SelectItem>
+                        <SelectItem value="matrix-code">Matrix Code</SelectItem>
+                        <SelectItem value="neon-future">Neon Future</SelectItem>
+                        <SelectItem value="sunset-gradient">Sunset Gradient</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose your preferred theme style
+                    </FormDescription>
+                  </FormItem>
+                )}
               />
-            </FormControl>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Enable Animations</FormLabel>
-              <FormDescription>
-                Enable UI animations and transitions
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().display?.animationsEnabled || true}
-                onCheckedChange={(checked) => {
-                  form.setValue("display.animationsEnabled", checked, { shouldValidate: false });
-                }}
+              
+              <FormField
+                control={form.control}
+                name="appearance.compactMode"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Compact Mode</FormLabel>
+                      <FormDescription>
+                        Use a more compact interface layout
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            </FormControl>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>High Contrast Mode</FormLabel>
-              <FormDescription>
-                Increase contrast for better visibility
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().display?.highContrastMode || false}
-                onCheckedChange={(checked) => {
-                  form.setValue("display.highContrastMode", checked, { shouldValidate: false });
-                }}
+              
+              <FormField
+                control={form.control}
+                name="appearance.animationsEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Enable Animations</FormLabel>
+                      <FormDescription>
+                        Enable UI animations and transitions
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            </FormControl>
-          </div>
+              
+              <FormField
+                control={form.control}
+                name="appearance.highContrastMode"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>High Contrast Mode</FormLabel>
+                      <FormDescription>
+                        Increase contrast for better visibility
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,9 +1,8 @@
 
 import React, { useState } from "react";
+import { useTheme, Theme, ColorScheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Palette, Monitor } from "lucide-react";
-import { useTheme } from "@/hooks/use-theme";
-import { Theme, ColorScheme } from "@/types/trading";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,7 +188,8 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => {
             // Match system theme
-            setTheme("system");
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            setTheme(systemTheme);
             toast({
               title: "Theme Updated",
               description: "Matched to system preference",

@@ -1,156 +1,109 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Shield } from "lucide-react";
+import { Database, Lock } from "lucide-react";
 import { SettingsComponentProps } from "./types";
 
 const DataPrivacySettings: React.FC<SettingsComponentProps> = ({ form }) => {
-  // Initialize privacy settings if they don't exist
-  useEffect(() => {
-    const privacyValues = form.getValues().privacy;
-    if (!privacyValues) {
-      form.setValue("privacy", {
-        showOnlineStatus: true,
-        sharePortfolio: false,
-        shareTrades: false,
-        dataCollection: true,
-        marketingConsent: false,
-        thirdPartySharing: false
-      });
-    }
-  }, [form]);
+  // Initialize privacy object if it doesn't exist
+  if (!form.getValues().privacy) {
+    form.setValue("privacy", {
+      showOnlineStatus: false,
+      sharePortfolio: false,
+      shareTrades: false,
+      dataCollection: false,
+      marketingConsent: false,
+      thirdPartySharing: false
+    });
+  }
   
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
+          <Database className="h-5 w-5" />
           Data & Privacy
         </CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Show Online Status</FormLabel>
-              <FormDescription>
-                Allow others to see when you are online
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().privacy?.showOnlineStatus ?? true}
-                onCheckedChange={(checked) => {
-                  form.setValue("privacy", {
-                    ...form.getValues().privacy,
-                    showOnlineStatus: checked
-                  });
-                }}
+          {form.getValues().privacy && (
+            <>
+              <FormField
+                control={form.control}
+                name="privacy.dataCollection"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Usage Analytics</FormLabel>
+                      <FormDescription>
+                        Allow us to collect anonymous usage data to improve the platform
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            </FormControl>
-          </div>
+              
+              <FormField
+                control={form.control}
+                name="privacy.marketingConsent"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Marketing Communications</FormLabel>
+                      <FormDescription>
+                        Receive marketing communications and offers
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="privacy.thirdPartySharing"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>Third-Party Data Sharing</FormLabel>
+                      <FormDescription>
+                        Allow sharing your data with trusted partners
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
           
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Share Portfolio</FormLabel>
-              <FormDescription>
-                Allow others to view your portfolio
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().privacy?.sharePortfolio ?? false}
-                onCheckedChange={(checked) => {
-                  form.setValue("privacy", {
-                    ...form.getValues().privacy,
-                    sharePortfolio: checked
-                  });
-                }}
-              />
-            </FormControl>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Share Trades</FormLabel>
-              <FormDescription>
-                Allow others to view your trading activity
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().privacy?.shareTrades ?? false}
-                onCheckedChange={(checked) => {
-                  form.setValue("privacy", {
-                    ...form.getValues().privacy,
-                    shareTrades: checked
-                  });
-                }}
-              />
-            </FormControl>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Data Collection</FormLabel>
-              <FormDescription>
-                Allow us to collect usage data to improve your experience
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().privacy?.dataCollection ?? true}
-                onCheckedChange={(checked) => {
-                  form.setValue("privacy", {
-                    ...form.getValues().privacy,
-                    dataCollection: checked
-                  });
-                }}
-              />
-            </FormControl>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Marketing Consent</FormLabel>
-              <FormDescription>
-                Receive marketing communications from us
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().privacy?.marketingConsent ?? false}
-                onCheckedChange={(checked) => {
-                  form.setValue("privacy", {
-                    ...form.getValues().privacy,
-                    marketingConsent: checked
-                  });
-                }}
-              />
-            </FormControl>
-          </div>
-          
-          <div className="flex flex-row items-center justify-between">
-            <div className="space-y-0.5">
-              <FormLabel>Third-Party Data Sharing</FormLabel>
-              <FormDescription>
-                Allow us to share your data with trusted partners
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={form.getValues().privacy?.thirdPartySharing ?? false}
-                onCheckedChange={(checked) => {
-                  form.setValue("privacy", {
-                    ...form.getValues().privacy,
-                    thirdPartySharing: checked
-                  });
-                }}
-              />
-            </FormControl>
+          <div className="pt-4">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Lock className="h-4 w-4" /> Data Protection
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Your data is encrypted and stored securely. You can request a copy or deletion of your data at any time.
+            </p>
           </div>
         </div>
       </CardContent>

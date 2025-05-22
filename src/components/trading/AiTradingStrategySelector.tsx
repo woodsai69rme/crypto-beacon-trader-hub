@@ -1,181 +1,210 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { AITradingStrategy } from "@/types/trading";
-import { availableStrategies } from "@/services/aiService";
-import { Brain, TrendingUp, LineChart, AlertTriangle, Settings } from "lucide-react";
+import { ChevronRight, BarChart, TrendingUp, AlignJustify, MessageCircle, BrainCircuit, Clock } from "lucide-react";
 
-interface AiTradingStrategySelectorProps {
-  onSelect: (strategy: AITradingStrategy) => void;
-  selectedStrategyId?: string;
-}
+// Mock strategies
+const strategies: AITradingStrategy[] = [
+  {
+    id: "trend-1",
+    name: "MACD Trend Follower",
+    description: "Uses MACD to identify and follow market trends",
+    type: "trend-following",
+    timeframe: "1h",
+    parameters: {
+      rsiPeriod: 14,
+      macdFastPeriod: 12,
+      macdSlowPeriod: 26,
+      macdSignalPeriod: 9,
+      stopLossPercentage: 2,
+      takeProfitPercentage: 4
+    },
+    riskLevel: "medium",
+    creator: "system",
+    tags: ["macd", "trend", "momentum"]
+  },
+  {
+    id: "mean-1",
+    name: "Bollinger Mean Reversion",
+    description: "Identifies overbought and oversold conditions using Bollinger Bands",
+    type: "mean-reversion",
+    timeframe: "4h",
+    parameters: {
+      bbPeriod: 20,
+      bbDeviation: 2,
+      rsiPeriod: 14,
+      rsiOverbought: 70,
+      rsiOversold: 30,
+      stopLossPercentage: 1.5,
+      takeProfitPercentage: 3
+    },
+    riskLevel: "low",
+    creator: "system",
+    tags: ["bollinger", "rsi", "mean-reversion"]
+  },
+  {
+    id: "breakout-1",
+    name: "Volume Breakout Detector",
+    description: "Detects price breakouts confirmed by volume spikes",
+    type: "breakout",
+    timeframe: "1d",
+    parameters: {
+      lookbackPeriod: 20,
+      volumeThreshold: 2,
+      priceDeviation: 3,
+      stopLossPercentage: 4,
+      takeProfitPercentage: 8
+    },
+    riskLevel: "high",
+    creator: "system",
+    tags: ["breakout", "volume", "momentum"]
+  },
+  {
+    id: "sentiment-1",
+    name: "News Sentiment Analyzer",
+    description: "Trades based on sentiment analysis of news and social media",
+    type: "sentiment",
+    timeframe: "1d",
+    parameters: {
+      sentimentThreshold: 0.7,
+      newsSourceCount: 5,
+      sentimentPeriod: 24,
+      stopLossPercentage: 3,
+      takeProfitPercentage: 6
+    },
+    riskLevel: "medium",
+    creator: "system",
+    tags: ["sentiment", "news", "social"]
+  },
+  {
+    id: "ml-1",
+    name: "ML Price Predictor",
+    description: "Uses machine learning to predict price movements",
+    type: "machine-learning",
+    timeframe: "1d",
+    parameters: {
+      features: ["price", "volume", "rsi", "macd", "sentiment"],
+      lookbackPeriods: 30,
+      predictionHorizon: 5,
+      confidenceThreshold: 0.75,
+      stopLossPercentage: 3,
+      takeProfitPercentage: 6
+    },
+    riskLevel: "high",
+    creator: "system",
+    tags: ["machine-learning", "ai", "prediction"]
+  },
+  {
+    id: "mtf-1",
+    name: "Multi-Timeframe Momentum",
+    description: "Analyzes market momentum across multiple timeframes",
+    type: "multi-timeframe",
+    timeframe: "4h",
+    parameters: {
+      timeframes: ["1h", "4h", "1d"],
+      indicators: ["rsi", "macd", "adx"],
+      minConfirmations: 2,
+      stopLossPercentage: 2.5,
+      takeProfitPercentage: 5
+    },
+    riskLevel: "medium",
+    creator: "system",
+    tags: ["multi-timeframe", "momentum", "confluence"]
+  }
+];
 
-const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({ 
-  onSelect, 
-  selectedStrategyId 
-}) => {
-  const [activeTab, setActiveTab] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState<string>("");
+type StrategyType = "all" | "trend-following" | "mean-reversion" | "breakout" | "sentiment" | "machine-learning" | "multi-timeframe";
+
+const AiTradingStrategySelector: React.FC = () => {
+  const [selectedType, setSelectedType] = useState<StrategyType>("all");
   
-  // Filter strategies based on active tab and search term
-  const filteredStrategies = availableStrategies.filter(strategy => {
-    // Filter by tab
-    if (activeTab !== "all" && strategy.type !== activeTab) {
-      return false;
-    }
-    
-    // Filter by search term
-    if (searchTerm && !strategy.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !strategy.description.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-    
-    return true;
-  });
-  
-  // Get unique strategy types for tabs
-  const strategyTypes = Array.from(new Set(availableStrategies.map(s => s.type)));
-  
-  // Group strategies by risk level
-  const lowRiskStrategies = filteredStrategies.filter(s => s.riskLevel === 'low');
-  const mediumRiskStrategies = filteredStrategies.filter(s => s.riskLevel === 'medium');
-  const highRiskStrategies = filteredStrategies.filter(s => s.riskLevel === 'high');
-  
-  const handleSelectStrategy = (strategy: AITradingStrategy) => {
-    onSelect(strategy);
-  };
-  
-  const renderStrategyCard = (strategy: AITradingStrategy) => {
-    const isSelected = strategy.id === selectedStrategyId;
-    const riskColor = strategy.riskLevel === 'low' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 
-                      strategy.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100' : 
-                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
-    
-    return (
-      <Card 
-        key={strategy.id} 
-        className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? 'border-primary border-2' : ''}`}
-        onClick={() => handleSelectStrategy(strategy)}
-      >
-        <CardContent className="p-4">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center">
-                <Brain className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="font-medium">{strategy.name}</h3>
-              </div>
-              <Badge className={riskColor}>
-                {strategy.riskLevel} risk
-              </Badge>
-            </div>
-            
-            <p className="text-sm text-muted-foreground mb-3">
-              {strategy.description}
-            </p>
-            
-            <div className="flex flex-wrap gap-1 mt-auto">
-              <Badge variant="outline">{strategy.type}</Badge>
-              <Badge variant="outline">{strategy.timeframe}</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-  
+  const filteredStrategies = selectedType === "all" 
+    ? strategies 
+    : strategies.filter(strategy => strategy.type === selectedType);
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          AI Trading Strategies
-        </CardTitle>
+        <CardTitle>AI Trading Strategies</CardTitle>
         <CardDescription>
           Select an AI-powered trading strategy to deploy
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="Search strategies..."
-              className="w-full px-3 py-2 border rounded-md"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <span className="absolute right-3 top-2.5 text-muted-foreground">
-              {searchTerm && `${filteredStrategies.length} results`}
-            </span>
-          </div>
-          
-          <Button variant="outline" size="icon">
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="trend-following">Trend</TabsTrigger>
-            <TabsTrigger value="mean-reversion">Mean Rev</TabsTrigger>
-            <TabsTrigger value="breakout">Breakout</TabsTrigger>
-            <TabsTrigger value="custom">Custom</TabsTrigger>
+      <CardContent>
+        <Tabs defaultValue="all" onValueChange={(value) => setSelectedType(value as StrategyType)}>
+          <TabsList className="mb-6 grid grid-cols-3 md:grid-cols-7">
+            <TabsTrigger value="all" className="flex items-center gap-1">
+              <AlignJustify className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">All</span>
+            </TabsTrigger>
+            <TabsTrigger value="trend-following" className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Trend</span>
+            </TabsTrigger>
+            <TabsTrigger value="mean-reversion" className="flex items-center gap-1">
+              <BarChart className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Mean</span>
+            </TabsTrigger>
+            <TabsTrigger value="breakout" className="flex items-center gap-1">
+              <ChevronRight className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Breakout</span>
+            </TabsTrigger>
+            <TabsTrigger value="sentiment" className="flex items-center gap-1">
+              <MessageCircle className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Sentiment</span>
+            </TabsTrigger>
+            <TabsTrigger value="machine-learning" className="flex items-center gap-1">
+              <BrainCircuit className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">ML</span>
+            </TabsTrigger>
+            <TabsTrigger value="multi-timeframe" className="flex items-center gap-1">
+              <Clock className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">MTF</span>
+            </TabsTrigger>
           </TabsList>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredStrategies.map((strategy) => (
+              <Card key={strategy.id} className="bg-card">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-base">{strategy.name}</CardTitle>
+                      <CardDescription>{strategy.description}</CardDescription>
+                    </div>
+                    <Badge variant="outline">{strategy.riskLevel}</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0 pb-4">
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {strategy.type}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {strategy.timeframe}
+                    </Badge>
+                    {strategy.tags.slice(0, 2).map((tag, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <Button className="w-full">
+                    Select Strategy
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </Tabs>
-
-        <div className="space-y-4">
-          {filteredStrategies.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <AlertTriangle className="h-10 w-10 mb-2" />
-              <p>No strategies found matching your criteria</p>
-            </div>
-          ) : (
-            <>
-              {lowRiskStrategies.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground">Low Risk Strategies</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {lowRiskStrategies.map(renderStrategyCard)}
-                  </div>
-                </div>
-              )}
-              
-              {mediumRiskStrategies.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground">Medium Risk Strategies</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mediumRiskStrategies.map(renderStrategyCard)}
-                  </div>
-                </div>
-              )}
-              
-              {highRiskStrategies.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground">High Risk Strategies</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {highRiskStrategies.map(renderStrategyCard)}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
       </CardContent>
-      
-      <CardFooter>
-        <div className="w-full flex justify-between text-sm text-muted-foreground">
-          <span>{availableStrategies.length} total strategies</span>
-          <span>
-            <LineChart className="inline-block h-4 w-4 mr-1 align-text-bottom" />
-            Advanced configuration available
-          </span>
-        </div>
-      </CardFooter>
     </Card>
   );
 };

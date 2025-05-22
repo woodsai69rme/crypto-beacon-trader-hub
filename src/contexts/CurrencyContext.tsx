@@ -1,130 +1,140 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { SupportedCurrency } from '@/types/trading';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
-interface CurrencyContextType {
-  defaultCurrency: SupportedCurrency;
-  setDefaultCurrency: (currency: SupportedCurrency) => void;
-  formatCurrency: (amount: number, currency?: SupportedCurrency) => string;
-  convertCurrency: (amount: number, from: SupportedCurrency, to: SupportedCurrency) => number;
-  currencySymbol: (currency?: SupportedCurrency) => string;
-  showBTC: boolean;
-  setShowBTC: (show: boolean) => void;
-}
+type CurrencyContextType = {
+  activeCurrency: string;
+  setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
+  convert: (value: number, from?: string, to?: string) => number;
+  formatValue: (value: number, currency?: string) => string;
+  rates: Record<string, number> | {
+    USD: number;
+    EUR: number;
+    GBP: number;
+    JPY: number;
+    AUD: number;
+    CAD: number;
+    CHF: number;
+    CNY: number;
+    BTC: number;
+    ETH: number;
+  };
+};
+
+const DEFAULT_RATES = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.78,
+  JPY: 151.65,
+  AUD: 1.52,
+  CAD: 1.36,
+  CHF: 0.91,
+  CNY: 7.24,
+  BTC: 0.000021,
+  ETH: 0.00034
+};
 
 const CurrencyContext = createContext<CurrencyContextType>({
-  defaultCurrency: 'AUD',
-  setDefaultCurrency: () => {},
-  formatCurrency: () => '',
-  convertCurrency: () => 0,
-  currencySymbol: () => '',
-  showBTC: false,
-  setShowBTC: () => {}
+  activeCurrency: "USD",
+  setActiveCurrency: () => {},
+  convert: (value) => value,
+  formatValue: (value) => `$${value}`,
+  rates: DEFAULT_RATES
 });
 
-interface CurrencyProviderProps {
-  children: ReactNode;
-}
-
-export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
-  const [defaultCurrency, setDefaultCurrency] = useState<SupportedCurrency>('AUD');
-  const [showBTC, setShowBTC] = useState<boolean>(false);
+export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [activeCurrency, setActiveCurrency] = useState<string>(() => {
+    // Try to get from localStorage, default to USD
+    return localStorage.getItem("activeCurrency") || "USD";
+  });
+  const [rates, setRates] = useState<Record<string, number>>(DEFAULT_RATES);
   
-  // Load settings from localStorage
+  // Save active currency to localStorage
   useEffect(() => {
-    try {
-      const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      if (settings.currency?.defaultCurrency) {
-        setDefaultCurrency(settings.currency.defaultCurrency);
-      }
-      if (settings.currency?.showPriceInBTC !== undefined) {
-        setShowBTC(settings.currency.showPriceInBTC);
-      }
-    } catch (error) {
-      console.error('Error loading currency settings:', error);
-    }
-  }, []);
+    localStorage.setItem("activeCurrency", activeCurrency);
+  }, [activeCurrency]);
   
-  // Save settings to localStorage when they change
+  // In a real app, we would fetch rates from an API
   useEffect(() => {
-    try {
-      const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      settings.currency = {
-        ...settings.currency,
-        defaultCurrency,
-        showPriceInBTC: showBTC
-      };
-      localStorage.setItem('appSettings', JSON.stringify(settings));
-    } catch (error) {
-      console.error('Error saving currency settings:', error);
-    }
-  }, [defaultCurrency, showBTC]);
-  
-  // Get currency symbol
-  const currencySymbol = (currency?: SupportedCurrency): string => {
-    const curr = currency || defaultCurrency;
-    
-    switch (curr) {
-      case 'AUD':
-        return 'A$';
-      case 'USD':
-        return '$';
-      case 'EUR':
-        return '€';
-      case 'GBP':
-        return '£';
-      default:
-        return 'A$';
-    }
-  };
-  
-  // Format currency value
-  const formatCurrency = (amount: number, currency?: SupportedCurrency): string => {
-    const curr = currency || defaultCurrency;
-    const symbol = currencySymbol(curr);
-    
-    // Format based on value size
-    if (Math.abs(amount) >= 1000000) {
-      return `${symbol}${(amount / 1000000).toFixed(2)}M`;
-    } else if (Math.abs(amount) >= 1000) {
-      return `${symbol}${(amount / 1000).toFixed(2)}K`;
-    } else if (Math.abs(amount) >= 1) {
-      return `${symbol}${amount.toFixed(2)}`;
-    } else {
-      // For small values, use more precision
-      return `${symbol}${amount.toFixed(6)}`;
-    }
-  };
-  
-  // Simple currency conversion
-  const convertCurrency = (
-    amount: number, 
-    from: SupportedCurrency, 
-    to: SupportedCurrency
-  ): number => {
-    if (from === to) return amount;
-    
-    // Example conversion rates (simplified)
-    const rates: Record<SupportedCurrency, Record<SupportedCurrency, number>> = {
-      'USD': { 'AUD': 1.52, 'EUR': 0.92, 'GBP': 0.79, 'USD': 1 },
-      'AUD': { 'USD': 0.66, 'EUR': 0.61, 'GBP': 0.52, 'AUD': 1 },
-      'EUR': { 'USD': 1.09, 'AUD': 1.64, 'GBP': 0.86, 'EUR': 1 },
-      'GBP': { 'USD': 1.27, 'AUD': 1.92, 'EUR': 1.17, 'GBP': 1 },
+    const fetchRates = async () => {
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // We'll use static rates for demo purposes
+        setRates({
+          ...DEFAULT_RATES,
+          // Add a small random fluctuation to rates
+          EUR: DEFAULT_RATES.EUR * (1 + (Math.random() * 0.01 - 0.005)),
+          GBP: DEFAULT_RATES.GBP * (1 + (Math.random() * 0.01 - 0.005)),
+          JPY: DEFAULT_RATES.JPY * (1 + (Math.random() * 0.01 - 0.005)),
+          AUD: DEFAULT_RATES.AUD * (1 + (Math.random() * 0.01 - 0.005)),
+          CAD: DEFAULT_RATES.CAD * (1 + (Math.random() * 0.01 - 0.005)),
+          BTC: DEFAULT_RATES.BTC * (1 + (Math.random() * 0.05 - 0.025)),
+          ETH: DEFAULT_RATES.ETH * (1 + (Math.random() * 0.05 - 0.025)),
+        });
+      } catch (error) {
+        console.error("Error fetching exchange rates:", error);
+      }
     };
     
-    return amount * rates[from][to];
+    fetchRates();
+    const interval = setInterval(fetchRates, 60000); // Update rates every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Convert between currencies
+  const convert = (value: number, from: string = "USD", to: string = activeCurrency): number => {
+    // Value in USD
+    const valueInUSD = from === "USD" ? value : value / rates[from];
+    
+    // Convert from USD to target currency
+    return to === "USD" ? valueInUSD : valueInUSD * rates[to];
+  };
+  
+  // Format value with currency symbol
+  const formatValue = (value: number, currency: string = activeCurrency): string => {
+    // Basic formatting with 2 decimal places
+    const formattedValue = value.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+    
+    // Currency symbols
+    switch (currency) {
+      case "USD":
+        return `$${formattedValue}`;
+      case "EUR":
+        return `€${formattedValue}`;
+      case "GBP":
+        return `£${formattedValue}`;
+      case "JPY":
+        return `¥${formattedValue}`;
+      case "AUD":
+        return `A$${formattedValue}`;
+      case "CAD":
+        return `C$${formattedValue}`;
+      case "CHF":
+        return `CHF ${formattedValue}`;
+      case "CNY":
+        return `¥${formattedValue}`;
+      case "BTC":
+        return `₿${value.toFixed(8)}`;
+      case "ETH":
+        return `Ξ${value.toFixed(6)}`;
+      default:
+        return `${formattedValue} ${currency}`;
+    }
   };
   
   return (
-    <CurrencyContext.Provider
-      value={{
-        defaultCurrency,
-        setDefaultCurrency,
-        formatCurrency,
-        convertCurrency,
-        currencySymbol,
-        showBTC,
-        setShowBTC
+    <CurrencyContext.Provider 
+      value={{ 
+        activeCurrency, 
+        setActiveCurrency, 
+        convert, 
+        formatValue,
+        rates 
       }}
     >
       {children}
@@ -132,4 +142,6 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   );
 };
 
-export const useCurrencyContext = () => useContext(CurrencyContext);
+export const useCurrency = () => useContext(CurrencyContext);
+
+export default CurrencyContext;

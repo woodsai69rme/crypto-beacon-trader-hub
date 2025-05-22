@@ -1,53 +1,75 @@
 
-import { LocalModel } from '@/types/trading';
+// Fix re-exporting using 'export type'
+export type { AITradingStrategy } from '@/types/trading';
 
-export interface ModelPerformanceProps {
-  model: LocalModel;
-  timeframe?: string;
-  isRunning?: boolean;
-  performanceData?: any;
+// Define interfaces for model trading
+export interface ModelTradingProps {
+  initialCoins: string[];
+  onTrade?: (trade: any) => void;
 }
 
-export interface ModelRunningTabProps {
-  models?: LocalModel[];
-  selectedModel: LocalModel | null;
-  isRunning: boolean;
-  progress?: number;
-  onStartModel: (model: LocalModel) => void;
-  onStopModel: () => void;
+export interface ModelConfig {
+  id: string;
+  name: string;
+  description: string;
+  parameters: ModelParameter[];
+  defaultValues: Record<string, any>;
 }
 
-export interface ModelInfoProps {
-  model: LocalModel;
-  onEdit?: () => void;
+export interface ModelParameter {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'number' | 'boolean' | 'select' | 'range';
+  options?: string[];
+  min?: number;
+  max?: number;
+  step?: number;
+  default: any;
 }
 
-export interface ModelSettingsProps {
-  model: LocalModel;
-  onSave: (updatedModel: LocalModel) => void;
-  onCancel: () => void;
+export interface ModelResult {
+  action: 'buy' | 'sell' | 'hold';
+  confidence: number;
+  reasoning: string;
+  suggestedAmount?: number;
+  suggestedPrice?: number;
+  timestamp: string;
 }
 
-export interface ModelTrainingProps {
-  model: LocalModel;
-  onSave: (updatedModel: LocalModel) => void;
-  onCancel: () => void;
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number;
+  profitFactor: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  trades: BacktestTrade[];
 }
 
-export interface ModelConnectionProps {
-  model: LocalModel;
-  onConnect: () => void;
-  onDisconnect: () => void;
+export interface BacktestTrade {
+  date: string;
+  action: 'buy' | 'sell';
+  price: number;
+  amount: number;
+  balance: number;
+  profit?: number;
 }
 
-export interface ModelExecutionProps {
-  model: LocalModel;
-  isConnected: boolean;
-  onExecute: () => void;
-}
-
-export interface ModelResultsProps {
-  model: LocalModel;
-  results: any;
-  isLoading: boolean;
+export interface ModelTradingContextType {
+  activeModel: string;
+  setActiveModel: (modelId: string) => void;
+  modelConfig: Record<string, any>;
+  updateModelConfig: (config: Record<string, any>) => void;
+  isModelRunning: boolean;
+  startModel: () => void;
+  stopModel: () => void;
+  modelResults: ModelResult[];
+  backtestResults: BacktestResult | null;
+  runBacktest: (days: number) => Promise<void>;
 }

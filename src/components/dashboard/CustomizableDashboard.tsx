@@ -1,48 +1,47 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutGrid, Settings2 } from "lucide-react";
-import WidgetGrid from "./widgets/WidgetGrid";
-import WidgetList from "./widgets/WidgetList";
+import WidgetGrid from "./WidgetGrid";
+import WidgetList from "./WidgetList";
 import AddWidgetDialog from "./widgets/AddWidgetDialog";
 import { Widget, WidgetType, WidgetSize } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
-const CustomizableDashboard: React.FC = () => {
+const CustomizableDashboard = () => {
   const [isAddingWidget, setIsAddingWidget] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [widgets, setWidgets] = useState<Widget[]>([
     {
       id: "portfolio-widget",
-      position: { x: 0, y: 0, w: 1, h: 1 },
+      position: { x: 0, y: 0 },
       title: "Portfolio Overview",
       type: "portfolio-summary",
       size: "medium",
     },
     {
       id: "chart-widget",
-      position: { x: 1, y: 0, w: 1, h: 1 },
+      position: { x: 1, y: 0 },
       title: "Market Chart",
       type: "price-chart",
       size: "medium",
     },
     {
       id: "watchlist-widget",
-      position: { x: 0, y: 1, w: 1, h: 1 },
+      position: { x: 0, y: 1 },
       title: "Watchlist",
       type: "watchlist",
       size: "small",
     },
     {
       id: "news-widget",
-      position: { x: 1, y: 1, w: 1, h: 1 },
-      title: "Latest News",
+      position: { x: 1, y: 1 },
+      title: "Crypto News",
       type: "news",
       size: "small",
     },
     {
       id: "alerts-widget",
-      position: { x: 0, y: 2, w: 1, h: 1 },
+      position: { x: 0, y: 2 },
       title: "Price Alerts",
       type: "alerts",
       size: "small",
@@ -51,25 +50,24 @@ const CustomizableDashboard: React.FC = () => {
   
   const handleAddWidget = (widget: { title: string; type: WidgetType; size: WidgetSize; customContent?: string }) => {
     // Find the next available position
-    const maxY = Math.max(...widgets.map(w => (w.position?.y || 0)));
+    const maxY = Math.max(...widgets.map(w => w.position?.y || 0));
     
     const newWidget: Widget = {
       id: `${widget.type}-${Date.now()}`,
+      position: { x: 0, y: maxY + 1 },
       title: widget.title,
       type: widget.type,
       size: widget.size,
-      position: { x: 0, y: maxY + 1, w: 1, h: 1 },
       customContent: widget.customContent
     };
     
     setWidgets([...widgets, newWidget]);
+    setIsAddingWidget(false);
     
     toast({
       title: "Widget Added",
-      description: `${widget.title} widget has been added to the dashboard.`,
+      description: `${widget.title} has been added to your dashboard`
     });
-    
-    setIsAddingWidget(false);
   };
   
   const handleRemoveWidget = (id: string) => {
@@ -77,31 +75,43 @@ const CustomizableDashboard: React.FC = () => {
     
     toast({
       title: "Widget Removed",
-      description: "The widget has been removed from the dashboard.",
+      description: "The widget has been removed from your dashboard"
     });
   };
   
+  const handleUpdateWidgetPosition = (id: string, position: { x: number, y: number }) => {
+    setWidgets(widgets.map(widget => 
+      widget.id === id ? { ...widget, position } : widget
+    ));
+  };
+  
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Custom Dashboard</h1>
+        <h2 className="text-2xl font-bold">Dashboard</h2>
+        
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1"
+          <Button 
+            variant="ghost" 
+            size="sm" 
             onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
           >
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className="h-4 w-4 mr-2" />
             {viewMode === "grid" ? "List View" : "Grid View"}
           </Button>
-          <Button variant="outline" size="sm" className="gap-1">
-            <Settings2 className="h-4 w-4" />
-            Settings
-          </Button>
-          <Button onClick={() => setIsAddingWidget(true)} className="gap-1">
-            <PlusCircle className="h-4 w-4" />
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsAddingWidget(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
             Add Widget
+          </Button>
+          
+          <Button variant="outline" size="sm">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Customize
           </Button>
         </div>
       </div>
@@ -109,18 +119,19 @@ const CustomizableDashboard: React.FC = () => {
       {viewMode === "grid" ? (
         <WidgetGrid 
           widgets={widgets} 
-          onRemoveWidget={handleRemoveWidget} 
+          onRemove={handleRemoveWidget}
+          onUpdatePosition={handleUpdateWidgetPosition}
         />
       ) : (
         <WidgetList 
           widgets={widgets} 
-          onRemoveWidget={handleRemoveWidget} 
+          onRemove={handleRemoveWidget} 
         />
       )}
       
-      <AddWidgetDialog
-        open={isAddingWidget}
-        onOpenChange={setIsAddingWidget}
+      <AddWidgetDialog 
+        open={isAddingWidget} 
+        onOpenChange={setIsAddingWidget} 
         onAddWidget={handleAddWidget}
       />
     </div>

@@ -1,8 +1,42 @@
+import { AlertFrequency } from "@/types/alerts";
 
-import { AlertFrequency, AlertFormData, CoinOption, AlertData } from "@/types/trading";
+export interface PriceAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  percentageChange: number;
+  enabled: boolean;
+  notifyVia: ("email" | "app" | "push")[];
+}
 
-export type { AlertFormData, CoinOption, AlertData };
-export type { AlertFrequency };
+export interface VolumeAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  volumeThreshold: number;
+  frequency: AlertFrequency;
+  enabled: boolean;
+  notifyVia: ("email" | "app" | "push")[];
+}
+
+export interface TechnicalAlertFormData {
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  indicator: string;
+  condition: string;
+  value: number;
+  enabled: boolean;
+}
+
+export type CoinOption = {
+  id: string;
+  name: string;
+  symbol: string;
+};
 
 export const COIN_OPTIONS: Record<string, CoinOption> = {
   bitcoin: { id: "bitcoin", name: "Bitcoin", symbol: "BTC" },

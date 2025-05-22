@@ -1,308 +1,267 @@
 
-import { CoinOption, CryptoData, PricePoint } from '@/types/trading';
+/**
+ * Crypto Service
+ * Provides functions for fetching cryptocurrency data from external APIs.
+ */
 
-export const fetchCryptoData = async (coins: string[]): Promise<CoinOption[]> => {
-  // Mock implementation
-  return coins.map((coin, index) => ({
-    id: coin,
-    name: coin.charAt(0).toUpperCase() + coin.slice(1),
-    symbol: coin.substring(0, 3).toUpperCase(),
-    price: 1000 * (index + 1),
-    priceChange: Math.random() * 10 - 5,
-    changePercent: Math.random() * 10 - 5,
-    image: `https://assets.coingecko.com/coins/images/${index + 1}/small/${coin}.png`,
-    value: coin,
-    label: `${coin.charAt(0).toUpperCase() + coin.slice(1)} (${coin.substring(0, 3).toUpperCase()})`
-  }));
+import { CoinOption, CryptoData } from "@/types/trading";
+import { toast } from "@/hooks/use-toast";
+
+// Cache data to reduce API calls
+const dataCache: { 
+  [key: string]: { 
+    data: any; 
+    timestamp: number; 
+    expiry: number; 
+  } 
+} = {};
+
+// Default cache expiry time in milliseconds (5 minutes)
+const DEFAULT_CACHE_EXPIRY = 5 * 60 * 1000;
+
+/**
+ * Check if cached data is valid
+ */
+const isValidCache = (cacheKey: string): boolean => {
+  if (!dataCache[cacheKey]) return false;
+  return Date.now() < dataCache[cacheKey].timestamp + dataCache[cacheKey].expiry;
 };
 
-export const fetchTopCryptoData = async (limit: number = 10): Promise<CoinOption[]> => {
-  // Mock implementation of top cryptocurrencies
-  const mockCoins = [
-    { 
-      id: "bitcoin", 
-      name: "Bitcoin", 
-      symbol: "BTC", 
-      price: 61245.32,
-      priceChange: 1200,
-      changePercent: 2.3,
-      marketCap: 1180000000000,
-      volume: 28000000000,
-      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-      value: "bitcoin",
-      label: "Bitcoin (BTC)" 
-    },
-    { 
-      id: "ethereum", 
-      name: "Ethereum", 
-      symbol: "ETH", 
-      price: 3010.45,
-      priceChange: -120,
-      changePercent: -1.5,
-      marketCap: 360000000000,
-      volume: 15000000000,
-      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-      value: "ethereum",
-      label: "Ethereum (ETH)"
-    },
-    { 
-      id: "solana", 
-      name: "Solana", 
-      symbol: "SOL", 
-      price: 121.33,
-      priceChange: 3.56,
-      changePercent: 3.1,
-      marketCap: 90000000000,
-      volume: 5200000000,
-      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-      value: "solana",
-      label: "Solana (SOL)"
-    },
-    { 
-      id: "cardano", 
-      name: "Cardano", 
-      symbol: "ADA", 
-      price: 0.45,
-      priceChange: -0.02,
-      changePercent: -2.6,
-      marketCap: 24000000000,
-      volume: 890000000,
-      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
-      value: "cardano",
-      label: "Cardano (ADA)"
-    },
-    { 
-      id: "binancecoin", 
-      name: "BNB", 
-      symbol: "BNB", 
-      price: 450,
-      priceChange: 12.5,
-      changePercent: 1.8,
-      marketCap: 70000000000,
-      volume: 2200000000,
-      image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
-      value: "binancecoin",
-      label: "BNB (BNB)"
-    },
-    { 
-      id: "ripple", 
-      name: "XRP", 
-      symbol: "XRP", 
-      price: 0.52,
-      priceChange: 0.003,
-      changePercent: 0.5,
-      marketCap: 28000000000,
-      volume: 900000000,
-      image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
-      value: "ripple",
-      label: "XRP (XRP)"
-    },
-    { 
-      id: "polkadot", 
-      name: "Polkadot", 
-      symbol: "DOT", 
-      price: 6.50,
-      priceChange: -0.05,
-      changePercent: -0.8,
-      marketCap: 8100000000,
-      volume: 300000000,
-      image: "https://assets.coingecko.com/coins/images/12171/large/polkadot.png",
-      value: "polkadot",
-      label: "Polkadot (DOT)"
-    },
-    { 
-      id: "chainlink", 
-      name: "Chainlink", 
-      symbol: "LINK", 
-      price: 15.80,
-      priceChange: 0.78,
-      changePercent: 5.2,
-      marketCap: 9200000000,
-      volume: 720000000,
-      image: "https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png",
-      value: "chainlink",
-      label: "Chainlink (LINK)"
-    },
-    { 
-      id: "litecoin", 
-      name: "Litecoin", 
-      symbol: "LTC", 
-      price: 75.20,
-      priceChange: 0.82,
-      changePercent: 1.1,
-      marketCap: 5500000000,
-      volume: 420000000,
-      image: "https://assets.coingecko.com/coins/images/2/large/litecoin.png",
-      value: "litecoin",
-      label: "Litecoin (LTC)"
-    },
-    { 
-      id: "uniswap", 
-      name: "Uniswap", 
-      symbol: "UNI", 
-      price: 8.90,
-      priceChange: 0.29,
-      changePercent: 3.4,
-      marketCap: 6800000000,
-      volume: 310000000,
-      image: "https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png",
-      value: "uniswap",
-      label: "Uniswap (UNI)"
-    },
-    { 
-      id: "bitcoin-cash", 
-      name: "Bitcoin Cash", 
-      symbol: "BCH", 
-      price: 245,
-      priceChange: 5.30,
-      changePercent: 2.2,
-      marketCap: 4800000000,
-      volume: 180000000,
-      image: "https://assets.coingecko.com/coins/images/780/large/bitcoin-cash-circle.png",
-      value: "bitcoin-cash",
-      label: "Bitcoin Cash (BCH)"
-    },
-    { 
-      id: "stellar", 
-      name: "Stellar", 
-      symbol: "XLM", 
-      price: 0.11,
-      priceChange: -0.002,
-      changePercent: -1.8,
-      marketCap: 3100000000,
-      volume: 98000000,
-      image: "https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png",
-      value: "stellar",
-      label: "Stellar (XLM)"
-    },
-    { 
-      id: "avalanche", 
-      name: "Avalanche", 
-      symbol: "AVAX", 
-      price: 32.80,
-      priceChange: 1.20,
-      changePercent: 3.8,
-      marketCap: 12000000000,
-      volume: 540000000,
-      image: "https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png",
-      value: "avalanche",
-      label: "Avalanche (AVAX)"
-    },
-    { 
-      id: "algorand", 
-      name: "Algorand", 
-      symbol: "ALGO", 
-      price: 0.17,
-      priceChange: 0.005,
-      changePercent: 3.0,
-      marketCap: 1300000000,
-      volume: 56000000,
-      image: "https://assets.coingecko.com/coins/images/4380/large/download.png",
-      value: "algorand",
-      label: "Algorand (ALGO)"
-    },
-    { 
-      id: "cosmos", 
-      name: "Cosmos", 
-      symbol: "ATOM", 
-      price: 9.12,
-      priceChange: 0.23,
-      changePercent: 2.6,
-      marketCap: 3500000000,
-      volume: 120000000,
-      image: "https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png",
-      value: "cosmos",
-      label: "Cosmos (ATOM)"
-    }
-  ];
-  
-  return mockCoins.slice(0, limit);
+/**
+ * Get data from cache
+ */
+const getFromCache = (cacheKey: string): any => {
+  return dataCache[cacheKey].data;
 };
 
-// Add the fetchCoinHistory function
-export const fetchCoinHistory = async (
-  coinId: string,
-  days: number,
-  currency: string = 'aud'
-): Promise<[number, number][]> => {
-  // Mock implementation
-  const now = Date.now();
-  const dayInMs = 24 * 60 * 60 * 1000;
-  const points = 100;
-  
-  const timeRange = days * dayInMs;
-  
-  const startPrice = 1000 + Math.random() * 9000;
-  const volatility = 0.02;
-  
-  return Array.from({ length: points }, (_, i) => {
-    const timestamp = now - (timeRange * (1 - i / points));
-    
-    // Simple random walk for price simulation
-    const timeFactor = i / points;
-    const trendFactor = Math.sin(timeFactor * Math.PI) * 0.5 + 0.5; // Trend goes up and down
-    const randomFactor = (Math.random() - 0.5) * 2 * volatility;
-    
-    const price = startPrice * (1 + trendFactor * 0.5 + randomFactor);
-    
-    return [timestamp, price];
-  });
+/**
+ * Set data in cache
+ */
+const setInCache = (cacheKey: string, data: any, expiry: number = DEFAULT_CACHE_EXPIRY): void => {
+  dataCache[cacheKey] = {
+    data,
+    timestamp: Date.now(),
+    expiry
+  };
 };
 
-export const fetchCryptoHistory = async (
-  coinId: string,
-  timeframe: string,
-  currency: string = 'aud'
-): Promise<[number, number][]> => {
-  // Convert timeframe to days for consistency
-  let days: number;
-  switch (timeframe) {
-    case '24h': days = 1; break;
-    case '7d': days = 7; break;
-    case '30d': days = 30; break;
-    case '90d': days = 90; break;
-    case '1y': days = 365; break;
-    default: days = 7;
+/**
+ * Fetch top cryptocurrencies by market cap
+ */
+export async function fetchTopCryptoData(limit: number = 10, cache: boolean = true): Promise<CoinOption[]> {
+  const cacheKey = `top-crypto-${limit}`;
+  
+  if (cache && isValidCache(cacheKey)) {
+    return getFromCache(cacheKey);
   }
   
-  return fetchCoinHistory(coinId, days, currency);
-};
+  try {
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const processedData = convertToCoinOptions(data);
+    
+    if (cache) {
+      setInCache(cacheKey, processedData);
+    }
+    
+    return processedData;
+  } catch (error) {
+    console.error("Error fetching top crypto data:", error);
+    toast({
+      title: "Data Fetch Error",
+      description: "Failed to fetch cryptocurrency data. Using fallback data.",
+      variant: "destructive",
+    });
+    
+    // Return fallback data if API fails
+    return generateFallbackData(limit);
+  }
+}
 
-export const searchCoins = async (query: string): Promise<CoinOption[]> => {
-  // Mock implementation
-  const mockCoins = [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 65000 },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3500 },
-    { id: 'binancecoin', name: 'Binance Coin', symbol: 'BNB', price: 450 },
-    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 150 },
-    { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 0.45 },
-    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT', price: 6.50 },
-    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', price: 15.80 },
-    { id: 'litecoin', name: 'Litecoin', symbol: 'LTC', price: 75.20 },
-    { id: 'bitcoin-cash', name: 'Bitcoin Cash', symbol: 'BCH', price: 245 },
-    { id: 'stellar', name: 'Stellar', symbol: 'XLM', price: 0.11 }
-  ];
+/**
+ * Fetch data for multiple cryptocurrencies by their IDs
+ */
+export async function fetchMultipleCryptoData(coinIds: string[]): Promise<CryptoData[]> {
+  if (!coinIds.length) return [];
   
-  // Filter coins based on query
-  const filteredCoins = mockCoins.filter(coin => 
-    coin.name.toLowerCase().includes(query.toLowerCase()) || 
-    coin.symbol.toLowerCase().includes(query.toLowerCase())
-  );
+  const idsString = coinIds.join(',');
+  const cacheKey = `multi-crypto-${idsString}`;
   
-  // Transform to CoinOption format
-  return filteredCoins.map(coin => ({
+  if (isValidCache(cacheKey)) {
+    return getFromCache(cacheKey);
+  }
+  
+  try {
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${idsString}&order=market_cap_desc&per_page=${coinIds.length}&page=1&sparkline=false`);
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const processedData: CryptoData[] = data.map((coin: any) => ({
+      id: coin.id,
+      name: coin.name,
+      symbol: coin.symbol,
+      price: coin.current_price,
+      priceChange: coin.price_change_24h || 0,
+      changePercent: coin.price_change_percentage_24h || 0,
+      marketCap: coin.market_cap,
+      volume: coin.total_volume,
+      image: coin.image
+    }));
+    
+    setInCache(cacheKey, processedData);
+    return processedData;
+  } catch (error) {
+    console.error("Error fetching multiple crypto data:", error);
+    toast({
+      title: "Data Fetch Error",
+      description: "Failed to fetch cryptocurrency data. Using cached or fallback data.",
+      variant: "destructive",
+    });
+    
+    // Generate fallback data for the specified coins
+    return coinIds.map((id, index) => generateFallbackCoin(id, index));
+  }
+}
+
+/**
+ * Fetch historical data for a cryptocurrency
+ */
+export async function fetchHistoricalData(
+  coinId: string,
+  days: number = 30,
+  interval: string = 'daily'
+): Promise<{ timestamps: number[]; prices: number[] }> {
+  const cacheKey = `historical-${coinId}-${days}-${interval}`;
+  
+  if (isValidCache(cacheKey)) {
+    return getFromCache(cacheKey);
+  }
+  
+  try {
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`);
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const processedData = {
+      timestamps: data.prices.map((item: [number, number]) => item[0]),
+      prices: data.prices.map((item: [number, number]) => item[1])
+    };
+    
+    setInCache(cacheKey, processedData);
+    return processedData;
+  } catch (error) {
+    console.error(`Error fetching historical data for ${coinId}:`, error);
+    toast({
+      title: "Data Fetch Error",
+      description: "Failed to fetch historical price data. Using fallback data.",
+      variant: "destructive",
+    });
+    
+    // Return fallback historical data
+    return generateFallbackHistoricalData(days);
+  }
+}
+
+/**
+ * Convert raw API data to CoinOption format
+ */
+export function convertToCoinOptions(data: any[]): CoinOption[] {
+  return data.map(coin => ({
     id: coin.id,
     name: coin.name,
-    symbol: coin.symbol,
-    price: coin.price,
+    symbol: coin.symbol.toUpperCase(),
+    price: coin.current_price || 0,
+    priceChange: coin.price_change_24h || 0,
+    changePercent: coin.price_change_percentage_24h || 0,
+    marketCap: coin.market_cap,
+    volume: coin.total_volume,
+    image: coin.image,
     value: coin.id,
-    label: `${coin.name} (${coin.symbol})`
+    label: coin.name
   }));
-};
+}
 
-export const formatPrice = (price: number, currency: string = 'AUD'): string => {
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: currency
-  }).format(price);
-};
+/**
+ * Generate fallback data when API fails
+ */
+function generateFallbackData(count: number): CoinOption[] {
+  const fallbackCoins = [
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1500, changePercent: 3.0, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 100, changePercent: 3.3, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
+    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 120, priceChange: 5, changePercent: 4.2, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
+    { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 1.2, priceChange: 0.05, changePercent: 4.1, image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png' },
+    { id: 'ripple', name: 'XRP', symbol: 'XRP', price: 0.75, priceChange: 0.02, changePercent: 2.7, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' },
+    { id: 'polkadot', name: 'Polkadot', symbol: 'DOT', price: 22, priceChange: 0.8, changePercent: 3.6, image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png' },
+    { id: 'polygon', name: 'Polygon', symbol: 'MATIC', price: 1.8, priceChange: 0.09, changePercent: 5.0, image: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png' },
+    { id: 'avalanche', name: 'Avalanche', symbol: 'AVAX', price: 85, priceChange: 3.2, changePercent: 3.8, image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png' },
+    { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', price: 28, priceChange: 1.1, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png' },
+    { id: 'uniswap', name: 'Uniswap', symbol: 'UNI', price: 18, priceChange: 0.7, changePercent: 3.9, image: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png' },
+  ];
+  
+  // Return requested number of coins
+  const result = fallbackCoins.slice(0, count).map(coin => ({
+    ...coin,
+    value: coin.id,
+    label: coin.name
+  }));
+  
+  return result;
+}
+
+/**
+ * Generate fallback data for a specific coin
+ */
+function generateFallbackCoin(coinId: string, index: number = 0): CryptoData {
+  const fallbackCoins = [
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 50000, priceChange: 1500, changePercent: 3.0, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3000, priceChange: 100, changePercent: 3.3, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
+    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 120, priceChange: 5, changePercent: 4.2, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
+  ];
+  
+  const fallbackCoin = fallbackCoins.find(coin => coin.id === coinId);
+  
+  if (fallbackCoin) {
+    return { ...fallbackCoin };
+  }
+  
+  // If coin not found in fallback list, generate a random one
+  return {
+    id: coinId,
+    name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+    symbol: coinId.substring(0, 3).toUpperCase(),
+    price: 10 + Math.random() * 90,
+    priceChange: Math.random() * 10 - 5,
+    changePercent: Math.random() * 10 - 5,
+    image: undefined
+  };
+}
+
+/**
+ * Generate fallback historical data
+ */
+function generateFallbackHistoricalData(days: number): { timestamps: number[]; prices: number[] } {
+  const timestamps: number[] = [];
+  const prices: number[] = [];
+  const now = Date.now();
+  const dayInMs = 24 * 60 * 60 * 1000;
+  let price = 100; // Starting price
+  
+  for (let i = days; i >= 0; i--) {
+    timestamps.push(now - i * dayInMs);
+    price = price * (1 + (Math.random() * 0.1 - 0.05)); // Random price change ±5%
+    prices.push(price);
+  }
+  
+  return { timestamps, prices };
+}

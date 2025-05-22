@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export interface WidgetListProps {
+interface WidgetListProps {
   widgets: Widget[];
-  onRemoveWidget?: (id: string) => void;
+  onRemove?: (id: string) => void;
 }
 
 const WidgetList: React.FC<WidgetListProps> = ({
   widgets,
-  onRemoveWidget
+  onRemove
 }) => {
   return (
     <div className="space-y-4">
@@ -26,12 +26,12 @@ const WidgetList: React.FC<WidgetListProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{widget.type}</Badge>
-              {onRemoveWidget && (
+              {onRemove && (
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full"
-                  onClick={() => onRemoveWidget(widget.id)}
+                  onClick={() => onRemove(widget.id)}
                 >
                   <X className="h-4 w-4" />
                 </Button>

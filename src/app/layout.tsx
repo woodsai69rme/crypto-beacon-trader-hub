@@ -1,4 +1,5 @@
 
+// Assuming this is the main application layout
 import React from 'react';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
