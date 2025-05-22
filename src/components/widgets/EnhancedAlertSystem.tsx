@@ -1,533 +1,483 @@
+import React, { useState, useEffect } from 'react';
+import { AlertData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, NotificationMethod, TechnicalAlertFormData } from '@/types/alerts';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
+import { AlertTriangle, Bell, Info, Plus, Settings, Trash2 } from 'lucide-react';
+import { COIN_OPTIONS, TECHNICAL_INDICATORS, TECHNICAL_CONDITIONS } from '@/components/widgets/AlertComponents/AlertTypes';
 
-import React, { useState, useEffect } from "react";
-import { Bell, Plus, Trash, Check, X, ArrowUp, ArrowDown, Settings, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { 
-  Sheet, 
-  SheetTrigger, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetFooter 
-} from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
-import { Separator } from "@/components/ui/separator";
-import { useCurrencyConverter } from "@/hooks/use-currency-converter";
-import { PriceAlert, VolumeAlert, AlertFrequency, TechnicalAlertFormData } from "@/types/alerts";
-import { COIN_OPTIONS } from "./AlertComponents/AlertTypes";
-import PriceAlertForm from "./AlertComponents/PriceAlertForm";
-import VolumeAlertForm from "./AlertComponents/VolumeAlertForm";
-import TechnicalAlertForm from "./AlertComponents/TechnicalAlertForm";
-import AlertList from "./AlertComponents/AlertList";
-
-interface TechnicalAlert {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  indicator: string;
-  condition: string;
-  value: number;
-  createdAt: Date;
-  enabled: boolean;
-  type: 'technical';
-}
-
-type AlertWithType = 
-  | (PriceAlert & { type: 'price' })
-  | (VolumeAlert & { type: 'volume' })
-  | (TechnicalAlert & { type: 'technical' });
-
-export const createPriceAlert = (formData: any): PriceAlert => {
-  return {
-    id: `alert-${Date.now()}`,
-    createdAt: new Date(),
-    coinId: formData.coinId,
-    coinName: formData.coinName,
-    coinSymbol: formData.coinSymbol,
-    targetPrice: formData.targetPrice,
-    isAbove: formData.isAbove,
+// Define dummy alerts for testing
+const DUMMY_ALERTS: AlertData[] = [
+  {
+    id: 'price-alert-1',
+    type: 'price',
+    coinId: 'bitcoin',
+    coinName: 'Bitcoin',
+    coinSymbol: 'BTC',
     enabled: true,
-    recurring: formData.recurring,
-    percentageChange: formData.percentageChange || 0,
-    notifyVia: formData.notifyVia as ("email" | "app" | "push")[],
-    type: 'price'
-  };
-};
-
-const EnhancedAlertSystem = () => {
-  const { formatValue } = useCurrencyConverter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("price");
-  const [activeFilterTab, setActiveFilterTab] = useState<string>("all");
-  const [alertsEnabled, setAlertsEnabled] = useState(true);
-  
-  // Price alert state
-  const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([]);
-  const [newPriceAlert, setNewPriceAlert] = useState({
-    coinId: "bitcoin",
-    coinName: "Bitcoin",
-    coinSymbol: "BTC",
-    targetPrice: 0,
+    notifyVia: ['app', 'email'],
+    frequency: 'once',
+    createdAt: new Date().toISOString(),
+    targetPrice: 60000,
     isAbove: true,
-    enabled: true,
     recurring: false,
-    percentageChange: 0,
-    notifyVia: ["app"] as ("email" | "app" | "push")[],
-    type: 'price' as const
-  });
-
-  // Volume alert state
-  const [volumeAlerts, setVolumeAlerts] = useState<VolumeAlert[]>([]);
-  const [newVolumeAlert, setNewVolumeAlert] = useState({
-    coinId: "bitcoin",
-    coinName: "Bitcoin",
-    coinSymbol: "BTC",
-    volumeThreshold: 15,
-    frequency: "1h" as AlertFrequency,
+    percentageChange: 0
+  } as PriceAlert,
+  {
+    id: 'vol-alert-1',
+    type: 'volume',
+    coinId: 'ethereum',
+    coinName: 'Ethereum',
+    coinSymbol: 'ETH',
     enabled: true,
-    notifyVia: ["app"] as ("email" | "app" | "push")[],
-    type: 'volume' as const
-  });
+    notifyVia: ['app'],
+    frequency: 'daily',
+    createdAt: new Date().toISOString(),
+    volumeThreshold: 25
+  } as VolumeAlert,
+  {
+    id: 'tech-alert-1',
+    type: 'technical',
+    coinId: 'solana',
+    coinName: 'Solana',
+    coinSymbol: 'SOL',
+    enabled: false,
+    notifyVia: ['app', 'push'],
+    frequency: 'once',
+    createdAt: new Date().toISOString(),
+    indicator: 'RSI',
+    condition: 'below',
+    value: 30,
+    timeframe: '1d'
+  } as TechnicalAlert
+];
 
-  // Technical alert state
-  const [technicalAlerts, setTechnicalAlerts] = useState<TechnicalAlert[]>([]);
-  const [newTechnicalAlert, setNewTechnicalAlert] = useState({
-    coinId: "bitcoin",
-    coinName: "Bitcoin",
-    coinSymbol: "BTC",
-    indicator: "RSI",
-    condition: "above",
-    value: 70,
-    enabled: true,
-    type: 'technical' as const
-  });
+const EnhancedAlertSystem: React.FC = () => {
+  // State management
+  const [alertType, setAlertType] = useState<'price' | 'volume' | 'technical'>('price');
+  const [alerts, setAlerts] = useState<AlertData[]>(DUMMY_ALERTS);
+  const [selectedCoin, setSelectedCoin] = useState<string>('bitcoin');
+  const [frequency, setFrequency] = useState<AlertFrequency>('once');
+  const [notificationMethods, setNotificationMethods] = useState<NotificationMethod[]>(['app']);
+  const [activeTab, setActiveTab] = useState<string>('price');
+  const [priceValue, setPriceValue] = useState<string>('');
+  const [isAbovePrice, setIsAbovePrice] = useState<boolean>(true);
+  const [volumeThreshold, setVolumeThreshold] = useState<string>('');
+  const [technicalIndicator, setTechnicalIndicator] = useState<string>('RSI');
+  const [technicalCondition, setTechnicalCondition] = useState<string>('above');
+  const [technicalValue, setTechnicalValue] = useState<string>('');
+  const [technicalTimeframe, setTechnicalTimeframe] = useState<string>('1d');
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   
-  // Load alerts from localStorage
+  const { toast } = useToast();
+  
   useEffect(() => {
-    const savedPriceAlerts = localStorage.getItem("priceAlerts");
-    const savedVolumeAlerts = localStorage.getItem("volumeAlerts");
-    const savedTechnicalAlerts = localStorage.getItem("technicalAlerts");
-    const savedAlertsEnabled = localStorage.getItem("alertsEnabled");
-    
-    if (savedPriceAlerts) {
-      try {
-        setPriceAlerts(JSON.parse(savedPriceAlerts));
-      } catch (error) {
-        console.error("Failed to load price alerts:", error);
-      }
+    // Reset form when alert type changes
+    if (activeTab !== alertType) {
+      setActiveTab(alertType);
     }
-    
-    if (savedVolumeAlerts) {
-      try {
-        setVolumeAlerts(JSON.parse(savedVolumeAlerts));
-      } catch (error) {
-        console.error("Failed to load volume alerts:", error);
-      }
-    }
-    
-    if (savedTechnicalAlerts) {
-      try {
-        setTechnicalAlerts(JSON.parse(savedTechnicalAlerts));
-      } catch (error) {
-        console.error("Failed to load technical alerts:", error);
-      }
-    }
-    
-    if (savedAlertsEnabled) {
-      setAlertsEnabled(JSON.parse(savedAlertsEnabled));
-    }
-  }, []);
-
-  // Save alerts to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem("priceAlerts", JSON.stringify(priceAlerts));
-    localStorage.setItem("volumeAlerts", JSON.stringify(volumeAlerts));
-    localStorage.setItem("technicalAlerts", JSON.stringify(technicalAlerts));
-    localStorage.setItem("alertsEnabled", JSON.stringify(alertsEnabled));
-  }, [priceAlerts, volumeAlerts, technicalAlerts, alertsEnabled]);
+  }, [alertType, activeTab]);
   
-  // Check alerts against current prices (simulation)
-  useEffect(() => {
-    if (!alertsEnabled) return;
-    
-    const checkInterval = setInterval(() => {
-      const currentPrices = { 
-        bitcoin: Math.random() * 50000 + 20000,
-        ethereum: Math.random() * 3000 + 1500,
-        solana: Math.random() * 100 + 50,
-        cardano: Math.random() * 1 + 0.3,
-        ripple: Math.random() * 1 + 0.3
-      };
-      
-      priceAlerts.forEach(alert => {
-        if (!alert.enabled) return;
-        
-        const currentPrice = currentPrices[alert.coinId as keyof typeof currentPrices];
-        if (currentPrice && 
-            ((alert.isAbove && currentPrice > alert.targetPrice) || 
-             (!alert.isAbove && currentPrice < alert.targetPrice))) {
-          toast({
-            title: "Price Alert!",
-            description: `${alert.coinName} is now ${alert.isAbove ? "above" : "below"} ${formatValue(alert.targetPrice)}`,
-          });
-          
-          if (!alert.recurring) {
-            setPriceAlerts(prev => 
-              prev.map(a => a.id === alert.id ? {...a, enabled: false} : a)
-            );
-          }
-        }
-      });
-      
-      volumeAlerts.forEach(alert => {
-        if (!alert.enabled) return;
-        
-        if (Math.random() > 0.95) {
-          const currentVolume = alert.volumeThreshold * 1.2;
-          toast({
-            title: "Volume Alert!",
-            description: `${alert.coinName} ${alert.frequency} volume increased by ${currentVolume.toFixed(1)}%`,
-          });
-        }
-      });
-      
-      technicalAlerts.forEach(alert => {
-        if (!alert.enabled) return;
-        
-        if (Math.random() > 0.95) {
-          toast({
-            title: "Technical Alert!",
-            description: `${alert.coinName} ${alert.indicator} is now ${alert.condition} ${alert.value}`,
-          });
-        }
-      });
-    }, 30000);
-    
-    return () => clearInterval(checkInterval);
-  }, [priceAlerts, volumeAlerts, technicalAlerts, alertsEnabled, formatValue]);
-  
-  const addPriceAlert = () => {
-    if (newPriceAlert.targetPrice <= 0) {
-      toast({
-        title: "Invalid Price",
-        description: "Please enter a valid price target",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const alert: PriceAlert = {
-      id: Date.now().toString(),
-      coinId: newPriceAlert.coinId,
-      coinName: newPriceAlert.coinName,
-      coinSymbol: newPriceAlert.coinSymbol,
-      targetPrice: newPriceAlert.targetPrice,
-      isAbove: newPriceAlert.isAbove,
-      enabled: true,
-      recurring: newPriceAlert.recurring,
-      percentageChange: newPriceAlert.percentageChange,
-      notifyVia: [...newPriceAlert.notifyVia],
-      createdAt: new Date(),
-      type: 'price'
-    };
-    
-    setPriceAlerts([...priceAlerts, alert]);
-    setNewPriceAlert({
-      ...newPriceAlert,
-      targetPrice: 0
-    });
-    
-    toast({
-      title: "Alert Created",
-      description: `You'll be notified when ${alert.coinName} is ${alert.isAbove ? "above" : "below"} ${formatValue(alert.targetPrice)}`,
-    });
-  };
-  
-  const addVolumeAlert = () => {
-    if (newVolumeAlert.volumeThreshold <= 0) {
-      toast({
-        title: "Invalid Volume Threshold",
-        description: "Please enter a valid volume percentage",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const alert: VolumeAlert = {
-      id: Date.now().toString(),
-      coinId: newVolumeAlert.coinId,
-      coinName: newVolumeAlert.coinName,
-      coinSymbol: newVolumeAlert.coinSymbol,
-      volumeThreshold: newVolumeAlert.volumeThreshold,
-      frequency: newVolumeAlert.frequency,
-      enabled: true,
-      notifyVia: [...newVolumeAlert.notifyVia],
-      createdAt: new Date(),
-      type: 'volume'
-    };
-    
-    setVolumeAlerts([...volumeAlerts, alert]);
-    
-    toast({
-      title: "Volume Alert Created",
-      description: `You'll be notified when ${alert.coinName} ${alert.frequency} volume increases by ${alert.volumeThreshold}%`,
-    });
-  };
-  
-  const addTechnicalAlert = () => {
-    const alert: TechnicalAlert = {
-      id: Date.now().toString(),
-      ...newTechnicalAlert,
-      createdAt: new Date(),
-      type: 'technical'
-    };
-    
-    setTechnicalAlerts([...technicalAlerts, alert]);
-    
-    toast({
-      title: "Technical Alert Created",
-      description: `You'll be notified when ${alert.coinName} ${alert.indicator} is ${alert.condition} ${alert.value}`,
-    });
-  };
-  
-  const removePriceAlert = (id: string) => {
-    setPriceAlerts(alerts => alerts.filter(alert => alert.id !== id));
-    toast({
-      title: "Alert Removed",
-      description: "Price alert has been removed",
-    });
-  };
-  
-  const removeVolumeAlert = (id: string) => {
-    setVolumeAlerts(alerts => alerts.filter(alert => alert.id !== id));
-    toast({
-      title: "Alert Removed",
-      description: "Volume alert has been removed",
-    });
-  };
-  
-  const removeTechnicalAlert = (id: string) => {
-    setTechnicalAlerts(alerts => alerts.filter(alert => alert.id !== id));
-    toast({
-      title: "Alert Removed",
-      description: "Technical alert has been removed",
-    });
-  };
-  
-  const toggleAlertEnabled = (type: 'price' | 'volume' | 'technical', id: string) => {
-    if (type === 'price') {
-      setPriceAlerts(alerts => 
-        alerts.map(alert => 
-          alert.id === id ? {...alert, enabled: !alert.enabled} : alert
-        )
-      );
-    } else if (type === 'volume') {
-      setVolumeAlerts(alerts => 
-        alerts.map(alert => 
-          alert.id === id ? {...alert, enabled: !alert.enabled} : alert
-        )
-      );
-    } else if (type === 'technical') {
-      setTechnicalAlerts(alerts => 
-        alerts.map(alert => 
-          alert.id === id ? {...alert, enabled: !alert.enabled} : alert
-        )
-      );
-    }
-  };
-  
-  const toggleGlobalAlerts = () => {
-    setAlertsEnabled(!alertsEnabled);
-    toast({
-      title: alertsEnabled ? "Alerts Disabled" : "Alerts Enabled",
-      description: alertsEnabled 
-        ? "All alerts have been disabled" 
-        : "All alerts have been enabled",
-    });
-  };
-
-  const getTotalAlertsCount = () => {
-    return priceAlerts.length + volumeAlerts.length + technicalAlerts.length;
-  };
-  
-  const getActiveAlertsCount = () => {
-    return priceAlerts.filter(a => a.enabled).length 
-      + volumeAlerts.filter(a => a.enabled).length
-      + technicalAlerts.filter(a => a.enabled).length;
-  };
-  
-  const getFilteredAlerts = () => {
-    switch (activeFilterTab) {
-      case 'all':
-        return [
-          ...priceAlerts.map(a => ({ ...a, type: 'price' as const })),
-          ...volumeAlerts.map(a => ({ ...a, type: 'volume' as const })),
-          ...technicalAlerts.map(a => ({ ...a, type: 'technical' as const }))
-        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case 'active':
-        return [
-          ...priceAlerts.filter(a => a.enabled).map(a => ({ ...a, type: 'price' as const })),
-          ...volumeAlerts.filter(a => a.enabled).map(a => ({ ...a, type: 'volume' as const })),
-          ...technicalAlerts.filter(a => a.enabled).map(a => ({ ...a, type: 'technical' as const }))
-        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case 'price':
-        return priceAlerts.map(a => ({ ...a, type: 'price' as const }))
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case 'volume':
-        return volumeAlerts.map(a => ({ ...a, type: 'volume' as const }))
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case 'technical':
-        return technicalAlerts.map(a => ({ ...a, type: 'technical' as const }))
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      default:
-        return [];
-    }
-  };
-  
-  const handleRemoveAlert = (type: 'price' | 'volume' | 'technical', id: string) => {
-    if (type === 'price') {
-      removePriceAlert(id);
-    } else if (type === 'volume') {
-      removeVolumeAlert(id);
+  // Handle toggle notifications method
+  const toggleNotificationMethod = (method: NotificationMethod) => {
+    if (notificationMethods.includes(method)) {
+      setNotificationMethods(notificationMethods.filter(m => m !== method));
     } else {
-      removeTechnicalAlert(id);
+      setNotificationMethods([...notificationMethods, method]);
     }
   };
   
-  const handleTechnicalAlertChange = (data: Partial<TechnicalAlertFormData>) => {
-    setNewTechnicalAlert((prev) => ({
-      ...prev,
-      ...data
-    }));
+  // Create a price alert
+  const handleCreatePriceAlert = () => {
+    if (!priceValue || isNaN(parseFloat(priceValue))) {
+      toast({ title: 'Invalid price', description: 'Please enter a valid price' });
+      return;
+    }
+    
+    const selectedCoinData = COIN_OPTIONS.find(c => c.id === selectedCoin);
+    if (!selectedCoinData) {
+      toast({ title: 'Invalid coin', description: 'Please select a valid coin' });
+      return;
+    }
+    
+    const newAlert: PriceAlert = {
+      id: `price-alert-${Date.now()}`,
+      type: 'price',
+      coinId: selectedCoinData.id,
+      coinName: selectedCoinData.name,
+      coinSymbol: selectedCoinData.symbol,
+      enabled: true,
+      notifyVia: notificationMethods.length > 0 ? notificationMethods : ['app'],
+      frequency,
+      createdAt: new Date().toISOString(),
+      targetPrice: parseFloat(priceValue),
+      isAbove: isAbovePrice,
+      recurring: frequency !== 'once',
+      percentageChange: 0
+    };
+    
+    setAlerts([...alerts, newAlert]);
+    resetForm();
+    toast({ title: 'Alert created', description: `${selectedCoinData.name} price alert created successfully` });
   };
+  
+  // Create a volume alert
+  const handleCreateVolumeAlert = () => {
+    if (!volumeThreshold || isNaN(parseFloat(volumeThreshold))) {
+      toast({ title: 'Invalid threshold', description: 'Please enter a valid volume threshold' });
+      return;
+    }
+    
+    const selectedCoinData = COIN_OPTIONS.find(c => c.id === selectedCoin);
+    if (!selectedCoinData) {
+      toast({ title: 'Invalid coin', description: 'Please select a valid coin' });
+      return;
+    }
+    
+    const newAlert: VolumeAlert = {
+      id: `volume-alert-${Date.now()}`,
+      type: 'volume',
+      coinId: selectedCoinData.id,
+      coinName: selectedCoinData.name,
+      coinSymbol: selectedCoinData.symbol,
+      enabled: true,
+      notifyVia: notificationMethods.length > 0 ? notificationMethods : ['app'],
+      frequency,
+      createdAt: new Date().toISOString(),
+      volumeThreshold: parseFloat(volumeThreshold)
+    };
+    
+    setAlerts([...alerts, newAlert]);
+    resetForm();
+    toast({ title: 'Alert created', description: `${selectedCoinData.name} volume alert created successfully` });
+  };
+  
+  // Create a technical alert
+  const handleCreateTechnicalAlert = () => {
+    if (!technicalValue || isNaN(parseFloat(technicalValue))) {
+      toast({ title: 'Invalid value', description: 'Please enter a valid indicator value' });
+      return;
+    }
+    
+    const selectedCoinData = COIN_OPTIONS.find(c => c.id === selectedCoin);
+    if (!selectedCoinData) {
+      toast({ title: 'Invalid coin', description: 'Please select a valid coin' });
+      return;
+    }
+    
+    const technicalAlertData: TechnicalAlertFormData = {
+      type: 'technical',
+      coinId: selectedCoinData.id,
+      coinName: selectedCoinData.name,
+      coinSymbol: selectedCoinData.symbol,
+      indicator: technicalIndicator,
+      condition: technicalCondition,
+      value: parseFloat(technicalValue),
+      timeframe: technicalTimeframe,
+      enabled: true,
+      notifyVia: notificationMethods.length > 0 ? notificationMethods : ['app'],
+      frequency
+    };
+    
+    const newAlert: TechnicalAlert = {
+      id: `technical-alert-${Date.now()}`,
+      type: 'technical',
+      coinId: selectedCoinData.id,
+      coinName: selectedCoinData.name,
+      coinSymbol: selectedCoinData.symbol,
+      enabled: true,
+      notifyVia: technicalAlertData.notifyVia,
+      frequency,
+      createdAt: new Date().toISOString(),
+      indicator: technicalAlertData.indicator,
+      condition: technicalAlertData.condition,
+      value: technicalAlertData.value,
+      timeframe: technicalAlertData.timeframe
+    };
+    
+    setAlerts([...alerts, newAlert]);
+    resetForm();
+    toast({ title: 'Alert created', description: `${selectedCoinData.name} technical alert created successfully` });
+  };
+  
+  // Reset form fields
+  const resetForm = () => {
+    setPriceValue('');
+    setVolumeThreshold('');
+    setTechnicalValue('');
+    setNotificationMethods(['app']);
+    setFrequency('once');
+    setIsAbovePrice(true);
+    setTechnicalIndicator('RSI');
+    setTechnicalCondition('above');
+    setTechnicalTimeframe('1d');
+  };
+  
+  // Delete an alert
+  const handleDeleteAlert = (id: string) => {
+    setAlerts(alerts.filter(alert => alert.id !== id));
+    toast({ title: 'Alert deleted', description: 'The alert has been deleted successfully' });
+  };
+  
+  // Toggle alert enabled state
+  const toggleAlertEnabled = (id: string, enabled: boolean) => {
+    setAlerts(alerts.map(alert => 
+      alert.id === id ? { ...alert, enabled } : alert
+    ));
+    toast({ 
+      title: enabled ? 'Alert enabled' : 'Alert disabled',
+      description: `The alert has been ${enabled ? 'enabled' : 'disabled'}`
+    });
+  };
+  
+  // Format alert description for display
+  const getAlertDescription = (alert: AlertData): string => {
+    switch(alert.type) {
+      case 'price':
+        const priceAlert = alert as PriceAlert;
+        return `Price ${priceAlert.isAbove ? 'above' : 'below'} $${priceAlert.targetPrice.toLocaleString()}`;
+      case 'volume':
+        const volumeAlert = alert as VolumeAlert;
+        return `Volume increase over ${volumeAlert.volumeThreshold}%`;
+      case 'technical':
+        const technicalAlert = alert as TechnicalAlert;
+        return `${technicalAlert.indicator} ${technicalAlert.condition} ${technicalAlert.value} (${technicalAlert.timeframe})`;
+      default:
+        return '';
+    }
+  };
+  
+  // Count active alerts
+  const activeAlertCount = alerts.filter(alert => alert.enabled).length;
+  
+  // Set up tabs for different alert types
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setAlertType(value as 'price' | 'volume' | 'technical');
+    resetForm();
+  };
+
   
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {getTotalAlertsCount() > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-              {getActiveAlertsCount()}
-            </span>
-          )}
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="flex flex-row items-center justify-between">
-          <SheetTitle>Price Alerts</SheetTitle>
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Label htmlFor="alerts-enabled" className="text-xs">Alerts {alertsEnabled ? 'On' : 'Off'}</Label>
-            <Switch id="alerts-enabled" checked={alertsEnabled} onCheckedChange={toggleGlobalAlerts} />
+            <Bell className="h-5 w-5" />
+            <CardTitle>Enhanced Alerts</CardTitle>
           </div>
-        </SheetHeader>
-        
-        <div className="mt-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="price">Price</TabsTrigger>
-              <TabsTrigger value="volume">Volume</TabsTrigger>
-              <TabsTrigger value="technical">Technical</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="price" className="space-y-4">
-              <PriceAlertForm 
-                formData={newPriceAlert}
-                setFormData={(data) => {
-                  if (typeof data === 'function') {
-                    setNewPriceAlert(data);
-                  } else {
-                    setNewPriceAlert(prev => ({...prev, ...data}));
-                  }
-                }}
-                onSubmit={addPriceAlert}
-              />
-            </TabsContent>
-            
-            <TabsContent value="volume" className="space-y-4">
-              <VolumeAlertForm 
-                formData={newVolumeAlert}
-                setFormData={(data) => {
-                  if (typeof data === 'function') {
-                    setNewVolumeAlert(data);
-                  } else {
-                    setNewVolumeAlert(prev => ({...prev, ...data}));
-                  }
-                }}
-                onSubmit={addVolumeAlert}
-              />
-            </TabsContent>
-            
-            <TabsContent value="technical" className="space-y-4">
-              <TechnicalAlertForm
-                formData={newTechnicalAlert}
-                setFormData={(data) => {
-                  if (typeof data === 'function') {
-                    setNewTechnicalAlert(data);
-                  } else {
-                    setNewTechnicalAlert(prev => ({...prev, ...data}));
-                  }
-                }}
-                onSubmit={addTechnicalAlert}
-              />
-            </TabsContent>
-          </Tabs>
+          <Button variant="outline" size="sm" onClick={() => setIsOpen(!isOpen)}>
+            <Settings className="h-4 w-4 mr-1" />
+            Settings
+          </Button>
         </div>
-        
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium">Active Alerts</h3>
-            <div className="flex items-center">
-              <Filter className="h-4 w-4 mr-1" />
-              <Tabs value={activeFilterTab} onValueChange={setActiveFilterTab}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="all" className="text-xs px-2">All</TabsTrigger>
-                  <TabsTrigger value="active" className="text-xs px-2">Active</TabsTrigger>
-                  <TabsTrigger value="price" className="text-xs px-2">Price</TabsTrigger>
-                  <TabsTrigger value="volume" className="text-xs px-2">Volume</TabsTrigger>
-                  <TabsTrigger value="technical" className="text-xs px-2">Technical</TabsTrigger>
-                </TabsList>
-              </Tabs>
+        <CardDescription>Set up alerts for price changes, volume spikes, and technical indicators</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="price">Price Alerts</TabsTrigger>
+            <TabsTrigger value="volume">Volume Alerts</TabsTrigger>
+            <TabsTrigger value="technical">Technical Alerts</TabsTrigger>
+          </TabsList>
+          
+          {/* Price Alert Form */}
+          <TabsContent value="price" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="coin">Coin</Label>
+              <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a coin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COIN_OPTIONS.map(coin => (
+                    <SelectItem key={coin.id} value={coin.id}>{coin.name} ({coin.symbol})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="price">Target Price</Label>
+              <Input type="number" id="price" value={priceValue} onChange={(e) => setPriceValue(e.target.value)} placeholder="Enter target price" />
+            </div>
+            <div className="space-y-2">
+              <Label>Condition</Label>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" active={isAbovePrice} onClick={() => setIsAbovePrice(true)}>Above</Button>
+                <Button variant="outline" size="sm" active={!isAbovePrice} onClick={() => setIsAbovePrice(false)}>Below</Button>
+              </div>
+            </div>
+          </TabsContent>
+          
+          {/* Volume Alert Form */}
+          <TabsContent value="volume" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="coin">Coin</Label>
+              <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a coin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COIN_OPTIONS.map(coin => (
+                    <SelectItem key={coin.id} value={coin.id}>{coin.name} ({coin.symbol})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="volume">Volume Threshold (%)</Label>
+              <Input type="number" id="volume" value={volumeThreshold} onChange={(e) => setVolumeThreshold(e.target.value)} placeholder="Enter volume threshold" />
+            </div>
+          </TabsContent>
+          
+          {/* Technical Alert Form */}
+          <TabsContent value="technical" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="coin">Coin</Label>
+              <Select value={selectedCoin} onValueChange={setSelectedCoin}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a coin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COIN_OPTIONS.map(coin => (
+                    <SelectItem key={coin.id} value={coin.id}>{coin.name} ({coin.symbol})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="indicator">Indicator</Label>
+              <Select value={technicalIndicator} onValueChange={setTechnicalIndicator}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an indicator" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TECHNICAL_INDICATORS.map(indicator => (
+                    <SelectItem key={indicator.id} value={indicator.id}>{indicator.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="condition">Condition</Label>
+              <Select value={technicalCondition} onValueChange={setTechnicalCondition}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TECHNICAL_CONDITIONS.map(condition => (
+                    <SelectItem key={condition.id} value={condition.id}>{condition.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="value">Value</Label>
+              <Input type="number" id="value" value={technicalValue} onChange={(e) => setTechnicalValue(e.target.value)} placeholder="Enter value" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="timeframe">Timeframe</Label>
+              <Select value={technicalTimeframe} onValueChange={setTechnicalTimeframe}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1m">1 Minute</SelectItem>
+                  <SelectItem value="5m">5 Minutes</SelectItem>
+                  <SelectItem value="15m">15 Minutes</SelectItem>
+                  <SelectItem value="30m">30 Minutes</SelectItem>
+                  <SelectItem value="1h">1 Hour</SelectItem>
+                  <SelectItem value="4h">4 Hours</SelectItem>
+                  <SelectItem value="1d">1 Day</SelectItem>
+                  <SelectItem value="1w">1 Week</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">Active Alerts ({activeAlertCount})</h3>
+            {alerts.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setAlerts([])}>
+                Clear All
+              </Button>
+            )}
           </div>
           
-          <AlertList 
-            alerts={getFilteredAlerts()}
-            onToggleEnabled={toggleAlertEnabled}
-            onRemoveAlert={handleRemoveAlert}
-          />
+          {alerts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <AlertTriangle className="h-12 w-12 text-muted-foreground opacity-20 mb-2" />
+              <p className="text-muted-foreground">No alerts configured yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Create your first alert using the forms above</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {alerts.map(alert => (
+                <div key={alert.id} className="flex items-center justify-between p-3 rounded-md border border-border">
+                  <div className="flex items-start space-x-3">
+                    <div className={`p-1.5 rounded-full ${alert.enabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                      {alert.type === 'price' && <Bell className="h-4 w-4" />}
+                      {alert.type === 'volume' && <AlertTriangle className="h-4 w-4" />}
+                      {alert.type === 'technical' && <Info className="h-4 w-4" />}
+                    </div>
+                    <div>
+                      <p className="font-medium">{alert.coinName} ({alert.coinSymbol})</p>
+                      <p className="text-sm text-muted-foreground">{getAlertDescription(alert)}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        <span className="inline-flex items-center text-xs bg-muted px-1.5 py-0.5 rounded">
+                          {alert.frequency}
+                        </span>
+                        {alert.notifyVia.map(method => (
+                          <span key={method} className="inline-flex items-center text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {method}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      checked={alert.enabled} 
+                      onCheckedChange={(checked) => toggleAlertEnabled(alert.id, checked)} 
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteAlert(alert.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        
-        <SheetFooter className="mt-4 flex-row items-center justify-between border-t pt-4">
-          <div className="text-xs text-muted-foreground">
-            {getTotalAlertsCount()} alerts • {getActiveAlertsCount()} active
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => {
-              if(confirm("Are you sure you want to clear all alerts?")) {
-                setPriceAlerts([]);
-                setVolumeAlerts([]);
-                setTechnicalAlerts([]);
-                toast({
-                  title: "Alerts Cleared",
-                  description: "All alerts have been removed",
-                });
-              }
-            }}>
-              Clear All
-            </Button>
-            <Button size="sm">
-              <Settings className="h-4 w-4 mr-1" />
-              Settings
-            </Button>
-          </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+      </CardContent>
+      <CardFooter className="flex justify-between border-t pt-4">
+        <Button 
+          variant="outline" 
+          onClick={resetForm}
+        >
+          Reset Form
+        </Button>
+        <Button 
+          onClick={() => {
+            switch(alertType) {
+              case 'price': handleCreatePriceAlert(); break;
+              case 'volume': handleCreateVolumeAlert(); break;
+              case 'technical': handleCreateTechnicalAlert(); break;
+            }
+          }}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Create Alert
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

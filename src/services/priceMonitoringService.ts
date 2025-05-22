@@ -1,104 +1,174 @@
 
-import type { CoinOption } from "@/types/trading";
+import { CoinOption } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
 
-type UpdateCallback = (updatedPrices: CoinOption[]) => void;
-
-// Cache to store the latest prices
-let latestPrices: Record<string, CoinOption> = {};
-
-// Default price variations in percentage (for simulating real-time changes)
-const DEFAULT_PRICE_VARIATIONS: Record<string, number> = {
-  bitcoin: 0.5,  // 0.5% variation
-  ethereum: 0.7, // 0.7% variation
-  solana: 1.2,   // 1.2% variation
-  cardano: 1.0,  // 1.0% variation
-  ripple: 0.8,   // 0.8% variation
-  dogecoin: 1.5, // 1.5% variation
-};
-
-/**
- * Function to simulate price updates for specified coins
- * @param coinIds List of coin IDs to monitor
- * @param callback Function to call with updated prices
- * @param interval How often to update prices in milliseconds
- * @returns Function to stop monitoring
- */
-export function startPriceMonitoring(
-  coinIds: string[],
-  callback: UpdateCallback,
-  interval: number = 10000
-): () => void {
-  // Initialize our prices if empty
-  if (Object.keys(latestPrices).length === 0) {
-    initializeDefaultPrices();
+// Mock service to simulate real-time price updates
+class PriceMonitoringService {
+  private intervalId: number | null = null;
+  private subscribers: Array<(data: CoinOption[]) => void> = [];
+  private mockPrices: Record<string, number> = {
+    bitcoin: 65000,
+    ethereum: 3500,
+    solana: 140,
+    cardano: 0.45,
+    ripple: 0.55,
+    dogecoin: 0.12
+  };
+  
+  private mockChangePercents: Record<string, number> = {
+    bitcoin: 2.5,
+    ethereum: 3.8,
+    solana: 5.2,
+    cardano: -1.3,
+    ripple: 4.1,
+    dogecoin: -2.4
+  };
+  
+  // Start monitoring with a given interval in ms
+  startMonitoring(intervalMs = 10000): void {
+    if (this.intervalId !== null) {
+      console.warn('Price monitoring already started');
+      return;
+    }
+    
+    // Initial notification
+    this.notifySubscribers();
+    
+    // Set up interval for regular updates
+    this.intervalId = window.setInterval(() => {
+      this.updatePrices();
+      this.notifySubscribers();
+    }, intervalMs);
+    
+    console.log(`Price monitoring started with ${intervalMs}ms interval`);
   }
-
-  // Function to update prices with random variations
-  const updatePrices = () => {
-    const updatedCoins: CoinOption[] = [];
-
-    coinIds.forEach(coinId => {
-      if (latestPrices[coinId]) {
-        const coin = { ...latestPrices[coinId] };
-        const variation = DEFAULT_PRICE_VARIATIONS[coinId] || 0.5;
-        
-        // Random price change between -variation% and +variation%
-        const changePercent = (Math.random() * variation * 2) - variation;
-        const newPrice = coin.price * (1 + changePercent / 100);
-        
-        // Update the coin price
-        coin.price = parseFloat(newPrice.toFixed(2));
-        
-        // Update cached price
-        latestPrices[coinId] = coin;
-        updatedCoins.push(coin);
+  
+  // Stop price monitoring
+  stopMonitoring(): void {
+    if (this.intervalId === null) {
+      console.warn('Price monitoring not started');
+      return;
+    }
+    
+    window.clearInterval(this.intervalId);
+    this.intervalId = null;
+    console.log('Price monitoring stopped');
+  }
+  
+  // Subscribe to price updates
+  subscribe(callback: (data: CoinOption[]) => void): () => void {
+    this.subscribers.push(callback);
+    
+    // Immediately provide current data to the new subscriber
+    callback(this.getCurrentPrices());
+    
+    // Return unsubscribe function
+    return () => {
+      this.subscribers = this.subscribers.filter(cb => cb !== callback);
+    };
+  }
+  
+  // Get current coin prices
+  getCurrentPrices(): CoinOption[] {
+    return [
+      {
+        id: 'bitcoin',
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        price: this.mockPrices.bitcoin,
+        changePercent: this.mockChangePercents.bitcoin,
+        value: 'bitcoin',
+        label: 'Bitcoin (BTC)'
+      },
+      {
+        id: 'ethereum',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        price: this.mockPrices.ethereum,
+        changePercent: this.mockChangePercents.ethereum,
+        value: 'ethereum',
+        label: 'Ethereum (ETH)'
+      },
+      {
+        id: 'solana',
+        name: 'Solana',
+        symbol: 'SOL',
+        price: this.mockPrices.solana,
+        changePercent: this.mockChangePercents.solana,
+        value: 'solana',
+        label: 'Solana (SOL)'
+      },
+      {
+        id: 'cardano',
+        name: 'Cardano',
+        symbol: 'ADA',
+        price: this.mockPrices.cardano,
+        changePercent: this.mockChangePercents.cardano,
+        value: 'cardano',
+        label: 'Cardano (ADA)'
+      },
+      {
+        id: 'ripple',
+        name: 'XRP',
+        symbol: 'XRP',
+        price: this.mockPrices.ripple,
+        changePercent: this.mockChangePercents.ripple,
+        value: 'ripple',
+        label: 'XRP (XRP)'
+      },
+      {
+        id: 'dogecoin',
+        name: 'Dogecoin',
+        symbol: 'DOGE',
+        price: this.mockPrices.dogecoin,
+        changePercent: this.mockChangePercents.dogecoin,
+        value: 'dogecoin',
+        label: 'Dogecoin (DOGE)'
+      }
+    ];
+  }
+  
+  // Create a random price update
+  private updatePrices(): void {
+    const coins = Object.keys(this.mockPrices);
+    
+    // Update each coin with small random changes
+    coins.forEach(coin => {
+      // Random price change between -2% and +2%
+      const changePercent = (Math.random() * 4) - 2;
+      const currentPrice = this.mockPrices[coin];
+      const newPrice = currentPrice * (1 + changePercent / 100);
+      
+      // Update mock data
+      this.mockPrices[coin] = Number(newPrice.toFixed(newPrice < 1 ? 4 : 2));
+      this.mockChangePercents[coin] = Number((this.mockChangePercents[coin] * 0.8 + changePercent * 0.2).toFixed(2));
+    });
+    
+    // Simulate a price alert occasionally (roughly 1 in 10 updates)
+    if (Math.random() < 0.1) {
+      const randomCoin = coins[Math.floor(Math.random() * coins.length)];
+      const priceChange = this.mockChangePercents[randomCoin] > 0 ? "increased" : "decreased";
+      
+      toast({
+        title: `${randomCoin.charAt(0).toUpperCase() + randomCoin.slice(1)} Alert`,
+        description: `Price has ${priceChange} by ${Math.abs(this.mockChangePercents[randomCoin]).toFixed(1)}%`,
+        variant: this.mockChangePercents[randomCoin] > 0 ? "default" : "destructive"
+      });
+    }
+  }
+  
+  // Notify all subscribers with current price data
+  private notifySubscribers(): void {
+    const currentPrices = this.getCurrentPrices();
+    this.subscribers.forEach(callback => {
+      try {
+        callback(currentPrices);
+      } catch (error) {
+        console.error('Error in price update subscriber:', error);
       }
     });
-
-    // Call the callback with updated prices
-    if (updatedCoins.length > 0) {
-      callback(updatedCoins);
-    }
-  };
-
-  // Start interval for price updates
-  const intervalId = window.setInterval(updatePrices, interval);
-  
-  // Return function to stop monitoring
-  return () => {
-    window.clearInterval(intervalId);
-  };
+  }
 }
 
-// Initialize default prices for common cryptocurrencies
-function initializeDefaultPrices() {
-  const defaultCoins: CoinOption[] = [
-    { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 61245.32 },
-    { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3010.45 },
-    { id: "solana", name: "Solana", symbol: "SOL", price: 142.87 },
-    { id: "cardano", name: "Cardano", symbol: "ADA", price: 0.45 },
-    { id: "ripple", name: "XRP", symbol: "XRP", price: 0.57 },
-    { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.14 },
-  ];
-
-  defaultCoins.forEach(coin => {
-    latestPrices[coin.id] = coin;
-  });
-}
-
-/**
- * Get the current price for a specific coin
- * @param coinId ID of the coin
- * @returns The coin data or undefined if not found
- */
-export function getCoinPrice(coinId: string): CoinOption | undefined {
-  return latestPrices[coinId];
-}
-
-/**
- * Get all currently cached coin prices
- * @returns Array of all cached coin prices
- */
-export function getAllCoinPrices(): CoinOption[] {
-  return Object.values(latestPrices);
-}
+// Create singleton instance
+export const priceMonitor = new PriceMonitoringService();

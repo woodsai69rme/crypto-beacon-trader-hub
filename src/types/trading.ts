@@ -389,6 +389,16 @@ export interface AITradingStrategy {
   riskLevel: 'low' | 'medium' | 'high';
   parameters?: Record<string, any>;
   indicators?: string[];
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    totalTrades?: number;
+    averageProfit?: number;
+    maxDrawdown?: number;
+    accuracy?: number;
+    returns?: number;
+    sharpeRatio?: number;
+  };
 }
 
 export interface AITradingBot {
@@ -513,6 +523,22 @@ export interface BacktestResults {
   sharpeRatio: number;
   maxDrawdown: number;
   trades: any[];
+}
+
+export interface OptimizationResult {
+  parameters: Record<string, any>;
+  performance: {
+    winRate: number;
+    profitLoss: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface PortfolioBenchmark {
+  name: string;
+  data: number[];
+  color: string;
 }
 
 export interface FibonacciAnalysisProps {

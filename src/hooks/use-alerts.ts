@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency } from '@/types/alerts';
+import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, NotificationMethod } from '@/types/alerts';
 import { v4 as uuidv4 } from 'uuid';
 
 export const useAlerts = () => {
