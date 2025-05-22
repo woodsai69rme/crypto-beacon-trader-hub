@@ -1,114 +1,138 @@
 
 import { useState, useEffect } from 'react';
-import { AlertData, AlertFormData, PriceAlert, VolumeAlert, TechnicalAlert, AlertFrequency, NotificationMethod } from '@/types/alerts';
 import { v4 as uuidv4 } from 'uuid';
+import { 
+  AlertData, 
+  AlertFormData, 
+  PriceAlert, 
+  VolumeAlert, 
+  TechnicalAlert,
+  AlertType
+} from '@/types/alerts';
+import { toast } from '@/components/ui/use-toast';
 
 export const useAlerts = () => {
   const [alerts, setAlerts] = useState<AlertData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load alerts from localStorage on component mount
+  // Load alerts from localStorage on mount
   useEffect(() => {
-    const savedAlerts = localStorage.getItem('crypto-alerts');
-    if (savedAlerts) {
+    const loadAlerts = () => {
       try {
-        setAlerts(JSON.parse(savedAlerts));
+        const savedAlerts = localStorage.getItem('crypto-alerts');
+        if (savedAlerts) {
+          setAlerts(JSON.parse(savedAlerts));
+        }
       } catch (error) {
-        console.error('Error loading alerts from localStorage:', error);
+        console.error('Failed to load alerts:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your alerts',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    loadAlerts();
   }, []);
 
   // Save alerts to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('crypto-alerts', JSON.stringify(alerts));
-  }, [alerts]);
+    if (!isLoading) {
+      try {
+        localStorage.setItem('crypto-alerts', JSON.stringify(alerts));
+      } catch (error) {
+        console.error('Failed to save alerts:', error);
+      }
+    }
+  }, [alerts, isLoading]);
 
-  const addAlert = (formData: AlertFormData): AlertData => {
-    const now = new Date().toISOString();
+  const createAlert = (formData: AlertFormData): AlertData => {
+    const baseAlert = {
+      id: uuidv4(),
+      coinId: formData.coinId,
+      coinName: formData.coinName,
+      coinSymbol: formData.coinSymbol,
+      enabled: formData.enabled,
+      notifyVia: formData.notifyVia || ['app'],
+      frequency: formData.frequency || 'once',
+      createdAt: new Date().toISOString(),
+    };
+
     let newAlert: AlertData;
 
-    // Create the appropriate alert type
     switch (formData.type) {
       case 'price':
         newAlert = {
-          id: uuidv4(),
+          ...baseAlert,
           type: 'price',
-          coinId: formData.coinId,
-          coinName: formData.coinName,
-          coinSymbol: formData.coinSymbol,
-          enabled: formData.enabled,
-          notifyVia: formData.notifyVia,
-          frequency: formData.frequency || 'once',
-          createdAt: now,
           targetPrice: formData.targetPrice || 0,
-          isAbove: formData.isAbove || false,
-          recurring: formData.recurring || false,
-          percentageChange: formData.percentageChange || 0
+          isAbove: formData.isAbove ?? true,
+          recurring: formData.recurring ?? false,
+          percentageChange: formData.percentageChange || 0,
         } as PriceAlert;
         break;
-      
       case 'volume':
         newAlert = {
-          id: uuidv4(),
+          ...baseAlert,
           type: 'volume',
-          coinId: formData.coinId,
-          coinName: formData.coinName,
-          coinSymbol: formData.coinSymbol,
-          enabled: formData.enabled,
-          notifyVia: formData.notifyVia,
-          frequency: formData.frequency || 'once',
-          createdAt: now,
-          volumeThreshold: formData.volumeThreshold || 0
+          volumeThreshold: formData.volumeThreshold || 0,
         } as VolumeAlert;
         break;
-      
       case 'technical':
         newAlert = {
-          id: uuidv4(),
+          ...baseAlert,
           type: 'technical',
-          coinId: formData.coinId,
-          coinName: formData.coinName,
-          coinSymbol: formData.coinSymbol,
-          enabled: formData.enabled,
-          notifyVia: formData.notifyVia,
-          frequency: formData.frequency || 'once',
-          createdAt: now,
           indicator: formData.indicator || '',
           condition: formData.condition || '',
           value: formData.value || 0,
-          timeframe: formData.timeframe || ''
+          timeframe: formData.timeframe || '1d',
         } as TechnicalAlert;
         break;
-      
       default:
-        throw new Error(`Invalid alert type: ${formData.type}`);
+        throw new Error(`Unknown alert type: ${formData.type}`);
     }
 
     setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+    
     return newAlert;
   };
 
-  const removeAlert = (alertId: string) => {
-    setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== alertId));
-  };
-
-  const updateAlert = (alertId: string, updates: Partial<AlertData>) => {
-    setAlerts(prevAlerts => 
-      prevAlerts.map(alert => 
-        alert.id === alertId ? { ...alert, ...updates } as AlertData : alert
+  const updateAlert = (id: string, updates: Partial<AlertData>) => {
+    setAlerts((prevAlerts) =>
+      prevAlerts.map((alert) =>
+        alert.id === id ? { ...alert, ...updates } : alert
       )
     );
   };
 
-  const clearAllAlerts = () => {
-    setAlerts([]);
+  const deleteAlert = (id: string) => {
+    setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
+  };
+
+  const getAlertById = (id: string): AlertData | undefined => {
+    return alerts.find((alert) => alert.id === id);
+  };
+
+  const filterAlerts = (type?: AlertType, coinId?: string): AlertData[] => {
+    return alerts.filter(
+      (alert) => 
+        (!type || alert.type === type) && 
+        (!coinId || alert.coinId === coinId)
+    );
   };
 
   return {
     alerts,
-    addAlert,
-    removeAlert,
+    isLoading,
+    createAlert,
     updateAlert,
-    clearAllAlerts
+    deleteAlert,
+    getAlertById,
+    filterAlerts,
   };
 };
+
+export default useAlerts;

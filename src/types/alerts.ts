@@ -1,5 +1,8 @@
 
-import { AlertType, AlertFrequency, NotificationMethod, AlertFormData, BaseAlert, PriceAlert, VolumeAlert, TechnicalAlert, AlertData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts.d';
+import { NotificationMethod, AlertFrequency, BaseAlert, PriceAlert, VolumeAlert, TechnicalAlert, AlertData, BaseAlertFormData, PriceAlertFormData, VolumeAlertFormData, TechnicalAlertFormData } from './alerts.d';
+
+export type AlertType = 'price' | 'volume' | 'technical';
+export type AlertFormData = PriceAlertFormData | VolumeAlertFormData | TechnicalAlertFormData;
 
 export const createEmptyAlertFormData = (): AlertFormData => ({
   type: 'price',
@@ -9,28 +12,23 @@ export const createEmptyAlertFormData = (): AlertFormData => ({
   enabled: true,
   notifyVia: ['app'],
   frequency: 'once',
+  // Price alert specific fields
   targetPrice: 0,
   isAbove: true,
   recurring: false,
   percentageChange: 0,
-  volumeThreshold: 0,
-  indicator: '',
-  condition: '',
-  value: 0,
-  timeframe: ''
 });
 
 // Re-export types
 export type {
-  AlertType,
-  AlertFrequency,
   NotificationMethod,
-  AlertFormData,
+  AlertFrequency,
   BaseAlert,
   PriceAlert,
   VolumeAlert,
   TechnicalAlert,
   AlertData,
+  BaseAlertFormData,
   PriceAlertFormData,
   VolumeAlertFormData,
   TechnicalAlertFormData

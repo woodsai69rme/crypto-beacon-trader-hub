@@ -35,13 +35,33 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: string;
-  timeframe: string;
   riskLevel: string;
+  timeframe: string;
   parameters: {
-    lookbackPeriod: number;
-    stopLoss: number;
-    takeProfit: number;
-    capitalAllocation: number;
+    lookbackPeriod?: number;
+    stopLoss?: number;
+    takeProfit?: number;
+    capitalAllocation?: number;
+    buySignalThreshold?: number;
+    sellSignalThreshold?: number;
+    stopLossPercentage?: number;
+    takeProfitPercentage?: number;
+    maxPositions?: number;
+    entryThreshold?: number;
+    exitThreshold?: number;
+    meanPeriod?: number;
+    entryDeviation?: number;
+    exitDeviation?: number;
+    momentumPeriod?: number;
+    consolidationPeriod?: number;
+    volatilityThreshold?: number;
+    upperLimit?: number;
+    lowerLimit?: number;
+    gridLines?: number;
+    maFast?: number;
+    maSlow?: number;
+    deviationThreshold?: number;
+    [key: string]: any; // Allow for additional custom parameters
   };
   performance?: {
     winRate?: number;
@@ -49,6 +69,10 @@ export interface AITradingStrategy {
     totalTrades?: number;
     averageProfit?: number;
     maxDrawdown?: number;
+    profitLoss?: number;
+    sharpeRatio?: number;
+    accuracy?: number;
+    returns?: number;
   };
   indicators?: string[];
 }
