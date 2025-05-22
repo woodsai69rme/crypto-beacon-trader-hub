@@ -31,6 +31,24 @@ export interface CryptoData {
   market_cap_rank?: number;
   image?: string;
   current_price?: number;
+  volume_24h?: number;
+  fully_diluted_valuation?: number;
+}
+
+export interface CryptoChartData {
+  timestamp: number;
+  price: number;
+  volume?: number;
+}
+
+export interface OpenRouterRequest {
+  model: string;
+  messages: Array<{
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }>;
+  max_tokens?: number;
+  temperature?: number;
 }
 
 export interface Trade {

@@ -69,6 +69,7 @@ export interface PriceAlertFormData extends Omit<AlertFormData, 'type'> {
 export interface VolumeAlertFormData extends Omit<AlertFormData, 'type'> {
   type: 'volume';
   volumeThreshold: number;
+  frequency: AlertFrequency;
 }
 
 export interface TechnicalAlertFormData extends Omit<AlertFormData, 'type'> {
@@ -76,4 +77,6 @@ export interface TechnicalAlertFormData extends Omit<AlertFormData, 'type'> {
   indicator: string;
   condition: string;
   value: number;
+  timeframe: string;
+  notifyVia: NotificationMethod[];
 }

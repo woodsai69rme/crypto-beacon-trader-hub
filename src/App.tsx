@@ -5,14 +5,14 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
 import TradingDashboard from '@/components/TradingDashboard';
-import AiTradingBots from '@/pages/AiTradingBots';
+import AiTradingBots from '@/components/trading/AiTradingBots';
 import { Toaster } from '@/components/ui/toaster';
 import Layout from '@/components/Layout';
 import AiChatAssistant from '@/components/AiChatAssistant';
 
 function App() {
   return (
-    <ThemeProvider>
+    <>
       <Routes>
         <Route path="/" element={
           <Layout>
@@ -37,7 +37,7 @@ function App() {
       </Routes>
       <AiChatAssistant />
       <Toaster />
-    </ThemeProvider>
+    </>
   );
 }
 

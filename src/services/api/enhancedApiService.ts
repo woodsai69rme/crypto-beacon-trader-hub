@@ -1,12 +1,10 @@
+
 import axios, { AxiosInstance } from 'axios';
 import { ApiProvider, ApiEndpoint } from '@/types/api';
 import apiProviders from './apiProviderConfig';
 
-// Fixed import - using the default export from apiProviderConfig
-const defaultProviders = apiProviders;
-
-// Use default providers as initial providers
-let providers: ApiProvider[] = [...defaultProviders];
+// Use providers from apiProviderConfig as initial providers
+let providers: ApiProvider[] = [...apiProviders];
 
 // Generic function to make API requests
 async function makeApiRequest(
@@ -14,7 +12,7 @@ async function makeApiRequest(
   endpointKey: string,
   params: Record<string, string> = {}
 ): Promise<any> {
-  const endpoint: ApiEndpoint | undefined = provider.endpoints[endpointKey];
+  const endpoint = provider.endpoints[endpointKey];
 
   if (!endpoint) {
     throw new Error(`Endpoint ${endpointKey} not found in provider ${provider.name}`);
@@ -31,19 +29,19 @@ async function makeApiRequest(
   const axiosConfig: any = {
     method,
     url,
-    // headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' }
   };
 
   // Set authentication headers or query parameters
   if (provider.authType === 'header' && provider.apiKey) {
     axiosConfig.headers = {
       ...axiosConfig.headers,
-      [provider.authKey]: provider.apiKey
+      [provider.authKey || 'Authorization']: provider.apiKey
     };
   } else if (provider.authType === 'query' && provider.apiKey) {
     axiosConfig.params = {
       ...params,
-      [provider.authKey]: provider.apiKey
+      [provider.authKey || 'api_key']: provider.apiKey
     };
   } else if (provider.authType === 'apiKey' && provider.apiKey) {
     axiosConfig.headers = {
@@ -105,7 +103,7 @@ export const fetchApiData = async (
   params?: Record<string, any>
 ): Promise<any> => {
   // Find the provider and endpoint
-  const provider = defaultProviders.find(p => p.id === providerId);
+  const provider = providers.find(p => p.id === providerId);
   if (!provider) throw new Error(`Provider ${providerId} not found`);
   
   const endpoint = provider.endpoints[endpointId];
