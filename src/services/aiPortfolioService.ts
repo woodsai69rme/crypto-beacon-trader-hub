@@ -1,5 +1,4 @@
-
-import { RiskAssessmentResult, TradingAccount, PortfolioAsset, PortfolioOptimizationResult, OptimizationSettings } from "@/types/trading";
+import { RiskAssessmentResult, TradingAccount, PortfolioAsset, PortfolioOptimizationResult, OptimizationSettings, TradingSignal } from "@/types/trading";
 
 // Mock risk assessment data
 const mockRiskFactors = {
@@ -228,7 +227,110 @@ export const optimizePortfolio = async (
   };
 };
 
+// Function to generate AI-based trading signals
+export const generateTradingSignals = async (
+  account: TradingAccount,
+  options: { limit?: number; minConfidence?: number } = {}
+): Promise<TradingSignal[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1800));
+  
+  const { limit = 8, minConfidence = 60 } = options;
+  const signals: TradingSignal[] = [];
+  
+  // Get available assets from account
+  const assets = account.assets || [];
+  
+  // Generate signals for existing assets (sell signals)
+  for (const asset of assets) {
+    // Only generate signals for some assets to make it more realistic
+    if (Math.random() > 0.6) {
+      const confidence = Math.round(65 + Math.random() * 25);
+      
+      // Only include signals that meet minimum confidence
+      if (confidence >= minConfidence) {
+        const priceChange = asset.priceChange || (asset.price * (Math.random() * 0.1 - 0.05));
+        const isSell = priceChange > 0 && Math.random() > 0.3;
+        
+        if (isSell) {
+          const targetPrice = asset.price * (1 + (Math.random() * 0.05 + 0.02));
+          const stopLoss = asset.price * (1 - (Math.random() * 0.03 + 0.01));
+          
+          signals.push({
+            id: `signal-${Date.now()}-${asset.coinId}-sell`,
+            coinId: asset.coinId,
+            coinSymbol: asset.coinId.substring(0, 3).toUpperCase(),
+            type: 'sell',
+            price: asset.price,
+            strength: confidence,
+            timestamp: new Date().toISOString(),
+            reason: `${asset.coinId.charAt(0).toUpperCase() + asset.coinId.slice(1)} has shown significant gains and technical indicators suggest a local top. Consider taking profits.`,
+            suggestedActions: {
+              entry: asset.price,
+              target: targetPrice,
+              stopLoss: stopLoss
+            }
+          });
+        }
+      }
+    }
+  }
+  
+  // Generate buy signals for potential new assets
+  const potentialCoins = ["bitcoin", "ethereum", "solana", "cardano", "binancecoin", "ripple", "polkadot", "avalanche", "polygon", "chainlink"]
+    .filter(coin => !assets.some(a => a.coinId === coin));
+  
+  for (const coin of potentialCoins) {
+    if (signals.length >= limit) break;
+    
+    // Only generate signals for some coins
+    if (Math.random() > 0.7) {
+      const confidence = Math.round(70 + Math.random() * 20);
+      
+      // Only include signals that meet minimum confidence
+      if (confidence >= minConfidence) {
+        const basePrice = coin === "bitcoin" ? 50000 + Math.random() * 10000 : 
+                        coin === "ethereum" ? 2800 + Math.random() * 400 :
+                        coin === "solana" ? 100 + Math.random() * 30 :
+                        coin === "cardano" ? 0.4 + Math.random() * 0.1 :
+                        coin === "binancecoin" ? 600 + Math.random() * 50 :
+                        coin === "ripple" ? 0.5 + Math.random() * 0.1 :
+                        coin === "polkadot" ? 10 + Math.random() * 5 :
+                        coin === "avalanche" ? 30 + Math.random() * 10 :
+                        coin === "polygon" ? 0.8 + Math.random() * 0.2 :
+                        40 + Math.random() * 10; // chainlink or default
+        
+        const targetPrice = basePrice * (1 + (Math.random() * 0.08 + 0.04));
+        const stopLoss = basePrice * (1 - (Math.random() * 0.05 + 0.02));
+        
+        signals.push({
+          id: `signal-${Date.now()}-${coin}-buy`,
+          coinId: coin,
+          coinSymbol: coin.substring(0, 3).toUpperCase(),
+          type: 'buy',
+          price: basePrice,
+          strength: confidence,
+          timestamp: new Date().toISOString(),
+          reason: `${coin.charAt(0).toUpperCase() + coin.slice(1)} is showing bullish signals with increasing volume and positive price action. Technical indicators suggest potential upward movement.`,
+          suggestedActions: {
+            entry: basePrice,
+            target: targetPrice,
+            stopLoss: stopLoss
+          }
+        });
+      }
+    }
+  }
+  
+  // Sort signals by confidence (strength) in descending order
+  signals.sort((a, b) => b.strength - a.strength);
+  
+  // Limit the number of signals returned
+  return signals.slice(0, limit);
+};
+
 export default {
   assessPortfolioRisk,
-  optimizePortfolio
+  optimizePortfolio,
+  generateTradingSignals
 };
