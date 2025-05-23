@@ -1,4 +1,3 @@
-
 import { CoinOption, CryptoData } from "@/types/trading";
 
 // Mock data for top cryptocurrencies
@@ -107,7 +106,7 @@ export const fetchCryptoData = async (coinId: string): Promise<CryptoData | null
   };
 };
 
-export const fetchMultipleCoinsData = async (coinIds: string[]): Promise<CryptoData[]> => {
+export const fetchMultipleCryptoData = async (coinIds: string[]): Promise<CoinOption[]> => {
   console.info(`Fetching data for multiple coins: ${coinIds.join(', ')}`);
   
   // Simulate API delay
@@ -204,6 +203,7 @@ export const fetchHistoricalPriceData = async (
 export default {
   fetchTopCryptoData,
   fetchCryptoData,
+  fetchMultipleCryptoData, // Add the new function to the default export
   fetchMultipleCoinsData,
   fetchTrendingCoins,
   searchCoins,
