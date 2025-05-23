@@ -1,356 +1,91 @@
 
-import { 
-  Trade, 
-  TradingAccount, 
-  OptimizationSettings, 
-  PortfolioOptimizationResult,
-  RiskAssessmentResult,
-  MarketInsight,
-  TradingSignal
-} from "@/types/trading";
-import { toast } from "@/components/ui/use-toast";
+import { RiskAssessmentResult, TradingAccount, PortfolioAsset, PortfolioOptimizationResult, OptimizationSettings } from "@/types/trading";
 
-// Portfolio Optimization
-export async function optimizePortfolio(
-  account: TradingAccount,
-  settings: OptimizationSettings
-): Promise<PortfolioOptimizationResult> {
-  // Simulate AI analysis with a delay
+// Mock risk assessment data
+const mockRiskFactors = {
+  "bitcoin": ["High volatility", "Large market cap provides some stability", "Significant allocation in portfolio"],
+  "ethereum": ["Smart contract risks", "Network congestion concerns", "Good diversification from Bitcoin"],
+  "solana": ["Network outage history", "Relatively new blockchain", "High-performance but higher technical risk"],
+  "cardano": ["Development delays", "Limited dApp ecosystem", "Strong research background"],
+  "binancecoin": ["Exchange dependency risk", "Regulatory concerns", "Strong utility in Binance ecosystem"]
+};
+
+// Function to assess portfolio risk
+export const assessPortfolioRisk = async (account: TradingAccount): Promise<RiskAssessmentResult> => {
+  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // Group holdings by coin
-  const holdings = account.trades.reduce((acc, trade) => {
-    const { coinId, type, amount, price } = trade;
-    if (!acc[coinId]) acc[coinId] = { amount: 0, value: 0 };
-    
-    if (type === 'buy') {
-      acc[coinId].amount += amount;
-      acc[coinId].value += amount * price;
-    } else {
-      acc[coinId].amount -= amount;
-      // Don't subtract from value as we want to track average buy price
-    }
-    
-    return acc;
-  }, {} as Record<string, { amount: number; value: number }>);
+  const assets = account.assets || [];
+  const symbols = assets.map(asset => asset.coinId);
   
-  // Calculate current allocation percentages
-  const totalPortfolioValue = Object.values(holdings).reduce(
-    (sum, { amount, value }) => sum + amount * getCurrentPrice(value / amount), 0
-  ) + account.balance;
+  // Calculate diversification score - higher is better
+  const diversificationScore = Math.min(100, assets.length * 15);
   
-  const currentAllocation: Record<string, number> = {};
-  Object.entries(holdings).forEach(([coinId, { amount, value }]) => {
-    if (amount <= 0) return; // Skip assets we don't own
-    const currentPrice = getCurrentPrice(value / amount);
-    const assetValue = amount * currentPrice;
-    currentAllocation[coinId] = (assetValue / totalPortfolioValue) * 100;
-  });
+  // Calculate volatility score - higher indicates more volatility
+  const volatilityScore = 40 + Math.random() * 30;
   
-  // Add cash to current allocation
-  currentAllocation['cash'] = (account.balance / totalPortfolioValue) * 100;
+  // Calculate liquidity score - higher is better
+  const liquidityScore = 60 + Math.random() * 25;
   
-  // Generate optimized allocation based on settings
-  const suggestedAllocation = generateOptimizedAllocation(
-    currentAllocation,
-    settings,
-    Object.keys(holdings).filter(coinId => holdings[coinId].amount > 0)
-  );
-  
-  // Generate rebalancing trades based on allocation differences
-  const rebalancingTrades = generateRebalancingTrades(
-    account,
-    currentAllocation,
-    suggestedAllocation,
-    holdings,
-    totalPortfolioValue
-  );
-  
-  // Calculate expected metrics based on risk tolerance
-  const riskMultiplier = settings.riskTolerance === 'high' ? 1.5 : 
-                        settings.riskTolerance === 'low' ? 0.6 : 1.0;
-  
-  const timeMultiplier = settings.timeHorizon === 'long' ? 1.3 : 
-                        settings.timeHorizon === 'short' ? 0.8 : 1.0;
-  
-  return {
-    currentAllocation,
-    suggestedAllocation,
-    expectedReturn: 8 + (Math.random() * 4) * riskMultiplier * timeMultiplier,
-    expectedRisk: 5 + (Math.random() * 5) * riskMultiplier / timeMultiplier,
-    sharpeRatio: 1.2 + (Math.random() * 0.8),
-    diversification: Math.min(95, 65 + (Math.random() * 20) * (1 / riskMultiplier)),
-    rebalancingTrades
-  };
-}
-
-// Helper function to simulate current market price
-function getCurrentPrice(averagePrice: number): number {
-  // Simulate some random price movement from average price
-  return averagePrice * (1 + (Math.random() * 0.2 - 0.05));
-}
-
-// Helper to generate optimized allocation based on settings
-function generateOptimizedAllocation(
-  currentAllocation: Record<string, number>,
-  settings: OptimizationSettings,
-  availableAssets: string[]
-): Record<string, number> {
-  const { riskTolerance, constraints } = settings;
-  const { maxAssetAllocation = 40, minCash = 10 } = constraints;
-  
-  // Start with a clean slate
-  const optimized: Record<string, number> = {};
-  
-  // Ensure we meet minimum cash requirement
-  optimized['cash'] = minCash;
-  let remainingAllocation = 100 - minCash;
-  
-  // High risk: Concentrate in fewer assets
-  // Low risk: Spread across more assets
-  const targetAssetCount = riskTolerance === 'high' ? 3 :
-                          riskTolerance === 'low' ? Math.max(5, availableAssets.length) :
-                          4;
-  
-  // Sort assets by current allocation (descending)
-  const sortedAssets = availableAssets
-    .filter(assetId => assetId !== 'cash')
-    .sort((a, b) => (currentAllocation[b] || 0) - (currentAllocation[a] || 0));
-  
-  // Focus on top assets based on risk tolerance
-  const primaryAssets = sortedAssets.slice(0, targetAssetCount);
-  
-  // Calculate allocation weights with some randomness
-  const weights = primaryAssets.map(() => 0.5 + Math.random());
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-  
-  // Distribute remaining allocation according to weights
-  primaryAssets.forEach((assetId, i) => {
-    const allocation = Math.min(
-      maxAssetAllocation,
-      (weights[i] / totalWeight) * remainingAllocation
-    );
-    optimized[assetId] = parseFloat(allocation.toFixed(1));
-  });
-  
-  // Calculate the actual allocated amount
-  const allocatedAmount = Object.values(optimized).reduce((sum, value) => sum + value, 0);
-  
-  // Adjust cash to ensure total is 100%
-  if (allocatedAmount < 100) {
-    optimized['cash'] += (100 - allocatedAmount);
+  // Simulate concentration risk
+  let concentrationRisk = 100;
+  if (assets.length > 0) {
+    // Get the highest allocation percentage in the portfolio
+    const maxAllocation = Math.max(...assets.map(asset => asset.amount * asset.price / account.balance * 100));
+    // Lower score for more concentrated portfolios
+    concentrationRisk = Math.min(100, maxAllocation * 1.2);
   }
   
-  return optimized;
-}
-
-// Helper to generate trades needed for rebalancing
-function generateRebalancingTrades(
-  account: TradingAccount,
-  currentAllocation: Record<string, number>,
-  suggestedAllocation: Record<string, number>,
-  holdings: Record<string, { amount: number; value: number }>,
-  totalValue: number
-): Trade[] {
-  const trades: Trade[] = [];
-  const timestamp = new Date().toISOString();
+  // Simulate correlation risk (lower is better)
+  const correlationRisk = 50 + Math.random() * 20;
   
-  // Process each asset in suggested allocation
-  Object.entries(suggestedAllocation).forEach(([assetId, targetPercent]) => {
-    if (assetId === 'cash') return; // Skip cash - we'll handle it implicitly
-    
-    const currentPercent = currentAllocation[assetId] || 0;
-    const targetValue = (targetPercent / 100) * totalValue;
-    
-    if (Math.abs(targetPercent - currentPercent) < 1) {
-      return; // Skip if difference is less than 1%
-    }
-    
-    const currentHolding = holdings[assetId];
-    
-    if (!currentHolding && targetPercent > 0) {
-      // Need to buy a new asset
-      const amount = targetValue / getCurrentPrice(100); // Mock price
-      const price = getCurrentPrice(100);
-      const total = amount * price;
-      
-      trades.push({
-        id: `rebalance-buy-${Date.now()}-${assetId}`,
-        coinId: assetId,
-        coinName: `Coin ${assetId.toUpperCase()}`,
-        coinSymbol: assetId.substring(0, 3).toUpperCase(),
-        type: 'buy',
-        amount,
-        price,
-        totalValue: total,
-        total: total,
-        timestamp,
-        currency: account.currency as any,
-        botGenerated: true,
-        tags: ['portfolio-optimization']
-      });
-    } 
-    else if (currentHolding) {
-      const currentPrice = getCurrentPrice(currentHolding.value / currentHolding.amount);
-      const currentValue = currentHolding.amount * currentPrice;
-      
-      if (targetValue > currentValue) {
-        // Need to buy more
-        const amountToBuy = (targetValue - currentValue) / currentPrice;
-        const total = amountToBuy * currentPrice;
-        
-        trades.push({
-          id: `rebalance-buy-${Date.now()}-${assetId}`,
-          coinId: assetId,
-          coinName: `${assetId.charAt(0).toUpperCase() + assetId.slice(1)}`,
-          coinSymbol: assetId.substring(0, 3).toUpperCase(),
-          type: 'buy',
-          amount: amountToBuy,
-          price: currentPrice,
-          totalValue: total,
-          total: total,
-          timestamp,
-          currency: account.currency as any,
-          botGenerated: true,
-          tags: ['portfolio-optimization']
-        });
-      } 
-      else if (targetValue < currentValue) {
-        // Need to sell some
-        const amountToSell = (currentValue - targetValue) / currentPrice;
-        const total = amountToSell * currentPrice;
-        
-        trades.push({
-          id: `rebalance-sell-${Date.now()}-${assetId}`,
-          coinId: assetId,
-          coinName: `${assetId.charAt(0).toUpperCase() + assetId.slice(1)}`,
-          coinSymbol: assetId.substring(0, 3).toUpperCase(),
-          type: 'sell',
-          amount: amountToSell,
-          price: currentPrice,
-          totalValue: total,
-          total: total,
-          timestamp,
-          currency: account.currency as any,
-          botGenerated: true,
-          tags: ['portfolio-optimization']
-        });
-      }
-    }
-  });
+  // Calculate overall risk score (higher is riskier)
+  const overallScore = Math.round(
+    (volatilityScore * 0.3) + 
+    ((100 - diversificationScore) * 0.2) + 
+    ((100 - liquidityScore) * 0.1) + 
+    (concentrationRisk * 0.2) + 
+    (correlationRisk * 0.2)
+  );
   
-  return trades;
-}
-
-// Risk Assessment
-export async function assessPortfolioRisk(account: TradingAccount): Promise<RiskAssessmentResult> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  
-  // Basic risk metrics
-  const overallScore = 65 + Math.floor(Math.random() * 20);
-  const diversificationScore = 70 + Math.floor(Math.random() * 20);
-  const volatilityScore = 50 + Math.floor(Math.random() * 40);
-  const liquidityScore = 80 + Math.floor(Math.random() * 15);
-  
-  // Risk by asset
+  // Generate asset-specific risk analysis
   const riskByAsset: Record<string, { score: number; factors: string[] }> = {};
   
-  // Process each asset
-  const assetMap = new Map<string, { amount: number; value: number }>();
-  let totalValue = account.balance;
-  
-  account.trades.forEach(trade => {
-    const { coinId, type, amount, price } = trade;
-    if (!assetMap.has(coinId)) {
-      assetMap.set(coinId, { amount: 0, value: 0 });
-    }
-    
-    const asset = assetMap.get(coinId)!;
-    if (type === 'buy') {
-      asset.amount += amount;
-      asset.value += amount * price;
-    } else {
-      asset.amount -= amount;
-    }
-  });
-  
-  // Calculate total value
-  assetMap.forEach(({ amount, value }, coinId) => {
-    if (amount <= 0) return;
-    const currentPrice = getCurrentPrice(value / amount);
-    totalValue += amount * currentPrice;
-  });
-  
-  // Calculate concentration risk
-  let maxAllocation = 0;
-  assetMap.forEach(({ amount, value }, coinId) => {
-    if (amount <= 0) return;
-    
-    const currentPrice = getCurrentPrice(value / amount);
-    const assetValue = amount * currentPrice;
-    const allocation = (assetValue / totalValue) * 100;
-    
-    if (allocation > maxAllocation) {
-      maxAllocation = allocation;
-    }
-    
-    // Assign risk score to asset
-    const factors = [];
-    let riskScore = Math.floor(Math.random() * 40) + 40; // Base risk 40-80
-    
-    // Add risk factors
-    if (allocation > 30) {
-      factors.push('High concentration risk');
-      riskScore += 15;
-    }
-    
-    if (Math.random() > 0.5) {
-      factors.push('Above-average volatility');
-      riskScore += 10;
-    }
-    
-    if (Math.random() > 0.7) {
-      factors.push('Market uncertainty');
-      riskScore += 5;
-    }
-    
-    riskByAsset[coinId] = {
-      score: Math.min(100, riskScore),
-      factors
+  assets.forEach(asset => {
+    const randomRiskScore = Math.round(30 + Math.random() * 50);
+    const factors = mockRiskFactors[asset.coinId as keyof typeof mockRiskFactors] || 
+                   ["Generic risk factor", "Market exposure"];
+                   
+    riskByAsset[asset.coinId] = {
+      score: randomRiskScore,
+      factors: factors.slice(0, 2 + Math.floor(Math.random() * 2)) // Select 2-3 factors
     };
   });
   
-  // Concentration risk based on max allocation
-  const concentrationRisk = maxAllocation > 40 ? 80 : 
-                            maxAllocation > 30 ? 60 :
-                            maxAllocation > 20 ? 40 : 20;
+  // Generate recommendations based on the analysis
+  const recommendations = [
+    overallScore > 70 ? "Consider reducing exposure to volatile assets" : "Portfolio has a reasonable risk profile",
+    diversificationScore < 60 ? "Increase diversification across more assets" : "Good diversification across assets",
+    Object.keys(riskByAsset).length > 0 && 
+      Math.max(...Object.values(riskByAsset).map(r => r.score)) > 60 ? 
+      `Re-evaluate high-risk asset: ${Object.entries(riskByAsset)
+        .sort((a, b) => b[1].score - a[1].score)[0][0]}` : 
+      "No individual assets with extremely high risk"
+  ];
   
-  // Correlation risk - randomized for demo
-  const correlationRisk = Math.floor(Math.random() * 60) + 20;
-  
-  // Generate recommendations based on risks
-  const recommendations = [];
-  
-  if (diversificationScore < 70) {
-    recommendations.push('Increase portfolio diversification by adding more assets');
+  // Add more specific recommendations based on the portfolio composition
+  if (assets.length === 1) {
+    recommendations.push("Holding only one asset creates significant concentration risk");
+  } else if (assets.length <= 3) {
+    recommendations.push("Consider adding more assets to improve diversification");
   }
   
-  if (maxAllocation > 30) {
-    recommendations.push('Reduce concentration in your largest holding');
+  if (concentrationRisk > 60) {
+    recommendations.push("Reduce concentration in your largest holdings");
   }
   
-  if (volatilityScore > 70) {
-    recommendations.push('Consider adding stable assets to reduce overall volatility');
-  }
-  
-  if ((account.balance / totalValue) * 100 < 5) {
-    recommendations.push('Maintain a higher cash reserve for market opportunities');
-  }
-  
-  // Always add at least one recommendation
-  if (recommendations.length === 0) {
-    recommendations.push('Continue to monitor market conditions and rebalance periodically');
+  if (correlationRisk > 70) {
+    recommendations.push("Add assets with lower correlation to your existing holdings");
   }
   
   return {
@@ -363,232 +98,137 @@ export async function assessPortfolioRisk(account: TradingAccount): Promise<Risk
     recommendations,
     riskByAsset
   };
-}
+};
 
-// Automated Trading Signals
-export async function generateTradingSignals(
-  account: TradingAccount,
-  options?: { limit?: number; minConfidence?: number }
-): Promise<TradingSignal[]> {
-  const { limit = 5, minConfidence = 60 } = options || {};
+// Function to optimize portfolio based on settings
+export const optimizePortfolio = async (
+  account: TradingAccount, 
+  settings: OptimizationSettings
+): Promise<PortfolioOptimizationResult> => {
+  // Simulate API delay for optimization
+  await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const assets = account.assets || [];
   
-  const signals: TradingSignal[] = [];
-  const timestamp = new Date().toISOString();
-  
-  // Get list of assets we're currently holding
-  const holdings = new Set<string>();
-  account.trades.forEach(trade => {
-    if (trade.type === 'buy') {
-      holdings.add(trade.coinId);
-    }
+  // Current allocation
+  const currentAllocation: Record<string, number> = {};
+  assets.forEach(asset => {
+    const value = asset.amount * asset.price;
+    currentAllocation[asset.coinId] = +(value / account.balance * 100).toFixed(2);
   });
   
-  // Generate signals for holdings and potential new assets
-  const potentialAssets = [
-    'bitcoin', 'ethereum', 'solana', 'cardano', 'binancecoin',
-    'ripple', 'polkadot', 'avalanche', 'dogecoin', 'shiba-inu'
-  ];
+  // Generate a suggested allocation that improves upon current allocation
+  // based on the optimization settings
+  const suggestedAllocation: Record<string, number> = { ...currentAllocation };
   
-  // Create a mix of buy and sell signals
-  for (let i = 0; i < Math.min(limit * 2, 15); i++) {
-    const isHolding = i < holdings.size;
-    let coinId;
+  // Adjust allocations based on risk tolerance
+  const totalAdjustment = settings.riskTolerance === 'low' ? 0.2 : 
+                          settings.riskTolerance === 'medium' ? 0.3 : 0.4;
+  
+  // Simple algorithm: reduce allocation of high-risk assets and increase for low-risk ones
+  // In a real app, this would use actual portfolio optimization algorithms
+  let remainingPercent = 100;
+  
+  Object.keys(suggestedAllocation).forEach(coinId => {
+    // Arbitrary adjustment based on coin "risk" (would be calculated properly in production)
+    const currentPercent = suggestedAllocation[coinId];
+    let newPercent = currentPercent;
     
-    if (isHolding) {
-      // Pick from holdings
-      coinId = Array.from(holdings)[i % holdings.size];
-    } else {
-      // Pick a new asset
-      coinId = potentialAssets[Math.floor(Math.random() * potentialAssets.length)];
-      
-      // Skip if we're already holding this
-      if (holdings.has(coinId)) continue;
-    }
-    
-    // Randomize signal parameters
-    const strength = Math.floor(Math.random() * 40) + 60; // 60-100
-    
-    // Skip if below minimum confidence
-    if (strength < minConfidence) continue;
-    
-    // Determine signal type - prefer sells for holdings and buys for new assets
-    const type = isHolding 
-      ? (Math.random() > 0.3 ? 'sell' : 'buy')
-      : 'buy';
-    
-    const price = 100 + Math.random() * 1000;
-    
-    // Random indicators that contributed to the signal
-    const indicators: Record<string, number> = {
-      rsi: Math.floor(Math.random() * 100),
-      macd: Math.random() * 2 - 1,
-      volume_surge: Math.random() * 200,
-      support_level: price * 0.9,
-      resistance_level: price * 1.1,
-    };
-    
-    const suggestedTarget = price * (type === 'buy' ? (1 + Math.random() * 0.2) : (1 - Math.random() * 0.2));
-    const suggestedStopLoss = price * (type === 'buy' ? (1 - Math.random() * 0.1) : (1 + Math.random() * 0.1));
-    
-    signals.push({
-      id: `signal-${Date.now()}-${i}`,
-      coinId,
-      coinSymbol: coinId.substring(0, 3).toUpperCase(),
-      type,
-      strength,
-      timestamp,
-      source: Math.random() > 0.5 ? 'ai_analysis' : 'technical_indicators',
-      reason: type === 'buy' 
-        ? 'Bullish divergence in technical indicators'
-        : 'Overbought conditions and resistance level reached',
-      indicators,
-      price,
-      suggestedActions: {
-        action: type,
-        entry: price,
-        target: suggestedTarget,
-        stopLoss: suggestedStopLoss
+    if (coinId === 'bitcoin' || coinId === 'ethereum') {
+      // Increase allocation to major assets for low risk
+      if (settings.riskTolerance === 'low') {
+        newPercent = Math.min(40, currentPercent * 1.2);
+      } else if (settings.riskTolerance === 'high') {
+        newPercent = Math.max(5, currentPercent * 0.9);
       }
-    });
-    
-    // Only add up to the limit
-    if (signals.length >= limit) break;
-  }
-  
-  return signals;
-}
-
-// Personalized Market Insights
-export async function getPersonalizedMarketInsights(
-  account: TradingAccount,
-  options?: { limit?: number; relevanceThreshold?: number }
-): Promise<MarketInsight[]> {
-  const { limit = 5, relevanceThreshold = 60 } = options || {};
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const insights: MarketInsight[] = [];
-  const timestamp = new Date().toISOString();
-  
-  // Get assets we're currently holding
-  const holdings = new Set<string>();
-  account.trades.forEach(trade => {
-    if (trade.type === 'buy') {
-      holdings.add(trade.coinId);
+    } else {
+      // Adjust altcoins based on risk tolerance
+      if (settings.riskTolerance === 'low') {
+        newPercent = Math.max(1, currentPercent * 0.8);
+      } else if (settings.riskTolerance === 'high') {
+        newPercent = currentPercent * 1.3;
+      }
     }
+    
+    suggestedAllocation[coinId] = +newPercent.toFixed(2);
+    remainingPercent -= newPercent;
   });
   
-  // Generate insights for our holdings and general market conditions
-  const holdingsList = Array.from(holdings);
-  
-  // Insight templates
-  const insightTemplates = [
-    {
-      type: 'trend',
-      title: 'Market Momentum Shift',
-      summary: 'Recent data indicates a potential shift in market momentum favoring {assets}.',
-      content: 'Technical analysis shows a convergence of several indicators suggesting a meaningful shift in market momentum. This could represent an opportunity for strategic position adjustments.',
-      relevance: 75,
-      confidence: 70
-    },
-    {
-      type: 'opportunity',
-      title: 'Accumulation Pattern Detected',
-      summary: 'Whale wallets are showing accumulation patterns for {assets}.',
-      content: 'On-chain analysis reveals significant accumulation by large wallet addresses over the past week. Historically, this pattern has preceded price appreciation in 68% of observed instances.',
-      relevance: 85,
-      confidence: 75
-    },
-    {
-      type: 'risk',
-      title: 'Regulatory Development Alert',
-      summary: 'New regulatory developments may impact {assets} in the coming weeks.',
-      content: 'Recent statements from regulatory bodies suggest potential policy changes that could impact market dynamics. Consider reviewing position sizes and risk management strategies.',
-      relevance: 80,
-      confidence: 65
-    },
-    {
-      type: 'analysis',
-      title: 'Correlation Breakdown Opportunity',
-      summary: '{assets} showing decreased correlation with broader market movements.',
-      content: 'Statistical analysis indicates a significant reduction in correlation between this asset and the broader crypto market. This could present both diversification benefits and unique trading opportunities.',
-      relevance: 70,
-      confidence: 80
-    },
-    {
-      type: 'event',
-      title: 'Technical Upgrade Approaching',
-      summary: 'Major technical upgrade scheduled for {assets} network.',
-      content: 'A significant protocol upgrade is scheduled within the next 14 days. Historical analysis of similar upgrades shows positive price action in 72% of cases, with an average appreciation of 12% in the week following successful implementation.',
-      relevance: 90,
-      confidence: 85
-    }
-  ];
-  
-  // Generate insights using templates
-  for (let i = 0; i < Math.min(limit * 2, 10); i++) {
-    // Select a template
-    const template = insightTemplates[Math.floor(Math.random() * insightTemplates.length)];
-    
-    // Select assets this insight applies to
-    let assets: string[];
-    if (i < holdingsList.length) {
-      // Focus on one of our holdings
-      assets = [holdingsList[i]];
-    } else if (Math.random() > 0.5 && holdingsList.length > 0) {
-      // Multiple holdings
-      assets = holdingsList.slice(0, Math.min(3, holdingsList.length));
-    } else {
-      // General market or new assets
-      const potentialAssets = ['bitcoin', 'ethereum', 'defi-index', 'altcoin-market'];
-      assets = [potentialAssets[Math.floor(Math.random() * potentialAssets.length)]];
-    }
-    
-    // Format asset names for display
-    const assetNames = assets.map(a => a.charAt(0).toUpperCase() + a.slice(1)).join(', ');
-    
-    // Adjust relevance based on whether this is for our holdings
-    const relevanceAdjustment = assets.some(a => holdings.has(a)) ? 15 : 0;
-    const relevance = Math.min(100, template.relevance + relevanceAdjustment);
-    
-    // Skip if below relevance threshold
-    if (relevance < relevanceThreshold) continue;
-    
-    // Generate tags
-    const tags = [template.type];
-    if (relevance > 80) tags.push('high-priority');
-    if (template.confidence > 80) tags.push('high-confidence');
-    assets.forEach(a => tags.push(a));
-    
-    insights.push({
-      id: `insight-${Date.now()}-${i}`,
-      type: template.type as any,
-      title: template.title.replace('{assets}', assetNames),
-      summary: template.summary.replace('{assets}', assetNames),
-      content: template.content.replace('{assets}', assetNames),
-      relevance,
-      timestamp,
-      assets,
-      tags,
-      source: Math.random() > 0.5 ? 'ai_analysis' : 'market_data',
-      confidence: template.confidence
-    });
-    
-    // Only add up to the limit
-    if (insights.length >= limit) break;
+  // Add a new asset if we have room and high risk tolerance
+  if (settings.riskTolerance === 'high' && assets.length < 5 && remainingPercent > 5) {
+    const newCoinOptions = ['polkadot', 'avalanche', 'polygon'];
+    const newCoin = newCoinOptions[Math.floor(Math.random() * newCoinOptions.length)];
+    suggestedAllocation[newCoin] = +remainingPercent.toFixed(2);
+    remainingPercent = 0;
   }
   
-  // Sort by relevance
-  return insights.sort((a, b) => b.relevance - a.relevance);
-}
+  // Normalize to ensure total allocation is 100%
+  const totalSuggested = Object.values(suggestedAllocation).reduce((sum, val) => sum + val, 0);
+  if (totalSuggested !== 100) {
+    const normFactor = 100 / totalSuggested;
+    Object.keys(suggestedAllocation).forEach(key => {
+      suggestedAllocation[key] = +(suggestedAllocation[key] * normFactor).toFixed(2);
+    });
+  }
+  
+  // Calculate metrics for the new portfolio
+  const expectedReturn = settings.riskTolerance === 'low' ? 8 + Math.random() * 4 : 
+                        settings.riskTolerance === 'medium' ? 12 + Math.random() * 6 : 
+                        18 + Math.random() * 8;
+  
+  const expectedRisk = settings.riskTolerance === 'low' ? 5 + Math.random() * 3 : 
+                      settings.riskTolerance === 'medium' ? 10 + Math.random() * 5 : 
+                      18 + Math.random() * 7;
+  
+  const sharpeRatio = expectedReturn / expectedRisk;
+  
+  const diversification = 100 - (Math.max(...Object.values(suggestedAllocation)) - 
+                               Math.min(...Object.values(suggestedAllocation)));
+  
+  // Generate rebalancing trades
+  const rebalancingTrades = [];
+  const date = new Date().toISOString();
+  
+  for (const coinId of Object.keys(suggestedAllocation)) {
+    const asset = assets.find(a => a.coinId === coinId);
+    const currentPercentage = asset ? (asset.amount * asset.price / account.balance * 100) : 0;
+    const targetPercentage = suggestedAllocation[coinId];
+    const diff = targetPercentage - currentPercentage;
+    
+    if (Math.abs(diff) > 1) { // Only suggest trades for significant changes (>1%)
+      const tradeAmount = Math.abs(account.balance * diff / 100);
+      const coinPrice = asset?.price || 100; // Default price if new coin
+      const amount = tradeAmount / coinPrice;
+      
+      rebalancingTrades.push({
+        id: `trade-${Date.now()}-${coinId}`,
+        coinId: coinId,
+        coinName: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+        coinSymbol: coinId.substring(0, 3).toUpperCase(),
+        type: diff > 0 ? 'buy' : 'sell',
+        amount: amount,
+        price: coinPrice,
+        totalValue: tradeAmount,
+        timestamp: date,
+        currency: account.currency,
+        total: tradeAmount,
+        tags: ['rebalance', settings.riskTolerance]
+      });
+    }
+  }
+  
+  return {
+    currentAllocation,
+    suggestedAllocation,
+    expectedReturn,
+    expectedRisk,
+    sharpeRatio,
+    diversification,
+    rebalancingTrades
+  };
+};
 
 export default {
-  optimizePortfolio,
   assessPortfolioRisk,
-  generateTradingSignals,
-  getPersonalizedMarketInsights
+  optimizePortfolio
 };

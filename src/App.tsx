@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { useTheme } from './contexts/ThemeContext';
@@ -16,9 +15,10 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import PriceTicker from './components/tickers/PriceTicker';
 import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
-import { getTrendingCoins, getLatestNews } from './services/enhancedCryptoApi';
-import { CoinOption, NewsItem } from '@/types/trading';
+import { CoinOption } from '@/types/trading';
 import AlertsSystem from './components/AlertsSystem';
+import { getTrendingCoins, getLatestNews } from './services/enhancedCryptoApi';
+import { NewsItem } from '@/types/trading';
 
 const AppContent = () => {
   const { theme, colorScheme } = useTheme();
@@ -40,15 +40,7 @@ const AppContent = () => {
         setTrendingCoins(coins || []);
         
         const news = await getLatestNews();
-        if (news) {
-          setNewsItems(news.map(item => ({
-            id: item.id || `news-${Date.now()}-${Math.random()}`,
-            title: item.title || 'News update',
-            source: item.source || 'Crypto News',
-            timestamp: item.published_at || new Date().toISOString(),
-            url: item.url || '#'
-          })));
-        }
+        setNewsItems(news || []);
       } catch (error) {
         console.error("Error fetching ticker data:", error);
         // Set some fallback data if the API fails

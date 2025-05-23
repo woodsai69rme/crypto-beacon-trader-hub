@@ -5,3 +5,5 @@ import { SettingsFormValues } from '@/types/trading';
 export interface SettingsComponentProps {
   form: UseFormReturn<SettingsFormValues>;
 }
+
+export { SettingsFormValues };

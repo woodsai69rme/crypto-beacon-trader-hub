@@ -1,5 +1,5 @@
 
-import { CoinOption, CryptoData } from "@/types/trading";
+import { CoinOption, CryptoData, NewsItem } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
 // Base mock data (reuse from cryptoService to maintain consistency)
@@ -31,6 +31,50 @@ const mockCoins: CoinOption[] = [
     label: "Ethereum (ETH)"
   },
   // ... add more coins here
+];
+
+// Mock news data
+const mockNewsData: NewsItem[] = [
+  {
+    id: "news-1",
+    title: "Bitcoin Surges Above $50,000 as Institutional Interest Grows",
+    source: "CryptoNews",
+    timestamp: new Date().toISOString(),
+    url: "#",
+    content: "Bitcoin has surpassed the $50,000 mark for the first time in several months as institutional interest continues to grow."
+  },
+  {
+    id: "news-2",
+    title: "Ethereum 2.0 Upgrade on Track for Q3 Release",
+    source: "BlockchainInsider",
+    timestamp: new Date().toISOString(),
+    url: "#",
+    content: "The much-anticipated Ethereum 2.0 upgrade is reportedly on track for a Q3 release according to development team."
+  },
+  {
+    id: "news-3",
+    title: "New Regulatory Framework for Cryptocurrencies Proposed",
+    source: "CryptoDaily",
+    timestamp: new Date().toISOString(),
+    url: "#",
+    content: "Lawmakers have proposed a new regulatory framework for cryptocurrencies that aims to provide clarity while fostering innovation."
+  },
+  {
+    id: "news-4",
+    title: "DeFi Market Cap Reaches All-Time High",
+    source: "DeFiNews",
+    timestamp: new Date().toISOString(),
+    url: "#",
+    content: "The total market capitalization of DeFi tokens has reached an all-time high, exceeding $150 billion for the first time."
+  },
+  {
+    id: "news-5",
+    title: "Major Bank Announces Cryptocurrency Custody Service",
+    source: "FinanceReport",
+    timestamp: new Date().toISOString(),
+    url: "#",
+    content: "A major international bank has announced plans to launch a cryptocurrency custody service for institutional clients."
+  }
 ];
 
 // Extended list with more coins
@@ -208,10 +252,37 @@ export const fetchHistoricalMarketData = async (
   return points;
 };
 
+// Added functions for getTrendingCoins and getLatestNews
+export const getTrendingCoins = async (limit: number = 5): Promise<CoinOption[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 600));
+  
+  // Return a subset of the coins in a random order to simulate trending data
+  return [...extendedCoinList]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, limit)
+    .map(coin => ({
+      ...coin,
+      price: coin.price * (1 + (Math.random() * 0.03 - 0.015)),
+      priceChange: coin.priceChange * (1 + (Math.random() * 0.15 - 0.05)),
+      changePercent: coin.changePercent! * (1 + (Math.random() * 0.15 - 0.05))
+    }));
+};
+
+export const getLatestNews = async (limit: number = 5): Promise<NewsItem[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 700));
+  
+  // Return news data, limited to requested amount
+  return mockNewsData.slice(0, limit);
+};
+
 export default {
   fetchCoins,
   fetchCoinDetails,
   searchCoins,
   fetchMarketData,
-  fetchHistoricalMarketData
+  fetchHistoricalMarketData,
+  getTrendingCoins,
+  getLatestNews
 };

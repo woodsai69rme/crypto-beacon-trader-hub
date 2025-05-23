@@ -115,8 +115,8 @@ export interface EnhancedPortfolioBenchmarkingProps {
   portfolioData: any;
   benchmarks: string[];
   timeframe: string;
-  portfolioPerformance?: number[];
-  portfolioDates?: string[];
+  portfolioPerformance: number[];
+  portfolioDates: string[];
 }
 
 // For settings components
