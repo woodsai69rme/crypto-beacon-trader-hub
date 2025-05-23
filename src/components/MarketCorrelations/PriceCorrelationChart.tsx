@@ -176,3 +176,6 @@ const prepareChartData = (
   
   return result;
 };
+
+// Add default export that points to the named export
+export default PriceCorrelationChart;

@@ -317,6 +317,8 @@ export interface SettingsFormValues {
     push: boolean;
     app: boolean;
     trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
   };
   tickerSettings: {
     enabled: boolean;
@@ -348,10 +350,23 @@ export interface SettingsFormValues {
     showAdvanced: boolean;
     defaultAsset: string;
   };
+  privacy?: {
+    showOnlineStatus: boolean;
+    sharePortfolio: boolean;
+    shareTrades: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
+  };
   email?: string;
   username?: string;
   displayName?: string;
   apiKeys?: Record<string, string>;
+}
+
+export interface SettingsComponentProps {
+  form: any; // Specific type should be provided based on the form library in use
 }
 
 export interface ModelPerformanceProps {
