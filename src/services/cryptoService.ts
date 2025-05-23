@@ -4,16 +4,16 @@ import { generateMockTimeSeriesData } from '@/lib/utils';
 
 // Mock data for demonstration
 const mockCoins: CoinOption[] = [
-  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 50000, priceChange: 1000, value: "bitcoin", label: "Bitcoin (BTC)" },
-  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3000, priceChange: 100, value: "ethereum", label: "Ethereum (ETH)" },
-  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.5, priceChange: 0.02, value: "ripple", label: "XRP (XRP)" },
-  { id: "cardano", name: "Cardano", symbol: "ADA", price: 1.2, priceChange: 0.05, value: "cardano", label: "Cardano (ADA)" },
-  { id: "solana", name: "Solana", symbol: "SOL", price: 150, priceChange: 7, value: "solana", label: "Solana (SOL)" },
-  { id: "polkadot", name: "Polkadot", symbol: "DOT", price: 20, priceChange: 1, value: "polkadot", label: "Polkadot (DOT)" },
-  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.2, priceChange: 0.01, value: "dogecoin", label: "Dogecoin (DOGE)" },
-  { id: "avalanche", name: "Avalanche", symbol: "AVAX", price: 80, priceChange: 3, value: "avalanche", label: "Avalanche (AVAX)" },
-  { id: "chainlink", name: "Chainlink", symbol: "LINK", price: 18, priceChange: 0.7, value: "chainlink", label: "Chainlink (LINK)" },
-  { id: "litecoin", name: "Litecoin", symbol: "LTC", price: 150, priceChange: 5, value: "litecoin", label: "Litecoin (LTC)" },
+  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", price: 50000, priceChange: 1000, value: "bitcoin", label: "Bitcoin (BTC)", changePercent: 2.0, marketCap: 1000000000000, volume: 50000000000, image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png" },
+  { id: "ethereum", name: "Ethereum", symbol: "ETH", price: 3000, priceChange: 100, value: "ethereum", label: "Ethereum (ETH)", changePercent: 3.3, marketCap: 350000000000, volume: 20000000000, image: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
+  { id: "ripple", name: "XRP", symbol: "XRP", price: 0.5, priceChange: 0.02, value: "ripple", label: "XRP (XRP)", changePercent: 4.0, marketCap: 25000000000, volume: 2000000000, image: "https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png" },
+  { id: "cardano", name: "Cardano", symbol: "ADA", price: 1.2, priceChange: 0.05, value: "cardano", label: "Cardano (ADA)", changePercent: 4.2, marketCap: 40000000000, volume: 1500000000, image: "https://assets.coingecko.com/coins/images/975/small/cardano.png" },
+  { id: "solana", name: "Solana", symbol: "SOL", price: 150, priceChange: 7, value: "solana", label: "Solana (SOL)", changePercent: 4.7, marketCap: 60000000000, volume: 3000000000, image: "https://assets.coingecko.com/coins/images/4128/small/solana.png" },
+  { id: "polkadot", name: "Polkadot", symbol: "DOT", price: 20, priceChange: 1, value: "polkadot", label: "Polkadot (DOT)", changePercent: 5.0, marketCap: 20000000000, volume: 1000000000, image: "https://assets.coingecko.com/coins/images/12171/small/polkadot.png" },
+  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", price: 0.2, priceChange: 0.01, value: "dogecoin", label: "Dogecoin (DOGE)", changePercent: 5.0, marketCap: 25000000000, volume: 2000000000, image: "https://assets.coingecko.com/coins/images/5/small/dogecoin.png" },
+  { id: "avalanche", name: "Avalanche", symbol: "AVAX", price: 80, priceChange: 3, value: "avalanche", label: "Avalanche (AVAX)", changePercent: 3.75, marketCap: 25000000000, volume: 1200000000, image: "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" },
+  { id: "chainlink", name: "Chainlink", symbol: "LINK", price: 18, priceChange: 0.7, value: "chainlink", label: "Chainlink (LINK)", changePercent: 3.9, marketCap: 8000000000, volume: 800000000, image: "https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png" },
+  { id: "litecoin", name: "Litecoin", symbol: "LTC", price: 150, priceChange: 5, value: "litecoin", label: "Litecoin (LTC)", changePercent: 3.3, marketCap: 10000000000, volume: 1000000000, image: "https://assets.coingecko.com/coins/images/2/small/litecoin.png" },
 ];
 
 // Function to fetch all available coins
@@ -34,6 +34,44 @@ export async function fetchCoinById(id: string): Promise<CoinOption | undefined>
       resolve(coin);
     }, 300);
   });
+}
+
+// Function to fetch multiple crypto data by IDs - THIS WAS MISSING
+export async function fetchMultipleCryptoData(coinIds: string[]): Promise<CoinOption[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const coins = mockCoins.filter(coin => coinIds.includes(coin.id));
+      // Apply some small random price changes to simulate real-time data
+      const updatedCoins = coins.map(coin => {
+        const priceChangePercent = (Math.random() * 6 - 3) / 100; // Random between -3% and +3%
+        const newPrice = coin.price * (1 + priceChangePercent);
+        return {
+          ...coin,
+          price: newPrice,
+          priceChange: newPrice - coin.price,
+          changePercent: coin.changePercent + priceChangePercent * 100
+        };
+      });
+      resolve(updatedCoins);
+    }, 500);
+  });
+}
+
+// Function to convert raw API data to CoinOption format
+export function convertToCoinOptions(data: any[]): CoinOption[] {
+  return data.map(item => ({
+    id: item.id,
+    name: item.name,
+    symbol: item.symbol,
+    price: item.price,
+    priceChange: item.priceChange,
+    changePercent: item.changePercent,
+    marketCap: item.marketCap,
+    volume: item.volume,
+    image: item.image,
+    value: item.id,
+    label: `${item.name} (${item.symbol})`
+  }));
 }
 
 // Function to fetch historical coin data
