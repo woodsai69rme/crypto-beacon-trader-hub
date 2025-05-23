@@ -4,7 +4,9 @@ import { SupportedCurrency } from '@/types/trading';
 
 interface CurrencyContextType {
   currency: SupportedCurrency;
+  activeCurrency: SupportedCurrency;  // Added for components that need it
   setCurrency: (currency: SupportedCurrency) => void;
+  setActiveCurrency: (currency: SupportedCurrency) => void;  // Added setter
   formatCurrency: (amount: number) => string;
   convertAmount: (amount: number, fromCurrency: SupportedCurrency, toCurrency: SupportedCurrency) => number;
   exchangeRates: Record<SupportedCurrency, number>;
@@ -21,22 +23,27 @@ const defaultExchangeRates: Record<SupportedCurrency, number> = {
 };
 
 const CurrencyContext = createContext<CurrencyContextType>({
-  currency: 'USD',
+  currency: 'AUD', // Changed default to AUD as per project requirements
+  activeCurrency: 'AUD',
   setCurrency: () => {},
+  setActiveCurrency: () => {},
   formatCurrency: () => '',
   convertAmount: () => 0,
   exchangeRates: defaultExchangeRates
 });
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currency, setCurrency] = useState<SupportedCurrency>('USD');
+  const [currency, setCurrencyState] = useState<SupportedCurrency>('AUD');
+  const [activeCurrency, setActiveCurrencyState] = useState<SupportedCurrency>('AUD');
   const [exchangeRates, setExchangeRates] = useState<Record<SupportedCurrency, number>>(defaultExchangeRates);
   
   // Load saved currency preference from localStorage
   useEffect(() => {
     const savedCurrency = localStorage.getItem('preferred-currency');
     if (savedCurrency) {
-      setCurrency(savedCurrency as SupportedCurrency);
+      const typedCurrency = savedCurrency as SupportedCurrency;
+      setCurrencyState(typedCurrency);
+      setActiveCurrencyState(typedCurrency);
     }
   }, []);
   
@@ -47,7 +54,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   
   // Format amount based on current currency
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-AU', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 2,
@@ -66,10 +73,21 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Then convert from USD to target currency
     return amountInUsd * exchangeRates[toCurrency];
   };
+
+  const setCurrency = (newCurrency: SupportedCurrency) => {
+    setCurrencyState(newCurrency);
+    setActiveCurrencyState(newCurrency);
+  };
+
+  const setActiveCurrency = (newCurrency: SupportedCurrency) => {
+    setActiveCurrencyState(newCurrency);
+  };
   
   const value = {
     currency,
+    activeCurrency,
     setCurrency,
+    setActiveCurrency,
     formatCurrency,
     convertAmount,
     exchangeRates
@@ -83,3 +101,5 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 };
 
 export const useCurrency = () => useContext(CurrencyContext);
+
+export default CurrencyContext;

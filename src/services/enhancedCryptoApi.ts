@@ -1,220 +1,217 @@
 
-import { CoinOption, NewsItem, ApiUsageStats } from '@/types/trading';
-import { fetchTopCryptoData, fetchCryptoData } from './cryptoService';
+import { CoinOption, CryptoData } from "@/types/trading";
+import { toast } from "@/components/ui/use-toast";
 
-// Sample news data for development
-const sampleNews: NewsItem[] = [
+// Base mock data (reuse from cryptoService to maintain consistency)
+const mockCoins: CoinOption[] = [
   {
-    id: "news-1",
-    title: "Bitcoin reaches new all-time high as institutional demand grows",
-    content: "Bitcoin has reached a new all-time high price as institutional investors continue to enter the market...",
-    summary: "Bitcoin reaches new ATH as institutions buy in",
-    source: "CryptoNews",
-    url: "https://example.com/news/1",
-    timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
-    sentiment: 0.8,
-    topics: ["Bitcoin", "Institutional Investment"],
-    image: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80"
+    id: "bitcoin",
+    name: "Bitcoin",
+    symbol: "BTC",
+    price: 58352.12,
+    priceChange: 1245.32,
+    changePercent: 2.18,
+    marketCap: 1143349097968,
+    volume: 48941516789,
+    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    value: "bitcoin",
+    label: "Bitcoin (BTC)"
   },
   {
-    id: "news-2",
-    title: "Ethereum developers announce date for Shanghai upgrade",
-    content: "Ethereum developers have announced the date for the upcoming Shanghai upgrade which will enable...",
-    summary: "Ethereum Shanghai upgrade date announced",
-    source: "Blockchain Daily",
-    url: "https://example.com/news/2",
-    timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
-    sentiment: 0.6,
-    topics: ["Ethereum", "Technology", "Upgrade"],
-    image: "https://images.unsplash.com/photo-1622630998477-20aa696ecb05?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1746&q=80"
+    id: "ethereum",
+    name: "Ethereum",
+    symbol: "ETH",
+    price: 3105.78,
+    priceChange: 65.43,
+    changePercent: 2.15,
+    marketCap: 373952067386,
+    volume: 21891456789,
+    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+    value: "ethereum",
+    label: "Ethereum (ETH)"
+  },
+  // ... add more coins here
+];
+
+// Extended list with more coins
+const extendedCoinList: CoinOption[] = [
+  ...mockCoins,
+  {
+    id: "binancecoin",
+    name: "Binance Coin",
+    symbol: "BNB",
+    price: 604.12,
+    priceChange: 12.45,
+    changePercent: 2.10,
+    marketCap: 93518794521,
+    volume: 1862354123,
+    image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
+    value: "binancecoin",
+    label: "Binance Coin (BNB)"
   },
   {
-    id: "news-3",
-    title: "Regulatory concerns impact crypto market sentiment",
-    content: "Concerns about upcoming regulations in major economies are causing uncertainty in crypto markets...",
-    summary: "Regulation worries affect crypto markets",
-    source: "Financial Times",
-    url: "https://example.com/news/3",
-    timestamp: new Date(Date.now() - 8 * 3600000).toISOString(),
-    sentiment: -0.4,
-    topics: ["Regulation", "Market Sentiment"],
-    image: "https://images.unsplash.com/photo-1605792657660-596af9009e82?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1802&q=80"
+    id: "solana",
+    name: "Solana",
+    symbol: "SOL",
+    price: 143.87,
+    priceChange: 7.23,
+    changePercent: 5.29,
+    marketCap: 63287612543,
+    volume: 3691845721,
+    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+    value: "solana",
+    label: "Solana (SOL)"
   },
   {
-    id: "news-4",
-    title: "Major bank launches cryptocurrency custody service",
-    content: "A major international bank has announced the launch of a custody service for digital assets...",
-    summary: "Bank launches crypto custody service",
-    source: "Banking Today",
-    url: "https://example.com/news/4",
-    timestamp: new Date(Date.now() - 12 * 3600000).toISOString(),
-    sentiment: 0.7,
-    topics: ["Banking", "Custody", "Institutional"],
-    image: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
+    id: "cardano",
+    name: "Cardano",
+    symbol: "ADA",
+    price: 0.45,
+    priceChange: 0.02,
+    changePercent: 4.65,
+    marketCap: 16789456123,
+    volume: 756123489,
+    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+    value: "cardano",
+    label: "Cardano (ADA)"
   },
   {
-    id: "news-5",
-    title: "New DeFi protocol reports record TVL growth",
-    content: "A newly launched decentralized finance protocol has reported record growth in total value locked...",
-    summary: "New DeFi protocol sees rapid TVL growth",
-    source: "DeFi Pulse",
-    url: "https://example.com/news/5",
-    timestamp: new Date(Date.now() - 18 * 3600000).toISOString(),
-    sentiment: 0.9,
-    topics: ["DeFi", "TVL", "Growth"],
-    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1832&q=80"
+    id: "ripple",
+    name: "XRP",
+    symbol: "XRP",
+    price: 0.6129,
+    priceChange: 0.0103,
+    changePercent: 1.71,
+    marketCap: 33765432100,
+    volume: 2143567890,
+    image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+    value: "ripple",
+    label: "XRP (XRP)"
   }
 ];
 
-// Sample API usage statistics
-const sampleApiUsage: ApiUsageStats[] = [
-  {
-    service: "CoinGecko",
-    currentUsage: 45,
-    maxUsage: 100,
-    endpoint: "/api/v3/coins/markets",
-    resetTime: new Date(Date.now() + 3600000).toISOString()
-  },
-  {
-    service: "CoinGecko",
-    currentUsage: 12,
-    maxUsage: 50,
-    endpoint: "/api/v3/coins/{id}",
-    resetTime: new Date(Date.now() + 3600000).toISOString()
-  },
-  {
-    service: "CryptoCompare",
-    currentUsage: 156,
-    maxUsage: 1000,
-    endpoint: "/data/pricemultifull",
-    resetTime: new Date(Date.now() + 86400000).toISOString()
-  },
-  {
-    service: "CoinMarketCap",
-    currentUsage: 8,
-    maxUsage: 333,
-    endpoint: "/v1/cryptocurrency/listings/latest",
-    resetTime: new Date(Date.now() + 86400000).toISOString()
-  }
-];
-
-// Get trending coins
-export const getTrendingCoins = async (): Promise<CoinOption[]> => {
-  try {
-    // In a production environment, this would call a real API
-    // For now, return mock data
-    console.log('Fetching trending coins');
-    return await fetchTopCryptoData(10);
-  } catch (error) {
-    console.error('Error fetching trending coins:', error);
-    return [];
-  }
-};
-
-// Get latest news
-export const getLatestNews = async (): Promise<NewsItem[]> => {
-  try {
-    // In a production environment, this would call a real news API
-    // For now, return sample news data
-    console.log('Fetching latest crypto news');
-    return sampleNews;
-  } catch (error) {
-    console.error('Error fetching latest news:', error);
-    return [];
-  }
-};
-
-// Get news by sentiment
-export const getNewsBySentiment = async (
-  sentiment: 'positive' | 'negative' | 'neutral' | 'all' = 'all'
-): Promise<NewsItem[]> => {
-  try {
-    console.log(`Fetching news with ${sentiment} sentiment`);
-    
-    let filteredNews = [...sampleNews];
-    
-    if (sentiment !== 'all') {
-      filteredNews = sampleNews.filter(news => {
-        if (sentiment === 'positive' && (news.sentiment || 0) > 0.3) return true;
-        if (sentiment === 'negative' && (news.sentiment || 0) < -0.3) return true;
-        if (sentiment === 'neutral' && Math.abs(news.sentiment || 0) <= 0.3) return true;
-        return false;
-      });
-    }
-    
-    return filteredNews;
-  } catch (error) {
-    console.error('Error fetching news by sentiment:', error);
-    return [];
-  }
-};
-
-// Get API usage statistics
-export const getApiUsageStats = async (): Promise<ApiUsageStats[]> => {
-  try {
-    console.log('Fetching API usage statistics');
-    // In a production environment, this would track actual API usage
-    // For now, return sample data
-    return sampleApiUsage;
-  } catch (error) {
-    console.error('Error fetching API usage stats:', error);
-    return [];
-  }
-};
-
-// Check if an API provider is available
-export const isApiProviderAvailable = async (
-  providerId: string
-): Promise<boolean> => {
-  // In a production environment, this would actually check the API
-  console.log(`Checking availability of API provider: ${providerId}`);
+// Enhanced API methods
+export const fetchCoins = async (params: { limit?: number; currency?: string } = {}): Promise<CoinOption[]> => {
+  const { limit = 10, currency = 'usd' } = params;
   
-  // Mock response - always available
-  return true;
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Return a subset of mock data with randomized recent prices
+  return extendedCoinList.slice(0, limit).map(coin => ({
+    ...coin,
+    price: coin.price * (1 + (Math.random() * 0.02 - 0.01)),
+    priceChange: coin.priceChange * (1 + (Math.random() * 0.1 - 0.05)),
+    changePercent: coin.changePercent! * (1 + (Math.random() * 0.1 - 0.05))
+  }));
 };
 
-// Getting news for a specific coin
-export const getNewsForCoin = async (
-  coinId: string
-): Promise<NewsItem[]> => {
-  try {
-    console.log(`Fetching news for coin: ${coinId}`);
-    
-    // Get coin details to match against news
-    const coin = await fetchCryptoData(coinId);
-    if (!coin) return [];
-    
-    // Filter news that mentions this coin
-    const relevantNews = sampleNews.filter(news => {
-      const contentLower = (news.content || '').toLowerCase();
-      const titleLower = news.title.toLowerCase();
-      const symbolLower = coin.symbol.toLowerCase();
-      const nameLower = coin.name.toLowerCase();
-      
-      return (
-        contentLower.includes(symbolLower) ||
-        contentLower.includes(nameLower) ||
-        titleLower.includes(symbolLower) ||
-        titleLower.includes(nameLower) ||
-        (news.topics || []).some(topic => 
-          topic.toLowerCase() === nameLower || 
-          topic.toLowerCase() === symbolLower
-        )
-      );
+export const fetchCoinDetails = async (coinId: string, currency = 'usd'): Promise<CryptoData | null> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 600));
+  
+  // Find the coin in our extended list
+  const coin = extendedCoinList.find(c => c.id === coinId);
+  
+  if (!coin) {
+    toast({
+      title: "Error",
+      description: `Coin ${coinId} not found`,
+      variant: "destructive"
     });
-    
-    return relevantNews;
-  } catch (error) {
-    console.error(`Error fetching news for coin ${coinId}:`, error);
-    return [];
+    return null;
   }
+  
+  // Add some randomized data to simulate fresh prices
+  return {
+    ...coin,
+    price: coin.price * (1 + (Math.random() * 0.02 - 0.01)),
+    priceChange: coin.priceChange * (1 + (Math.random() * 0.1 - 0.05)),
+    changePercent: coin.changePercent! * (1 + (Math.random() * 0.1 - 0.05))
+  };
+};
+
+export const searchCoins = async (query: string): Promise<CoinOption[]> => {
+  if (!query || query.length < 2) return [];
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  // Search through our extended list
+  const lowerQuery = query.toLowerCase();
+  return extendedCoinList.filter(
+    coin => coin.name.toLowerCase().includes(lowerQuery) || 
+            coin.symbol.toLowerCase().includes(lowerQuery) ||
+            coin.id.toLowerCase().includes(lowerQuery)
+  );
+};
+
+export const fetchMarketData = async (
+  params: { 
+    limit?: number; 
+    currency?: string; 
+    order?: string; 
+    category?: string 
+  } = {}
+): Promise<CryptoData[]> => {
+  const { limit = 20, currency = 'usd' } = params;
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 900));
+  
+  // Return a subset with randomized prices
+  return extendedCoinList
+    .slice(0, limit)
+    .map(coin => ({
+      ...coin,
+      price: coin.price * (1 + (Math.random() * 0.03 - 0.015)),
+      priceChange: coin.priceChange * (1 + (Math.random() * 0.1 - 0.05)),
+      changePercent: coin.changePercent! * (1 + (Math.random() * 0.1 - 0.05))
+    }));
+};
+
+export const fetchHistoricalMarketData = async (
+  coinId: string, 
+  days: number = 30,
+  interval?: string
+): Promise<Array<{ timestamp: number; price: number }>> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Find the coin to get a starting price
+  const coin = extendedCoinList.find(c => c.id === coinId);
+  if (!coin) return [];
+  
+  const endTimestamp = Date.now();
+  const startTimestamp = endTimestamp - (days * 24 * 60 * 60 * 1000);
+  
+  // Generate points between start and end
+  const points = [];
+  let lastPrice = coin.price * 0.7; // Start at 70% of current price
+  
+  // Determine number of data points based on days
+  const pointCount = days <= 1 ? 24 : days <= 7 ? days * 8 : days;
+  
+  for (let i = 0; i <= pointCount; i++) {
+    const pointTimestamp = startTimestamp + ((endTimestamp - startTimestamp) * (i / pointCount));
+    
+    // Add some randomized price movement
+    const change = (Math.random() - 0.48) * 0.05; // Slight uptrend
+    lastPrice = Math.max(0.01, lastPrice * (1 + change));
+    
+    points.push({
+      timestamp: pointTimestamp,
+      price: lastPrice
+    });
+  }
+  
+  return points;
 };
 
 export default {
-  getTrendingCoins,
-  getLatestNews,
-  getNewsBySentiment,
-  getApiUsageStats,
-  isApiProviderAvailable,
-  getNewsForCoin
+  fetchCoins,
+  fetchCoinDetails,
+  searchCoins,
+  fetchMarketData,
+  fetchHistoricalMarketData
 };

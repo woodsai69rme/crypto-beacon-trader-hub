@@ -1,19 +1,19 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type ThemeType = 'light' | 'dark';
-type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code';
+export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code';
+export type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
-  theme: ThemeType;
+  theme: Theme;
   colorScheme: ColorScheme;
-  setTheme: (theme: ThemeType) => void;
-  setColorScheme: (scheme: ColorScheme) => void;
+  setTheme: (theme: Theme) => void;
+  setColorScheme: (colorScheme: ColorScheme) => void;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
+  theme: 'system',
   colorScheme: 'default',
   setTheme: () => {},
   setColorScheme: () => {},
@@ -21,54 +21,71 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<ThemeType>('dark');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>('default');
   
-  // On mount, read theme from localStorage or system preference
+  // Initialize theme from localStorage or system preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as ThemeType | null;
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
     const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme | null;
     
-    // Set theme from saved preference, system preference, or default to dark
     if (savedTheme) {
       setThemeState(savedTheme);
-      document.documentElement.classList.add(savedTheme);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setThemeState('dark');
-      document.documentElement.classList.add('dark');
+    } else {
+      // Check system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setThemeState(prefersDark ? 'dark' : 'light');
     }
     
-    // Set color scheme from saved preference or default
     if (savedColorScheme) {
       setColorSchemeState(savedColorScheme);
-      document.documentElement.dataset.colorScheme = savedColorScheme;
     }
   }, []);
   
-  const setTheme = (newTheme: ThemeType) => {
-    // Remove old theme class
-    document.documentElement.classList.remove('light', 'dark');
-    // Add new theme class
-    document.documentElement.classList.add(newTheme);
-    // Save to state and localStorage
+  // Apply theme to document when it changes
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.toggle('dark', prefersDark);
+    } else {
+      root.classList.toggle('dark', theme === 'dark');
+    }
+    
+    // Apply color scheme
+    root.setAttribute('data-color-scheme', colorScheme);
+    
+    // Save preferences
+    localStorage.setItem('theme', theme);
+    localStorage.setItem('colorScheme', colorScheme);
+  }, [theme, colorScheme]);
+  
+  const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
   };
   
-  const setColorScheme = (newScheme: ColorScheme) => {
-    // Set color scheme data attribute
-    document.documentElement.dataset.colorScheme = newScheme;
-    // Save to state and localStorage
-    setColorSchemeState(newScheme);
-    localStorage.setItem('colorScheme', newScheme);
+  const setColorScheme = (newColorScheme: ColorScheme) => {
+    setColorSchemeState(newColorScheme);
   };
   
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setThemeState(prevTheme => {
+      if (prevTheme === 'dark') return 'light';
+      if (prevTheme === 'light') return 'dark';
+      // If system, check current preference and toggle to opposite
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return prefersDark ? 'light' : 'dark';
+    });
   };
   
   return (
-    <ThemeContext.Provider value={{ theme, colorScheme, setTheme, setColorScheme, toggleTheme }}>
+    <ThemeContext.Provider value={{
+      theme,
+      colorScheme,
+      setTheme,
+      setColorScheme,
+      toggleTheme
+    }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -76,11 +93,4 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useTheme = () => useContext(ThemeContext);
 
-// Export wrapper for app root
-export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <ThemeProvider>
-      {children}
-    </ThemeProvider>
-  );
-};
+export default ThemeContext;
