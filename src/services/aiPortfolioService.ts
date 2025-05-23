@@ -1,4 +1,4 @@
-import { RiskAssessmentResult, TradingAccount, PortfolioAsset, PortfolioOptimizationResult, OptimizationSettings, TradingSignal } from "@/types/trading";
+import { RiskAssessmentResult, TradingAccount, PortfolioAsset, PortfolioOptimizationResult, OptimizationSettings, TradingSignal, MarketInsight } from "@/types/trading";
 
 // Mock risk assessment data
 const mockRiskFactors = {
@@ -264,7 +264,7 @@ export const generateTradingSignals = async (
             price: asset.price,
             strength: confidence,
             timestamp: new Date().toISOString(),
-            reason: `${asset.coinId.charAt(0).toUpperCase() + asset.coinId.slice(1)} has shown significant gains and technical indicators suggest a local top. Consider taking profits.`,
+            reason: `${asset.coinId.charAt(0).toUpperCase() + asset.coin.slice(1)} has shown significant gains and technical indicators suggest a local top. Consider taking profits.`,
             suggestedActions: {
               entry: asset.price,
               target: targetPrice,
@@ -329,8 +329,160 @@ export const generateTradingSignals = async (
   return signals.slice(0, limit);
 };
 
+// Function to generate personalized market insights for the user's portfolio
+export const getPersonalizedMarketInsights = async (
+  account: TradingAccount,
+  options: { limit?: number; relevanceThreshold?: number } = {}
+): Promise<MarketInsight[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  const { limit = 10, relevanceThreshold = 60 } = options;
+  const insights: MarketInsight[] = [];
+  
+  // Get available assets from account
+  const assets = account.assets || [];
+  const assetIds = assets.map(asset => asset.coinId);
+  
+  // Generate insights based on portfolio composition
+  const insightTypes = ['trend', 'opportunity', 'risk', 'event', 'analysis'];
+  const possibleAssets = [...assetIds, 'bitcoin', 'ethereum', 'solana', 'cardano', 'binancecoin', 'ripple'];
+  
+  // Market trends
+  insights.push({
+    id: `insight-${Date.now()}-1`,
+    type: 'trend',
+    title: 'Growing DeFi adoption likely to benefit Ethereum',
+    summary: 'Recent data shows DeFi TVL has increased 15% this month, with Ethereum-based protocols leading the growth.',
+    relevance: assetIds.includes('ethereum') ? 90 : 75,
+    confidence: 85,
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    assets: ['ethereum', 'polygon'],
+    details: 'Total Value Locked across DeFi protocols has risen steadily over the past month, with particular growth in lending and DEX sectors. This trend is likely to continue as institutional interest grows, benefiting smart contract platforms.'
+  });
+  
+  // Risk insight
+  if (assetIds.includes('solana')) {
+    insights.push({
+      id: `insight-${Date.now()}-2`,
+      type: 'risk',
+      title: 'Solana network congestion could impact short-term growth',
+      summary: 'Recent network issues on Solana have led to transaction delays, potentially impacting dApp adoption.',
+      relevance: 92,
+      confidence: 78,
+      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+      assets: ['solana'],
+      details: 'While Solana has made significant improvements to network stability, recent congestion issues highlight ongoing challenges. The team is implementing further optimizations, but competing L1s may gain market share in the meantime.'
+    });
+  }
+  
+  // Opportunity insight
+  insights.push({
+    id: `insight-${Date.now()}-3`,
+    type: 'opportunity',
+    title: 'Bitcoin ETF inflows could drive broader market momentum',
+    summary: 'Sustained Bitcoin ETF inflows are creating buying pressure that historically benefits the entire crypto market.',
+    relevance: 85,
+    confidence: 82,
+    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+    assets: ['bitcoin', 'ethereum', 'binancecoin'],
+    details: 'ETF inflows have consistently remained positive despite market volatility, indicating growing institutional adoption. Historically, sustained Bitcoin strength leads to rotation into major altcoins within 2-3 weeks.'
+  });
+  
+  // Event insight
+  insights.push({
+    id: `insight-${Date.now()}-4`,
+    type: 'event',
+    title: 'Cardano Vasil hard fork approaching - potential volatility',
+    summary: 'The upcoming Vasil hard fork could create short-term price volatility for ADA as the market reacts to the upgrade.',
+    relevance: assetIds.includes('cardano') ? 95 : 65,
+    confidence: 88,
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 24 hours ago
+    assets: ['cardano'],
+    details: 'Major network upgrades historically create price volatility. While long-term implications are positive, short-term traders should be prepared for potential swings in either direction.'
+  });
+  
+  // Generate additional insights to meet the limit
+  for (let i = insights.length; i < limit; i++) {
+    // Skip if we already have enough insights
+    if (insights.length >= limit) break;
+    
+    const type = insightTypes[Math.floor(Math.random() * insightTypes.length)];
+    const relatedAssets = [possibleAssets[Math.floor(Math.random() * possibleAssets.length)]];
+    
+    // Add another asset sometimes
+    if (Math.random() > 0.7) {
+      const secondAsset = possibleAssets[Math.floor(Math.random() * possibleAssets.length)];
+      if (!relatedAssets.includes(secondAsset)) {
+        relatedAssets.push(secondAsset);
+      }
+    }
+    
+    // Calculate relevance - higher if the assets are in the user's portfolio
+    const portfolioOverlap = relatedAssets.filter(asset => assetIds.includes(asset)).length;
+    const relevance = 50 + (portfolioOverlap / relatedAssets.length) * 40 + Math.random() * 10;
+    
+    if (relevance < relevanceThreshold) {
+      continue; // Skip if below threshold
+    }
+    
+    // Generate insight based on type
+    let title, summary;
+    
+    switch (type) {
+      case 'trend':
+        title = `${capitalizeFirstLetter(relatedAssets[0])} showing strong momentum in trading volume`;
+        summary = `Trading volume for ${relatedAssets[0]} has increased by ${Math.round(20 + Math.random() * 30)}% over the past week, indicating growing interest.`;
+        break;
+      case 'opportunity':
+        title = `Technical indicators suggest potential entry point for ${capitalizeFirstLetter(relatedAssets[0])}`;
+        summary = `Multiple indicators including RSI and MACD are signaling a potential reversal after recent price action.`;
+        break;
+      case 'risk':
+        title = `Regulatory uncertainty could impact ${capitalizeFirstLetter(relatedAssets[0])} in the short term`;
+        summary = `Recent regulatory developments may create headwinds for ${relatedAssets[0]} and similar assets in the coming weeks.`;
+        break;
+      case 'event':
+        title = `Upcoming protocol upgrade for ${capitalizeFirstLetter(relatedAssets[0])} scheduled next month`;
+        summary = `The planned technical upgrade could improve scalability and potentially impact token economics.`;
+        break;
+      case 'analysis':
+        title = `Correlation between ${capitalizeFirstLetter(relatedAssets[0])} and traditional markets decreasing`;
+        summary = `Data shows ${relatedAssets[0]} has been decoupling from traditional market movements over the past 30 days.`;
+        break;
+      default:
+        title = `Market analysis for ${capitalizeFirstLetter(relatedAssets[0])}`;
+        summary = `Recent market activity suggests changing sentiment around ${relatedAssets[0]} and similar assets.`;
+    }
+    
+    insights.push({
+      id: `insight-${Date.now()}-${i+5}`,
+      type: type,
+      title: title,
+      summary: summary,
+      relevance: Math.round(relevance),
+      confidence: Math.round(65 + Math.random() * 25),
+      timestamp: new Date(Date.now() - Math.floor(Math.random() * 48) * 60 * 60 * 1000).toISOString(), // Random time in last 48 hours
+      assets: relatedAssets,
+      details: `This insight is based on analysis of market data, news sentiment, and technical indicators related to ${relatedAssets.join(', ')}.`
+    });
+  }
+  
+  // Sort insights by relevance (descending)
+  insights.sort((a, b) => b.relevance - a.relevance);
+  
+  // Return limited number of insights
+  return insights.slice(0, limit);
+};
+
+// Helper function to capitalize the first letter of a string
+function capitalizeFirstLetter(string: string): string {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 export default {
   assessPortfolioRisk,
   optimizePortfolio,
-  generateTradingSignals
+  generateTradingSignals,
+  getPersonalizedMarketInsights
 };
