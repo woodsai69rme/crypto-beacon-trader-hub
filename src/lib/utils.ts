@@ -6,135 +6,129 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Format currency with appropriate decimals
 export function formatCurrency(
-  amount: number, 
-  currency: string = 'AUD', 
-  locale: string = 'en-AU'
+  amount: number,
+  currency = 'USD',
+  minimumFractionDigits = 2,
+  maximumFractionDigits = 2
 ): string {
-  return new Intl.NumberFormat(locale, {
+  // For very small values (like some crypto prices), show more decimal places
+  if (amount < 0.01) {
+    maximumFractionDigits = 6;
+  }
+
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency,
+    currency,
+    minimumFractionDigits,
+    maximumFractionDigits,
   }).format(amount);
 }
 
-export function formatPercentage(value: number): string {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+// Format large numbers with abbreviations (K, M, B, T)
+export function formatLargeNumber(num: number): string {
+  if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+  if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+  return num.toFixed(2);
 }
 
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat().format(value);
+// Format percentage with + or - sign and appropriate color class
+export function formatPercentage(
+  percent: number,
+  includeSign = true,
+  colorize = true
+): { text: string; className: string } {
+  const isPositive = percent >= 0;
+  const text = `${includeSign && isPositive ? '+' : ''}${percent.toFixed(2)}%`;
+  const className = colorize
+    ? isPositive
+      ? 'text-green-500'
+      : 'text-red-500'
+    : '';
+
+  return { text, className };
 }
 
-export function formatDate(date: Date | string): string {
-  if (typeof date === 'string') {
-    date = new Date(date);
+// Format date to localized string
+export function formatDate(
+  date: Date | string,
+  options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   }
-  return date.toLocaleDateString();
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString('en-US', options);
 }
 
-export function formatDateTime(date: Date | string): string {
-  if (typeof date === 'string') {
-    date = new Date(date);
+// Format time to localized string
+export function formatTime(
+  date: Date | string,
+  options: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
   }
-  return date.toLocaleString();
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleTimeString('en-US', options);
 }
 
-export function truncateString(str: string, maxLength: number = 30): string {
-  if (str.length <= maxLength) return str;
-  return str.substring(0, maxLength) + '...';
+// Format relative time (e.g. "2 hours ago")
+export function formatRelativeTime(timestamp: string | number | Date): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  
+  return formatDate(date);
 }
 
+// Generate random ID
+export function generateId(prefix = ''): string {
+  return `${prefix}${Math.random().toString(36).substring(2, 9)}`;
+}
+
+// Debounce function
 export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number
+  func: T,
+  wait: number
 ): (...args: Parameters<T>) => void {
-  let timer: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      fn(...args);
-    }, delay);
+  let timeout: NodeJS.Timeout;
+
+  return function executedFunction(...args: Parameters<T>) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
   };
 }
 
-export function calculateCorrelation(x: number[], y: number[]): number {
-  const n = Math.min(x.length, y.length);
-  if (n === 0) return 0;
-
-  // Calculate mean of x and y
-  const xMean = x.reduce((sum, val) => sum + val, 0) / n;
-  const yMean = y.reduce((sum, val) => sum + val, 0) / n;
-
-  // Calculate numerator and denominators
-  let numerator = 0;
-  let denominatorX = 0;
-  let denominatorY = 0;
-
-  for (let i = 0; i < n; i++) {
-    const xDiff = x[i] - xMean;
-    const yDiff = y[i] - yMean;
-    numerator += xDiff * yDiff;
-    denominatorX += xDiff * xDiff;
-    denominatorY += yDiff * yDiff;
-  }
-
-  // Calculate correlation
-  const denominator = Math.sqrt(denominatorX * denominatorY);
-  if (denominator === 0) return 0;
+// Throttle function
+export function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+): (...args: Parameters<T>) => void {
+  let inThrottle: boolean;
   
-  return numerator / denominator;
-}
-
-export function getRandomColor(): string {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
-
-export function generateMockTimeSeriesData(
-  days: number, 
-  startValue: number = 100, 
-  volatility: number = 0.02
-): { date: string; value: number }[] {
-  const result = [];
-  let currentValue = startValue;
-  const today = new Date();
-  
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    
-    // Random walk with drift
-    const change = (Math.random() - 0.5) * volatility * currentValue;
-    currentValue = Math.max(0.1, currentValue + change);
-    
-    result.push({
-      date: formatDate(date),
-      value: currentValue,
-    });
-  }
-  
-  return result;
-}
-
-export function generateCorrelationData(
-  assets: string[], 
-  correlationMatrix: number[][]
-): any[] {
-  const result = [];
-  
-  for (let i = 0; i < assets.length; i++) {
-    for (let j = i + 1; j < assets.length; j++) {
-      result.push({
-        x: assets[i],
-        y: assets[j],
-        z: correlationMatrix[i][j],
-      });
+  return function executedFunction(...args: Parameters<T>) {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => {
+        inThrottle = false;
+      }, limit);
     }
-  }
-  
-  return result;
+  };
 }

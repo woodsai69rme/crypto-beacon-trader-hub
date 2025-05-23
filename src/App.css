@@ -1,105 +1,69 @@
 
-/* Base styles */
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.themed-app {
+  --scrollbar-thumb: hsl(var(--muted-foreground));
+  --scrollbar-track: hsl(var(--muted));
 }
 
-/* Theme classes */
 .themed-app.dark {
-  color-scheme: dark;
+  --scrollbar-thumb: hsl(var(--muted-foreground));
+  --scrollbar-track: hsl(var(--muted));
 }
 
-.themed-app.light {
-  color-scheme: light;
+/* Theme: Default */
+.themed-app[data-color-scheme="default"] {
+  --primary-color: hsl(var(--primary));
+  --accent-color: hsl(var(--accent));
 }
 
-/* Theme color schemes */
-.themed-app.default {
-  /* Default theme colors are handled by Tailwind */
+/* Theme: Midnight Tech */
+.themed-app[data-color-scheme="midnight-tech"] {
+  --primary-color: #3B82F6;
+  --accent-color: #0EA5E9;
 }
 
-.themed-app.midnight-tech {
-  --background: 224 71% 4%;
-  --foreground: 213 31% 91%;
-  --primary: 210 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 223 60% 90%;
-  --secondary-foreground: 222 47% 11%;
-  --card: 222 47% 7%;
-  --card-foreground: 213 31% 91%;
-  --border: 214 59% 15%;
-  --accent: 216 100% 40%;
-  --accent-foreground: 0 0% 100%;
+/* Theme: Cyber Pulse */
+.themed-app[data-color-scheme="cyber-pulse"] {
+  --primary-color: #A855F7;
+  --accent-color: #8B5CF6;
 }
 
-.themed-app.cyber-pulse {
-  --background: 280 70% 5%;
-  --foreground: 270 20% 90%;
-  --primary: 280 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 300 60% 60%;
-  --secondary-foreground: 278 73% 98%;
-  --card: 280 60% 8%;
-  --card-foreground: 270 20% 90%;
-  --border: 280 60% 15%;
-  --accent: 320 100% 50%;
-  --accent-foreground: 0 0% 100%;
+/* Theme: Matrix Code */
+.themed-app[data-color-scheme="matrix-code"] {
+  --primary-color: #22C55E;
+  --accent-color: #10B981;
 }
 
-.themed-app.matrix-code {
-  --background: 140 65% 5%;
-  --foreground: 120 70% 85%;
-  --primary: 135 100% 45%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 50% 30%;
-  --secondary-foreground: 120 70% 85%;
-  --card: 140 50% 8%;
-  --card-foreground: 120 70% 85%;
-  --border: 140 60% 15%;
-  --accent: 140 100% 40%;
-  --accent-foreground: 0 0% 100%;
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-.themed-app.neon-future {
-  --background: 210 100% 4%;
-  --foreground: 190 100% 85%;
-  --primary: 195 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 230 100% 65%;
-  --secondary-foreground: 0 0% 100%;
-  --card: 210 90% 7%;
-  --card-foreground: 190 100% 85%;
-  --border: 210 90% 15%;
-  --accent: 320 100% 55%;
-  --accent-foreground: 0 0% 100%;
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
-.themed-app.sunset-gradient {
-  --background: 20 50% 5%;
-  --foreground: 30 70% 90%;
-  --primary: 20 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 330 80% 50%;
-  --secondary-foreground: 0 0% 100%;
-  --card: 20 50% 8%;
-  --card-foreground: 30 70% 90%;
-  --border: 25 60% 15%;
-  --accent: 330 80% 50%;
-  --accent-foreground: 0 0% 100%;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Animations */
-@keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
 }
 
-.animate-scroll {
-  animation: scroll linear infinite;
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
 }
 
-.animation-play-state-paused {
-  animation-play-state: paused;
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
 }

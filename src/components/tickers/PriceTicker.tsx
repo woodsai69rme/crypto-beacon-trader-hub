@@ -1,137 +1,185 @@
 
-import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, PauseCircle, PlayCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { CoinOption } from "@/types/trading";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import React, { useRef, useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { CoinOption } from '@/types/trading';
 
 interface PriceTickerProps {
   coins: CoinOption[];
   speed?: number;
   direction?: 'left' | 'right';
+  autoSpeed?: boolean;
   className?: string;
 }
 
-const PriceTicker: React.FC<PriceTickerProps> = ({ 
-  coins = [], 
-  speed = 30,
+const PriceTicker: React.FC<PriceTickerProps> = ({
+  coins,
+  speed = 50,
   direction = 'left',
-  className 
+  autoSpeed = true,
+  className = ''
 }) => {
-  const { formatCurrency } = useCurrency();
-  const tickerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentDirection, setCurrentDirection] = useState<'left' | 'right'>(direction);
+  const [isHovered, setIsHovered] = useState(false);
   
-  // Handle undefined coins
-  const safeCoins = coins || [];
+  // Calculate actual speed: lower value = faster scrolling
+  const actualSpeed = 100 - speed; // Invert the scale so higher number = faster
   
   useEffect(() => {
-    if (!tickerRef.current || safeCoins.length === 0 || isPaused) return;
+    if (!scrollRef.current || isPaused) return;
     
-    const tickerContent = tickerRef.current;
-    const animationName = `price-ticker-${currentDirection}`;
+    // Pixel amount to move for each animation frame
+    // We use the speed setting to adjust this value (0.2 to 2 pixels per frame)
+    const step = (speed / 50) * (direction === 'left' ? 1 : -1);
+    let animationFrameId: number;
+    let lastTimestamp: number;
     
-    // Reset animation
-    tickerContent.style.animation = 'none';
-    tickerContent.offsetHeight; // Trigger reflow
+    const scroll = (timestamp: number) => {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const elapsed = timestamp - lastTimestamp;
+      
+      // Only update every ~16ms (60fps) to smooth animation
+      if (elapsed > 16) {
+        if (scrollRef.current) {
+          // Move the scroll position
+          scrollRef.current.scrollLeft += step;
+          
+          // If we've scrolled to the end, reset to start for continuous loop
+          const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+          
+          if (direction === 'left' && scrollLeft >= scrollWidth - clientWidth) {
+            scrollRef.current.scrollLeft = 0;
+          } else if (direction === 'right' && scrollLeft <= 0) {
+            scrollRef.current.scrollLeft = scrollWidth - clientWidth;
+          }
+        }
+        lastTimestamp = timestamp;
+      }
+      
+      animationFrameId = requestAnimationFrame(scroll);
+    };
     
-    // Apply animation with dynamic speed
-    const animationDuration = `${safeCoins.length * speed}s`;
-    tickerContent.style.animation = `${animationName} ${animationDuration} linear infinite`;
+    animationFrameId = requestAnimationFrame(scroll);
     
     return () => {
-      if (tickerContent) {
-        tickerContent.style.animation = 'none';
-      }
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [safeCoins, speed, isPaused, currentDirection]);
-
-  const togglePause = () => {
-    setIsPaused(prev => !prev);
+  }, [speed, direction, isPaused, coins]);
+  
+  // Auto-pause when hovering if autoSpeed is enabled
+  useEffect(() => {
+    if (autoSpeed && isHovered && !isPaused) {
+      setIsPaused(true);
+    } else if (autoSpeed && !isHovered && isPaused) {
+      setIsPaused(false);
+    }
+  }, [autoSpeed, isHovered, isPaused]);
+  
+  // Format price change with color and arrow
+  const formatPriceChange = (changePercent: number) => {
+    const isPositive = changePercent >= 0;
+    const color = isPositive ? 'text-green-500' : 'text-red-500';
+    
+    return (
+      <span className={color}>
+        {isPositive ? '▲' : '▼'} {Math.abs(changePercent).toFixed(2)}%
+      </span>
+    );
   };
   
-  const changeDirection = () => {
-    setCurrentDirection(prev => prev === 'left' ? 'right' : 'left');
-  };
-  
-  // Guard against empty coins
-  if (safeCoins.length === 0) {
-    return null;
-  }
-
   return (
-    <div className={cn("relative overflow-hidden bg-muted/30", className)}>
-      <div className="absolute top-1/2 left-2 z-10 -translate-y-1/2 space-y-1 flex flex-col opacity-70 hover:opacity-100 transition-opacity">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-          onClick={togglePause}
-        >
-          {isPaused ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-6 w-6 rounded-full bg-background/80 backdrop-blur"
-          onClick={changeDirection}
-        >
-          {currentDirection === 'left' ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-        </Button>
+    <div 
+      className={`bg-muted/50 border-y px-2 py-1 flex items-center relative ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Ticker Controls */}
+      <div className="absolute left-2 z-10 flex items-center gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 bg-background/50 backdrop-blur-sm"
+                onClick={() => setIsPaused(!isPaused)}
+              >
+                {isPaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isPaused ? 'Play' : 'Pause'}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-6 w-6 bg-background/50 backdrop-blur-sm"
+                onClick={() => direction === 'left' ? scrollRef.current?.scrollBy(-100, 0) : scrollRef.current?.scrollBy(100, 0)}
+              >
+                {direction === 'left' ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {direction === 'left' ? 'Move Left' : 'Move Right'}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
+      {/* Ticker Content */}
       <div 
-        className={cn(
-          "ticker-container whitespace-nowrap",
-          isPaused && "animation-paused"
-        )}
+        ref={scrollRef} 
+        className="overflow-hidden whitespace-nowrap ml-16 scrollbar-hide"
       >
-        <div 
-          ref={tickerRef}
-          className="ticker-content inline-flex"
-        >
-          {[...safeCoins, ...safeCoins].map((coin, index) => (
-            <div 
-              key={`${coin.id}-${index}`}
-              className="ticker-item inline-block px-4 py-2 hover:bg-accent/50 transition-colors"
+        <div className="inline-block">
+          {coins.map((coin) => (
+            <span 
+              key={coin.id} 
+              className="inline-flex items-center mx-4 text-sm"
             >
-              <span className="font-semibold">{coin.symbol}</span>
-              <span className="mx-2">•</span>
-              <span>{formatCurrency(coin.price)}</span>
-              <span 
-                className={cn(
-                  "ml-1",
-                  coin.priceChange > 0 ? "text-green-500" : "text-red-500"
-                )}
-              >
-                {coin.priceChange > 0 ? '+' : ''}{coin.priceChange.toFixed(2)}%
-              </span>
-            </div>
+              {coin.image && (
+                <img src={coin.image} alt={coin.name} className="w-5 h-5 mr-1" />
+              )}
+              <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+              <span className="mx-1">${coin.price.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: coin.price < 1 ? 6 : 2
+              })}</span>
+              {formatPriceChange(coin.changePercent)}
+            </span>
+          ))}
+          
+          {/* Duplicate items to create continuous loop */}
+          {coins.map((coin) => (
+            <span 
+              key={`dup-${coin.id}`} 
+              className="inline-flex items-center mx-4 text-sm"
+            >
+              {coin.image && (
+                <img src={coin.image} alt={coin.name} className="w-5 h-5 mr-1" />
+              )}
+              <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+              <span className="mx-1">${coin.price.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: coin.price < 1 ? 6 : 2
+              })}</span>
+              {formatPriceChange(coin.changePercent)}
+            </span>
           ))}
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes price-ticker-left {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-${(safeCoins.length || 1) * 200}px); }
-        }
-
-        @keyframes price-ticker-right {
-          0% { transform: translateX(-${(safeCoins.length || 1) * 200}px); }
-          100% { transform: translateX(0); }
-        }
-
-        .ticker-content {
-          animation: price-ticker-${currentDirection} ${(safeCoins.length || 1) * speed}s linear infinite;
-        }
-
-        .animation-paused {
-          animation-play-state: paused;
-        }
-      `}} />
+      
+      {/* Fade effect for edges */}
+      <div className="absolute left-16 top-0 bottom-0 w-10 bg-gradient-to-r from-background/50 to-transparent pointer-events-none"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-background/50 to-transparent pointer-events-none"></div>
     </div>
   );
 };

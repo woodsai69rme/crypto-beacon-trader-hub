@@ -1,84 +1,86 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type Theme = 'light' | 'dark';
-export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
+type ThemeType = 'light' | 'dark';
+type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code';
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: ThemeType;
   colorScheme: ColorScheme;
-  setColorScheme: (colorScheme: ColorScheme) => void;
+  setTheme: (theme: ThemeType) => void;
+  setColorScheme: (scheme: ColorScheme) => void;
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+const ThemeContext = createContext<ThemeContextType>({
+  theme: 'dark',
+  colorScheme: 'default',
+  setTheme: () => {},
+  setColorScheme: () => {},
+  toggleTheme: () => {},
+});
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    // Initialize from localStorage or user preference or default to dark
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) return savedTheme;
+  const [theme, setThemeState] = useState<ThemeType>('dark');
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>('default');
+  
+  // On mount, read theme from localStorage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as ThemeType | null;
+    const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme | null;
     
-    // Check user preference
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Set theme from saved preference, system preference, or default to dark
+    if (savedTheme) {
+      setThemeState(savedTheme);
+      document.documentElement.classList.add(savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setThemeState('dark');
+      document.documentElement.classList.add('dark');
     }
     
-    return 'dark'; // Default to dark theme
-  });
-
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
-    // Initialize from localStorage or default
-    return (localStorage.getItem('colorScheme') as ColorScheme) || 'default';
-  });
-
-  useEffect(() => {
-    // Update localStorage when theme changes
-    localStorage.setItem('theme', theme);
-    
-    // Update document attributes
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-  }, [theme]);
-
-  useEffect(() => {
-    // Update localStorage when color scheme changes
-    localStorage.setItem('colorScheme', colorScheme);
-    
-    // Update document attributes
-    const root = window.document.documentElement;
-    root.classList.remove('default', 'midnight-tech', 'cyber-pulse', 'matrix-code', 'neon-future', 'sunset-gradient');
-    root.classList.add(colorScheme);
-  }, [colorScheme]);
-
-  // Set the theme
-  const setTheme = (newTheme: Theme) => {
+    // Set color scheme from saved preference or default
+    if (savedColorScheme) {
+      setColorSchemeState(savedColorScheme);
+      document.documentElement.dataset.colorScheme = savedColorScheme;
+    }
+  }, []);
+  
+  const setTheme = (newTheme: ThemeType) => {
+    // Remove old theme class
+    document.documentElement.classList.remove('light', 'dark');
+    // Add new theme class
+    document.documentElement.classList.add(newTheme);
+    // Save to state and localStorage
     setThemeState(newTheme);
+    localStorage.setItem('theme', newTheme);
   };
-
-  // Set the color scheme
-  const setColorScheme = (newColorScheme: ColorScheme) => {
-    setColorSchemeState(newColorScheme);
+  
+  const setColorScheme = (newScheme: ColorScheme) => {
+    // Set color scheme data attribute
+    document.documentElement.dataset.colorScheme = newScheme;
+    // Save to state and localStorage
+    setColorSchemeState(newScheme);
+    localStorage.setItem('colorScheme', newScheme);
   };
-
-  // Toggle between light and dark themes
+  
   const toggleTheme = () => {
-    setThemeState(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
-
+  
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, colorScheme, setColorScheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, colorScheme, setTheme, setColorScheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => useContext(ThemeContext);
+
+// Export wrapper for app root
+export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <ThemeProvider>
+      {children}
+    </ThemeProvider>
   );
 };

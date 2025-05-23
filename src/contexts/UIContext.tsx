@@ -1,18 +1,21 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { TickerSettings, SidebarSettings } from '../types/trading';
+import { SettingsFormValues, TickerSettings, SidebarSettings } from '@/types/trading';
 
 interface UIContextType {
   tickerSettings: TickerSettings;
-  updateTickerSettings: (settings: Partial<TickerSettings>) => void;
   sidebarSettings: SidebarSettings;
+  updateTickerSettings: (settings: Partial<TickerSettings>) => void;
   updateSidebarSettings: (settings: Partial<SidebarSettings>) => void;
+  updateSettings: (settings: Partial<SettingsFormValues>) => void;
+  settings: SettingsFormValues;
 }
 
+// Default settings
 const defaultTickerSettings: TickerSettings = {
   enabled: true,
-  position: 'both',
-  speed: 40,
+  position: 'top',
+  speed: 50,
   direction: 'left',
   autoPause: true
 };
@@ -21,108 +24,117 @@ const defaultSidebarSettings: SidebarSettings = {
   enabled: true,
   position: 'left',
   defaultCollapsed: false,
-  collapsed: false,
-  showLabels: true
+  showLabels: true,
+  collapsed: false
 };
 
-const UIContext = createContext<UIContextType | undefined>(undefined);
-
-export const useUI = (): UIContextType => {
-  const context = useContext(UIContext);
-  if (context === undefined) {
-    throw new Error('useUI must be used within a UIProvider');
-  }
-  return context;
+const defaultSettings: SettingsFormValues = {
+  theme: 'dark',
+  currency: 'USD',
+  language: 'en',
+  notifications: {
+    email: false,
+    push: false,
+    app: true
+  },
+  tickerSettings: defaultTickerSettings,
+  sidebarSettings: defaultSidebarSettings
 };
+
+const UIContext = createContext<UIContextType>({
+  tickerSettings: defaultTickerSettings,
+  sidebarSettings: defaultSidebarSettings,
+  updateTickerSettings: () => {},
+  updateSidebarSettings: () => {},
+  updateSettings: () => {},
+  settings: defaultSettings
+});
 
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tickerSettings, setTickerSettings] = useState<TickerSettings>(defaultTickerSettings);
-  const [sidebarSettings, setSidebarSettings] = useState<SidebarSettings>(defaultSidebarSettings);
+  const [settings, setSettings] = useState<SettingsFormValues>(defaultSettings);
   
+  // Load settings from localStorage on mount
   useEffect(() => {
-    // Load settings from localStorage
-    const loadedSettings = localStorage.getItem('userSettings');
-    if (loadedSettings) {
+    const savedSettings = localStorage.getItem('ui-settings');
+    if (savedSettings) {
       try {
-        const parsedSettings = JSON.parse(loadedSettings);
-        if (parsedSettings.ticker) {
-          setTickerSettings({
-            ...defaultTickerSettings,
-            ...parsedSettings.ticker
-          });
-        }
-        if (parsedSettings.sidebar) {
-          setSidebarSettings({
-            ...defaultSidebarSettings,
-            ...parsedSettings.sidebar
-          });
-        }
-      } catch (e) {
-        console.error('Failed to load UI settings from localStorage:', e);
+        const parsedSettings = JSON.parse(savedSettings) as SettingsFormValues;
+        setSettings(parsedSettings);
+      } catch (error) {
+        console.error('Error parsing saved settings:', error);
       }
     }
   }, []);
-
+  
+  // Update ticker settings
   const updateTickerSettings = (newSettings: Partial<TickerSettings>) => {
-    setTickerSettings(prev => {
-      const updated = { ...prev, ...newSettings };
+    setSettings(prevSettings => {
+      const updatedTickerSettings = {
+        ...prevSettings.tickerSettings,
+        ...newSettings
+      };
       
-      // Update in localStorage
-      const existingSettings = localStorage.getItem('userSettings');
-      if (existingSettings) {
-        try {
-          const settings = JSON.parse(existingSettings);
-          localStorage.setItem('userSettings', JSON.stringify({
-            ...settings,
-            ticker: updated
-          }));
-        } catch (e) {
-          console.error('Failed to update ticker settings in localStorage:', e);
-        }
-      } else {
-        localStorage.setItem('userSettings', JSON.stringify({
-          ticker: updated
-        }));
-      }
+      const updatedSettings = {
+        ...prevSettings,
+        tickerSettings: updatedTickerSettings
+      };
       
-      return updated;
+      // Save to localStorage
+      localStorage.setItem('ui-settings', JSON.stringify(updatedSettings));
+      
+      return updatedSettings;
     });
   };
   
+  // Update sidebar settings
   const updateSidebarSettings = (newSettings: Partial<SidebarSettings>) => {
-    setSidebarSettings(prev => {
-      const updated = { ...prev, ...newSettings };
+    setSettings(prevSettings => {
+      const updatedSidebarSettings = {
+        ...prevSettings.sidebarSettings,
+        ...newSettings
+      };
       
-      // Update in localStorage
-      const existingSettings = localStorage.getItem('userSettings');
-      if (existingSettings) {
-        try {
-          const settings = JSON.parse(existingSettings);
-          localStorage.setItem('userSettings', JSON.stringify({
-            ...settings,
-            sidebar: updated
-          }));
-        } catch (e) {
-          console.error('Failed to update sidebar settings in localStorage:', e);
-        }
-      } else {
-        localStorage.setItem('userSettings', JSON.stringify({
-          sidebar: updated
-        }));
-      }
+      const updatedSettings = {
+        ...prevSettings,
+        sidebarSettings: updatedSidebarSettings
+      };
       
-      return updated;
+      // Save to localStorage
+      localStorage.setItem('ui-settings', JSON.stringify(updatedSettings));
+      
+      return updatedSettings;
     });
+  };
+  
+  // Update all settings
+  const updateSettings = (newSettings: Partial<SettingsFormValues>) => {
+    setSettings(prevSettings => {
+      const updatedSettings = {
+        ...prevSettings,
+        ...newSettings
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('ui-settings', JSON.stringify(updatedSettings));
+      
+      return updatedSettings;
+    });
+  };
+  
+  const value = {
+    tickerSettings: settings.tickerSettings,
+    sidebarSettings: settings.sidebarSettings,
+    updateTickerSettings,
+    updateSidebarSettings,
+    updateSettings,
+    settings
   };
   
   return (
-    <UIContext.Provider value={{
-      tickerSettings,
-      updateTickerSettings,
-      sidebarSettings,
-      updateSidebarSettings
-    }}>
+    <UIContext.Provider value={value}>
       {children}
     </UIContext.Provider>
   );
 };
+
+export const useUI = () => useContext(UIContext);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { useTheme } from './contexts/ThemeContext';
@@ -11,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from './components/ui/sheet';
 import { Separator } from './components/ui/separator';
 import { UIProvider, useUI } from './contexts/UIContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import PriceTicker from './components/tickers/PriceTicker';
 import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
@@ -213,11 +215,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <UIProvider>
-      <CurrencyProvider>
-        <AppContent />
-      </CurrencyProvider>
-    </UIProvider>
+    <ThemeProvider>
+      <UIProvider>
+        <CurrencyProvider>
+          <AppContent />
+        </CurrencyProvider>
+      </UIProvider>
+    </ThemeProvider>
   );
 };
 

@@ -1,186 +1,78 @@
 
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  LayoutDashboard, 
-  LineChart, 
-  BarChart3, 
-  BookOpen, 
-  Users, 
-  Settings,
-  Wallet,
-  Bot,
-  Bell,
-  AreaChart,
-  Sigma,
-  FileText,
-  AlertTriangle,
-  Globe
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import React from 'react';
 import { useUI } from '@/contexts/UIContext';
+import { ChevronLeft, ChevronRight, LayoutDashboard, LineChart, Bot, BookOpen, Users, Settings, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const SidebarPanel: React.FC = () => {
   const { sidebarSettings, updateSidebarSettings } = useUI();
-  const [isCollapsed, setIsCollapsed] = useState(sidebarSettings.defaultCollapsed || false);
-  const [activeItem, setActiveItem] = useState('Dashboard');
+  const { collapsed = false, showLabels = true } = sidebarSettings;
   
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+  const toggleCollapsed = () => {
+    updateSidebarSettings({
+      ...sidebarSettings,
+      collapsed: !collapsed
+    });
   };
   
-  const menuItems = [
-    {
-      section: 'Main',
-      items: [
-        { icon: LayoutDashboard, label: 'Dashboard', href: '#' },
-        { icon: LineChart, label: 'Trading', href: '#' },
-        { icon: Wallet, label: 'Portfolio', href: '#', badge: '3' },
-      ]
-    },
-    {
-      section: 'Analysis',
-      items: [
-        { icon: BarChart3, label: 'Market Data', href: '#' },
-        { icon: AreaChart, label: 'Technical Analysis', href: '#' },
-        { icon: Sigma, label: 'Fundamentals', href: '#' },
-        { icon: Globe, label: 'Global Markets', href: '#', badge: 'New' },
-      ]
-    },
-    {
-      section: 'AI Trading',
-      items: [
-        { icon: Bot, label: 'AI Bots', href: '#', badge: 'Pro' },
-        { icon: AlertTriangle, label: 'Alerts', href: '#', badge: '5' },
-        { icon: FileText, label: 'Strategies', href: '#' },
-      ]
-    },
-    {
-      section: 'Community',
-      items: [
-        { icon: BookOpen, label: 'News & Events', href: '#' },
-        { icon: Users, label: 'Social Trading', href: '#', badge: 'Beta' },
-        { icon: Bell, label: 'Notifications', href: '#', badge: '9+' },
-      ]
-    }
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'trading', label: 'Trading', icon: LineChart },
+    { id: 'portfolio', label: 'Portfolio', icon: Wallet },
+    { id: 'ai', label: 'AI Trading', icon: Bot },
+    { id: 'news', label: 'News & Events', icon: BookOpen },
+    { id: 'social', label: 'Community', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
-  
+
   return (
-    <aside className={cn(
-      "h-[calc(100vh-4rem)] sticky top-16 bg-card border-r border-border overflow-y-auto transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
-      <div className="flex flex-col h-full p-2">
-        <div className="flex justify-end py-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleCollapse}
-            className="h-8 w-8"
+    <div
+      className={cn(
+        "h-full border-r border-border bg-background transition-all duration-300 relative",
+        collapsed ? "w-16" : "w-60"
+      )}
+    >
+      <div className="p-4">
+        <div className="flex items-center justify-between">
+          {!collapsed && (
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                CT
+              </div>
+              <span className="ml-2 font-semibold">Crypto Trader</span>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("p-0 h-8 w-8", collapsed && "ml-auto")}
+            onClick={toggleCollapsed}
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
         </div>
-        
-        <TooltipProvider delayDuration={300}>
-          <div className="space-y-6 flex-1">
-            {menuItems.map((section) => (
-              <div key={section.section} className="space-y-2">
-                {!isCollapsed && (
-                  <div className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {section.section}
-                  </div>
-                )}
-                
-                <div className="space-y-1">
-                  {section.items.map((item) => (
-                    <Tooltip key={item.label} delayDuration={300}>
-                      <TooltipTrigger asChild>
-                        <a
-                          href={item.href}
-                          className={cn(
-                            "flex items-center px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
-                            isCollapsed ? "justify-center" : "justify-start",
-                            activeItem === item.label ? "bg-accent text-accent-foreground" : ""
-                          )}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setActiveItem(item.label);
-                          }}
-                        >
-                          <item.icon className={cn("h-5 w-5", isCollapsed ? "" : "mr-3")} />
-                          {!isCollapsed && (
-                            <span className="flex-1">{item.label}</span>
-                          )}
-                          
-                          {!isCollapsed && item.badge && (
-                            <Badge variant={
-                              item.badge === 'New' || item.badge === 'Beta' ? "secondary" :
-                              item.badge === 'Pro' ? "outline" : "default"
-                            } className="ml-auto">
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </a>
-                      </TooltipTrigger>
-                      {isCollapsed && (
-                        <TooltipContent side="right">
-                          <div className="flex items-center gap-2">
-                            {item.label}
-                            {item.badge && (
-                              <Badge variant={
-                                item.badge === 'New' || item.badge === 'Beta' ? "secondary" :
-                                item.badge === 'Pro' ? "outline" : "default"
-                              } className="ml-auto">
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </TooltipProvider>
-        
-        <Separator className="my-4" />
-        
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="outline" 
-                className={cn(
-                  "flex items-center",
-                  isCollapsed ? "justify-center" : "justify-start"
-                )}
-              >
-                <Settings className={cn("h-5 w-5", isCollapsed ? "" : "mr-3")} />
-                {!isCollapsed && <span>Settings</span>}
-              </Button>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">
-                Settings
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
       </div>
-    </aside>
+      
+      <div className="py-4">
+        <nav className="space-y-1 px-2">
+          {navItems.map((item) => (
+            <Button
+              key={item.id}
+              variant="ghost"
+              size={collapsed ? "icon" : "default"}
+              className={cn(
+                "w-full justify-start",
+                collapsed && "p-3"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {!collapsed && showLabels && <span className="ml-3">{item.label}</span>}
+            </Button>
+          ))}
+        </nav>
+      </div>
+    </div>
   );
 };
 
