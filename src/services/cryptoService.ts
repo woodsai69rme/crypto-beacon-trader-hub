@@ -1,3 +1,4 @@
+
 import { CoinOption, CryptoData } from "@/types/trading";
 
 // Mock data for top cryptocurrencies
@@ -203,8 +204,7 @@ export const fetchHistoricalPriceData = async (
 export default {
   fetchTopCryptoData,
   fetchCryptoData,
-  fetchMultipleCryptoData, // Add the new function to the default export
-  fetchMultipleCoinsData,
+  fetchMultipleCryptoData,
   fetchTrendingCoins,
   searchCoins,
   fetchHistoricalPriceData,
