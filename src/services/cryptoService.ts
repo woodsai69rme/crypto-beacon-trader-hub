@@ -1,5 +1,5 @@
 
-import { CryptoData, CoinOption } from '@/types/trading';
+import { CryptoData, CoinOption, ApiUsageStats, NewsItem } from '@/types/trading';
 import { generateMockTimeSeriesData } from '@/lib/utils';
 
 // Mock data for demonstration
@@ -26,6 +26,17 @@ export async function fetchCoins(): Promise<CoinOption[]> {
   });
 }
 
+// Function to fetch top crypto data by market cap
+export async function fetchTopCryptoData(limit: number = 10): Promise<CoinOption[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Sort by market cap and take the specified limit
+      const sortedCoins = [...mockCoins].sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, limit);
+      resolve(sortedCoins);
+    }, 500);
+  });
+}
+
 // Function to fetch a specific coin by ID
 export async function fetchCoinById(id: string): Promise<CoinOption | undefined> {
   return new Promise((resolve) => {
@@ -36,7 +47,7 @@ export async function fetchCoinById(id: string): Promise<CoinOption | undefined>
   });
 }
 
-// Function to fetch multiple crypto data by IDs - THIS WAS MISSING
+// Function to fetch multiple crypto data by IDs
 export async function fetchMultipleCryptoData(coinIds: string[]): Promise<CoinOption[]> {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -125,7 +136,7 @@ export async function fetchMarketData(): Promise<any> {
 }
 
 // Function to fetch news items
-export async function fetchCryptoNews(limit: number = 10): Promise<any[]> {
+export async function fetchCryptoNews(limit: number = 10): Promise<NewsItem[]> {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
@@ -205,7 +216,7 @@ export async function fetchCryptoNews(limit: number = 10): Promise<any[]> {
 }
 
 // Function to fetch API usage statistics
-export async function fetchApiUsage(): Promise<any[]> {
+export async function fetchApiUsage(): Promise<ApiUsageStats[]> {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([

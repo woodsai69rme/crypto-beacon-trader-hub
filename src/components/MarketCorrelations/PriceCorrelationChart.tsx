@@ -193,5 +193,5 @@ export const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({
   );
 };
 
-// Make sure to also export as default
+// Also export as default for compatibility with both import styles
 export default PriceCorrelationChart;
