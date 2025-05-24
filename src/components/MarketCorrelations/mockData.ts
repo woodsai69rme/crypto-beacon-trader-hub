@@ -41,7 +41,9 @@ export const mockCoins: CryptoData[] = [
     changePercent: 2.18,
     marketCap: 1143349097968,
     volume: 48941516789,
-    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
+    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    value: "bitcoin",
+    label: "Bitcoin (BTC)"
   },
   {
     id: "ethereum",
@@ -52,7 +54,9 @@ export const mockCoins: CryptoData[] = [
     changePercent: 2.15,
     marketCap: 373952067386,
     volume: 21891456789,
-    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png"
+    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+    value: "ethereum",
+    label: "Ethereum (ETH)"
   },
   {
     id: "binancecoin",
@@ -63,7 +67,9 @@ export const mockCoins: CryptoData[] = [
     changePercent: 2.10,
     marketCap: 93518794521,
     volume: 1862354123,
-    image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png"
+    image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
+    value: "binancecoin",
+    label: "Binance Coin (BNB)"
   },
   {
     id: "solana",
@@ -74,7 +80,9 @@ export const mockCoins: CryptoData[] = [
     changePercent: 5.29,
     marketCap: 63287612543,
     volume: 3691845721,
-    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png"
+    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+    value: "solana",
+    label: "Solana (SOL)"
   },
   {
     id: "cardano",
@@ -85,7 +93,9 @@ export const mockCoins: CryptoData[] = [
     changePercent: 4.65,
     marketCap: 16789456123,
     volume: 756123489,
-    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png"
+    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+    value: "cardano",
+    label: "Cardano (ADA)"
   }
 ];
 
@@ -120,7 +130,9 @@ export const mockCryptoData: CryptoData[] = [
     changePercent: 2.18,
     marketCap: 1143349097968,
     volume: 48941516789,
-    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
+    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    value: "bitcoin",
+    label: "Bitcoin (BTC)"
   },
   {
     id: "ethereum",
@@ -131,7 +143,9 @@ export const mockCryptoData: CryptoData[] = [
     changePercent: 2.15,
     marketCap: 373952067386,
     volume: 21891456789,
-    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png"
+    image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+    value: "ethereum",
+    label: "Ethereum (ETH)"
   },
   {
     id: "binancecoin",
@@ -142,7 +156,9 @@ export const mockCryptoData: CryptoData[] = [
     changePercent: 2.10,
     marketCap: 93518794521,
     volume: 1862354123,
-    image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png"
+    image: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
+    value: "binancecoin",
+    label: "Binance Coin (BNB)"
   },
   {
     id: "solana",
@@ -153,7 +169,9 @@ export const mockCryptoData: CryptoData[] = [
     changePercent: 5.29,
     marketCap: 63287612543,
     volume: 3691845721,
-    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png"
+    image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+    value: "solana",
+    label: "Solana (SOL)"
   },
   {
     id: "cardano",
@@ -164,6 +182,8 @@ export const mockCryptoData: CryptoData[] = [
     changePercent: 4.65,
     marketCap: 16789456123,
     volume: 756123489,
-    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png"
+    image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+    value: "cardano",
+    label: "Cardano (ADA)"
   },
 ];

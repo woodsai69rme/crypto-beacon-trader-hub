@@ -1,3 +1,4 @@
+
 /**
  * Type definitions for the trading components and functionality
  */
@@ -39,6 +40,7 @@ export interface NewsItem {
   url: string;
   source: string;
   publishedAt: string;
+  timestamp: string; // Added missing timestamp property
   sentiment?: 'positive' | 'neutral' | 'negative';
   relevance?: number;
   categories?: string[];
@@ -115,6 +117,12 @@ export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon?: 'short' | 'medium' | 'long';
   focusArea?: 'growth' | 'income' | 'balanced';
+  constraints?: {
+    maxAllocation?: number;
+    minAllocation?: number;
+    excludeAssets?: string[];
+  };
+  objectives?: string[];
 }
 
 // Portfolio optimization result
@@ -136,6 +144,9 @@ export interface ApiProvider {
   url: string;
   documentation: string;
   apiKey?: string;
+  baseUrl?: string;
+  description?: string;
+  usageLimit?: number;
   rateLimit: {
     requestsPerMinute: number;
     requestsPerDay: number;
@@ -152,11 +163,14 @@ export interface ApiProvider {
 // API usage statistics
 export interface ApiUsageStats {
   provider: string;
+  service?: string;
   totalCalls: number;
   successfulCalls: number;
   failedCalls: number;
   avgResponseTime: number;
   lastCalled: string;
+  currentUsage?: number;
+  maxUsage?: number;
   remainingQuota?: {
     day: number;
     month: number;
@@ -278,6 +292,21 @@ export interface CorrelationHeatmapProps {
 // Price correlation chart props
 export interface PriceCorrelationChartProps {
   coins: CoinOption[];
+  timeframe?: string;
+}
+
+// News ticker props
+export interface NewsTickerProps {
+  items: {
+    id: string;
+    title: string;
+    source: string;
+    timestamp: string;
+    url: string;
+  }[];
+  speed?: number;
+  direction?: 'left' | 'right';
+  className?: string;
 }
 
 // Widget types

@@ -1,12 +1,12 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { PriceCorrelationChartProps } from '@/types/trading';
 
 const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({ coins }) => {
-  // Generate mock correlation data for visualization
-  const generateCorrelationData = () => {
+  // Generate correlation data for visualization
+  const correlationData = useMemo(() => {
     const data = [];
     
     for (let i = 0; i < coins.length; i++) {
@@ -26,9 +26,18 @@ const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({ coins }) 
     }
     
     return data;
-  };
+  }, [coins]);
 
-  const correlationData = generateCorrelationData();
+  // Custom color map based on correlation strength
+  const colorMap = useMemo(() => {
+    return correlationData.map(item => {
+      const correlation = item.x;
+      if (correlation > 0.5) return '#22c55e'; // Green for strong positive
+      if (correlation > 0) return '#84cc16'; // Light green for positive
+      if (correlation > -0.5) return '#f59e0b'; // Orange for negative
+      return '#ef4444'; // Red for strong negative
+    });
+  }, [correlationData]);
 
   return (
     <Card className="w-full">
@@ -55,20 +64,20 @@ const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({ coins }) 
                 type="number" 
                 dataKey="x" 
                 domain={[-1, 1]} 
-                tickFormatter={(value) => value.toFixed(1)}
+                tickFormatter={(value: number) => value.toFixed(1)}
                 label={{ value: 'Correlation', position: 'insideBottom', offset: -10 }}
               />
               <YAxis 
                 type="number" 
                 dataKey="y" 
                 domain={[0, 60]}
-                tickFormatter={(value) => `${value.toFixed(0)}%`}
+                tickFormatter={(value: number) => `${value.toFixed(0)}%`}
                 label={{ value: 'Volatility (%)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip
-                formatter={(value, name) => {
-                  if (name === 'x') return [value.toFixed(3), 'Correlation'];
-                  if (name === 'y') return [`${value.toFixed(1)}%`, 'Volatility'];
+                formatter={(value: any, name: string) => {
+                  if (name === 'x') return [Number(value).toFixed(3), 'Correlation'];
+                  if (name === 'y') return [`${Number(value).toFixed(1)}%`, 'Volatility'];
                   return [value, name];
                 }}
                 labelFormatter={(label, payload) => {
