@@ -168,6 +168,39 @@ export interface NewsItem {
   confidence?: number;
 }
 
+export interface CoinOption {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange?: number;
+  changePercent?: number;
+  marketCap?: number;
+  volume?: number;
+  image?: string;
+  value: string;
+  label: string;
+}
+
+export interface CryptoData extends CoinOption {
+  // Additional properties for crypto data
+}
+
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom' | 'both';
+  speed: number;
+  direction: 'left' | 'right';
+  autoPause: boolean;
+}
+
+export interface SidebarSettings {
+  enabled: boolean;
+  position: 'left' | 'right';
+  defaultCollapsed: boolean;
+  showLabels: boolean;
+}
+
 // Enhanced SettingsFormValues to include all required fields
 export interface SettingsFormValues {
   email: string;
@@ -182,19 +215,8 @@ export interface SettingsFormValues {
     push: boolean;
     app: boolean;
   };
-  tickerSettings: {
-    enabled: boolean;
-    position: 'top' | 'bottom' | 'both';
-    speed: number;
-    direction: 'left' | 'right';
-    autoPause: boolean;
-  };
-  sidebarSettings: {
-    enabled: boolean;
-    position: 'left' | 'right';
-    defaultCollapsed: boolean;
-    showLabels: boolean;
-  };
+  tickerSettings: TickerSettings;
+  sidebarSettings: SidebarSettings;
   sidebar: boolean;
   appearance: {
     colorScheme: string;

@@ -52,6 +52,48 @@ export const getTrendingCoins = async (): Promise<CoinOption[]> => {
   return mockTrendingCoins;
 };
 
+export const searchCoins = async (query: string): Promise<CoinOption[]> => {
+  // Mock search functionality
+  const allCoins: CoinOption[] = [
+    {
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      price: 58352.12,
+      priceChange: 1245.32,
+      changePercent: 2.18,
+      marketCap: 1143349097968,
+      volume: 48941516789,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      value: "bitcoin",
+      label: "Bitcoin (BTC)"
+    },
+    {
+      id: "ethereum",
+      name: "Ethereum",
+      symbol: "ETH",
+      price: 3105.78,
+      priceChange: 65.43,
+      changePercent: 2.15,
+      marketCap: 373952067386,
+      volume: 21891456789,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      value: "ethereum",
+      label: "Ethereum (ETH)"
+    }
+  ];
+
+  // Filter based on query
+  if (!query || query.length < 2) return [];
+  
+  const lowerQuery = query.toLowerCase();
+  return allCoins.filter(
+    coin => coin.name.toLowerCase().includes(lowerQuery) || 
+            coin.symbol.toLowerCase().includes(lowerQuery) ||
+            coin.id.toLowerCase().includes(lowerQuery)
+  );
+};
+
 export const getLatestNews = async (): Promise<NewsItem[]> => {
   // Mock news data
   const mockNews: NewsItem[] = [
@@ -107,5 +149,6 @@ export const getLatestNews = async (): Promise<NewsItem[]> => {
 
 export default {
   getTrendingCoins,
-  getLatestNews
+  getLatestNews,
+  searchCoins
 };

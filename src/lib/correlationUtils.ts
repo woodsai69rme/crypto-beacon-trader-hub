@@ -30,7 +30,53 @@ export function calculateCorrelation(x: number[], y: number[]): number {
   return numerator / denominator;
 }
 
-// Calculate correlations between selected coins
+// Generate correlation matrix from crypto data
+export function generateCorrelationMatrix(cryptoData: CryptoData[]): number[][] {
+  const n = cryptoData.length;
+  const matrix = Array(n).fill(0).map(() => Array(n).fill(0));
+  
+  // Fill diagonal with 1 (perfect correlation with self)
+  for (let i = 0; i < n; i++) {
+    matrix[i][i] = 1;
+  }
+  
+  // Fill upper triangle with correlation values and mirror to lower triangle
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      // Generate mock historical price data for correlation calculation
+      const priceData1 = generateMockPriceHistory(cryptoData[i]);
+      const priceData2 = generateMockPriceHistory(cryptoData[j]);
+      
+      const correlation = calculateCorrelation(priceData1, priceData2);
+      matrix[i][j] = correlation;
+      matrix[j][i] = correlation; // Correlation matrix is symmetric
+    }
+  }
+  
+  return matrix;
+}
+
+// Generate mock price history for correlation calculation
+function generateMockPriceHistory(coin: CryptoData): number[] {
+  const dataPoints = 30; // 30 days of data
+  const prices: number[] = [];
+  let currentPrice = coin.price;
+  
+  // Generate somewhat realistic price movements
+  for (let i = 0; i < dataPoints; i++) {
+    // Random walk with slight trend
+    const volatility = 0.02; // 2% daily volatility
+    const trend = 0.001; // 0.1% daily trend
+    const randomChange = (Math.random() - 0.5) * volatility + trend;
+    
+    currentPrice = currentPrice * (1 + randomChange);
+    prices.push(currentPrice);
+  }
+  
+  return prices;
+}
+
+// Calculate correlations between selected coins for chart data
 export function calculateCorrelations(
   cryptoData: CryptoData[],
   selectedCoins: string[],
@@ -47,30 +93,11 @@ export function calculateCorrelations(
       const coin1 = filteredData[i];
       const coin2 = filteredData[j];
       
-      // Generate mock correlation with some randomness but weighted by similarity
-      // In a real app, this would use historical price data
-      let correlation: number;
+      // Generate mock historical data for correlation
+      const priceData1 = generateMockPriceHistory(coin1);
+      const priceData2 = generateMockPriceHistory(coin2);
       
-      // Add some factors that make the correlation more realistic
-      const sameSector = Math.random() > 0.5; // Mock for whether coins are in same sector
-      const sizeRelation = Math.abs(
-        (coin1[metric] || 0) - (coin2[metric] || 0)
-      ) / Math.max((coin1[metric] || 1), (coin2[metric] || 1));
-      
-      if (sameSector) {
-        correlation = 0.5 + (Math.random() * 0.5); // Higher correlation for same sector
-      } else {
-        correlation = Math.random() * 0.7; // Lower correlation for different sectors
-      }
-      
-      // Adjust based on size relation - similar size may indicate similar behavior
-      correlation = correlation * (1 - sizeRelation * 0.3);
-      
-      // Add some noise
-      correlation = correlation + (Math.random() * 0.2 - 0.1);
-      
-      // Ensure within range -1 to 1
-      correlation = Math.max(-1, Math.min(1, correlation));
+      const correlation = calculateCorrelation(priceData1, priceData2);
       
       result.push({
         coin1: coin1.id,
@@ -86,27 +113,4 @@ export function calculateCorrelations(
   }
   
   return result;
-}
-
-// Generate correlation matrix
-export function generateCorrelationMatrix(cryptoData: CryptoData[]): number[][] {
-  const n = cryptoData.length;
-  const matrix = Array(n).fill(0).map(() => Array(n).fill(0));
-  
-  // Fill diagonal with 1 (perfect correlation with self)
-  for (let i = 0; i < n; i++) {
-    matrix[i][i] = 1;
-  }
-  
-  // Fill upper triangle with correlation values
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      // In a real app, calculate actual correlation from historical data
-      const correlation = Math.random() * 2 - 1; // Random between -1 and 1
-      matrix[i][j] = correlation;
-      matrix[j][i] = correlation; // Correlation matrix is symmetric
-    }
-  }
-  
-  return matrix;
 }
