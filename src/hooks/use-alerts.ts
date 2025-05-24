@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Alert, AlertFormData, AlertType } from '@/types/alerts';
 import { v4 as uuidv4 } from 'uuid';
@@ -75,6 +74,8 @@ export function useAlerts() {
             type: 'volume',
             targetVolume: data.targetVolume || 0,
             isAbove: data.isAbove || false,
+            volumeThreshold: data.volumeThreshold || 0,
+            frequency: data.frequency || 'once'
           };
           break;
         case 'pattern':
@@ -90,6 +91,9 @@ export function useAlerts() {
             type: 'technical',
             indicator: data.indicator || '',
             threshold: data.threshold || 0,
+            condition: data.condition || '',
+            value: data.value || 0,
+            timeframe: data.timeframe || '1h'
           };
           break;
         default:

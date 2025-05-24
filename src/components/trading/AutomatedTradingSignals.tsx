@@ -13,6 +13,7 @@ import { useTrading } from '@/contexts/TradingContext';
 import { generateTradingSignals } from '@/services/aiPortfolioService';
 import { TradingSignal } from '@/types/trading';
 import { formatDistanceToNow } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 const AutomatedTradingSignals: React.FC = () => {
   const { toast } = useToast();
@@ -81,8 +82,9 @@ const AutomatedTradingSignals: React.FC = () => {
     const total = amount * price;
     
     try {
-      // Execute the trade
-      addTrade({
+      // Execute the trade with account ID
+      addTrade(activeAccount.id, {
+        id: uuidv4(),
         coinId: signal.coinId,
         coinName: signal.coinId.charAt(0).toUpperCase() + signal.coinId.slice(1),
         coinSymbol: signal.coinSymbol,
@@ -91,7 +93,8 @@ const AutomatedTradingSignals: React.FC = () => {
         price,
         totalValue: total,
         total,
-        currency: activeAccount.currency as any,
+        currency: activeAccount.currency,
+        timestamp: new Date().toISOString(),
         botGenerated: true,
         tags: ['ai-signal', `confidence-${signal.strength}`]
       });

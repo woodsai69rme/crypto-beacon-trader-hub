@@ -1,4 +1,3 @@
-
 /**
  * Type definitions for the trading components and functionality
  */
@@ -43,6 +42,13 @@ export interface CryptoData extends CoinOption {
   total_volume?: number;
   market_cap?: number;
   priceChangePercentage?: number;
+  rank?: number;
+}
+
+export interface CryptoChartData {
+  timestamps: string[];
+  prices: number[];
+  volumes?: number[];
 }
 
 // News item interface
@@ -112,7 +118,6 @@ export interface TradingAccount {
   assets?: PortfolioAsset[];
   lastUpdated?: string;
   isActive?: boolean;
-  initialBalance?: number;
 }
 
 // Risk assessment result
@@ -195,6 +200,7 @@ export interface ApiProvider {
   authMethod?: string;
   apiKeyName?: string;
   defaultHeaders?: Record<string, string>;
+  requiresAuth?: boolean;
 }
 
 // API usage statistics
@@ -324,17 +330,9 @@ export interface TradingFormProps {
   onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
   account: TradingAccount;
   selectedCoin: CoinOption;
-  balance: number;
-  availableCoins: CoinOption[];
-  getOwnedCoinAmount: (coinId: string) => number;
-  activeCurrency: SupportedCurrency;
-  onCurrencyChange: (currency: SupportedCurrency) => void;
-  conversionRate: number;
 }
 
 export interface FakeTradingFormProps {
-  onAddTrade: (trade: Trade) => void;
-  advancedMode?: boolean;
   onSubmit?: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
   selectedCoin?: CoinOption;
   account?: TradingAccount;
@@ -450,18 +448,53 @@ export interface MarketInsight {
   details: string;
 }
 
-// News ticker props
-export interface NewsTickerProps {
-  items: {
+// Backtest and optimization results
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  profit: number;
+  profitPercentage: number;
+  maxDrawdown: number;
+  winRate: number;
+  trades: {
     id: string;
-    title: string;
-    source: string;
     timestamp: string;
-    url: string;
+    date: string;
+    type: 'buy' | 'sell';
+    price: number;
+    amount: number;
+    total: number;
+    profit: number;
+    profitPercentage: number;
   }[];
-  speed?: number;
-  direction?: 'left' | 'right';
-  className?: string;
+  sharpeRatio: number;
+  profitFactor: number;
+  averageProfit: number;
+  averageLoss: number;
+  initialCapital: number;
+  finalCapital: number;
+  totalReturn: number;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  sortinoRatio: number;
+}
+
+export interface OptimizationResult {
+  strategyId: string;
+  parameterValues: Record<string, any>;
+  performance: {
+    profit: number;
+    profitPercentage: number;
+    maxDrawdown: number;
+    winRate: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalReturn: number;
+  };
+  improvement: number;
 }
 
 // Other interfaces for compatibility
@@ -717,8 +750,13 @@ export interface AlertFormData {
 
 // Trading context type
 export interface TradingContextType {
+  activeAccount: TradingAccount | null;
+  setActiveAccount: (account: TradingAccount | null) => void;
+  accounts: TradingAccount[];
+  addAccount: (account: TradingAccount) => void;
+  updateAccount: (accountId: string, updates: Partial<TradingAccount>) => void;
+  addTrade: (accountId: string, trade: Trade) => void;
   account: TradingAccount | null;
   coins: CoinOption[] | null;
   activeCurrency: SupportedCurrency;
-  // Add other context properties as needed
 }
