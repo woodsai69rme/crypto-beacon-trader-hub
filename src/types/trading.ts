@@ -118,6 +118,7 @@ export interface TradingAccount {
   assets?: PortfolioAsset[];
   lastUpdated?: string;
   isActive?: boolean;
+  initialBalance?: number;
 }
 
 // Risk assessment result
@@ -767,4 +768,13 @@ export interface TradingContextType {
   account: TradingAccount | null;
   coins: CoinOption[] | null;
   activeCurrency: SupportedCurrency;
+}
+
+// Add PortfolioBenchmark interface
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  returns: number[];
+  dates: string[];
+  color?: string;
 }

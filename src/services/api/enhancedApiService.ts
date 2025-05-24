@@ -1,234 +1,138 @@
 
-import { toast } from "@/components/ui/use-toast";
-import { apiProviderManager } from "./apiProviderConfig";
-import { ApiProvider } from "@/types/trading";
-import apiCache from "./cacheService";
+import axios from 'axios';
+import { ApiProvider, ApiUsageStats, CryptoData } from '@/types/trading';
+import { apiProviderManager } from './apiProviderConfig';
 
-type RequestParams = Record<string, string | number | boolean>;
+class EnhancedApiService {
+  private usageStats: Map<string, ApiUsageStats> = new Map();
 
-interface ApiRequestOptions {
-  endpoint: string;
-  params?: RequestParams;
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  data?: any;
-  cacheTime?: number; // in milliseconds
-  cacheKey?: string;
-  forceFresh?: boolean;
-  provider?: string; // provider id
-}
-
-interface ApiResponse<T = any> {
-  data: T;
-  source: string; // API provider that returned the data
-  cached: boolean;
-  timestamp: number;
-}
-
-export async function apiRequest<T = any>(options: ApiRequestOptions): Promise<ApiResponse<T>> {
-  const {
-    endpoint,
-    params = {},
-    method = 'GET',
-    data,
-    cacheTime = 5 * 60 * 1000, // 5 minutes default
-    cacheKey,
-    forceFresh = false,
-    provider: providerId
-  } = options;
-  
-  // Generate cache key if not provided
-  const generatedCacheKey = cacheKey || 
-    `${endpoint}-${JSON.stringify(params)}-${method}${providerId ? `-${providerId}` : ''}`;
-  
-  // Check cache first if not forcing fresh data
-  if (!forceFresh && cacheKey) {
-    const cachedData = apiCache.get<ApiResponse<T>>(generatedCacheKey);
-    if (cachedData) {
-      return {
-        ...cachedData,
-        cached: true
-      };
-    }
-  }
-  
-  // Get the API provider to use
-  let apiProvider: ApiProvider | undefined;
-  
-  if (providerId) {
-    apiProvider = apiProviderManager.getProviderById(providerId);
-    if (!apiProvider?.enabled) {
-      throw new Error(`API provider '${providerId}' is not enabled`);
-    }
-  } else {
-    apiProvider = apiProviderManager.getPriorityProvider();
-  }
-  
-  if (!apiProvider) {
-    throw new Error("No enabled API provider available");
-  }
-  
-  // Process the endpoint, replacing any path params like {id}
-  let processedEndpoint = apiProvider.endpoints[endpoint] || endpoint;
-  Object.keys(params).forEach(key => {
-    processedEndpoint = processedEndpoint.replace(`{${key}}`, String(params[key]));
-  });
-  
-  // Build the URL with query parameters
-  const queryParams = new URLSearchParams();
-  Object.keys(params).forEach(key => {
-    // Skip parameters that were used in the path
-    if (!processedEndpoint.includes(`{${key}}`)) {
-      queryParams.append(key, String(params[key]));
-    }
-  });
-  
-  const url = `${apiProvider.baseUrl}${processedEndpoint}${
-    queryParams.toString() ? `?${queryParams.toString()}` : ''
-  }`;
-  
-  // Build the fetch options
-  const fetchOptions: RequestInit = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...apiProvider.defaultHeaders
-    }
-  };
-  
-  // Add authentication if required
-  if (apiProvider.requiresAuth && apiProvider.apiKey) {
-    if (apiProvider.authMethod === 'header') {
-      const headerName = apiProvider.apiKeyName || 'Authorization';
-      let headerValue = apiProvider.apiKey;
-      
-      // Check if there's a template in defaultHeaders
-      if (apiProvider.defaultHeaders?.[headerName]?.includes('{key}')) {
-        headerValue = apiProvider.defaultHeaders[headerName].replace('{key}', apiProvider.apiKey);
-      }
-      
-      (fetchOptions.headers as Record<string, string>)[headerName] = headerValue;
-    } else if (apiProvider.authMethod === 'query') {
-      const keyName = apiProvider.apiKeyName || 'apikey';
-      queryParams.append(keyName, apiProvider.apiKey);
-    }
-  }
-  
-  // Add body data if needed
-  if (['POST', 'PUT'].includes(method) && data) {
-    fetchOptions.body = JSON.stringify(data);
-  }
-  
-  try {
-    const response = await fetch(url, fetchOptions);
-    
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-    }
-    
-    const responseData = await response.json();
-    
-    // Format the API response
-    const apiResponse: ApiResponse<T> = {
-      data: responseData,
-      source: apiProvider.name,
-      cached: false,
-      timestamp: Date.now()
+  private logApiCall(providerId: string, success: boolean, responseTime: number): void {
+    const stats = this.usageStats.get(providerId) || {
+      provider: providerId,
+      totalCalls: 0,
+      successfulCalls: 0,
+      failedCalls: 0,
+      avgResponseTime: 0,
+      lastCalled: new Date().toISOString()
     };
-    
-    // Cache the response
-    apiCache.set(generatedCacheKey, apiResponse, cacheTime);
-    
-    return apiResponse;
-  } catch (error) {
-    console.error(`Error calling ${apiProvider.name} API:`, error);
-    
-    // Try the next available provider if there was an error
-    if (!providerId) {
-      const allProviders = apiProviderManager.getEnabledProviders();
-      const currentIndex = allProviders.findIndex(p => p.id === apiProvider?.id);
-      
-      if (currentIndex >= 0 && currentIndex < allProviders.length - 1) {
-        const nextProvider = allProviders[currentIndex + 1];
-        
-        console.log(`Trying fallback provider: ${nextProvider.name}`);
-        
-        return apiRequest({
-          ...options,
-          provider: nextProvider.id,
-          forceFresh: true // Don't use cache for fallback
-        });
-      }
+
+    stats.totalCalls += 1;
+    if (success) {
+      stats.successfulCalls += 1;
+    } else {
+      stats.failedCalls += 1;
     }
-    
-    throw new Error(`Error fetching data from ${apiProvider.name}: ${(error as Error).message}`);
+
+    // Update average response time
+    stats.avgResponseTime = ((stats.avgResponseTime * (stats.totalCalls - 1)) + responseTime) / stats.totalCalls;
+    stats.lastCalled = new Date().toISOString();
+
+    this.usageStats.set(providerId, stats);
+  }
+
+  async makeApiCall<T>(
+    providerId: string,
+    endpoint: string,
+    params?: Record<string, any>
+  ): Promise<T> {
+    const provider = apiProviderManager.getProviderById(providerId);
+    if (!provider.enabled) {
+      throw new Error(`Provider ${providerId} is disabled`);
+    }
+
+    const startTime = Date.now();
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...provider.defaultHeaders
+      };
+
+      if (provider.requiresAuth && provider.apiKey) {
+        headers['X-CMC_PRO_API_KEY'] = provider.apiKey;
+      }
+
+      const response = await axios.get(`${provider.url}${endpoint}`, {
+        params,
+        headers,
+        timeout: 10000
+      });
+
+      const responseTime = Date.now() - startTime;
+      this.logApiCall(providerId, true, responseTime);
+
+      return response.data;
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      this.logApiCall(providerId, false, responseTime);
+      throw error;
+    }
+  }
+
+  async fetchCryptoData(limit: number = 100): Promise<CryptoData[]> {
+    const priorityProvider = apiProviderManager.getPriorityProvider();
+    if (!priorityProvider) {
+      throw new Error('No enabled API providers available');
+    }
+
+    try {
+      const data = await this.makeApiCall<any>(
+        priorityProvider.id,
+        '/coins/markets',
+        {
+          vs_currency: 'usd',
+          order: 'market_cap_desc',
+          per_page: limit,
+          page: 1,
+          sparkline: false
+        }
+      );
+
+      return data.map((coin: any): CryptoData => ({
+        id: coin.id,
+        symbol: coin.symbol?.toUpperCase() || '',
+        name: coin.name || '',
+        price: coin.current_price || 0,
+        priceChange: coin.price_change_24h || 0,
+        changePercent: coin.price_change_percentage_24h || 0,
+        volume: coin.total_volume || 0,
+        marketCap: coin.market_cap || 0,
+        rank: coin.market_cap_rank || 0,
+        image: coin.image,
+        value: coin.id,
+        label: `${coin.name} (${coin.symbol?.toUpperCase()})`
+      }));
+    } catch (error) {
+      console.error('Error fetching crypto data:', error);
+      
+      // Try fallback providers
+      const fallbackProviders = apiProviderManager.getEnabledProviders()
+        .filter(p => p.id !== priorityProvider.id);
+      
+      for (const provider of fallbackProviders) {
+        try {
+          return await this.fetchCryptoData(limit);
+        } catch (fallbackError) {
+          console.error(`Fallback provider ${provider.id} failed:`, fallbackError);
+        }
+      }
+      
+      throw new Error('All API providers failed');
+    }
+  }
+
+  getUsageStats(): ApiUsageStats[] {
+    return Array.from(this.usageStats.values());
+  }
+
+  getProviderStats(providerId: string): ApiUsageStats | null {
+    return this.usageStats.get(providerId) || null;
+  }
+
+  resetStats(): void {
+    this.usageStats.clear();
   }
 }
 
-export async function getMarketData(limit: number = 20, currency: string = 'usd'): Promise<any> {
-  try {
-    const response = await apiRequest({
-      endpoint: 'marketData',
-      params: {
-        limit,
-        vs_currency: currency
-      },
-      cacheKey: `market-data-${limit}-${currency}`,
-      cacheTime: 2 * 60 * 1000 // 2 minutes
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch market data:', error);
-    throw error;
-  }
-}
-
-export async function getCoinData(coinId: string, currency: string = 'usd'): Promise<any> {
-  try {
-    const response = await apiRequest({
-      endpoint: 'coinData',
-      params: {
-        id: coinId,
-        localization: 'false',
-        market_data: 'true',
-        vs_currency: currency
-      },
-      cacheKey: `coin-data-${coinId}-${currency}`,
-      cacheTime: 5 * 60 * 1000 // 5 minutes
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to fetch data for coin ${coinId}:`, error);
-    throw error;
-  }
-}
-
-export async function getHistoricalData(
-  coinId: string,
-  days: number = 30,
-  interval: string = 'daily',
-  currency: string = 'usd'
-): Promise<any> {
-  try {
-    const response = await apiRequest({
-      endpoint: 'marketChart',
-      params: {
-        id: coinId,
-        days,
-        interval,
-        vs_currency: currency
-      },
-      cacheKey: `historical-data-${coinId}-${days}-${interval}-${currency}`,
-      cacheTime: 15 * 60 * 1000 // 15 minutes
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to fetch historical data for coin ${coinId}:`, error);
-    throw error;
-  }
-}
-
-// Export the API provider manager
-export { apiProviderManager };
+export const enhancedApiService = new EnhancedApiService();
+export default enhancedApiService;

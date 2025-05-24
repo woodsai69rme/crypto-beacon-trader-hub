@@ -13,6 +13,7 @@ export const createPriceAlert = (formData: {
 }): PriceAlert => {
   return {
     id: `alert-${Date.now()}`,
+    type: 'price',
     createdAt: new Date(),
     enabled: true,
     recurring: formData.recurring || false,
@@ -32,6 +33,9 @@ export const createVolumeAlert = (formData: {
 }): VolumeAlert => {
   return {
     id: `volume-alert-${Date.now()}`,
+    type: 'volume',
+    targetVolume: 0,
+    isAbove: true,
     createdAt: new Date(),
     enabled: true,
     notifyVia: formData.notifyVia || ["app"],

@@ -1,112 +1,113 @@
 
-import { ApiProvider } from "@/types/trading";
+import { ApiProvider, ApiEndpoint } from '@/types/trading';
 
-// In-memory storage for API providers
-let apiProviders: ApiProvider[] = [
-  {
-    id: "coingecko",
-    name: "CoinGecko",
-    baseUrl: "https://api.coingecko.com/api/v3",
-    description: "Cryptocurrency data aggregator",
-    endpoints: [
-      {
-        path: "/coins/markets",
-        method: "GET",
-        description: "Get market data for coins",
-        parameters: [
-          {
-            name: "vs_currency",
-            description: "The target currency of market data",
-            required: true,
-            type: "string",
-            default: "usd"
-          }
-        ],
-        isActive: true
-      }
-    ],
-    isActive: true,
-    website: "https://www.coingecko.com",
-    docs: "https://www.coingecko.com/api/documentation",
-    priority: 1,
-    requiresAuth: false,
-    authRequired: false
-  },
-  {
-    id: "binance",
-    name: "Binance",
-    baseUrl: "https://api.binance.com/api",
-    description: "Cryptocurrency exchange API",
-    endpoints: [
-      {
-        path: "/v3/ticker/price",
-        method: "GET",
-        description: "Get latest price for a symbol",
-        parameters: [
-          {
-            name: "symbol",
-            description: "The trading pair symbol",
-            required: false,
-            type: "string"
-          }
-        ],
-        isActive: true
-      }
-    ],
-    isActive: true,
-    website: "https://www.binance.com",
-    docs: "https://binance-docs.github.io/apidocs/",
-    priority: 2,
-    requiresAuth: true,
-    authRequired: true,
-    authMethod: "apiKey",
-    apiKeyName: "X-MBX-APIKEY"
+class ApiProviderManager {
+  private providers: Map<string, ApiProvider> = new Map();
+
+  constructor() {
+    // Initialize with default providers
+    this.addProvider({
+      id: 'coingecko',
+      name: 'CoinGecko',
+      type: 'free',
+      url: 'https://api.coingecko.com/api/v3',
+      documentation: 'https://www.coingecko.com/api/docs/v3',
+      description: 'Free cryptocurrency data API',
+      rateLimit: {
+        requestsPerMinute: 10,
+        requestsPerDay: 1000
+      },
+      endpoints: [
+        {
+          id: 'coins-markets',
+          name: 'Coins Markets',
+          path: '/coins/markets',
+          method: 'GET',
+          requiresAuth: false,
+          description: 'Get market data for coins'
+        }
+      ],
+      isActive: true,
+      enabled: true
+    });
+
+    this.addProvider({
+      id: 'coinmarketcap',
+      name: 'CoinMarketCap',
+      type: 'paid',
+      url: 'https://pro-api.coinmarketcap.com/v1',
+      documentation: 'https://coinmarketcap.com/api/documentation/v1/',
+      description: 'Professional cryptocurrency data API',
+      rateLimit: {
+        requestsPerMinute: 30,
+        requestsPerDay: 10000
+      },
+      endpoints: [
+        {
+          id: 'cryptocurrency-listings',
+          name: 'Cryptocurrency Listings',
+          path: '/cryptocurrency/listings/latest',
+          method: 'GET',
+          requiresAuth: true,
+          description: 'Get latest cryptocurrency listings'
+        }
+      ],
+      isActive: false,
+      enabled: false,
+      requiresAuth: true
+    });
   }
-];
 
-// CRUD operations for API providers
-export const getApiProviders = (): ApiProvider[] => {
-  return apiProviders;
-};
-
-export const getApiProviderById = (id: string): ApiProvider | undefined => {
-  return apiProviders.find(provider => provider.id === id);
-};
-
-export const createApiProvider = (provider: ApiProvider): ApiProvider => {
-  apiProviders.push(provider);
-  return provider;
-};
-
-export const updateApiProvider = (id: string, updates: Partial<ApiProvider>): ApiProvider | undefined => {
-  const index = apiProviders.findIndex(provider => provider.id === id);
-  if (index !== -1) {
-    apiProviders[index] = { ...apiProviders[index], ...updates };
-    return apiProviders[index];
+  getAllProviders(): ApiProvider[] {
+    return Array.from(this.providers.values());
   }
-  return undefined;
-};
 
-export const deleteApiProvider = (id: string): boolean => {
-  const initialLength = apiProviders.length;
-  apiProviders = apiProviders.filter(provider => provider.id !== id);
-  return apiProviders.length < initialLength;
-};
-
-export const setApiKey = (providerId: string, apiKey: string): boolean => {
-  const index = apiProviders.findIndex(provider => provider.id === providerId);
-  if (index !== -1) {
-    apiProviders[index].apiKey = apiKey;
-    return true;
+  getProviderById(id: string): ApiProvider {
+    const provider = this.providers.get(id);
+    if (!provider) {
+      throw new Error(`Provider with id ${id} not found`);
+    }
+    return provider;
   }
-  return false;
-};
 
-export const toggleApiProviderActive = (id: string): boolean => {
-  const index = apiProviders.findIndex(provider => provider.id === id);
-  if (index !== -1) {
-    apiProviders[index].isActive = !apiProviders[index].isActive;
-    return true;
+  addProvider(provider: ApiProvider): void {
+    this.providers.set(provider.id, provider);
   }
-  return false;
-};
+
+  updateProvider(id: string, updatedProvider: ApiProvider): void {
+    if (!this.providers.has(id)) {
+      throw new Error(`Provider with id ${id} not found`);
+    }
+    this.providers.set(id, updatedProvider);
+  }
+
+  toggleProviderEnabled(id: string): void {
+    const provider = this.getProviderById(id);
+    provider.enabled = !provider.enabled;
+    this.updateProvider(id, provider);
+  }
+
+  deleteProvider(id: string): void {
+    if (!this.providers.delete(id)) {
+      throw new Error(`Provider with id ${id} not found`);
+    }
+  }
+
+  setProviderApiKey(id: string, apiKey: string): void {
+    const provider = this.getProviderById(id);
+    provider.apiKey = apiKey;
+    this.updateProvider(id, provider);
+  }
+
+  getEnabledProviders(): ApiProvider[] {
+    return this.getAllProviders().filter(provider => provider.enabled);
+  }
+
+  getPriorityProvider(): ApiProvider | null {
+    const enabled = this.getEnabledProviders();
+    return enabled.length > 0 ? enabled[0] : null;
+  }
+}
+
+export const apiProviderManager = new ApiProviderManager();
+export default apiProviderManager;
