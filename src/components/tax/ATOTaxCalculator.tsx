@@ -28,31 +28,31 @@ const ATOTaxCalculator: React.FC<ATOTaxCalculatorProps> = ({ trades = [] }) => {
   const taxBrackets: TaxBracket[] = [
     {
       bracket: "$0 - $18,200",
-      rate: "0%",
+      rate: 0,
       min: 0,
       max: 18200
     },
     {
       bracket: "$18,201 - $45,000",
-      rate: "19%",
+      rate: 19,
       min: 18201,
       max: 45000
     },
     {
       bracket: "$45,001 - $120,000",
-      rate: "32.5%",
+      rate: 32.5,
       min: 45001,
       max: 120000
     },
     {
       bracket: "$120,001 - $180,000",
-      rate: "37%",
+      rate: 37,
       min: 120001,
       max: 180000
     },
     {
       bracket: "$180,001+",
-      rate: "45%",
+      rate: 45,
       min: 180001,
       max: Infinity
     }
@@ -82,9 +82,7 @@ const ATOTaxCalculator: React.FC<ATOTaxCalculatorProps> = ({ trades = [] }) => {
     }
     
     // Extract rate as a number
-    const rateString = bracketInfo.rate;
-    const ratePercentage = parseFloat(rateString.replace('%', ''));
-    const taxRate = ratePercentage / 100;
+    const taxRate = bracketInfo.rate / 100;
     
     // Calculate tax on the taxable amount
     const taxOwed = taxableAmount * taxRate;
@@ -161,7 +159,7 @@ const ATOTaxCalculator: React.FC<ATOTaxCalculatorProps> = ({ trades = [] }) => {
       const amountInBracket = Math.min(taxableIncome, bracket.max) - prevMax;
       if (amountInBracket <= 0) continue;
       
-      const bracketRate = parseFloat(bracket.rate.replace('%', '')) / 100;
+      const bracketRate = bracket.rate / 100;
       incomeTax += amountInBracket * bracketRate;
       prevMax = bracket.max;
     }
@@ -271,7 +269,7 @@ const ATOTaxCalculator: React.FC<ATOTaxCalculatorProps> = ({ trades = [] }) => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Marginal Tax Rate:</span>
-                      <span>{calculationResult.bracketInfo?.rate}</span>
+                      <span>{calculationResult.bracketInfo?.rate}%</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Income Tax:</span>

@@ -9,7 +9,7 @@ export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 
 // Alert types
 export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
 export type NotificationMethod = 'email' | 'push' | 'app';
-export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
 
 // Tax bracket type
 export interface TaxBracket {
@@ -74,6 +74,7 @@ export interface PortfolioAsset {
   change24h: number;
   changePercent24h: number;
   priceChange?: number;
+  coinName?: string;
 }
 
 // Trade definition
@@ -111,6 +112,7 @@ export interface TradingAccount {
   assets?: PortfolioAsset[];
   lastUpdated?: string;
   isActive?: boolean;
+  initialBalance?: number;
 }
 
 // Risk assessment result
@@ -319,15 +321,23 @@ export interface TradingPreferences {
 
 // Trading form props
 export interface TradingFormProps {
-  onTrade: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
   account: TradingAccount;
   selectedCoin: CoinOption;
+  balance: number;
+  availableCoins: CoinOption[];
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency) => void;
+  conversionRate: number;
 }
 
 export interface FakeTradingFormProps {
-  onSubmit: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
-  selectedCoin: CoinOption;
-  account: TradingAccount;
+  onAddTrade: (trade: Trade) => void;
+  advancedMode?: boolean;
+  onSubmit?: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+  selectedCoin?: CoinOption;
+  account?: TradingAccount;
 }
 
 // Settings form values
@@ -521,7 +531,7 @@ export interface AITradingStrategy {
   description: string;
   riskLevel: 'low' | 'medium' | 'high';
   profitPotential: 'low' | 'medium' | 'high';
-  timeframe: 'short' | 'medium' | 'long';
+  timeframe: 'short' | 'medium' | 'long' | '1h' | '4h' | '1d';
   indicators: string[];
   triggers: string[];
   implementation?: string;
@@ -589,7 +599,7 @@ export interface ATOTaxCalculation {
   taxableIncome?: number;
   CGTDiscount?: number;
   netCapitalGains?: number;
-  bracketInfo?: string;
+  bracketInfo?: TaxBracket;
   incomeTax?: number;
   medicareLevy?: number;
   totalTaxLiability?: number;
@@ -637,3 +647,78 @@ export interface LiveAnalyticsDashboardProps {
 
 // Color scheme type for theme
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
+
+// Alert interfaces
+export interface BaseAlert {
+  id: string;
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  createdAt?: Date;
+}
+
+export interface PriceAlert extends BaseAlert {
+  type: 'price';
+  targetPrice: number;
+  isAbove: boolean;
+  recurring: boolean;
+  percentageChange?: number;
+}
+
+export interface VolumeAlert extends BaseAlert {
+  type: 'volume';
+  targetVolume: number;
+  isAbove: boolean;
+  volumeThreshold: number;
+  frequency: AlertFrequency;
+}
+
+export interface PatternAlert extends BaseAlert {
+  type: 'pattern';
+  pattern: string;
+}
+
+export interface TechnicalAlert extends BaseAlert {
+  type: 'technical';
+  indicator: string;
+  threshold: number;
+  condition: string;
+  value: number;
+  timeframe: string;
+}
+
+export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
+
+export interface AlertFormData {
+  id?: string;
+  type: AlertType;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  targetVolume?: number;
+  volumeThreshold?: number;
+  frequency?: AlertFrequency;
+  pattern?: string;
+  indicator?: string;
+  threshold?: number;
+  condition?: string;
+  value?: number;
+  timeframe?: string;
+}
+
+// Trading context type
+export interface TradingContextType {
+  account: TradingAccount | null;
+  coins: CoinOption[] | null;
+  activeCurrency: SupportedCurrency;
+  // Add other context properties as needed
+}
