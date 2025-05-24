@@ -69,6 +69,10 @@ const MarketCorrelations: React.FC = () => {
     });
   };
 
+  const handleCoinSelect = (coin: CoinOption) => {
+    console.log('Selected coin:', coin);
+  };
+
   const selectedCoinData = coins.filter(coin => selectedCoins.includes(coin.id));
 
   if (isLoading) {
@@ -192,6 +196,7 @@ const MarketCorrelations: React.FC = () => {
               <CorrelationMatrix
                 correlationData={correlationMatrix}
                 coins={selectedCoinData}
+                onCoinSelect={handleCoinSelect}
               />
             </TabsContent>
 
@@ -199,13 +204,13 @@ const MarketCorrelations: React.FC = () => {
               <CorrelationHeatmap
                 correlationData={correlationMatrix}
                 coins={selectedCoinData}
+                onCoinSelect={handleCoinSelect}
               />
             </TabsContent>
 
             <TabsContent value="chart">
               <PriceCorrelationChart
                 coins={selectedCoinData}
-                timeframe={timeframe}
               />
             </TabsContent>
           </Tabs>

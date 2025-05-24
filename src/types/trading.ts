@@ -1,7 +1,9 @@
-
 /**
  * Type definitions for the trading components and functionality
  */
+
+// Supported currencies
+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
 // Cryptocurrency option type for selection dropdowns and market data
 export interface CoinOption {
@@ -19,59 +21,327 @@ export interface CoinOption {
 }
 
 // Cryptocurrency data type from API
-export interface CryptoData {
-  id: string;
-  symbol: string;
-  name: string;
-  image?: string;
-  price: number;
-  priceChange: number;
-  changePercent: number;
-  priceChangePercentage?: number;
-  marketCap?: number;
-  volume?: number;
+export interface CryptoData extends CoinOption {
   circulatingSupply?: number;
   current_price?: number;
   price_change_24h?: number;
   price_change_percentage_24h?: number;
   total_volume?: number;
   market_cap?: number;
+  priceChangePercentage?: number;
 }
 
-// Props for the RealTimePriceChart component
-export interface RealTimePriceChartProps {
+// News item interface
+export interface NewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  sentiment?: 'positive' | 'neutral' | 'negative';
+  relevance?: number;
+  categories?: string[];
+  coins?: string[];
+  isFake?: boolean;
+  confidence?: number;
+}
+
+// Portfolio asset
+export interface PortfolioAsset {
   coinId: string;
-  selectedCoinId?: string;
-  onSelectCoin?: (coinId: string) => void;
-  availableCoins: CoinOption[];
-  updateInterval?: number;
+  symbol: string;
+  name: string;
+  amount: number;
+  price: number;
+  value: number;
+  allocation: number;
+  change24h: number;
+  changePercent24h: number;
+  priceChange?: number;
 }
 
-// Props for the RealTimePrices component
-export interface RealTimePricesProps {
-  initialCoins: CoinOption[];
-  onSelectCoin?: (coinId: string) => void;
-  selectedCoinId?: string;
-  refreshInterval?: number;
+// Trade definition
+export interface Trade {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  totalValue: number;
+  timestamp: string;
+  currency: SupportedCurrency;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
+  fees?: number;
+  coin?: string;
+  total: number;
+  tags?: string[];
 }
 
-// Props for the RealTimeTrader component
-export interface RealTimeTraderProps {
-  marketData: CoinOption[];
-  selectedCoinId: string;
-  onSelectCoin: (coinId: string) => void;
+// Trading account
+export interface TradingAccount {
+  id: string;
+  name: string;
+  trades: Trade[];
+  balance: number;
+  currency: SupportedCurrency;
+  createdAt: string;
+  type?: string;
+  provider?: string;
+  assets?: PortfolioAsset[];
+  lastUpdated?: string;
+  isActive?: boolean;
 }
 
-// Props for the LiveAnalyticsDashboard component
-export interface LiveAnalyticsDashboardProps {
-  initialCoinId?: string;
-  refreshInterval?: number;
-  showDetailedView?: boolean;
-  onAlertTriggered?: (alert: any) => void;
-  darkMode?: boolean;
+// Risk assessment result
+export interface RiskAssessmentResult {
+  overallScore: number;
+  diversificationScore: number;
+  volatilityScore: number;
+  liquidityScore: number;
+  concentrationRisk: number;
+  correlationRisk: number;
+  recommendations: string[];
+  riskByAsset: Record<string, { score: number; factors: string[] }>;
 }
 
-// Wallet provider information
+// Optimization settings
+export interface OptimizationSettings {
+  riskTolerance: 'low' | 'medium' | 'high';
+  timeHorizon?: 'short' | 'medium' | 'long';
+  focusArea?: 'growth' | 'income' | 'balanced';
+}
+
+// Portfolio optimization result
+export interface PortfolioOptimizationResult {
+  currentAllocation: Record<string, number>;
+  suggestedAllocation: Record<string, number>;
+  expectedReturn: number;
+  expectedRisk: number;
+  sharpeRatio: number;
+  diversification: number;
+  rebalancingTrades: Trade[];
+}
+
+// API provider
+export interface ApiProvider {
+  id: string;
+  name: string;
+  type: 'free' | 'paid';
+  url: string;
+  documentation: string;
+  apiKey?: string;
+  rateLimit: {
+    requestsPerMinute: number;
+    requestsPerDay: number;
+  };
+  endpoints: {
+    price: string;
+    markets: string;
+    assets: string;
+    news?: string;
+  };
+  isActive: boolean;
+}
+
+// API usage statistics
+export interface ApiUsageStats {
+  provider: string;
+  totalCalls: number;
+  successfulCalls: number;
+  failedCalls: number;
+  avgResponseTime: number;
+  lastCalled: string;
+  remainingQuota?: {
+    day: number;
+    month: number;
+  };
+  costEstimate?: number;
+}
+
+// DeFi protocol
+export interface DefiProtocol {
+  id: string;
+  name: string;
+  category: string;
+  chain: string;
+  tvl: number;
+  apy: number;
+  risk: 'low' | 'medium' | 'high';
+  url: string;
+  logoUrl?: string;
+  description?: string;
+}
+
+// DeFi position
+export interface DefiPosition {
+  id: string;
+  protocolId: string;
+  walletAddress: string;
+  asset: string;
+  assetAmount: number;
+  assetValue: number;
+  apy: number;
+  rewards?: number;
+  startDate: string;
+  unlockDate?: string;
+  type: 'deposit' | 'borrow' | 'stake' | 'farm' | 'pool';
+}
+
+// Ticker settings
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom' | 'both';
+  speed: number;
+  direction: 'left' | 'right';
+  autoPause: boolean;
+}
+
+// Sidebar settings
+export interface SidebarSettings {
+  enabled: boolean;
+  position: 'left' | 'right';
+  defaultCollapsed: boolean;
+  showLabels: boolean;
+  collapsed?: boolean;
+}
+
+// Appearance settings
+export interface AppearanceSettings {
+  colorScheme: string;
+  compactMode: boolean;
+  animationsEnabled: boolean;
+  highContrastMode: boolean;
+}
+
+// Privacy settings
+export interface PrivacySettings {
+  showOnlineStatus?: boolean;
+  sharePortfolio?: boolean;
+  shareTrades?: boolean;
+  dataCollection: boolean;
+  marketingConsent: boolean;
+  thirdPartySharing?: boolean;
+}
+
+// Trading preferences
+export interface TradingPreferences {
+  autoConfirm?: boolean;
+  showAdvanced?: boolean;
+  defaultAsset?: string;
+}
+
+// Settings form values
+export interface SettingsFormValues {
+  email?: string;
+  username?: string;
+  displayName?: string;
+  bio?: string;
+  theme: string;
+  currency: string;
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    app: boolean;
+  };
+  tickerSettings: TickerSettings;
+  sidebarSettings: SidebarSettings;
+  sidebar?: boolean;
+  ticker?: TickerSettings;
+  appearance?: AppearanceSettings;
+  privacy?: PrivacySettings;
+  tradingPreferences?: TradingPreferences;
+}
+
+// Enhanced portfolio benchmarking props
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioData: any;
+  benchmarks?: string[];
+  timeframe?: string;
+  portfolioPerformance?: number[];
+  portfolioDates?: string[];
+}
+
+// Correlation heatmap props
+export interface CorrelationHeatmapProps {
+  correlationData: number[][];
+  coins: CoinOption[];
+  onCoinSelect?: (coin: CoinOption) => void;
+}
+
+// Price correlation chart props
+export interface PriceCorrelationChartProps {
+  coins: CoinOption[];
+}
+
+// Widget types
+export type WidgetType = 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom' | 
+  'price-chart' | 'portfolio-summary' | 'watchlist' | 'trading' | 'aiTrading' | 
+  'aiAnalysis' | 'market-overview' | 'crypto-news';
+
+export type WidgetSize = 'small' | 'medium' | 'large' | 'flexible';
+
+// Widget definition
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  size?: WidgetSize;
+  position?: { x: number; y: number };
+  customContent?: string;
+}
+
+// Trading signal
+export interface TradingSignal {
+  id: string;
+  coinId: string;
+  coinSymbol: string;
+  type: 'buy' | 'sell';
+  price: number;
+  strength: number;
+  timestamp: string;
+  reason: string;
+  suggestedActions: {
+    entry: number;
+    target: number;
+    stopLoss: number;
+  };
+}
+
+// Market insight
+export interface MarketInsight {
+  id: string;
+  type: 'trend' | 'opportunity' | 'risk' | 'event' | 'analysis';
+  title: string;
+  summary: string;
+  relevance: number;
+  confidence: number;
+  timestamp: string;
+  assets: string[];
+  details: string;
+}
+
+// News ticker props
+export interface NewsTickerProps {
+  items: {
+    id: string;
+    title: string;
+    source: string;
+    timestamp: string;
+    url: string;
+  }[];
+  speed?: number;
+  direction?: 'left' | 'right';
+  className?: string;
+}
+
+// Other interfaces for compatibility
 export interface WalletProvider {
   id: string;
   name: string;
@@ -91,7 +361,6 @@ export interface WalletProvider {
   docs?: string;
 }
 
-// API endpoint information
 export interface ApiEndpoint {
   id: string;
   name: string;
@@ -105,7 +374,6 @@ export interface ApiEndpoint {
   lastUsed?: string;
 }
 
-// Wallet account details
 export interface WalletAccount {
   address: string;
   balance: string;
@@ -113,13 +381,11 @@ export interface WalletAccount {
   provider: string;
 }
 
-// Props for the WalletConnection component
 export interface WalletConnectionProps {
   onConnect: (account: WalletAccount) => void;
   supportedWallets: WalletProvider[];
 }
 
-// Trading transaction details
 export interface TradeTransaction {
   id: string;
   type: 'buy' | 'sell';
@@ -132,10 +398,8 @@ export interface TradeTransaction {
   status: 'pending' | 'completed' | 'failed';
 }
 
-// Order types
 export type OrderType = 'market' | 'limit' | 'stop' | 'stop-limit';
 
-// Trade order details
 export interface TradeOrder {
   id: string;
   type: OrderType;
@@ -151,7 +415,6 @@ export interface TradeOrder {
   triggerPrice?: number;
 }
 
-// AI trading strategy configuration
 export interface AITradingStrategy {
   id: string;
   name: string;
@@ -174,7 +437,6 @@ export interface AITradingStrategy {
   type?: string;
 }
 
-// AI strategy performance metrics
 export interface AIStrategyPerformance {
   winRate?: number;
   profitLoss?: number;
@@ -186,7 +448,6 @@ export interface AIStrategyPerformance {
   accuracy?: number;
 }
 
-// AI bot trading props
 export interface AiBotTradingProps {
   tradingBot: AITradingStrategy;
   onStart: (botId: string, config: any) => void;
@@ -200,14 +461,6 @@ export interface AiBotTradingProps {
   };
 }
 
-// Enhanced portfolio benchmarking props
-export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioData: any;
-  benchmarks: string[];
-  timeframe: string;
-}
-
-// ATO tax calculation
 export interface ATOTaxCalculation {
   year: number;
   gains: number;
@@ -237,123 +490,6 @@ export interface ATOTaxCalculation {
   taxRefundOrOwed?: number;
 }
 
-// Ticker settings
-export interface TickerSettings {
-  enabled: boolean;
-  position: 'top' | 'bottom' | 'both';
-  speed: number;
-  direction: 'left' | 'right';
-  autoPause: boolean;
-}
-
-// Sidebar settings
-export interface SidebarSettings {
-  enabled: boolean;
-  position: 'left' | 'right';
-  defaultCollapsed: boolean;
-  showLabels: boolean;
-  collapsed?: boolean;
-}
-
-// Settings form values
-export interface SettingsFormValues {
-  theme: string;
-  currency: string;
-  language: string;
-  notifications: {
-    email: boolean;
-    push: boolean;
-    app: boolean;
-  };
-  tickerSettings: TickerSettings;
-  sidebarSettings: SidebarSettings;
-}
-
-// Trading account
-export interface TradingAccount {
-  id: string;
-  name: string;
-  trades: Trade[];
-  balance: number;
-  currency: SupportedCurrency;
-  createdAt: string;
-  type?: string;
-  provider?: string;
-  assets?: PortfolioAsset[];
-  lastUpdated?: string;
-  isActive?: boolean;
-}
-
-// Widget types
-export type WidgetType = 'chart' | 'table' | 'stats' | 'news' | 'alerts' | 'custom' | 
-  'price-chart' | 'portfolio-summary' | 'watchlist' | 'trading' | 'aiTrading' | 
-  'aiAnalysis' | 'market-overview' | 'crypto-news';
-
-export type WidgetSize = 'small' | 'medium' | 'large' | 'flexible';
-
-// Widget definition
-export interface Widget {
-  id: string;
-  title: string;
-  type: WidgetType;
-  size?: WidgetSize;
-  position?: { x: number; y: number };
-  customContent?: string;
-}
-
-// Supported currencies
-export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
-
-// Trade definition
-export interface Trade {
-  id: string;
-  coinId: string;
-  coinName: string;
-  coinSymbol: string;
-  type: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  totalValue: number;
-  timestamp: string;
-  currency: SupportedCurrency;
-  currentValue?: number;
-  profitLoss?: number;
-  botGenerated?: boolean;
-  strategyId?: string;
-  fees?: number;
-  coin?: string;
-  total: number;
-  tags?: string[];
-}
-
-// Portfolio asset
-export interface PortfolioAsset {
-  coinId: string;
-  symbol: string;
-  name: string;
-  amount: number;
-  price: number;
-  value: number;
-  allocation: number;
-  change24h: number;
-  changePercent24h: number;
-}
-
-// News ticker props
-export interface NewsTickerProps {
-  items: {
-    id: string;
-    title: string;
-    source: string;
-    timestamp: string;
-    url: string;
-  }[];
-  speed?: number;
-  direction?: 'left' | 'right';
-  className?: string;
-}
-
-// Detachable dashboard props
 export interface DetachableDashboardProps {
   initialCoinId?: string;
   refreshInterval?: number;
@@ -361,4 +497,33 @@ export interface DetachableDashboardProps {
   darkMode?: boolean;
   isDetached?: boolean;
   children?: React.ReactNode;
+}
+
+export interface RealTimePriceChartProps {
+  coinId: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins: CoinOption[];
+  updateInterval?: number;
+}
+
+export interface RealTimePricesProps {
+  initialCoins: CoinOption[];
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
+  refreshInterval?: number;
+}
+
+export interface RealTimeTraderProps {
+  marketData: CoinOption[];
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+}
+
+export interface LiveAnalyticsDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
 }

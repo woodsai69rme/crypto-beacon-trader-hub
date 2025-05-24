@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { useTheme } from './contexts/ThemeContext';
@@ -17,10 +16,9 @@ import { TradingProvider } from './contexts/TradingContext';
 import PriceTicker from './components/tickers/PriceTicker';
 import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
-import { CoinOption } from '@/types/trading';
+import { CoinOption, NewsItem } from '@/types/trading';
 import AlertsSystem from './components/AlertsSystem';
 import { getTrendingCoins, getLatestNews } from './services/enhancedCryptoApi';
-import { NewsItem } from '@/types/trading';
 
 const AppContent = () => {
   const { theme, colorScheme } = useTheme();
