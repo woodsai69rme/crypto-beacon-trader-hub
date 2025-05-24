@@ -1,558 +1,310 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  Boxes, Database, RefreshCw, ExternalLink, 
-  PlusCircle, ArrowRightLeft, Lock, Unlock,
-  DollarSign, BarChart3, Layers
-} from "lucide-react";
-import { DefiProtocol, DefiPosition } from "@/types/trading";
-
-// Mock data for DeFi protocols
-const mockProtocols: DefiProtocol[] = [
-  {
-    id: "aave",
-    name: "Aave",
-    category: "lending",
-    apy: 3.2,
-    tvl: 4820000000,
-    chain: "Ethereum",
-    url: "https://aave.com",
-    logoUrl: "https://cryptologos.cc/logos/aave-aave-logo.png",
-    description: "Decentralized non-custodial liquidity protocol"
-  },
-  {
-    id: "compound",
-    name: "Compound",
-    category: "lending",
-    apy: 2.8,
-    tvl: 2140000000,
-    chain: "Ethereum",
-    url: "https://compound.finance",
-    logoUrl: "https://cryptologos.cc/logos/compound-comp-logo.png",
-    description: "Algorithmic money market protocol"
-  },
-  {
-    id: "uniswap",
-    name: "Uniswap",
-    category: "dex",
-    apy: 5.4,
-    tvl: 3760000000,
-    chain: "Ethereum",
-    url: "https://uniswap.org",
-    logoUrl: "https://cryptologos.cc/logos/uniswap-uni-logo.png",
-    description: "Automated liquidity protocol"
-  },
-  {
-    id: "curve",
-    name: "Curve Finance",
-    category: "dex",
-    apy: 4.2,
-    tvl: 1930000000,
-    chain: "Ethereum",
-    url: "https://curve.fi",
-    logoUrl: "https://cryptologos.cc/logos/curve-dao-token-crv-logo.png",
-    description: "Exchange liquidity pool designed for stablecoin trading"
-  },
-  {
-    id: "lido",
-    name: "Lido",
-    category: "staking",
-    apy: 3.8,
-    tvl: 9840000000,
-    chain: "Ethereum",
-    url: "https://lido.fi",
-    logoUrl: "https://cryptologos.cc/logos/lido-dao-ldo-logo.png",
-    description: "Liquid staking solution for Ethereum"
-  },
-  {
-    id: "yearn",
-    name: "Yearn Finance",
-    category: "yield",
-    apy: 7.2,
-    tvl: 820000000,
-    chain: "Ethereum",
-    url: "https://yearn.finance",
-    logoUrl: "https://cryptologos.cc/logos/yearn-finance-yfi-logo.png",
-    description: "Yield aggregator for lending platforms"
-  },
-  {
-    id: "pancakeswap",
-    name: "PancakeSwap",
-    category: "dex",
-    apy: 8.5,
-    tvl: 1240000000,
-    chain: "BNB Chain",
-    url: "https://pancakeswap.finance",
-    logoUrl: "https://cryptologos.cc/logos/pancakeswap-cake-logo.png",
-    description: "Decentralized exchange on BNB Chain"
-  },
-  {
-    id: "wormhole",
-    name: "Wormhole",
-    category: "bridge",
-    tvl: 750000000,
-    chain: "Multi-chain",
-    url: "https://wormhole.com",
-    logoUrl: "https://cryptologos.cc/logos/wormhole-wormhole-logo.png",
-    description: "Cross-chain messaging and token bridge"
-  }
-];
-
-// Mock user positions
-const mockPositions: DefiPosition[] = [
-  {
-    id: "pos-1",
-    protocolId: "aave",
-    walletAddress: "0x1234...5678",
-    asset: "ETH",
-    assetAmount: 2.5,
-    assetValue: 7500,
-    apy: 3.2,
-    rewards: 240,
-    startDate: "2022-11-15T00:00:00Z",
-    type: "deposit"
-  },
-  {
-    id: "pos-2",
-    protocolId: "uniswap",
-    walletAddress: "0x1234...5678",
-    asset: "ETH/USDC",
-    assetAmount: 0.8,
-    assetValue: 2400,
-    apy: 5.4,
-    rewards: 129.6,
-    startDate: "2023-02-20T00:00:00Z",
-    type: "pool"
-  },
-  {
-    id: "pos-3",
-    protocolId: "lido",
-    walletAddress: "0x1234...5678",
-    asset: "ETH",
-    assetAmount: 3.2,
-    assetValue: 9600,
-    apy: 3.8,
-    rewards: 364.8,
-    startDate: "2023-01-05T00:00:00Z",
-    unlockDate: "2024-01-05T00:00:00Z",
-    type: "stake"
-  }
-];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExternalLink, Zap, TrendingUp, Shield, DollarSign } from "lucide-react";
+import { DefiProtocol, DefiPosition } from '@/types/trading';
 
 const DefiProtocolIntegration: React.FC = () => {
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("protocols");
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [protocols, setProtocols] = useState<DefiProtocol[]>([]);
-  const [positions, setPositions] = useState<DefiPosition[]>([]);
-  const [activeTab, setActiveTab] = useState("positions");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  
-  // Load data
-  useEffect(() => {
-    loadDefiData();
-  }, []);
-  
-  const loadDefiData = async () => {
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setProtocols(mockProtocols);
-      setPositions(mockPositions);
-      
-      toast({
-        title: "DeFi Data Loaded",
-        description: `Found ${mockPositions.length} active positions across ${mockProtocols.length} protocols`,
-      });
-    } catch (error) {
-      toast({
-        title: "Failed to Load DeFi Data",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+  // Mock DeFi protocols
+  const mockProtocols: DefiProtocol[] = [
+    {
+      id: "aave-v3",
+      name: "Aave V3",
+      category: "Lending",
+      apy: 4.2,
+      tvl: 7200000000,
+      chain: "Ethereum",
+      url: "https://aave.com",
+      logoUrl: "https://cryptologos.cc/logos/aave-aave-logo.png",
+      description: "Leading decentralized lending protocol",
+      risk: "low"
+    },
+    {
+      id: "uniswap-v3",
+      name: "Uniswap V3",
+      category: "DEX",
+      apy: 12.5,
+      tvl: 3100000000,
+      chain: "Ethereum",
+      url: "https://uniswap.org",
+      logoUrl: "https://cryptologos.cc/logos/uniswap-uni-logo.png",
+      description: "Decentralized trading protocol",
+      risk: "medium"
+    },
+    {
+      id: "compound-v3",
+      name: "Compound V3",
+      category: "Lending",
+      apy: 3.8,
+      tvl: 2800000000,
+      chain: "Ethereum",
+      url: "https://compound.finance",
+      logoUrl: "https://cryptologos.cc/logos/compound-comp-logo.png",
+      description: "Algorithmic, autonomous interest rate protocol",
+      risk: "low"
+    },
+    {
+      id: "curve-fi",
+      name: "Curve Finance",
+      category: "DEX",
+      apy: 8.9,
+      tvl: 4500000000,
+      chain: "Ethereum",
+      url: "https://curve.fi",
+      logoUrl: "https://cryptologos.cc/logos/curve-dao-token-crv-logo.png",
+      description: "Exchange optimized for stablecoins",
+      risk: "medium"
+    },
+    {
+      id: "yearn-finance",
+      name: "Yearn Finance",
+      category: "Yield Farming",
+      apy: 15.2,
+      tvl: 900000000,
+      chain: "Ethereum",
+      url: "https://yearn.finance",
+      logoUrl: "https://cryptologos.cc/logos/yearn-finance-yfi-logo.png",
+      description: "Yield optimization platform",
+      risk: "high"
+    },
+    {
+      id: "lido",
+      name: "Lido",
+      category: "Staking",
+      apy: 5.1,
+      tvl: 32000000000,
+      chain: "Ethereum",
+      url: "https://lido.fi",
+      logoUrl: "https://cryptologos.cc/logos/lido-dao-ldo-logo.png",
+      description: "Liquid staking for Ethereum 2.0",
+      risk: "low"
+    },
+    {
+      id: "pancakeswap",
+      name: "PancakeSwap",
+      category: "DEX",
+      apy: 18.7,
+      tvl: 1200000000,
+      chain: "BSC",
+      url: "https://pancakeswap.finance",
+      logoUrl: "https://cryptologos.cc/logos/pancakeswap-cake-logo.png",
+      description: "Leading DEX on Binance Smart Chain",
+      risk: "medium"
+    },
+    {
+      id: "convex",
+      name: "Convex Finance",
+      category: "Yield Farming",
+      tvl: 800000000,
+      chain: "Ethereum",
+      url: "https://convexfinance.com",
+      logoUrl: "https://cryptologos.cc/logos/convex-finance-cvx-logo.png",
+      description: "Yield farming on Curve",
+      apy: 11.3,
+      risk: "medium"
+    }
+  ];
+
+  const mockPositions: DefiPosition[] = [
+    {
+      id: "pos-1",
+      protocolId: "aave-v3",
+      walletAddress: "0x742d35Cc...89Ab",
+      asset: "USDC",
+      assetAmount: 10000,
+      assetValue: 10000,
+      apy: 4.2,
+      rewards: 42.5,
+      startDate: "2023-01-15",
+      type: "deposit"
+    },
+    {
+      id: "pos-2", 
+      protocolId: "uniswap-v3",
+      walletAddress: "0x742d35Cc...89Ab",
+      asset: "ETH/USDC",
+      assetAmount: 5000,
+      assetValue: 5250,
+      apy: 12.5,
+      rewards: 125.3,
+      startDate: "2023-02-01",
+      type: "pool"
+    }
+  ];
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1e9) return `$${(amount / 1e9).toFixed(1)}B`;
+    if (amount >= 1e6) return `$${(amount / 1e6).toFixed(1)}M`;
+    if (amount >= 1e3) return `$${(amount / 1e3).toFixed(1)}K`;
+    return `$${amount.toFixed(2)}`;
+  };
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'low': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'high': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
-  
-  const getFilteredProtocols = () => {
-    if (selectedCategory === "all") return protocols;
-    return protocols.filter(protocol => protocol.category === selectedCategory);
-  };
-  
-  const getTotalValueLocked = () => {
-    return positions.reduce((sum, pos) => sum + pos.assetValue, 0);
-  };
-  
-  const getTotalYield = () => {
-    return positions.reduce((sum, pos) => sum + (pos.rewards || 0), 0);
-  };
-  
-  const getAverageAPY = () => {
-    if (positions.length === 0) return 0;
-    
-    const totalValue = getTotalValueLocked();
-    const weightedApy = positions.reduce((sum, pos) => {
-      return sum + ((pos.assetValue / totalValue) * (pos.apy || 0));
-    }, 0);
-    
-    return weightedApy;
-  };
-  
-  const getCategoryBadgeClass = (category: string) => {
+
+  const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "lending":
-        return "bg-blue-100 text-blue-800";
-      case "dex":
-        return "bg-green-100 text-green-800";
-      case "yield":
-        return "bg-purple-100 text-purple-800";
-      case "bridge":
-        return "bg-orange-100 text-orange-800";
-      case "staking":
-        return "bg-indigo-100 text-indigo-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case 'Lending': return <DollarSign className="h-4 w-4" />;
+      case 'DEX': return <Zap className="h-4 w-4" />;
+      case 'Yield Farming': return <TrendingUp className="h-4 w-4" />;
+      case 'Staking': return <Shield className="h-4 w-4" />;
+      default: return <DollarSign className="h-4 w-4" />;
     }
   };
-  
-  const getPositionTypeIcon = (type: string) => {
-    switch (type) {
-      case "deposit":
-        return <Database className="h-4 w-4" />;
-      case "borrow":
-        return <ArrowRightLeft className="h-4 w-4" />;
-      case "stake":
-        return <Lock className="h-4 w-4" />;
-      case "farm":
-        return <Layers className="h-4 w-4" />;
-      case "pool":
-        return <Boxes className="h-4 w-4" />;
-      default:
-        return <DollarSign className="h-4 w-4" />;
-    }
-  };
-  
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Boxes className="h-5 w-5" />
-            <span>DeFi Protocol Integration</span>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={loadDefiData}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
-              </>
-            )}
-          </Button>
-        </CardTitle>
-        <CardDescription>
-          Track your positions across DeFi protocols
-        </CardDescription>
-      </CardHeader>
-      
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-        <div className="px-6 pt-2 pb-0">
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="positions">My Positions</TabsTrigger>
-            <TabsTrigger value="protocols">Protocols</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-        </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>DeFi Protocol Integration</CardTitle>
+          <CardDescription>
+            Connect with leading DeFi protocols to maximize your yield
+          </CardDescription>
+        </CardHeader>
         
-        <CardContent className="pt-6">
-          <TabsContent value="positions" className="mt-0 space-y-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <RefreshCw className="h-10 w-10 text-muted-foreground animate-spin" />
-              </div>
-            ) : positions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Boxes className="h-16 w-16 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No DeFi positions found</p>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Position
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="text-sm text-muted-foreground">Total Value Locked</div>
-                    <div className="text-2xl font-bold">${getTotalValueLocked().toLocaleString()}</div>
-                  </div>
-                  
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="text-sm text-muted-foreground">Average APY</div>
-                    <div className="text-2xl font-bold">{getAverageAPY().toFixed(2)}%</div>
-                  </div>
-                  
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="text-sm text-muted-foreground">Total Yield</div>
-                    <div className="text-2xl font-bold">${getTotalYield().toLocaleString()}</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Active Positions</h3>
-                  
-                  {positions.map(position => {
-                    const protocol = protocols.find(p => p.id === position.protocolId);
-                    if (!protocol) return null;
-                    
-                    return (
-                      <div key={position.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={protocol.logoUrl} alt={protocol.name} />
-                              <AvatarFallback>{protocol.name.substring(0, 2)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{protocol.name}</div>
-                              <div className="text-sm text-muted-foreground">{protocol.chain}</div>
-                            </div>
-                          </div>
-                          
-                          <Badge className={getCategoryBadgeClass(protocol.category)}>
-                            <div className="flex items-center gap-1 capitalize">
-                              {getPositionTypeIcon(position.type)}
-                              {position.type}
-                            </div>
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                          <div>
-                            <div className="text-sm text-muted-foreground">Asset</div>
-                            <div className="font-medium">{position.asset}</div>
-                          </div>
-                          
-                          <div>
-                            <div className="text-sm text-muted-foreground">Amount</div>
-                            <div className="font-medium">{position.assetAmount}</div>
-                          </div>
-                          
-                          <div>
-                            <div className="text-sm text-muted-foreground">Value</div>
-                            <div className="font-medium">${position.assetValue.toLocaleString()}</div>
-                          </div>
-                          
-                          <div>
-                            <div className="text-sm text-muted-foreground">APY</div>
-                            <div className="font-medium text-green-600">{position.apy}%</div>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>Rewards Earned</span>
-                            <span className="font-medium">${position.rewards?.toFixed(2)}</span>
-                          </div>
-                          <Progress value={30 + Math.random() * 40} className="h-2" />
-                        </div>
-                        
-                        <div className="flex justify-between items-center mt-4">
-                          <div className="text-sm text-muted-foreground">
-                            {position.unlockDate ? (
-                              <div className="flex items-center gap-1">
-                                <Lock className="h-3 w-3" />
-                                <span>Locked until {new Date(position.unlockDate).toLocaleDateString()}</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1">
-                                <Unlock className="h-3 w-3" />
-                                <span>Available to withdraw</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="space-x-2">
-                            {!position.unlockDate && (
-                              <Button size="sm" variant="outline">
-                                Withdraw
-                              </Button>
-                            )}
-                            <Button size="sm">Manage</Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  <div className="flex justify-center mt-6">
-                    <Button>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add New Position
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="protocols" className="mt-0">
-            <div className="mb-6">
-              <div className="text-sm font-medium mb-2">Filter by Category</div>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={selectedCategory === "all" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("all")}
-                  className="cursor-pointer"
-                >
-                  All Protocols
-                </Badge>
-                <Badge
-                  variant={selectedCategory === "lending" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("lending")}
-                  className="cursor-pointer"
-                >
-                  Lending
-                </Badge>
-                <Badge
-                  variant={selectedCategory === "dex" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("dex")}
-                  className="cursor-pointer"
-                >
-                  DEX
-                </Badge>
-                <Badge
-                  variant={selectedCategory === "yield" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("yield")}
-                  className="cursor-pointer"
-                >
-                  Yield
-                </Badge>
-                <Badge
-                  variant={selectedCategory === "staking" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("staking")}
-                  className="cursor-pointer"
-                >
-                  Staking
-                </Badge>
-                <Badge
-                  variant={selectedCategory === "bridge" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("bridge")}
-                  className="cursor-pointer"
-                >
-                  Bridge
-                </Badge>
-              </div>
-            </div>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="protocols">Available Protocols</TabsTrigger>
+              <TabsTrigger value="positions">My Positions</TabsTrigger>
+            </TabsList>
             
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <RefreshCw className="h-10 w-10 text-muted-foreground animate-spin" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {getFilteredProtocols().map(protocol => (
-                  <div key={protocol.id} className="border rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={protocol.logoUrl} alt={protocol.name} />
-                        <AvatarFallback>{protocol.name.substring(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">{protocol.name}</div>
-                          <Badge className={getCategoryBadgeClass(protocol.category)}>
-                            <span className="capitalize">{protocol.category}</span>
-                          </Badge>
+            <TabsContent value="protocols" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {mockProtocols.map((protocol) => (
+                  <Card key={protocol.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {protocol.logoUrl && (
+                            <img 
+                              src={protocol.logoUrl} 
+                              alt={protocol.name}
+                              className="w-6 h-6 rounded-full"
+                            />
+                          )}
+                          <CardTitle className="text-lg">{protocol.name}</CardTitle>
                         </div>
-                        <div className="text-sm text-muted-foreground">{protocol.chain}</div>
+                        <Badge variant="outline" className="text-xs">
+                          {protocol.chain}
+                        </Badge>
                       </div>
-                    </div>
+                      <CardDescription className="text-sm">
+                        {protocol.description}
+                      </CardDescription>
+                    </CardHeader>
                     
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {protocol.description}
-                    </p>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      {protocol.tvl && (
-                        <div>
-                          <div className="text-sm text-muted-foreground">TVL</div>
-                          <div className="font-medium">${(protocol.tvl / 1000000).toFixed(1)}M</div>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {getCategoryIcon(protocol.category)}
+                          <span className="text-sm font-medium">{protocol.category}</span>
                         </div>
-                      )}
+                        <Badge className={getRiskColor(protocol.risk)}>
+                          {protocol.risk} risk
+                        </Badge>
+                      </div>
                       
-                      {protocol.apy && (
+                      <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <div className="text-sm text-muted-foreground">APY</div>
-                          <div className="font-medium text-green-600">{protocol.apy}%</div>
+                          <div className="text-muted-foreground">APY</div>
+                          <div className="font-semibold text-green-600">{protocol.apy}%</div>
                         </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={protocol.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="mr-1 h-3 w-3" />
-                          Visit
-                        </a>
-                      </Button>
+                        <div>
+                          <div className="text-muted-foreground">TVL</div>
+                          <div className="font-semibold">{formatCurrency(protocol.tvl)}</div>
+                        </div>
+                      </div>
                       
-                      <Button size="sm">
-                        <PlusCircle className="mr-1 h-4 w-4" />
-                        Integrate
-                      </Button>
-                    </div>
-                  </div>
+                      <div className="flex space-x-2">
+                        <Button size="sm" className="flex-1">
+                          Connect
+                        </Button>
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={protocol.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="mt-0">
-            <div className="flex flex-col items-center justify-center py-12">
-              <BarChart3 className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-xl font-medium mb-2">DeFi Analytics</p>
-              <p className="text-muted-foreground mb-4 text-center max-w-md">
-                Track performance metrics, portfolio allocations, and yield optimization opportunities across DeFi protocols.
-              </p>
-              <Button>
-                <BarChart3 className="mr-2 h-4 w-4" />
-                View Analytics Dashboard
-              </Button>
-            </div>
-          </TabsContent>
+            </TabsContent>
+            
+            <TabsContent value="positions" className="space-y-4">
+              {mockPositions.length > 0 ? (
+                <div className="space-y-4">
+                  {mockPositions.map((position) => {
+                    const protocol = mockProtocols.find(p => p.id === position.protocolId);
+                    return (
+                      <Card key={position.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {protocol?.logoUrl && (
+                                <img 
+                                  src={protocol.logoUrl} 
+                                  alt={protocol.name}
+                                  className="w-8 h-8 rounded-full"
+                                />
+                              )}
+                              <div>
+                                <div className="font-semibold">{protocol?.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {position.asset} • {position.type}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="text-right space-y-1">
+                              <div className="font-semibold">
+                                {formatCurrency(position.assetValue)}
+                              </div>
+                              <div className="text-sm text-green-600">
+                                +{formatCurrency(position.rewards!)} rewards
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3 flex justify-between items-center">
+                            <div className="text-sm text-muted-foreground">
+                              Started: {new Date(position.startDate).toLocaleDateString()}
+                            </div>
+                            <Badge variant="outline">
+                              {position.apy}% APY
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    You don't have any DeFi positions yet
+                  </p>
+                  <Button onClick={() => setActiveTab("protocols")}>
+                    Explore Protocols
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
-      </Tabs>
-      
-      <CardFooter className="flex justify-between border-t pt-4">
-        <div className="text-sm text-muted-foreground">
-          Integrated with {protocols.length} DeFi protocols
-        </div>
-        <Button variant="outline" size="sm">
-          View All Protocols
-        </Button>
-      </CardFooter>
-    </Card>
+      </Card>
+    </div>
   );
 };
 

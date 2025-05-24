@@ -14,6 +14,9 @@ export interface SettingsFormValues {
     email: boolean;
     push: boolean;
     app: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
   };
   tickerSettings: {
     enabled: boolean;
@@ -49,6 +52,10 @@ export interface SettingsFormValues {
     dataCollection: boolean;
     marketingConsent: boolean;
     thirdPartySharing?: boolean;
+  };
+  account?: {
+    twoFactorEnabled: boolean;
+    loginAlerts: boolean;
   };
   tradingPreferences?: {
     autoConfirm?: boolean;

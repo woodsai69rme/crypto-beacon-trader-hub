@@ -26,25 +26,43 @@ const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [apiUsageStats, setApiUsageStats] = useState<ApiUsageStats[]>([
     {
+      provider: "CoinGecko",
       service: "CoinGecko",
       currentUsage: 421,
       maxUsage: 500,
       endpoint: "/coins/markets",
-      resetTime: "1 hour"
+      resetTime: "1 hour",
+      totalCalls: 500,
+      successfulCalls: 479,
+      failedCalls: 21,
+      avgResponseTime: 245,
+      lastCalled: new Date().toISOString()
     },
     {
+      provider: "CryptoCompare",
       service: "CryptoCompare",
       currentUsage: 8750,
       maxUsage: 10000,
       endpoint: "/data/pricemultifull",
-      resetTime: "24 hours"
+      resetTime: "24 hours",
+      totalCalls: 9000,
+      successfulCalls: 8750,
+      failedCalls: 250,
+      avgResponseTime: 180,
+      lastCalled: new Date().toISOString()
     },
     {
+      provider: "NewsAPI",
       service: "NewsAPI",
       currentUsage: 89,
       maxUsage: 100,
       endpoint: "/v2/everything",
-      resetTime: "12 hours"
+      resetTime: "12 hours",
+      totalCalls: 100,
+      successfulCalls: 89,
+      failedCalls: 11,
+      avgResponseTime: 320,
+      lastCalled: new Date().toISOString()
     }
   ]);
   
@@ -82,7 +100,7 @@ const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
     // Simulate API usage changes
     setApiUsageStats(prev => prev.map(stat => ({
       ...stat,
-      currentUsage: Math.min(stat.maxUsage, stat.currentUsage + Math.floor(Math.random() * 10))
+      currentUsage: Math.min(stat.maxUsage!, stat.currentUsage! + Math.floor(Math.random() * 10))
     })));
   };
   
@@ -180,7 +198,7 @@ const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
         <CardFooter className="text-sm text-muted-foreground">
           <div className="flex justify-between w-full items-center">
             <div>
-              {apiUsageStats.some(stat => stat.currentUsage / stat.maxUsage > 0.9) && (
+              {apiUsageStats.some(stat => stat.currentUsage! / stat.maxUsage! > 0.9) && (
                 <span className="text-red-500 font-medium">⚠️ API rate limit warning</span>
               )}
             </div>

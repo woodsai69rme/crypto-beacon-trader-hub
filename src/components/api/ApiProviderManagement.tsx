@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,9 @@ const ApiProviderManagement: React.FC = () => {
     {
       id: "coingecko-1",
       name: "CoinGecko",
+      type: "free",
+      url: "https://www.coingecko.com",
+      documentation: "https://www.coingecko.com/api/documentation",
       baseUrl: "https://api.coingecko.com/api/v3",
       description: "Comprehensive cryptocurrency data API",
       currentUsage: 5243,
@@ -51,6 +55,10 @@ const ApiProviderManagement: React.FC = () => {
       status: "ok",
       website: "https://www.coingecko.com",
       docs: "https://www.coingecko.com/api/documentation",
+      rateLimit: {
+        requestsPerMinute: 100,
+        requestsPerDay: 10000
+      },
       endpoints: [
         {
           id: "cg-markets",
@@ -97,6 +105,9 @@ const ApiProviderManagement: React.FC = () => {
     {
       id: "binance-1",
       name: "Binance",
+      type: "free",
+      url: "https://www.binance.com",
+      documentation: "https://binance-docs.github.io/apidocs/",
       baseUrl: "https://api.binance.com/api/v3",
       description: "Cryptocurrency exchange API",
       currentUsage: 8754,
@@ -106,6 +117,10 @@ const ApiProviderManagement: React.FC = () => {
       status: "ok",
       website: "https://www.binance.com",
       docs: "https://binance-docs.github.io/apidocs/",
+      rateLimit: {
+        requestsPerMinute: 200,
+        requestsPerDay: 20000
+      },
       endpoints: [
         {
           id: "bn-ticker",
@@ -152,6 +167,9 @@ const ApiProviderManagement: React.FC = () => {
     {
       id: "kraken-1",
       name: "Kraken",
+      type: "free",
+      url: "https://www.kraken.com",
+      documentation: "https://docs.kraken.com/rest/",
       baseUrl: "https://api.kraken.com/0",
       description: "Digital asset exchange API",
       currentUsage: 2134,
@@ -161,6 +179,10 @@ const ApiProviderManagement: React.FC = () => {
       status: "ok",
       website: "https://www.kraken.com",
       docs: "https://docs.kraken.com/rest/",
+      rateLimit: {
+        requestsPerMinute: 60,
+        requestsPerDay: 5000
+      },
       endpoints: [
         {
           id: "kr-ticker",
@@ -211,6 +233,9 @@ const ApiProviderManagement: React.FC = () => {
       const provider: ApiProvider = {
         id: `provider-${Date.now()}`,
         name: newProvider.name || '',
+        type: 'free',
+        url: newProvider.baseUrl || '',
+        documentation: '',
         baseUrl: newProvider.baseUrl || '',
         description: newProvider.description || '',
         currentUsage: 0, 
@@ -222,7 +247,11 @@ const ApiProviderManagement: React.FC = () => {
         isActive: true,
         apiKey: newProvider.apiKey || '',
         usageLimit: newProvider.usageLimit || 1000,
-        enabled: true
+        enabled: true,
+        rateLimit: {
+          requestsPerMinute: 60,
+          requestsPerDay: 1000
+        }
       };
       
       setProviders([...providers, provider]);
@@ -375,7 +404,7 @@ const ApiProviderManagement: React.FC = () => {
                         <div className="text-xs text-muted-foreground">
                           <span>{endpoint.responseTime}ms</span>
                           <span className="mx-2">•</span>
-                          <span>Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}</span>
+                          <span>Last used: {new Date(endpoint.lastUsed!).toLocaleDateString()}</span>
                         </div>
                       </div>
                     ))}
@@ -435,7 +464,7 @@ const ApiProviderManagement: React.FC = () => {
                         <div className="text-xs text-muted-foreground">
                           <span>{endpoint.responseTime}ms</span>
                           <span className="mx-2">•</span>
-                          <span>Last used: {new Date(endpoint.lastUsed).toLocaleDateString()}</span>
+                          <span>Last used: {new Date(endpoint.lastUsed!).toLocaleDateString()}</span>
                         </div>
                       </div>
                     ))}

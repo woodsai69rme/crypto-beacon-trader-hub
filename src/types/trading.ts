@@ -138,6 +138,20 @@ export interface PortfolioOptimizationResult {
   rebalancingTrades: Trade[];
 }
 
+// API endpoint
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  parameters?: any[];
+  requiresAuth: boolean;
+  description: string;
+  url?: string;
+  responseTime?: number;
+  lastUsed?: string;
+}
+
 // API provider
 export interface ApiProvider {
   id: string;
@@ -186,20 +200,6 @@ export interface ApiUsageStats {
     month: number;
   };
   costEstimate?: number;
-}
-
-// API endpoint
-export interface ApiEndpoint {
-  id: string;
-  name: string;
-  path: string;
-  method: string;
-  parameters?: any[];
-  requiresAuth: boolean;
-  description: string;
-  url?: string;
-  responseTime?: number;
-  lastUsed?: string;
 }
 
 // DeFi protocol
@@ -267,6 +267,12 @@ export interface PrivacySettings {
   thirdPartySharing?: boolean;
 }
 
+// Account settings
+export interface AccountSettings {
+  twoFactorEnabled: boolean;
+  loginAlerts: boolean;
+}
+
 // Trading preferences
 export interface TradingPreferences {
   autoConfirm?: boolean;
@@ -297,6 +303,7 @@ export interface SettingsFormValues {
   ticker?: TickerSettings;
   appearance?: AppearanceSettings;
   privacy?: PrivacySettings;
+  account?: AccountSettings;
   tradingPreferences?: TradingPreferences;
 }
 
