@@ -216,13 +216,13 @@ const DashboardTools: React.FC = () => {
         enabled: true,
         position: 'top',
         speed: 50,
-        direction: 'left'
+        direction: 'left',
+        autoPause: true
       },
       notifications: {
         email: true,
         push: true,
-        app: true,
-        trades: true
+        app: true
       }
     }
   });
@@ -232,7 +232,8 @@ const DashboardTools: React.FC = () => {
       sidebarSettings: {
         enabled: true,
         position: "left",
-        defaultCollapsed: false
+        defaultCollapsed: false,
+        showLabels: true
       }
     }
   });
@@ -253,13 +254,13 @@ const DashboardTools: React.FC = () => {
             enabled: true,
             position: 'top',
             speed: 50,
-            direction: 'left'
+            direction: 'left',
+            autoPause: true
           },
           notifications: {
             email: true,
             push: true,
-            app: true,
-            trades: true
+            app: true
           }
         }}
       />
@@ -277,7 +278,8 @@ const DashboardTools: React.FC = () => {
           sidebarSettings: {
             enabled: true,
             position: "left",
-            defaultCollapsed: false
+            defaultCollapsed: false,
+            showLabels: true
           }
         }}
       />

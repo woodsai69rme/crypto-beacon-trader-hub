@@ -76,8 +76,9 @@ const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({ coins }) 
               />
               <Tooltip
                 formatter={(value: any, name: string) => {
-                  if (name === 'x') return [Number(value).toFixed(3), 'Correlation'];
-                  if (name === 'y') return [`${Number(value).toFixed(1)}%`, 'Volatility'];
+                  const numValue = typeof value === 'number' ? value : parseFloat(value);
+                  if (name === 'x') return [numValue.toFixed(3), 'Correlation'];
+                  if (name === 'y') return [`${numValue.toFixed(1)}%`, 'Volatility'];
                   return [value, name];
                 }}
                 labelFormatter={(label, payload) => {

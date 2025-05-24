@@ -40,7 +40,7 @@ export interface NewsItem {
   url: string;
   source: string;
   publishedAt: string;
-  timestamp: string; // Added missing timestamp property
+  timestamp: string;
   sentiment?: 'positive' | 'neutral' | 'negative';
   relevance?: number;
   categories?: string[];
@@ -121,6 +121,8 @@ export interface OptimizationSettings {
     maxAllocation?: number;
     minAllocation?: number;
     excludeAssets?: string[];
+    maxAssetAllocation?: number;
+    minCash?: number;
   };
   objectives?: string[];
 }
@@ -147,23 +149,31 @@ export interface ApiProvider {
   baseUrl?: string;
   description?: string;
   usageLimit?: number;
+  currentUsage?: number;
+  maxUsage?: number;
+  resetTime?: string;
+  endpoint?: string;
+  status?: string;
+  website?: string;
+  docs?: string;
   rateLimit: {
     requestsPerMinute: number;
     requestsPerDay: number;
   };
-  endpoints: {
-    price: string;
-    markets: string;
-    assets: string;
-    news?: string;
-  };
+  endpoints: ApiEndpoint[];
   isActive: boolean;
+  enabled?: boolean;
+  authMethod?: string;
+  apiKeyName?: string;
+  defaultHeaders?: Record<string, string>;
 }
 
 // API usage statistics
 export interface ApiUsageStats {
   provider: string;
   service?: string;
+  endpoint?: string;
+  resetTime?: string;
   totalCalls: number;
   successfulCalls: number;
   failedCalls: number;
@@ -176,6 +186,20 @@ export interface ApiUsageStats {
     month: number;
   };
   costEstimate?: number;
+}
+
+// API endpoint
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  path: string;
+  method: string;
+  parameters?: any[];
+  requiresAuth: boolean;
+  description: string;
+  url?: string;
+  responseTime?: number;
+  lastUsed?: string;
 }
 
 // DeFi protocol
@@ -263,6 +287,9 @@ export interface SettingsFormValues {
     email: boolean;
     push: boolean;
     app: boolean;
+    trades?: boolean;
+    pricing?: boolean;
+    news?: boolean;
   };
   tickerSettings: TickerSettings;
   sidebarSettings: SidebarSettings;
@@ -275,7 +302,7 @@ export interface SettingsFormValues {
 
 // Enhanced portfolio benchmarking props
 export interface EnhancedPortfolioBenchmarkingProps {
-  portfolioData: any;
+  portfolioData?: any;
   benchmarks?: string[];
   timeframe?: string;
   portfolioPerformance?: number[];
@@ -388,19 +415,6 @@ export interface WalletProvider {
   isActive?: boolean;
   website?: string;
   docs?: string;
-}
-
-export interface ApiEndpoint {
-  id: string;
-  name: string;
-  path: string;
-  method: string;
-  parameters?: any[];
-  requiresAuth: boolean;
-  description: string;
-  url?: string;
-  responseTime?: number;
-  lastUsed?: string;
 }
 
 export interface WalletAccount {
