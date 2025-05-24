@@ -167,3 +167,43 @@ export interface NewsItem {
   isFake?: boolean;
   confidence?: number;
 }
+
+// Enhanced SettingsFormValues to include all required fields
+export interface SettingsFormValues {
+  email: string;
+  username: string;
+  displayName: string;
+  bio: string;
+  theme: string;
+  currency: string;
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    app: boolean;
+  };
+  tickerSettings: {
+    enabled: boolean;
+    position: 'top' | 'bottom' | 'both';
+    speed: number;
+    direction: 'left' | 'right';
+    autoPause: boolean;
+  };
+  sidebarSettings: {
+    enabled: boolean;
+    position: 'left' | 'right';
+    defaultCollapsed: boolean;
+    showLabels: boolean;
+  };
+  sidebar: boolean;
+  appearance: {
+    colorScheme: string;
+    compactMode: boolean;
+    animationsEnabled: boolean;
+    highContrastMode: boolean;
+  };
+  privacy: {
+    dataCollection: boolean;
+    marketingConsent: boolean;
+  };
+}

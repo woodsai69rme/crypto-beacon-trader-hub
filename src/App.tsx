@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { useTheme } from './contexts/ThemeContext';
@@ -12,6 +13,7 @@ import { Separator } from './components/ui/separator';
 import { UIProvider, useUI } from './contexts/UIContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { TradingProvider } from './contexts/TradingContext';
 import PriceTicker from './components/tickers/PriceTicker';
 import NewsTicker from './components/tickers/NewsTicker';
 import SidebarPanel from './components/sidebar/SidebarPanel';
@@ -210,7 +212,9 @@ const App = () => {
     <ThemeProvider>
       <UIProvider>
         <CurrencyProvider>
-          <AppContent />
+          <TradingProvider>
+            <AppContent />
+          </TradingProvider>
         </CurrencyProvider>
       </UIProvider>
     </ThemeProvider>
