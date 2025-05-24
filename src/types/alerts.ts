@@ -26,6 +26,8 @@ export interface VolumeAlert extends BaseAlert {
   type: 'volume';
   targetVolume: number;
   isAbove: boolean;
+  volumeThreshold: number;
+  frequency: AlertFrequency;
 }
 
 export interface PatternAlert extends BaseAlert {
@@ -37,11 +39,15 @@ export interface TechnicalAlert extends BaseAlert {
   type: 'technical';
   indicator: string;
   threshold: number;
+  condition: string;
+  value: number;
+  timeframe: string;
 }
 
 export type Alert = PriceAlert | VolumeAlert | PatternAlert | TechnicalAlert;
 
 export interface AlertFormData {
+  id?: string;
   type: AlertType;
   coinId: string;
   coinName: string;
@@ -53,7 +59,12 @@ export interface AlertFormData {
   recurring?: boolean;
   percentageChange?: number;
   targetVolume?: number;
+  volumeThreshold?: number;
+  frequency?: AlertFrequency;
   pattern?: string;
   indicator?: string;
   threshold?: number;
+  condition?: string;
+  value?: number;
+  timeframe?: string;
 }

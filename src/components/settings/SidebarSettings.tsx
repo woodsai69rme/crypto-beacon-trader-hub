@@ -20,7 +20,7 @@ const SidebarSettings: React.FC<SettingsComponentProps> = ({ form }) => {
       <CardContent className="space-y-6">
         <FormField
           control={form.control}
-          name="sidebar.enabled"
+          name="sidebarSettings.enabled"
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">
@@ -39,7 +39,7 @@ const SidebarSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="sidebar.position"
+          name="sidebarSettings.position"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Sidebar Position</FormLabel>
@@ -64,7 +64,7 @@ const SidebarSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="sidebar.collapsed"
+          name="sidebarSettings.defaultCollapsed"
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">
@@ -83,7 +83,7 @@ const SidebarSettings: React.FC<SettingsComponentProps> = ({ form }) => {
         
         <FormField
           control={form.control}
-          name="sidebar.showLabels"
+          name="sidebarSettings.showLabels"
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between">
               <div className="space-y-0.5">

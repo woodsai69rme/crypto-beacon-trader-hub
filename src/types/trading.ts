@@ -6,6 +6,19 @@
 // Supported currencies
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
+// Alert types
+export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
+export type NotificationMethod = 'email' | 'push' | 'app';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly';
+
+// Tax bracket type
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  bracket: string;
+}
+
 // Cryptocurrency option type for selection dropdowns and market data
 export interface CoinOption {
   id: string;
@@ -231,6 +244,30 @@ export interface DefiPosition {
   type: 'deposit' | 'borrow' | 'stake' | 'farm' | 'pool';
 }
 
+// Local AI Model
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
+}
+
 // Ticker settings
 export interface TickerSettings {
   enabled: boolean;
@@ -278,6 +315,19 @@ export interface TradingPreferences {
   autoConfirm?: boolean;
   showAdvanced?: boolean;
   defaultAsset?: string;
+}
+
+// Trading form props
+export interface TradingFormProps {
+  onTrade: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+  account: TradingAccount;
+  selectedCoin: CoinOption;
+}
+
+export interface FakeTradingFormProps {
+  onSubmit: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+  selectedCoin: CoinOption;
+  account: TradingAccount;
 }
 
 // Settings form values
@@ -485,6 +535,7 @@ export interface AITradingStrategy {
     sharpeRatio: number;
   };
   type?: string;
+  tags?: string[];
 }
 
 export interface AIStrategyPerformance {
@@ -509,6 +560,12 @@ export interface AiBotTradingProps {
     profitLoss: number;
     startDate: string;
   };
+}
+
+export interface AiTradingStrategySelectorProps {
+  strategies: AITradingStrategy[];
+  onSelectStrategy: (strategy: AITradingStrategy) => void;
+  selectedStrategy?: AITradingStrategy;
 }
 
 export interface ATOTaxCalculation {
@@ -577,3 +634,6 @@ export interface LiveAnalyticsDashboardProps {
   onAlertTriggered?: (alert: any) => void;
   darkMode?: boolean;
 }
+
+// Color scheme type for theme
+export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';

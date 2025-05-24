@@ -1,5 +1,5 @@
 
-import { AlertFrequency, NotificationMethod } from "@/types/trading";
+import { AlertFrequency, NotificationMethod } from "@/types/alerts";
 
 export interface PriceAlertFormData {
   coinId: string;
