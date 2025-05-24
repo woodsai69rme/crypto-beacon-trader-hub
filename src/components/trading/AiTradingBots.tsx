@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +13,7 @@ const AiTradingBots: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("trending");
   const [activeBots, setActiveBots] = useState<AITradingStrategy[]>([]);
+  const [selectedStrategy, setSelectedStrategy] = useState<string>('');
   
   // Mock data for trending strategies
   const trendingStrategies: AITradingStrategy[] = [
@@ -65,16 +67,6 @@ const AiTradingBots: React.FC = () => {
     }
   ];
   
-  const popularStrategies = [
-    // ... popular strategies similar to trending strategies
-    // Would populate with different strategies
-  ];
-  
-  const customStrategies = [
-    // ... custom strategies similar to trending strategies
-    // Would populate with user-created strategies
-  ];
-  
   // Function to activate a bot
   const activateBot = (bot: AITradingStrategy) => {
     setActiveBots(prev => [...prev, bot]);
@@ -96,6 +88,11 @@ const AiTradingBots: React.FC = () => {
   // Check if a bot is active
   const isBotActive = (botId: string) => {
     return activeBots.some(bot => bot.id === botId);
+  };
+
+  // Handle strategy selection
+  const handleSelectStrategy = (strategyId: string) => {
+    setSelectedStrategy(strategyId);
   };
   
   return (
@@ -204,7 +201,11 @@ const AiTradingBots: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          <AiTradingStrategySelector />
+          <AiTradingStrategySelector 
+            strategies={trendingStrategies}
+            selectedStrategy={selectedStrategy}
+            onSelectStrategy={handleSelectStrategy}
+          />
         </CardContent>
       </Card>
     </div>

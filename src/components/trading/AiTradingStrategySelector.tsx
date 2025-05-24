@@ -11,121 +11,115 @@ interface AiTradingStrategySelectorProps {
   onSelectStrategy: (strategyId: string) => void;
 }
 
-// Updated mock strategies with string timeframes
+// Updated mock strategies with all required properties
 const mockStrategies: AITradingStrategy[] = [
   {
     id: 'trend-follower',
     name: 'Trend Follower',
     description: 'Follows established market trends using multiple moving averages and momentum indicators.',
     type: 'trend-following',
-    timeframe: '1h',
-    parameters: {
-      riskLevel: 'medium',
-      backtestResults: {
-        winRate: 65,
-        profitFactor: 1.8,
-        sharpeRatio: 1.5,
-        drawdown: 18,
-        returns: 42
-      }
-    },
+    timeframe: 'medium',
+    riskLevel: 'medium',
+    profitPotential: 'medium',
     indicators: ['MA', 'MACD', 'RSI'],
-    tags: ['trend', 'momentum', 'technical']
+    triggers: ['Moving Average Crossover', 'RSI Divergence'],
+    tags: ['trend', 'momentum', 'technical'],
+    backtestResults: {
+      winRate: 65,
+      profitFactor: 1.8,
+      sharpeRatio: 1.5,
+      maxDrawdown: 18
+    }
   },
   {
     id: 'breakout-hunter',
     name: 'Breakout Hunter',
     description: 'Identifies and trades breakouts from key support and resistance levels.',
     type: 'breakout',
-    timeframe: '4h',
-    parameters: {
-      riskLevel: 'high',
-      backtestResults: {
-        winRate: 55,
-        profitFactor: 2.1,
-        sharpeRatio: 1.7,
-        drawdown: 25,
-        returns: 68
-      }
-    },
+    timeframe: 'short',
+    riskLevel: 'high',
+    profitPotential: 'high',
     indicators: ['Bollinger Bands', 'Volume', 'ATR'],
-    tags: ['volatility', 'breakout', 'volume']
+    triggers: ['Volume Spike', 'Price Breakout'],
+    tags: ['volatility', 'breakout', 'volume'],
+    backtestResults: {
+      winRate: 55,
+      profitFactor: 2.1,
+      sharpeRatio: 1.7,
+      maxDrawdown: 25
+    }
   },
   {
     id: 'mean-reverter',
     name: 'Mean Reversion',
     description: 'Capitalizes on price deviations from historical averages.',
     type: 'mean-reversion',
-    timeframe: '1d',
-    parameters: {
-      riskLevel: 'medium',
-      backtestResults: {
-        winRate: 72,
-        profitFactor: 1.6,
-        sharpeRatio: 1.4,
-        drawdown: 15,
-        returns: 35
-      }
-    },
+    timeframe: 'long',
+    riskLevel: 'low',
+    profitPotential: 'medium',
     indicators: ['RSI', 'Stochastic', 'Bollinger Bands'],
-    tags: ['overbought', 'oversold', 'oscillator']
+    triggers: ['Oversold/Overbought Signals', 'Support/Resistance'],
+    tags: ['overbought', 'oversold', 'oscillator'],
+    backtestResults: {
+      winRate: 72,
+      profitFactor: 1.6,
+      sharpeRatio: 1.4,
+      maxDrawdown: 15
+    }
   },
   {
     id: 'sentiment-trader',
     name: 'Sentiment Analyzer',
     description: 'Trades based on market sentiment derived from news and social media.',
     type: 'sentiment',
-    timeframe: '1d',
-    parameters: {
-      riskLevel: 'high',
-      backtestResults: {
-        winRate: 60,
-        profitFactor: 1.9,
-        sharpeRatio: 1.6,
-        drawdown: 22,
-        returns: 58
-      }
-    },
+    timeframe: 'medium',
+    riskLevel: 'high',
+    profitPotential: 'high',
     indicators: ['Sentiment Score', 'Social Volume', 'News Impact'],
-    tags: ['sentiment', 'news', 'social']
+    triggers: ['Positive Sentiment Spike', 'Negative Sentiment Drop'],
+    tags: ['sentiment', 'news', 'social'],
+    backtestResults: {
+      winRate: 60,
+      profitFactor: 1.9,
+      sharpeRatio: 1.6,
+      maxDrawdown: 22
+    }
   },
   {
     id: 'ml-predictor',
     name: 'ML Predictor',
     description: 'Uses machine learning to predict price movements based on historical patterns.',
     type: 'machine-learning',
-    timeframe: '1d',
-    parameters: {
-      riskLevel: 'medium',
-      backtestResults: {
-        winRate: 68,
-        profitFactor: 2.0,
-        sharpeRatio: 1.8,
-        drawdown: 20,
-        returns: 62
-      }
-    },
+    timeframe: 'medium',
+    riskLevel: 'medium',
+    profitPotential: 'high',
     indicators: ['ML Score', 'Confidence', 'Pattern Recognition'],
-    tags: ['machine learning', 'prediction', 'pattern']
+    triggers: ['High Confidence Signal', 'Pattern Match'],
+    tags: ['machine learning', 'prediction', 'pattern'],
+    backtestResults: {
+      winRate: 68,
+      profitFactor: 2.0,
+      sharpeRatio: 1.8,
+      maxDrawdown: 20
+    }
   },
   {
     id: 'multi-timeframe',
     name: 'Multi-Timeframe',
     description: 'Analyzes multiple timeframes to identify high-probability trading opportunities.',
     type: 'multi-timeframe',
-    timeframe: '4h',
-    parameters: {
-      riskLevel: 'low',
-      backtestResults: {
-        winRate: 70,
-        profitFactor: 1.7,
-        sharpeRatio: 1.5,
-        drawdown: 12,
-        returns: 38
-      }
-    },
+    timeframe: 'short',
+    riskLevel: 'low',
+    profitPotential: 'medium',
     indicators: ['MA Alignments', 'Trend Strength', 'Confluence'],
-    tags: ['multi-timeframe', 'confluence', 'alignment']
+    triggers: ['Timeframe Alignment', 'Confluence Signal'],
+    tags: ['multi-timeframe', 'confluence', 'alignment'],
+    backtestResults: {
+      winRate: 70,
+      profitFactor: 1.7,
+      sharpeRatio: 1.5,
+      maxDrawdown: 12
+    }
   }
 ];
 
@@ -154,11 +148,11 @@ const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
                   <h3 className="font-semibold">{strategy.name}</h3>
                   <Badge 
                     variant={
-                      strategy.parameters.riskLevel === 'low' ? 'outline' : 
-                      strategy.parameters.riskLevel === 'medium' ? 'secondary' : 'destructive'
+                      strategy.riskLevel === 'low' ? 'outline' : 
+                      strategy.riskLevel === 'medium' ? 'secondary' : 'destructive'
                     }
                   >
-                    {strategy.parameters.riskLevel}
+                    {strategy.riskLevel}
                   </Badge>
                 </div>
                 
@@ -172,30 +166,32 @@ const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
                   ))}
                 </div>
                 
-                {strategy.parameters.backtestResults && (
+                {strategy.backtestResults && (
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
                       <div className="font-medium">Win Rate</div>
-                      <div className="text-accent-foreground">{strategy.parameters.backtestResults.winRate}%</div>
+                      <div className="text-accent-foreground">{strategy.backtestResults.winRate}%</div>
                     </div>
                     <div>
                       <div className="font-medium">Sharpe Ratio</div>
-                      <div className="text-accent-foreground">{strategy.parameters.backtestResults.sharpeRatio}</div>
+                      <div className="text-accent-foreground">{strategy.backtestResults.sharpeRatio}</div>
                     </div>
                     <div>
-                      <div className="font-medium">Returns</div>
-                      <div className="text-accent-foreground">{strategy.parameters.backtestResults.returns}%</div>
+                      <div className="font-medium">Max Drawdown</div>
+                      <div className="text-accent-foreground">{strategy.backtestResults.maxDrawdown}%</div>
                     </div>
                   </div>
                 )}
                 
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {strategy.tags?.map((tag, index) => (
-                    <span key={index} className="text-xs bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
+                {strategy.tags && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {strategy.tags.map((tag, index) => (
+                      <span key={index} className="text-xs bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
