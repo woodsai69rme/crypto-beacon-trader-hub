@@ -1,3 +1,4 @@
+
 /**
  * Type definitions for the trading components and functionality
  */
@@ -41,7 +42,6 @@ export interface CryptoData extends CoinOption {
   price_change_percentage_24h?: number;
   total_volume?: number;
   market_cap?: number;
-  priceChangePercentage?: number;
   rank?: number;
 }
 
@@ -330,12 +330,20 @@ export interface TradingFormProps {
   onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
   account: TradingAccount;
   selectedCoin: CoinOption;
+  balance: number;
+  availableCoins: CoinOption[];
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
+  conversionRate?: number;
 }
 
 export interface FakeTradingFormProps {
   onSubmit?: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
   selectedCoin?: CoinOption;
   account?: TradingAccount;
+  onAddTrade?: (trade: Trade) => void;
+  advancedMode?: boolean;
 }
 
 // Settings form values

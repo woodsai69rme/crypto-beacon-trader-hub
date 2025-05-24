@@ -5,9 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { FakeTradingFormProps, Trade } from '@/types/trading';
+import { Trade } from '@/types/trading';
 
-const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedMode = false }) => {
+interface FakeTradingFormProps {
+  onAddTrade?: (trade: Trade) => void;
+  onSubmit?: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+  selectedCoin?: any;
+  account?: any;
+  advancedMode?: boolean;
+}
+
+const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ 
+  onAddTrade, 
+  onSubmit, 
+  advancedMode = false 
+}) => {
   const [asset, setAsset] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -41,13 +53,20 @@ const FakeTradingForm: React.FC<FakeTradingFormProps> = ({ onAddTrade, advancedM
       amount: quantityValue,
       type,
       timestamp: tradeDate,
-      currency: 'USD',
+      currency: 'AUD',
       totalValue,
       total: totalValue,
       tags: advancedMode ? tags : []
     };
     
-    onAddTrade(newTrade);
+    if (onAddTrade) {
+      onAddTrade(newTrade);
+    }
+    
+    if (onSubmit) {
+      const { id, timestamp, ...tradeData } = newTrade;
+      onSubmit(tradeData);
+    }
     
     // Reset form
     setAsset('');

@@ -1,4 +1,3 @@
-
 import { TradingAccount, TradingSignal, MarketInsight, PortfolioOptimizationResult, OptimizationSettings, RiskAssessmentResult } from '@/types/trading';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,6 +29,9 @@ export const generatePortfolioOptimization = async (
     rebalancingTrades: []
   };
 };
+
+// Export as optimizePortfolio for compatibility
+export const optimizePortfolio = generatePortfolioOptimization;
 
 export const assessPortfolioRisk = async (
   account: TradingAccount
@@ -136,6 +138,20 @@ export const generateMarketInsights = async (
   ];
 };
 
+// Export as getPersonalizedMarketInsights for compatibility
+export const getPersonalizedMarketInsights = async (
+  account: TradingAccount,
+  options?: { limit?: number; relevanceThreshold?: number }
+): Promise<MarketInsight[]> => {
+  const insights = await generateMarketInsights(account);
+  const limit = options?.limit || 10;
+  const relevanceThreshold = options?.relevanceThreshold || 50;
+  
+  return insights
+    .filter(insight => insight.relevance >= relevanceThreshold)
+    .slice(0, limit);
+};
+
 // Additional utility functions
 export const calculatePortfolioMetrics = (account: TradingAccount) => {
   const totalValue = account.assets?.reduce((sum, asset) => sum + asset.value, 0) || 0;
@@ -168,9 +184,11 @@ export const getWorstPerformingAssets = (account: TradingAccount, limit: number 
 
 export default {
   generatePortfolioOptimization,
+  optimizePortfolio,
   assessPortfolioRisk,
   generateTradingSignals,
   generateMarketInsights,
+  getPersonalizedMarketInsights,
   calculatePortfolioMetrics,
   getTopPerformingAssets,
   getWorstPerformingAssets
