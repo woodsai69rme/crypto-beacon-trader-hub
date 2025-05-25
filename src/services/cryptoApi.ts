@@ -1,3 +1,4 @@
+
 import { CryptoData, CryptoChartData, CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
@@ -49,6 +50,9 @@ const getMockCryptoData = (): CryptoData[] => {
   ];
 };
 
+// Export the function so it can be used in tests
+export { getMockCryptoData };
+
 export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<CryptoData[]> => {
   try {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
@@ -71,7 +75,7 @@ export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<Crypt
   }
 };
 
-export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: string = '30'): Promise<CryptoChartData> => {
+export const fetchCoinHistory = async (coinId: string, days: string = '30'): Promise<CryptoChartData> => {
   try {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
     
@@ -80,7 +84,11 @@ export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: string
     }
     
     const data = await response.json();
-    return data as CryptoChartData;
+    return {
+      timestamps: data.prices?.map((price: [number, number]) => new Date(price[0]).toISOString()) || [],
+      prices: data.prices?.map((price: [number, number]) => price[1]) || [],
+      volumes: data.total_volumes?.map((volume: [number, number]) => volume[1]) || []
+    };
   } catch (error) {
     console.error("Error fetching from CoinGecko:", error);
     toast({
@@ -96,6 +104,8 @@ export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: string
     };
   }
 };
+
+export const fetchCoinHistoryFromCoinGecko = fetchCoinHistory;
 
 export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoData[]> => {
   try {

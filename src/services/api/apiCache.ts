@@ -1,49 +1,41 @@
 
-interface CacheEntry<T = any> {
-  data: T;
+interface CacheEntry {
+  data: any;
   timestamp: number;
   ttl: number;
 }
 
 class ApiCache {
-  private cache = new Map<string, CacheEntry>();
-  private defaultTTL = 5 * 60 * 1000; // 5 minutes
+  private cache: Map<string, CacheEntry> = new Map();
 
-  set<T>(key: string, data: T, ttl?: number): void {
-    this.cache.set(key, {
+  set(key: string, data: any, ttl: number = 300000): void { // 5 minutes default
+    const entry: CacheEntry = {
       data,
       timestamp: Date.now(),
-      ttl: ttl || this.defaultTTL
-    });
+      ttl
+    };
+    this.cache.set(key, entry);
   }
 
-  get<T>(key: string): T | null {
+  get(key: string): any | null {
     const entry = this.cache.get(key);
-    
-    if (!entry) {
-      return null;
-    }
+    if (!entry) return null;
 
-    const isExpired = Date.now() - entry.timestamp > entry.ttl;
-    
-    if (isExpired) {
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
       return null;
     }
 
-    return entry.data as T;
+    return entry.data;
   }
 
   has(key: string): boolean {
     const entry = this.cache.get(key);
-    
-    if (!entry) {
-      return false;
-    }
+    if (!entry) return false;
 
-    const isExpired = Date.now() - entry.timestamp > entry.ttl;
-    
-    if (isExpired) {
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
       return false;
     }
@@ -51,12 +43,12 @@ class ApiCache {
     return true;
   }
 
-  delete(key: string): boolean {
-    return this.cache.delete(key);
-  }
-
   clear(): void {
     this.cache.clear();
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
   }
 
   size(): number {
@@ -65,4 +57,4 @@ class ApiCache {
 }
 
 export const apiCache = new ApiCache();
-export default apiCache;
+export { ApiCache };

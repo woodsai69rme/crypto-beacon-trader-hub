@@ -1,146 +1,73 @@
 
-import React from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import {
-  Bell,
-  Search,
-  Settings,
-  Menu,
-  LogOut,
-  User,
-  HelpCircle
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from './ui/dropdown-menu';
-import ThemeSwitcher from './ThemeSwitcher';
-import { useTheme } from '@/contexts/ThemeContext';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { 
+  LayoutDashboard, 
+  TrendingUp, 
+  BarChart3, 
+  Settings, 
+  Zap,
+  Users,
+  Brain
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Navbar = () => {
-  const { colorScheme } = useTheme();
+  const location = useLocation();
   
+  const navItems = [
+    { path: "/", label: "Overview", icon: LayoutDashboard },
+    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/trading", label: "Trading", icon: TrendingUp },
+    { path: "/analytics", label: "Analytics", icon: BarChart3 },
+    { path: "/advanced", label: "Advanced", icon: Brain },
+    { path: "/collaboration", label: "Collaboration", icon: Users },
+    { path: "/settings", label: "Settings", icon: Settings },
+  ];
+
   return (
-    <header className={`border-b border-border sticky top-0 z-50 w-full backdrop-blur-md bg-background/70`}>
-      <div className="container mx-auto flex h-16 items-center px-4 sm:px-6">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
-          <a href="/" className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-            <span className="font-bold text-lg hidden md:inline-block">CryptoTrader</span>
-          </a>
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <Zap className="h-6 w-6" />
+            <span className="hidden font-bold sm:inline-block">
+              CryptoTrader Pro
+            </span>
+          </Link>
         </div>
         
-        <div className="flex-1 md:ml-auto md:mr-6 relative max-w-md hidden md:block">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            type="search" 
-            placeholder="Search..."
-            className="w-full pl-8 rounded-full bg-secondary/50 border-none"
-          />
-        </div>
-        
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-red-600" />
-            <span className="sr-only">Notifications</span>
-          </Button>
-          
-          <ThemeSwitcher />
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  <span>Help</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Menu</span>
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
-                <img
-                  src="https://github.com/shadcn.png"
-                  alt="User"
-                  className="rounded-full"
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  <span>Help</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex flex-1 items-center space-x-2">
+          <nav className="flex items-center space-x-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <Button
+                  key={item.path}
+                  variant={isActive ? "default" : "ghost"}
+                  size="sm"
+                  asChild
+                  className={cn(
+                    "text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-primary"
+                  )}
+                >
+                  <Link to={item.path} className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </Link>
+                </Button>
+              );
+            })}
+          </nav>
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
 
