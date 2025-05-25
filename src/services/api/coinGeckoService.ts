@@ -18,10 +18,40 @@ export const getCoinGeckoApiKey = (): string | null => {
   return apiKey;
 };
 
+// Mock data generator function
+const getMockCryptoData = (): CryptoData[] => {
+  return [
+    {
+      id: 'bitcoin',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: 45000,
+      priceChange: 1000,
+      changePercent: 2.2,
+      volume: 25000000000,
+      marketCap: 850000000000,
+      rank: 1,
+      value: 'bitcoin',
+      label: 'Bitcoin (BTC)'
+    },
+    {
+      id: 'ethereum',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      price: 3200,
+      priceChange: 150,
+      changePercent: 4.9,
+      volume: 15000000000,
+      marketCap: 380000000000,
+      rank: 2,
+      value: 'ethereum',
+      label: 'Ethereum (ETH)'
+    }
+  ];
+};
+
 export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<CryptoData[]> => {
   try {
-    // In a real app, we would use the API key
-    // For now, returning mock data
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
     
     if (!response.ok) {
@@ -38,14 +68,12 @@ export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<Crypt
       variant: "destructive",
     });
     
-    // Fallback to local mock data
-    return import("../cryptoApi").then(module => module.getMockCryptoData().slice(0, limit));
+    return getMockCryptoData().slice(0, limit);
   }
 };
 
-export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: number = 30): Promise<CryptoChartData> => {
+export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: string = '30'): Promise<CryptoChartData> => {
   try {
-    // In a real app, we would use the API key
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
     
     if (!response.ok) {
@@ -62,14 +90,16 @@ export const fetchCoinHistoryFromCoinGecko = async (coinId: string, days: number
       variant: "destructive",
     });
     
-    // Fallback to local mock data
-    return import("../cryptoApi").then(module => module.fetchCoinHistory(coinId, days));
+    return {
+      timestamps: [],
+      prices: [],
+      volumes: []
+    };
   }
 };
 
 export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoData[]> => {
   try {
-    // In a real app, we would use the API key
     const response = await fetch(`https://api.coingecko.com/api/v3/search?query=${query}`);
     
     if (!response.ok) {
@@ -82,8 +112,15 @@ export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoDat
       name: coin.name,
       symbol: coin.symbol,
       image: coin.large,
-      market_cap_rank: coin.market_cap_rank,
-    })) as Partial<CryptoData>[] as CryptoData[];
+      rank: coin.market_cap_rank,
+      price: 0,
+      priceChange: 0,
+      changePercent: 0,
+      volume: 0,
+      marketCap: 0,
+      value: coin.id,
+      label: `${coin.name} (${coin.symbol.toUpperCase()})`
+    })) as CryptoData[];
   } catch (error) {
     console.error("Error searching from CoinGecko:", error);
     toast({
@@ -92,13 +129,10 @@ export const searchCoinsFromCoinGecko = async (query: string): Promise<CryptoDat
       variant: "destructive",
     });
     
-    // Fallback to local mock data
-    return import("../cryptoApi").then(module => {
-      const mockData = module.getMockCryptoData();
-      return mockData.filter(coin => 
-        coin.name.toLowerCase().includes(query.toLowerCase()) || 
-        coin.symbol.toLowerCase().includes(query.toLowerCase())
-      );
-    });
+    const mockData = getMockCryptoData();
+    return mockData.filter(coin => 
+      coin.name.toLowerCase().includes(query.toLowerCase()) || 
+      coin.symbol.toLowerCase().includes(query.toLowerCase())
+    );
   }
 };

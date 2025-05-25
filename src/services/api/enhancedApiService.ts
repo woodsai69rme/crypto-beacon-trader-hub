@@ -1,7 +1,6 @@
-
 import axios from 'axios';
 import { ApiProvider, ApiUsageStats, CryptoData } from '@/types/trading';
-import { apiProviderManager } from './apiProviderConfig';
+import { apiProviderManager } from '../apiProviderManager';
 
 class EnhancedApiService {
   private usageStats: Map<string, ApiUsageStats> = new Map();

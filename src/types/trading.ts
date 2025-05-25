@@ -1,4 +1,3 @@
-
 /**
  * Type definitions for the trading components and functionality
  */
@@ -6,10 +5,8 @@
 // Supported currencies
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
-// Alert types
-export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
-export type NotificationMethod = 'email' | 'push' | 'app';
-export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
+// Import alert types
+export * from './alerts';
 
 // Tax bracket type
 export interface TaxBracket {
@@ -567,6 +564,7 @@ export interface TradeOrder {
   triggerPrice?: number;
 }
 
+// AI Trading Strategy with all required properties
 export interface AITradingStrategy {
   id: string;
   name: string;
@@ -588,6 +586,12 @@ export interface AITradingStrategy {
   };
   type?: string;
   tags?: string[];
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
 }
 
 export interface AIStrategyPerformance {

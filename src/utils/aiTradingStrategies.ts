@@ -1,116 +1,109 @@
 
-import { AITradingStrategy } from "@/types/trading";
+import { AITradingStrategy } from '@/types/trading';
 
-// Predefined AI trading strategies
-export const predefinedStrategies: AITradingStrategy[] = [
+export const aiTradingStrategies: AITradingStrategy[] = [
   {
-    id: "strategy-1",
-    name: "AI Price Prediction",
-    description: "Uses machine learning to predict price movements and execute trades based on predicted direction",
-    type: "ai-predictive",
-    riskLevel: "medium",
-    timeframe: "4h",
-    indicators: ["RSI", "MACD", "Bollinger Bands"],
+    id: 'momentum-breakout',
+    name: 'Momentum Breakout Strategy',
+    description: 'Identifies and trades momentum breakouts with AI-powered entry and exit points',
+    type: 'momentum',
+    riskLevel: 'medium',
+    profitPotential: 'high',
+    timeframe: '4h',
+    indicators: ['RSI', 'Volume', 'Moving Averages', 'Bollinger Bands'],
+    triggers: ['Volume spike', 'Price breakout', 'RSI confirmation'],
     parameters: {
-      confidenceThreshold: 0.7,
-      maxPositionSize: 5,
-      stopLossPercent: 2,
-      takeProfitPercent: 4
+      confidenceThreshold: 0.75,
+      maxPositionSize: 0.1,
+      stopLossPercent: 3,
+      takeProfitPercent: 8
     }
   },
   {
-    id: "strategy-2",
-    name: "Sentiment Analysis Trader",
-    description: "Analyzes news and social media sentiment to make trading decisions",
-    type: "hybrid",
-    riskLevel: "medium",
-    timeframe: "1d",
-    indicators: ["Sentiment Score", "Volume", "Price Action"],
+    id: 'sentiment-driven',
+    name: 'AI Sentiment Trading',
+    description: 'Uses natural language processing to analyze market sentiment and news',
+    type: 'sentiment',
+    riskLevel: 'medium',
+    profitPotential: 'medium',
+    timeframe: '1d',
+    indicators: ['Sentiment Score', 'News Volume', 'Social Media Buzz'],
+    triggers: ['Positive sentiment spike', 'News catalyst', 'Social momentum'],
     parameters: {
-      sentimentThreshold: 0.65,
-      newsWeight: 0.6,
-      socialWeight: 0.4,
-      orderSize: 3
+      sentimentThreshold: 0.6,
+      newsWeight: 0.4,
+      socialWeight: 0.3,
+      orderSize: 0.05
     }
   },
   {
-    id: "strategy-3",
-    name: "Mean Reversion",
-    description: "Identifies when prices have deviated significantly from their historical mean and trades towards the mean",
-    type: "traditional",
-    riskLevel: "low",
-    timeframe: "1h",
-    indicators: ["Standard Deviation", "Bollinger Bands", "Keltner Channel"],
+    id: 'mean-reversion-ml',
+    name: 'ML Mean Reversion',
+    description: 'Machine learning model that identifies overextended price movements',
+    type: 'mean-reversion',
+    riskLevel: 'low',
+    profitPotential: 'medium',
+    timeframe: '1h',
+    indicators: ['Standard Deviation', 'Z-Score', 'Moving Averages'],
+    triggers: ['Price deviation', 'Statistical significance', 'Reversion signal'],
     parameters: {
       lookbackPeriod: 20,
       entryDeviation: 2.0,
       exitDeviation: 0.5,
-      tradeSize: 2
+      tradeSize: 0.08
     }
   },
   {
-    id: "strategy-4",
-    name: "Trend Following",
-    description: "Identifies and follows established market trends to capture larger price movements",
-    type: "hybrid",
-    riskLevel: "medium",
-    timeframe: "4h",
-    indicators: ["Moving Averages", "ADX", "Supertrend"],
+    id: 'trend-following-ai',
+    name: 'AI Trend Following',
+    description: 'Advanced trend detection using machine learning algorithms',
+    type: 'trend-following',
+    riskLevel: 'medium',
+    profitPotential: 'high',
+    timeframe: '4h',
+    indicators: ['MACD', 'ADX', 'Moving Averages', 'Trend Strength'],
+    triggers: ['Trend confirmation', 'Momentum alignment', 'Volume validation'],
     parameters: {
-      fastPeriod: 9,
-      slowPeriod: 21,
+      fastPeriod: 12,
+      slowPeriod: 26,
       adxThreshold: 25,
-      trailingStop: 3
+      trailingStop: 0.02
     }
   },
   {
-    id: "strategy-5",
-    name: "Breakout Detection",
-    description: "Identifies price breakouts from consolidation patterns and trades in the direction of the breakout",
-    type: "hybrid",
-    riskLevel: "high",
-    timeframe: "15m",
-    indicators: ["Donchian Channels", "Volume", "ATR"],
+    id: 'scalping-neural',
+    name: 'Neural Network Scalping',
+    description: 'High-frequency trading using neural networks for quick profits',
+    type: 'scalping',
+    riskLevel: 'high',
+    profitPotential: 'medium',
+    timeframe: '1h',
+    indicators: ['Price Action', 'Order Book', 'Micro Trends'],
+    triggers: ['Neural signal', 'Order flow imbalance', 'Price momentum'],
     parameters: {
-      channelPeriod: 20,
-      volumeMultiplier: 1.5,
-      stopMultiplier: 2,
-      profitTarget: 3
+      signalThreshold: 0.8,
+      maxHoldTime: 30,
+      profitTarget: 0.5,
+      stopLoss: 0.2
     }
   },
   {
-    id: "strategy-6",
-    name: "Multi-Factor AI",
-    description: "Combines multiple AI models to analyze technical patterns, sentiment, and on-chain metrics",
-    type: "ai-predictive",
-    riskLevel: "high",
-    timeframe: "1d",
-    indicators: ["Technical", "Sentiment", "On-chain", "Correlation"],
+    id: 'multi-factor-ai',
+    name: 'Multi-Factor AI Model',
+    description: 'Combines technical, fundamental, and sentiment analysis',
+    type: 'multi-factor',
+    riskLevel: 'high',
+    profitPotential: 'high',
+    timeframe: '1d',
+    indicators: ['Technical Score', 'Fundamental Metrics', 'Sentiment Analysis'],
+    triggers: ['Multi-factor alignment', 'Confidence threshold', 'Risk assessment'],
     parameters: {
       technicalWeight: 0.4,
       sentimentWeight: 0.3,
       onChainWeight: 0.3,
-      minConfidence: 0.75
+      minConfidence: 0.7
     }
   }
 ];
 
-// Function to get a strategy by ID
-export const getStrategyById = (
-  strategyId: string
-): AITradingStrategy | undefined => {
-  return predefinedStrategies.find(strategy => strategy.id === strategyId);
-};
-
-// Define available timeframes for trading strategies
-export const availableTimeframes = [
-  { value: "1m", label: "1 Minute", description: "Very short-term trading" },
-  { value: "5m", label: "5 Minutes", description: "Short-term scalping" },
-  { value: "15m", label: "15 Minutes", description: "Short-term trading" },
-  { value: "30m", label: "30 Minutes", description: "Medium-short term" },
-  { value: "1h", label: "1 Hour", description: "Medium-term trading" },
-  { value: "4h", label: "4 Hours", description: "Medium-long term" },
-  { value: "1d", label: "1 Day", description: "Long-term trading" },
-  { value: "1w", label: "1 Week", description: "Position trading" },
-  { value: "1M", label: "1 Month", description: "Long-term investment" }
-];
+export default aiTradingStrategies;

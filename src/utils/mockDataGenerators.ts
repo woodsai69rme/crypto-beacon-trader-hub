@@ -1,7 +1,14 @@
+import { 
+  CryptoData, 
+  NewsItem, 
+  PortfolioAsset, 
+  Trade, 
+  TradingSignal, 
+  MarketInsight,
+  PortfolioBenchmark 
+} from '@/types/trading';
 
-import { CoinOption, PortfolioBenchmark } from "@/types/trading";
-
-export const generateCryptoData = (count: number): CoinOption[] => {
+export const generateCryptoData = (count: number): CryptoData[] => {
   const coins = [
     { id: "bitcoin", name: "Bitcoin", symbol: "BTC", basePrice: 42000, volatility: 0.05 },
     { id: "ethereum", name: "Ethereum", symbol: "ETH", basePrice: 3400, volatility: 0.06 },
@@ -137,6 +144,66 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
       color: "#a855f7",
       performance: bondData[bondData.length - 1].performance,
       lastUpdated: new Date().toISOString()
+    }
+  ];
+};
+
+export const generateMockBenchmarks = (): PortfolioBenchmark[] => {
+  const generateReturns = (volatility: number, trend: number) => {
+    return Array.from({ length: 30 }, (_, i) => {
+      const baseReturn = trend + (Math.random() - 0.5) * volatility;
+      return Math.round((100 + baseReturn * (i + 1)) * 100) / 100;
+    });
+  };
+
+  const dates = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (29 - i));
+    return date.toISOString().split('T')[0];
+  });
+
+  return [
+    {
+      id: 'btc-benchmark',
+      name: 'Bitcoin',
+      returns: generateReturns(0.05, 0.002),
+      dates,
+      color: '#f7931a'
+    },
+    {
+      id: 'eth-benchmark',
+      name: 'Ethereum',
+      returns: generateReturns(0.06, 0.003),
+      dates,
+      color: '#627eea'
+    },
+    {
+      id: 'sp500-benchmark',
+      name: 'S&P 500',
+      returns: generateReturns(0.02, 0.001),
+      dates,
+      color: '#2196f3'
+    },
+    {
+      id: 'nasdaq-benchmark',
+      name: 'NASDAQ',
+      returns: generateReturns(0.025, 0.0015),
+      dates,
+      color: '#4caf50'
+    },
+    {
+      id: 'gold-benchmark',
+      name: 'Gold',
+      returns: generateReturns(0.015, 0.0005),
+      dates,
+      color: '#ffd700'
+    },
+    {
+      id: 'crypto-index',
+      name: 'Crypto Index',
+      returns: generateReturns(0.08, 0.004),
+      dates,
+      color: '#9c27b0'
     }
   ];
 };

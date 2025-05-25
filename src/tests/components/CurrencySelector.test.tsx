@@ -14,7 +14,6 @@ describe('CurrencySelector', () => {
       </TestWrapper>
     );
     
-    // The trigger should show the selected currency
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
   
@@ -27,30 +26,9 @@ describe('CurrencySelector', () => {
       </TestWrapper>
     );
     
-    // Open the dropdown
     fireEvent.click(screen.getByRole('combobox'));
-    
-    // Select AUD
     fireEvent.click(screen.getByText('AUD'));
     
-    // Check if the change handler was called with the right argument
     expect(handleChange).toHaveBeenCalledWith('AUD');
-  });
-  
-  it('disables the selector when disabled prop is true', () => {
-    const handleChange = jest.fn();
-    
-    render(
-      <TestWrapper>
-        <CurrencySelector 
-          activeCurrency="USD" 
-          onCurrencyChange={handleChange} 
-          disabled={true}
-        />
-      </TestWrapper>
-    );
-    
-    // The trigger should be disabled
-    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 });

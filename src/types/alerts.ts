@@ -1,8 +1,10 @@
 
+// Alert types
 export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
 export type NotificationMethod = 'email' | 'push' | 'app';
-export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
 
+// Base alert interface
 export interface BaseAlert {
   id: string;
   type: AlertType;
@@ -14,6 +16,7 @@ export interface BaseAlert {
   createdAt?: Date;
 }
 
+// Price alert
 export interface PriceAlert extends BaseAlert {
   type: 'price';
   targetPrice: number;
@@ -22,6 +25,7 @@ export interface PriceAlert extends BaseAlert {
   percentageChange?: number;
 }
 
+// Volume alert
 export interface VolumeAlert extends BaseAlert {
   type: 'volume';
   targetVolume: number;
@@ -30,11 +34,13 @@ export interface VolumeAlert extends BaseAlert {
   frequency: AlertFrequency;
 }
 
+// Pattern alert
 export interface PatternAlert extends BaseAlert {
   type: 'pattern';
   pattern: string;
 }
 
+// Technical alert
 export interface TechnicalAlert extends BaseAlert {
   type: 'technical';
   indicator: string;
