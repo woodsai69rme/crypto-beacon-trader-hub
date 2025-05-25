@@ -88,7 +88,6 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
     {
       id: "portfolio",
       name: "Your Portfolio",
-      symbol: "PORT",
       type: "crypto",
       data: generateHistoricalData(90, 0.025, 10000),
       color: "#3b82f6",
@@ -98,7 +97,6 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
     {
       id: "bitcoin",
       name: "Bitcoin",
-      symbol: "BTC",
       type: "crypto",
       data: bitcoinData,
       color: "#f7931a",
@@ -108,7 +106,6 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
     {
       id: "ethereum",
       name: "Ethereum",
-      symbol: "ETH",
       type: "crypto",
       data: ethereumData,
       color: "#627eea",
@@ -118,7 +115,6 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
     {
       id: "sp500",
       name: "S&P 500",
-      symbol: "SPX",
       type: "index",
       data: sp500Data,
       color: "#22c55e",
@@ -128,7 +124,6 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
     {
       id: "gold",
       name: "Gold",
-      symbol: "XAU",
       type: "index",
       data: goldData,
       color: "#eab308",
@@ -138,7 +133,6 @@ export const generateBenchmarkData = (): PortfolioBenchmark[] => {
     {
       id: "bonds",
       name: "US Treasury Bonds",
-      symbol: "BOND",
       type: "index",
       data: bondData,
       color: "#a855f7",

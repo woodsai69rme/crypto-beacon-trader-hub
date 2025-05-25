@@ -5,8 +5,10 @@
 // Supported currencies
 export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'JPY' | 'CNY';
 
-// Import alert types
-export * from './alerts';
+// Alert types
+export type AlertType = 'price' | 'volume' | 'pattern' | 'technical';
+export type NotificationMethod = 'email' | 'push' | 'app';
+export type AlertFrequency = 'once' | 'always' | 'daily' | 'hourly' | '1h' | '4h' | '24h';
 
 // Tax bracket type
 export interface TaxBracket {
@@ -774,11 +776,16 @@ export interface TradingContextType {
   activeCurrency: SupportedCurrency;
 }
 
-// Add PortfolioBenchmark interface
+// Add PortfolioBenchmark interface with symbol property
 export interface PortfolioBenchmark {
   id: string;
   name: string;
-  returns: number[];
-  dates: string[];
+  symbol?: string;
+  type?: string;
+  returns?: number[];
+  dates?: string[];
+  data?: Array<{ date: string; value: number; performance: number }>;
   color?: string;
+  performance?: number;
+  lastUpdated?: string;
 }

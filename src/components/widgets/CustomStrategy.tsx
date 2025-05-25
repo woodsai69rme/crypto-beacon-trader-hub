@@ -50,13 +50,17 @@ const CustomStrategy: React.FC<CustomStrategyProps> = ({ onAddStrategy }) => {
         name,
         description,
         type: strategy as any,
+        riskLevel: 'medium',
+        profitPotential: 'medium',
         timeframe: "1h",
         parameters: {},
         indicators: ["rsi", "macd", "ema"],
+        triggers: ["technical_signal", "volume_spike"],
         performance: {
-          winRate: 0,
-          profitFactor: 0,
-          trades: 0
+          accuracy: 0,
+          returns: 0,
+          sharpeRatio: 0,
+          maxDrawdown: 0
         }
       };
       
