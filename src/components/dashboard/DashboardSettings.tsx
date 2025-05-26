@@ -3,6 +3,8 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Settings as SettingsIcon, User, Bell, Shield, Palette, Database } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { SettingsFormValues } from "@/components/settings/types";
 import GeneralSettings from "../settings/GeneralSettings";
 import NotificationSettings from "../settings/NotificationSettings";
 import PrivacySettings from "../settings/PrivacySettings";
@@ -12,6 +14,63 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const DashboardSettings = () => {
   const isMobile = useIsMobile();
+  
+  // Create form with default values
+  const form = useForm<SettingsFormValues>({
+    defaultValues: {
+      email: "",
+      username: "",
+      displayName: "",
+      bio: "",
+      theme: "light",
+      currency: "AUD",
+      language: "en",
+      notifications: {
+        email: true,
+        push: false,
+        app: true,
+        trades: true,
+        pricing: true,
+        news: false,
+      },
+      tickerSettings: {
+        enabled: true,
+        position: "top",
+        speed: 50,
+        direction: "left",
+        autoPause: true,
+      },
+      sidebarSettings: {
+        enabled: true,
+        position: "left",
+        defaultCollapsed: false,
+        showLabels: true,
+      },
+      appearance: {
+        colorScheme: "default",
+        compactMode: false,
+        animationsEnabled: true,
+        highContrastMode: false,
+      },
+      privacy: {
+        showOnlineStatus: false,
+        sharePortfolio: false,
+        shareTrades: false,
+        dataCollection: false,
+        marketingConsent: false,
+        thirdPartySharing: false,
+      },
+      account: {
+        twoFactorEnabled: false,
+        loginAlerts: false,
+      },
+      tradingPreferences: {
+        autoConfirm: false,
+        showAdvanced: false,
+        defaultAsset: "bitcoin",
+      },
+    },
+  });
   
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -51,15 +110,15 @@ const DashboardSettings = () => {
         </TabsList>
         
         <TabsContent value="general" className="animate-fade-in">
-          <GeneralSettings />
+          <GeneralSettings form={form} />
         </TabsContent>
         
         <TabsContent value="notifications" className="animate-fade-in">
-          <NotificationSettings />
+          <NotificationSettings form={form} />
         </TabsContent>
         
         <TabsContent value="privacy" className="animate-fade-in">
-          <PrivacySettings />
+          <PrivacySettings form={form} />
         </TabsContent>
         
         <TabsContent value="appearance" className="animate-fade-in">

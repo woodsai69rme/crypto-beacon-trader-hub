@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import ThemeSwitcher from '@/components/settings/ThemeSwitcher';
 import { TestWrapper } from '../utils/TestWrapper';
 

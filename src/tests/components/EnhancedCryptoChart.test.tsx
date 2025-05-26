@@ -1,4 +1,6 @@
-import { render, screen, act, waitFor } from '@testing-library/react';
+
+import { render, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import EnhancedCryptoChart from '@/components/EnhancedCryptoChart';
 import { fetchCoinHistory } from '@/services/cryptoApi';

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import CurrencySelector from '@/components/trading/CurrencySelector';
 import { TestWrapper } from '../utils/TestWrapper';
 

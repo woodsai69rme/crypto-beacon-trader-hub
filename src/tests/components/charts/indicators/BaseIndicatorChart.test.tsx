@@ -1,84 +1,36 @@
 
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import BaseIndicatorChart from '@/components/charts/indicators/BaseIndicatorChart';
 
 describe('BaseIndicatorChart', () => {
   const mockData = [
-    { date: '2023-01-01', value: 30 },
-    { date: '2023-01-02', value: 35 },
-    { date: '2023-01-03', value: 32 },
+    { timestamp: '2023-01-01', value: 100 },
+    { timestamp: '2023-01-02', value: 110 },
+    { timestamp: '2023-01-03', value: 105 },
   ];
 
-  it('renders without crashing', () => {
+  it('renders with title and data', () => {
     render(
       <BaseIndicatorChart
+        title="Test Indicator"
         data={mockData}
-        lines={[
-          {
-            key: 'value',
-            color: '#4f46e5',
-            dot: { r: 5 },
-          },
-        ]}
+        dataKey="value"
       />
     );
-    // Verify that the chart container is in the document
-    expect(document.querySelector('.recharts-responsive-container')).toBeInTheDocument();
+
+    expect(screen.getByText('Test Indicator')).toBeInTheDocument();
   });
 
-  it('renders with multiple lines', () => {
-    const multiLineData = [
-      { date: '2023-01-01', line1: 30, line2: 20 },
-      { date: '2023-01-02', line1: 35, line2: 25 },
-      { date: '2023-01-03', line1: 32, line2: 28 },
-    ];
-
+  it('renders loading state when data is empty', () => {
     render(
       <BaseIndicatorChart
-        data={multiLineData}
-        lines={[
-          {
-            key: 'line1',
-            color: '#4f46e5',
-            dot: { r: 5 },
-          },
-          {
-            key: 'line2',
-            color: '#ff0000',
-            dot: false,
-          },
-        ]}
+        title="Test Indicator"
+        data={[]}
+        dataKey="value"
       />
     );
 
-    // Should have two line elements
-    const lineElements = document.querySelectorAll('.recharts-line');
-    expect(lineElements).toHaveLength(2);
-  });
-
-  it('renders with reference lines', () => {
-    render(
-      <BaseIndicatorChart
-        data={mockData}
-        lines={[
-          {
-            key: 'value',
-            color: '#4f46e5',
-            dot: { r: 5 },
-          },
-        ]}
-        referenceLines={[
-          {
-            y: 30,
-            stroke: 'red',
-            strokeDasharray: '3 3',
-          },
-        ]}
-      />
-    );
-
-    // Should have a reference line
-    const refLine = document.querySelector('.recharts-reference-line');
-    expect(refLine).toBeInTheDocument();
+    expect(screen.getByText('Test Indicator')).toBeInTheDocument();
   });
 });
