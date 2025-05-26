@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { screen } from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 import CurrencySelector from '@/components/trading/CurrencySelector';
 import { TestWrapper } from '../utils/TestWrapper';
 
@@ -18,8 +19,9 @@ describe('CurrencySelector', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
   
-  it('calls onChange when a different currency is selected', () => {
+  it('calls onChange when a different currency is selected', async () => {
     const handleChange = jest.fn();
+    const user = userEvent.setup();
     
     render(
       <TestWrapper>
@@ -27,8 +29,8 @@ describe('CurrencySelector', () => {
       </TestWrapper>
     );
     
-    fireEvent.click(screen.getByRole('combobox'));
-    fireEvent.click(screen.getByText('AUD'));
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByText('AUD'));
     
     expect(handleChange).toHaveBeenCalledWith('AUD');
   });

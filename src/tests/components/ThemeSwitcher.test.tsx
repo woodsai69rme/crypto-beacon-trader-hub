@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { screen } from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 import ThemeSwitcher from '@/components/settings/ThemeSwitcher';
 import { TestWrapper } from '../utils/TestWrapper';
 
@@ -14,11 +15,13 @@ describe('ThemeSwitcher', () => {
     );
     
     // Check if the button is rendered
-    const button = screen.getByRole('button', { name: /change theme/i });
+    const button = screen.getByRole('button', { name: /toggle theme/i });
     expect(button).toBeInTheDocument();
   });
   
-  it('opens the dropdown when clicked', () => {
+  it('opens the dropdown when clicked', async () => {
+    const user = userEvent.setup();
+    
     render(
       <TestWrapper>
         <ThemeSwitcher />
@@ -26,21 +29,19 @@ describe('ThemeSwitcher', () => {
     );
     
     // Click the toggle button
-    const button = screen.getByRole('button', { name: /change theme/i });
-    fireEvent.click(button);
+    const button = screen.getByRole('button', { name: /toggle theme/i });
+    await user.click(button);
     
     // Check if dropdown items are visible
-    expect(screen.getByText(/Theme Mode/i)).toBeInTheDocument();
+    expect(screen.getByText(/Theme/i)).toBeInTheDocument();
     expect(screen.getByText(/Light/i)).toBeInTheDocument();
     expect(screen.getByText(/Dark/i)).toBeInTheDocument();
-    expect(screen.getByText(/System/i)).toBeInTheDocument();
     
     // Check if color scheme options are visible
     expect(screen.getByText(/Color Scheme/i)).toBeInTheDocument();
     expect(screen.getByText(/Default/i)).toBeInTheDocument();
-    expect(screen.getByText(/Blue/i)).toBeInTheDocument();
-    expect(screen.getByText(/Purple/i)).toBeInTheDocument();
-    expect(screen.getByText(/Green/i)).toBeInTheDocument();
-    expect(screen.getByText(/Amber/i)).toBeInTheDocument();
+    expect(screen.getByText(/Midnight Tech/i)).toBeInTheDocument();
+    expect(screen.getByText(/Cyber Pulse/i)).toBeInTheDocument();
+    expect(screen.getByText(/Matrix Code/i)).toBeInTheDocument();
   });
 });

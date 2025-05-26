@@ -14,7 +14,7 @@ describe('ThemeToggle', () => {
     );
     
     // Check if the button is rendered (now it's using ThemeSwitcher directly)
-    const button = screen.getByRole('button', { name: /change theme/i });
+    const button = screen.getByRole('button', { name: /toggle theme/i });
     expect(button).toBeInTheDocument();
   });
 });

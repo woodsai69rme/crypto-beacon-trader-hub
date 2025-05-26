@@ -10,12 +10,17 @@ describe('BaseIndicatorChart', () => {
     { timestamp: '2023-01-03', value: 105 },
   ];
 
+  const mockLines = [
+    { key: 'value', color: '#8884d8' }
+  ];
+
   it('renders with title and data', () => {
     render(
       <BaseIndicatorChart
         title="Test Indicator"
         data={mockData}
-        dataKey="value"
+        dataKey="timestamp"
+        lines={mockLines}
       />
     );
 
@@ -27,7 +32,8 @@ describe('BaseIndicatorChart', () => {
       <BaseIndicatorChart
         title="Test Indicator"
         data={[]}
-        dataKey="value"
+        dataKey="timestamp"
+        lines={mockLines}
       />
     );
 

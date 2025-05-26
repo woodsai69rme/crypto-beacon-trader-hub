@@ -20,15 +20,17 @@ describe('MarketDepthChart', () => {
   });
 
   it('allows changing exchanges', async () => {
+    const user = userEvent.setup();
+    
     render(<MarketDepthChart coinId="bitcoin" symbol="BTC" />);
     
     // Open the dropdown
     const dropdown = screen.getByRole('combobox');
-    await userEvent.click(dropdown);
+    await user.click(dropdown);
     
     // Select another exchange
     const coinbaseOption = screen.getByText('Coinbase');
-    await userEvent.click(coinbaseOption);
+    await user.click(coinbaseOption);
     
     // Check that the exchange has been updated
     expect(screen.getByText('Coinbase')).toBeInTheDocument();
