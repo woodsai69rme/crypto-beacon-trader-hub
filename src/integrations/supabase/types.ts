@@ -134,6 +134,57 @@ export type Database = {
         }
         Relationships: []
       }
+      contents: {
+        Row: {
+          content: Json
+          created_at: string
+          file_path: string | null
+          file_type: string | null
+          id: string
+          metadata: Json | null
+          project_id: string | null
+          size: number | null
+          source: string
+          tags: string[] | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          size?: number | null
+          source: string
+          tags?: string[] | null
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          size?: number | null
+          source?: string
+          tags?: string[] | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -395,6 +446,42 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
