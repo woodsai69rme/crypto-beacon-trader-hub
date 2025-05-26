@@ -1,4 +1,3 @@
-
 import { ApiProvider, ApiUsageStats } from '@/types/trading';
 
 export class ApiProviderManager {
@@ -19,9 +18,9 @@ export class ApiProviderManager {
         documentation: 'https://www.coingecko.com/en/api/documentation',
         rateLimit: { requestsPerMinute: 50, requestsPerDay: 10000 },
         endpoints: [
-          { id: 'price', path: '/simple/price', method: 'GET', requiresAuth: false, description: 'Get current prices' },
-          { id: 'markets', path: '/coins/markets', method: 'GET', requiresAuth: false, description: 'Get market data' },
-          { id: 'assets', path: '/coins/list', method: 'GET', requiresAuth: false, description: 'Get coin list' }
+          { id: 'price', name: 'Current Prices', path: '/simple/price', method: 'GET', requiresAuth: false, description: 'Get current prices' },
+          { id: 'markets', name: 'Market Data', path: '/coins/markets', method: 'GET', requiresAuth: false, description: 'Get market data' },
+          { id: 'assets', name: 'Coin List', path: '/coins/list', method: 'GET', requiresAuth: false, description: 'Get coin list' }
         ],
         isActive: true
       },
@@ -33,8 +32,8 @@ export class ApiProviderManager {
         documentation: 'https://coinmarketcap.com/api/documentation/v1/',
         rateLimit: { requestsPerMinute: 30, requestsPerDay: 10000 },
         endpoints: [
-          { id: 'price', path: '/cryptocurrency/quotes/latest', method: 'GET', requiresAuth: true, description: 'Latest market quotes' },
-          { id: 'markets', path: '/cryptocurrency/listings/latest', method: 'GET', requiresAuth: true, description: 'Latest listings' }
+          { id: 'price', name: 'Latest Quotes', path: '/cryptocurrency/quotes/latest', method: 'GET', requiresAuth: true, description: 'Latest market quotes' },
+          { id: 'markets', name: 'Latest Listings', path: '/cryptocurrency/listings/latest', method: 'GET', requiresAuth: true, description: 'Latest listings' }
         ],
         isActive: true
       },
@@ -46,8 +45,8 @@ export class ApiProviderManager {
         documentation: 'https://min-api.cryptocompare.com/documentation',
         rateLimit: { requestsPerMinute: 100, requestsPerDay: 100000 },
         endpoints: [
-          { id: 'price', path: '/price', method: 'GET', requiresAuth: false, description: 'Current prices' },
-          { id: 'historical', path: '/histoday', method: 'GET', requiresAuth: false, description: 'Historical data' }
+          { id: 'price', name: 'Current Prices', path: '/price', method: 'GET', requiresAuth: false, description: 'Current prices' },
+          { id: 'historical', name: 'Historical Data', path: '/histoday', method: 'GET', requiresAuth: false, description: 'Historical data' }
         ],
         isActive: true
       },
@@ -59,8 +58,8 @@ export class ApiProviderManager {
         documentation: 'https://messari.io/api/docs',
         rateLimit: { requestsPerMinute: 20, requestsPerDay: 1000 },
         endpoints: [
-          { id: 'assets', path: '/assets', method: 'GET', requiresAuth: false, description: 'Asset information' },
-          { id: 'metrics', path: '/assets/{id}/metrics', method: 'GET', requiresAuth: false, description: 'Asset metrics' }
+          { id: 'assets', name: 'Asset Information', path: '/assets', method: 'GET', requiresAuth: false, description: 'Asset information' },
+          { id: 'metrics', name: 'Asset Metrics', path: '/assets/{id}/metrics', method: 'GET', requiresAuth: false, description: 'Asset metrics' }
         ],
         isActive: true
       },
@@ -72,7 +71,7 @@ export class ApiProviderManager {
         documentation: 'https://alternative.me/crypto/fear-and-greed-index/',
         rateLimit: { requestsPerMinute: 60, requestsPerDay: 1000 },
         endpoints: [
-          { id: 'index', path: '/', method: 'GET', requiresAuth: false, description: 'Fear and greed index' }
+          { id: 'index', name: 'Fear & Greed Index', path: '/', method: 'GET', requiresAuth: false, description: 'Fear and greed index' }
         ],
         isActive: true
       },
@@ -84,8 +83,8 @@ export class ApiProviderManager {
         documentation: 'https://www.blockchain.com/api',
         rateLimit: { requestsPerMinute: 300, requestsPerDay: 10000 },
         endpoints: [
-          { id: 'stats', path: '/stats', method: 'GET', requiresAuth: false, description: 'Bitcoin statistics' },
-          { id: 'blocks', path: '/blocks', method: 'GET', requiresAuth: false, description: 'Latest blocks' }
+          { id: 'stats', name: 'Bitcoin Statistics', path: '/stats', method: 'GET', requiresAuth: false, description: 'Bitcoin statistics' },
+          { id: 'blocks', name: 'Latest Blocks', path: '/blocks', method: 'GET', requiresAuth: false, description: 'Latest blocks' }
         ],
         isActive: true
       },
@@ -97,8 +96,8 @@ export class ApiProviderManager {
         documentation: 'https://docs.etherscan.io/',
         rateLimit: { requestsPerMinute: 5, requestsPerDay: 100000 },
         endpoints: [
-          { id: 'balance', path: '?module=account&action=balance', method: 'GET', requiresAuth: true, description: 'ETH balance' },
-          { id: 'transactions', path: '?module=account&action=txlist', method: 'GET', requiresAuth: true, description: 'Transaction list' }
+          { id: 'balance', name: 'ETH Balance', path: '?module=account&action=balance', method: 'GET', requiresAuth: true, description: 'ETH balance' },
+          { id: 'transactions', name: 'Transaction List', path: '?module=account&action=txlist', method: 'GET', requiresAuth: true, description: 'Transaction list' }
         ],
         isActive: true
       },
@@ -110,8 +109,8 @@ export class ApiProviderManager {
         documentation: 'https://www.alphavantage.co/documentation/',
         rateLimit: { requestsPerMinute: 5, requestsPerDay: 500 },
         endpoints: [
-          { id: 'crypto', path: '?function=DIGITAL_CURRENCY_DAILY', method: 'GET', requiresAuth: true, description: 'Crypto data' },
-          { id: 'forex', path: '?function=FX_DAILY', method: 'GET', requiresAuth: true, description: 'Forex rates' }
+          { id: 'crypto', name: 'Crypto Data', path: '?function=DIGITAL_CURRENCY_DAILY', method: 'GET', requiresAuth: true, description: 'Crypto data' },
+          { id: 'forex', name: 'Forex Rates', path: '?function=FX_DAILY', method: 'GET', requiresAuth: true, description: 'Forex rates' }
         ],
         isActive: true
       }
