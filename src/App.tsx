@@ -5,16 +5,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { TradingProvider } from '@/contexts/TradingContext';
 import { AiTradingProvider } from '@/contexts/AiTradingContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import EnhancedNavigation from '@/components/navigation/EnhancedNavigation';
 import Dashboard from '@/components/Dashboard';
 import DashboardTrading from '@/components/dashboard/DashboardTrading';
 import ComprehensiveAiTradingDashboard from '@/components/trading/ComprehensiveAiTradingDashboard';
 import ComprehensiveSettings from '@/components/settings/ComprehensiveSettings';
-import { ThemeProvider } from "@/components/theme-provider";
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider>
       <CurrencyProvider>
         <TradingProvider>
           <AiTradingProvider>
