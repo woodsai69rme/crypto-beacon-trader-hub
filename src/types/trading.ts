@@ -73,6 +73,11 @@ export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon?: 'short' | 'medium' | 'long';
   focusArea?: 'growth' | 'income' | 'balanced';
+  objectives?: string[];
+  constraints?: {
+    maxAssetAllocation: number;
+    minCash: number;
+  };
 }
 
 export interface PortfolioOptimizationResult {
@@ -118,8 +123,11 @@ export interface ApiProvider {
   name: string;
   type: 'free' | 'paid';
   url: string;
+  baseUrl?: string;
+  description?: string;
   documentation: string;
   apiKey?: string;
+  usageLimit?: number;
   rateLimit: {
     requestsPerMinute: number;
     requestsPerDay: number;
@@ -144,6 +152,11 @@ export interface ApiEndpoint {
 
 export interface ApiUsageStats {
   provider: string;
+  service?: string;
+  currentUsage?: number;
+  maxUsage?: number;
+  endpoint?: string;
+  resetTime?: string;
   totalCalls: number;
   successfulCalls: number;
   failedCalls: number;
@@ -220,11 +233,41 @@ export interface WalletProvider {
 }
 
 export interface ATOTaxCalculation {
+  year?: number;
   totalGains: number;
   totalLosses: number;
   netCapitalGain: number;
   taxableAmount: number;
   events: any[];
+  gains?: number;
+  losses?: number;
+  netPosition?: number;
+  taxOwed?: number;
+  effectiveTaxRate?: number;
+  financialYear?: string;
+  taxableIncome?: number;
+  CGTDiscount?: number;
+  netCapitalGains?: number;
+  incomeTax?: number;
+  medicareLevy?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
+  taxRefundOrOwed?: number;
+  transactions?: Array<{
+    date: string;
+    asset: string;
+    quantity: number;
+    costBase: number;
+    proceedsAmount: number;
+    gainLoss: number;
+    isShortTerm: boolean;
+  }>;
+  bracketInfo?: {
+    min: number;
+    max: number;
+    rate: number;
+    bracket: string;
+  };
 }
 
 export type WidgetType = 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis';
@@ -325,11 +368,21 @@ export interface PriceCorrelationChartProps {
 export interface DetachableDashboardProps {
   onDetach?: () => void;
   isDetached?: boolean;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  onClose?: () => void;
+  darkMode?: boolean;
+  children?: React.ReactNode;
 }
 
 export interface LiveAnalyticsDashboardProps {
-  selectedCoin: CoinOption;
-  apiStats: ApiUsageStats;
+  selectedCoin?: CoinOption;
+  apiStats?: ApiUsageStats;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
