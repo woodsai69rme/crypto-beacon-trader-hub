@@ -175,7 +175,7 @@ export const TRADING_STRATEGIES: AITradingStrategy[] = [
     id: 'momentum-oscillator',
     name: 'Momentum Oscillator',
     description: 'Price momentum indicator strategy',
-    type: 'momentum',
+    type: 'traditional',
     timeframe: '1h',
     parameters: { period: 10, threshold: 5 },
     riskLevel: 'high',

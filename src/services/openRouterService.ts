@@ -1,8 +1,18 @@
 
 import { AITradingStrategy } from '@/types/trading';
 
+export interface TradingSignal {
+  signal: 'BUY' | 'SELL' | 'HOLD';
+  confidence: number;
+  reasoning: string;
+  entryPrice: number;
+  targetPrice: number;
+  stopLoss: number;
+}
+
 const getApiKey = (): string => {
-  return process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || '';
+  // Use localStorage instead of process.env for browser compatibility
+  return localStorage.getItem('openrouter_api_key') || '';
 };
 
 export class OpenRouterService {
@@ -12,7 +22,58 @@ export class OpenRouterService {
     this.apiKey = apiKey || getApiKey();
   }
 
+  setApiKey(key: string): void {
+    this.apiKey = key;
+    localStorage.setItem('openrouter_api_key', key);
+  }
+
+  clearApiKey(): void {
+    this.apiKey = '';
+    localStorage.removeItem('openrouter_api_key');
+  }
+
+  hasApiKey(): boolean {
+    return this.apiKey.length > 0;
+  }
+
+  getDefaultModels() {
+    return [
+      { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', pricing: 'Free' },
+      { id: 'google/gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash', pricing: 'Free' },
+      { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', pricing: 'Paid' },
+      { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', pricing: 'Paid' }
+    ];
+  }
+
+  async getModels() {
+    if (!this.apiKey) {
+      throw new Error('API key not configured');
+    }
+
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      return this.getDefaultModels();
+    }
+  }
+
   async makeRequest(messages: { role: string, content: string }[], model: string = 'deepseek/deepseek-r1'): Promise<any> {
+    if (!this.apiKey) {
+      throw new Error('API key not configured');
+    }
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -31,6 +92,35 @@ export class OpenRouterService {
     }
 
     return response.json();
+  }
+
+  async generateTradingSignal(marketData: any, strategy: string, model: string = 'deepseek/deepseek-r1'): Promise<TradingSignal> {
+    try {
+      const prompt = `Analyze market data for ${marketData.symbol || 'crypto'} and provide a trading signal using ${strategy} strategy.
+        Current price: ${marketData.price}
+        Volume: ${marketData.volume}
+        Price change: ${marketData.priceChange}%
+        
+        Provide a JSON response with signal (BUY/SELL/HOLD), confidence (0-1), reasoning, entryPrice, targetPrice, and stopLoss.`;
+
+      const response = await this.makeRequest([{
+        role: 'user',
+        content: prompt
+      }], model);
+
+      const content = response.choices[0]?.message?.content || '';
+      return this.parseTradingSignalResponse(content, marketData);
+    } catch (error) {
+      console.error('Error generating trading signal:', error);
+      return {
+        signal: 'HOLD',
+        confidence: 0.5,
+        reasoning: 'Error generating signal',
+        entryPrice: marketData.price || 0,
+        targetPrice: marketData.price || 0,
+        stopLoss: marketData.price || 0
+      };
+    }
   }
 
   async generateTradingStrategy(prompt: string, preferences: any = {}): Promise<AITradingStrategy> {
@@ -129,6 +219,34 @@ export class OpenRouterService {
         riskLevel: 'medium'
       };
     }
+  }
+
+  private parseTradingSignalResponse(content: string, marketData: any): TradingSignal {
+    try {
+      const jsonMatch = content.match(/\{[^}]+\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          signal: parsed.signal || 'HOLD',
+          confidence: parsed.confidence || 0.5,
+          reasoning: parsed.reasoning || 'AI analysis',
+          entryPrice: parsed.entryPrice || marketData.price,
+          targetPrice: parsed.targetPrice || marketData.price,
+          stopLoss: parsed.stopLoss || marketData.price
+        };
+      }
+    } catch (e) {
+      console.error('Failed to parse trading signal:', e);
+    }
+
+    return {
+      signal: 'HOLD',
+      confidence: 0.5,
+      reasoning: 'Default signal due to parsing error',
+      entryPrice: marketData.price || 0,
+      targetPrice: marketData.price || 0,
+      stopLoss: marketData.price || 0
+    };
   }
 
   private parseStrategyResponse(content: string): AITradingStrategy {
