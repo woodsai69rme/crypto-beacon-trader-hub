@@ -1,4 +1,3 @@
-
 export interface Asset {
   symbol: string;
   name: string;
@@ -33,19 +32,22 @@ export interface RebalanceRecommendation {
 }
 
 export interface RiskMetrics {
-  portfolioVaR: number; // Value at Risk
-  portfolioCVaR: number; // Conditional VaR
+  portfolioVaR: number;
+  portfolioCVaR: number;
   concentrationRisk: number;
   liquidityRisk: number;
   correlationMatrix: number[][];
 }
 
 export class PortfolioOptimizer {
-  private riskFreeRate: number = 0.02; // 2% annual risk-free rate
+  private riskFreeRate: number = 0.02;
 
-  // Modern Portfolio Theory optimization
-  optimizePortfolio(assets: Asset[], targetReturn?: number, riskTolerance: 'conservative' | 'moderate' | 'aggressive' = 'moderate'): OptimizationResult {
-    const optimizedAssets = this.calculateOptimalWeights(assets, targetReturn, riskTolerance);
+  optimizePortfolio(
+    assets: Asset[], 
+    riskTolerance: 'conservative' | 'moderate' | 'aggressive' = 'moderate',
+    targetReturn?: number
+  ): OptimizationResult {
+    const optimizedAssets = this.calculateOptimalWeights(assets, riskTolerance, targetReturn);
     const portfolio = this.constructPortfolio(optimizedAssets);
     const rebalanceRecommendations = this.generateRebalanceRecommendations(assets, optimizedAssets);
     const riskMetrics = this.calculateRiskMetrics(optimizedAssets);
@@ -57,8 +59,11 @@ export class PortfolioOptimizer {
     };
   }
 
-  private calculateOptimalWeights(assets: Asset[], targetReturn?: number, riskTolerance: 'conservative' | 'moderate' | 'aggressive'): Asset[] {
-    // Risk tolerance mapping
+  private calculateOptimalWeights(
+    assets: Asset[], 
+    riskTolerance: 'conservative' | 'moderate' | 'aggressive',
+    targetReturn?: number
+  ): Asset[] {
     const riskMultipliers = {
       conservative: 0.5,
       moderate: 1.0,
@@ -67,41 +72,33 @@ export class PortfolioOptimizer {
 
     const riskMultiplier = riskMultipliers[riskTolerance];
     
-    // Simple optimization using Markowitz-inspired approach
     const totalAssets = assets.length;
     const optimizedAssets: Asset[] = [];
 
-    // Calculate correlation matrix
     const correlationMatrix = this.calculateCorrelationMatrix(assets);
     
-    // Risk parity approach with adjustments
     for (let i = 0; i < totalAssets; i++) {
       const asset = assets[i];
       
-      // Base weight using inverse volatility
       let baseWeight = (1 / asset.volatility) / assets.reduce((sum, a) => sum + (1 / a.volatility), 0);
       
-      // Adjust for expected return
       const returnAdjustment = targetReturn 
         ? Math.max(0.1, asset.expectedReturn / targetReturn)
         : (asset.expectedReturn + 1) / 2;
       
-      // Adjust for risk tolerance
       const riskAdjustment = riskTolerance === 'conservative' 
         ? Math.min(1, 1 / asset.volatility)
         : riskTolerance === 'aggressive'
         ? Math.max(1, asset.volatility * 1.2)
         : 1;
 
-      // Calculate correlation penalty
       const avgCorrelation = correlationMatrix[i].reduce((sum, corr, j) => 
         i !== j ? sum + Math.abs(corr) : sum, 0) / (totalAssets - 1);
       const correlationPenalty = 1 - (avgCorrelation * 0.3);
 
       let optimizedWeight = baseWeight * returnAdjustment * riskAdjustment * correlationPenalty * riskMultiplier;
       
-      // Apply constraints
-      optimizedWeight = Math.max(0.05, Math.min(0.4, optimizedWeight)); // Min 5%, Max 40%
+      optimizedWeight = Math.max(0.05, Math.min(0.4, optimizedWeight));
       
       optimizedAssets.push({
         ...asset,
@@ -109,7 +106,6 @@ export class PortfolioOptimizer {
       });
     }
 
-    // Normalize weights to sum to 1
     const totalWeight = optimizedAssets.reduce((sum, asset) => sum + asset.weight, 0);
     optimizedAssets.forEach(asset => {
       asset.weight = asset.weight / totalWeight;
@@ -122,21 +118,18 @@ export class PortfolioOptimizer {
     const n = assets.length;
     const matrix: number[][] = Array(n).fill(null).map(() => Array(n).fill(0));
     
-    // Mock correlation calculation (in production, use historical price data)
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         if (i === j) {
           matrix[i][j] = 1;
         } else {
-          // Mock correlation based on asset types
           const asset1 = assets[i];
           const asset2 = assets[j];
           
-          // Crypto assets tend to be more correlated
           if (this.isCrypto(asset1.symbol) && this.isCrypto(asset2.symbol)) {
-            matrix[i][j] = 0.6 + Math.random() * 0.3; // 0.6-0.9 correlation
+            matrix[i][j] = 0.6 + Math.random() * 0.3;
           } else {
-            matrix[i][j] = Math.random() * 0.4; // 0-0.4 correlation
+            matrix[i][j] = Math.random() * 0.4;
           }
         }
       }
@@ -151,11 +144,10 @@ export class PortfolioOptimizer {
   }
 
   private constructPortfolio(assets: Asset[]): Portfolio {
-    const totalValue = assets.reduce((sum, asset) => sum + (asset.weight * asset.price * 100), 0); // Assuming $100 per unit
+    const totalValue = assets.reduce((sum, asset) => sum + (asset.weight * asset.price * 100), 0);
     
     const expectedReturn = assets.reduce((sum, asset) => sum + (asset.weight * asset.expectedReturn), 0);
     
-    // Portfolio volatility using correlation matrix
     const correlationMatrix = this.calculateCorrelationMatrix(assets);
     let portfolioVariance = 0;
     
@@ -170,8 +162,7 @@ export class PortfolioOptimizer {
     const volatility = Math.sqrt(portfolioVariance);
     const sharpeRatio = (expectedReturn - this.riskFreeRate) / volatility;
     
-    // Mock max drawdown calculation
-    const maxDrawdown = volatility * 2.5; // Simplified estimation
+    const maxDrawdown = volatility * 2.5;
 
     return {
       assets,
@@ -191,7 +182,7 @@ export class PortfolioOptimizer {
       const target = targetAssets[i];
       const weightDiff = target.weight - current.weight;
       
-      if (Math.abs(weightDiff) > 0.05) { // 5% threshold
+      if (Math.abs(weightDiff) > 0.05) {
         const action: 'buy' | 'sell' | 'hold' = weightDiff > 0 ? 'buy' : 'sell';
         const priority: 'high' | 'medium' | 'low' = 
           Math.abs(weightDiff) > 0.15 ? 'high' :
@@ -217,20 +208,16 @@ export class PortfolioOptimizer {
   private calculateRiskMetrics(assets: Asset[]): RiskMetrics {
     const correlationMatrix = this.calculateCorrelationMatrix(assets);
     
-    // Value at Risk (95% confidence level)
     const portfolioReturn = assets.reduce((sum, asset) => sum + (asset.weight * asset.expectedReturn), 0);
     const portfolioVolatility = this.calculatePortfolioVolatility(assets, correlationMatrix);
-    const portfolioVaR = portfolioReturn - (1.645 * portfolioVolatility); // 95% VaR
+    const portfolioVaR = portfolioReturn - (1.645 * portfolioVolatility);
     
-    // Conditional VaR (Expected Shortfall)
-    const portfolioCVaR = portfolioReturn - (2.33 * portfolioVolatility); // Simplified CVaR
+    const portfolioCVaR = portfolioReturn - (2.33 * portfolioVolatility);
     
-    // Concentration risk (Herfindahl index)
     const concentrationRisk = assets.reduce((sum, asset) => sum + (asset.weight * asset.weight), 0);
     
-    // Liquidity risk (simplified based on asset type)
     const liquidityRisk = assets.reduce((sum, asset) => {
-      const liquidityScore = this.isCrypto(asset.symbol) ? 0.7 : 0.3; // Crypto generally less liquid
+      const liquidityScore = this.isCrypto(asset.symbol) ? 0.7 : 0.3;
       return sum + (asset.weight * liquidityScore);
     }, 0);
 
@@ -257,13 +244,10 @@ export class PortfolioOptimizer {
     return Math.sqrt(portfolioVariance);
   }
 
-  // Black-Litterman model implementation (simplified)
   blackLittermanOptimization(assets: Asset[], views: { asset: string; expectedReturn: number; confidence: number }[]): Asset[] {
-    // Simplified Black-Litterman implementation
     const adjustedAssets = assets.map(asset => {
       const view = views.find(v => v.asset === asset.symbol);
       if (view) {
-        // Adjust expected return based on view and confidence
         const adjustedReturn = (asset.expectedReturn * (1 - view.confidence)) + 
                               (view.expectedReturn * view.confidence);
         return { ...asset, expectedReturn: adjustedReturn };
@@ -271,10 +255,9 @@ export class PortfolioOptimizer {
       return asset;
     });
 
-    return this.calculateOptimalWeights(adjustedAssets);
+    return this.calculateOptimalWeights(adjustedAssets, 'moderate');
   }
 
-  // Monte Carlo simulation for portfolio performance
   runMonteCarloSimulation(assets: Asset[], simulations: number = 1000, timeHorizon: number = 252): {
     outcomes: number[];
     statistics: {
@@ -293,12 +276,11 @@ export class PortfolioOptimizer {
       let cumulativeReturn = 0;
       
       for (let day = 0; day < timeHorizon; day++) {
-        // Generate random return using normal distribution
         const randomReturn = this.normalRandom() * portfolioVolatility / Math.sqrt(252) + portfolioReturn / 252;
         cumulativeReturn += randomReturn;
       }
       
-      outcomes.push(Math.exp(cumulativeReturn) - 1); // Convert to total return
+      outcomes.push(Math.exp(cumulativeReturn) - 1);
     }
     
     outcomes.sort((a, b) => a - b);
@@ -323,7 +305,6 @@ export class PortfolioOptimizer {
   }
 
   private normalRandom(): number {
-    // Box-Muller transformation for normal distribution
     let u1 = Math.random();
     let u2 = Math.random();
     return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { openRouterService, TradingSignal } from '@/services/openRouterService';
 import { useTradingContext } from './TradingContext';
@@ -10,14 +9,14 @@ export interface AiBot {
   id: string;
   name: string;
   strategy: string;
-  model: string; // This is the correct property name
-  aiModel?: string; // Alias for compatibility
+  model: string;
+  aiModel?: string;
   isActive: boolean;
   riskLevel: 'low' | 'medium' | 'high';
   maxTradeAmount: number;
   targetAssets: string[];
   createdAt: string;
-  account: TradingAccount; // Add missing account property
+  account: TradingAccount;
   performance: {
     totalTrades: number;
     winRate: number;
@@ -40,12 +39,14 @@ export interface AuditEntry {
 
 interface AiTradingContextType {
   bots: AiBot[];
-  activeBots: AiBot[]; // Add missing activeBots property
+  activeBots: AiBot[];
   createBot: (config: Partial<AiBot>) => string;
   activateBot: (botId: string) => void;
   deactivateBot: (botId: string) => void;
   deleteBot: (botId: string) => void;
   getBotById: (botId: string) => AiBot | undefined;
+  toggleBot: (botId: string) => void;
+  getBotPerformance: (botId: string) => AiBot['performance'] | undefined;
   isAnyBotActive: boolean;
 }
 
@@ -57,6 +58,8 @@ const AiTradingContext = createContext<AiTradingContextType>({
   deactivateBot: () => {},
   deleteBot: () => {},
   getBotById: () => undefined,
+  toggleBot: () => {},
+  getBotPerformance: () => undefined,
   isAnyBotActive: false,
 });
 
@@ -65,7 +68,6 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { addTrade, activeAccount } = useTradingContext();
   const { toast } = useToast();
 
-  // Compute activeBots from bots state
   const activeBots = bots.filter(bot => bot.isActive);
 
   useEffect(() => {
@@ -92,7 +94,22 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   };
 
-  // AI Bot execution loop
+  const toggleBot = (botId: string) => {
+    const bot = bots.find(b => b.id === botId);
+    if (!bot) return;
+
+    if (bot.isActive) {
+      deactivateBot(botId);
+    } else {
+      activateBot(botId);
+    }
+  };
+
+  const getBotPerformance = (botId: string): AiBot['performance'] | undefined => {
+    const bot = bots.find(b => b.id === botId);
+    return bot?.performance;
+  };
+
   useEffect(() => {
     const interval = setInterval(async () => {
       const activeBotsToRun = bots.filter(bot => bot.isActive);
@@ -100,7 +117,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       for (const bot of activeBotsToRun) {
         await executeBot(bot);
       }
-    }, 30000); // Run every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [bots, activeAccount]);
@@ -109,17 +126,14 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!activeAccount) return;
 
     try {
-      // Generate mock market data
       const marketData = generateMockMarketData(bot.targetAssets[0] || 'BTC');
       
-      // Get AI signal
       const signal = await openRouterService.generateTradingSignal(
         marketData,
         bot.strategy,
         bot.model
       );
 
-      // Create audit entry
       const auditEntry: AuditEntry = {
         id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         timestamp: new Date().toISOString(),
@@ -129,7 +143,6 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         marketData
       };
 
-      // Execute trade based on signal and risk level
       if (signal.signal !== 'HOLD' && signal.confidence > getConfidenceThreshold(bot.riskLevel)) {
         const tradeAmount = calculateTradeAmount(bot, signal, activeAccount.balance);
         
@@ -164,12 +177,10 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             description: `${signal.signal} ${trade.symbol} - ${(signal.confidence * 100).toFixed(1)}% confidence`,
           });
 
-          // Update bot performance
           updateBotPerformance(bot.id, trade, signal);
         }
       }
 
-      // Add audit entry to bot
       updateBotAuditLog(bot.id, auditEntry);
 
     } catch (error) {
@@ -211,7 +222,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const calculateTradeAmount = (bot: AiBot, signal: TradingSignal, balance: number): number => {
-    const maxAmount = Math.min(bot.maxTradeAmount, balance * 0.1); // Max 10% of balance
+    const maxAmount = Math.min(bot.maxTradeAmount, balance * 0.1);
     const riskMultiplier = bot.riskLevel === 'low' ? 0.5 : bot.riskLevel === 'medium' ? 0.75 : 1.0;
     return maxAmount * riskMultiplier * signal.confidence;
   };
@@ -220,8 +231,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setBots(prev => prev.map(bot => {
       if (bot.id === botId) {
         const newTotalTrades = bot.performance.totalTrades + 1;
-        // Mock performance calculation
-        const isWin = Math.random() > 0.4; // 60% win rate
+        const isWin = Math.random() > 0.4;
         const newWinRate = (bot.performance.winRate * bot.performance.totalTrades + (isWin ? 1 : 0)) / newTotalTrades;
         
         return {
@@ -245,7 +255,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (bot.id === botId) {
         return {
           ...bot,
-          auditLog: [entry, ...bot.auditLog].slice(0, 100) // Keep last 100 entries
+          auditLog: [entry, ...bot.auditLog].slice(0, 100)
         };
       }
       return bot;
@@ -260,7 +270,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       name: config.name || 'AI Trading Bot',
       strategy: config.strategy || 'trend-following',
       model: config.model || 'deepseek/deepseek-r1',
-      aiModel: config.model || 'deepseek/deepseek-r1', // Alias for compatibility
+      aiModel: config.model || 'deepseek/deepseek-r1',
       isActive: false,
       riskLevel: config.riskLevel || 'low',
       maxTradeAmount: config.maxTradeAmount || 1000,
@@ -327,6 +337,8 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deactivateBot,
       deleteBot,
       getBotById,
+      toggleBot,
+      getBotPerformance,
       isAnyBotActive,
     }}>
       {children}
