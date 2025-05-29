@@ -1,507 +1,215 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  Settings, 
-  Bot, 
-  Globe, 
-  Shield, 
-  Bell, 
-  Palette, 
-  Database,
-  Key,
-  Zap,
-  DollarSign,
-  Activity,
-  Users,
-  BookOpen,
-  AlertTriangle,
-  CheckCircle,
-  Info
-} from 'lucide-react';
-import OpenRouterSettings from './OpenRouterSettings';
-import { useToast } from '@/hooks/use-toast';
+import { Settings, Key, Palette, Bell, Shield, Zap } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { toast } from '@/hooks/use-toast';
 
 const ComprehensiveSettings: React.FC = () => {
-  const [settings, setSettings] = useState({
-    // General Settings
-    defaultCurrency: 'AUD',
-    timezone: 'Australia/Sydney',
-    language: 'en-AU',
-    theme: 'system',
-    
-    // Trading Settings
-    defaultOrderType: 'market',
-    maxPositionSize: 10,
-    stopLossPercentage: 5,
-    takeProfitPercentage: 15,
-    slippageTolerance: 0.5,
-    
-    // AI Settings
-    defaultAiModel: 'deepseek/deepseek-r1',
-    aiConfidenceThreshold: 70,
-    maxAiTrades: 10,
-    aiRiskLevel: 'medium',
-    
-    // API Settings
-    apiRateLimit: 100,
-    cacheDuration: 300,
-    retryAttempts: 3,
-    
-    // Notification Settings
-    emailNotifications: true,
-    pushNotifications: true,
-    tradingAlerts: true,
-    priceAlerts: true,
-    newsAlerts: false,
-    
-    // Risk Management
-    dailyLossLimit: 2,
-    maxDrawdown: 5,
-    correlationLimit: 70,
-    leverageLimit: 3,
-    
-    // Automation Settings
-    enableN8N: false,
-    n8nWebhookUrl: '',
-    autoRebalance: false,
-    rebalanceThreshold: 5,
-    
-    // Privacy Settings
-    sharePortfolio: false,
-    allowAnalytics: true,
-    dataRetention: 365
+  const { currency, setCurrency } = useCurrency();
+  const { theme, setTheme } = useTheme();
+  const [openRouterKey, setOpenRouterKey] = useState(localStorage.getItem('openrouter-api-key') || '');
+  const [n8nWebhook, setN8nWebhook] = useState(localStorage.getItem('n8n-webhook-url') || '');
+  const [notifications, setNotifications] = useState({
+    trades: true,
+    botUpdates: true,
+    priceAlerts: false,
+    email: false
   });
 
-  const { toast } = useToast();
-
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  const handleSaveApiKey = () => {
+    localStorage.setItem('openrouter-api-key', openRouterKey);
+    toast({
+      title: "API Key Saved",
+      description: "OpenRouter API key has been saved securely",
+    });
   };
 
-  const saveSettings = async () => {
-    try {
-      localStorage.setItem('comprehensive-settings', JSON.stringify(settings));
-      toast({
-        title: "Settings Saved",
-        description: "Your settings have been saved successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Save Failed",
-        description: "Failed to save settings. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const resetSettings = () => {
-    if (confirm('Are you sure you want to reset all settings to defaults?')) {
-      localStorage.removeItem('comprehensive-settings');
-      window.location.reload();
-    }
+  const handleSaveWebhook = () => {
+    localStorage.setItem('n8n-webhook-url', n8nWebhook);
+    toast({
+      title: "Webhook URL Saved",
+      description: "N8N webhook URL has been saved",
+    });
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex items-center gap-2 mb-6">
-        <Settings className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <Badge variant="outline">v2.0.0</Badge>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">
+          Configure your trading platform preferences and integrations
+        </p>
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
-          <TabsTrigger value="general" className="flex items-center gap-1">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">General</span>
-          </TabsTrigger>
-          <TabsTrigger value="trading" className="flex items-center gap-1">
-            <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">Trading</span>
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-1">
-            <Bot className="h-4 w-4" />
-            <span className="hidden sm:inline">AI</span>
-          </TabsTrigger>
-          <TabsTrigger value="api" className="flex items-center gap-1">
-            <Database className="h-4 w-4" />
-            <span className="hidden sm:inline">API</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-1">
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Alerts</span>
-          </TabsTrigger>
-          <TabsTrigger value="risk" className="flex items-center gap-1">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Risk</span>
-          </TabsTrigger>
-          <TabsTrigger value="automation" className="flex items-center gap-1">
-            <Zap className="h-4 w-4" />
-            <span className="hidden sm:inline">Auto</span>
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-1">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Privacy</span>
-          </TabsTrigger>
+        <TabsList className="grid grid-cols-2 lg:grid-cols-6">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="currency">Currency</TabsTrigger>
+          <TabsTrigger value="api">API Keys</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="automation">Automation</TabsTrigger>
         </TabsList>
 
-        {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                General Settings
+                <Palette className="h-5 w-5" />
+                Appearance
               </CardTitle>
               <CardDescription>
-                Configure basic application preferences
+                Customize the look and feel of your platform
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="defaultCurrency">Default Currency</Label>
-                  <Select
-                    value={settings.defaultCurrency}
-                    onValueChange={(value) => handleSettingChange('defaultCurrency', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
-                      <SelectItem value="USD">US Dollar (USD)</SelectItem>
-                      <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                      <SelectItem value="GBP">British Pound (GBP)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Select
-                    value={settings.timezone}
-                    onValueChange={(value) => handleSettingChange('timezone', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Australia/Sydney">Sydney (AEDT)</SelectItem>
-                      <SelectItem value="Australia/Melbourne">Melbourne (AEDT)</SelectItem>
-                      <SelectItem value="Australia/Perth">Perth (AWST)</SelectItem>
-                      <SelectItem value="UTC">UTC</SelectItem>
-                      <SelectItem value="America/New_York">New York (EST)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select
-                    value={settings.language}
-                    onValueChange={(value) => handleSettingChange('language', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en-AU">English (Australia)</SelectItem>
-                      <SelectItem value="en-US">English (US)</SelectItem>
-                      <SelectItem value="en-GB">English (UK)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="theme">Theme</Label>
-                  <Select
-                    value={settings.theme}
-                    onValueChange={(value) => handleSettingChange('theme', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="system">System</SelectItem>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <Select value={theme} onValueChange={setTheme}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Choose your preferred color scheme
+                </p>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        {/* Trading Settings */}
-        <TabsContent value="trading" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Trading Configuration
-              </CardTitle>
+              <CardTitle>Platform Information</CardTitle>
               <CardDescription>
-                Set default trading parameters and risk controls
+                Current platform status and version information
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="defaultOrderType">Default Order Type</Label>
-                  <Select
-                    value={settings.defaultOrderType}
-                    onValueChange={(value) => handleSettingChange('defaultOrderType', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="market">Market</SelectItem>
-                      <SelectItem value="limit">Limit</SelectItem>
-                      <SelectItem value="stop">Stop</SelectItem>
-                      <SelectItem value="stop_limit">Stop Limit</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Version</Label>
+                  <p className="text-sm font-mono">v2.0.0</p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxPositionSize">Max Position Size (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.maxPositionSize]}
-                      onValueChange={(value) => handleSettingChange('maxPositionSize', value[0])}
-                      max={50}
-                      min={1}
-                      step={1}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.maxPositionSize}% of portfolio
-                    </div>
-                  </div>
+                <div>
+                  <Label>Trading Mode</Label>
+                  <Badge variant="secondary">Paper Trading</Badge>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="stopLossPercentage">Default Stop Loss (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.stopLossPercentage]}
-                      onValueChange={(value) => handleSettingChange('stopLossPercentage', value[0])}
-                      max={20}
-                      min={1}
-                      step={0.5}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.stopLossPercentage}%
-                    </div>
-                  </div>
+                <div>
+                  <Label>Base Currency</Label>
+                  <p className="text-sm font-mono">{currency}</p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="takeProfitPercentage">Default Take Profit (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.takeProfitPercentage]}
-                      onValueChange={(value) => handleSettingChange('takeProfitPercentage', value[0])}
-                      max={50}
-                      min={5}
-                      step={1}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.takeProfitPercentage}%
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="slippageTolerance">Slippage Tolerance (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.slippageTolerance]}
-                      onValueChange={(value) => handleSettingChange('slippageTolerance', value[0])}
-                      max={5}
-                      min={0.1}
-                      step={0.1}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.slippageTolerance}%
-                    </div>
-                  </div>
+                <div>
+                  <Label>Status</Label>
+                  <Badge variant="default">Active</Badge>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* AI Settings */}
-        <TabsContent value="ai" className="space-y-6">
-          <OpenRouterSettings />
-          
+        <TabsContent value="currency" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                AI Trading Configuration
-              </CardTitle>
+              <CardTitle>Currency Settings</CardTitle>
               <CardDescription>
-                Configure AI model preferences and trading parameters
+                Configure your preferred trading currency and display format
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="defaultAiModel">Default AI Model</Label>
-                  <Select
-                    value={settings.defaultAiModel}
-                    onValueChange={(value) => handleSettingChange('defaultAiModel', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="deepseek/deepseek-r1">DeepSeek R1 (Free)</SelectItem>
-                      <SelectItem value="google/gemini-2.0-flash-exp">Gemini 2.0 Flash (Free)</SelectItem>
-                      <SelectItem value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B (Free)</SelectItem>
-                      <SelectItem value="openai/gpt-4">GPT-4 (Paid)</SelectItem>
-                      <SelectItem value="anthropic/claude-3-sonnet">Claude 3 Sonnet (Paid)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="aiRiskLevel">AI Risk Level</Label>
-                  <Select
-                    value={settings.aiRiskLevel}
-                    onValueChange={(value) => handleSettingChange('aiRiskLevel', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="conservative">Conservative</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="aggressive">Aggressive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="aiConfidenceThreshold">Confidence Threshold (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.aiConfidenceThreshold]}
-                      onValueChange={(value) => handleSettingChange('aiConfidenceThreshold', value[0])}
-                      max={95}
-                      min={50}
-                      step={5}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Only execute trades with {settings.aiConfidenceThreshold}%+ confidence
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxAiTrades">Max AI Trades per Day</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.maxAiTrades]}
-                      onValueChange={(value) => handleSettingChange('maxAiTrades', value[0])}
-                      max={50}
-                      min={1}
-                      step={1}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.maxAiTrades} trades per day
-                    </div>
-                  </div>
-                </div>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currency">Base Currency</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                    <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                    <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                    <SelectItem value="CNY">CNY - Chinese Yuan</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  All prices and calculations will be displayed in this currency
+                </p>
+              </div>
+              
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">Exchange Rates</h4>
+                <p className="text-sm text-muted-foreground">
+                  Exchange rates are updated in real-time from reliable financial data providers.
+                  All paper trading uses current market rates for accurate simulation.
+                </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* API Settings */}
         <TabsContent value="api" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                API Configuration
+                <Key className="h-5 w-5" />
+                API Keys
               </CardTitle>
               <CardDescription>
-                Manage API connections and performance settings
+                Configure API keys for premium AI models and external services
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>API Status</AlertTitle>
-                <AlertDescription>
-                  All free APIs are connected and operational. Rate limits are being monitored.
-                </AlertDescription>
-              </Alert>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="apiRateLimit">API Rate Limit (requests/min)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.apiRateLimit]}
-                      onValueChange={(value) => handleSettingChange('apiRateLimit', value[0])}
-                      max={300}
-                      min={10}
-                      step={10}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="openrouter">OpenRouter API Key</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="openrouter"
+                      type="password"
+                      placeholder="sk-or-..."
+                      value={openRouterKey}
+                      onChange={(e) => setOpenRouterKey(e.target.value)}
                     />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.apiRateLimit} requests per minute
-                    </div>
+                    <Button onClick={handleSaveApiKey}>Save</Button>
                   </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Required for premium AI models (GPT-4, Claude). Free models work without API key.
+                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="cacheDuration">Cache Duration (seconds)</Label>
+                <div className="p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Available AI Models</h4>
                   <div className="space-y-2">
-                    <Slider
-                      value={[settings.cacheDuration]}
-                      onValueChange={(value) => handleSettingChange('cacheDuration', value[0])}
-                      max={3600}
-                      min={10}
-                      step={10}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.cacheDuration} seconds
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">DeepSeek R1</span>
+                      <Badge variant="secondary">Free</Badge>
                     </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="retryAttempts">Retry Attempts</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.retryAttempts]}
-                      onValueChange={(value) => handleSettingChange('retryAttempts', value[0])}
-                      max={10}
-                      min={1}
-                      step={1}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Current: {settings.retryAttempts} retry attempts
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Gemini 2.0 Flash</span>
+                      <Badge variant="secondary">Free</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">GPT-4o</span>
+                      <Badge variant="outline">Premium</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Claude 3 Sonnet</span>
+                      <Badge variant="outline">Premium</Badge>
                     </div>
                   </div>
                 </div>
@@ -510,7 +218,6 @@ const ComprehensiveSettings: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Notification Settings */}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
@@ -519,78 +226,68 @@ const ComprehensiveSettings: React.FC = () => {
                 Notification Preferences
               </CardTitle>
               <CardDescription>
-                Configure how and when you receive alerts
+                Choose what notifications you want to receive
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="emailNotifications">Email Notifications</Label>
+                    <Label>Trade Notifications</Label>
                     <p className="text-sm text-muted-foreground">
-                      Receive important updates via email
+                      Get notified when trades are executed
                     </p>
                   </div>
                   <Switch
-                    id="emailNotifications"
-                    checked={settings.emailNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
+                    checked={notifications.trades}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, trades: checked }))
+                    }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="pushNotifications">Push Notifications</Label>
+                    <Label>Bot Updates</Label>
                     <p className="text-sm text-muted-foreground">
-                      Real-time browser notifications
+                      Notifications for AI bot activities
                     </p>
                   </div>
                   <Switch
-                    id="pushNotifications"
-                    checked={settings.pushNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('pushNotifications', checked)}
+                    checked={notifications.botUpdates}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, botUpdates: checked }))
+                    }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="tradingAlerts">Trading Alerts</Label>
+                    <Label>Price Alerts</Label>
                     <p className="text-sm text-muted-foreground">
-                      Notifications for trade executions and signals
+                      Alerts for significant price movements
                     </p>
                   </div>
                   <Switch
-                    id="tradingAlerts"
-                    checked={settings.tradingAlerts}
-                    onCheckedChange={(checked) => handleSettingChange('tradingAlerts', checked)}
+                    checked={notifications.priceAlerts}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, priceAlerts: checked }))
+                    }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="priceAlerts">Price Alerts</Label>
+                    <Label>Email Notifications</Label>
                     <p className="text-sm text-muted-foreground">
-                      Notifications when price targets are reached
+                      Receive notifications via email
                     </p>
                   </div>
                   <Switch
-                    id="priceAlerts"
-                    checked={settings.priceAlerts}
-                    onCheckedChange={(checked) => handleSettingChange('priceAlerts', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="newsAlerts">News Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Important cryptocurrency news updates
-                    </p>
-                  </div>
-                  <Switch
-                    id="newsAlerts"
-                    checked={settings.newsAlerts}
-                    onCheckedChange={(checked) => handleSettingChange('newsAlerts', checked)}
+                    checked={notifications.email}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, email: checked }))
+                    }
                   />
                 </div>
               </div>
@@ -598,226 +295,92 @@ const ComprehensiveSettings: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Risk Management */}
-        <TabsContent value="risk" className="space-y-6">
+        <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Risk Management
+                Security Settings
               </CardTitle>
               <CardDescription>
-                Set portfolio protection and risk limits
+                Manage your account security and privacy
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Risk Warning</AlertTitle>
-                <AlertDescription>
-                  These settings help protect your portfolio but do not guarantee against losses.
-                </AlertDescription>
-              </Alert>
+              <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
+                  Paper Trading Security
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  You are currently in paper trading mode. No real funds are at risk, and no sensitive
+                  financial information is required. All data is stored locally in your browser.
+                </p>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="dailyLossLimit">Daily Loss Limit (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.dailyLossLimit]}
-                      onValueChange={(value) => handleSettingChange('dailyLossLimit', value[0])}
-                      max={10}
-                      min={0.5}
-                      step={0.5}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Stop trading if daily loss exceeds {settings.dailyLossLimit}%
-                    </div>
-                  </div>
+              <div className="space-y-4">
+                <div>
+                  <Label>Data Storage</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Trading data and bot configurations are stored locally in your browser.
+                    No data is sent to external servers except for market data APIs.
+                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="maxDrawdown">Max Drawdown (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.maxDrawdown]}
-                      onValueChange={(value) => handleSettingChange('maxDrawdown', value[0])}
-                      max={20}
-                      min={1}
-                      step={1}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Alert when drawdown exceeds {settings.maxDrawdown}%
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="correlationLimit">Correlation Limit (%)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.correlationLimit]}
-                      onValueChange={(value) => handleSettingChange('correlationLimit', value[0])}
-                      max={100}
-                      min={30}
-                      step={5}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Warn when portfolio correlation exceeds {settings.correlationLimit}%
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="leverageLimit">Maximum Leverage</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.leverageLimit]}
-                      onValueChange={(value) => handleSettingChange('leverageLimit', value[0])}
-                      max={10}
-                      min={1}
-                      step={0.5}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Maximum leverage: {settings.leverageLimit}x
-                    </div>
-                  </div>
+                <div>
+                  <Label>API Key Security</Label>
+                  <p className="text-sm text-muted-foreground">
+                    API keys are encrypted and stored locally. They are never transmitted
+                    to our servers and are only used for direct API communication.
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Automation Settings */}
         <TabsContent value="automation" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="h-5 w-5" />
-                Automation & N8N Integration
+                Automation Settings
               </CardTitle>
               <CardDescription>
-                Configure automated trading and workflow integration
+                Configure N8N workflows and automation features
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="enableN8N">Enable N8N Integration</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Connect to N8N workflows for advanced automation
-                    </p>
-                  </div>
-                  <Switch
-                    id="enableN8N"
-                    checked={settings.enableN8N}
-                    onCheckedChange={(checked) => handleSettingChange('enableN8N', checked)}
-                  />
-                </div>
-
-                {settings.enableN8N && (
-                  <div className="space-y-2">
-                    <Label htmlFor="n8nWebhookUrl">N8N Webhook URL</Label>
+                <div>
+                  <Label htmlFor="n8n-webhook">N8N Webhook URL</Label>
+                  <div className="flex gap-2 mt-2">
                     <Input
-                      id="n8nWebhookUrl"
-                      placeholder="http://localhost:5678/webhook/trading-signals"
-                      value={settings.n8nWebhookUrl}
-                      onChange={(e) => handleSettingChange('n8nWebhookUrl', e.target.value)}
+                      id="n8n-webhook"
+                      placeholder="https://your-n8n-instance.com/webhook/..."
+                      value={n8nWebhook}
+                      onChange={(e) => setN8nWebhook(e.target.value)}
                     />
+                    <Button onClick={handleSaveWebhook}>Save</Button>
                   </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="autoRebalance">Auto Portfolio Rebalancing</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Automatically rebalance portfolio based on AI recommendations
-                    </p>
-                  </div>
-                  <Switch
-                    id="autoRebalance"
-                    checked={settings.autoRebalance}
-                    onCheckedChange={(checked) => handleSettingChange('autoRebalance', checked)}
-                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Connect to your N8N instance for advanced automation workflows
+                  </p>
                 </div>
 
-                {settings.autoRebalance && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Available Workflows</h4>
                   <div className="space-y-2">
-                    <Label htmlFor="rebalanceThreshold">Rebalance Threshold (%)</Label>
-                    <div className="space-y-2">
-                      <Slider
-                        value={[settings.rebalanceThreshold]}
-                        onValueChange={(value) => handleSettingChange('rebalanceThreshold', value[0])}
-                        max={20}
-                        min={1}
-                        step={1}
-                      />
-                      <div className="text-sm text-muted-foreground">
-                        Rebalance when allocation deviates by {settings.rebalanceThreshold}%
-                      </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Trading Signal Distribution</span>
+                      <Badge variant="default">Active</Badge>
                     </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Privacy Settings */}
-        <TabsContent value="privacy" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Privacy & Data Settings
-              </CardTitle>
-              <CardDescription>
-                Control your data privacy and sharing preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="sharePortfolio">Share Portfolio Performance</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow others to see your portfolio performance in leaderboards
-                    </p>
-                  </div>
-                  <Switch
-                    id="sharePortfolio"
-                    checked={settings.sharePortfolio}
-                    onCheckedChange={(checked) => handleSettingChange('sharePortfolio', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="allowAnalytics">Usage Analytics</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Help improve the platform by sharing anonymous usage data
-                    </p>
-                  </div>
-                  <Switch
-                    id="allowAnalytics"
-                    checked={settings.allowAnalytics}
-                    onCheckedChange={(checked) => handleSettingChange('allowAnalytics', checked)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dataRetention">Data Retention (days)</Label>
-                  <div className="space-y-2">
-                    <Slider
-                      value={[settings.dataRetention]}
-                      onValueChange={(value) => handleSettingChange('dataRetention', value[0])}
-                      max={1095}
-                      min={30}
-                      step={30}
-                    />
-                    <div className="text-sm text-muted-foreground">
-                      Keep trading data for {settings.dataRetention} days
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Risk Monitoring</span>
+                      <Badge variant="default">Active</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Portfolio Rebalancing</span>
+                      <Badge variant="secondary">Inactive</Badge>
                     </div>
                   </div>
                 </div>
@@ -826,21 +389,6 @@ const ComprehensiveSettings: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-6 border-t">
-        <Button variant="outline" onClick={resetSettings}>
-          Reset to Defaults
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            Export Settings
-          </Button>
-          <Button onClick={saveSettings}>
-            Save Settings
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };

@@ -33,15 +33,22 @@ const CurrencyContext = createContext<CurrencyContextType>({
 });
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Always default to AUD - Australian platform
   const [currency, setCurrencyState] = useState<SupportedCurrency>('AUD');
   const [activeCurrency, setActiveCurrencyState] = useState<SupportedCurrency>('AUD');
   const [exchangeRates, setExchangeRates] = useState<Record<SupportedCurrency, number>>(defaultExchangeRates);
   
   useEffect(() => {
+    // Check for saved preference but still default to AUD
     const savedCurrency = localStorage.getItem('preferred-currency') as SupportedCurrency;
-    if (savedCurrency && savedCurrency !== 'AUD') {
+    if (savedCurrency && ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY', 'CNY'].includes(savedCurrency)) {
       setCurrencyState(savedCurrency);
       setActiveCurrencyState(savedCurrency);
+    } else {
+      // Ensure AUD is always the default
+      setCurrencyState('AUD');
+      setActiveCurrencyState('AUD');
+      localStorage.setItem('preferred-currency', 'AUD');
     }
   }, []);
   
@@ -50,7 +57,8 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [currency]);
   
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-AU', {
+    const locale = currency === 'AUD' ? 'en-AU' : 'en-US';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 2,

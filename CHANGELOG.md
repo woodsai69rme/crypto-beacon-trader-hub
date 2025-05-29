@@ -6,7 +6,7 @@ All notable changes to Crypto Beacon Trader Hub will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-01-27
+## [2.0.0] - 2025-01-29
 
 ### 🎉 Major Release - Complete Platform Overhaul
 
@@ -221,7 +221,7 @@ This release represents a complete rebuild of the platform with focus on AI-powe
 
 | Version | Release Date | Status | Highlights |
 |---------|-------------|--------|------------|
-| 2.0.0 | 2025-01-27 | ✅ Current | Complete platform overhaul, AI trading, AUD support |
+| 2.0.0 | 2025-01-29 | ✅ Current | Complete platform overhaul, AI trading, AUD support |
 | 1.0.0 | 2024-12-01 | 📦 Legacy | Initial basic trading platform |
 
 ## Upgrade Instructions

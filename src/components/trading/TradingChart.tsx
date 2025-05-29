@@ -1,131 +1,135 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface TradingChartProps {
   coinId: string;
   showVolume?: boolean;
   showControls?: boolean;
-  height?: number | string;
 }
 
-const TradingChart: React.FC<TradingChartProps> = ({
-  coinId,
-  showVolume = false,
-  showControls = true,
-  height = 300
+const TradingChart: React.FC<TradingChartProps> = ({ 
+  coinId, 
+  showVolume = false, 
+  showControls = false 
 }) => {
-  const [timeframe, setTimeframe] = useState<string>("1d");
-  const [chartType, setChartType] = useState<string>("line");
+  const [priceData, setPriceData] = useState({
+    current: 45000,
+    change: 1200,
+    changePercent: 2.74
+  });
+  const [timeframe, setTimeframe] = useState('1D');
+  const { formatCurrency } = useCurrency();
 
-  // Mock data for demonstration
-  const generateMockData = () => {
-    const data = [];
-    const now = new Date();
-    const basePrice = coinId === "bitcoin" ? 61200 : coinId === "ethereum" ? 3100 : 300;
-    const volatility = coinId === "bitcoin" ? 500 : coinId === "ethereum" ? 100 : 20;
-    
-    for (let i = 30; i >= 0; i--) {
-      const time = new Date(now);
-      time.setHours(now.getHours() - i);
-      
-      const randomChange = (Math.random() - 0.5) * volatility;
-      const price = basePrice + randomChange;
-      const volume = Math.random() * 1000000;
-      
-      data.push({
-        time: time.toLocaleTimeString(),
-        value: price,
-        volume: volume
-      });
-    }
-    
-    return data;
-  };
-  
-  const mockData = generateMockData();
+  useEffect(() => {
+    // Simulate real-time price updates
+    const interval = setInterval(() => {
+      const variation = (Math.random() - 0.5) * 1000;
+      setPriceData(prev => ({
+        current: prev.current + variation,
+        change: prev.change + variation,
+        changePercent: ((prev.current + variation - 45000) / 45000) * 100
+      }));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const timeframes = ['1H', '4H', '1D', '1W', '1M'];
 
   return (
     <Card className="w-full">
-      <CardContent className="p-4">
-        {showControls && (
-          <div className="flex justify-between items-center mb-4">
-            <Tabs value={chartType} onValueChange={setChartType} className="space-y-0">
-              <TabsList>
-                <TabsTrigger value="line">Line</TabsTrigger>
-                <TabsTrigger value="candle">Area</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Timeframe" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1h">1H</SelectItem>
-                <SelectItem value="4h">4H</SelectItem>
-                <SelectItem value="1d">1D</SelectItem>
-                <SelectItem value="1w">1W</SelectItem>
-                <SelectItem value="1m">1M</SelectItem>
-              </SelectContent>
-            </Select>
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          {/* Price Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-2xl font-bold">{formatCurrency(priceData.current)}</h3>
+              <div className="flex items-center gap-2">
+                {priceData.changePercent >= 0 ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
+                <span className={`text-sm font-medium ${
+                  priceData.changePercent >= 0 ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  {priceData.changePercent >= 0 ? '+' : ''}{priceData.changePercent.toFixed(2)}%
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  ({priceData.changePercent >= 0 ? '+' : ''}{formatCurrency(priceData.change)})
+                </span>
+              </div>
+            </div>
+            {showControls && (
+              <div className="flex items-center gap-1">
+                {timeframes.map((tf) => (
+                  <Button
+                    key={tf}
+                    variant={timeframe === tf ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTimeframe(tf)}
+                  >
+                    {tf}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-        
-        <ResponsiveContainer width="100%" height={height}>
-          {chartType === "line" ? (
-            <LineChart data={mockData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" strokeOpacity={0.2} />
-              <XAxis dataKey="time" tick={{ fontSize: 10 }} />
-              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10 }} />
-              <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#8b5cf6" 
-                strokeWidth={2}
-                dot={false} 
-              />
-            </LineChart>
-          ) : (
-            <AreaChart data={mockData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" strokeOpacity={0.2} />
-              <XAxis dataKey="time" tick={{ fontSize: 10 }} />
-              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10 }} />
-              <Tooltip />
-              <Area 
-                type="monotone" 
-                dataKey="value" 
-                fill="#8b5cf680" 
-                stroke="#8b5cf6" 
-                fillOpacity={0.3}
-              />
-            </AreaChart>
-          )}
-        </ResponsiveContainer>
-        
-        {showVolume && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Volume</h4>
-            <ResponsiveContainer width="100%" height={50}>
-              <AreaChart data={mockData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" strokeOpacity={0.1} />
-                <XAxis dataKey="time" tick={false} />
-                <YAxis domain={['auto', 'auto']} hide={true} />
-                <Area 
-                  type="monotone" 
-                  dataKey="volume" 
-                  fill="#22c55e80" 
-                  stroke="#22c55e" 
-                  fillOpacity={0.3}
+
+          {/* Chart Area */}
+          <div className="h-64 bg-muted rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">Chart visualization</p>
+              <p className="text-sm text-muted-foreground">
+                {coinId.toUpperCase()} / AUD - {timeframe}
+              </p>
+            </div>
+          </div>
+
+          {/* Volume Bar */}
+          {showVolume && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">24h Volume</span>
+                <Badge variant="secondary">
+                  {formatCurrency(1250000)}
+                </Badge>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: '65%' }}
                 />
-              </AreaChart>
-            </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Market Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">24h High</p>
+              <p className="font-medium">{formatCurrency(priceData.current * 1.05)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">24h Low</p>
+              <p className="font-medium">{formatCurrency(priceData.current * 0.95)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Market Cap</p>
+              <p className="font-medium">{formatCurrency(priceData.current * 19700000)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Circulating Supply</p>
+              <p className="font-medium">19.7M BTC</p>
+            </div>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

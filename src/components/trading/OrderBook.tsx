@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface OrderBookEntry {
   price: number;
@@ -10,55 +11,114 @@ interface OrderBookEntry {
 }
 
 const OrderBook: React.FC = () => {
-  // Mock data for the order book
-  const bids: OrderBookEntry[] = [
-    { price: 61245.32, amount: 0.5, total: 30622.66 },
-    { price: 61244.15, amount: 0.75, total: 45933.11 },
-    { price: 61242.80, amount: 1.2, total: 73491.36 },
-    { price: 61240.65, amount: 0.3, total: 18372.20 },
-    { price: 61238.42, amount: 2.0, total: 122476.84 }
-  ];
+  const [asks, setAsks] = useState<OrderBookEntry[]>([]);
+  const [bids, setBids] = useState<OrderBookEntry[]>([]);
+  const { formatCurrency } = useCurrency();
 
-  const asks: OrderBookEntry[] = [
-    { price: 61249.75, amount: 0.4, total: 24499.90 },
-    { price: 61252.18, amount: 0.85, total: 52064.35 },
-    { price: 61254.92, amount: 0.6, total: 36752.95 },
-    { price: 61256.33, amount: 1.5, total: 91884.50 },
-    { price: 61258.88, amount: 0.25, total: 15314.72 }
-  ];
+  useEffect(() => {
+    // Generate mock order book data
+    const generateOrders = (basePrice: number, isAsk: boolean): OrderBookEntry[] => {
+      const orders: OrderBookEntry[] = [];
+      let runningTotal = 0;
+      
+      for (let i = 0; i < 10; i++) {
+        const priceVariation = isAsk ? i * 50 : -i * 50;
+        const price = basePrice + priceVariation;
+        const amount = Math.random() * 2 + 0.1;
+        runningTotal += amount;
+        
+        orders.push({
+          price,
+          amount,
+          total: runningTotal
+        });
+      }
+      
+      return orders;
+    };
+
+    const updateOrderBook = () => {
+      const currentPrice = 45000 + (Math.random() - 0.5) * 1000;
+      setAsks(generateOrders(currentPrice, true));
+      setBids(generateOrders(currentPrice, false));
+    };
+
+    updateOrderBook();
+    const interval = setInterval(updateOrderBook, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatAmount = (amount: number) => amount.toFixed(6);
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Order Book</CardTitle>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          Order Book
+          <Badge variant="secondary">BTC/AUD</Badge>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="grid grid-cols-2 gap-1 px-4 py-2 bg-muted/30 text-xs font-medium">
-          <div className="text-left">Price (USD)</div>
-          <div className="text-right">Amount (BTC)</div>
+      <CardContent className="space-y-4">
+        {/* Asks (Sell Orders) */}
+        <div>
+          <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
+            <span>Price (AUD)</span>
+            <span className="text-right">Amount (BTC)</span>
+            <span className="text-right">Total</span>
+          </div>
+          <div className="space-y-1">
+            {asks.slice(0, 5).reverse().map((ask, index) => (
+              <div key={index} className="grid grid-cols-3 gap-2 text-xs py-1">
+                <span className="text-red-500 font-mono">
+                  {formatCurrency(ask.price)}
+                </span>
+                <span className="text-right font-mono">
+                  {formatAmount(ask.amount)}
+                </span>
+                <span className="text-right font-mono text-muted-foreground">
+                  {formatAmount(ask.total)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="h-[250px] overflow-auto">
-          <div className="asks space-y-0.5 mb-2">
-            {asks.map((ask, index) => (
-              <div key={`ask-${index}`} className="grid grid-cols-2 gap-1 px-4 py-1 text-xs hover:bg-muted/30">
-                <div className="text-left text-red-500">{ask.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                <div className="text-right">{ask.amount.toFixed(4)}</div>
+        {/* Spread */}
+        <div className="text-center py-2 border-y">
+          <span className="text-sm font-medium">
+            Spread: {formatCurrency(Math.abs(asks[0]?.price - bids[0]?.price) || 0)}
+          </span>
+        </div>
+
+        {/* Bids (Buy Orders) */}
+        <div>
+          <div className="space-y-1">
+            {bids.slice(0, 5).map((bid, index) => (
+              <div key={index} className="grid grid-cols-3 gap-2 text-xs py-1">
+                <span className="text-green-500 font-mono">
+                  {formatCurrency(bid.price)}
+                </span>
+                <span className="text-right font-mono">
+                  {formatAmount(bid.amount)}
+                </span>
+                <span className="text-right font-mono text-muted-foreground">
+                  {formatAmount(bid.total)}
+                </span>
               </div>
             ))}
           </div>
-          
-          <div className="text-center py-2 font-medium text-sm border-y border-muted">
-            61,247.50
+        </div>
+
+        {/* Market Summary */}
+        <div className="pt-4 border-t space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Last Price</span>
+            <span className="font-medium">{formatCurrency(bids[0]?.price || 0)}</span>
           </div>
-          
-          <div className="bids space-y-0.5 mt-2">
-            {bids.map((bid, index) => (
-              <div key={`bid-${index}`} className="grid grid-cols-2 gap-1 px-4 py-1 text-xs hover:bg-muted/30">
-                <div className="text-left text-green-500">{bid.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                <div className="text-right">{bid.amount.toFixed(4)}</div>
-              </div>
-            ))}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">24h Volume</span>
+            <span className="font-medium">1,247.58 BTC</span>
           </div>
         </div>
       </CardContent>

@@ -1,429 +1,172 @@
 
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 import { 
+  Menu, 
   Home, 
   TrendingUp, 
   Bot, 
-  Wallet, 
   Settings, 
-  Newspaper, 
+  Briefcase, 
   BarChart3, 
-  Shield, 
+  Users, 
+  GraduationCap,
   Zap,
-  Globe,
-  Users,
-  BookOpen,
-  Target,
-  Activity,
-  Bell,
-  Search,
-  Menu,
-  X,
-  ChevronDown,
-  ChevronRight,
-  Trophy
+  Newspaper
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-
-interface NavigationItem {
-  id: string;
-  label: string;
-  icon: React.ComponentType<any>;
-  path?: string;
-  badge?: string | number;
-  isNew?: boolean;
-  children?: NavigationItem[];
-}
+import { useAiTrading } from '@/contexts/AiTradingContext';
 
 const EnhancedNavigation: React.FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<string[]>(['trading', 'ai']);
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { activeBots } = useAiTrading();
 
-  const navigationItems: NavigationItem[] = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: Home,
-      path: '/'
+  const navigationItems = [
+    { 
+      path: '/', 
+      label: 'Dashboard', 
+      icon: Home, 
+      description: 'Overview and analytics' 
     },
-    {
-      id: 'trading',
-      label: 'Trading',
-      icon: TrendingUp,
-      children: [
-        {
-          id: 'real-trading',
-          label: 'Real Trading',
-          icon: Target,
-          path: '/trading/real',
-          badge: 'Live'
-        },
-        {
-          id: 'paper-trading',
-          label: 'Paper Trading',
-          icon: Activity,
-          path: '/trading/paper'
-        },
-        {
-          id: 'advanced-trading',
-          label: 'Advanced Trading',
-          icon: Zap,
-          path: '/trading/advanced',
-          isNew: true
-        },
-        {
-          id: 'exchange-integration',
-          label: 'Exchange Integration',
-          icon: Globe,
-          path: '/trading/exchanges'
-        },
-        {
-          id: 'order-history',
-          label: 'Order History',
-          icon: BarChart3,
-          path: '/trading/history'
-        }
-      ]
+    { 
+      path: '/trading', 
+      label: 'Trading', 
+      icon: TrendingUp, 
+      description: 'Manual and paper trading' 
     },
-    {
-      id: 'ai',
-      label: 'AI Trading',
-      icon: Bot,
-      children: [
-        {
-          id: 'ai-bots',
-          label: 'Trading Bots',
-          icon: Bot,
-          path: '/ai/bots',
-          badge: 5
-        },
-        {
-          id: 'ai-strategies',
-          label: 'AI Strategies',
-          icon: Target,
-          path: '/ai/strategies'
-        },
-        {
-          id: 'ai-insights',
-          label: 'Market Insights',
-          icon: BarChart3,
-          path: '/ai/insights'
-        },
-        {
-          id: 'ai-models',
-          label: 'Model Management',
-          icon: Settings,
-          path: '/ai/models',
-          isNew: true
-        }
-      ]
+    { 
+      path: '/ai', 
+      label: 'AI Trading', 
+      icon: Bot, 
+      description: 'AI-powered trading bots',
+      badge: activeBots.length > 0 ? activeBots.length.toString() : undefined
     },
-    {
-      id: 'portfolio',
-      label: 'Portfolio',
-      icon: Wallet,
-      children: [
-        {
-          id: 'portfolio-overview',
-          label: 'Overview',
-          icon: BarChart3,
-          path: '/portfolio'
-        },
-        {
-          id: 'portfolio-analytics',
-          label: 'Analytics',
-          icon: Activity,
-          path: '/portfolio/analytics'
-        },
-        {
-          id: 'portfolio-optimization',
-          label: 'Optimization',
-          icon: Target,
-          path: '/portfolio/optimization'
-        },
-        {
-          id: 'risk-management',
-          label: 'Risk Management',
-          icon: Shield,
-          path: '/portfolio/risk'
-        }
-      ]
+    { 
+      path: '/portfolio', 
+      label: 'Portfolio', 
+      icon: Briefcase, 
+      description: 'Asset tracking and analytics' 
     },
-    {
-      id: 'automation',
-      label: 'Automation',
-      icon: Zap,
-      children: [
-        {
-          id: 'n8n-workflows',
-          label: 'N8N Workflows',
-          icon: Zap,
-          path: '/automation/n8n',
-          isNew: true
-        },
-        {
-          id: 'alerts',
-          label: 'Alerts & Signals',
-          icon: Bell,
-          path: '/automation/alerts'
-        },
-        {
-          id: 'webhooks',
-          label: 'Webhooks',
-          icon: Globe,
-          path: '/automation/webhooks'
-        }
-      ]
+    { 
+      path: '/market', 
+      label: 'Market Data', 
+      icon: BarChart3, 
+      description: 'Real-time market analysis' 
     },
-    {
-      id: 'market',
-      label: 'Market Data',
-      icon: BarChart3,
-      children: [
-        {
-          id: 'market-overview',
-          label: 'Market Overview',
-          icon: BarChart3,
-          path: '/market'
-        },
-        {
-          id: 'news-feed',
-          label: 'News & Sentiment',
-          icon: Newspaper,
-          path: '/market/news'
-        },
-        {
-          id: 'correlations',
-          label: 'Correlations',
-          icon: Activity,
-          path: '/market/correlations'
-        },
-        {
-          id: 'on-chain',
-          label: 'On-Chain Data',
-          icon: Globe,
-          path: '/market/onchain',
-          isNew: true
-        }
-      ]
+    { 
+      path: '/automation', 
+      label: 'Automation', 
+      icon: Zap, 
+      description: 'N8N workflows and alerts' 
     },
-    {
-      id: 'social',
-      label: 'Social Trading',
-      icon: Users,
-      children: [
-        {
-          id: 'copy-trading',
-          label: 'Copy Trading',
-          icon: Users,
-          path: '/social/copy'
-        },
-        {
-          id: 'leaderboard',
-          label: 'Leaderboard',
-          icon: Target,
-          path: '/social/leaderboard'
-        },
-        {
-          id: 'competitions',
-          label: 'Competitions',
-          icon: Trophy,
-          path: '/social/competitions'
-        }
-      ]
+    { 
+      path: '/social', 
+      label: 'Social Trading', 
+      icon: Users, 
+      description: 'Copy trading and community' 
     },
-    {
-      id: 'education',
-      label: 'Education',
-      icon: BookOpen,
-      children: [
-        {
-          id: 'tutorials',
-          label: 'Tutorials',
-          icon: BookOpen,
-          path: '/education/tutorials'
-        },
-        {
-          id: 'glossary',
-          label: 'Glossary',
-          icon: Search,
-          path: '/education/glossary'
-        },
-        {
-          id: 'market-analysis',
-          label: 'Market Analysis',
-          icon: BarChart3,
-          path: '/education/analysis'
-        }
-      ]
+    { 
+      path: '/education', 
+      label: 'Education', 
+      icon: GraduationCap, 
+      description: 'Trading tutorials and resources' 
     },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: Settings,
-      path: '/settings'
+    { 
+      path: '/settings', 
+      label: 'Settings', 
+      icon: Settings, 
+      description: 'Platform configuration' 
     }
   ];
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    );
+  const isActivePath = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
   };
 
-  const isItemActive = (item: NavigationItem): boolean => {
-    if (item.path) {
-      return location.pathname === item.path;
-    }
-    if (item.children) {
-      return item.children.some(child => location.pathname === child.path);
-    }
-    return false;
-  };
-
-  const renderNavigationItem = (item: NavigationItem, level = 0) => {
-    const Icon = item.icon;
-    const isActive = isItemActive(item);
-    const isExpanded = expandedSections.includes(item.id);
-    const hasChildren = item.children && item.children.length > 0;
-
-    if (hasChildren) {
-      return (
-        <Collapsible key={item.id} open={isExpanded} onOpenChange={() => toggleSection(item.id)}>
-          <CollapsibleTrigger asChild>
-            <Button 
-              variant={isActive ? "secondary" : "ghost"} 
-              className={`w-full justify-between text-left ${level > 0 ? 'ml-4' : ''}`}
+  const NavigationContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold text-primary">Crypto Beacon</h2>
+        <p className="text-sm text-muted-foreground">AI Trading Hub</p>
+      </div>
+      
+      <nav className="flex-1 p-4 space-y-2">
+        {navigationItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = isActivePath(item.path);
+          
+          return (
+            <Link 
+              key={item.path} 
+              to={item.path}
+              onClick={() => setIsOpen(false)}
+              className={`
+                flex items-center gap-3 p-3 rounded-lg transition-colors
+                ${isActive 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                }
+              `}
             >
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
-                {item.isNew && <Badge variant="secondary" className="text-xs">New</Badge>}
-                {item.badge && (
-                  <Badge variant="outline" className="text-xs">
-                    {item.badge}
-                  </Badge>
-                )}
+              <Icon className="h-5 w-5" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{item.label}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-2">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs opacity-70">{item.description}</p>
               </div>
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-1 mt-1">
-            {item.children?.map(child => renderNavigationItem(child, level + 1))}
-          </CollapsibleContent>
-        </Collapsible>
-      );
-    }
-
-    return (
-      <NavLink
-        key={item.id}
-        to={item.path!}
-        className={({ isActive }) => 
-          `block ${level > 0 ? 'ml-6' : ''}`
-        }
-      >
-        <Button 
-          variant={isActive ? "secondary" : "ghost"} 
-          className="w-full justify-start text-left"
-        >
-          <Icon className="h-4 w-4 mr-2" />
-          <span>{item.label}</span>
-          {item.isNew && <Badge variant="secondary" className="ml-2 text-xs">New</Badge>}
-          {item.badge && (
-            <Badge variant="outline" className="ml-2 text-xs">
-              {item.badge}
-            </Badge>
-          )}
-        </Button>
-      </NavLink>
-    );
-  };
+            </Link>
+          );
+        })}
+      </nav>
+      
+      <div className="p-4 border-t">
+        <div className="text-xs text-muted-foreground">
+          <p>© 2025 Crypto Beacon</p>
+          <p>Paper Trading Mode Active</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {/* Navigation Sidebar */}
-      <nav className={`
-        fixed left-0 top-0 h-full w-64 bg-background border-r border-border
-        transform transition-transform duration-300 ease-in-out z-40
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b border-border">
-            <h1 className="text-lg font-semibold">Crypto Trading Platform</h1>
-            <p className="text-sm text-muted-foreground">AUD Base Currency</p>
+      {/* Mobile Navigation */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background border-b p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold">Crypto Beacon</h1>
+            <p className="text-xs text-muted-foreground">AI Trading Hub</p>
           </div>
-
-          {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {navigationItems.map(item => renderNavigationItem(item))}
-          </div>
-
-          {/* Footer */}
-          <div className="p-4 border-t border-border">
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div className="flex justify-between">
-                <span>Status:</span>
-                <Badge variant="outline" className="text-xs">
-                  Online
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span>Mode:</span>
-                <Badge variant="secondary" className="text-xs">
-                  Paper Trading
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span>Version:</span>
-                <span>v2.0.0</span>
-              </div>
-            </div>
-          </div>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 p-0">
+              <NavigationContent />
+            </SheetContent>
+          </Sheet>
         </div>
-      </nav>
-
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Main Content Spacer */}
-      <div className="lg:ml-64">
-        {/* Content goes here */}
       </div>
+
+      {/* Desktop Navigation */}
+      <div className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-background border-r z-40">
+        <NavigationContent />
+      </div>
+
+      {/* Mobile spacer */}
+      <div className="lg:hidden h-20" />
     </>
   );
 };
