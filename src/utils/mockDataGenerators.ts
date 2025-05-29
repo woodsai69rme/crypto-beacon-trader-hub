@@ -53,7 +53,7 @@ const calculateAssets = (trades: Trade[], initialBalance: number): any[] => {
 
 const generateMockTrades = (count: number = 10): Trade[] => {
   const coins = ['bitcoin', 'ethereum', 'cardano', 'solana'];
-  const types = ['buy', 'sell'];
+  const types: ('buy' | 'sell')[] = ['buy', 'sell'];
 
   return Array.from({ length: count }, (_, i) => {
     const coinId = coins[i % coins.length];
