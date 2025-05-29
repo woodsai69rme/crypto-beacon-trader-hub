@@ -1,129 +1,95 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ApiKeyManagement from "../ApiKeyManagement";
-import EnhancedFakeTrading from "../trading/EnhancedFakeTrading";
-import AiTradingBots from "../trading/AiTradingBots";
-import AiTradingDashboard from "../trading/AiTradingDashboard";
-import AiTradingMcp from "../trading/AiTradingMcp"; 
-import TradingEducation from "../trading/TradingEducation";
-import MultiExchangeTrading from "../trading/MultiExchangeTrading";
-import AiMarketAnalysis from "../trading/AiMarketAnalysis";
-import SocialTradingFeatures from "../trading/SocialTradingFeatures";
-import AlertsSystem from "../trading/AlertsSystem";
-import ExchangeIntegration from "../trading/ExchangeIntegration";
-import MultiTimeframeStrategy from "../trading/MultiTimeframeStrategy";
-import AdvancedTrading from "../trading/AdvancedTrading";
-import AiTradingDetailedDashboard from "../trading/AiTradingDetailedDashboard";
-import LiveAnalyticsDashboard from "../analytics/LiveAnalyticsDashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ComprehensiveAiTradingDashboard from "../trading/ComprehensiveAiTradingDashboard";
+import EnhancedFakeTrading from "../trading/EnhancedFakeTrading";
 
 const DashboardTrading = () => {
   const isMobile = useIsMobile();
   
   return (
     <div className="grid grid-cols-1 gap-6">
-      <Tabs defaultValue="trade" className="w-full">
-        <TabsList className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-11'} mb-6`}>
-          <TabsTrigger value="trade">Trading</TabsTrigger>
-          <TabsTrigger value="ai-dashboard">AI Dashboard</TabsTrigger>
-          <TabsTrigger value="ai-bots">AI Bots</TabsTrigger>
-          <TabsTrigger value="detailed-ai">Detailed AI</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger>
-          <TabsTrigger value="mcp">MCP Trading</TabsTrigger>
-          <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
-          {!isMobile && <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>}
-          {!isMobile && <TabsTrigger value="analysis">Analysis</TabsTrigger>}
-          {!isMobile && <TabsTrigger value="social">Social</TabsTrigger>}
-          {!isMobile && <TabsTrigger value="api-keys">API Keys</TabsTrigger>}
+      <Tabs defaultValue="ai-dashboard" className="w-full">
+        <TabsList className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} mb-6`}>
+          <TabsTrigger value="ai-dashboard">AI Trading</TabsTrigger>
+          <TabsTrigger value="paper-trading">Paper Trading</TabsTrigger>
+          {!isMobile && <TabsTrigger value="automation">Automation</TabsTrigger>}
           {isMobile && <TabsTrigger value="more">More</TabsTrigger>}
         </TabsList>
         
-        <TabsContent value="trade" className="animate-fade-in">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <EnhancedFakeTrading />
-            </div>
-            <div className="lg:col-span-1">
-              <AlertsSystem />
-            </div>
-          </div>
-        </TabsContent>
-        
         <TabsContent value="ai-dashboard" className="animate-fade-in">
-          <AiTradingDashboard />
+          <ComprehensiveAiTradingDashboard />
         </TabsContent>
         
-        <TabsContent value="ai-bots" className="animate-fade-in">
-          <div className="grid grid-cols-1 gap-6">
-            <AiTradingBots />
-            <MultiTimeframeStrategy />
-          </div>
+        <TabsContent value="paper-trading" className="animate-fade-in">
+          <EnhancedFakeTrading />
         </TabsContent>
         
-        <TabsContent value="detailed-ai" className="animate-fade-in">
-          <AiTradingDetailedDashboard />
-        </TabsContent>
-        
-        <TabsContent value="advanced" className="animate-fade-in">
-          <AdvancedTrading />
-        </TabsContent>
-        
-        <TabsContent value="mcp" className="animate-fade-in">
-          <AiTradingMcp />
-        </TabsContent>
-        
-        <TabsContent value="analytics" className="animate-fade-in">
-          <LiveAnalyticsDashboard refreshInterval={10000} />
-        </TabsContent>
-        
-        <TabsContent value="multi-exchange" className="animate-fade-in">
-          <ExchangeIntegration />
-        </TabsContent>
-        
-        <TabsContent value="analysis" className="animate-fade-in">
-          <AiMarketAnalysis />
-        </TabsContent>
-        
-        <TabsContent value="social" className="animate-fade-in">
-          <SocialTradingFeatures />
-        </TabsContent>
-        
-        <TabsContent value="api-keys" className="animate-fade-in">
+        <TabsContent value="automation" className="animate-fade-in">
           <Card>
-            <CardContent className="pt-6">
-              <ApiKeyManagement />
+            <CardContent className="p-8 text-center">
+              <h2 className="text-2xl font-bold mb-4">N8N Automation Center</h2>
+              <p className="text-muted-foreground mb-4">
+                Create powerful automation workflows for your trading strategies
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-2">Trading Signal Distribution</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically send AI-generated signals to Discord, Telegram, and email
+                  </p>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-2">Portfolio Rebalancing</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Automated portfolio optimization based on AI recommendations
+                  </p>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-2">Risk Monitoring</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Real-time alerts when portfolio risk exceeds configured thresholds
+                  </p>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-2">Sentiment Analysis</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Monitor social media sentiment and generate trading signals
+                  </p>
+                </Card>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         {isMobile && (
           <TabsContent value="more" className="animate-fade-in">
-            <Tabs defaultValue="multi-exchange">
-              <TabsList className="grid grid-cols-4 mb-6">
-                <TabsTrigger value="multi-exchange">Multi-Exchange</TabsTrigger>
-                <TabsTrigger value="analysis">Analysis</TabsTrigger>
-                <TabsTrigger value="social">Social</TabsTrigger>
-                <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+            <Tabs defaultValue="automation">
+              <TabsList className="grid grid-cols-2 mb-6">
+                <TabsTrigger value="automation">Automation</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="multi-exchange">
-                <ExchangeIntegration />
-              </TabsContent>
-              
-              <TabsContent value="analysis">
-                <AiMarketAnalysis />
-              </TabsContent>
-              
-              <TabsContent value="social">
-                <SocialTradingFeatures />
-              </TabsContent>
-              
-              <TabsContent value="api-keys">
+              <TabsContent value="automation">
                 <Card>
-                  <CardContent className="pt-6">
-                    <ApiKeyManagement />
+                  <CardContent className="p-8 text-center">
+                    <h2 className="text-2xl font-bold mb-4">N8N Automation Center</h2>
+                    <p className="text-muted-foreground">
+                      Create powerful automation workflows for your trading strategies
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="settings">
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <h2 className="text-2xl font-bold mb-4">Platform Settings</h2>
+                    <p className="text-muted-foreground">
+                      Configure your trading preferences and platform settings
+                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
