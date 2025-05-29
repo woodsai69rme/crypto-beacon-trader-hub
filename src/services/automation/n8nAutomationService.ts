@@ -1,688 +1,649 @@
 
 import { toast } from "@/hooks/use-toast";
-import openRouterService from "../openRouterService";
 
 interface N8NWorkflow {
   id: string;
   name: string;
   description: string;
-  webhookUrl: string;
   isActive: boolean;
-  triggers: string[];
-  actions: string[];
-  config: Record<string, any>;
-  lastExecuted?: string;
-  executionCount: number;
+  webhookUrl: string;
+  triggerType: 'webhook' | 'schedule' | 'manual';
+  schedule?: string;
+  lastRun?: string;
+  nextRun?: string;
+  runCount: number;
   successRate: number;
+  nodes: N8NNode[];
 }
 
-interface AutomationRule {
+interface N8NNode {
   id: string;
+  type: string;
   name: string;
-  conditions: Array<{
-    field: string;
-    operator: string;
-    value: any;
-  }>;
-  actions: Array<{
-    type: string;
-    config: Record<string, any>;
-  }>;
-  isActive: boolean;
+  position: { x: number; y: number };
+  parameters: Record<string, any>;
+  connections: Record<string, any>;
 }
 
 interface TradingSignal {
-  id: string;
   symbol: string;
   signal: 'BUY' | 'SELL' | 'HOLD';
   confidence: number;
   price: number;
   timestamp: string;
-  source: string;
+  strategy: string;
+  reasoning: string;
+}
+
+interface AutomationTrigger {
+  id: string;
+  type: 'price_alert' | 'sentiment_change' | 'portfolio_rebalance' | 'news_event';
+  conditions: Record<string, any>;
+  actions: AutomationAction[];
+  isActive: boolean;
+}
+
+interface AutomationAction {
+  type: 'send_webhook' | 'place_order' | 'send_notification' | 'rebalance_portfolio';
+  parameters: Record<string, any>;
 }
 
 class N8NAutomationService {
   private workflows: Map<string, N8NWorkflow> = new Map();
-  private automationRules: Map<string, AutomationRule> = new Map();
-  private baseUrl = 'https://n8n.lovable.app'; // Configure your N8N instance
-  private executionHistory: Array<{
-    workflowId: string;
-    timestamp: string;
-    success: boolean;
-    data: any;
-  }> = [];
+  private triggers: Map<string, AutomationTrigger> = new Map();
+  private baseUrl = 'http://localhost:5678'; // Default N8N instance
+  private apiKey: string | null = null;
+  private webhookEndpoints: Map<string, string> = new Map();
 
   constructor() {
-    this.initializeWorkflows();
-    this.initializeAutomationRules();
+    this.loadStoredWorkflows();
+    this.initializeDefaultWorkflows();
+    this.setupWebhookEndpoints();
   }
 
-  private initializeWorkflows() {
-    const workflows: N8NWorkflow[] = [
+  private loadStoredWorkflows() {
+    try {
+      const stored = localStorage.getItem('n8n-workflows');
+      if (stored) {
+        const workflows = JSON.parse(stored);
+        workflows.forEach((workflow: N8NWorkflow) => {
+          this.workflows.set(workflow.id, workflow);
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load stored workflows:', error);
+    }
+  }
+
+  private saveWorkflows() {
+    try {
+      const workflows = Array.from(this.workflows.values());
+      localStorage.setItem('n8n-workflows', JSON.stringify(workflows));
+    } catch (error) {
+      console.error('Failed to save workflows:', error);
+    }
+  }
+
+  private initializeDefaultWorkflows() {
+    const defaultWorkflows = [
       {
-        id: 'trading-signal-processor',
-        name: 'AI Trading Signal Processor',
-        description: 'Processes AI-generated trading signals and executes trades',
+        id: 'trading-signal-distributor',
+        name: 'Trading Signal Distributor',
+        description: 'Automatically distribute AI-generated trading signals to connected platforms',
+        isActive: false,
         webhookUrl: `${this.baseUrl}/webhook/trading-signals`,
-        isActive: true,
-        triggers: ['ai_signal_generated', 'price_threshold_hit', 'technical_indicator_signal'],
-        actions: ['validate_signal', 'calculate_position_size', 'execute_trade', 'send_notification'],
-        config: {
-          maxPositionSize: 0.1,
-          riskPerTrade: 0.02,
-          stopLossPercent: 0.05,
-          takeProfitPercent: 0.15
-        },
-        executionCount: 0,
-        successRate: 0
+        triggerType: 'webhook' as const,
+        runCount: 0,
+        successRate: 0,
+        nodes: [
+          {
+            id: 'webhook-trigger',
+            type: 'n8n-nodes-base.webhook',
+            name: 'Trading Signal Webhook',
+            position: { x: 100, y: 100 },
+            parameters: {
+              httpMethod: 'POST',
+              path: 'trading-signals'
+            },
+            connections: {}
+          },
+          {
+            id: 'signal-processor',
+            type: 'n8n-nodes-base.function',
+            name: 'Process Signal',
+            position: { x: 300, y: 100 },
+            parameters: {
+              functionCode: `
+                const signal = $input.first().json;
+                
+                // Validate signal
+                if (!signal.symbol || !signal.signal || !signal.confidence) {
+                  throw new Error('Invalid trading signal format');
+                }
+                
+                // Add metadata
+                signal.processedAt = new Date().toISOString();
+                signal.source = 'ai-trading-bot';
+                
+                return { json: signal };
+              `
+            },
+            connections: {}
+          },
+          {
+            id: 'discord-notification',
+            type: 'n8n-nodes-base.discord',
+            name: 'Send Discord Alert',
+            position: { x: 500, y: 50 },
+            parameters: {
+              webhookUrl: 'DISCORD_WEBHOOK_URL',
+              content: '🚨 **Trading Signal Alert** 🚨\n\n' +
+                      '**Symbol:** {{$json["symbol"]}}\n' +
+                      '**Signal:** {{$json["signal"]}}\n' +
+                      '**Confidence:** {{$json["confidence"]}}%\n' +
+                      '**Price:** ${{$json["price"]}}\n' +
+                      '**Strategy:** {{$json["strategy"]}}\n' +
+                      '**Reasoning:** {{$json["reasoning"]}}'
+            },
+            connections: {}
+          },
+          {
+            id: 'telegram-notification',
+            type: 'n8n-nodes-base.telegram',
+            name: 'Send Telegram Alert',
+            position: { x: 500, y: 150 },
+            parameters: {
+              operation: 'sendMessage',
+              chatId: 'TELEGRAM_CHAT_ID',
+              text: '🚨 Trading Signal Alert 🚨\n\n' +
+                    'Symbol: {{$json["symbol"]}}\n' +
+                    'Signal: {{$json["signal"]}}\n' +
+                    'Confidence: {{$json["confidence"]}}%\n' +
+                    'Price: ${{$json["price"]}}\n' +
+                    'Strategy: {{$json["strategy"]}}\n' +
+                    'Reasoning: {{$json["reasoning"]}}'
+            },
+            connections: {}
+          }
+        ]
       },
       {
         id: 'portfolio-rebalancer',
         name: 'Automated Portfolio Rebalancer',
-        description: 'Rebalances portfolio based on target allocations and market conditions',
+        description: 'Automatically rebalance portfolio based on AI recommendations',
+        isActive: false,
         webhookUrl: `${this.baseUrl}/webhook/portfolio-rebalance`,
-        isActive: true,
-        triggers: ['scheduled_daily', 'deviation_threshold_exceeded', 'market_regime_change'],
-        actions: ['analyze_portfolio', 'calculate_rebalance', 'execute_rebalance_trades', 'update_allocations'],
-        config: {
-          rebalanceThreshold: 0.05,
-          minTradeSize: 50, // AUD
-          maxSlippage: 0.01,
-          excludeAssets: []
-        },
-        executionCount: 0,
-        successRate: 0
+        triggerType: 'schedule' as const,
+        schedule: '0 */6 * * *', // Every 6 hours
+        runCount: 0,
+        successRate: 0,
+        nodes: [
+          {
+            id: 'schedule-trigger',
+            type: 'n8n-nodes-base.cron',
+            name: 'Rebalance Schedule',
+            position: { x: 100, y: 100 },
+            parameters: {
+              expression: '0 */6 * * *'
+            },
+            connections: {}
+          },
+          {
+            id: 'portfolio-analyzer',
+            type: 'n8n-nodes-base.httpRequest',
+            name: 'Get Portfolio Analysis',
+            position: { x: 300, y: 100 },
+            parameters: {
+              method: 'GET',
+              url: 'http://localhost:3000/api/portfolio/analysis',
+              authentication: 'headerAuth',
+              headerAuth: {
+                name: 'Authorization',
+                value: 'Bearer {{$env.API_KEY}}'
+              }
+            },
+            connections: {}
+          },
+          {
+            id: 'rebalance-decision',
+            type: 'n8n-nodes-base.function',
+            name: 'Rebalance Decision',
+            position: { x: 500, y: 100 },
+            parameters: {
+              functionCode: `
+                const portfolio = $input.first().json;
+                
+                // Check if rebalancing is needed
+                const maxDeviation = 0.05; // 5% deviation threshold
+                let needsRebalancing = false;
+                
+                for (const asset of portfolio.assets) {
+                  const deviation = Math.abs(asset.currentAllocation - asset.targetAllocation);
+                  if (deviation > maxDeviation) {
+                    needsRebalancing = true;
+                    break;
+                  }
+                }
+                
+                return { 
+                  json: { 
+                    ...portfolio, 
+                    needsRebalancing,
+                    timestamp: new Date().toISOString()
+                  } 
+                };
+              `
+            },
+            connections: {}
+          }
+        ]
       },
       {
         id: 'sentiment-analyzer',
-        name: 'Market Sentiment Analyzer',
-        description: 'Analyzes news, social media, and market sentiment for trading insights',
+        name: 'Real-time Sentiment Analyzer',
+        description: 'Analyze social media sentiment and generate trading signals',
+        isActive: false,
         webhookUrl: `${this.baseUrl}/webhook/sentiment-analysis`,
-        isActive: true,
-        triggers: ['news_article_published', 'social_mention_threshold', 'sentiment_shift_detected'],
-        actions: ['fetch_news', 'analyze_sentiment', 'generate_sentiment_score', 'trigger_trades'],
-        config: {
-          sentimentSources: ['twitter', 'reddit', 'news', 'telegram'],
-          sentimentThreshold: 0.7,
-          analysisInterval: 300, // seconds
-          keywordFilters: ['bitcoin', 'ethereum', 'crypto', 'blockchain']
-        },
-        executionCount: 0,
-        successRate: 0
-      },
-      {
-        id: 'risk-manager',
-        name: 'Dynamic Risk Management',
-        description: 'Monitors portfolio risk and implements protective measures',
-        webhookUrl: `${this.baseUrl}/webhook/risk-management`,
-        isActive: true,
-        triggers: ['drawdown_threshold', 'volatility_spike', 'correlation_change', 'var_exceeded'],
-        actions: ['calculate_var', 'adjust_position_sizes', 'implement_hedging', 'send_risk_alerts'],
-        config: {
-          maxDrawdown: 0.15,
-          varConfidence: 0.95,
-          volatilityThreshold: 0.5,
-          correlationThreshold: 0.8,
-          hedgingAssets: ['BTC', 'ETH']
-        },
-        executionCount: 0,
-        successRate: 0
-      },
-      {
-        id: 'arbitrage-scanner',
-        name: 'Cross-Exchange Arbitrage Scanner',
-        description: 'Scans for arbitrage opportunities across multiple exchanges',
-        webhookUrl: `${this.baseUrl}/webhook/arbitrage-scanner`,
-        isActive: true,
-        triggers: ['price_discrepancy_detected', 'scheduled_scan'],
-        actions: ['scan_exchanges', 'calculate_profit', 'execute_arbitrage', 'monitor_execution'],
-        config: {
-          minProfitThreshold: 0.005,
-          maxExecutionTime: 30, // seconds
-          supportedExchanges: ['binance', 'coinbase', 'kraken'],
-          excludePairs: []
-        },
-        executionCount: 0,
-        successRate: 0
-      },
-      {
-        id: 'dca-bot',
-        name: 'Dollar Cost Averaging Bot',
-        description: 'Executes regular DCA purchases based on schedule and conditions',
-        webhookUrl: `${this.baseUrl}/webhook/dca-bot`,
-        isActive: true,
-        triggers: ['scheduled_purchase', 'price_dip_detected', 'volatility_low'],
-        actions: ['check_conditions', 'calculate_purchase_amount', 'execute_purchase', 'update_schedule'],
-        config: {
-          schedule: 'weekly',
-          baseAmount: 100, // AUD
-          volatilityBonus: 0.5,
-          maxPurchaseAmount: 500,
-          assets: ['BTC', 'ETH']
-        },
-        executionCount: 0,
-        successRate: 0
-      },
-      {
-        id: 'news-trader',
-        name: 'News-Based Trading Bot',
-        description: 'Executes trades based on news events and sentiment analysis',
-        webhookUrl: `${this.baseUrl}/webhook/news-trader`,
-        isActive: true,
-        triggers: ['breaking_news', 'earnings_report', 'regulatory_news', 'partnership_announcement'],
-        actions: ['analyze_news_impact', 'calculate_sentiment', 'generate_trade_signal', 'execute_news_trade'],
-        config: {
-          newsRelevanceThreshold: 0.8,
-          sentimentConfidenceThreshold: 0.75,
-          maxNewsTradeSize: 0.05,
-          newsDecayTime: 3600 // seconds
-        },
-        executionCount: 0,
-        successRate: 0
-      },
-      {
-        id: 'yield-optimizer',
-        name: 'DeFi Yield Optimizer',
-        description: 'Optimizes yield farming and staking positions across DeFi protocols',
-        webhookUrl: `${this.baseUrl}/webhook/yield-optimizer`,
-        isActive: true,
-        triggers: ['yield_opportunity_detected', 'position_maturity', 'apr_change'],
-        actions: ['scan_yield_opportunities', 'calculate_optimal_allocation', 'execute_yield_strategy', 'compound_rewards'],
-        config: {
-          minAPR: 0.05,
-          maxRiskScore: 0.7,
-          compoundThreshold: 50, // AUD
-          supportedProtocols: ['aave', 'compound', 'yearn', 'curve']
-        },
-        executionCount: 0,
-        successRate: 0
-      }
-    ];
-
-    workflows.forEach(workflow => {
-      this.workflows.set(workflow.id, workflow);
-    });
-  }
-
-  private initializeAutomationRules() {
-    const rules: AutomationRule[] = [
-      {
-        id: 'high-confidence-ai-signal',
-        name: 'High Confidence AI Signal Auto-Trade',
-        conditions: [
-          { field: 'ai_signal_confidence', operator: '>=', value: 0.85 },
-          { field: 'market_volatility', operator: '<=', value: 0.3 },
-          { field: 'portfolio_exposure', operator: '<=', value: 0.8 }
-        ],
-        actions: [
+        triggerType: 'schedule' as const,
+        schedule: '*/15 * * * *', // Every 15 minutes
+        runCount: 0,
+        successRate: 0,
+        nodes: [
           {
-            type: 'execute_trade',
-            config: {
-              maxPositionSize: 0.05,
-              useStopLoss: true,
-              useTakeProfit: true
-            }
-          }
-        ],
-        isActive: true
-      },
-      {
-        id: 'portfolio-deviation-rebalance',
-        name: 'Portfolio Deviation Auto-Rebalance',
-        conditions: [
-          { field: 'allocation_deviation', operator: '>=', value: 0.1 },
-          { field: 'time_since_last_rebalance', operator: '>=', value: 86400 }
-        ],
-        actions: [
-          {
-            type: 'rebalance_portfolio',
-            config: {
-              maxTradeSize: 0.2,
-              minTradeSize: 0.01
-            }
-          }
-        ],
-        isActive: true
-      },
-      {
-        id: 'risk-management-stop',
-        name: 'Emergency Risk Management',
-        conditions: [
-          { field: 'portfolio_drawdown', operator: '>=', value: 0.15 },
-          { field: 'var_exceeded', operator: '==', value: true }
-        ],
-        actions: [
-          {
-            type: 'reduce_exposure',
-            config: {
-              reductionPercent: 0.3,
-              hedgePositions: true
-            }
+            id: 'sentiment-trigger',
+            type: 'n8n-nodes-base.cron',
+            name: 'Sentiment Check',
+            position: { x: 100, y: 100 },
+            parameters: {
+              expression: '*/15 * * * *'
+            },
+            connections: {}
           },
           {
-            type: 'send_alert',
-            config: {
-              channels: ['email', 'sms', 'discord'],
-              priority: 'high'
-            }
+            id: 'reddit-scraper',
+            type: 'n8n-nodes-base.httpRequest',
+            name: 'Scrape Reddit',
+            position: { x: 300, y: 50 },
+            parameters: {
+              method: 'GET',
+              url: 'https://www.reddit.com/r/CryptoCurrency/hot.json?limit=50'
+            },
+            connections: {}
+          },
+          {
+            id: 'twitter-monitor',
+            type: 'n8n-nodes-base.httpRequest',
+            name: 'Monitor Twitter',
+            position: { x: 300, y: 150 },
+            parameters: {
+              method: 'GET',
+              url: 'https://api.twitter.com/2/tweets/search/recent?query=bitcoin OR ethereum crypto',
+              authentication: 'headerAuth'
+            },
+            connections: {}
+          },
+          {
+            id: 'sentiment-processor',
+            type: 'n8n-nodes-base.openAi',
+            name: 'AI Sentiment Analysis',
+            position: { x: 500, y: 100 },
+            parameters: {
+              operation: 'chat',
+              model: 'gpt-4o-mini',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'Analyze cryptocurrency sentiment from social media posts. Return JSON with sentiment (bullish/bearish/neutral) and confidence score.'
+                },
+                {
+                  role: 'user',
+                  content: '{{$json["text"]}}'
+                }
+              ]
+            },
+            connections: {}
           }
-        ],
-        isActive: true
+        ]
+      },
+      {
+        id: 'risk-monitor',
+        name: 'Portfolio Risk Monitor',
+        description: 'Monitor portfolio risk and trigger alerts when thresholds are exceeded',
+        isActive: false,
+        webhookUrl: `${this.baseUrl}/webhook/risk-monitor`,
+        triggerType: 'schedule' as const,
+        schedule: '*/30 * * * *', // Every 30 minutes
+        runCount: 0,
+        successRate: 0,
+        nodes: [
+          {
+            id: 'risk-trigger',
+            type: 'n8n-nodes-base.cron',
+            name: 'Risk Check',
+            position: { x: 100, y: 100 },
+            parameters: {
+              expression: '*/30 * * * *'
+            },
+            connections: {}
+          },
+          {
+            id: 'portfolio-risk',
+            type: 'n8n-nodes-base.httpRequest',
+            name: 'Calculate Portfolio Risk',
+            position: { x: 300, y: 100 },
+            parameters: {
+              method: 'POST',
+              url: 'http://localhost:3000/api/portfolio/risk-analysis',
+              body: JSON.stringify({
+                includeCorrelations: true,
+                timeframe: '30d'
+              }),
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            },
+            connections: {}
+          },
+          {
+            id: 'risk-alert',
+            type: 'n8n-nodes-base.function',
+            name: 'Risk Alert Logic',
+            position: { x: 500, y: 100 },
+            parameters: {
+              functionCode: `
+                const risk = $input.first().json;
+                
+                const alerts = [];
+                
+                // Check VaR threshold
+                if (risk.valueAtRisk > 0.05) { // 5% VaR threshold
+                  alerts.push({
+                    type: 'high_var',
+                    message: 'Portfolio VaR exceeds 5% threshold',
+                    value: risk.valueAtRisk,
+                    severity: 'high'
+                  });
+                }
+                
+                // Check concentration risk
+                if (risk.maxAssetWeight > 0.4) { // 40% concentration threshold
+                  alerts.push({
+                    type: 'concentration_risk',
+                    message: 'Single asset concentration exceeds 40%',
+                    value: risk.maxAssetWeight,
+                    severity: 'medium'
+                  });
+                }
+                
+                // Check correlation risk
+                if (risk.avgCorrelation > 0.8) { // 80% correlation threshold
+                  alerts.push({
+                    type: 'correlation_risk',
+                    message: 'Portfolio correlation is too high',
+                    value: risk.avgCorrelation,
+                    severity: 'medium'
+                  });
+                }
+                
+                return { json: { alerts, timestamp: new Date().toISOString() } };
+              `
+            },
+            connections: {}
+          }
+        ]
       }
     ];
 
-    rules.forEach(rule => {
-      this.automationRules.set(rule.id, rule);
+    defaultWorkflows.forEach(workflow => {
+      this.workflows.set(workflow.id, workflow);
     });
+
+    this.saveWorkflows();
   }
 
-  async triggerWorkflow(workflowId: string, data: Record<string, any>): Promise<boolean> {
-    const workflow = this.workflows.get(workflowId);
-    if (!workflow) {
-      toast({
-        title: "Workflow Not Found",
-        description: `Workflow ${workflowId} does not exist`,
-        variant: "destructive",
-      });
-      return false;
-    }
+  private setupWebhookEndpoints() {
+    // Set up webhook endpoints for different automation types
+    this.webhookEndpoints.set('trading-signals', '/webhook/trading-signals');
+    this.webhookEndpoints.set('portfolio-rebalance', '/webhook/portfolio-rebalance');
+    this.webhookEndpoints.set('sentiment-analysis', '/webhook/sentiment-analysis');
+    this.webhookEndpoints.set('risk-alerts', '/webhook/risk-alerts');
+    this.webhookEndpoints.set('news-events', '/webhook/news-events');
+  }
 
-    if (!workflow.isActive) {
-      toast({
-        title: "Workflow Inactive",
-        description: `Workflow ${workflow.name} is currently disabled`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    const payload = {
-      timestamp: new Date().toISOString(),
-      source: 'crypto-trading-platform',
-      workflowId,
-      data,
-      config: workflow.config
-    };
-
+  async sendTradingSignal(signal: TradingSignal): Promise<boolean> {
     try {
-      console.log(`Triggering N8N workflow: ${workflow.name}`, payload);
+      const webhookUrl = this.webhookEndpoints.get('trading-signals');
+      if (!webhookUrl) {
+        throw new Error('Trading signals webhook not configured');
+      }
 
-      const response = await fetch(workflow.webhookUrl, {
+      const response = await fetch(`${this.baseUrl}${webhookUrl}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Workflow-ID': workflowId,
-          'X-Platform': 'crypto-trading-platform'
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
         },
-        mode: 'no-cors',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(signal)
       });
 
-      // Update execution statistics
-      workflow.executionCount++;
-      workflow.lastExecuted = new Date().toISOString();
-      
-      // Log execution
-      this.executionHistory.push({
-        workflowId,
-        timestamp: new Date().toISOString(),
-        success: true,
-        data: payload
-      });
+      if (!response.ok) {
+        throw new Error(`Webhook failed: ${response.statusText}`);
+      }
 
       toast({
-        title: "Workflow Triggered",
-        description: `${workflow.name} workflow has been executed`,
+        title: "Trading Signal Sent",
+        description: `${signal.signal} signal for ${signal.symbol} distributed to automation workflows`,
       });
 
       return true;
     } catch (error) {
-      console.error(`Failed to trigger workflow ${workflowId}:`, error);
-      
-      // Log failed execution
-      this.executionHistory.push({
-        workflowId,
-        timestamp: new Date().toISOString(),
-        success: false,
-        data: { error: error.message, payload }
-      });
-
+      console.error('Failed to send trading signal:', error);
       toast({
-        title: "Workflow Failed",
-        description: `Failed to execute ${workflow.name} workflow`,
+        title: "Signal Distribution Failed",
+        description: "Failed to send trading signal to automation workflows",
         variant: "destructive",
       });
       return false;
     }
   }
 
-  async processAITradingSignal(signal: TradingSignal): Promise<boolean> {
-    // Enhanced AI signal processing with multiple validation steps
-    const validatedSignal = await this.validateTradingSignal(signal);
-    
-    if (!validatedSignal.isValid) {
-      console.log('Trading signal validation failed:', validatedSignal.reason);
-      return false;
-    }
-
-    // Check automation rules
-    const applicableRules = this.getApplicableRules({
-      ai_signal_confidence: signal.confidence,
-      signal_type: signal.signal,
-      symbol: signal.symbol
-    });
-
-    if (applicableRules.length === 0) {
-      console.log('No automation rules matched for signal');
-      return false;
-    }
-
-    // Execute applicable automation actions
-    for (const rule of applicableRules) {
-      for (const action of rule.actions) {
-        await this.executeAutomationAction(action, signal);
-      }
-    }
-
-    return this.triggerWorkflow('trading-signal-processor', {
-      signal,
-      validatedSignal,
-      automationActions: applicableRules.map(r => r.name)
-    });
-  }
-
-  private async validateTradingSignal(signal: TradingSignal): Promise<{
-    isValid: boolean;
-    reason?: string;
-    adjustedConfidence?: number;
-  }> {
-    // Multi-factor signal validation
-    const validations = [
-      this.validateSignalConfidence(signal),
-      this.validateMarketConditions(signal),
-      this.validatePortfolioRisk(signal),
-      await this.validateWithAI(signal)
-    ];
-
-    const failedValidations = validations.filter(v => !v.isValid);
-    
-    if (failedValidations.length > 0) {
-      return {
-        isValid: false,
-        reason: failedValidations.map(v => v.reason).join(', ')
-      };
-    }
-
-    // Calculate adjusted confidence based on validation results
-    const avgConfidence = validations.reduce((sum, v) => sum + (v.confidence || 0), 0) / validations.length;
-    
-    return {
-      isValid: true,
-      adjustedConfidence: Math.min(signal.confidence, avgConfidence)
-    };
-  }
-
-  private validateSignalConfidence(signal: TradingSignal): { isValid: boolean; reason?: string; confidence: number } {
-    if (signal.confidence < 0.6) {
-      return {
-        isValid: false,
-        reason: 'Signal confidence below minimum threshold',
-        confidence: signal.confidence
-      };
-    }
-    return { isValid: true, confidence: signal.confidence };
-  }
-
-  private validateMarketConditions(signal: TradingSignal): { isValid: boolean; reason?: string; confidence: number } {
-    // Mock market condition validation
-    const volatility = Math.random() * 0.5; // Mock volatility
-    const liquidity = Math.random(); // Mock liquidity
-    
-    if (volatility > 0.4) {
-      return {
-        isValid: false,
-        reason: 'Market volatility too high',
-        confidence: 0.3
-      };
-    }
-    
-    if (liquidity < 0.3) {
-      return {
-        isValid: false,
-        reason: 'Insufficient market liquidity',
-        confidence: 0.4
-      };
-    }
-    
-    return { isValid: true, confidence: 0.8 };
-  }
-
-  private validatePortfolioRisk(signal: TradingSignal): { isValid: boolean; reason?: string; confidence: number } {
-    // Mock portfolio risk validation
-    const currentExposure = Math.random(); // Mock current exposure
-    const correlationRisk = Math.random(); // Mock correlation risk
-    
-    if (currentExposure > 0.8) {
-      return {
-        isValid: false,
-        reason: 'Portfolio exposure too high',
-        confidence: 0.2
-      };
-    }
-    
-    if (correlationRisk > 0.7) {
-      return {
-        isValid: false,
-        reason: 'High correlation risk detected',
-        confidence: 0.4
-      };
-    }
-    
-    return { isValid: true, confidence: 0.9 };
-  }
-
-  private async validateWithAI(signal: TradingSignal): Promise<{ isValid: boolean; reason?: string; confidence: number }> {
+  async triggerPortfolioRebalance(portfolioData: any): Promise<boolean> {
     try {
-      const aiValidation = await openRouterService.generateTradingSignal(
-        {
-          signal: signal,
-          marketContext: 'validation_request',
-          baseCurrency: 'AUD'
+      const webhookUrl = this.webhookEndpoints.get('portfolio-rebalance');
+      if (!webhookUrl) {
+        throw new Error('Portfolio rebalance webhook not configured');
+      }
+
+      const response = await fetch(`${this.baseUrl}${webhookUrl}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
         },
-        'signal_validation',
-        'deepseek/deepseek-r1'
-      );
-      
-      return {
-        isValid: aiValidation.confidence > 0.7,
-        reason: aiValidation.confidence <= 0.7 ? 'AI validation failed' : undefined,
-        confidence: aiValidation.confidence
-      };
-    } catch (error) {
-      console.error('AI validation failed:', error);
-      return {
-        isValid: true, // Fail open
-        confidence: 0.5
-      };
-    }
-  }
-
-  private getApplicableRules(context: Record<string, any>): AutomationRule[] {
-    return Array.from(this.automationRules.values()).filter(rule => {
-      if (!rule.isActive) return false;
-      
-      return rule.conditions.every(condition => {
-        const value = context[condition.field];
-        switch (condition.operator) {
-          case '>=': return value >= condition.value;
-          case '<=': return value <= condition.value;
-          case '==': return value === condition.value;
-          case '!=': return value !== condition.value;
-          case '>': return value > condition.value;
-          case '<': return value < condition.value;
-          default: return false;
-        }
+        body: JSON.stringify({
+          ...portfolioData,
+          timestamp: new Date().toISOString(),
+          source: 'crypto-trading-platform'
+        })
       });
-    });
-  }
 
-  private async executeAutomationAction(action: { type: string; config: Record<string, any> }, context: any): Promise<void> {
-    console.log(`Executing automation action: ${action.type}`, action.config);
-    
-    switch (action.type) {
-      case 'execute_trade':
-        await this.triggerWorkflow('trading-signal-processor', {
-          action: 'execute_trade',
-          config: action.config,
-          context
-        });
-        break;
-        
-      case 'rebalance_portfolio':
-        await this.triggerWorkflow('portfolio-rebalancer', {
-          action: 'rebalance',
-          config: action.config,
-          context
-        });
-        break;
-        
-      case 'send_alert':
-        await this.sendAlert(action.config, context);
-        break;
-        
-      case 'reduce_exposure':
-        await this.triggerWorkflow('risk-manager', {
-          action: 'reduce_exposure',
-          config: action.config,
-          context
-        });
-        break;
-        
-      default:
-        console.warn(`Unknown automation action type: ${action.type}`);
+      if (!response.ok) {
+        throw new Error(`Rebalance webhook failed: ${response.statusText}`);
+      }
+
+      toast({
+        title: "Portfolio Rebalance Triggered",
+        description: "Automated portfolio rebalancing workflow has been initiated",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to trigger portfolio rebalance:', error);
+      toast({
+        title: "Rebalance Failed",
+        description: "Failed to trigger portfolio rebalancing workflow",
+        variant: "destructive",
+      });
+      return false;
     }
   }
 
-  private async sendAlert(config: Record<string, any>, context: any): Promise<void> {
-    const alertData = {
-      timestamp: new Date().toISOString(),
-      priority: config.priority || 'medium',
-      channels: config.channels || ['app'],
-      message: `Automation alert triggered: ${JSON.stringify(context)}`,
-      context
+  async sendRiskAlert(riskData: any): Promise<boolean> {
+    try {
+      const webhookUrl = this.webhookEndpoints.get('risk-alerts');
+      if (!webhookUrl) {
+        throw new Error('Risk alerts webhook not configured');
+      }
+
+      const response = await fetch(`${this.baseUrl}${webhookUrl}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        },
+        body: JSON.stringify({
+          ...riskData,
+          timestamp: new Date().toISOString(),
+          platform: 'crypto-trading-platform'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Risk alert webhook failed: ${response.statusText}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to send risk alert:', error);
+      return false;
+    }
+  }
+
+  async createCustomWorkflow(workflow: Partial<N8NWorkflow>): Promise<string> {
+    const workflowId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const newWorkflow: N8NWorkflow = {
+      id: workflowId,
+      name: workflow.name || 'Custom Workflow',
+      description: workflow.description || 'User-created automation workflow',
+      isActive: false,
+      webhookUrl: `${this.baseUrl}/webhook/${workflowId}`,
+      triggerType: workflow.triggerType || 'webhook',
+      schedule: workflow.schedule,
+      runCount: 0,
+      successRate: 0,
+      nodes: workflow.nodes || []
     };
-    
-    console.log('Sending alert:', alertData);
-    
+
+    this.workflows.set(workflowId, newWorkflow);
+    this.saveWorkflows();
+
     toast({
-      title: "Automation Alert",
-      description: alertData.message,
-      variant: config.priority === 'high' ? 'destructive' : 'default',
+      title: "Workflow Created",
+      description: `Custom workflow "${newWorkflow.name}" has been created`,
     });
+
+    return workflowId;
   }
 
-  // Convenience methods for common workflows
-  async setupDCAStrategy(config: {
-    assets: string[];
-    amount: number;
-    frequency: string;
-    conditions?: Record<string, any>;
-  }): Promise<boolean> {
-    return this.triggerWorkflow('dca-bot', {
-      action: 'setup_dca',
-      config
-    });
+  async activateWorkflow(workflowId: string): Promise<boolean> {
+    const workflow = this.workflows.get(workflowId);
+    if (!workflow) {
+      throw new Error('Workflow not found');
+    }
+
+    try {
+      // In a real implementation, this would activate the workflow in N8N
+      workflow.isActive = true;
+      this.workflows.set(workflowId, workflow);
+      this.saveWorkflows();
+
+      toast({
+        title: "Workflow Activated",
+        description: `Workflow "${workflow.name}" is now active`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to activate workflow:', error);
+      toast({
+        title: "Activation Failed",
+        description: `Failed to activate workflow "${workflow.name}"`,
+        variant: "destructive",
+      });
+      return false;
+    }
   }
 
-  async optimizeYieldFarming(config: {
-    protocols: string[];
-    minAPR: number;
-    maxRisk: number;
-    allocation: Record<string, number>;
-  }): Promise<boolean> {
-    return this.triggerWorkflow('yield-optimizer', {
-      action: 'optimize_yield',
-      config
-    });
+  async deactivateWorkflow(workflowId: string): Promise<boolean> {
+    const workflow = this.workflows.get(workflowId);
+    if (!workflow) {
+      throw new Error('Workflow not found');
+    }
+
+    try {
+      workflow.isActive = false;
+      this.workflows.set(workflowId, workflow);
+      this.saveWorkflows();
+
+      toast({
+        title: "Workflow Deactivated",
+        description: `Workflow "${workflow.name}" has been deactivated`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to deactivate workflow:', error);
+      return false;
+    }
   }
 
-  async scanArbitrageOpportunities(config: {
-    exchanges: string[];
-    minProfit: number;
-    assets?: string[];
-  }): Promise<boolean> {
-    return this.triggerWorkflow('arbitrage-scanner', {
-      action: 'scan_arbitrage',
-      config
-    });
-  }
-
-  async analyzeMarketSentiment(config: {
-    sources: string[];
-    assets: string[];
-    timeframe: string;
-  }): Promise<boolean> {
-    return this.triggerWorkflow('sentiment-analyzer', {
-      action: 'analyze_sentiment',
-      config
-    });
-  }
-
-  // Management methods
-  getWorkflow(id: string): N8NWorkflow | undefined {
-    return this.workflows.get(id);
-  }
-
-  getAllWorkflows(): N8NWorkflow[] {
+  getWorkflows(): N8NWorkflow[] {
     return Array.from(this.workflows.values());
   }
 
+  getWorkflow(workflowId: string): N8NWorkflow | undefined {
+    return this.workflows.get(workflowId);
+  }
+
   getActiveWorkflows(): N8NWorkflow[] {
-    return Array.from(this.workflows.values()).filter(w => w.isActive);
+    return Array.from(this.workflows.values()).filter(workflow => workflow.isActive);
   }
 
-  updateWorkflowConfig(id: string, config: Record<string, any>): boolean {
-    const workflow = this.workflows.get(id);
-    if (workflow) {
-      workflow.config = { ...workflow.config, ...config };
-      return true;
-    }
-    return false;
-  }
-
-  toggleWorkflow(id: string): boolean {
-    const workflow = this.workflows.get(id);
-    if (workflow) {
-      workflow.isActive = !workflow.isActive;
-      return true;
-    }
-    return false;
-  }
-
-  getExecutionHistory(workflowId?: string): Array<any> {
-    if (workflowId) {
-      return this.executionHistory.filter(h => h.workflowId === workflowId);
-    }
-    return this.executionHistory;
-  }
-
-  getWorkflowStatistics(workflowId: string): {
-    executionCount: number;
-    successRate: number;
-    lastExecuted?: string;
-    avgExecutionTime?: number;
-  } | null {
-    const workflow = this.workflows.get(workflowId);
-    if (!workflow) return null;
-
-    const history = this.getExecutionHistory(workflowId);
-    const successCount = history.filter(h => h.success).length;
+  setN8NConfig(baseUrl: string, apiKey?: string) {
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey || null;
     
+    // Update webhook URLs
+    this.workflows.forEach(workflow => {
+      workflow.webhookUrl = workflow.webhookUrl.replace(/^https?:\/\/[^\/]+/, this.baseUrl);
+    });
+    
+    this.saveWorkflows();
+  }
+
+  getN8NConfig() {
     return {
-      executionCount: workflow.executionCount,
-      successRate: workflow.executionCount > 0 ? successCount / workflow.executionCount : 0,
-      lastExecuted: workflow.lastExecuted
+      baseUrl: this.baseUrl,
+      hasApiKey: !!this.apiKey,
+      webhookEndpoints: Object.fromEntries(this.webhookEndpoints)
     };
+  }
+
+  async testConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/healthz`, {
+        method: 'GET',
+        headers: {
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('N8N connection test failed:', error);
+      return false;
+    }
   }
 }
 

@@ -34,10 +34,12 @@ class OpenRouterService {
   private currentKeyIndex = 0;
   private baseUrl = 'https://openrouter.ai/api/v1';
   private availableModels: OpenRouterModel[] = [];
+  private userApiKey: string | null = null;
 
   constructor() {
     this.loadApiKeys();
     this.initializeModels();
+    this.loadUserApiKey();
   }
 
   private loadApiKeys() {
@@ -47,6 +49,14 @@ class OpenRouterService {
       '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'
     ];
     this.apiKeys = keys.filter(key => key && key.length > 0);
+  }
+
+  private loadUserApiKey() {
+    try {
+      this.userApiKey = localStorage.getItem('openrouter_api_key');
+    } catch (error) {
+      console.error('Failed to load user API key:', error);
+    }
   }
 
   private initializeModels() {
@@ -98,7 +108,55 @@ class OpenRouterService {
     ];
   }
 
+  hasApiKey(): boolean {
+    return !!(this.userApiKey || this.apiKeys.length > 0);
+  }
+
+  setApiKey(key: string): void {
+    this.userApiKey = key;
+    try {
+      localStorage.setItem('openrouter_api_key', key);
+    } catch (error) {
+      console.error('Failed to save API key:', error);
+    }
+  }
+
+  clearApiKey(): void {
+    this.userApiKey = null;
+    try {
+      localStorage.removeItem('openrouter_api_key');
+    } catch (error) {
+      console.error('Failed to clear API key:', error);
+    }
+  }
+
+  async getModels(): Promise<OpenRouterModel[] | null> {
+    try {
+      const response = await fetch(`${this.baseUrl}/models`, {
+        headers: {
+          'Authorization': `Bearer ${this.getNextApiKey()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch models: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.data || this.availableModels;
+    } catch (error) {
+      console.error('Failed to fetch models:', error);
+      return this.availableModels;
+    }
+  }
+
   private getNextApiKey(): string {
+    // Prefer user's API key if available
+    if (this.userApiKey) {
+      return this.userApiKey;
+    }
+
     if (this.apiKeys.length === 0) {
       throw new Error('No API keys available');
     }
