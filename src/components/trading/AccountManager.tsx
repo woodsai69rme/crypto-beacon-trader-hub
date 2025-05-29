@@ -24,7 +24,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newAccountBalance, setNewAccountBalance] = useState(10000);
-  const [accountType, setAccountType] = useState<'paper' | 'exchange'>('paper');
+  const [accountType, setAccountType] = useState<'paper' | 'live'>('paper');
 
   const handleAddAccount = () => {
     const mockAssets: PortfolioAsset[] = [
@@ -69,7 +69,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({
       currency: 'AUD',
       trades: [],
       type: accountType,
-      assets: accountType === 'exchange' ? mockAssets : [],
+      assets: accountType === 'live' ? mockAssets : [],
       isActive: true,
     });
 
@@ -113,13 +113,13 @@ const AccountManager: React.FC<AccountManagerProps> = ({
             </div>
             <div>
               <label className="text-sm font-medium block mb-1">Account Type</label>
-              <Select value={accountType} onValueChange={(value: 'paper' | 'exchange') => setAccountType(value)}>
+              <Select value={accountType} onValueChange={(value: 'paper' | 'live') => setAccountType(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="paper">Paper Trading</SelectItem>
-                  <SelectItem value="exchange">Exchange Account</SelectItem>
+                  <SelectItem value="live">Live Trading</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -141,7 +141,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({
                   <div className="flex justify-between items-center">
                     <div>
                       <div className="font-medium">{account.name}</div>
-                      <div className="text-sm text-muted-foreground">{account.type === 'paper' ? 'Paper Trading' : 'Exchange Account'}</div>
+                      <div className="text-sm text-muted-foreground">{account.type === 'paper' ? 'Paper Trading' : 'Live Trading'}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-medium">{formatCurrency(account.balance)}</div>

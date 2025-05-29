@@ -4,16 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { WalletProvider, WalletAccount, WalletConnectionProps } from '@/types/trading';
 import { Wallet, Check } from 'lucide-react';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
-const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supportedWallets }) => {
+const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supportedWallets = [] }) => {
   const [connecting, setConnecting] = useState<string | null>(null);
   
   const handleConnect = async (wallet: WalletProvider) => {
     setConnecting(wallet.id);
     
     try {
-      // Check if wallet extension is installed
       if (!wallet.isInstalled) {
         window.open(wallet.description, '_blank');
         toast({
@@ -25,10 +24,8 @@ const WalletConnector: React.FC<WalletConnectionProps> = ({ onConnect, supported
         return;
       }
       
-      // Simulate wallet connection - in a real app, this would use the wallet's API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock account data - in a real implementation this would come from the wallet
       const mockAccount: WalletAccount = {
         address: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
         balance: (Math.random() * 10).toFixed(4),

@@ -1,150 +1,142 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
-import { AITradingStrategy } from '@/types/trading';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Code, Play, Save } from 'lucide-react';
 
-interface CustomStrategyProps {
-  onAddStrategy?: (strategy: AITradingStrategy) => Promise<void>;
+const CustomStrategy: React.FC = () => {
+  const [strategyCode, setStrategyCode] = useState(`
+// Custom Trading Strategy
+function tradingStrategy(marketData, portfolio) {
+  const { price, volume, rsi, macd } = marketData;
+  
+  // Buy signal: RSI < 30 and MACD crosses above signal
+  if (rsi < 30 && macd.histogram > 0) {
+    return {
+      action: 'buy',
+      amount: portfolio.balance * 0.1,
+      reason: 'Oversold condition with bullish momentum'
+    };
+  }
+  
+  // Sell signal: RSI > 70 and MACD crosses below signal
+  if (rsi > 70 && macd.histogram < 0) {
+    return {
+      action: 'sell',
+      amount: portfolio.positions.length > 0 ? portfolio.positions[0].amount * 0.5 : 0,
+      reason: 'Overbought condition with bearish momentum'
+    };
+  }
+  
+  return { action: 'hold', reason: 'No clear signal' };
 }
+  `.trim());
 
-const CustomStrategy: React.FC<CustomStrategyProps> = ({ onAddStrategy }) => {
-  const [name, setName] = useState('');
-  const [strategy, setStrategy] = useState<string>('');
-  const [description, setDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const strategyTypes = [
-    { value: 'traditional', label: 'Traditional Technical Analysis' },
-    { value: 'ai-predictive', label: 'AI Predictive Analytics' },
-    { value: 'hybrid', label: 'Hybrid (AI + Technical)' },
-    { value: 'trend-following', label: 'Trend Following' },
-    { value: 'mean-reversion', label: 'Mean Reversion' },
-    { value: 'breakout', label: 'Breakout Trading' },
-    { value: 'sentiment', label: 'Sentiment Analysis' },
-    { value: 'machine-learning', label: 'Machine Learning' },
-    { value: 'multi-timeframe', label: 'Multi-Timeframe Analysis' }
-  ];
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!name || !strategy || !description) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill out all fields",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      const newStrategy: AITradingStrategy = {
-        id: `strategy-${Date.now()}`,
-        name,
-        description,
-        type: strategy as any,
-        riskLevel: 'medium',
-        profitPotential: 'medium',
-        timeframe: "1h",
-        parameters: {},
-        indicators: ["rsi", "macd", "ema"],
-        triggers: ["technical_signal", "volume_spike"],
-        performance: {
-          accuracy: 0,
-          returns: 0,
-          sharpeRatio: 0,
-          maxDrawdown: 0
-        }
-      };
-      
-      if (onAddStrategy) {
-        await onAddStrategy(newStrategy);
-      }
-      
-      // Reset form
-      setName('');
-      setStrategy('');
-      setDescription('');
-      
-      toast({
-        title: "Strategy Created",
-        description: "Your custom strategy has been added",
-      });
-    } catch (error) {
-      console.error("Error creating strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create custom strategy",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const [backtestResults, setBacktestResults] = useState({
+    totalTrades: 45,
+    winRate: 68,
+    profitFactor: 1.8,
+    sharpeRatio: 1.4,
+    maxDrawdown: 12,
+    returns: 24.5
+  });
+
+  const runBacktest = () => {
+    console.log('Running backtest...');
+    // Simulate backtest with random results
+    setBacktestResults({
+      totalTrades: Math.floor(Math.random() * 100) + 20,
+      winRate: Math.floor(Math.random() * 40) + 50,
+      profitFactor: Number((Math.random() * 2 + 1).toFixed(1)),
+      sharpeRatio: Number((Math.random() * 2 + 0.5).toFixed(1)),
+      maxDrawdown: Math.floor(Math.random() * 20) + 5,
+      returns: Number((Math.random() * 50 + 10).toFixed(1))
+    });
   };
-  
+
+  const saveStrategy = () => {
+    console.log('Saving custom strategy...');
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create Custom Strategy</CardTitle>
-        <CardDescription>
-          Define your own AI-powered trading strategy
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">Strategy Name</label>
-            <Input
-              placeholder="My Custom Strategy"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
-          </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Code className="h-5 w-5" />
+            Custom Strategy Builder
+          </CardTitle>
+          <CardDescription>
+            Write your own trading strategy using JavaScript
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <Textarea
+            value={strategyCode}
+            onChange={(e) => setStrategyCode(e.target.value)}
+            className="font-mono text-sm min-h-[300px]"
+            placeholder="Write your trading strategy here..."
+          />
           
-          <div>
-            <label className="text-sm font-medium mb-1 block">Strategy Type</label>
-            <Select value={strategy} onValueChange={setStrategy} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a strategy type" />
-              </SelectTrigger>
-              <SelectContent>
-                {strategyTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium mb-1 block">Description</label>
-            <Textarea
-              placeholder="Describe your strategy's objectives and approach..."
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rows={4}
-              required
-            />
-          </div>
-          
-          <div className="pt-2">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Strategy"}
+          <div className="flex gap-2">
+            <Button onClick={runBacktest} className="gap-2">
+              <Play className="h-4 w-4" />
+              Run Backtest
+            </Button>
+            <Button variant="outline" onClick={saveStrategy} className="gap-2">
+              <Save className="h-4 w-4" />
+              Save Strategy
             </Button>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Backtest Results</CardTitle>
+          <CardDescription>
+            Performance metrics for your custom strategy
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">{backtestResults.totalTrades}</div>
+              <div className="text-sm text-muted-foreground">Total Trades</div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{backtestResults.winRate}%</div>
+              <div className="text-sm text-muted-foreground">Win Rate</div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">{backtestResults.profitFactor}</div>
+              <div className="text-sm text-muted-foreground">Profit Factor</div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold">{backtestResults.sharpeRatio}</div>
+              <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold text-red-600">-{backtestResults.maxDrawdown}%</div>
+              <div className="text-sm text-muted-foreground">Max Drawdown</div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold text-green-600">+{backtestResults.returns}%</div>
+              <div className="text-sm text-muted-foreground">Total Returns</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

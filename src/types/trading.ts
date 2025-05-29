@@ -1,16 +1,17 @@
 
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
+export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
 
 export interface Trade {
   id: string;
   coinId?: string;
   coinName?: string;
   coinSymbol?: string;
-  symbol: string; // Primary symbol field
+  symbol: string;
   type: 'buy' | 'sell';
   amount?: number;
-  quantity: number; // Primary quantity field
+  quantity: number;
   price: number;
   totalValue: number;
   total?: number;
@@ -29,6 +30,10 @@ export interface PortfolioAsset {
   priceChange?: number;
   symbol?: string;
   name?: string;
+  value?: number;
+  allocation?: number;
+  change24h?: number;
+  changePercent24h?: number;
 }
 
 export interface TradingAccount {
@@ -39,7 +44,8 @@ export interface TradingAccount {
   currency: SupportedCurrency;
   createdAt: string;
   type: 'paper' | 'live';
-  assets: any[];
+  assets: PortfolioAsset[];
+  isActive?: boolean;
 }
 
 export interface CoinOption {
@@ -222,10 +228,10 @@ export interface NewsItem {
 }
 
 export interface WalletAccount {
-  id: string;
+  id?: string;
   address: string;
   network: string;
-  balance: number;
+  balance: string | number;
   provider: string;
 }
 
@@ -454,7 +460,7 @@ export interface AITradingStrategy {
   name: string;
   description: string;
   type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
-  timeframe: string;
+  timeframe: number;
   parameters: any;
   riskLevel?: string;
   indicators?: string[];
@@ -466,6 +472,8 @@ export interface AITradingStrategy {
     profitLoss?: number;
     drawdown?: number;
     returns?: number;
+    maxDrawdown?: number;
+    accuracy?: number;
   };
   creator?: string;
   tags?: string[];
@@ -475,6 +483,7 @@ export interface AITradingStrategy {
     profitFactor?: number;
     sharpeRatio?: number;
     trades?: number;
+    maxDrawdown?: number;
   };
 }
 
@@ -494,21 +503,32 @@ export interface FakeTradingFormProps {
 export interface TradingFormProps {
   onTrade: (trade: Trade) => void;
   selectedCoin?: CoinOption;
+  balance?: number;
+  availableCoins?: CoinOption[];
+  getOwnedCoinAmount?: (coinId: string) => number;
+  activeCurrency?: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
+  conversionRate?: number;
 }
 
 export interface RealTimePricesProps {
   initialCoins: CoinOption[];
-  selectedCoinId: string;
-  onSelectCoin: (coinId: string) => void;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
   refreshInterval?: number;
 }
 
 export interface RealTimePriceChartProps {
   coinId: string;
   height?: number;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins?: CoinOption[];
+  updateInterval?: number;
 }
 
 export interface WalletConnectionProps {
-  onConnect: (wallet: WalletProvider) => void;
-  connectedWallets: WalletAccount[];
+  onConnect: (wallet: WalletAccount) => void;
+  connectedWallets?: WalletAccount[];
+  supportedWallets?: WalletProvider[];
 }

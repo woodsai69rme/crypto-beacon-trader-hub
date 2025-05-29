@@ -6,7 +6,7 @@ import { LineChart, BarChart3, Wallet } from "lucide-react";
 import RealTimeTrading from './trading/RealTimeTrading';
 import WalletConnector from './wallets/WalletConnector';
 import { WalletAccount, WalletProvider } from '@/types/trading';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 const TradingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("realtime");
@@ -43,7 +43,7 @@ const TradingDashboard: React.FC = () => {
       name: "WalletConnect",
       logo: "https://avatars.githubusercontent.com/u/37784886",
       description: "https://walletconnect.com/",
-      isInstalled: true, // WalletConnect doesn't require installation
+      isInstalled: true,
       isConnected: false
     }
   ];
