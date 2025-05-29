@@ -1,494 +1,319 @@
-import { openRouterService } from '@/services/openRouterService';
-import { n8nAutomationService } from '@/services/automation/n8nAutomationService';
-import { Trade, TradingAccount, SupportedCurrency } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from '@/hooks/use-toast';
 
-export interface AITradingBot {
+import { Trade, AITradingStrategy, TradingAccount, CoinOption } from '@/types/trading';
+
+export interface BotTradeRecommendation {
+  action: 'buy' | 'sell' | 'hold';
+  coinId: string;
+  amount: number;
+  confidence: number;
+  reasoning: string;
+  targetPrice?: number;
+  stopLoss?: number;
+}
+
+export interface TradingBot {
   id: string;
   name: string;
-  strategy: string;
-  aiModel: string;
-  isActive: boolean;
+  strategy: AITradingStrategy;
   account: TradingAccount;
+  isActive: boolean;
+  lastAction: Date;
   performance: {
     totalTrades: number;
     winRate: number;
-    totalReturn: number;
+    profitLoss: number;
     sharpeRatio: number;
-    maxDrawdown: number;
   };
-  config: {
-    riskLevel: 'low' | 'medium' | 'high';
-    maxTradeAmount: number;
-    targetAssets: string[];
-    stopLoss: number;
-    takeProfit: number;
-    tradingFrequency: 'high' | 'medium' | 'low';
-  };
-  auditLog: BotAuditEntry[];
-  lastAction: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BotAuditEntry {
-  id: string;
-  timestamp: string;
-  action: string;
-  details: any;
-  result: 'success' | 'failed' | 'pending';
-  reasoning: string;
-  confidence: number;
 }
 
 class AITradingBotService {
-  private bots: Map<string, AITradingBot> = new Map();
-  private isRunning = false;
-  private executionInterval: NodeJS.Timeout | null = null;
+  private bots: Map<string, TradingBot> = new Map();
+  private analysisInterval: number = 60000; // 1 minute
 
   constructor() {
-    this.loadBots();
-    this.initializeDefaultBots();
+    this.startMarketAnalysis();
   }
 
-  private loadBots() {
-    try {
-      const stored = localStorage.getItem('ai-trading-bots');
-      if (stored) {
-        const bots = JSON.parse(stored);
-        bots.forEach((bot: AITradingBot) => {
-          this.bots.set(bot.id, bot);
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load AI trading bots:', error);
-    }
-  }
-
-  private saveBots() {
-    try {
-      const bots = Array.from(this.bots.values());
-      localStorage.setItem('ai-trading-bots', JSON.stringify(bots));
-    } catch (error) {
-      console.error('Failed to save AI trading bots:', error);
-    }
-  }
-
-  private initializeDefaultBots() {
-    if (this.bots.size === 0) {
-      const defaultBots = [
-        {
-          id: uuidv4(),
-          name: 'Conservative AUD Bot',
-          strategy: 'trend-following',
-          aiModel: 'deepseek/deepseek-r1',
-          isActive: false,
-          account: this.createBotAccount('Conservative AUD Bot Account'),
-          performance: {
-            totalTrades: 0,
-            winRate: 0,
-            totalReturn: 0,
-            sharpeRatio: 0,
-            maxDrawdown: 0
-          },
-          config: {
-            riskLevel: 'low' as const,
-            maxTradeAmount: 1000,
-            targetAssets: ['bitcoin', 'ethereum'],
-            stopLoss: 0.05,
-            takeProfit: 0.10,
-            tradingFrequency: 'low' as const
-          },
-          auditLog: [],
-          lastAction: 'Initialized',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: uuidv4(),
-          name: 'Aggressive AUD Bot',
-          strategy: 'momentum',
-          aiModel: 'google/gemini-2.0-flash-exp',
-          isActive: false,
-          account: this.createBotAccount('Aggressive AUD Bot Account'),
-          performance: {
-            totalTrades: 0,
-            winRate: 0,
-            totalReturn: 0,
-            sharpeRatio: 0,
-            maxDrawdown: 0
-          },
-          config: {
-            riskLevel: 'high' as const,
-            maxTradeAmount: 5000,
-            targetAssets: ['bitcoin', 'ethereum', 'cardano', 'solana'],
-            stopLoss: 0.08,
-            takeProfit: 0.20,
-            tradingFrequency: 'high' as const
-          },
-          auditLog: [],
-          lastAction: 'Initialized',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      defaultBots.forEach(bot => {
-        this.bots.set(bot.id, bot);
-      });
-      this.saveBots();
-    }
-  }
-
-  private createBotAccount(name: string): TradingAccount {
-    return {
-      id: uuidv4(),
+  createBot(
+    name: string,
+    strategy: AITradingStrategy,
+    account: TradingAccount
+  ): TradingBot {
+    const bot: TradingBot = {
+      id: `bot_${Date.now()}`,
       name,
-      trades: [],
-      balance: 10000, // 10,000 AUD starting balance
-      currency: 'AUD' as SupportedCurrency,
-      createdAt: new Date().toISOString(),
-      type: 'paper',
-      assets: []
-    };
-  }
-
-  async createBot(config: Partial<AITradingBot>): Promise<string> {
-    const botId = uuidv4();
-    const bot: AITradingBot = {
-      id: botId,
-      name: config.name || 'Custom AI Bot',
-      strategy: config.strategy || 'trend-following',
-      aiModel: config.aiModel || 'deepseek/deepseek-r1',
+      strategy,
+      account,
       isActive: false,
-      account: this.createBotAccount(config.name + ' Account' || 'Custom Bot Account'),
+      lastAction: new Date(),
       performance: {
         totalTrades: 0,
         winRate: 0,
-        totalReturn: 0,
+        profitLoss: 0,
         sharpeRatio: 0,
-        maxDrawdown: 0
       },
-      config: {
-        riskLevel: 'medium',
-        maxTradeAmount: 2000,
-        targetAssets: ['bitcoin', 'ethereum'],
-        stopLoss: 0.05,
-        takeProfit: 0.15,
-        tradingFrequency: 'medium',
-        ...config.config
-      },
-      auditLog: [],
-      lastAction: 'Created',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
     };
 
-    this.bots.set(botId, bot);
-    this.saveBots();
-    this.logBotAction(botId, 'Bot Created', { config }, 'success', 'New AI trading bot initialized', 1.0);
-
-    toast({
-      title: "AI Bot Created",
-      description: `${bot.name} has been successfully created and is ready to trade`,
-    });
-
-    return botId;
+    this.bots.set(bot.id, bot);
+    return bot;
   }
 
-  async activateBot(botId: string): Promise<boolean> {
+  activateBot(botId: string): boolean {
     const bot = this.bots.get(botId);
-    if (!bot) return false;
-
-    bot.isActive = true;
-    bot.lastAction = 'Activated';
-    bot.updatedAt = new Date().toISOString();
-    
-    this.bots.set(botId, bot);
-    this.saveBots();
-    this.logBotAction(botId, 'Bot Activated', {}, 'success', 'Bot started active trading', 1.0);
-
-    if (!this.isRunning) {
-      this.startBotExecution();
+    if (bot) {
+      bot.isActive = true;
+      console.log(`Bot ${bot.name} activated`);
+      return true;
     }
-
-    toast({
-      title: "AI Bot Activated",
-      description: `${bot.name} is now actively trading`,
-    });
-
-    return true;
+    return false;
   }
 
-  async deactivateBot(botId: string): Promise<boolean> {
+  deactivateBot(botId: string): boolean {
     const bot = this.bots.get(botId);
-    if (!bot) return false;
-
-    bot.isActive = false;
-    bot.lastAction = 'Deactivated';
-    bot.updatedAt = new Date().toISOString();
-    
-    this.bots.set(botId, bot);
-    this.saveBots();
-    this.logBotAction(botId, 'Bot Deactivated', {}, 'success', 'Bot stopped active trading', 1.0);
-
-    toast({
-      title: "AI Bot Deactivated",
-      description: `${bot.name} has stopped trading`,
-    });
-
-    return true;
+    if (bot) {
+      bot.isActive = false;
+      console.log(`Bot ${bot.name} deactivated`);
+      return true;
+    }
+    return false;
   }
 
-  private startBotExecution() {
-    this.isRunning = true;
-    this.executionInterval = setInterval(async () => {
-      const activeBots = Array.from(this.bots.values()).filter(bot => bot.isActive);
+  private startMarketAnalysis(): void {
+    setInterval(() => {
+      this.analyzeMarketForAllBots();
+    }, this.analysisInterval);
+  }
+
+  private async analyzeMarketForAllBots(): Promise<void> {
+    for (const [botId, bot] of this.bots) {
+      if (bot.isActive) {
+        try {
+          await this.analyzeBotStrategy(bot);
+        } catch (error) {
+          console.error(`Error analyzing bot ${botId}:`, error);
+        }
+      }
+    }
+  }
+
+  private async analyzeBotStrategy(bot: TradingBot): Promise<void> {
+    const recommendation = await this.generateTradeRecommendation(bot);
+    
+    if (recommendation.action !== 'hold') {
+      await this.executeBotTrade(bot, recommendation);
+    }
+  }
+
+  private async generateTradeRecommendation(bot: TradingBot): Promise<BotTradeRecommendation> {
+    // Mock AI analysis based on strategy type
+    const strategy = bot.strategy;
+    
+    // Simulate different strategy behaviors
+    switch (strategy.type) {
+      case 'trend-following':
+        return this.analyzeTrendFollowing(bot);
       
-      if (activeBots.length === 0) {
-        this.stopBotExecution();
-        return;
-      }
-
-      for (const bot of activeBots) {
-        await this.executeBotStrategy(bot);
-      }
-    }, 30000); // Execute every 30 seconds
-  }
-
-  private stopBotExecution() {
-    this.isRunning = false;
-    if (this.executionInterval) {
-      clearInterval(this.executionInterval);
-      this.executionInterval = null;
-    }
-  }
-
-  private async executeBotStrategy(bot: AITradingBot) {
-    try {
-      // Get market data for target assets
-      const marketData = await this.getMarketData(bot.config.targetAssets);
+      case 'mean-reversion':
+        return this.analyzeMeanReversion(bot);
       
-      // Generate AI trading signal
-      const signal = await openRouterService.generateTradingSignal(
-        marketData,
-        bot.strategy,
-        bot.aiModel
-      );
-
-      this.logBotAction(
-        bot.id,
-        'AI Analysis Complete',
-        { signal, marketData },
-        'success',
-        signal.reasoning,
-        signal.confidence
-      );
-
-      // Execute trade if confidence is high enough
-      if (signal.confidence > 0.7 && signal.signal !== 'HOLD') {
-        await this.executeTrade(bot, signal);
-      }
-
-      // Update bot status
-      bot.lastAction = `AI Analysis: ${signal.signal} (${(signal.confidence * 100).toFixed(1)}% confidence)`;
-      bot.updatedAt = new Date().toISOString();
-      this.bots.set(bot.id, bot);
-      this.saveBots();
-
-      // Trigger N8N workflow if configured
-      await n8nAutomationService.sendTradingSignal({
-        symbol: marketData.symbol || 'BTC',
-        signal: signal.signal,
-        confidence: signal.confidence,
-        price: signal.entryPrice || marketData.price || 0,
-        timestamp: new Date().toISOString(),
-        strategy: bot.strategy,
-        reasoning: signal.reasoning
-      });
-
-    } catch (error) {
-      console.error(`Error executing bot strategy for ${bot.name}:`, error);
-      this.logBotAction(
-        bot.id,
-        'Strategy Execution Failed',
-        { error: error.message },
-        'failed',
-        'Failed to execute trading strategy',
-        0
-      );
+      case 'breakout':
+        return this.analyzeBreakout(bot);
+      
+      case 'sentiment':
+        return this.analyzeSentiment(bot);
+      
+      default:
+        return {
+          action: 'hold',
+          coinId: 'bitcoin',
+          amount: 0,
+          confidence: 0.5,
+          reasoning: 'Strategy not implemented',
+        };
     }
   }
 
-  private async executeTrade(bot: AITradingBot, signal: any) {
-    const tradeAmount = Math.min(
-      bot.config.maxTradeAmount,
-      bot.account.balance * (bot.config.riskLevel === 'low' ? 0.1 : bot.config.riskLevel === 'medium' ? 0.2 : 0.3)
-    );
-
-    if (tradeAmount < 10) return; // Minimum trade amount
-
-    const trade: Trade = {
-      id: uuidv4(),
-      coinId: 'bitcoin', // This would be dynamic based on signal
-      coinName: 'Bitcoin',
-      coinSymbol: 'BTC',
-      type: signal.signal.toLowerCase() as 'buy' | 'sell',
-      amount: tradeAmount / (signal.entryPrice || 50000),
-      price: signal.entryPrice || 50000,
-      totalValue: tradeAmount,
-      total: tradeAmount,
-      timestamp: new Date().toISOString(),
-      currency: 'AUD',
-      botGenerated: true,
-      strategyId: bot.id
-    };
-
-    // Add trade to bot account
-    bot.account.trades.push(trade);
+  private analyzeTrendFollowing(bot: TradingBot): BotTradeRecommendation {
+    // Mock trend analysis
+    const isUptrend = Math.random() > 0.4; // 60% chance of uptrend
+    const confidence = 0.6 + Math.random() * 0.3; // 60-90% confidence
     
-    // Update account balance
-    if (trade.type === 'buy') {
-      bot.account.balance -= trade.totalValue;
-    } else {
-      bot.account.balance += trade.totalValue;
+    if (isUptrend && confidence > 0.7) {
+      return {
+        action: 'buy',
+        coinId: 'bitcoin',
+        amount: bot.account.balance * 0.1, // 10% of balance
+        confidence,
+        reasoning: 'Strong upward trend detected with high momentum',
+        targetPrice: 47000,
+        stopLoss: 43000,
+      };
     }
-
-    // Update performance metrics
-    bot.performance.totalTrades++;
-    this.updateBotPerformance(bot);
-
-    this.logBotAction(
-      bot.id,
-      `${trade.type.toUpperCase()} Order Executed`,
-      trade,
-      'success',
-      `Executed ${trade.type} order for ${trade.amount.toFixed(6)} ${trade.coinSymbol}`,
-      signal.confidence
-    );
-
-    toast({
-      title: "AI Bot Trade Executed",
-      description: `${bot.name} executed ${trade.type} order for ${trade.coinSymbol}`,
-    });
-  }
-
-  private updateBotPerformance(bot: AITradingBot) {
-    const trades = bot.account.trades;
-    if (trades.length === 0) return;
-
-    // Calculate win rate (simplified)
-    const wins = trades.filter(trade => {
-      // This is a simplified calculation - in reality you'd compare entry/exit prices
-      return Math.random() > 0.4; // Simulate 60% win rate
-    }).length;
     
-    bot.performance.winRate = (wins / trades.length) * 100;
-    
-    // Calculate total return
-    const initialBalance = 10000;
-    const currentValue = bot.account.balance;
-    bot.performance.totalReturn = ((currentValue - initialBalance) / initialBalance) * 100;
-    
-    // Update other metrics (simplified)
-    bot.performance.sharpeRatio = Math.random() * 2; // 0-2 range
-    bot.performance.maxDrawdown = Math.random() * 20; // 0-20% range
-  }
-
-  private async getMarketData(assets: string[]): Promise<any> {
-    // This would normally fetch real market data
-    // For now, return mock data
     return {
-      symbol: 'BTC',
-      price: 45000 + (Math.random() - 0.5) * 2000,
-      volume: 1000000000,
-      change24h: (Math.random() - 0.5) * 10,
-      timestamp: new Date().toISOString()
+      action: 'hold',
+      coinId: 'bitcoin',
+      amount: 0,
+      confidence: 0.5,
+      reasoning: 'No clear trend signal',
     };
   }
 
-  private logBotAction(
-    botId: string,
-    action: string,
-    details: any,
-    result: 'success' | 'failed' | 'pending',
-    reasoning: string,
-    confidence: number
-  ) {
-    const bot = this.bots.get(botId);
-    if (!bot) return;
-
-    const auditEntry: BotAuditEntry = {
-      id: uuidv4(),
-      timestamp: new Date().toISOString(),
-      action,
-      details,
-      result,
-      reasoning,
-      confidence
-    };
-
-    bot.auditLog.unshift(auditEntry);
+  private analyzeMeanReversion(bot: TradingBot): BotTradeRecommendation {
+    // Mock mean reversion analysis
+    const isOversold = Math.random() > 0.7; // 30% chance of oversold
+    const confidence = 0.5 + Math.random() * 0.4; // 50-90% confidence
     
-    // Keep only last 100 entries
-    if (bot.auditLog.length > 100) {
-      bot.auditLog = bot.auditLog.slice(0, 100);
+    if (isOversold && confidence > 0.8) {
+      return {
+        action: 'buy',
+        coinId: 'bitcoin',
+        amount: bot.account.balance * 0.05, // 5% of balance
+        confidence,
+        reasoning: 'Asset is oversold, expecting mean reversion',
+        targetPrice: 46000,
+        stopLoss: 44000,
+      };
     }
-
-    this.bots.set(botId, bot);
-    this.saveBots();
+    
+    return {
+      action: 'hold',
+      coinId: 'bitcoin',
+      amount: 0,
+      confidence: 0.6,
+      reasoning: 'Price within normal range',
+    };
   }
 
-  getBots(): AITradingBot[] {
+  private analyzeBreakout(bot: TradingBot): BotTradeRecommendation {
+    // Mock breakout analysis
+    const isBreakout = Math.random() > 0.8; // 20% chance of breakout
+    const confidence = 0.7 + Math.random() * 0.2; // 70-90% confidence
+    
+    if (isBreakout) {
+      return {
+        action: 'buy',
+        coinId: 'bitcoin',
+        amount: bot.account.balance * 0.15, // 15% of balance
+        confidence,
+        reasoning: 'Breakout above resistance level detected',
+        targetPrice: 48000,
+        stopLoss: 44500,
+      };
+    }
+    
+    return {
+      action: 'hold',
+      coinId: 'bitcoin',
+      amount: 0,
+      confidence: 0.4,
+      reasoning: 'No breakout pattern detected',
+    };
+  }
+
+  private analyzeSentiment(bot: TradingBot): BotTradeRecommendation {
+    // Mock sentiment analysis
+    const sentimentScore = Math.random(); // 0-1 sentiment score
+    const confidence = 0.6 + Math.random() * 0.3;
+    
+    if (sentimentScore > 0.7) {
+      return {
+        action: 'buy',
+        coinId: 'bitcoin',
+        amount: bot.account.balance * 0.08, // 8% of balance
+        confidence,
+        reasoning: 'Positive market sentiment detected from news and social media',
+        targetPrice: 47500,
+        stopLoss: 43500,
+      };
+    } else if (sentimentScore < 0.3) {
+      return {
+        action: 'sell',
+        coinId: 'bitcoin',
+        amount: 0.1, // Sell 0.1 BTC
+        confidence,
+        reasoning: 'Negative market sentiment, reducing exposure',
+      };
+    }
+    
+    return {
+      action: 'hold',
+      coinId: 'bitcoin',
+      amount: 0,
+      confidence: 0.5,
+      reasoning: 'Neutral market sentiment',
+    };
+  }
+
+  private async executeBotTrade(bot: TradingBot, recommendation: BotTradeRecommendation): Promise<void> {
+    try {
+      // Create trade record
+      const trade: Trade = {
+        id: `trade_${Date.now()}`,
+        coinId: recommendation.coinId,
+        coinName: 'Bitcoin',
+        coinSymbol: 'BTC',
+        symbol: 'BTC',
+        type: recommendation.action as 'buy' | 'sell',
+        amount: recommendation.amount,
+        quantity: recommendation.amount,
+        price: 45000, // Mock current price
+        totalValue: recommendation.amount * 45000,
+        total: recommendation.amount * 45000,
+        timestamp: new Date().toISOString(),
+        currency: 'AUD',
+        botGenerated: true,
+        strategyId: bot.strategy.id,
+      };
+
+      // Add trade to bot's account
+      bot.account.trades.push(trade);
+      
+      // Update bot performance
+      bot.performance.totalTrades += 1;
+      bot.lastAction = new Date();
+      
+      // Update account balance
+      if (recommendation.action === 'buy') {
+        bot.account.balance -= trade.totalValue;
+      } else {
+        bot.account.balance += trade.totalValue;
+      }
+
+      console.log(`Bot ${bot.name} executed ${recommendation.action} trade:`, trade);
+      
+    } catch (error) {
+      console.error(`Failed to execute bot trade:`, error);
+    }
+  }
+
+  getBots(): TradingBot[] {
     return Array.from(this.bots.values());
   }
 
-  getBot(botId: string): AITradingBot | undefined {
+  getBot(botId: string): TradingBot | undefined {
     return this.bots.get(botId);
   }
 
-  getActiveBots(): AITradingBot[] {
-    return Array.from(this.bots.values()).filter(bot => bot.isActive);
+  getBotPerformance(botId: string): TradingBot['performance'] | null {
+    const bot = this.bots.get(botId);
+    return bot ? bot.performance : null;
   }
 
-  getBotAuditLog(botId: string): BotAuditEntry[] {
+  updateBotStrategy(botId: string, strategy: AITradingStrategy): boolean {
     const bot = this.bots.get(botId);
-    return bot ? bot.auditLog : [];
-  }
-
-  updateBotConfig(botId: string, config: Partial<AITradingBot['config']>): boolean {
-    const bot = this.bots.get(botId);
-    if (!bot) return false;
-
-    bot.config = { ...bot.config, ...config };
-    bot.updatedAt = new Date().toISOString();
-    this.bots.set(botId, bot);
-    this.saveBots();
-
-    this.logBotAction(botId, 'Configuration Updated', config, 'success', 'Bot configuration updated', 1.0);
-    return true;
-  }
-
-  deleteBotById(botId: string): boolean {
-    const bot = this.bots.get(botId);
-    if (!bot) return false;
-
-    if (bot.isActive) {
-      this.deactivateBot(botId);
+    if (bot) {
+      bot.strategy = strategy;
+      return true;
     }
+    return false;
+  }
 
-    this.bots.delete(botId);
-    this.saveBots();
-
-    toast({
-      title: "AI Bot Deleted",
-      description: `${bot.name} has been permanently deleted`,
-    });
-
-    return true;
+  deleteBot(botId: string): boolean {
+    return this.bots.delete(botId);
   }
 }
 
+// Export singleton instance
 export const aiTradingBotService = new AITradingBotService();
 export default aiTradingBotService;

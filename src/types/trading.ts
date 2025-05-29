@@ -60,10 +60,17 @@ export interface CoinOption {
   image?: string;
   value: string;
   label: string;
+  rank?: number;
 }
 
 export interface CryptoData extends CoinOption {
   // Additional properties for crypto data
+}
+
+export interface CryptoChartData extends CryptoData {
+  // Chart-specific data
+  chartData?: number[][];
+  timestamps?: string[];
 }
 
 export interface RiskAssessmentResult {
@@ -136,6 +143,9 @@ export interface ApiProvider {
   documentation: string;
   apiKey?: string;
   usageLimit?: number;
+  enabled?: boolean;
+  defaultHeaders?: Record<string, string>;
+  requiresAuth?: boolean;
   rateLimit: {
     requestsPerMinute: number;
     requestsPerDay: number;
@@ -157,6 +167,7 @@ export interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   description: string;
   parameters?: Record<string, any>;
+  requiresAuth?: boolean;
 }
 
 export interface ApiUsageStats {
@@ -477,7 +488,7 @@ export interface AITradingStrategy {
   };
   creator?: string;
   tags?: string[];
-  profitPotential?: number;
+  profitPotential?: string;
   backtestResults?: {
     winRate?: number;
     profitFactor?: number;
@@ -501,7 +512,7 @@ export interface FakeTradingFormProps {
 }
 
 export interface TradingFormProps {
-  onTrade: (trade: Trade) => void;
+  onTrade: (coinId: string, type: 'buy' | 'sell', amount: number, price: number) => void;
   selectedCoin?: CoinOption;
   balance?: number;
   availableCoins?: CoinOption[];
@@ -531,4 +542,9 @@ export interface WalletConnectionProps {
   onConnect: (wallet: WalletAccount) => void;
   connectedWallets?: WalletAccount[];
   supportedWallets?: WalletProvider[];
+}
+
+export interface MarketInsightsResponse {
+  insights: MarketInsight[];
+  signals: TradingSignal[];
 }

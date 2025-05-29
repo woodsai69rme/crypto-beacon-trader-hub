@@ -10,13 +10,13 @@ import { ArrowUpDown } from "lucide-react";
 import { CoinOption, SupportedCurrency, TradingFormProps } from '@/types/trading';
 
 const TradingForm: React.FC<TradingFormProps> = ({
-  balance,
-  availableCoins,
+  balance = 10000,
+  availableCoins = [],
   onTrade,
-  getOwnedCoinAmount,
-  activeCurrency,
+  getOwnedCoinAmount = () => 0,
+  activeCurrency = 'AUD',
   onCurrencyChange,
-  conversionRate
+  conversionRate = 1
 }) => {
   const [selectedCoinId, setSelectedCoinId] = useState<string>(availableCoins[0]?.id || '');
   const [tradeAmount, setTradeAmount] = useState<number>(0);
@@ -43,7 +43,7 @@ const TradingForm: React.FC<TradingFormProps> = ({
         setMaxAmount(getOwnedCoinAmount(selectedCoin.id));
       }
     }
-  }, [tradeAmount, selectedCoin, tradeType, balance]);
+  }, [tradeAmount, selectedCoin, tradeType, balance, getOwnedCoinAmount]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

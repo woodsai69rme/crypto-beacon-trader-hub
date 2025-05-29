@@ -5,6 +5,8 @@ import { SupportedCurrency } from '@/types/trading';
 interface CurrencyContextType {
   currency: SupportedCurrency;
   setCurrency: (currency: SupportedCurrency) => void;
+  activeCurrency: SupportedCurrency;
+  setActiveCurrency: (currency: SupportedCurrency) => void;
   formatCurrency: (amount: number) => string;
   convertFromUSD: (usdAmount: number) => number;
   convertToUSD: (amount: number) => number;
@@ -24,28 +26,31 @@ const EXCHANGE_RATES: Record<SupportedCurrency, number> = {
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currency, setCurrency] = useState<SupportedCurrency>('AUD');
+  const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>('AUD');
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-AU', {
       style: 'currency',
-      currency: currency,
+      currency: activeCurrency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(amount);
   };
 
   const convertFromUSD = (usdAmount: number): number => {
-    return usdAmount / EXCHANGE_RATES[currency];
+    return usdAmount / EXCHANGE_RATES[activeCurrency];
   };
 
   const convertToUSD = (amount: number): number => {
-    return amount * EXCHANGE_RATES[currency];
+    return amount * EXCHANGE_RATES[activeCurrency];
   };
 
   return (
     <CurrencyContext.Provider value={{
       currency,
       setCurrency,
+      activeCurrency,
+      setActiveCurrency,
       formatCurrency,
       convertFromUSD,
       convertToUSD
@@ -62,3 +67,5 @@ export const useCurrency = (): CurrencyContextType => {
   }
   return context;
 };
+
+export default CurrencyContext;

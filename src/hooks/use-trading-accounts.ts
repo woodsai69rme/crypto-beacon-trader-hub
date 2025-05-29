@@ -1,156 +1,81 @@
 
-import { useState, useEffect } from 'react';
-import { TradingAccount, Trade } from '@/types/trading';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { toast } from '@/components/ui/use-toast';
-import { v4 as uuidv4 } from 'uuid';
+import { useState } from 'react';
+import { TradingAccount, PortfolioAsset } from '@/types/trading';
 
-interface UseTradingAccountsReturn {
-  accounts: TradingAccount[];
-  activeAccountId: string | null;
-  createAccount: (name: string, balance: number) => void;
-  deleteAccount: (id: string) => void;
-  setActiveAccountId: (id: string | null) => void;
-  addTradeToAccount: (accountId: string, trade: Trade) => void;
-  getActiveAccount: () => TradingAccount | null;
-  updateAccount: (id: string, updates: Partial<TradingAccount>) => void;
-}
+export const useTradingAccounts = () => {
+  const [accounts, setAccounts] = useState<TradingAccount[]>([]);
+  const [activeAccountId, setActiveAccountId] = useState<string>('');
 
-export const useTradingAccounts = (): UseTradingAccountsReturn => {
-  // Load accounts from local storage
-  const [accounts, setAccounts] = useLocalStorage<TradingAccount[]>('trading-accounts', []);
-  const [activeAccountId, setActiveAccountId] = useLocalStorage<string | null>('active-trading-account', null);
-
-  // Initialize with a default account if none exists
-  useEffect(() => {
-    if (accounts.length === 0) {
-      const defaultAccount: TradingAccount = {
-        id: uuidv4(),
-        name: 'Default Account',
-        balance: 10000,
-        initialBalance: 10000,
-        currency: 'USD',
-        trades: [],
-        createdAt: new Date().toISOString()
-      };
-      
-      setAccounts([defaultAccount]);
-      setActiveAccountId(defaultAccount.id);
-      
-      toast({
-        title: 'Default Account Created',
-        description: 'A default trading account has been set up for you.'
-      });
-    }
-  }, []);
-
-  const createAccount = (name: string, balance: number) => {
+  const addAccount = (accountData: Omit<TradingAccount, 'id' | 'createdAt'>) => {
     const newAccount: TradingAccount = {
-      id: uuidv4(),
-      name,
-      balance,
-      initialBalance: balance,
-      currency: 'USD',
-      trades: [],
-      createdAt: new Date().toISOString()
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      ...accountData,
     };
-    
-    setAccounts([...accounts, newAccount]);
-    setActiveAccountId(newAccount.id);
-    
-    toast({
-      title: 'Account Created',
-      description: `Trading account "${name}" has been created with $${balance.toLocaleString()}.`
-    });
-    
-    return newAccount.id;
+    setAccounts(prev => [...prev, newAccount]);
+    return newAccount;
   };
 
-  const deleteAccount = (id: string) => {
-    // Don't allow deleting the last account
-    if (accounts.length <= 1) {
-      toast({
-        title: 'Cannot Delete Account',
-        description: 'You must have at least one trading account.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    const accountToDelete = accounts.find(a => a.id === id);
-    if (!accountToDelete) return;
-    
-    // Update accounts
-    const updatedAccounts = accounts.filter(a => a.id !== id);
-    setAccounts(updatedAccounts);
-    
-    // Update active account if needed
-    if (activeAccountId === id) {
-      setActiveAccountId(updatedAccounts[0]?.id || null);
-    }
-    
-    toast({
-      title: 'Account Deleted',
-      description: `Trading account "${accountToDelete.name}" has been deleted.`
-    });
-  };
-
-  const addTradeToAccount = (accountId: string, trade: Trade) => {
-    const accountIndex = accounts.findIndex(a => a.id === accountId);
-    if (accountIndex === -1) return;
-    
-    const account = accounts[accountIndex];
-    
-    // Calculate the impact on balance
-    let balanceChange = 0;
-    if (trade.type === 'buy') {
-      balanceChange = -trade.totalValue;
-    } else if (trade.type === 'sell') {
-      balanceChange = trade.totalValue;
-    }
-    
-    // Create updated account
-    const updatedAccount = {
-      ...account,
-      balance: account.balance + balanceChange,
-      trades: [...account.trades, trade],
-      lastModified: new Date().toISOString()
-    };
-    
-    // Update accounts
-    const updatedAccounts = [...accounts];
-    updatedAccounts[accountIndex] = updatedAccount;
-    setAccounts(updatedAccounts);
-  };
-  
   const getActiveAccount = () => {
-    if (!activeAccountId) return null;
-    return accounts.find(a => a.id === activeAccountId) || null;
+    return accounts.find(account => account.id === activeAccountId);
   };
-  
-  const updateAccount = (id: string, updates: Partial<TradingAccount>) => {
-    const accountIndex = accounts.findIndex(a => a.id === id);
-    if (accountIndex === -1) return;
-    
-    const updatedAccount = {
-      ...accounts[accountIndex],
-      ...updates,
-      lastModified: new Date().toISOString()
+
+  const createDefaultPaperAccount = () => {
+    const defaultAccount: TradingAccount = {
+      id: 'default-paper',
+      name: 'Default Paper Account',
+      type: 'paper',
+      balance: 10000,
+      currency: 'AUD',
+      trades: [],
+      assets: [],
+      createdAt: new Date().toISOString(),
+      isActive: true,
     };
     
-    const updatedAccounts = [...accounts];
-    updatedAccounts[accountIndex] = updatedAccount;
-    setAccounts(updatedAccounts);
+    setAccounts([defaultAccount]);
+    setActiveAccountId(defaultAccount.id);
+    return defaultAccount;
+  };
+
+  const createDefaultLiveAccount = () => {
+    const mockAssets: PortfolioAsset[] = [
+      {
+        coinId: 'bitcoin',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        amount: 0.5,
+        price: 45000,
+        value: 22500,
+        allocation: 45,
+        change24h: 1200,
+        changePercent24h: 2.7,
+      }
+    ];
+
+    const liveAccount: TradingAccount = {
+      id: 'default-live',
+      name: 'Default Live Account',
+      type: 'live',
+      balance: 50000,
+      currency: 'AUD',
+      trades: [],
+      assets: mockAssets,
+      createdAt: new Date().toISOString(),
+      isActive: true,
+    };
+    
+    setAccounts(prev => [...prev, liveAccount]);
+    return liveAccount;
   };
 
   return {
     accounts,
     activeAccountId,
-    createAccount,
-    deleteAccount,
     setActiveAccountId,
-    addTradeToAccount,
+    addAccount,
     getActiveAccount,
-    updateAccount
+    createDefaultPaperAccount,
+    createDefaultLiveAccount,
   };
 };

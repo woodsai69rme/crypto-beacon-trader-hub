@@ -1,57 +1,71 @@
 
 import { ApiProvider, ApiEndpoint } from '@/types/trading';
 
-const createEndpoint = (id: string, name: string, path: string, method: string, description: string, requiresAuth: boolean): ApiEndpoint => ({
+export const createApiEndpoint = (
+  id: string,
+  name: string,
+  path: string,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  description: string,
+  requiresAuth: boolean = false
+): ApiEndpoint => ({
   id,
   name,
+  url: path,
   path,
   method,
   description,
-  requiresAuth
+  requiresAuth,
 });
 
-export const defaultApiProviders: ApiProvider[] = [
-  {
-    id: 'coingecko-free',
-    name: 'CoinGecko Free',
-    type: 'free',
-    url: 'https://api.coingecko.com/api/v3',
-    documentation: 'https://www.coingecko.com/api/docs/v3',
-    description: 'Free cryptocurrency data with rate limits',
-    rateLimit: {
-      requestsPerMinute: 10,
-      requestsPerDay: 1000
-    },
-    endpoints: [
-      createEndpoint('ping', 'Ping', '/ping', 'GET', 'Check API status', false),
-      createEndpoint('coins-list', 'Coins List', '/coins/list', 'GET', 'List all coins', false)
-    ],
-    isActive: true,
-    enabled: true
-  },
-  {
-    id: 'coingecko-pro',
-    name: 'CoinGecko Pro',
-    type: 'paid',
-    url: 'https://pro-api.coingecko.com/api/v3',
-    documentation: 'https://www.coingecko.com/api/docs/v3',
-    description: 'Premium cryptocurrency data with higher limits',
-    rateLimit: {
-      requestsPerMinute: 500,
-      requestsPerDay: 50000
-    },
-    endpoints: [
-      createEndpoint('ping-pro', 'Ping Pro', '/ping', 'GET', 'Check Pro API status', false),
-      createEndpoint('coins-markets-pro', 'Markets Pro', '/coins/markets', 'GET', 'Market data with extended info', true)
-    ],
-    isActive: false,
-    enabled: false,
-    requiresAuth: true
-  }
+export const coingeckoEndpoints = [
+  createApiEndpoint('prices', 'Simple Price', '/simple/price', 'GET', 'Get current prices'),
+  createApiEndpoint('markets', 'Coin Markets', '/coins/markets', 'GET', 'Get market data'),
+  createApiEndpoint('coins', 'Coin List', '/coins/list', 'GET', 'Get all coins list'),
 ];
 
-export const getDefaultProvider = (): ApiProvider => defaultApiProviders[0];
+export const coinmarketcapEndpoints = [
+  createApiEndpoint('listings', 'Latest Listings', '/v1/cryptocurrency/listings/latest', 'GET', 'Latest market data', true),
+  createApiEndpoint('quotes', 'Price Quotes', '/v1/cryptocurrency/quotes/latest', 'GET', 'Current price quotes', true),
+];
 
-export const getProviderByType = (type: 'free' | 'paid'): ApiProvider[] => {
-  return defaultApiProviders.filter(provider => provider.type === type);
-};
+export const API_PROVIDERS: ApiProvider[] = [
+  {
+    id: 'coingecko',
+    name: 'CoinGecko',
+    type: 'free',
+    url: 'https://api.coingecko.com/api/v3',
+    documentation: 'https://www.coingecko.com/en/api/documentation',
+    rateLimit: {
+      requestsPerMinute: 10,
+      requestsPerDay: 1000,
+    },
+    endpoints: {
+      price: '/simple/price',
+      markets: '/coins/markets',
+      assets: '/coins/list',
+      news: '/news'
+    },
+    isActive: true,
+    enabled: true,
+  },
+  {
+    id: 'coinmarketcap',
+    name: 'CoinMarketCap',
+    type: 'paid',
+    url: 'https://pro-api.coinmarketcap.com',
+    documentation: 'https://coinmarketcap.com/api/documentation/v1/',
+    rateLimit: {
+      requestsPerMinute: 30,
+      requestsPerDay: 10000,
+    },
+    endpoints: {
+      price: '/v1/cryptocurrency/quotes/latest',
+      markets: '/v1/cryptocurrency/listings/latest',
+      assets: '/v1/cryptocurrency/map',
+    },
+    isActive: false,
+    enabled: false,
+    requiresAuth: true,
+  },
+];

@@ -13,7 +13,7 @@ const AiTradingBots: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("trending");
   const [activeBots, setActiveBots] = useState<AITradingStrategy[]>([]);
-  const [selectedStrategy, setSelectedStrategy] = useState<string>('');
+  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
   
   // Mock data for trending strategies
   const trendingStrategies: AITradingStrategy[] = [
@@ -23,9 +23,10 @@ const AiTradingBots: React.FC = () => {
       description: "Follows major market trends across multiple timeframes",
       riskLevel: "medium",
       profitPotential: "medium",
-      timeframe: "medium",
+      timeframe: 24,
+      type: 'trend-following',
+      parameters: {},
       indicators: ["Moving Averages", "MACD", "Volume"],
-      triggers: ["Crossovers", "Volume Spikes"],
       backtestResults: {
         winRate: 62,
         profitFactor: 1.8,
@@ -39,9 +40,10 @@ const AiTradingBots: React.FC = () => {
       description: "Captures price movements after periods of consolidation",
       riskLevel: "high",
       profitPotential: "high",
-      timeframe: "short",
+      timeframe: 1,
+      type: 'breakout',
+      parameters: {},
       indicators: ["Bollinger Bands", "ATR", "Support/Resistance"],
-      triggers: ["Band Breakouts", "Volume Confirmation"],
       backtestResults: {
         winRate: 45,
         profitFactor: 2.1,
@@ -55,9 +57,10 @@ const AiTradingBots: React.FC = () => {
       description: "Takes advantage of price returning to average levels",
       riskLevel: "low",
       profitPotential: "low",
-      timeframe: "long",
+      timeframe: 168,
+      type: 'mean-reversion',
+      parameters: {},
       indicators: ["RSI", "Stochastic", "Bollinger Bands"],
-      triggers: ["Oversold/Overbought", "Deviation from Mean"],
       backtestResults: {
         winRate: 73,
         profitFactor: 1.5,
@@ -91,8 +94,8 @@ const AiTradingBots: React.FC = () => {
   };
 
   // Handle strategy selection
-  const handleSelectStrategy = (strategyId: string) => {
-    setSelectedStrategy(strategyId);
+  const handleSelectStrategy = (strategy: AITradingStrategy) => {
+    setSelectedStrategy(strategy);
   };
   
   return (
@@ -126,7 +129,7 @@ const AiTradingBots: React.FC = () => {
                           </Avatar>
                           <div>
                             <h3 className="font-medium">{strategy.name}</h3>
-                            <p className="text-xs text-muted-foreground">{strategy.timeframe} term</p>
+                            <p className="text-xs text-muted-foreground">{strategy.timeframe}h term</p>
                           </div>
                         </div>
                         
@@ -202,9 +205,8 @@ const AiTradingBots: React.FC = () => {
         
         <CardContent>
           <AiTradingStrategySelector 
-            strategies={trendingStrategies}
-            selectedStrategy={selectedStrategy}
             onSelectStrategy={handleSelectStrategy}
+            selectedStrategyId={selectedStrategy?.id}
           />
         </CardContent>
       </Card>

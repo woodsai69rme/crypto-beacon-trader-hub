@@ -14,20 +14,70 @@ import {
   RefreshCw,
   Lightbulb
 } from 'lucide-react';
-import { MarketInsight, TradingSignal } from '@/types/trading';
-import { getPersonalizedMarketInsights } from '@/services/aiPortfolioService';
+import { MarketInsight, TradingSignal, TradingAccount, MarketInsightsResponse } from '@/types/trading';
+
+// Mock service function
+const getPersonalizedMarketInsights = async (account: TradingAccount): Promise<MarketInsightsResponse> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  return {
+    insights: [
+      {
+        id: '1',
+        type: 'opportunity',
+        title: 'Bitcoin Oversold Condition',
+        summary: 'BTC is showing oversold conditions on multiple timeframes',
+        relevance: 0.85,
+        confidence: 0.78,
+        timestamp: new Date().toISOString(),
+        assets: ['BTC'],
+        details: 'Technical analysis suggests a potential bounce'
+      }
+    ],
+    signals: [
+      {
+        id: '1',
+        coinId: 'bitcoin',
+        coinSymbol: 'BTC',
+        type: 'buy',
+        price: 45000,
+        strength: 0.8,
+        timestamp: new Date().toISOString(),
+        reason: 'Oversold RSI with bullish divergence',
+        suggestedActions: {
+          entry: 45000,
+          target: 48000,
+          stopLoss: 43000
+        }
+      }
+    ]
+  };
+};
 
 const PersonalizedMarketInsights: React.FC = () => {
   const [insights, setInsights] = useState<MarketInsight[]>([]);
   const [signals, setSignals] = useState<TradingSignal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Mock trading account for the service call
+  const mockAccount: TradingAccount = {
+    id: '1',
+    name: 'Default Account',
+    trades: [],
+    balance: 10000,
+    currency: 'AUD',
+    createdAt: new Date().toISOString(),
+    type: 'paper',
+    assets: []
+  };
+
   const loadInsights = async () => {
     setIsLoading(true);
     try {
-      const data = await getPersonalizedMarketInsights([]);
-      setInsights(data.insights || []);
-      setSignals(data.signals || []);
+      const data = await getPersonalizedMarketInsights(mockAccount);
+      setInsights(data.insights);
+      setSignals(data.signals);
     } catch (error) {
       console.error('Failed to load insights:', error);
     } finally {
