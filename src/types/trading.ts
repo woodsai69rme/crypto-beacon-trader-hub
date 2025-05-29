@@ -27,6 +27,7 @@ export interface PortfolioAsset {
   amount: number;
   price: number;
   priceChange?: number;
+  symbol?: string;
 }
 
 export interface TradingAccount {
@@ -145,6 +146,7 @@ export interface ApiEndpoint {
   id: string;
   name: string;
   url: string;
+  path?: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   description: string;
   parameters?: Record<string, any>;
@@ -198,6 +200,8 @@ export interface DefiProtocol {
   apy: number;
   risk: 'low' | 'medium' | 'high';
   url: string;
+  logoUrl?: string;
+  description?: string;
 }
 
 export interface NewsItem {
@@ -270,6 +274,25 @@ export interface ATOTaxCalculation {
   };
 }
 
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  bracket: string;
+}
+
+export interface TaxHarvestTradeItem {
+  id: string;
+  symbol: string;
+  quantity: number;
+  costBasis: number;
+  currentPrice: number;
+  currentValue?: number;
+  profitLoss?: number;
+  purchaseDate: string;
+  taxLotId: string;
+}
+
 export type WidgetType = 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'news' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis';
 export type WidgetSize = 'small' | 'medium' | 'large';
 
@@ -295,6 +318,7 @@ export interface SidebarSettings {
   position: 'left' | 'right';
   defaultCollapsed: boolean;
   showLabels: boolean;
+  collapsed?: boolean;
 }
 
 export interface NotificationSettings {
@@ -333,7 +357,6 @@ export interface TradingPreferences {
   defaultAsset?: string;
 }
 
-// Enhanced SettingsFormValues to include all required fields
 export interface SettingsFormValues {
   email?: string;
   username?: string;
@@ -388,4 +411,70 @@ export interface LiveAnalyticsDashboardProps {
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolio: any;
   benchmarks?: any[];
+  portfolioData?: any;
+  timeframe?: string;
+  portfolioPerformance?: number[];
+  portfolioDates?: string[];
+}
+
+export interface NewsTickerProps {
+  items: NewsItem[];
+  speed?: number;
+  direction?: 'left' | 'right';
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
+}
+
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
+  timeframe: string;
+  parameters: any;
+  riskLevel?: string;
+  indicators?: string[];
+  performance?: {
+    winRate?: number;
+    profitFactor?: number;
+    sharpeRatio?: number;
+    trades?: number;
+    profitLoss?: number;
+    drawdown?: number;
+    returns?: number;
+  };
+  creator?: string;
+  tags?: string[];
+}
+
+export interface AiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
+export interface FakeTradingFormProps {
+  onTrade: (trade: Trade) => void;
+  selectedCoin?: CoinOption;
 }
