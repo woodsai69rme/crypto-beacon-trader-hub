@@ -1,16 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
-import { FormItem, FormLabel, FormDescription, FormControl } from '@/components/ui/form';
-import { InfoIcon, KeyIcon, ShieldIcon } from 'lucide-react';
-import openRouterService from '@/services/openRouterService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Bot, Key, Zap } from 'lucide-react';
+import { openRouterService } from '@/services/openRouterService';
+import { SettingsComponentProps } from './types';
 import { useToast } from '@/hooks/use-toast';
 
-const OpenRouterSettings: React.FC = () => {
+const OpenRouterSettings: React.FC<SettingsComponentProps> = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [isConfigured, setIsConfigured] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);

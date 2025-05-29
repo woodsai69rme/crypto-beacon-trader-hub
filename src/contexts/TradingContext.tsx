@@ -120,3 +120,4 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 };
 
 export const useTrading = () => useContext(TradingContext);
+export const useTradingContext = () => useContext(TradingContext);

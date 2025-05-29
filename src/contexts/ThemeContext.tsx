@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+export type Theme = 'dark' | 'light' | 'system';
+export type ColorScheme = 'default' | 'midnight-tech' | 'cyber-pulse' | 'matrix-code' | 'neon-future' | 'sunset-gradient';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -12,11 +13,15 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  colorScheme: ColorScheme;
+  setColorScheme: (colorScheme: ColorScheme) => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: 'system',
+  theme: 'dark',
   setTheme: () => null,
+  colorScheme: 'default',
+  setColorScheme: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -29,6 +34,10 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+  );
+  
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(
+    () => (localStorage.getItem('color-scheme') as ColorScheme) || 'default'
   );
 
   useEffect(() => {
@@ -49,12 +58,26 @@ export function ThemeProvider({
     root.classList.add(theme);
   }, [theme]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    
+    // Remove all color scheme classes
+    root.classList.remove('default', 'midnight-tech', 'cyber-pulse', 'matrix-code', 'neon-future', 'sunset-gradient');
+    
+    // Add current color scheme
+    root.classList.add(colorScheme);
+    
+    localStorage.setItem('color-scheme', colorScheme);
+  }, [colorScheme]);
+
   const value = {
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
+    colorScheme,
+    setColorScheme,
   };
 
   return (

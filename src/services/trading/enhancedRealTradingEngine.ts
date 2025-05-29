@@ -1,3 +1,6 @@
+import { openRouterService } from '@/services/openRouterService';
+import { n8nAutomationService } from '@/services/automation/n8nAutomationService';
+import { aiTradingBotService } from '@/services/ai/aiTradingBotService';
 
 import { toast } from "@/hooks/use-toast";
 import realTradingEngine from './realTradingEngine';
