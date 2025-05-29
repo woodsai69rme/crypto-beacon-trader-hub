@@ -28,6 +28,7 @@ export interface PortfolioAsset {
   price: number;
   priceChange?: number;
   symbol?: string;
+  name?: string;
 }
 
 export interface TradingAccount {
@@ -211,6 +212,7 @@ export interface NewsItem {
   url: string;
   source: string;
   publishedAt: string;
+  timestamp?: string;
   sentiment?: 'positive' | 'neutral' | 'negative';
   relevance?: number;
   categories?: string[];
@@ -421,6 +423,7 @@ export interface NewsTickerProps {
   items: NewsItem[];
   speed?: number;
   direction?: 'left' | 'right';
+  className?: string;
 }
 
 export interface LocalModel {
@@ -466,15 +469,46 @@ export interface AITradingStrategy {
   };
   creator?: string;
   tags?: string[];
+  profitPotential?: number;
+  backtestResults?: {
+    winRate?: number;
+    profitFactor?: number;
+    sharpeRatio?: number;
+    trades?: number;
+  };
 }
 
 export interface AiBotTradingProps {
   botId: string;
-  strategyId: string;
-  strategyName: string;
+  strategyId?: string;
+  strategyName?: string;
 }
 
 export interface FakeTradingFormProps {
   onTrade: (trade: Trade) => void;
   selectedCoin?: CoinOption;
+  onAddTrade?: (trade: Trade) => void;
+  advancedMode?: boolean;
+}
+
+export interface TradingFormProps {
+  onTrade: (trade: Trade) => void;
+  selectedCoin?: CoinOption;
+}
+
+export interface RealTimePricesProps {
+  initialCoins: CoinOption[];
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+  refreshInterval?: number;
+}
+
+export interface RealTimePriceChartProps {
+  coinId: string;
+  height?: number;
+}
+
+export interface WalletConnectionProps {
+  onConnect: (wallet: WalletProvider) => void;
+  connectedWallets: WalletAccount[];
 }
