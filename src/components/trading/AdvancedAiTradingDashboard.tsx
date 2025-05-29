@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, BarChart, Bot, LineChart, ArrowRight } from "lucide-react";
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { AVAILABLE_STRATEGIES } from '@/services/aiTradingService';
+import { getAvailableStrategies } from '@/services/trading/strategyService';
 
 const AdvancedAiTradingDashboard: React.FC = () => {
   const { formatCurrency } = useCurrency();
+  const AVAILABLE_STRATEGIES = getAvailableStrategies();
+  
   const mockPerformance = {
     today: 2.34,
     week: -1.23,
@@ -108,7 +110,7 @@ const AdvancedAiTradingDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3 max-h-[230px] overflow-y-auto">
-            {AVAILABLE_STRATEGIES.map(strategy => (
+            {AVAILABLE_STRATEGIES.slice(0, 5).map(strategy => (
               <div key={strategy.id} className="p-3 border rounded-lg hover:bg-accent/10 transition-colors">
                 <div className="flex justify-between items-start mb-1">
                   <h4 className="font-medium">{strategy.name}</h4>
@@ -120,7 +122,7 @@ const AdvancedAiTradingDashboard: React.FC = () => {
                 <div className="flex flex-wrap gap-1">
                   <span className="text-xs bg-muted px-2 py-0.5 rounded">{strategy.type}</span>
                   <span className="text-xs bg-muted px-2 py-0.5 rounded">{strategy.timeframe}</span>
-                  <span className="text-xs bg-muted px-2 py-0.5 rounded">{strategy.parameters.riskLevel} risk</span>
+                  <span className="text-xs bg-muted px-2 py-0.5 rounded">{strategy.riskLevel} risk</span>
                 </div>
               </div>
             ))}

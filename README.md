@@ -1,68 +1,81 @@
 
-# Crypto Beacon Trader Hub
+# 🚀 CryptoTrader Pro - Professional Cryptocurrency Trading Platform
 
-![Crypto Trading Platform](https://img.shields.io/badge/Platform-Crypto%20Trading-blue) ![Currency](https://img.shields.io/badge/Base%20Currency-AUD-green) ![AI Powered](https://img.shields.io/badge/AI-Powered-purple) ![License](https://img.shields.io/badge/License-MIT-yellow)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-A comprehensive cryptocurrency trading platform with advanced AI-powered trading bots, real-time market data, automation workflows, and portfolio management - designed specifically for Australian traders using AUD as the base currency.
+A comprehensive, professional-grade cryptocurrency trading platform built with React, TypeScript, and modern web technologies. Features AI-powered trading bots, real-time market data, advanced charting, portfolio optimization, and extensive exchange integrations.
 
-## 🚀 Key Features
+## 🌟 Features
 
-### 🤖 AI Trading Bots
-- **Multi-Model AI Integration**: OpenRouter integration with DeepSeek R1, Gemini 2.0, GPT-4, Claude 3
-- **Advanced Strategies**: Trend following, momentum, mean reversion, breakout, scalping
-- **Paper Trading**: Safe testing environment with virtual AUD funds
-- **Real-time Audit Logs**: Complete transparency of bot decisions and actions
-- **Risk Management**: Configurable risk levels and stop-loss/take-profit settings
+### 📈 Trading & Analysis
+- **15+ Trading Strategies**: SMA, EMA, RSI, MACD, Bollinger Bands, Stochastic, Williams %R, ADX, CCI, and more
+- **AI-Powered Trading Bots**: Multiple AI models including DeepSeek R1, Gemini 2, GPT-4, Claude
+- **Advanced Technical Indicators**: 50+ indicators with customizable parameters
+- **Real-time Market Data**: WebSocket connections for live price feeds and order books
+- **Professional Charting**: TradingView-style charts with drawing tools and annotations
+- **Backtesting Engine**: Historical performance analysis with detailed metrics
 
-### 📊 Trading & Portfolio
-- **AUD Base Currency**: All prices, calculations, and displays in Australian Dollars
-- **Real-time Data**: Live market feeds from multiple crypto APIs
-- **Multi-Exchange Support**: Binance, Coinbase, Kraken integration ready
-- **Portfolio Tracking**: Comprehensive asset allocation and performance metrics
-- **Advanced Charts**: TradingView-style charting with technical indicators
+### 💼 Portfolio Management
+- **Portfolio Optimization**: Modern Portfolio Theory with risk parity and Black-Litterman models
+- **Risk Management**: VaR, CVaR, drawdown protection, and correlation analysis
+- **Auto-Rebalancing**: Automated portfolio rebalancing based on target allocations
+- **Paper Trading**: Risk-free testing environment for strategies and bots
+- **Multi-Currency Support**: AUD as base currency with comprehensive conversion
 
-### 🔄 Automation & Workflows
-- **N8N Integration**: Visual workflow automation for trading signals
-- **Webhook Support**: Real-time notifications to Discord, Telegram, Slack
-- **Alert System**: Price alerts, volume spikes, pattern recognition
-- **Social Trading**: Copy successful traders and share strategies
+### 🔌 Exchange & API Integrations
+- **Exchange Support**: Binance, Coinbase Pro, Kraken, Bybit, and more
+- **Market Data APIs**: CoinGecko, CoinMarketCap, CryptoCompare, Messari
+- **Real-time Feeds**: WebSocket connections for live data streaming
+- **News & Sentiment**: CryptoPanic, NewsAPI, Reddit, Twitter sentiment analysis
+- **DeFi Integration**: Uniswap, Aave, Compound protocol support
 
-### 🔐 Security & Compliance
-- **Paper Trading Default**: Safe environment for learning and testing
-- **Secure API Management**: Encrypted storage of exchange API keys
-- **Audit Logging**: Complete transaction and bot activity history
-- **Risk Controls**: Built-in safeguards and position limits
+### 🤖 AI & Automation
+- **N8N Integration**: Workflow automation for trading signals and portfolio management
+- **Machine Learning**: LSTM neural networks, sentiment analysis, pattern recognition
+- **Signal Generation**: AI-generated trading signals with confidence scoring
+- **Risk Monitoring**: Automated alerts and position management
 
-## 🛠️ Quick Start
+### 📱 User Experience
+- **Responsive Design**: Mobile-first approach with desktop optimization
+- **Dark/Light Mode**: Comprehensive theming system
+- **Real-time Notifications**: Price alerts, trade notifications, risk warnings
+- **Social Trading**: Copy trading, leaderboards, signal sharing
+- **Comprehensive Analytics**: Performance tracking, correlation analysis, market insights
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn
-- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Node.js 18+ 
+- npm or yarn
+- Modern web browser with WebSocket support
 
 ### Installation
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/your-org/crypto-beacon-trader-hub.git
-cd crypto-beacon-trader-hub
-```
+   ```bash
+   git clone https://github.com/your-username/cryptotrader-pro.git
+   cd cryptotrader-pro
+   ```
 
 2. **Install dependencies**
-```bash
-npm install
-# or
-yarn install
-```
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
 3. **Start development server**
-```bash
-npm run dev
-# or
-yarn dev
-```
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
 4. **Open in browser**
-Navigate to `http://localhost:5173`
+   Navigate to `http://localhost:5173`
 
 ### Production Build
 ```bash
@@ -70,179 +83,167 @@ npm run build
 npm run preview
 ```
 
-## 🎯 Getting Started Guide
-
-### 1. First Launch
-- Platform defaults to AUD currency for Australian traders
-- Paper trading mode is enabled by default for safety
-- No API keys required to start - uses free market data
-
-### 2. Create Your First AI Bot
-1. Navigate to **AI Trading** → **Create Bot**
-2. Choose a strategy (recommend "Trend Following" for beginners)
-3. Select a free AI model (DeepSeek R1 recommended)
-4. Set risk level to "Low" initially
-5. Activate your bot and watch it trade with virtual AUD
-
-### 3. Monitor Performance
-- Check the **Audit Log** tab to see AI decision-making process
-- Monitor bot performance metrics in real-time
-- View trade history and portfolio changes
-
-### 4. Advanced Features
-- Set up N8N workflows for automation
-- Configure alerts and notifications
-- Explore social trading features
-- Connect real exchange APIs when ready
-
-## 🏗️ Architecture
-
-### Frontend
-- **React 18** with TypeScript for type safety
-- **Vite** for fast development and building
-- **Tailwind CSS** for responsive, mobile-first design
-- **Shadcn/UI** for consistent, accessible components
-
-### AI & Trading
-- **OpenRouter Integration** for multiple AI models
-- **Real-time Market Data** from CoinGecko, Binance APIs
-- **N8N Workflow Engine** for automation
-- **Local Storage** for bot configurations and history
-
-### Key Components
-```
-src/
-├── components/          # Reusable UI components
-├── services/           # Business logic and API integrations
-├── contexts/           # React context for state management
-├── hooks/              # Custom React hooks
-├── types/              # TypeScript type definitions
-└── utils/              # Helper functions and utilities
-```
-
 ## 🔧 Configuration
 
+### API Keys Setup
+The platform supports multiple API providers. Configure your keys in the settings:
+
+1. **OpenRouter API Key** - For AI trading models
+2. **CoinGecko API Key** - Enhanced market data (optional)
+3. **Exchange API Keys** - For live trading (Binance, Coinbase, etc.)
+4. **N8N Webhooks** - For automation workflows
+
 ### Environment Setup
-No environment file needed for basic operation. Optional configurations:
-
-- **OpenRouter API Key**: For premium AI models (GPT-4, Claude)
-- **Exchange API Keys**: For live trading (advanced users)
-- **N8N Instance**: For advanced automation workflows
-
-### Currency Settings
-The platform defaults to AUD but supports:
-- USD, EUR, GBP, CAD, JPY, CNY
-- Real-time exchange rate conversion
-- Persistent user preference storage
-
-## 📚 Usage Examples
-
-### Creating an AI Trading Bot
-```javascript
-// Example bot configuration
-const botConfig = {
-  name: "Conservative AUD Bot",
-  strategy: "trend-following",
-  aiModel: "deepseek/deepseek-r1",
-  riskLevel: "low",
-  maxTradeAmount: 1000, // AUD
-  targetAssets: ["bitcoin", "ethereum"]
-};
+```typescript
+// All configuration is handled through the UI
+// API keys are stored securely in localStorage
+// Exchange credentials are managed through the platform settings
 ```
 
-### Setting Up Alerts
-```javascript
-// Price alert configuration
-const alert = {
-  type: "price",
-  asset: "bitcoin",
-  condition: "above",
-  value: 45000, // AUD
-  notifications: ["app", "email"]
-};
+## 📊 Trading Strategies
+
+### Built-in Strategies
+- **Trend Following**: SMA/EMA crossovers, MACD signals
+- **Mean Reversion**: RSI oversold/overbought, Bollinger Band bounces
+- **Momentum**: Stochastic oscillator, Williams %R
+- **Breakout**: Bollinger Band squeezes, support/resistance breaks
+- **AI-Powered**: Machine learning predictions, sentiment analysis
+
+### Custom Strategy Creation
+```typescript
+// Create custom strategies using the Strategy Builder
+// Support for Pine Script-like syntax
+// Backtesting and optimization tools included
 ```
 
-## 🧪 Testing
+## 🔌 API Integrations
 
-### Running Tests
-```bash
-npm test          # Run unit tests
-npm run test:e2e  # Run end-to-end tests
-npm run lint      # Check code quality
-```
+### Market Data
+- **CoinGecko**: Comprehensive crypto market data
+- **Binance**: Real-time price feeds and order books
+- **CryptoCompare**: Historical data and social sentiment
+- **Messari**: Fundamental analysis and research data
 
-### Manual Testing Checklist
-- [ ] AI bots create and activate successfully
-- [ ] Paper trading executes trades correctly
-- [ ] AUD currency displays properly across all components
-- [ ] Responsive design works on mobile/tablet
-- [ ] Audit logs show bot decision reasoning
-- [ ] Portfolio balances update in real-time
+### News & Sentiment
+- **CryptoPanic**: Aggregated crypto news and sentiment
+- **Fear & Greed Index**: Market sentiment indicator
+- **Social Media**: Twitter/Reddit sentiment analysis
 
-## 🚀 Deployment
+### Exchange APIs
+- **Binance**: Spot, futures, and options trading
+- **Coinbase Pro**: Professional trading interface
+- **Kraken**: Advanced order types and margin trading
 
-### Vercel (Recommended)
-```bash
-npm run build
-# Deploy to Vercel via Git or CLI
-```
+## 🧠 AI & Machine Learning
 
-### Docker
-```bash
-docker build -t crypto-trading-platform .
-docker run -p 3000:3000 crypto-trading-platform
-```
+### Supported Models
+- **OpenRouter Integration**: Access to multiple AI models
+- **Local Model Support**: Ollama, LM Studio, GPT4All
+- **Custom Models**: Train your own LSTM networks
 
-### Static Hosting
-```bash
-npm run build
-# Upload dist/ folder to any static hosting service
-```
+### AI Features
+- **Price Prediction**: LSTM neural networks for forecasting
+- **Sentiment Analysis**: NLP for news and social media
+- **Pattern Recognition**: Computer vision for chart patterns
+- **Portfolio Optimization**: ML-driven asset allocation
+
+## 📈 Performance & Analytics
+
+### Key Metrics
+- **Sharpe Ratio**: Risk-adjusted returns
+- **Maximum Drawdown**: Worst-case scenario analysis
+- **Win Rate**: Success percentage of trades
+- **Profit Factor**: Gross profit / gross loss ratio
+- **Value at Risk (VaR)**: Portfolio risk assessment
+
+### Reporting
+- Daily, weekly, monthly performance reports
+- Trade execution analysis
+- Risk exposure monitoring
+- Correlation analysis between assets
+
+## 🔒 Security & Risk Management
+
+### Security Features
+- API key encryption and secure storage
+- Rate limiting and request validation
+- Paper trading for risk-free testing
+- Multi-factor authentication support
+
+### Risk Management
+- Position sizing based on volatility
+- Stop-loss and take-profit automation
+- Portfolio diversification monitoring
+- Real-time risk alerts and notifications
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **React 18**: Modern React with hooks and context
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first styling
+- **Shadcn/UI**: Professional component library
+- **Recharts**: Advanced data visualization
+- **Lucide React**: Beautiful icons
+
+### Services & APIs
+- **WebSocket**: Real-time data streaming
+- **REST APIs**: Market data and exchange integration
+- **LocalStorage**: Client-side data persistence
+- **IndexedDB**: Large dataset storage
+
+### Build & Development
+- **Vite**: Fast build tool and dev server
+- **ESLint**: Code quality and consistency
+- **Prettier**: Code formatting
+- **Husky**: Git hooks for quality control
+
+## 📚 Documentation
+
+- [**User Guide**](./docs/USER_GUIDE.md) - Getting started guide for traders
+- [**Developer Guide**](./docs/DEV_GUIDE.md) - Technical implementation details
+- [**API Documentation**](./docs/API_DOCUMENTATION.md) - Complete API reference
+- [**Trading Strategies**](./docs/TRADING_STRATEGIES.md) - Strategy implementation guide
+- [**Risk Management**](./docs/RISK_MANAGEMENT.md) - Risk controls and best practices
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
-### Development Workflow
+### Development Process
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Implement your changes
+4. Add tests and documentation
+5. Submit a pull request
 
-## 📝 License
+### Code Standards
+- TypeScript for all new code
+- Component-based architecture
+- Comprehensive error handling
+- Mobile-first responsive design
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📄 License
 
-## 🆘 Support
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-### Documentation
-- [User Guide](USER_GUIDE.md) - Complete user documentation
-- [Developer Guide](DEV_GUIDE.md) - Development and contribution guide
-- [Features List](FEATURES.md) - Detailed feature documentation
+## 🙏 Acknowledgments
 
-### Community
-- **GitHub Issues**: Bug reports and feature requests
-- **Discussions**: General questions and community support
+- **Market Data**: CoinGecko, Binance, CryptoCompare
+- **AI Models**: OpenRouter, OpenAI, Anthropic, Google
+- **Icons**: Lucide React
+- **UI Components**: Shadcn/UI
+- **Charting**: Recharts library
 
-### Professional Support
-For enterprise customers and advanced integrations, contact: support@crypto-beacon.com
+## 📞 Support
 
-## 🔗 Links
-
-- **Live Demo**: [https://crypto-beacon-trader-hub.vercel.app](https://crypto-beacon-trader-hub.vercel.app)
-- **Documentation**: [docs.crypto-beacon.com](https://docs.crypto-beacon.com)
-- **Status Page**: [status.crypto-beacon.com](https://status.crypto-beacon.com)
-
-## 📊 Project Status
-
-- **Version**: 2.0.0
-- **Status**: Production Ready
-- **Last Updated**: January 2025
-- **Compatibility**: Node.js 18+, Modern Browsers
+- **Documentation**: [docs.cryptotrader.pro](https://docs.cryptotrader.pro)
+- **Issues**: [GitHub Issues](https://github.com/your-username/cryptotrader-pro/issues)
+- **Discord**: [Community Server](https://discord.gg/cryptotrader-pro)
+- **Email**: support@cryptotrader.pro
 
 ---
 
-**Built with ❤️ for the Australian crypto trading community**
+**⚠️ Disclaimer**: Cryptocurrency trading involves substantial risk and is not suitable for every investor. Past performance does not guarantee future results. This software is for educational and informational purposes only.
 
-*Disclaimer: This platform is for educational and paper trading purposes. Always conduct your own research before making financial decisions. Cryptocurrency trading carries significant risk.*
+**🔐 Security Notice**: Never share your API keys or private keys. Always use paper trading to test strategies before live implementation.

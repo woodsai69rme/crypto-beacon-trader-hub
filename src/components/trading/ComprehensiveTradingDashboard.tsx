@@ -13,6 +13,7 @@ import { marketDataService } from '@/services/api/marketDataService';
 import { openRouterService } from '@/services/openRouterService';
 import { riskManagementService } from '@/services/trading/riskManagementService';
 import { n8nService } from '@/services/n8nService';
+import { websocketService } from '@/services/websocket/websocketService';
 
 const ComprehensiveTradingDashboard: React.FC = () => {
   const { activeAccount } = useTradingContext();
@@ -23,11 +24,16 @@ const ComprehensiveTradingDashboard: React.FC = () => {
   const [sentimentData, setSentimentData] = useState<any>(null);
   const [aiPredictions, setAiPredictions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadDashboardData();
+    setupWebSocketConnections();
     const interval = setInterval(loadDashboardData, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      websocketService.disconnectAll();
+    };
   }, [activeAccount]);
 
   const loadDashboardData = async () => {
@@ -66,283 +72,187 @@ const ComprehensiveTradingDashboard: React.FC = () => {
       
       // Generate AI predictions for major assets
       const predictions = [];
-      for (const asset of marketDataResult.slice(0, 3)) {
+      for (const asset of marketData.slice(0, 4)) {
         try {
           const prediction = await openRouterService.generateMarketPrediction({
-            asset: asset.id,
-            historicalData: [],
-            technicalIndicators: {
-              RSI: 50 + Math.random() * 40,
-              MACD: Math.random() * 2 - 1,
-              'Price vs MA50': Math.random() * 0.2 - 0.1
-            },
-            timeframe: '1d',
-            predictionHorizon: '7d'
+            asset: asset.symbol,
+            historicalData: Array.from({length: 10}, () => Math.random() * 1000 + asset.price),
+            technicalIndicators: { rsi: 65, macd: 0.8, bb_upper: asset.price * 1.05 },
+            timeframe: '1h',
+            predictionHorizon: '24h'
           });
-          predictions.push({ asset: asset.id, ...prediction });
+          predictions.push({ ...prediction, symbol: asset.symbol });
         } catch (error) {
-          console.error(`Failed to get prediction for ${asset.id}:`, error);
+          console.error(`Failed to generate prediction for ${asset.symbol}:`, error);
         }
       }
       setAiPredictions(predictions);
       
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      console.error('Error loading dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAutoRebalance = async () => {
-    if (!activeAccount || !activeAccount.assets) return;
+  const setupWebSocketConnections = () => {
+    // Setup price stream for major cryptocurrencies
+    websocketService.connectToPriceStream(['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'SOLUSDT']);
     
-    try {
-      const portfolioData = {
-        currentAllocation: activeAccount.assets.reduce((acc, asset) => {
-          acc[asset.symbol] = asset.allocation;
-          return acc;
-        }, {} as Record<string, number>),
-        targetAllocation: { BTC: 40, ETH: 30, ADA: 15, SOL: 15 },
-        rebalanceThreshold: 5
-      };
-      
-      await n8nService.triggerPortfolioRebalance(portfolioData);
-    } catch (error) {
-      console.error('Failed to trigger rebalancing:', error);
-    }
+    // Subscribe to price updates
+    const unsubscribe = websocketService.subscribe('price-update', (data) => {
+      setMarketData(prevData => 
+        prevData.map(item => 
+          item.symbol === data.symbol.replace('USDT', '') 
+            ? { ...item, price: data.price, changePercent: data.change24h }
+            : item
+        )
+      );
+    });
+
+    // Monitor connection status
+    const statusInterval = setInterval(() => {
+      setConnectionStatus(websocketService.getAllConnectionStatuses());
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(statusInterval);
+    };
   };
 
-  const handleRiskAssessment = async () => {
-    if (!activeAccount) return;
-    
-    try {
-      const portfolioValue = (activeAccount.assets || []).reduce((sum, asset) => sum + asset.value, 0) + activeAccount.balance;
-      
-      await n8nService.checkRiskLevels({
-        portfolioValue,
-        drawdown: riskMetrics?.currentDrawdown || 0,
-        volatility: riskMetrics?.portfolioVaR || 0,
-        correlations: { 'BTC-ETH': 0.7, 'ETH-ADA': 0.6 }
-      });
-    } catch (error) {
-      console.error('Failed to trigger risk assessment:', error);
-    }
+  const mockPerformanceData = {
+    totalValue: 125000,
+    dailyChange: 2340,
+    dailyChangePercent: 1.9,
+    weeklyChange: -1230,
+    weeklyChangePercent: -0.98
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Activity className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading comprehensive trading data...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      {/* Market Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Header Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Fear & Greed Index</p>
-                <p className="text-2xl font-bold">{fearGreedIndex.value}</p>
-                <p className="text-xs text-muted-foreground">{fearGreedIndex.classification}</p>
+                <p className="text-sm font-medium text-muted-foreground">Portfolio Value</p>
+                <p className="text-2xl font-bold">${mockPerformanceData.totalValue.toLocaleString()}</p>
               </div>
-              <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
-                fearGreedIndex.value > 50 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-              }`}>
-                {fearGreedIndex.value > 50 ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
-              </div>
+              <TrendingUp className="h-8 w-8 text-green-500" />
+            </div>
+            <div className="mt-2 flex items-center text-sm">
+              <span className={`flex items-center ${mockPerformanceData.dailyChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {mockPerformanceData.dailyChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
+                ${Math.abs(mockPerformanceData.dailyChange).toLocaleString()} ({mockPerformanceData.dailyChangePercent.toFixed(2)}%) today
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        {sentimentData && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">AI Sentiment</p>
-                  <p className="text-2xl font-bold">{(sentimentData.overallSentiment * 100).toFixed(0)}%</p>
-                  <p className="text-xs text-muted-foreground">{sentimentData.sentimentTrend}</p>
-                </div>
-                <Badge variant={sentimentData.overallSentiment > 0 ? "default" : "destructive"}>
-                  {sentimentData.overallSentiment > 0 ? 'Bullish' : 'Bearish'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {riskMetrics && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Risk Score</p>
-                  <p className="text-2xl font-bold">{riskMetrics.riskScore.toFixed(0)}</p>
-                  <p className="text-xs text-muted-foreground">Sharpe: {riskMetrics.sharpeRatio.toFixed(2)}</p>
-                </div>
-                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
-                  riskMetrics.riskScore < 50 ? 'bg-green-100 text-green-600' : 
-                  riskMetrics.riskScore < 75 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
-                }`}>
-                  <Shield className="h-6 w-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Strategies</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Bots</p>
                 <p className="text-2xl font-bold">3</p>
-                <p className="text-xs text-muted-foreground">2 AI Bots Running</p>
               </div>
-              <Bot className="h-12 w-12 text-blue-600" />
+              <Bot className="h-8 w-8 text-blue-500" />
+            </div>
+            <div className="mt-2 flex items-center text-sm text-muted-foreground">
+              <Activity className="h-4 w-4 mr-1" />
+              2 profitable, 1 learning
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Fear & Greed Index</p>
+                <p className="text-2xl font-bold">{fearGreedIndex.value}</p>
+              </div>
+              <Shield className="h-8 w-8 text-orange-500" />
+            </div>
+            <div className="mt-2">
+              <Badge variant={
+                fearGreedIndex.value <= 25 ? 'destructive' :
+                fearGreedIndex.value <= 45 ? 'secondary' :
+                fearGreedIndex.value <= 55 ? 'outline' :
+                fearGreedIndex.value <= 75 ? 'default' : 'destructive'
+              }>
+                {fearGreedIndex.classification}
+              </Badge>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Risk Alerts */}
-      {riskAlerts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      {riskAlerts && riskAlerts.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-orange-800">
               <AlertTriangle className="h-5 w-5" />
               Risk Alerts
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {riskAlerts.map((alert, index) => (
-                <div key={index} className={`p-3 rounded-lg border ${
-                  alert.type === 'critical' ? 'border-red-200 bg-red-50' : 'border-yellow-200 bg-yellow-50'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`font-medium ${alert.type === 'critical' ? 'text-red-800' : 'text-yellow-800'}`}>
-                        {alert.message}
-                      </p>
-                      <p className={`text-sm ${alert.type === 'critical' ? 'text-red-600' : 'text-yellow-600'}`}>
-                        {alert.action}
-                      </p>
-                    </div>
-                    <Badge variant={alert.type === 'critical' ? 'destructive' : 'secondary'}>
-                      {alert.type}
-                    </Badge>
-                  </div>
+              {riskAlerts.slice(0, 3).map((alert, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                  <span className="text-sm">{alert.message}</span>
+                  <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
+                    {alert.severity}
+                  </Badge>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* AI Predictions */}
-      {aiPredictions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Market Predictions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {aiPredictions.map((prediction, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{prediction.asset.toUpperCase()}</h3>
-                    <Badge variant="outline">{(prediction.confidence * 100).toFixed(0)}% confidence</Badge>
-                  </div>
-                  <p className="text-2xl font-bold">
-                    ${prediction.priceTarget?.toLocaleString() || 'N/A'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {prediction.timeframe} target
-                  </p>
-                  {prediction.keyFactors && (
-                    <div className="mt-2">
-                      <p className="text-xs font-medium">Key factors:</p>
-                      <p className="text-xs text-muted-foreground">
-                        {prediction.keyFactors.slice(0, 2).join(', ')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button onClick={handleAutoRebalance} className="flex items-center gap-2">
-              <Workflow className="h-4 w-4" />
-              Auto Rebalance
-            </Button>
-            <Button onClick={handleRiskAssessment} variant="outline" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Risk Assessment
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Bot className="h-4 w-4" />
-              Deploy AI Bot
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Market Analysis
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Main Trading Interface */}
-      <Tabs defaultValue="trading" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="trading">Live Trading</TabsTrigger>
-          <TabsTrigger value="ai-bots">AI Trading Bots</TabsTrigger>
-          <TabsTrigger value="exchanges">Exchange Integration</TabsTrigger>
-          <TabsTrigger value="workflows">N8N Workflows</TabsTrigger>
-          <TabsTrigger value="analytics">Advanced Analytics</TabsTrigger>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ai-bots">AI Bots</TabsTrigger>
+          <TabsTrigger value="exchanges">Exchanges</TabsTrigger>
+          <TabsTrigger value="automation">Automation</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="trading">
+        <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Market Data */}
             <Card>
               <CardHeader>
-                <CardTitle>Real-Time Market Data</CardTitle>
+                <CardTitle>Market Overview</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {marketData.map((coin) => (
-                    <div key={coin.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  {marketData.slice(0, 4).map((coin, index) => (
+                    <div key={coin.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        {coin.image && (
-                          <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
-                        )}
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-semibold">
+                          {coin.symbol}
+                        </div>
                         <div>
-                          <p className="font-semibold">{coin.symbol}</p>
-                          <p className="text-sm text-muted-foreground">{coin.name}</p>
+                          <p className="font-medium">{coin.name}</p>
+                          <p className="text-sm text-muted-foreground">${coin.price?.toFixed(2)}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">
-                          ${coin.price?.toLocaleString() || 'N/A'} AUD
+                        <p className={`font-medium ${coin.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {coin.changePercent >= 0 ? '+' : ''}{coin.changePercent?.toFixed(2)}%
                         </p>
-                        <p className={`text-sm ${coin.changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {coin.changePercent >= 0 ? '+' : ''}{coin.changePercent?.toFixed(2) || '0'}%
-                        </p>
+                        <div className="flex items-center gap-1">
+                          <div className={`w-2 h-2 rounded-full ${
+                            connectionStatus[`binance-prices`] === 'connected' ? 'bg-green-500' : 'bg-red-500'
+                          }`} />
+                          <span className="text-xs text-muted-foreground">Live</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -350,39 +260,59 @@ const ComprehensiveTradingDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
+            {/* AI Predictions */}
             <Card>
               <CardHeader>
-                <CardTitle>Portfolio Overview</CardTitle>
+                <CardTitle>AI Market Predictions</CardTitle>
               </CardHeader>
               <CardContent>
-                {activeAccount ? (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span>Total Balance</span>
-                      <span className="font-semibold">
-                        ${((activeAccount.assets || []).reduce((sum, asset) => sum + asset.value, 0) + activeAccount.balance).toLocaleString()} AUD
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {(activeAccount.assets || []).map((asset) => (
-                        <div key={asset.coinId} className="flex justify-between items-center">
-                          <span>{asset.symbol}</span>
-                          <div className="text-right">
-                            <span className="font-medium">${asset.value.toLocaleString()} AUD</span>
-                            <span className="text-sm text-muted-foreground ml-2">
-                              ({asset.allocation.toFixed(1)}%)
-                            </span>
-                          </div>
+                <div className="space-y-4">
+                  {aiPredictions.slice(0, 4).map((prediction, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{prediction.symbol || `Asset ${index + 1}`}</p>
+                        <p className="text-sm text-muted-foreground">{prediction.timeframe}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${prediction.priceTarget?.toFixed(2)}</p>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                          <span className="text-xs text-muted-foreground">
+                            {(prediction.confidence * 100)?.toFixed(0)}% conf.
+                          </span>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No active trading account selected</p>
-                )}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Sentiment Analysis */}
+          {sentimentData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Market Sentiment</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{(sentimentData.overallSentiment * 100).toFixed(0)}%</p>
+                    <p className="text-sm text-muted-foreground">Overall Sentiment</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold capitalize">{sentimentData.sentimentTrend}</p>
+                    <p className="text-sm text-muted-foreground">Trend Direction</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{sentimentData.keyTopics?.length || 0}</p>
+                    <p className="text-sm text-muted-foreground">Key Topics</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="ai-bots">
@@ -393,70 +323,8 @@ const ComprehensiveTradingDashboard: React.FC = () => {
           <EnhancedExchangeIntegration />
         </TabsContent>
 
-        <TabsContent value="workflows">
+        <TabsContent value="automation">
           <N8NWorkflowManager />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Advanced Risk Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {riskMetrics ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Portfolio VaR</p>
-                        <p className="text-lg font-semibold">${riskMetrics.portfolioVaR.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Max Drawdown</p>
-                        <p className="text-lg font-semibold">{riskMetrics.maxDrawdown.toFixed(2)}%</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Portfolio Beta</p>
-                        <p className="text-lg font-semibold">{riskMetrics.beta.toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Diversification</p>
-                        <p className="text-lg font-semibold">{(riskMetrics.diversificationRatio * 100).toFixed(1)}%</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Risk metrics unavailable</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Correlation Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>BTC-ETH Correlation</span>
-                    <span className="font-medium">0.72</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>ETH-ADA Correlation</span>
-                    <span className="font-medium">0.68</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>BTC-SOL Correlation</span>
-                    <span className="font-medium">0.55</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Portfolio Correlation</span>
-                    <span className="font-medium">0.63</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
     </div>
