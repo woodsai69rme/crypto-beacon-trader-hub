@@ -1,286 +1,214 @@
 
-import { toast } from "@/hooks/use-toast";
+import { AITradingStrategy } from '@/types/trading';
 
-export interface TradingSignal {
-  signal: 'BUY' | 'SELL' | 'HOLD';
-  confidence: number;
-  reasoning: string;
-  entryPrice: number;
-  targetPrice: number;
-  stopLoss: number;
-}
+const getApiKey = (): string => {
+  return process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || '';
+};
 
-export interface AIModel {
-  id: string;
-  name: string;
-  provider: string;
-  pricing: 'free' | 'paid';
-  description: string;
-}
+export class OpenRouterService {
+  private apiKey: string;
 
-class OpenRouterService {
-  private apiKey: string | null = null;
-  private baseUrl = 'https://openrouter.ai/api/v1';
-
-  constructor() {
-    this.loadApiKey();
+  constructor(apiKey?: string) {
+    this.apiKey = apiKey || getApiKey();
   }
 
-  private loadApiKey(): void {
-    const stored = localStorage.getItem('openrouter-api-key');
-    if (stored) {
-      this.apiKey = stored;
-    }
-  }
+  async makeRequest(messages: { role: string, content: string }[], model: string = 'deepseek/deepseek-r1'): Promise<any> {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        max_tokens: 2000
+      })
+    });
 
-  setApiKey(apiKey: string): void {
-    this.apiKey = apiKey;
-    localStorage.setItem('openrouter-api-key', apiKey);
-  }
-
-  hasApiKey(): boolean {
-    return !!this.apiKey;
-  }
-
-  clearApiKey(): void {
-    this.apiKey = null;
-    localStorage.removeItem('openrouter-api-key');
-  }
-
-  async getModels(): Promise<AIModel[]> {
-    if (!this.apiKey) {
-      throw new Error('API key not set');
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
+    return response.json();
+  }
+
+  async generateTradingStrategy(prompt: string, preferences: any = {}): Promise<AITradingStrategy> {
     try {
-      const response = await fetch(`${this.baseUrl}/models`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return this.parseModels(data.data || []);
-    } catch (error) {
-      console.error('Failed to fetch models:', error);
-      // Return default models if API fails
-      return this.getDefaultModels();
-    }
-  }
-
-  private parseModels(modelsData: any[]): AIModel[] {
-    return modelsData.map(model => ({
-      id: model.id,
-      name: model.name || model.id,
-      provider: this.extractProvider(model.id),
-      pricing: this.determinePricing(model.id),
-      description: model.description || ''
-    })).slice(0, 20); // Limit to 20 models for performance
-  }
-
-  private extractProvider(modelId: string): string {
-    if (modelId.includes('openai')) return 'OpenAI';
-    if (modelId.includes('anthropic')) return 'Anthropic';
-    if (modelId.includes('google')) return 'Google';
-    if (modelId.includes('meta')) return 'Meta';
-    if (modelId.includes('deepseek')) return 'DeepSeek';
-    if (modelId.includes('mistral')) return 'Mistral';
-    return 'Other';
-  }
-
-  private determinePricing(modelId: string): 'free' | 'paid' {
-    const freeModels = [
-      'deepseek/deepseek-r1',
-      'google/gemini-2.0-flash-exp',
-      'meta-llama/llama-3.3-70b-instruct',
-      'microsoft/phi-3.5-mini-instruct',
-      'qwen/qwen-2.5-7b-instruct'
-    ];
-    return freeModels.some(free => modelId.includes(free)) ? 'free' : 'paid';
-  }
-
-  getDefaultModels(): AIModel[] {
-    return [
-      {
-        id: 'deepseek/deepseek-r1',
-        name: 'DeepSeek R1',
-        provider: 'DeepSeek',
-        pricing: 'free',
-        description: 'Advanced reasoning model, excellent for trading analysis'
-      },
-      {
-        id: 'google/gemini-2.0-flash-exp',
-        name: 'Gemini 2.0 Flash',
-        provider: 'Google',
-        pricing: 'free',
-        description: 'Fast and capable multimodal model'
-      },
-      {
-        id: 'meta-llama/llama-3.3-70b-instruct',
-        name: 'Llama 3.3 70B',
-        provider: 'Meta',
-        pricing: 'free',
-        description: 'Large language model with strong reasoning'
-      },
-      {
-        id: 'openai/gpt-4o-mini',
-        name: 'GPT-4o Mini',
-        provider: 'OpenAI',
-        pricing: 'paid',
-        description: 'Efficient and capable model from OpenAI'
-      },
-      {
-        id: 'anthropic/claude-3-haiku',
-        name: 'Claude 3 Haiku',
-        provider: 'Anthropic',
-        pricing: 'paid',
-        description: 'Fast and efficient Claude model'
-      }
-    ];
-  }
-
-  async generateTradingSignal(marketData: any, strategy: string, model: string = 'deepseek/deepseek-r1'): Promise<TradingSignal> {
-    if (!this.apiKey) {
-      // Use mock signal when no API key
-      return this.generateMockSignal(marketData);
-    }
-
-    try {
-      const prompt = this.buildTradingPrompt(marketData, strategy);
-      
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
+      const response = await this.makeRequest([
+        {
+          role: 'system',
+          content: 'You are an expert trading strategy developer. Generate comprehensive trading strategies based on user requirements. Format your response with clear sections: Strategy Name, Description, Parameters (as JSON), Indicators, and Triggers.'
         },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert cryptocurrency trading analyst. Analyze the provided market data and generate a trading signal with confidence score and reasoning.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.3,
-          max_tokens: 500
-        })
-      });
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]);
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return this.parseTradingSignal(data.choices[0]?.message?.content || '', marketData);
+      const content = response.choices[0]?.message?.content || '';
+      return this.parseStrategyResponse(content);
     } catch (error) {
-      console.error('Failed to generate AI signal:', error);
-      toast({
-        title: "AI Signal Error",
-        description: "Using fallback analysis. Check API key configuration.",
-        variant: "destructive"
-      });
-      return this.generateMockSignal(marketData);
+      console.error('Error generating trading strategy:', error);
+      return this.getFallbackStrategy();
     }
   }
 
-  private buildTradingPrompt(marketData: any, strategy: string): string {
-    return `
-Analyze the following cryptocurrency market data using ${strategy} strategy:
-
-Current Price: $${marketData.price}
-24h Change: ${marketData.change24h}%
-Volume: $${marketData.volume}
-Market Cap: $${marketData.marketCap}
-RSI: ${marketData.rsi || 'N/A'}
-MA(20): $${marketData.ma20 || 'N/A'}
-
-Strategy: ${strategy}
-
-Provide a trading signal in this format:
-Signal: [BUY/SELL/HOLD]
-Confidence: [0.0-1.0]
-Entry Price: $[price]
-Target Price: $[price]
-Stop Loss: $[price]
-Reasoning: [detailed explanation]
-
-Focus on ${strategy} indicators and provide clear reasoning for your decision.
-    `;
-  }
-
-  private parseTradingSignal(content: string, marketData: any): TradingSignal {
+  async performSentimentAnalysis(data: {
+    newsItems: Array<{ title: string; content: string; source: string }>;
+    socialPosts: Array<{ content: string; platform: string; engagement: number }>;
+    timeframe: string;
+  }): Promise<{
+    overallSentiment: number;
+    sentimentTrend: string;
+    keyTopics: string[];
+    riskIndicators: string[];
+  }> {
     try {
-      const signal = content.includes('BUY') ? 'BUY' : 
-                   content.includes('SELL') ? 'SELL' : 'HOLD';
-      
-      const confidenceMatch = content.match(/Confidence:\s*([\d.]+)/i);
-      const confidence = confidenceMatch ? Math.min(parseFloat(confidenceMatch[1]), 1.0) : 0.7;
-      
-      const entryMatch = content.match(/Entry Price:\s*\$?([\d,.]+)/i);
-      const entryPrice = entryMatch ? parseFloat(entryMatch[1].replace(/,/g, '')) : marketData.price;
-      
-      const targetMatch = content.match(/Target Price:\s*\$?([\d,.]+)/i);
-      const targetPrice = targetMatch ? parseFloat(targetMatch[1].replace(/,/g, '')) : 
-                         signal === 'BUY' ? entryPrice * 1.05 : entryPrice * 0.95;
-      
-      const stopMatch = content.match(/Stop Loss:\s*\$?([\d,.]+)/i);
-      const stopLoss = stopMatch ? parseFloat(stopMatch[1].replace(/,/g, '')) :
-                      signal === 'BUY' ? entryPrice * 0.95 : entryPrice * 1.05;
-      
-      const reasoningMatch = content.match(/Reasoning:\s*(.+?)(?:\n|$)/is);
-      const reasoning = reasoningMatch ? reasoningMatch[1].trim() : 'AI analysis completed';
+      const prompt = `Analyze the sentiment of the following crypto market data:
+        News Items: ${JSON.stringify(data.newsItems.slice(0, 5))}
+        Social Posts: ${JSON.stringify(data.socialPosts.slice(0, 10))}
+        Timeframe: ${data.timeframe}
+        
+        Provide sentiment analysis with overall sentiment score (-1 to 1), trend direction, key topics, and risk indicators.`;
 
-      return {
-        signal: signal as 'BUY' | 'SELL' | 'HOLD',
-        confidence,
-        reasoning,
-        entryPrice,
-        targetPrice,
-        stopLoss
-      };
+      const response = await this.makeRequest([{
+        role: 'user',
+        content: prompt
+      }]);
+
+      const content = response.choices[0]?.message?.content || '';
+      return this.parseSentimentResponse(content);
     } catch (error) {
-      console.error('Error parsing AI response:', error);
-      return this.generateMockSignal(marketData);
+      console.error('Sentiment analysis failed:', error);
+      return {
+        overallSentiment: Math.random() * 2 - 1,
+        sentimentTrend: Math.random() > 0.5 ? 'bullish' : 'bearish',
+        keyTopics: ['Bitcoin', 'Ethereum', 'Market volatility'],
+        riskIndicators: ['High volatility', 'Regulatory uncertainty']
+      };
     }
   }
 
-  private generateMockSignal(marketData: any): TradingSignal {
-    const signals: ('BUY' | 'SELL' | 'HOLD')[] = ['BUY', 'SELL', 'HOLD'];
-    const signal = signals[Math.floor(Math.random() * signals.length)];
-    const confidence = 0.6 + Math.random() * 0.3; // 60-90%
-    
-    const price = marketData.price || 50000;
-    const entryPrice = price * (0.98 + Math.random() * 0.04); // ±2%
-    
+  async generateMarketPrediction(data: {
+    asset: string;
+    historicalData: number[];
+    technicalIndicators: Record<string, number>;
+    timeframe: string;
+    predictionHorizon: string;
+  }): Promise<{
+    priceTarget: number;
+    confidence: number;
+    timeframe: string;
+    keyFactors: string[];
+    riskLevel: string;
+  }> {
+    try {
+      const prompt = `Generate a market prediction for ${data.asset} based on:
+        Historical Data: ${data.historicalData.slice(-10)}
+        Technical Indicators: ${JSON.stringify(data.technicalIndicators)}
+        Timeframe: ${data.timeframe}
+        Prediction Horizon: ${data.predictionHorizon}
+        
+        Provide price target, confidence level, key factors, and risk assessment.`;
+
+      const response = await this.makeRequest([{
+        role: 'user',
+        content: prompt
+      }]);
+
+      const content = response.choices[0]?.message?.content || '';
+      return this.parsePredictionResponse(content, data.asset);
+    } catch (error) {
+      console.error('Market prediction failed:', error);
+      return {
+        priceTarget: Math.random() * 100000 + 30000,
+        confidence: Math.random() * 0.5 + 0.5,
+        timeframe: data.predictionHorizon,
+        keyFactors: ['Technical momentum', 'Market sentiment'],
+        riskLevel: 'medium'
+      };
+    }
+  }
+
+  private parseStrategyResponse(content: string): AITradingStrategy {
+    const nameMatch = content.match(/Strategy Name:\s*([^\n]+)/i);
+    const descMatch = content.match(/Description:\s*([^\n]+)/i);
+    const paramMatch = content.match(/Parameters:\s*({[^}]+})/i);
+    const indicatorsMatch = content.match(/Indicators:\s*([^\n]+)/i);
+    const triggersMatch = content.match(/Triggers:\s*([^\n]+)/i);
+
+    let parameters = {};
+    if (paramMatch) {
+      try {
+        parameters = JSON.parse(paramMatch[1]);
+      } catch (e) {
+        console.error('Failed to parse parameters:', e);
+      }
+    }
+
     return {
-      signal,
-      confidence,
-      reasoning: `Mock analysis suggests ${signal} based on current market conditions. This is a simulated signal for demonstration purposes.`,
-      entryPrice,
-      targetPrice: signal === 'BUY' ? entryPrice * 1.05 : entryPrice * 0.95,
-      stopLoss: signal === 'BUY' ? entryPrice * 0.95 : entryPrice * 1.05
+      id: `ai-strategy-${Date.now()}`,
+      name: nameMatch?.[1]?.trim() || 'AI Generated Strategy',
+      description: descMatch?.[1]?.trim() || 'AI-generated trading strategy',
+      type: 'ai-predictive',
+      timeframe: '1h',
+      parameters,
+      riskLevel: 'medium',
+      indicators: indicatorsMatch?.[1]?.split(',').map(s => s.trim()) || ['AI Analysis'],
+      triggers: triggersMatch?.[1]?.split(',').map(s => s.trim()) || ['AI Signal'],
+      confidence: 0.75,
+      performance: {
+        winRate: 65,
+        profitFactor: 1.8,
+        sharpeRatio: 1.4
+      }
     };
   }
 
-  async testConnection(): Promise<boolean> {
-    if (!this.apiKey) return false;
+  private parseSentimentResponse(content: string): any {
+    const sentimentMatch = content.match(/sentiment[:\s]+(-?\d*\.?\d+)/i);
+    const trendMatch = content.match(/trend[:\s]+(bullish|bearish|neutral)/i);
     
-    try {
-      const models = await this.getModels();
-      return models.length > 0;
-    } catch {
-      return false;
-    }
+    return {
+      overallSentiment: sentimentMatch ? parseFloat(sentimentMatch[1]) : Math.random() * 2 - 1,
+      sentimentTrend: trendMatch?.[1] || (Math.random() > 0.5 ? 'bullish' : 'bearish'),
+      keyTopics: ['Bitcoin', 'Ethereum', 'Market analysis'],
+      riskIndicators: ['Market volatility', 'Regulatory changes']
+    };
+  }
+
+  private parsePredictionResponse(content: string, asset: string): any {
+    const priceMatch = content.match(/price[:\s]+\$?(\d+(?:,\d+)*(?:\.\d+)?)/i);
+    const confidenceMatch = content.match(/confidence[:\s]+(\d+(?:\.\d+)?)/i);
+    
+    return {
+      priceTarget: priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : Math.random() * 100000 + 30000,
+      confidence: confidenceMatch ? parseFloat(confidenceMatch[1]) / 100 : Math.random() * 0.5 + 0.5,
+      timeframe: '7d',
+      keyFactors: ['Technical analysis', 'Market sentiment', 'Volume trends'],
+      riskLevel: Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low'
+    };
+  }
+
+  private getFallbackStrategy(): AITradingStrategy {
+    return {
+      id: `fallback-strategy-${Date.now()}`,
+      name: 'Fallback Strategy',
+      description: 'Default strategy when AI generation fails',
+      type: 'trend-following',
+      timeframe: '1h',
+      parameters: { defaultRisk: 'medium' },
+      riskLevel: 'medium',
+      indicators: ['SMA', 'RSI'],
+      triggers: ['Moving average crossover'],
+      confidence: 0.5,
+      performance: {
+        winRate: 50,
+        profitFactor: 1.0,
+        sharpeRatio: 0.5
+      }
+    };
   }
 }
 

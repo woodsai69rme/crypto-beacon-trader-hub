@@ -1,3 +1,4 @@
+
 import { CryptoData, CryptoChartData, CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
@@ -52,39 +53,6 @@ const getMockCryptoData = (): CryptoData[] => {
 // Export the function so it can be used in tests
 export { getMockCryptoData };
 
-const mockChartData: CryptoChartData[] = [
-  {
-    id: 'bitcoin',
-    name: 'Bitcoin',
-    symbol: 'BTC',
-    price: 45000,
-    priceChange: 1200,
-    changePercent: 2.7,
-    marketCap: 850000000000,
-    volume: 25000000000,
-    image: '/placeholder.svg',
-    value: 'BTC',
-    label: 'Bitcoin (BTC)',
-    chartData: [[1640995200000, 46000], [1641081600000, 47000]],
-    timestamps: ['2022-01-01', '2022-01-02']
-  },
-  {
-    id: 'ethereum',
-    name: 'Ethereum',
-    symbol: 'ETH',
-    price: 3200,
-    priceChange: -80,
-    changePercent: -2.4,
-    marketCap: 380000000000,
-    volume: 15000000000,
-    image: '/placeholder.svg',
-    value: 'ETH',
-    label: 'Ethereum (ETH)',
-    chartData: [[1640995200000, 3250], [1641081600000, 3200]],
-    timestamps: ['2022-01-01', '2022-01-02']
-  }
-];
-
 export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<CryptoData[]> => {
   try {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
@@ -116,6 +84,7 @@ export const fetchCoinHistory = async (coinId: string, days: string = '30'): Pro
     }
     
     const data = await response.json();
+    
     return {
       id: coinId,
       name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
@@ -125,7 +94,8 @@ export const fetchCoinHistory = async (coinId: string, days: string = '30'): Pro
       label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} (${coinId.substring(0, 3).toUpperCase()})`,
       timestamps: data.prices?.map((price: [number, number]) => new Date(price[0]).toISOString()) || [],
       prices: data.prices?.map((price: [number, number]) => price[1]) || [],
-      volumes: data.total_volumes?.map((volume: [number, number]) => volume[1]) || []
+      volumes: data.total_volumes?.map((volume: [number, number]) => volume[1]) || [],
+      chartData: data.prices || []
     };
   } catch (error) {
     console.error("Error fetching from CoinGecko:", error);
@@ -144,7 +114,8 @@ export const fetchCoinHistory = async (coinId: string, days: string = '30'): Pro
       label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} (${coinId.substring(0, 3).toUpperCase()})`,
       timestamps: [],
       prices: [],
-      volumes: []
+      volumes: [],
+      chartData: []
     };
   }
 };

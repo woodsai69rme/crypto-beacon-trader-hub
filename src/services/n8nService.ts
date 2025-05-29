@@ -1,151 +1,46 @@
 
-import { toast } from "@/hooks/use-toast";
-
-interface N8NWorkflow {
+export interface N8NWorkflow {
   id: string;
   name: string;
   description: string;
-  webhookUrl: string;
   isActive: boolean;
+  webhookUrl?: string;
   triggers: string[];
   actions: string[];
+  lastRun?: string;
+  status: 'active' | 'inactive' | 'error';
 }
 
-interface N8NWebhookPayload {
+export interface N8NWebhookData {
   timestamp: string;
-  source: string;
-  data: Record<string, any>;
-  workflow_id?: string;
+  event: string;
+  data: any;
 }
 
-class N8NService {
-  private workflows: Map<string, N8NWorkflow> = new Map();
-  private baseUrl = 'https://n8n.lovable.app'; // Replace with actual N8N instance
+export class N8NService {
+  private baseUrl: string = '';
+  private apiKey: string = '';
 
-  constructor() {
-    this.initializeDefaultWorkflows();
+  setConfiguration(baseUrl: string, apiKey: string) {
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
   }
 
-  private initializeDefaultWorkflows() {
-    const defaultWorkflows: N8NWorkflow[] = [
-      {
-        id: 'trading-alerts',
-        name: 'Trading Alerts Workflow',
-        description: 'Processes trading signals and sends alerts',
-        webhookUrl: `${this.baseUrl}/webhook/trading-alerts`,
-        isActive: true,
-        triggers: ['price_alert', 'volume_spike', 'technical_indicator'],
-        actions: ['send_email', 'push_notification', 'discord_message']
-      },
-      {
-        id: 'portfolio-rebalance',
-        name: 'Portfolio Rebalancing',
-        description: 'Automatically rebalances portfolio based on set rules',
-        webhookUrl: `${this.baseUrl}/webhook/portfolio-rebalance`,
-        isActive: true,
-        triggers: ['scheduled_daily', 'deviation_threshold'],
-        actions: ['calculate_allocation', 'execute_trades', 'send_report']
-      },
-      {
-        id: 'news-sentiment',
-        name: 'News Sentiment Analysis',
-        description: 'Analyzes crypto news sentiment and triggers actions',
-        webhookUrl: `${this.baseUrl}/webhook/news-sentiment`,
-        isActive: true,
-        triggers: ['new_article', 'sentiment_change'],
-        actions: ['analyze_sentiment', 'update_signals', 'notify_users']
-      },
-      {
-        id: 'risk-management',
-        name: 'Risk Management Workflow',
-        description: 'Monitors portfolio risk and takes protective actions',
-        webhookUrl: `${this.baseUrl}/webhook/risk-management`,
-        isActive: true,
-        triggers: ['portfolio_drawdown', 'volatility_spike', 'correlation_change'],
-        actions: ['reduce_exposure', 'hedge_positions', 'alert_user']
-      },
-      {
-        id: 'social-sentiment',
-        name: 'Social Media Sentiment Tracking',
-        description: 'Tracks sentiment from Twitter, Reddit, and other sources',
-        webhookUrl: `${this.baseUrl}/webhook/social-sentiment`,
-        isActive: true,
-        triggers: ['mention_threshold', 'sentiment_shift'],
-        actions: ['aggregate_sentiment', 'generate_signals', 'update_dashboard']
-      }
-    ];
-
-    defaultWorkflows.forEach(workflow => {
-      this.workflows.set(workflow.id, workflow);
-    });
-  }
-
-  async triggerWorkflow(workflowId: string, data: Record<string, any>): Promise<boolean> {
-    const workflow = this.workflows.get(workflowId);
-    if (!workflow) {
-      toast({
-        title: "Workflow Not Found",
-        description: `Workflow ${workflowId} does not exist`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!workflow.isActive) {
-      toast({
-        title: "Workflow Inactive",
-        description: `Workflow ${workflow.name} is currently disabled`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    const payload: N8NWebhookPayload = {
-      timestamp: new Date().toISOString(),
-      source: 'crypto-trading-platform',
-      data,
-      workflow_id: workflowId
-    };
-
+  async triggerWebhook(webhookUrl: string, data: N8NWebhookData): Promise<boolean> {
     try {
-      console.log(`Triggering N8N workflow: ${workflow.name}`, payload);
-
-      const response = await fetch(workflow.webhookUrl, {
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'no-cors',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
       });
 
-      toast({
-        title: "Workflow Triggered",
-        description: `${workflow.name} workflow has been executed`,
-      });
-
-      return true;
+      return response.ok;
     } catch (error) {
-      console.error(`Failed to trigger workflow ${workflowId}:`, error);
-      toast({
-        title: "Workflow Failed",
-        description: `Failed to execute ${workflow.name} workflow`,
-        variant: "destructive",
-      });
+      console.error('Failed to trigger N8N webhook:', error);
       return false;
     }
-  }
-
-  async setupTradingAlerts(alertConfig: {
-    symbol: string;
-    priceThreshold: number;
-    volumeThreshold: number;
-    indicators: string[];
-  }): Promise<boolean> {
-    return this.triggerWorkflow('trading-alerts', {
-      action: 'setup_alerts',
-      config: alertConfig
-    });
   }
 
   async triggerPortfolioRebalance(portfolioData: {
@@ -153,22 +48,21 @@ class N8NService {
     targetAllocation: Record<string, number>;
     rebalanceThreshold: number;
   }): Promise<boolean> {
-    return this.triggerWorkflow('portfolio-rebalance', {
-      action: 'rebalance',
-      portfolio: portfolioData
-    });
-  }
+    const webhookData: N8NWebhookData = {
+      timestamp: new Date().toISOString(),
+      event: 'portfolio_rebalance',
+      data: portfolioData
+    };
 
-  async analyzeNewsSentiment(newsItems: Array<{
-    title: string;
-    content: string;
-    source: string;
-    timestamp: string;
-  }>): Promise<boolean> {
-    return this.triggerWorkflow('news-sentiment', {
-      action: 'analyze_news',
-      news_items: newsItems
-    });
+    // This would be configured with actual N8N webhook URL
+    const webhookUrl = localStorage.getItem('n8n_rebalance_webhook') || '';
+    
+    if (!webhookUrl) {
+      console.warn('N8N rebalance webhook URL not configured');
+      return false;
+    }
+
+    return this.triggerWebhook(webhookUrl, webhookData);
   }
 
   async checkRiskLevels(riskData: {
@@ -177,51 +71,126 @@ class N8NService {
     volatility: number;
     correlations: Record<string, number>;
   }): Promise<boolean> {
-    return this.triggerWorkflow('risk-management', {
-      action: 'assess_risk',
-      risk_data: riskData
-    });
-  }
+    const webhookData: N8NWebhookData = {
+      timestamp: new Date().toISOString(),
+      event: 'risk_assessment',
+      data: riskData
+    };
 
-  async processSocialSentiment(socialData: {
-    platform: string;
-    mentions: number;
-    sentiment_score: number;
-    keywords: string[];
-  }): Promise<boolean> {
-    return this.triggerWorkflow('social-sentiment', {
-      action: 'process_social_data',
-      social_data: socialData
-    });
-  }
-
-  getWorkflow(id: string): N8NWorkflow | undefined {
-    return this.workflows.get(id);
-  }
-
-  getAllWorkflows(): N8NWorkflow[] {
-    return Array.from(this.workflows.values());
-  }
-
-  getActiveWorkflows(): N8NWorkflow[] {
-    return Array.from(this.workflows.values()).filter(w => w.isActive);
-  }
-
-  updateWorkflow(id: string, updates: Partial<N8NWorkflow>): boolean {
-    const workflow = this.workflows.get(id);
-    if (workflow) {
-      this.workflows.set(id, { ...workflow, ...updates });
-      return true;
+    const webhookUrl = localStorage.getItem('n8n_risk_webhook') || '';
+    
+    if (!webhookUrl) {
+      console.warn('N8N risk assessment webhook URL not configured');
+      return false;
     }
-    return false;
+
+    return this.triggerWebhook(webhookUrl, webhookData);
   }
 
-  addCustomWorkflow(workflow: N8NWorkflow): void {
-    this.workflows.set(workflow.id, workflow);
-    toast({
-      title: "Custom Workflow Added",
-      description: `${workflow.name} has been added to your workflows`,
-    });
+  async sendTradingSignal(signalData: {
+    asset: string;
+    signal: 'buy' | 'sell' | 'hold';
+    strength: number;
+    price: number;
+    reasoning: string;
+  }): Promise<boolean> {
+    const webhookData: N8NWebhookData = {
+      timestamp: new Date().toISOString(),
+      event: 'trading_signal',
+      data: signalData
+    };
+
+    const webhookUrl = localStorage.getItem('n8n_signal_webhook') || '';
+    
+    if (!webhookUrl) {
+      console.warn('N8N trading signal webhook URL not configured');
+      return false;
+    }
+
+    return this.triggerWebhook(webhookUrl, webhookData);
+  }
+
+  async getWorkflows(): Promise<N8NWorkflow[]> {
+    // Mock workflows for now
+    return [
+      {
+        id: 'portfolio-rebalance',
+        name: 'Portfolio Auto-Rebalance',
+        description: 'Automatically rebalances portfolio when allocations drift beyond threshold',
+        isActive: true,
+        webhookUrl: 'https://your-n8n-instance.com/webhook/portfolio-rebalance',
+        triggers: ['portfolio_drift', 'scheduled_check'],
+        actions: ['send_alert', 'execute_trades', 'log_activity'],
+        lastRun: new Date().toISOString(),
+        status: 'active'
+      },
+      {
+        id: 'risk-monitoring',
+        name: 'Risk Level Monitoring',
+        description: 'Monitors portfolio risk metrics and sends alerts',
+        isActive: true,
+        webhookUrl: 'https://your-n8n-instance.com/webhook/risk-monitor',
+        triggers: ['risk_threshold_breach', 'market_volatility'],
+        actions: ['send_email', 'slack_notification', 'reduce_positions'],
+        lastRun: new Date().toISOString(),
+        status: 'active'
+      },
+      {
+        id: 'trading-signals',
+        name: 'Trading Signal Distribution',
+        description: 'Distributes AI-generated trading signals to various channels',
+        isActive: false,
+        webhookUrl: 'https://your-n8n-instance.com/webhook/trading-signals',
+        triggers: ['ai_signal_generated', 'technical_indicator'],
+        actions: ['discord_notification', 'telegram_alert', 'portfolio_update'],
+        status: 'inactive'
+      }
+    ];
+  }
+
+  async createWorkflow(workflow: Omit<N8NWorkflow, 'id' | 'lastRun' | 'status'>): Promise<N8NWorkflow> {
+    // Mock creation - in real implementation would call N8N API
+    const newWorkflow: N8NWorkflow = {
+      ...workflow,
+      id: `workflow-${Date.now()}`,
+      lastRun: undefined,
+      status: workflow.isActive ? 'active' : 'inactive'
+    };
+
+    return newWorkflow;
+  }
+
+  async updateWorkflow(id: string, updates: Partial<N8NWorkflow>): Promise<N8NWorkflow> {
+    // Mock update - in real implementation would call N8N API
+    const workflows = await this.getWorkflows();
+    const workflow = workflows.find(w => w.id === id);
+    
+    if (!workflow) {
+      throw new Error(`Workflow ${id} not found`);
+    }
+
+    return { ...workflow, ...updates };
+  }
+
+  async toggleWorkflow(id: string): Promise<boolean> {
+    try {
+      const workflows = await this.getWorkflows();
+      const workflow = workflows.find(w => w.id === id);
+      
+      if (!workflow) {
+        throw new Error(`Workflow ${id} not found`);
+      }
+
+      await this.updateWorkflow(id, { 
+        isActive: !workflow.isActive,
+        status: !workflow.isActive ? 'active' : 'inactive'
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to toggle workflow:', error);
+      return false;
+    }
   }
 }
 
