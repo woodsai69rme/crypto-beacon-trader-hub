@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, Key, Zap } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Key, Zap, Shield, Info } from 'lucide-react';
 import { openRouterService } from '@/services/openRouterService';
 import { SettingsComponentProps } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -90,7 +91,7 @@ const OpenRouterSettings: React.FC<SettingsComponentProps> = () => {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <KeyIcon className="h-5 w-5" />
+          <Key className="h-5 w-5" />
           OpenRouter Integration
         </CardTitle>
         <CardDescription>
@@ -100,7 +101,7 @@ const OpenRouterSettings: React.FC<SettingsComponentProps> = () => {
       
       <CardContent className="space-y-4">
         <Alert>
-          <InfoIcon className="h-4 w-4" />
+          <Info className="h-4 w-4" />
           <AlertTitle>What is OpenRouter?</AlertTitle>
           <AlertDescription>
             OpenRouter provides unified access to various AI models from different providers (OpenAI, Anthropic, Google, etc.)
@@ -156,7 +157,7 @@ const OpenRouterSettings: React.FC<SettingsComponentProps> = () => {
           <FormItem className="flex flex-row items-center justify-between">
             <div className="space-y-0.5">
               <div className="flex items-center gap-1">
-                <ShieldIcon className="h-4 w-4" />
+                <Shield className="h-4 w-4" />
                 <FormLabel className="text-base">Enhanced Security</FormLabel>
               </div>
               <FormDescription>

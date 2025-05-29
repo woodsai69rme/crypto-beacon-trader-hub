@@ -566,8 +566,7 @@ class EnhancedRealTradingEngine {
     });
     
     // Send to N8N automation workflows
-    const n8nService = await import('../automation/n8nAutomationService');
-    await n8nService.default.sendRiskAlert({
+    await n8nAutomationService.sendRiskAlert({
       accountId,
       alertType,
       metrics,

@@ -1,5 +1,5 @@
 
-export interface TradingSignalData {
+export interface TradingSignalPayload {
   symbol: string;
   signal: 'BUY' | 'SELL' | 'HOLD';
   confidence: number;
@@ -9,113 +9,149 @@ export interface TradingSignalData {
   reasoning: string;
 }
 
-export interface WorkflowConfig {
-  id: string;
-  name: string;
-  description: string;
-  triggers: string[];
-  enabled: boolean;
+export interface RiskAlertPayload {
+  accountId: string;
+  alertType: string;
+  metrics: any;
+  timestamp: string;
 }
 
-class N8NAutomationService {
+export interface PortfolioRebalancePayload {
+  accountId: string;
+  recommendations: any[];
+  timestamp: string;
+}
+
+class N8nAutomationService {
   private webhookUrl: string | null = null;
-  private workflows: WorkflowConfig[] = [];
+  private isEnabled: boolean = false;
 
   constructor() {
-    this.webhookUrl = localStorage.getItem('n8n-webhook-url');
-    this.initializeDefaultWorkflows();
+    this.loadConfig();
   }
 
-  private initializeDefaultWorkflows() {
-    this.workflows = [
-      {
-        id: 'trading-signals',
-        name: 'Trading Signal Distribution',
-        description: 'Automatically distribute AI trading signals to Discord, Telegram, and email',
-        triggers: ['ai-signal', 'manual-signal'],
-        enabled: true
-      },
-      {
-        id: 'portfolio-rebalancing',
-        name: 'Portfolio Rebalancing',
-        description: 'Automated portfolio optimization based on AI recommendations',
-        triggers: ['portfolio-threshold', 'scheduled'],
-        enabled: false
-      },
-      {
-        id: 'risk-monitoring',
-        name: 'Risk Monitoring',
-        description: 'Real-time alerts when portfolio risk exceeds configured thresholds',
-        triggers: ['risk-threshold', 'drawdown-alert'],
-        enabled: true
-      }
-    ];
+  private loadConfig() {
+    const stored = localStorage.getItem('n8n-config');
+    if (stored) {
+      const config = JSON.parse(stored);
+      this.webhookUrl = config.webhookUrl;
+      this.isEnabled = config.isEnabled;
+    }
   }
 
-  setWebhookUrl(url: string) {
-    this.webhookUrl = url;
-    localStorage.setItem('n8n-webhook-url', url);
+  configure(webhookUrl: string, enabled: boolean = true) {
+    this.webhookUrl = webhookUrl;
+    this.isEnabled = enabled;
+    
+    localStorage.setItem('n8n-config', JSON.stringify({
+      webhookUrl,
+      isEnabled: enabled
+    }));
   }
 
-  async sendTradingSignal(signalData: TradingSignalData): Promise<boolean> {
+  async sendTradingSignal(payload: TradingSignalPayload): Promise<boolean> {
+    if (!this.isEnabled || !this.webhookUrl) {
+      console.log('N8N automation disabled or not configured');
+      return false;
+    }
+
     try {
-      if (!this.webhookUrl) {
-        console.log('N8N webhook not configured, signal logged locally:', signalData);
-        return true;
-      }
+      const response = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'trading_signal',
+          data: payload
+        })
+      });
 
-      // In a real implementation, this would send to N8N webhook
-      console.log('Sending trading signal to N8N:', signalData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      return true;
+      return response.ok;
     } catch (error) {
-      console.error('Failed to send trading signal:', error);
+      console.error('Failed to send trading signal to N8N:', error);
       return false;
     }
   }
 
-  async triggerWorkflow(workflowId: string, data: any): Promise<boolean> {
+  async sendRiskAlert(payload: RiskAlertPayload): Promise<boolean> {
+    if (!this.isEnabled || !this.webhookUrl) {
+      console.log('N8N automation disabled or not configured');
+      return false;
+    }
+
     try {
-      console.log(`Triggering N8N workflow ${workflowId} with data:`, data);
-      
-      // Simulate workflow trigger
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      return true;
+      const response = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'risk_alert',
+          data: payload
+        })
+      });
+
+      return response.ok;
     } catch (error) {
-      console.error('Failed to trigger workflow:', error);
+      console.error('Failed to send risk alert to N8N:', error);
       return false;
     }
   }
 
-  getWorkflows(): WorkflowConfig[] {
-    return this.workflows;
-  }
-
-  getWorkflow(id: string): WorkflowConfig | undefined {
-    return this.workflows.find(w => w.id === id);
-  }
-
-  async enableWorkflow(id: string): Promise<boolean> {
-    const workflow = this.workflows.find(w => w.id === id);
-    if (workflow) {
-      workflow.enabled = true;
-      return true;
+  async sendPortfolioRebalance(payload: PortfolioRebalancePayload): Promise<boolean> {
+    if (!this.isEnabled || !this.webhookUrl) {
+      console.log('N8N automation disabled or not configured');
+      return false;
     }
-    return false;
+
+    try {
+      const response = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'portfolio_rebalance',
+          data: payload
+        })
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Failed to send portfolio rebalance to N8N:', error);
+      return false;
+    }
   }
 
-  async disableWorkflow(id: string): Promise<boolean> {
-    const workflow = this.workflows.find(w => w.id === id);
-    if (workflow) {
-      workflow.enabled = false;
-      return true;
-    }
-    return false;
+  isConfigured(): boolean {
+    return this.isEnabled && !!this.webhookUrl;
+  }
+
+  getConfig() {
+    return {
+      webhookUrl: this.webhookUrl,
+      isEnabled: this.isEnabled
+    };
+  }
+
+  disable() {
+    this.isEnabled = false;
+    this.saveConfig();
+  }
+
+  enable() {
+    this.isEnabled = true;
+    this.saveConfig();
+  }
+
+  private saveConfig() {
+    localStorage.setItem('n8n-config', JSON.stringify({
+      webhookUrl: this.webhookUrl,
+      isEnabled: this.isEnabled
+    }));
   }
 }
 
-export const n8nAutomationService = new N8NAutomationService();
+export const n8nAutomationService = new N8nAutomationService();
+export default n8nAutomationService;

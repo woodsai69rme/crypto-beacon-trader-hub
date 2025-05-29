@@ -1,133 +1,100 @@
+
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useTradingContext } from "@/contexts/TradingContext";
-import { CoinOption, SupportedCurrency } from '@/types/trading';
-import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useTradingContext } from '@/contexts/TradingContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
-interface TradingHoldingsProps {
-  isLoading: boolean;
-}
+const TradingHoldings: React.FC = () => {
+  const { activeAccount } = useTradingContext();
+  const { formatCurrency } = useCurrency();
 
-interface Holding {
-  coinId: string;
-  amount: number;
-  coin?: CoinOption;
-}
+  if (!activeAccount) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Portfolio Holdings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">No active trading account</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-const TradingHoldings: React.FC<TradingHoldingsProps> = ({ isLoading }) => {
-  const { account, coins, activeCurrency } = useTradingContext();
-
-  // Calculate holdings
-  const holdings: Holding[] = React.useMemo(() => {
-    if (!account) return [];
-
-    const coinHoldings: { [coinId: string]: number } = {};
-
-    account.trades.forEach(trade => {
-      if (!coinHoldings[trade.coinId]) {
-        coinHoldings[trade.coinId] = 0;
-      }
-      coinHoldings[trade.coinId] += trade.type === 'buy' ? trade.amount : -trade.amount;
-    });
-
-    return Object.entries(coinHoldings)
-      .filter(([, amount]) => amount > 0)
-      .map(([coinId, amount]) => ({
-        coinId,
-        amount,
-        coin: coins?.find(coin => coin.id === coinId)
-      }));
-  }, [account, coins]);
-
-  // Add price conversion helper function
-  const getCoinPrice = (coin: CoinOption, currency: SupportedCurrency): number => {
-    switch (currency) {
-      case 'AUD':
-        return coin.price * 1.5; // Apply conversion rate
-      case 'EUR':
-        return coin.price * 0.9; // Apply conversion rate
-      case 'GBP':
-        return coin.price * 0.8; // Apply conversion rate
-      case 'USD':
-      default:
-        return coin.price;
+  // Calculate holdings from trades
+  const holdings = activeAccount.trades.reduce((acc, trade) => {
+    const symbol = trade.symbol;
+    if (!acc[symbol]) {
+      acc[symbol] = {
+        symbol,
+        quantity: 0,
+        averagePrice: 0,
+        totalValue: 0,
+        pnl: 0
+      };
     }
-  };
 
-  const renderHoldingValue = (holding: Holding, activeCurrency: SupportedCurrency): string => {
-    if (!holding.coin) return '-';
-    
-    const price = getCoinPrice(holding.coin, activeCurrency);
-    const value = holding.amount * price;
-    
-    return formatCurrency(value, activeCurrency);
-  };
+    if (trade.type === 'buy') {
+      const newQuantity = acc[symbol].quantity + trade.quantity;
+      acc[symbol].averagePrice = (acc[symbol].averagePrice * acc[symbol].quantity + trade.price * trade.quantity) / newQuantity;
+      acc[symbol].quantity = newQuantity;
+    } else {
+      acc[symbol].quantity -= trade.quantity;
+    }
 
-  const totalPortfolioValue = React.useMemo(() => {
-    return holdings.reduce((total, holding) => {
-      if (!holding.coin) return total;
-      const price = getCoinPrice(holding.coin, activeCurrency);
-      return total + holding.amount * price;
-    }, 0);
-  }, [holdings, activeCurrency]);
+    return acc;
+  }, {} as Record<string, any>);
+
+  const holdingsArray = Object.values(holdings).filter((holding: any) => holding.quantity > 0);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Holdings</CardTitle>
-        <CardDescription>Your current cryptocurrency holdings</CardDescription>
+        <CardTitle>Portfolio Holdings</CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="h-[400px]">
-          <div className="divide-y divide-border">
-            {isLoading ? (
-              <>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4 p-4">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-[250px]" />
-                      <Skeleton className="h-4 w-[200px]" />
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : holdings.length > 0 ? (
-              holdings.map(holding => (
-                <div key={holding.coinId} className="flex items-center space-x-4 p-4">
-                  <Avatar>
-                    {holding.coin?.image ? (
-                      <AvatarImage src={holding.coin.image} alt={holding.coin.name} />
-                    ) : (
-                      <AvatarFallback>{holding.coin?.symbol}</AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">{holding.coin?.name}</p>
+      <CardContent>
+        {holdingsArray.length === 0 ? (
+          <p className="text-muted-foreground">No holdings yet. Start trading to see your positions here.</p>
+        ) : (
+          <div className="space-y-4">
+            {holdingsArray.map((holding: any) => {
+              const currentPrice = 50000 + Math.random() * 10000; // Mock current price
+              const currentValue = holding.quantity * currentPrice;
+              const pnl = currentValue - (holding.quantity * holding.averagePrice);
+              const pnlPercentage = (pnl / (holding.quantity * holding.averagePrice)) * 100;
+
+              return (
+                <div key={holding.symbol} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h3 className="font-semibold">{holding.symbol}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {holding.amount.toFixed(2)} {holding.coin?.symbol}
+                      {holding.quantity.toFixed(6)} units
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Avg: {formatCurrency(holding.averagePrice)}
                     </p>
                   </div>
-                  <div className="ml-auto font-medium">
-                    {renderHoldingValue(holding, activeCurrency)}
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(currentValue)}</p>
+                    <div className="flex items-center gap-1">
+                      {pnl >= 0 ? (
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-500" />
+                      )}
+                      <Badge variant={pnl >= 0 ? "default" : "destructive"}>
+                        {pnl >= 0 ? '+' : ''}{formatCurrency(pnl)} ({pnlPercentage.toFixed(2)}%)
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="p-4 text-center text-muted-foreground">
-                No holdings yet. Start trading to build your portfolio!
-              </div>
-            )}
+              );
+            })}
           </div>
-        </ScrollArea>
+        )}
       </CardContent>
-      <div className="p-4 font-bold">
-        Total Portfolio Value: {formatCurrency(totalPortfolioValue, activeCurrency)}
-      </div>
     </Card>
   );
 };
