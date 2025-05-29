@@ -154,7 +154,7 @@ const Dashboard: React.FC = () => {
                       <TrendingDown className="h-4 w-4 text-red-500" />
                     )}
                     <div>
-                      <p className="font-medium">{trade.type.toUpperCase()} {trade.coinSymbol}</p>
+                      <p className="font-medium">{trade.type.toUpperCase()} {trade.symbol}</p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(trade.timestamp).toLocaleString()}
                       </p>
@@ -163,7 +163,7 @@ const Dashboard: React.FC = () => {
                   <div className="text-right">
                     <p className="font-medium">{formatCurrency(trade.totalValue)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {trade.amount.toFixed(6)} {trade.coinSymbol}
+                      {trade.quantity.toFixed(6)} {trade.symbol}
                     </p>
                   </div>
                 </div>
@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">{bot.name}</p>
-                      <p className="text-sm text-muted-foreground">{bot.strategy} • {bot.aiModel}</p>
+                      <p className="text-sm text-muted-foreground">{bot.strategy} • {bot.model}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{bot.performance.totalReturn.toFixed(2)}%</p>

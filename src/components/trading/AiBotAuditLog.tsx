@@ -69,7 +69,7 @@ const AiBotAuditLog: React.FC<AiBotAuditLogProps> = ({ botId }) => {
                         {entry.action}
                       </Badge>
                       {'botName' in entry && (
-                        <Badge variant="outline">{entry.botName}</Badge>
+                        <Badge variant="outline">{String(entry.botName)}</Badge>
                       )}
                     </div>
                     <span className="text-sm text-muted-foreground">

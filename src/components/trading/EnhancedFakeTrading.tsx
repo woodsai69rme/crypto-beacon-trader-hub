@@ -12,6 +12,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { useToast } from '@/hooks/use-toast';
 import { TrendingUp, TrendingDown, Activity, Wallet } from 'lucide-react';
 import TradingHoldings from './TradingHoldings';
+import { Trade } from '@/types/trading';
 
 const EnhancedFakeTrading: React.FC = () => {
   const [tradeData, setTradeData] = useState({
@@ -78,14 +79,20 @@ const EnhancedFakeTrading: React.FC = () => {
       return;
     }
 
-    const trade = {
+    const trade: Trade = {
       id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       symbol: tradeData.symbol,
+      coinSymbol: tradeData.symbol,
+      coinId: tradeData.symbol.toLowerCase(),
+      coinName: selectedAsset.name,
       type: tradeData.type,
       quantity,
+      amount: quantity,
       price: selectedAsset.price,
       totalValue,
+      total: totalValue,
       timestamp: new Date(tradeData.date).toISOString(),
+      currency: 'AUD',
       tags: ['paper-trading']
     };
 

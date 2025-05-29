@@ -3,17 +3,21 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { openRouterService, TradingSignal } from '@/services/openRouterService';
 import { useTradingContext } from './TradingContext';
 import { useToast } from '@/hooks/use-toast';
+import { Trade, TradingAccount, SupportedCurrency } from '@/types/trading';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface AiBot {
   id: string;
   name: string;
   strategy: string;
-  model: string;
+  model: string; // This is the correct property name
+  aiModel?: string; // Alias for compatibility
   isActive: boolean;
   riskLevel: 'low' | 'medium' | 'high';
   maxTradeAmount: number;
   targetAssets: string[];
   createdAt: string;
+  account: TradingAccount; // Add missing account property
   performance: {
     totalTrades: number;
     winRate: number;
@@ -36,6 +40,7 @@ export interface AuditEntry {
 
 interface AiTradingContextType {
   bots: AiBot[];
+  activeBots: AiBot[]; // Add missing activeBots property
   createBot: (config: Partial<AiBot>) => string;
   activateBot: (botId: string) => void;
   deactivateBot: (botId: string) => void;
@@ -46,6 +51,7 @@ interface AiTradingContextType {
 
 const AiTradingContext = createContext<AiTradingContextType>({
   bots: [],
+  activeBots: [],
   createBot: () => '',
   activateBot: () => {},
   deactivateBot: () => {},
@@ -59,6 +65,9 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { addTrade, activeAccount } = useTradingContext();
   const { toast } = useToast();
 
+  // Compute activeBots from bots state
+  const activeBots = bots.filter(bot => bot.isActive);
+
   useEffect(() => {
     const stored = localStorage.getItem('ai-trading-bots');
     if (stored) {
@@ -70,12 +79,25 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('ai-trading-bots', JSON.stringify(bots));
   }, [bots]);
 
+  const createBotAccount = (name: string): TradingAccount => {
+    return {
+      id: uuidv4(),
+      name,
+      trades: [],
+      balance: 10000,
+      currency: 'AUD' as SupportedCurrency,
+      createdAt: new Date().toISOString(),
+      type: 'paper',
+      assets: []
+    };
+  };
+
   // AI Bot execution loop
   useEffect(() => {
     const interval = setInterval(async () => {
-      const activeBots = bots.filter(bot => bot.isActive);
+      const activeBotsToRun = bots.filter(bot => bot.isActive);
       
-      for (const bot of activeBots) {
+      for (const bot of activeBotsToRun) {
         await executeBot(bot);
       }
     }, 30000); // Run every 30 seconds
@@ -112,15 +134,23 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const tradeAmount = calculateTradeAmount(bot, signal, activeAccount.balance);
         
         if (tradeAmount > 0) {
-          const trade = {
+          const trade: Trade = {
             id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             symbol: bot.targetAssets[0] || 'BTC',
+            coinSymbol: bot.targetAssets[0] || 'BTC',
+            coinId: bot.targetAssets[0]?.toLowerCase() || 'bitcoin',
+            coinName: bot.targetAssets[0] || 'Bitcoin',
             type: signal.signal.toLowerCase() as 'buy' | 'sell',
             quantity: tradeAmount / signal.entryPrice,
+            amount: tradeAmount / signal.entryPrice,
             price: signal.entryPrice,
             totalValue: tradeAmount,
+            total: tradeAmount,
             timestamp: new Date().toISOString(),
             botId: bot.id,
+            botGenerated: true,
+            strategyId: bot.id,
+            currency: 'AUD',
             tags: [`ai-${bot.strategy}`, `${bot.model}`, `confidence-${Math.round(signal.confidence * 100)}`]
           };
 
@@ -230,11 +260,13 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       name: config.name || 'AI Trading Bot',
       strategy: config.strategy || 'trend-following',
       model: config.model || 'deepseek/deepseek-r1',
+      aiModel: config.model || 'deepseek/deepseek-r1', // Alias for compatibility
       isActive: false,
       riskLevel: config.riskLevel || 'low',
       maxTradeAmount: config.maxTradeAmount || 1000,
       targetAssets: config.targetAssets || ['BTC'],
       createdAt: new Date().toISOString(),
+      account: createBotAccount(`${config.name || 'AI Trading Bot'} Account`),
       performance: {
         totalTrades: 0,
         winRate: 0,
@@ -289,6 +321,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   return (
     <AiTradingContext.Provider value={{
       bots,
+      activeBots,
       createBot,
       activateBot,
       deactivateBot,
