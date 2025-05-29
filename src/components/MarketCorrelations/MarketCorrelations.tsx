@@ -1,179 +1,222 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown } from "lucide-react";
-import { mockCryptoData } from './mockData';
-
-interface CorrelationData {
-  asset1: string;
-  asset2: string;
-  correlation: number;
-}
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { fetchTopCryptoData } from '@/services/cryptoService';
+import { CoinOption } from '@/types/trading';
+import CorrelationMatrix from './CorrelationMatrix';
+import CorrelationHeatmap from './CorrelationHeatmap';
+import PriceCorrelationChart from './PriceCorrelationChart';
+import { generateCorrelationMatrix } from '@/lib/correlationUtils';
+import { TrendingUp, BarChart3, Activity } from 'lucide-react';
 
 const MarketCorrelations: React.FC = () => {
-  const [timeframe, setTimeframe] = useState<string>('7d');
-  const [correlations, setCorrelations] = useState<CorrelationData[]>([]);
-  const [selectedAsset, setSelectedAsset] = useState<string>('bitcoin');
+  const [coins, setCoins] = useState<CoinOption[]>([]);
+  const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
+  const [correlationMatrix, setCorrelationMatrix] = useState<number[][]>([]);
+  const [timeframe, setTimeframe] = useState<string>('30d');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Calculate mock correlations
-    const generateCorrelations = () => {
-      const assets = mockCryptoData.slice(0, 6);
-      const newCorrelations: CorrelationData[] = [];
-
-      assets.forEach(asset1 => {
-        assets.forEach(asset2 => {
-          if (asset1.id !== asset2.id && asset1.id === selectedAsset) {
-            // Generate realistic correlation values
-            let correlation = Math.random() * 2 - 1; // -1 to 1
-            
-            // Make some correlations more realistic
-            if ((asset1.id === 'bitcoin' && asset2.id === 'ethereum') ||
-                (asset1.id === 'ethereum' && asset2.id === 'bitcoin')) {
-              correlation = 0.7 + Math.random() * 0.2;
-            }
-            
-            newCorrelations.push({
-              asset1: asset1.id,
-              asset2: asset2.id,
-              correlation: Math.round(correlation * 100) / 100
-            });
-          }
-        });
-      });
-
-      setCorrelations(newCorrelations);
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const cryptoData = await fetchTopCryptoData(10);
+        setCoins(cryptoData);
+        
+        // Select first 5 coins by default
+        const defaultSelection = cryptoData.slice(0, 5).map(coin => coin.id);
+        setSelectedCoins(defaultSelection);
+        
+        // Generate correlation matrix for selected coins
+        const selectedCoinData = cryptoData.filter(coin => defaultSelection.includes(coin.id));
+        const matrix = generateCorrelationMatrix(selectedCoinData);
+        setCorrelationMatrix(matrix);
+        
+      } catch (err) {
+        console.error('Error loading market correlations data:', err);
+        setError('Failed to load market data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    generateCorrelations();
-  }, [selectedAsset, timeframe]);
+    loadData();
+  }, []);
 
-  const getCorrelationColor = (correlation: number) => {
-    const abs = Math.abs(correlation);
-    if (abs >= 0.7) return correlation > 0 ? 'text-green-600' : 'text-red-600';
-    if (abs >= 0.3) return correlation > 0 ? 'text-green-500' : 'text-red-500';
-    return 'text-gray-500';
+  useEffect(() => {
+    if (selectedCoins.length > 0 && coins.length > 0) {
+      const selectedCoinData = coins.filter(coin => selectedCoins.includes(coin.id));
+      const matrix = generateCorrelationMatrix(selectedCoinData);
+      setCorrelationMatrix(matrix);
+    }
+  }, [selectedCoins, coins, timeframe]);
+
+  const handleCoinToggle = (coinId: string) => {
+    setSelectedCoins(prev => {
+      if (prev.includes(coinId)) {
+        return prev.filter(id => id !== coinId);
+      } else if (prev.length < 10) { // Limit to 10 coins
+        return [...prev, coinId];
+      }
+      return prev;
+    });
   };
 
-  const getCorrelationStrength = (correlation: number) => {
-    const abs = Math.abs(correlation);
-    if (abs >= 0.7) return 'Strong';
-    if (abs >= 0.3) return 'Moderate';
-    return 'Weak';
+  const handleCoinSelect = (coin: CoinOption) => {
+    console.log('Selected coin:', coin);
   };
 
-  const selectedAssetData = mockCryptoData.find(asset => asset.id === selectedAsset);
+  const selectedCoinData = coins.filter(coin => selectedCoins.includes(coin.id));
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Market Correlations
+          </CardTitle>
+          <CardDescription>Loading correlation data...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Market Correlations
+          </CardTitle>
+          <CardDescription>Error loading data</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-destructive">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline" 
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Market Correlations</h3>
-        <div className="flex gap-2">
-          <Select value={selectedAsset} onValueChange={setSelectedAsset}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select asset" />
-            </SelectTrigger>
-            <SelectContent>
-              {mockCryptoData.slice(0, 6).map(asset => (
-                <SelectItem key={asset.id} value={asset.id}>
-                  {asset.name} ({asset.symbol.toUpperCase()})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5" />
+          Market Correlations
+        </CardTitle>
+        <CardDescription>
+          Analyze price correlations between different cryptocurrencies
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* Controls */}
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-sm font-medium mb-2 block">Timeframe</label>
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">7 Days</SelectItem>
+                <SelectItem value="30d">30 Days</SelectItem>
+                <SelectItem value="90d">90 Days</SelectItem>
+                <SelectItem value="1y">1 Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1d">1 Day</SelectItem>
-              <SelectItem value="7d">7 Days</SelectItem>
-              <SelectItem value="30d">30 Days</SelectItem>
-              <SelectItem value="90d">90 Days</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex-2 min-w-[300px]">
+            <label className="text-sm font-medium mb-2 block">
+              Selected Assets ({selectedCoins.length}/10)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {coins.map(coin => (
+                <Badge
+                  key={coin.id}
+                  variant={selectedCoins.includes(coin.id) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => handleCoinToggle(coin.id)}
+                >
+                  {coin.symbol}
+                </Badge>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {selectedAssetData?.name} Correlations ({timeframe})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {correlations.map((corr) => {
-              const asset2Data = mockCryptoData.find(asset => asset.id === corr.asset2);
-              
-              return (
-                <div key={`${corr.asset1}-${corr.asset2}`} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-semibold">
-                      {asset2Data?.symbol.toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="font-medium">{asset2Data?.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {getCorrelationStrength(corr.correlation)} correlation
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {corr.correlation > 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-500" />
-                    )}
-                    <span className={`font-semibold ${getCorrelationColor(corr.correlation)}`}>
-                      {corr.correlation > 0 ? '+' : ''}{corr.correlation.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+        {selectedCoins.length < 2 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Select at least 2 assets to see correlation analysis
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        ) : (
+          <Tabs defaultValue="matrix" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="matrix" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Matrix
+              </TabsTrigger>
+              <TabsTrigger value="heatmap" className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Heatmap
+              </TabsTrigger>
+              <TabsTrigger value="chart" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Chart
+              </TabsTrigger>
+            </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Correlation Heatmap</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-6 gap-1 text-xs">
-            {mockCryptoData.slice(0, 6).map(asset1 => (
-              mockCryptoData.slice(0, 6).map(asset2 => {
-                const correlation = asset1.id === asset2.id ? 1 : (Math.random() * 2 - 1);
-                const intensity = Math.abs(correlation);
-                const bgColor = correlation > 0 
-                  ? `rgba(34, 197, 94, ${intensity})` 
-                  : `rgba(239, 68, 68, ${intensity})`;
-                
-                return (
-                  <div
-                    key={`${asset1.id}-${asset2.id}`}
-                    className="aspect-square flex items-center justify-center rounded border"
-                    style={{ backgroundColor: bgColor }}
-                    title={`${asset1.symbol}/${asset2.symbol}: ${correlation.toFixed(2)}`}
-                  >
-                    <span className="text-white font-medium">
-                      {correlation.toFixed(1)}
-                    </span>
-                  </div>
-                );
-              })
-            ))}
-          </div>
-          <div className="mt-3 flex justify-between text-xs text-muted-foreground">
-            <span>Assets: {mockCryptoData.slice(0, 6).map(a => a.symbol.toUpperCase()).join(', ')}</span>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <TabsContent value="matrix">
+              <CorrelationMatrix
+                correlationData={correlationMatrix}
+                coins={selectedCoinData}
+                onCoinSelect={handleCoinSelect}
+              />
+            </TabsContent>
+
+            <TabsContent value="heatmap">
+              <CorrelationHeatmap
+                correlationData={correlationMatrix}
+                coins={selectedCoinData}
+                onCoinSelect={handleCoinSelect}
+              />
+            </TabsContent>
+
+            <TabsContent value="chart">
+              <PriceCorrelationChart
+                coins={selectedCoinData}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

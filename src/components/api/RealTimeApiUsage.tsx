@@ -1,98 +1,139 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Badge } from "@/components/ui/badge";
-import { Activity, Clock, Zap } from "lucide-react";
 
-interface ApiCall {
-  id: string;
-  service: string;
+interface ApiUsagePoint {
+  timestamp: string;
+  requests: number;
   endpoint: string;
-  status: 'success' | 'error' | 'pending';
-  responseTime: number;
-  timestamp: Date;
 }
 
 const RealTimeApiUsage: React.FC = () => {
-  const [apiCalls, setApiCalls] = useState<ApiCall[]>([]);
-
+  const [usageData, setUsageData] = useState<ApiUsagePoint[]>([]);
+  
+  // Generate mock usage data on component mount and every few seconds
   useEffect(() => {
-    // Simulate real-time API calls
-    const interval = setInterval(() => {
-      const newCall: ApiCall = {
-        id: Math.random().toString(36).substr(2, 9),
-        service: ['CoinGecko', 'Binance', 'OpenRouter'][Math.floor(Math.random() * 3)],
-        endpoint: ['/coins/markets', '/ticker/24hr', '/chat/completions'][Math.floor(Math.random() * 3)],
-        status: Math.random() > 0.1 ? 'success' : 'error',
-        responseTime: Math.floor(Math.random() * 500) + 100,
-        timestamp: new Date()
-      };
-
-      setApiCalls(prev => [newCall, ...prev].slice(0, 20));
-    }, 2000 + Math.random() * 3000);
-
-    return () => clearInterval(interval);
+    // Initial data generation
+    generateInitialData();
+    
+    // Set up interval for real-time updates
+    const intervalId = setInterval(() => {
+      addDataPoint();
+    }, 3000);
+    
+    return () => clearInterval(intervalId);
   }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'success': return 'bg-green-500';
-      case 'error': return 'bg-red-500';
-      case 'pending': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
+  
+  // Generate some initial historical data
+  const generateInitialData = () => {
+    const initialData: ApiUsagePoint[] = [];
+    const now = new Date();
+    
+    // Generate data points for the past 20 minutes
+    for (let i = 20; i > 0; i--) {
+      const timestamp = new Date(now.getTime() - i * 60000).toLocaleTimeString();
+      const requests = Math.floor(Math.random() * 20) + 5;
+      const endpoint = getRandomEndpoint();
+      
+      initialData.push({
+        timestamp,
+        requests,
+        endpoint
+      });
     }
+    
+    setUsageData(initialData);
   };
-
-  const getResponseTimeColor = (time: number) => {
-    if (time < 200) return 'text-green-600';
-    if (time < 500) return 'text-yellow-600';
-    return 'text-red-600';
+  
+  // Add a new data point
+  const addDataPoint = () => {
+    const timestamp = new Date().toLocaleTimeString();
+    const requests = Math.floor(Math.random() * 20) + 5;
+    const endpoint = getRandomEndpoint();
+    
+    setUsageData(prevData => {
+      // Keep only the last 20 data points
+      const newData = [...prevData.slice(-19), { timestamp, requests, endpoint }];
+      return newData;
+    });
   };
-
+  
+  // Helper function to get a random endpoint for mock data
+  const getRandomEndpoint = () => {
+    const endpoints = [
+      '/coins/markets',
+      '/market_chart',
+      '/exchanges',
+      '/coins/list',
+      '/simple/price'
+    ];
+    
+    return endpoints[Math.floor(Math.random() * endpoints.length)];
+  };
+  
+  // Calculate current requests per minute
+  const calculateRequestsPerMinute = () => {
+    if (usageData.length === 0) return 0;
+    
+    const totalRequests = usageData.reduce((total, point) => total + point.requests, 0);
+    return Math.round(totalRequests / usageData.length * 60 / 3); // Adjust for 3-second intervals
+  };
+  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Real-Time API Activity
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {apiCalls.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>Waiting for API calls...</p>
-            </div>
-          ) : (
-            apiCalls.map((call) => (
-              <div key={call.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${getStatusColor(call.status)}`} />
-                  <div>
-                    <div className="font-medium">{call.service}</div>
-                    <div className="text-sm text-muted-foreground">{call.endpoint}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Zap className="h-3 w-3" />
-                    <span className={getResponseTimeColor(call.responseTime)}>
-                      {call.responseTime}ms
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>{call.timestamp.toLocaleTimeString()}</span>
-                  </div>
-                  <Badge variant={call.status === 'success' ? 'default' : 'destructive'}>
-                    {call.status}
-                  </Badge>
-                </div>
-              </div>
-            ))
-          )}
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-md font-medium">Real-Time API Usage</CardTitle>
+          <div className="flex items-center mt-1">
+            <Badge variant="outline" className="mr-2">
+              {calculateRequestsPerMinute()} requests/min
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Last updated: {usageData.length > 0 ? usageData[usageData.length - 1].timestamp : 'N/A'}
+            </span>
+          </div>
         </div>
+      </CardHeader>
+      
+      <CardContent className="h-60">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={usageData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+            <XAxis
+              dataKey="timestamp"
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+              minTickGap={50}
+              tickFormatter={(value, index) => {
+                // Only show every 3rd tick to avoid crowding
+                if (index % 3 !== 0) return '';
+                return value;
+              }}
+            />
+            <YAxis
+              width={30}
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              formatter={(value) => [`${value} requests`, 'API Requests']}
+              itemStyle={{ fontSize: 12 }}
+              labelStyle={{ fontSize: 12, fontWeight: 'bold' }}
+              contentStyle={{ border: '1px solid #ccc', borderRadius: '4px', background: '#fff' }}
+            />
+            <Line
+              type="monotone"
+              dataKey="requests"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+              isAnimationActive={true}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );

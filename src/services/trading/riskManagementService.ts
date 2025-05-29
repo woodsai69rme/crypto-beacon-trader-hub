@@ -1,173 +1,311 @@
 
-// Risk management service for trading operations
+import { TradingAccount, PortfolioAsset, Trade } from '@/types/trading';
+
 export interface RiskMetrics {
-  portfolioValue: number;
-  totalExposure: number;
+  riskScore: number;
   diversificationScore: number;
-  volatilityRisk: number;
-  liquidityRisk: number;
+  volatilityScore: number;
+  liquidityScore: number;
   concentrationRisk: number;
+  correlationRisk: number;
+  portfolioValue: number;
+  currentDrawdown: number;
+  portfolioVaR: number;
+  beta: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  diversificationRatio: number;
 }
 
 export interface RiskAlert {
-  id: string;
-  type: 'exposure' | 'concentration' | 'volatility' | 'liquidity';
-  severity: 'low' | 'medium' | 'high';
+  type: 'critical' | 'warning' | 'info';
   message: string;
-  timestamp: Date;
-  resolved: boolean;
+  action: string;
+  severity: number;
 }
 
-class RiskManagementService {
-  calculateRiskMetrics(account: any): RiskMetrics {
-    const portfolioValue = account?.balance || 10000;
-    const assets = account?.assets || [];
-    
-    // Calculate total exposure
-    const totalExposure = assets.reduce((sum: number, asset: any) => {
-      return sum + (asset.quantity * asset.price);
-    }, 0);
+export interface PositionSizingParams {
+  accountBalance: number;
+  riskPerTrade: number;
+  stopLossDistance: number;
+  volatility: number;
+}
 
-    // Calculate diversification score (0-100)
-    const diversificationScore = this.calculateDiversification(assets);
-    
-    // Calculate volatility risk based on asset mix
-    const volatilityRisk = this.calculateVolatilityRisk(assets);
-    
-    // Calculate liquidity risk
-    const liquidityRisk = this.calculateLiquidityRisk(assets);
-    
-    // Calculate concentration risk
-    const concentrationRisk = this.calculateConcentrationRisk(assets, totalExposure);
+export class RiskManagementService {
+  private readonly riskToleranceLevels = {
+    low: {
+      maxSingleAssetAllocation: 0.2,
+      maxVolatileAssetAllocation: 0.3,
+      maxDrawdown: 0.05,
+      sharpeRatioThreshold: 0.5
+    },
+    medium: {
+      maxSingleAssetAllocation: 0.3,
+      maxVolatileAssetAllocation: 0.5,
+      maxDrawdown: 0.10,
+      sharpeRatioThreshold: 0.7
+    },
+    high: {
+      maxSingleAssetAllocation: 0.5,
+      maxVolatileAssetAllocation: 0.8,
+      maxDrawdown: 0.20,
+      sharpeRatioThreshold: 1.0
+    }
+  };
 
+  private readonly assetRiskProfiles = {
+    bitcoin: { volatility: 0.7, correlation: 0.5, liquidity: 0.8 },
+    ethereum: { volatility: 0.8, correlation: 0.6, liquidity: 0.7 },
+    cardano: { volatility: 0.9, correlation: 0.4, liquidity: 0.6 },
+    solana: { volatility: 1.0, correlation: 0.3, liquidity: 0.5 },
+    stablecoin: { volatility: 0.01, correlation: 0.1, liquidity: 0.9 }
+  };
+
+  calculateRiskMetrics(account: TradingAccount): RiskMetrics {
+    const portfolioValue = (account.assets || []).reduce((sum, asset) => sum + asset.value, 0) + account.balance;
+    
     return {
+      riskScore: this.calculateOverallRiskScore(account),
+      diversificationScore: this.assessDiversification(account),
+      volatilityScore: this.assessVolatility(account),
+      liquidityScore: this.assessLiquidity(account),
+      concentrationRisk: this.assessConcentrationRisk(account),
+      correlationRisk: this.assessCorrelationRisk(account),
       portfolioValue,
-      totalExposure,
-      diversificationScore,
-      volatilityRisk,
-      liquidityRisk,
-      concentrationRisk
+      currentDrawdown: this.calculateCurrentDrawdown(account),
+      portfolioVaR: this.calculatePortfolioVaR(account),
+      beta: this.calculateBeta(account),
+      sharpeRatio: this.calculateSharpeRatio(account),
+      maxDrawdown: this.calculateMaxDrawdown(account),
+      diversificationRatio: this.calculateDiversificationRatio(account)
     };
   }
 
-  generateRiskAlerts(account: any): RiskAlert[] {
-    const alerts: RiskAlert[] = [];
+  generateRiskAlerts(account: TradingAccount): RiskAlert[] {
     const metrics = this.calculateRiskMetrics(account);
-    
-    // High exposure alert
-    if (metrics.totalExposure > metrics.portfolioValue * 0.9) {
+    const alerts: RiskAlert[] = [];
+
+    if (metrics.concentrationRisk > 50) {
       alerts.push({
-        id: `alert-${Date.now()}-1`,
-        type: 'exposure',
-        severity: 'high',
-        message: 'Portfolio exposure exceeds 90% of total value',
-        timestamp: new Date(),
-        resolved: false
+        type: 'critical',
+        message: 'Portfolio is too concentrated in a few assets',
+        action: 'Rebalance to diversify holdings',
+        severity: 9
       });
     }
 
-    // Low diversification alert
-    if (metrics.diversificationScore < 30) {
+    if (metrics.volatilityScore > 70) {
       alerts.push({
-        id: `alert-${Date.now()}-2`,
-        type: 'concentration',
-        severity: 'medium',
-        message: 'Portfolio lacks diversification across asset classes',
-        timestamp: new Date(),
-        resolved: false
+        type: 'warning',
+        message: 'Portfolio volatility is high',
+        action: 'Consider reducing exposure to volatile assets',
+        severity: 7
       });
     }
 
-    // High volatility alert
-    if (metrics.volatilityRisk > 70) {
+    if (metrics.currentDrawdown > 0.15) {
       alerts.push({
-        id: `alert-${Date.now()}-3`,
-        type: 'volatility',
-        severity: 'high',
-        message: 'Portfolio volatility risk is elevated',
-        timestamp: new Date(),
-        resolved: false
+        type: 'critical',
+        message: 'Portfolio drawdown exceeds 15%',
+        action: 'Review risk management strategy',
+        severity: 10
       });
     }
 
-    return alerts;
+    if (metrics.liquidityScore < 30) {
+      alerts.push({
+        type: 'warning',
+        message: 'Portfolio liquidity is low',
+        action: 'Increase allocation to liquid assets',
+        severity: 6
+      });
+    }
+
+    return alerts.sort((a, b) => b.severity - a.severity);
   }
 
-  private calculateDiversification(assets: any[]): number {
-    if (assets.length === 0) return 0;
-    if (assets.length === 1) return 20;
+  calculateOptimalPositionSize(params: PositionSizingParams): number {
+    const { accountBalance, riskPerTrade, stopLossDistance, volatility } = params;
     
-    // Simple diversification score based on number of assets and their distribution
-    const maxAssets = 10;
-    const baseScore = Math.min(assets.length / maxAssets, 1) * 70;
+    // Kelly Criterion
+    const kellyCriterion = this.calculateKellyCriterion(0.6, 1.5); // Assuming 60% win rate, 1.5 avg win/loss
     
-    // Add bonus for even distribution
-    const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.quantity * asset.price), 0);
-    if (totalValue === 0) return baseScore;
+    // Risk-based position sizing
+    const riskAmount = accountBalance * (riskPerTrade / 100);
+    const positionSize = riskAmount / stopLossDistance;
     
-    const weights = assets.map(asset => (asset.quantity * asset.price) / totalValue);
-    const evenWeight = 1 / assets.length;
-    const distributionScore = weights.reduce((score, weight) => {
-      return score - Math.abs(weight - evenWeight);
-    }, 30);
+    // Volatility adjustment
+    const volatilityAdjustment = Math.min(1, 0.2 / volatility);
     
-    return Math.max(0, Math.min(100, baseScore + distributionScore));
+    return Math.min(positionSize * volatilityAdjustment, accountBalance * kellyCriterion);
   }
 
-  private calculateVolatilityRisk(assets: any[]): number {
-    // Mock volatility calculation based on asset types
-    const cryptoVolatility = 60; // High volatility
-    const stablecoinVolatility = 5; // Low volatility
-    
+  calculateStopLoss(entryPrice: number, volatility: number, riskLevel: 'low' | 'medium' | 'high'): number {
+    const multipliers = { low: 1.5, medium: 2.0, high: 3.0 };
+    const atr = entryPrice * volatility * 0.1; // Simplified ATR calculation
+    return entryPrice - (atr * multipliers[riskLevel]);
+  }
+
+  calculateTakeProfit(entryPrice: number, stopLoss: number, riskRewardRatio: number = 2): number {
+    const risk = entryPrice - stopLoss;
+    return entryPrice + (risk * riskRewardRatio);
+  }
+
+  private calculateOverallRiskScore(account: TradingAccount): number {
+    const diversificationScore = this.assessDiversification(account);
+    const volatilityScore = this.assessVolatility(account);
+    const concentrationRisk = this.assessConcentrationRisk(account);
+    const correlationRisk = this.assessCorrelationRisk(account);
+
+    return (
+      volatilityScore * 0.4 +
+      concentrationRisk * 0.3 +
+      correlationRisk * 0.2 +
+      (100 - diversificationScore) * 0.1
+    );
+  }
+
+  private assessDiversification(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 0;
+
+    const assetCount = account.assets.length;
+    const idealAllocation = 100 / assetCount;
+    let deviationSum = 0;
+
+    for (const asset of account.assets) {
+      deviationSum += Math.abs(asset.allocation - idealAllocation);
+    }
+
+    const averageDeviation = deviationSum / assetCount;
+    return Math.max(0, Math.min(100, 100 - averageDeviation));
+  }
+
+  private assessVolatility(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 0;
+
     let weightedVolatility = 0;
-    let totalWeight = 0;
-    
-    assets.forEach(asset => {
-      const weight = asset.quantity * asset.price;
-      const volatility = asset.symbol?.includes('USD') ? stablecoinVolatility : cryptoVolatility;
-      weightedVolatility += volatility * weight;
-      totalWeight += weight;
-    });
-    
-    return totalWeight > 0 ? weightedVolatility / totalWeight : 0;
+    for (const asset of account.assets) {
+      const profile = this.assetRiskProfiles[asset.coinId] || { volatility: 0.5 };
+      weightedVolatility += (asset.allocation / 100) * profile.volatility;
+    }
+
+    return Math.max(0, Math.min(100, weightedVolatility * 100));
   }
 
-  private calculateLiquidityRisk(assets: any[]): number {
-    // Mock liquidity calculation
-    const majorCoinsLiquidity = 10; // Low risk
-    const altcoinsLiquidity = 40; // Medium risk
-    const unknownLiquidity = 80; // High risk
-    
+  private assessLiquidity(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 100;
+
     let weightedLiquidity = 0;
-    let totalWeight = 0;
-    
-    assets.forEach(asset => {
-      const weight = asset.quantity * asset.price;
-      const majorCoins = ['BTC', 'ETH', 'USDT', 'USDC'];
-      
-      let liquidity = unknownLiquidity;
-      if (majorCoins.includes(asset.symbol)) {
-        liquidity = majorCoinsLiquidity;
-      } else {
-        liquidity = altcoinsLiquidity;
-      }
-      
-      weightedLiquidity += liquidity * weight;
-      totalWeight += weight;
-    });
-    
-    return totalWeight > 0 ? weightedLiquidity / totalWeight : 0;
+    for (const asset of account.assets) {
+      const profile = this.assetRiskProfiles[asset.coinId] || { liquidity: 0.5 };
+      weightedLiquidity += (asset.allocation / 100) * profile.liquidity;
+    }
+
+    return Math.max(0, Math.min(100, weightedLiquidity * 100));
   }
 
-  private calculateConcentrationRisk(assets: any[], totalExposure: number): number {
-    if (totalExposure === 0) return 0;
+  private assessConcentrationRisk(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 0;
+    return Math.max(...account.assets.map(asset => asset.allocation));
+  }
+
+  private assessCorrelationRisk(account: TradingAccount): number {
+    if (!account.assets || account.assets.length < 2) return 0;
+
+    let totalCorrelation = 0;
+    let pairCount = 0;
+
+    for (let i = 0; i < account.assets.length; i++) {
+      for (let j = i + 1; j < account.assets.length; j++) {
+        const asset1 = account.assets[i];
+        const asset2 = account.assets[j];
+        const profile1 = this.assetRiskProfiles[asset1.coinId] || { correlation: 0.5 };
+        const profile2 = this.assetRiskProfiles[asset2.coinId] || { correlation: 0.5 };
+        
+        totalCorrelation += (profile1.correlation + profile2.correlation) / 2;
+        pairCount++;
+      }
+    }
+
+    return pairCount > 0 ? (totalCorrelation / pairCount) * 100 : 0;
+  }
+
+  private calculateCurrentDrawdown(account: TradingAccount): number {
+    const initialBalance = account.initialBalance || account.balance;
+    const currentValue = (account.assets || []).reduce((sum, asset) => sum + asset.value, 0) + account.balance;
+    return Math.max(0, (initialBalance - currentValue) / initialBalance);
+  }
+
+  private calculatePortfolioVaR(account: TradingAccount, confidenceLevel: number = 0.95): number {
+    const portfolioValue = (account.assets || []).reduce((sum, asset) => sum + asset.value, 0) + account.balance;
+    const volatility = this.calculatePortfolioVolatility(account);
+    const zScore = confidenceLevel === 0.95 ? 1.645 : 2.33;
+    return zScore * volatility * portfolioValue;
+  }
+
+  private calculatePortfolioVolatility(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 0;
+
+    let weightedVolatility = 0;
+    for (const asset of account.assets) {
+      const profile = this.assetRiskProfiles[asset.coinId] || { volatility: 0.5 };
+      weightedVolatility += (asset.allocation / 100) * profile.volatility;
+    }
+
+    return weightedVolatility;
+  }
+
+  private calculateBeta(account: TradingAccount, marketVolatility: number = 0.8): number {
+    if (!account.assets || account.assets.length === 0) return 1;
+
+    let weightedCorrelation = 0;
+    for (const asset of account.assets) {
+      const profile = this.assetRiskProfiles[asset.coinId] || { correlation: 0.5 };
+      weightedCorrelation += (asset.allocation / 100) * profile.correlation;
+    }
+
+    const portfolioVolatility = this.calculatePortfolioVolatility(account);
+    return weightedCorrelation * (portfolioVolatility / marketVolatility);
+  }
+
+  private calculateSharpeRatio(account: TradingAccount, riskFreeRate: number = 0.02): number {
+    const expectedReturn = this.calculateExpectedReturn(account);
+    const portfolioVolatility = this.calculatePortfolioVolatility(account);
+    return portfolioVolatility === 0 ? 0 : (expectedReturn - riskFreeRate) / portfolioVolatility;
+  }
+
+  private calculateMaxDrawdown(account: TradingAccount): number {
+    // This would require historical portfolio values
+    // For now, return current drawdown as approximation
+    return this.calculateCurrentDrawdown(account) * 100;
+  }
+
+  private calculateDiversificationRatio(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 0;
     
-    // Calculate Herfindahl-Hirschman Index (HHI) for concentration
-    const weights = assets.map(asset => (asset.quantity * asset.price) / totalExposure);
-    const hhi = weights.reduce((sum, weight) => sum + weight * weight, 0);
+    // Simplified calculation - in practice would use correlation matrix
+    const assetCount = account.assets.length;
+    const maxDiversification = assetCount;
+    const actualDiversification = Math.sqrt(assetCount); // Simplified
     
-    // Convert HHI to 0-100 scale (higher = more concentrated)
-    return Math.min(100, hhi * 100);
+    return actualDiversification / maxDiversification;
+  }
+
+  private calculateExpectedReturn(account: TradingAccount): number {
+    if (!account.assets || account.assets.length === 0) return 0;
+
+    let expectedReturn = 0;
+    for (const asset of account.assets) {
+      const profile = this.assetRiskProfiles[asset.coinId] || { volatility: 0.5 };
+      // Simple expected return based on inverse volatility
+      expectedReturn += (asset.allocation / 100) * (0.1 - profile.volatility * 0.05);
+    }
+
+    return expectedReturn;
+  }
+
+  private calculateKellyCriterion(winRate: number, avgWinLossRatio: number): number {
+    return (winRate * avgWinLossRatio - (1 - winRate)) / avgWinLossRatio;
   }
 }
 
