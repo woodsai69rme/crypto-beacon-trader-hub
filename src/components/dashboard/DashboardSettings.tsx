@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -69,6 +68,9 @@ const DashboardSettings = () => {
         showAdvanced: false,
         defaultAsset: "bitcoin",
       },
+      autoSave: true,
+      dataRetention: 365,
+      marketDataProvider: "coingecko"
     },
   });
   

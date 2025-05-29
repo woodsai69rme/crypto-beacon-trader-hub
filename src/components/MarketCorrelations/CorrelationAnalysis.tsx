@@ -50,109 +50,84 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
     if (value > -0.8) return "Strong Negative";
     return "Very Strong Negative";
   };
-  
-  const getCorrelationBadgeColor = (value: number): string => {
-    if (value > 0.6) return "bg-green-500";
-    if (value > 0.2) return "bg-green-300";
-    if (value > -0.2) return "bg-gray-400";
-    if (value > -0.6) return "bg-red-300";
-    return "bg-red-500";
+
+  const getCorrelationColor = (value: number): string => {
+    if (value > 0.6) return "text-green-600";
+    if (value > 0.2) return "text-green-400";
+    if (value > -0.2) return "text-gray-500";
+    if (value > -0.6) return "text-red-400";
+    return "text-red-600";
   };
-  
+
   return (
     <Card className="w-full">
       <CardContent className="p-6">
-        <div className="flex flex-col space-y-6">
+        <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-bold mb-2">Correlation Analysis: {selectedCoin.name} ({selectedCoin.symbol})</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Understanding how {selectedCoin.symbol} moves in relation to other major cryptocurrencies 
-              can help with portfolio diversification and risk management.
+            <h3 className="text-lg font-semibold mb-2">
+              Correlation Analysis for {selectedCoin.name} ({selectedCoin.symbol})
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Average correlation: <span className={getCorrelationColor(avgCorrelation)}>
+                {avgCorrelation.toFixed(3)} ({getCorrelationDescription(avgCorrelation)})
+              </span>
             </p>
-            
-            <div className="bg-card border border-border rounded-lg p-4 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Average Correlation</p>
-                  <p className="text-xl font-bold">{avgCorrelation.toFixed(2)}</p>
-                  <Badge variant="outline" className="mt-1">
-                    {getCorrelationDescription(avgCorrelation)}
-                  </Badge>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Highest Correlation</p>
-                  <p className="text-xl font-bold">{highestCorrelated[0]?.correlation.toFixed(2) || "N/A"}</p>
-                  <Badge variant="outline" className="mt-1">
-                    {highestCorrelated[0]?.symbol || "N/A"}
-                  </Badge>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Lowest Correlation</p>
-                  <p className="text-xl font-bold">{lowestCorrelated[0]?.correlation.toFixed(2) || "N/A"}</p>
-                  <Badge variant="outline" className="mt-1">
-                    {lowestCorrelated[0]?.symbol || "N/A"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="text-md font-semibold mb-3">Highest Correlated Assets</h4>
-              <div className="space-y-3">
+              <h4 className="font-medium mb-3">Highest Correlations</h4>
+              <div className="space-y-2">
                 {highestCorrelated.map(coin => (
-                  <div key={coin.id} className="flex items-center justify-between border-b border-border pb-2">
-                    <div className="flex items-center">
+                  <div key={coin.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                    <div className="flex items-center gap-2">
                       {coin.image && (
-                        <img src={coin.image} alt={coin.name} className="w-6 h-6 mr-2" />
+                        <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
                       )}
-                      <span>{coin.name} ({coin.symbol})</span>
+                      <span className="font-medium">{coin.symbol}</span>
+                      <span className="text-sm text-muted-foreground">{coin.name}</span>
                     </div>
-                    <Badge className={getCorrelationBadgeColor(coin.correlation)}>
-                      {coin.correlation.toFixed(2)}
-                    </Badge>
+                    <div className="text-right">
+                      <Badge className={getCorrelationColor(coin.correlation)}>
+                        {coin.correlation.toFixed(3)}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                These assets tend to move in the same direction as {selectedCoin.symbol}.
-                Consider this when diversifying your portfolio.
-              </p>
             </div>
-            
+
             <div>
-              <h4 className="text-md font-semibold mb-3">Lowest Correlated Assets</h4>
-              <div className="space-y-3">
+              <h4 className="font-medium mb-3">Lowest Correlations</h4>
+              <div className="space-y-2">
                 {lowestCorrelated.map(coin => (
-                  <div key={coin.id} className="flex items-center justify-between border-b border-border pb-2">
-                    <div className="flex items-center">
+                  <div key={coin.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                    <div className="flex items-center gap-2">
                       {coin.image && (
-                        <img src={coin.image} alt={coin.name} className="w-6 h-6 mr-2" />
+                        <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
                       )}
-                      <span>{coin.name} ({coin.symbol})</span>
+                      <span className="font-medium">{coin.symbol}</span>
+                      <span className="text-sm text-muted-foreground">{coin.name}</span>
                     </div>
-                    <Badge className={getCorrelationBadgeColor(coin.correlation)}>
-                      {coin.correlation.toFixed(2)}
-                    </Badge>
+                    <div className="text-right">
+                      <Badge className={getCorrelationColor(coin.correlation)}>
+                        {coin.correlation.toFixed(3)}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                These assets have the least correlation with {selectedCoin.symbol}.
-                They may provide better diversification benefits.
-              </p>
             </div>
           </div>
-          
-          <div>
-            <h4 className="text-md font-semibold mb-2">Trading Implications</h4>
-            <ul className="list-disc pl-5 space-y-1 text-sm">
-              <li>Strong positive correlations suggest similar market movements</li>
-              <li>Low correlations can help with portfolio diversification</li>
-              <li>Negative correlations may provide hedging opportunities</li>
-              <li>Correlations can change over time, particularly during market stress</li>
-            </ul>
+
+          <div className="bg-muted/50 p-4 rounded-lg">
+            <h4 className="font-medium mb-2">Understanding Correlations</h4>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>• <strong>Positive correlation (0 to 1):</strong> Assets tend to move in the same direction</p>
+              <p>• <strong>Negative correlation (-1 to 0):</strong> Assets tend to move in opposite directions</p>
+              <p>• <strong>No correlation (around 0):</strong> Assets move independently</p>
+              <p>• Values closer to 1 or -1 indicate stronger relationships</p>
+            </div>
           </div>
         </div>
       </CardContent>
