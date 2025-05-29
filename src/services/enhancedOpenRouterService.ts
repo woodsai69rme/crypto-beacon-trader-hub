@@ -1,3 +1,4 @@
+
 import { AITradingStrategy } from '@/types/trading';
 
 const getApiKey = (): string => {
@@ -184,12 +185,9 @@ const generateEnsembleStrategy = async (
   }
 };
 
-export default {
-  generateTradingStrategy,
-  generateEnsembleStrategy
-};
-
 class EnhancedOpenRouterService {
+  private apiKey: string;
+
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
@@ -300,7 +298,17 @@ class EnhancedOpenRouterService {
       };
     }
   }
+
+  async generateTradingStrategy(prompt: string, preferences: any = {}): Promise<AITradingStrategy> {
+    return generateTradingStrategy(prompt, preferences);
+  }
+
+  async generateEnsembleStrategy(prompt: string, preferences: any = {}): Promise<AITradingStrategy> {
+    return generateEnsembleStrategy(prompt, preferences);
+  }
 }
 
 const enhancedOpenRouterService = new EnhancedOpenRouterService(getApiKey());
+
+export { generateEnsembleStrategy };
 export default enhancedOpenRouterService;
