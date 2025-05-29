@@ -72,6 +72,7 @@ export interface CryptoChartData extends CryptoData {
   chartData?: number[][];
   timestamps?: string[];
   prices?: number[];
+  volumes?: number[];
 }
 
 export interface RiskAssessmentResult {

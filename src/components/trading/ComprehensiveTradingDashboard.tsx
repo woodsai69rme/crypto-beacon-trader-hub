@@ -10,7 +10,7 @@ import EnhancedExchangeIntegration from './EnhancedExchangeIntegration';
 import N8NWorkflowManager from '../n8n/N8NWorkflowManager';
 import { useTradingContext } from '@/contexts/TradingContext';
 import { enhancedDataService } from '@/services/api/enhancedDataService';
-import { enhancedOpenRouterService } from '@/services/enhancedOpenRouterService';
+import enhancedOpenRouterService from '@/services/enhancedOpenRouterService';
 import { riskManagementService } from '@/services/riskManagementService';
 import { n8nService } from '@/services/n8nService';
 

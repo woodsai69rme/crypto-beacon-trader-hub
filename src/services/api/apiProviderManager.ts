@@ -60,6 +60,10 @@ class ApiProviderManager {
     return provider;
   }
 
+  getProvider(id: string): ApiProvider {
+    return this.getProviderById(id);
+  }
+
   addProvider(provider: ApiProvider): void {
     this.providers.set(provider.id, provider);
   }
