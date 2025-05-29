@@ -7,7 +7,7 @@ import {
   Bot, 
   Wallet, 
   Settings, 
-  News, 
+  Newspaper, 
   BarChart3, 
   Shield, 
   Zap,
@@ -21,7 +21,8 @@ import {
   Menu,
   X,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -203,7 +204,7 @@ const EnhancedNavigation: React.FC = () => {
         {
           id: 'news-feed',
           label: 'News & Sentiment',
-          icon: News,
+          icon: Newspaper,
           path: '/market/news'
         },
         {

@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 
 interface N8NWorkflow {
@@ -594,6 +593,44 @@ class N8NAutomationService {
       return true;
     } catch (error) {
       console.error('Failed to deactivate workflow:', error);
+      return false;
+    }
+  }
+
+  async triggerWorkflow(workflowId: string, data: Record<string, any>): Promise<boolean> {
+    const workflow = this.workflows.get(workflowId);
+    if (!workflow) {
+      console.error(`Workflow ${workflowId} not found`);
+      return false;
+    }
+
+    if (!workflow.isActive) {
+      console.error(`Workflow ${workflowId} is not active`);
+      return false;
+    }
+
+    try {
+      const response = await fetch(workflow.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        },
+        body: JSON.stringify({
+          ...data,
+          timestamp: new Date().toISOString(),
+          source: 'crypto-trading-platform'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Workflow trigger failed: ${response.statusText}`);
+      }
+
+      console.log(`Workflow ${workflowId} triggered successfully`);
+      return true;
+    } catch (error) {
+      console.error(`Failed to trigger workflow ${workflowId}:`, error);
       return false;
     }
   }
