@@ -1,25 +1,43 @@
 
-import { AITradingStrategy } from '@/types/trading';
-
+// OpenRouter API service for AI trading signals and analysis
 export interface TradingSignal {
   signal: 'BUY' | 'SELL' | 'HOLD';
   confidence: number;
   reasoning: string;
   entryPrice: number;
-  targetPrice: number;
-  stopLoss: number;
+  stopLoss?: number;
+  takeProfit?: number;
+  timeframe: string;
+  riskLevel: 'low' | 'medium' | 'high';
 }
 
-const getApiKey = (): string => {
-  // Use localStorage instead of process.env for browser compatibility
-  return localStorage.getItem('openrouter_api_key') || '';
-};
+export interface SentimentAnalysis {
+  overall_sentiment: 'bullish' | 'bearish' | 'neutral';
+  confidence: number;
+  key_factors: string[];
+  sentiment_score: number;
+  recommendation: string;
+}
 
-export class OpenRouterService {
-  private apiKey: string;
+export interface MarketPrediction {
+  asset: string;
+  prediction: 'up' | 'down' | 'sideways';
+  confidence: number;
+  timeframe: string;
+  priceTarget: number;
+  reasoning: string;
+}
 
-  constructor(apiKey?: string) {
-    this.apiKey = apiKey || getApiKey();
+class OpenRouterService {
+  private apiKey: string = '';
+  private baseUrl: string = 'https://openrouter.ai/api/v1';
+
+  constructor() {
+    // Try to get API key from localStorage first, then fallback to environment
+    this.apiKey = localStorage.getItem('openrouter_api_key') || '';
+    if (!this.apiKey) {
+      console.warn('OpenRouter API key not found. Some AI features will use mock data.');
+    }
   }
 
   setApiKey(key: string): void {
@@ -27,120 +45,54 @@ export class OpenRouterService {
     localStorage.setItem('openrouter_api_key', key);
   }
 
-  clearApiKey(): void {
-    this.apiKey = '';
-    localStorage.removeItem('openrouter_api_key');
-  }
-
-  hasApiKey(): boolean {
-    return this.apiKey.length > 0;
-  }
-
-  getDefaultModels() {
-    return [
-      { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', pricing: 'Free' },
-      { id: 'google/gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash', pricing: 'Free' },
-      { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', pricing: 'Paid' },
-      { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', pricing: 'Paid' }
-    ];
-  }
-
-  async getModels() {
+  async generateTradingSignal(marketData: any, strategy: string, model: string = 'deepseek/deepseek-r1'): Promise<TradingSignal> {
     if (!this.apiKey) {
-      throw new Error('API key not configured');
+      return this.getMockTradingSignal(marketData, strategy);
     }
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
+      const prompt = this.createTradingPrompt(marketData, strategy);
+      
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert cryptocurrency trading analyst. Provide precise trading signals based on market data and strategy. Return responses in JSON format only.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 500
+        })
       });
 
       if (!response.ok) {
         throw new Error(`OpenRouter API error: ${response.status}`);
       }
 
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching models:', error);
-      return this.getDefaultModels();
-    }
-  }
-
-  async makeRequest(messages: { role: string, content: string }[], model: string = 'deepseek/deepseek-r1'): Promise<any> {
-    if (!this.apiKey) {
-      throw new Error('API key not configured');
-    }
-
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: messages,
-        max_tokens: 2000
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
-    }
-
-    return response.json();
-  }
-
-  async generateTradingSignal(marketData: any, strategy: string, model: string = 'deepseek/deepseek-r1'): Promise<TradingSignal> {
-    try {
-      const prompt = `Analyze market data for ${marketData.symbol || 'crypto'} and provide a trading signal using ${strategy} strategy.
-        Current price: ${marketData.price}
-        Volume: ${marketData.volume}
-        Price change: ${marketData.priceChange}%
-        
-        Provide a JSON response with signal (BUY/SELL/HOLD), confidence (0-1), reasoning, entryPrice, targetPrice, and stopLoss.`;
-
-      const response = await this.makeRequest([{
-        role: 'user',
-        content: prompt
-      }], model);
-
-      const content = response.choices[0]?.message?.content || '';
-      return this.parseTradingSignalResponse(content, marketData);
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      try {
+        const signal = JSON.parse(content);
+        return this.validateTradingSignal(signal);
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError);
+        return this.getMockTradingSignal(marketData, strategy);
+      }
     } catch (error) {
       console.error('Error generating trading signal:', error);
-      return {
-        signal: 'HOLD',
-        confidence: 0.5,
-        reasoning: 'Error generating signal',
-        entryPrice: marketData.price || 0,
-        targetPrice: marketData.price || 0,
-        stopLoss: marketData.price || 0
-      };
-    }
-  }
-
-  async generateTradingStrategy(prompt: string, preferences: any = {}): Promise<AITradingStrategy> {
-    try {
-      const response = await this.makeRequest([
-        {
-          role: 'system',
-          content: 'You are an expert trading strategy developer. Generate comprehensive trading strategies based on user requirements. Format your response with clear sections: Strategy Name, Description, Parameters (as JSON), Indicators, and Triggers.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]);
-
-      const content = response.choices[0]?.message?.content || '';
-      return this.parseStrategyResponse(content);
-    } catch (error) {
-      console.error('Error generating trading strategy:', error);
-      return this.getFallbackStrategy();
+      return this.getMockTradingSignal(marketData, strategy);
     }
   }
 
@@ -148,35 +100,52 @@ export class OpenRouterService {
     newsItems: Array<{ title: string; content: string; source: string }>;
     socialPosts: Array<{ content: string; platform: string; engagement: number }>;
     timeframe: string;
-  }): Promise<{
-    overallSentiment: number;
-    sentimentTrend: string;
-    keyTopics: string[];
-    riskIndicators: string[];
-  }> {
+  }): Promise<SentimentAnalysis> {
+    if (!this.apiKey) {
+      return this.getMockSentimentAnalysis();
+    }
+
     try {
-      const prompt = `Analyze the sentiment of the following crypto market data:
-        News Items: ${JSON.stringify(data.newsItems.slice(0, 5))}
-        Social Posts: ${JSON.stringify(data.socialPosts.slice(0, 10))}
-        Timeframe: ${data.timeframe}
-        
-        Provide sentiment analysis with overall sentiment score (-1 to 1), trend direction, key topics, and risk indicators.`;
+      const prompt = this.createSentimentPrompt(data);
+      
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a cryptocurrency sentiment analyst. Analyze news and social media to determine market sentiment. Return responses in JSON format only.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 400
+        })
+      });
 
-      const response = await this.makeRequest([{
-        role: 'user',
-        content: prompt
-      }]);
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status}`);
+      }
 
-      const content = response.choices[0]?.message?.content || '';
-      return this.parseSentimentResponse(content);
+      const responseData = await response.json();
+      const content = responseData.choices[0].message.content;
+      
+      try {
+        return JSON.parse(content);
+      } catch (parseError) {
+        return this.getMockSentimentAnalysis();
+      }
     } catch (error) {
-      console.error('Sentiment analysis failed:', error);
-      return {
-        overallSentiment: Math.random() * 2 - 1,
-        sentimentTrend: Math.random() > 0.5 ? 'bullish' : 'bearish',
-        keyTopics: ['Bitcoin', 'Ethereum', 'Market volatility'],
-        riskIndicators: ['High volatility', 'Regulatory uncertainty']
-      };
+      console.error('Error performing sentiment analysis:', error);
+      return this.getMockSentimentAnalysis();
     }
   }
 
@@ -186,146 +155,184 @@ export class OpenRouterService {
     technicalIndicators: Record<string, number>;
     timeframe: string;
     predictionHorizon: string;
-  }): Promise<{
-    priceTarget: number;
-    confidence: number;
-    timeframe: string;
-    keyFactors: string[];
-    riskLevel: string;
-  }> {
-    try {
-      const prompt = `Generate a market prediction for ${data.asset} based on:
-        Historical Data: ${data.historicalData.slice(-10)}
-        Technical Indicators: ${JSON.stringify(data.technicalIndicators)}
-        Timeframe: ${data.timeframe}
-        Prediction Horizon: ${data.predictionHorizon}
-        
-        Provide price target, confidence level, key factors, and risk assessment.`;
-
-      const response = await this.makeRequest([{
-        role: 'user',
-        content: prompt
-      }]);
-
-      const content = response.choices[0]?.message?.content || '';
-      return this.parsePredictionResponse(content, data.asset);
-    } catch (error) {
-      console.error('Market prediction failed:', error);
-      return {
-        priceTarget: Math.random() * 100000 + 30000,
-        confidence: Math.random() * 0.5 + 0.5,
-        timeframe: data.predictionHorizon,
-        keyFactors: ['Technical momentum', 'Market sentiment'],
-        riskLevel: 'medium'
-      };
+  }): Promise<MarketPrediction> {
+    if (!this.apiKey) {
+      return this.getMockMarketPrediction(data.asset);
     }
-  }
 
-  private parseTradingSignalResponse(content: string, marketData: any): TradingSignal {
     try {
-      const jsonMatch = content.match(/\{[^}]+\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          signal: parsed.signal || 'HOLD',
-          confidence: parsed.confidence || 0.5,
-          reasoning: parsed.reasoning || 'AI analysis',
-          entryPrice: parsed.entryPrice || marketData.price,
-          targetPrice: parsed.targetPrice || marketData.price,
-          stopLoss: parsed.stopLoss || marketData.price
-        };
+      const prompt = this.createPredictionPrompt(data);
+      
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a cryptocurrency market prediction expert. Analyze technical data to predict short-term price movements. Return responses in JSON format only.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 300
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status}`);
       }
-    } catch (e) {
-      console.error('Failed to parse trading signal:', e);
-    }
 
-    return {
-      signal: 'HOLD',
-      confidence: 0.5,
-      reasoning: 'Default signal due to parsing error',
-      entryPrice: marketData.price || 0,
-      targetPrice: marketData.price || 0,
-      stopLoss: marketData.price || 0
-    };
-  }
-
-  private parseStrategyResponse(content: string): AITradingStrategy {
-    const nameMatch = content.match(/Strategy Name:\s*([^\n]+)/i);
-    const descMatch = content.match(/Description:\s*([^\n]+)/i);
-    const paramMatch = content.match(/Parameters:\s*({[^}]+})/i);
-    const indicatorsMatch = content.match(/Indicators:\s*([^\n]+)/i);
-    const triggersMatch = content.match(/Triggers:\s*([^\n]+)/i);
-
-    let parameters = {};
-    if (paramMatch) {
+      const responseData = await response.json();
+      const content = responseData.choices[0].message.content;
+      
       try {
-        parameters = JSON.parse(paramMatch[1]);
-      } catch (e) {
-        console.error('Failed to parse parameters:', e);
+        return JSON.parse(content);
+      } catch (parseError) {
+        return this.getMockMarketPrediction(data.asset);
       }
+    } catch (error) {
+      console.error('Error generating market prediction:', error);
+      return this.getMockMarketPrediction(data.asset);
     }
+  }
 
+  private createTradingPrompt(marketData: any, strategy: string): string {
+    return `
+Analyze this market data and provide a trading signal using the ${strategy} strategy:
+
+Market Data:
+- Asset: ${marketData.symbol}
+- Current Price: $${marketData.price}
+- 24h Change: ${marketData.change24h}%
+- Volume: ${marketData.volume}
+- RSI: ${marketData.rsi || 'N/A'}
+- MA20: ${marketData.ma20 || 'N/A'}
+
+Strategy: ${strategy}
+
+Provide your response in this exact JSON format:
+{
+  "signal": "BUY|SELL|HOLD",
+  "confidence": 0.75,
+  "reasoning": "Brief explanation of the signal",
+  "entryPrice": ${marketData.price},
+  "stopLoss": ${marketData.price * 0.95},
+  "takeProfit": ${marketData.price * 1.1},
+  "timeframe": "1h",
+  "riskLevel": "medium"
+}
+`;
+  }
+
+  private createSentimentPrompt(data: any): string {
+    const newsText = data.newsItems.map((item: any) => `${item.title}: ${item.content}`).join('\n');
+    const socialText = data.socialPosts.map((post: any) => post.content).join('\n');
+    
+    return `
+Analyze the sentiment of this cryptocurrency-related content:
+
+News Items:
+${newsText}
+
+Social Media Posts:
+${socialText}
+
+Timeframe: ${data.timeframe}
+
+Provide your response in this exact JSON format:
+{
+  "overall_sentiment": "bullish|bearish|neutral",
+  "confidence": 0.80,
+  "key_factors": ["factor1", "factor2"],
+  "sentiment_score": 0.65,
+  "recommendation": "Brief recommendation"
+}
+`;
+  }
+
+  private createPredictionPrompt(data: any): string {
+    return `
+Predict the price movement for ${data.asset} based on this technical analysis:
+
+Historical Prices (last 10 periods): [${data.historicalData.join(', ')}]
+Technical Indicators: ${JSON.stringify(data.technicalIndicators)}
+Timeframe: ${data.timeframe}
+Prediction Horizon: ${data.predictionHorizon}
+
+Provide your response in this exact JSON format:
+{
+  "asset": "${data.asset}",
+  "prediction": "up|down|sideways",
+  "confidence": 0.72,
+  "timeframe": "${data.predictionHorizon}",
+  "priceTarget": ${data.historicalData[data.historicalData.length - 1] * 1.05},
+  "reasoning": "Brief explanation of the prediction"
+}
+`;
+  }
+
+  private validateTradingSignal(signal: any): TradingSignal {
     return {
-      id: `ai-strategy-${Date.now()}`,
-      name: nameMatch?.[1]?.trim() || 'AI Generated Strategy',
-      description: descMatch?.[1]?.trim() || 'AI-generated trading strategy',
-      type: 'ai-predictive',
-      timeframe: '1h',
-      parameters,
-      riskLevel: 'medium',
-      indicators: indicatorsMatch?.[1]?.split(',').map(s => s.trim()) || ['AI Analysis'],
-      triggers: triggersMatch?.[1]?.split(',').map(s => s.trim()) || ['AI Signal'],
-      confidence: 0.75,
-      performance: {
-        winRate: 65,
-        profitFactor: 1.8,
-        sharpeRatio: 1.4
-      }
+      signal: ['BUY', 'SELL', 'HOLD'].includes(signal.signal) ? signal.signal : 'HOLD',
+      confidence: Math.max(0, Math.min(1, signal.confidence || 0.5)),
+      reasoning: signal.reasoning || 'Analysis based on market conditions',
+      entryPrice: signal.entryPrice || 0,
+      stopLoss: signal.stopLoss,
+      takeProfit: signal.takeProfit,
+      timeframe: signal.timeframe || '1h',
+      riskLevel: ['low', 'medium', 'high'].includes(signal.riskLevel) ? signal.riskLevel : 'medium'
     };
   }
 
-  private parseSentimentResponse(content: string): any {
-    const sentimentMatch = content.match(/sentiment[:\s]+(-?\d*\.?\d+)/i);
-    const trendMatch = content.match(/trend[:\s]+(bullish|bearish|neutral)/i);
+  private getMockTradingSignal(marketData: any, strategy: string): TradingSignal {
+    const signals = ['BUY', 'SELL', 'HOLD'] as const;
+    const signal = signals[Math.floor(Math.random() * signals.length)];
+    const confidence = 0.6 + Math.random() * 0.3;
     
     return {
-      overallSentiment: sentimentMatch ? parseFloat(sentimentMatch[1]) : Math.random() * 2 - 1,
-      sentimentTrend: trendMatch?.[1] || (Math.random() > 0.5 ? 'bullish' : 'bearish'),
-      keyTopics: ['Bitcoin', 'Ethereum', 'Market analysis'],
-      riskIndicators: ['Market volatility', 'Regulatory changes']
+      signal,
+      confidence,
+      reasoning: `${strategy} strategy suggests ${signal.toLowerCase()} based on current market conditions`,
+      entryPrice: marketData.price || 50000,
+      stopLoss: signal === 'BUY' ? marketData.price * 0.95 : undefined,
+      takeProfit: signal === 'BUY' ? marketData.price * 1.1 : undefined,
+      timeframe: '1h',
+      riskLevel: 'medium'
     };
   }
 
-  private parsePredictionResponse(content: string, asset: string): any {
-    const priceMatch = content.match(/price[:\s]+\$?(\d+(?:,\d+)*(?:\.\d+)?)/i);
-    const confidenceMatch = content.match(/confidence[:\s]+(\d+(?:\.\d+)?)/i);
+  private getMockSentimentAnalysis(): SentimentAnalysis {
+    const sentiments = ['bullish', 'bearish', 'neutral'] as const;
+    const sentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
     
     return {
-      priceTarget: priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : Math.random() * 100000 + 30000,
-      confidence: confidenceMatch ? parseFloat(confidenceMatch[1]) / 100 : Math.random() * 0.5 + 0.5,
-      timeframe: '7d',
-      keyFactors: ['Technical analysis', 'Market sentiment', 'Volume trends'],
-      riskLevel: Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low'
+      overall_sentiment: sentiment,
+      confidence: 0.7 + Math.random() * 0.2,
+      key_factors: ['Market momentum', 'News sentiment', 'Technical indicators'],
+      sentiment_score: sentiment === 'bullish' ? 0.7 : sentiment === 'bearish' ? 0.3 : 0.5,
+      recommendation: `Market sentiment appears ${sentiment}. Consider this in your trading decisions.`
     };
   }
 
-  private getFallbackStrategy(): AITradingStrategy {
+  private getMockMarketPrediction(asset: string): MarketPrediction {
+    const predictions = ['up', 'down', 'sideways'] as const;
+    const prediction = predictions[Math.floor(Math.random() * predictions.length)];
+    
     return {
-      id: `fallback-strategy-${Date.now()}`,
-      name: 'Fallback Strategy',
-      description: 'Default strategy when AI generation fails',
-      type: 'trend-following',
-      timeframe: '1h',
-      parameters: { defaultRisk: 'medium' },
-      riskLevel: 'medium',
-      indicators: ['SMA', 'RSI'],
-      triggers: ['Moving average crossover'],
-      confidence: 0.5,
-      performance: {
-        winRate: 50,
-        profitFactor: 1.0,
-        sharpeRatio: 0.5
-      }
+      asset,
+      prediction,
+      confidence: 0.6 + Math.random() * 0.3,
+      timeframe: '24h',
+      priceTarget: 50000 + (Math.random() - 0.5) * 10000,
+      reasoning: `Technical analysis suggests ${prediction} movement based on current patterns`
     };
   }
 }
