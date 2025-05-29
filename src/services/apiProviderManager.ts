@@ -1,4 +1,3 @@
-
 import { ApiProvider, ApiEndpoint } from '@/types/trading';
 
 class ApiProviderManager {
@@ -17,16 +16,11 @@ class ApiProviderManager {
         requestsPerMinute: 10,
         requestsPerDay: 1000
       },
-      endpoints: [
-        {
-          id: 'coins-markets',
-          name: 'Coins Markets',
-          path: '/coins/markets',
-          method: 'GET',
-          requiresAuth: false,
-          description: 'Get market data for coins'
-        }
-      ],
+      endpoints: {
+        price: '/simple/price',
+        markets: '/coins/markets',
+        assets: '/coins/list'
+      },
       isActive: true,
       enabled: true
     });
@@ -42,16 +36,11 @@ class ApiProviderManager {
         requestsPerMinute: 30,
         requestsPerDay: 10000
       },
-      endpoints: [
-        {
-          id: 'cryptocurrency-listings',
-          name: 'Cryptocurrency Listings',
-          path: '/cryptocurrency/listings/latest',
-          method: 'GET',
-          requiresAuth: true,
-          description: 'Get latest cryptocurrency listings'
-        }
-      ],
+      endpoints: {
+        price: '/cryptocurrency/quotes/latest',
+        markets: '/cryptocurrency/listings/latest',
+        assets: '/cryptocurrency/map'
+      },
       isActive: false,
       enabled: false,
       requiresAuth: true

@@ -1,4 +1,3 @@
-
 import { TradingAccount, Trade, PortfolioAsset } from '@/types/trading';
 import { toast } from "@/hooks/use-toast";
 
@@ -439,3 +438,23 @@ class RiskManagementService {
 }
 
 export const riskManagementService = new RiskManagementService();
+
+export const calculatePortfolioRisk = (account: TradingAccount): number => {
+  if (!account.assets || account.assets.length === 0) {
+    return 0;
+  }
+
+  const totalValue = account.balance || 10000; // Use balance as fallback
+  
+  // Calculate portfolio risk based on asset allocation and volatility
+  let totalRisk = 0;
+  
+  account.assets.forEach(asset => {
+    const assetValue = asset.amount * asset.price;
+    const weight = assetValue / totalValue;
+    const volatility = calculateAssetVolatility(asset);
+    totalRisk += weight * volatility;
+  });
+
+  return Math.min(totalRisk * 100, 100); // Cap at 100%
+};

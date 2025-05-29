@@ -12,12 +12,15 @@ export const buildStrategy = async (parameters: {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 
+  const validType = parameters.type as AITradingStrategy['type'];
+  const timeframeNum = parseInt(parameters.timeframe) || 24;
+
   return {
     id: `strategy-${Date.now()}`,
     name: parameters.name,
     description: `Custom ${parameters.type} strategy`,
-    type: parameters.type,
-    timeframe: parameters.timeframe as '1h' | '4h' | '1d' | 'short' | 'medium' | 'long',
+    type: validType,
+    timeframe: timeframeNum,
     riskLevel: parameters.riskLevel as 'low' | 'medium' | 'high',
     profitPotential: 'medium',
     indicators: parameters.indicators,
@@ -110,7 +113,7 @@ export const getStrategyTemplates = (): AITradingStrategy[] => {
       name: 'Trend Following Template',
       description: 'Follow market trends using moving averages and momentum indicators',
       type: 'trend-following',
-      timeframe: '4h',
+      timeframe: 24,
       riskLevel: 'medium',
       profitPotential: 'high',
       indicators: ['SMA', 'EMA', 'MACD', 'RSI'],
@@ -127,7 +130,7 @@ export const getStrategyTemplates = (): AITradingStrategy[] => {
       name: 'Mean Reversion Template',
       description: 'Trade on price reversals using statistical analysis',
       type: 'mean-reversion',
-      timeframe: '1h',
+      timeframe: 24,
       riskLevel: 'low',
       profitPotential: 'medium',
       indicators: ['Bollinger Bands', 'RSI', 'Stochastic'],

@@ -1,167 +1,103 @@
-import { ApiProvider, ApiUsageStats } from '@/types/trading';
+import { ApiProvider, ApiEndpoint } from '@/types/trading';
 
-export class ApiProviderManager {
+class ApiProviderManager {
   private providers: Map<string, ApiProvider> = new Map();
-  private usageStats: Map<string, ApiUsageStats> = new Map();
 
   constructor() {
-    this.initializeProviders();
-  }
-
-  private initializeProviders() {
-    const freeProviders: ApiProvider[] = [
-      {
-        id: 'coingecko',
-        name: 'CoinGecko',
-        type: 'free',
-        url: 'https://api.coingecko.com/api/v3',
-        documentation: 'https://www.coingecko.com/en/api/documentation',
-        rateLimit: { requestsPerMinute: 50, requestsPerDay: 10000 },
-        endpoints: [
-          { id: 'price', name: 'Current Prices', path: '/simple/price', method: 'GET', requiresAuth: false, description: 'Get current prices' },
-          { id: 'markets', name: 'Market Data', path: '/coins/markets', method: 'GET', requiresAuth: false, description: 'Get market data' },
-          { id: 'assets', name: 'Coin List', path: '/coins/list', method: 'GET', requiresAuth: false, description: 'Get coin list' }
-        ],
-        isActive: true
+    // Initialize with default providers
+    this.addProvider({
+      id: 'coingecko',
+      name: 'CoinGecko',
+      type: 'free',
+      url: 'https://api.coingecko.com/api/v3',
+      documentation: 'https://www.coingecko.com/api/docs/v3',
+      description: 'Free cryptocurrency data API',
+      rateLimit: {
+        requestsPerMinute: 10,
+        requestsPerDay: 1000
       },
-      {
-        id: 'coinmarketcap',
-        name: 'CoinMarketCap',
-        type: 'free',
-        url: 'https://pro-api.coinmarketcap.com/v1',
-        documentation: 'https://coinmarketcap.com/api/documentation/v1/',
-        rateLimit: { requestsPerMinute: 30, requestsPerDay: 10000 },
-        endpoints: [
-          { id: 'price', name: 'Latest Quotes', path: '/cryptocurrency/quotes/latest', method: 'GET', requiresAuth: true, description: 'Latest market quotes' },
-          { id: 'markets', name: 'Latest Listings', path: '/cryptocurrency/listings/latest', method: 'GET', requiresAuth: true, description: 'Latest listings' }
-        ],
-        isActive: true
+      endpoints: {
+        price: '/simple/price',
+        markets: '/coins/markets',
+        assets: '/coins/list',
+        news: '/news'
       },
-      {
-        id: 'cryptocompare',
-        name: 'CryptoCompare',
-        type: 'free',
-        url: 'https://min-api.cryptocompare.com/data',
-        documentation: 'https://min-api.cryptocompare.com/documentation',
-        rateLimit: { requestsPerMinute: 100, requestsPerDay: 100000 },
-        endpoints: [
-          { id: 'price', name: 'Current Prices', path: '/price', method: 'GET', requiresAuth: false, description: 'Current prices' },
-          { id: 'historical', name: 'Historical Data', path: '/histoday', method: 'GET', requiresAuth: false, description: 'Historical data' }
-        ],
-        isActive: true
-      },
-      {
-        id: 'messari',
-        name: 'Messari',
-        type: 'free',
-        url: 'https://data.messari.io/api/v1',
-        documentation: 'https://messari.io/api/docs',
-        rateLimit: { requestsPerMinute: 20, requestsPerDay: 1000 },
-        endpoints: [
-          { id: 'assets', name: 'Asset Information', path: '/assets', method: 'GET', requiresAuth: false, description: 'Asset information' },
-          { id: 'metrics', name: 'Asset Metrics', path: '/assets/{id}/metrics', method: 'GET', requiresAuth: false, description: 'Asset metrics' }
-        ],
-        isActive: true
-      },
-      {
-        id: 'fear-greed',
-        name: 'Fear & Greed Index',
-        type: 'free',
-        url: 'https://api.alternative.me/fng',
-        documentation: 'https://alternative.me/crypto/fear-and-greed-index/',
-        rateLimit: { requestsPerMinute: 60, requestsPerDay: 1000 },
-        endpoints: [
-          { id: 'index', name: 'Fear & Greed Index', path: '/', method: 'GET', requiresAuth: false, description: 'Fear and greed index' }
-        ],
-        isActive: true
-      },
-      {
-        id: 'blockchain-info',
-        name: 'Blockchain.info',
-        type: 'free',
-        url: 'https://blockchain.info',
-        documentation: 'https://www.blockchain.com/api',
-        rateLimit: { requestsPerMinute: 300, requestsPerDay: 10000 },
-        endpoints: [
-          { id: 'stats', name: 'Bitcoin Statistics', path: '/stats', method: 'GET', requiresAuth: false, description: 'Bitcoin statistics' },
-          { id: 'blocks', name: 'Latest Blocks', path: '/blocks', method: 'GET', requiresAuth: false, description: 'Latest blocks' }
-        ],
-        isActive: true
-      },
-      {
-        id: 'etherscan',
-        name: 'Etherscan',
-        type: 'free',
-        url: 'https://api.etherscan.io/api',
-        documentation: 'https://docs.etherscan.io/',
-        rateLimit: { requestsPerMinute: 5, requestsPerDay: 100000 },
-        endpoints: [
-          { id: 'balance', name: 'ETH Balance', path: '?module=account&action=balance', method: 'GET', requiresAuth: true, description: 'ETH balance' },
-          { id: 'transactions', name: 'Transaction List', path: '?module=account&action=txlist', method: 'GET', requiresAuth: true, description: 'Transaction list' }
-        ],
-        isActive: true
-      },
-      {
-        id: 'alpha-vantage',
-        name: 'Alpha Vantage',
-        type: 'free',
-        url: 'https://www.alphavantage.co/query',
-        documentation: 'https://www.alphavantage.co/documentation/',
-        rateLimit: { requestsPerMinute: 5, requestsPerDay: 500 },
-        endpoints: [
-          { id: 'crypto', name: 'Crypto Data', path: '?function=DIGITAL_CURRENCY_DAILY', method: 'GET', requiresAuth: true, description: 'Crypto data' },
-          { id: 'forex', name: 'Forex Rates', path: '?function=FX_DAILY', method: 'GET', requiresAuth: true, description: 'Forex rates' }
-        ],
-        isActive: true
-      }
-    ];
-
-    freeProviders.forEach(provider => {
-      this.providers.set(provider.id, provider);
-      this.usageStats.set(provider.id, {
-        provider: provider.id,
-        totalCalls: 0,
-        successfulCalls: 0,
-        failedCalls: 0,
-        avgResponseTime: 0,
-        lastCalled: new Date().toISOString()
-      });
+      isActive: true,
+      enabled: true
     });
-  }
 
-  getProvider(id: string): ApiProvider | undefined {
-    return this.providers.get(id);
+    this.addProvider({
+      id: 'coinmarketcap',
+      name: 'CoinMarketCap',
+      type: 'paid',
+      url: 'https://pro-api.coinmarketcap.com/v1',
+      documentation: 'https://coinmarketcap.com/api/documentation/v1/',
+      description: 'Professional cryptocurrency data API',
+      rateLimit: {
+        requestsPerMinute: 30,
+        requestsPerDay: 10000
+      },
+      endpoints: {
+        price: '/cryptocurrency/quotes/latest',
+        markets: '/cryptocurrency/listings/latest',
+        assets: '/cryptocurrency/map'
+      },
+      isActive: false,
+      enabled: false,
+      requiresAuth: true
+    });
   }
 
   getAllProviders(): ApiProvider[] {
     return Array.from(this.providers.values());
   }
 
-  getActiveProviders(): ApiProvider[] {
-    return Array.from(this.providers.values()).filter(p => p.isActive);
+  getProviderById(id: string): ApiProvider {
+    const provider = this.providers.get(id);
+    if (!provider) {
+      throw new Error(`Provider with id ${id} not found`);
+    }
+    return provider;
   }
 
-  updateUsageStats(providerId: string, success: boolean, responseTime: number) {
-    const stats = this.usageStats.get(providerId);
-    if (stats) {
-      stats.totalCalls++;
-      if (success) {
-        stats.successfulCalls++;
-      } else {
-        stats.failedCalls++;
-      }
-      stats.avgResponseTime = (stats.avgResponseTime + responseTime) / 2;
-      stats.lastCalled = new Date().toISOString();
+  addProvider(provider: ApiProvider): void {
+    this.providers.set(provider.id, provider);
+  }
+
+  updateProvider(id: string, updatedProvider: ApiProvider): void {
+    if (!this.providers.has(id)) {
+      throw new Error(`Provider with id ${id} not found`);
+    }
+    this.providers.set(id, updatedProvider);
+  }
+
+  toggleProviderEnabled(id: string): void {
+    const provider = this.getProviderById(id);
+    provider.enabled = !provider.enabled;
+    this.updateProvider(id, provider);
+  }
+
+  deleteProvider(id: string): void {
+    if (!this.providers.delete(id)) {
+      throw new Error(`Provider with id ${id} not found`);
     }
   }
 
-  getUsageStats(providerId: string): ApiUsageStats | undefined {
-    return this.usageStats.get(providerId);
+  setProviderApiKey(id: string, apiKey: string): void {
+    const provider = this.getProviderById(id);
+    provider.apiKey = apiKey;
+    this.updateProvider(id, provider);
   }
 
-  getAllUsageStats(): ApiUsageStats[] {
-    return Array.from(this.usageStats.values());
+  getEnabledProviders(): ApiProvider[] {
+    return this.getAllProviders().filter(provider => provider.enabled);
+  }
+
+  getPriorityProvider(): ApiProvider | null {
+    const enabled = this.getEnabledProviders();
+    return enabled.length > 0 ? enabled[0] : null;
   }
 }
 
 export const apiProviderManager = new ApiProviderManager();
+export default apiProviderManager;

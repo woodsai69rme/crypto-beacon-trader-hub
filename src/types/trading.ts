@@ -1,4 +1,3 @@
-
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
@@ -46,6 +45,7 @@ export interface TradingAccount {
   type: 'paper' | 'live';
   assets: PortfolioAsset[];
   isActive?: boolean;
+  initialBalance?: number;
 }
 
 export interface CoinOption {
@@ -71,6 +71,7 @@ export interface CryptoChartData extends CryptoData {
   // Chart-specific data
   chartData?: number[][];
   timestamps?: string[];
+  prices?: number[];
 }
 
 export interface RiskAssessmentResult {
@@ -470,11 +471,13 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'sentiment' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid' | 'custom';
-  timeframe: number;
+  type: 'custom' | 'sentiment' | 'trend-following' | 'mean-reversion' | 'breakout' | 'machine-learning' | 'multi-timeframe' | 'traditional' | 'ai-predictive' | 'hybrid';
+  timeframe: number | string;
   parameters: any;
   riskLevel?: string;
   indicators?: string[];
+  triggers?: string[];
+  confidence?: number;
   performance?: {
     winRate?: number;
     profitFactor?: number;
@@ -547,4 +550,59 @@ export interface WalletConnectionProps {
 export interface MarketInsightsResponse {
   insights: MarketInsight[];
   signals: TradingSignal[];
+}
+
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  profit: number;
+  profitPercentage: number;
+  winRate: number;
+  winningTrades: number;
+  totalTrades: number;
+  losingTrades: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  profitFactor: number;
+  trades: Trade[];
+  averageProfit: number;
+  averageLoss: number;
+  initialCapital: number;
+  finalCapital: number;
+  totalReturn: number;
+  sortinoRatio: number;
+}
+
+export interface OptimizationResult {
+  strategyId: string;
+  parameterValues: Record<string, any>;
+  performance: {
+    profit: number;
+    profitPercentage: number;
+    maxDrawdown: number;
+    winRate: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalReturn: number;
+  };
+  improvement: number;
+}
+
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  symbol: string;
+  description: string;
+  type: 'index' | 'etf' | 'crypto' | 'custom';
+  data: number[];
+  dates: string[];
+  currentValue: number;
+  performance: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    yearly: number;
+  };
 }

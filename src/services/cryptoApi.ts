@@ -1,4 +1,3 @@
-
 import { CryptoData, CryptoChartData, CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
@@ -52,6 +51,39 @@ const getMockCryptoData = (): CryptoData[] => {
 
 // Export the function so it can be used in tests
 export { getMockCryptoData };
+
+const mockChartData: CryptoChartData[] = [
+  {
+    id: 'bitcoin',
+    name: 'Bitcoin',
+    symbol: 'BTC',
+    price: 45000,
+    priceChange: 1200,
+    changePercent: 2.7,
+    marketCap: 850000000000,
+    volume: 25000000000,
+    image: '/placeholder.svg',
+    value: 'BTC',
+    label: 'Bitcoin (BTC)',
+    chartData: [[1640995200000, 46000], [1641081600000, 47000]],
+    timestamps: ['2022-01-01', '2022-01-02']
+  },
+  {
+    id: 'ethereum',
+    name: 'Ethereum',
+    symbol: 'ETH',
+    price: 3200,
+    priceChange: -80,
+    changePercent: -2.4,
+    marketCap: 380000000000,
+    volume: 15000000000,
+    image: '/placeholder.svg',
+    value: 'ETH',
+    label: 'Ethereum (ETH)',
+    chartData: [[1640995200000, 3250], [1641081600000, 3200]],
+    timestamps: ['2022-01-01', '2022-01-02']
+  }
+];
 
 export const fetchCoinsFromCoinGecko = async (limit: number = 10): Promise<CryptoData[]> => {
   try {

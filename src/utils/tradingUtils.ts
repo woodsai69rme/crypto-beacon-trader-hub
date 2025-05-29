@@ -1,26 +1,29 @@
 
-import { Trade, SupportedCurrency } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
+import { Trade, CoinOption, SupportedCurrency } from '@/types/trading';
 
 export const createTrade = (
   coinId: string,
-  coinName: string,
   coinSymbol: string,
+  coinName: string,
   type: 'buy' | 'sell',
   amount: number,
   price: number,
   currency: SupportedCurrency = 'AUD'
 ): Trade => {
+  const totalValue = amount * price;
+  
   return {
-    id: uuidv4(),
+    id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     coinId,
     coinName,
     coinSymbol,
+    symbol: coinSymbol,
     type,
     amount,
+    quantity: amount,
     price,
-    totalValue: amount * price,
-    total: amount * price,
+    totalValue,
+    total: totalValue,
     timestamp: new Date().toISOString(),
     currency,
   };
