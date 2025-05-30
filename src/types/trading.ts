@@ -419,6 +419,9 @@ export interface DetachedAiTradingDashboardProps {
   onClose: () => void;
   isDetached?: boolean;
   children?: React.ReactNode;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
@@ -598,4 +601,12 @@ export interface PortfolioBenchmark {
     monthly: number;
     yearly: number;
   };
+}
+
+export interface LiveAnalyticsDashboardProps {
+  initialCoinId?: string;
+  refreshInterval?: number;
+  showDetailedView?: boolean;
+  onAlertTriggered?: (alert: any) => void;
+  darkMode?: boolean;
 }
