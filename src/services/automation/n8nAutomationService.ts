@@ -1,5 +1,5 @@
 
-export interface TradingSignalPayload {
+export interface TradingSignalData {
   symbol: string;
   signal: 'BUY' | 'SELL' | 'HOLD';
   confidence: number;
@@ -9,62 +9,26 @@ export interface TradingSignalPayload {
   reasoning: string;
 }
 
-export interface RiskAlertPayload {
-  accountId: string;
-  alertType: string;
-  metrics: any;
-  timestamp: string;
-}
-
-export interface PortfolioRebalancePayload {
-  accountId: string;
-  recommendations: any[];
-  timestamp: string;
-}
-
-class N8nAutomationService {
-  private webhookUrl: string | null = null;
-  private isEnabled: boolean = false;
-
-  constructor() {
-    this.loadConfig();
-  }
-
-  private loadConfig() {
-    const stored = localStorage.getItem('n8n-config');
-    if (stored) {
-      const config = JSON.parse(stored);
-      this.webhookUrl = config.webhookUrl;
-      this.isEnabled = config.isEnabled;
-    }
-  }
-
-  configure(webhookUrl: string, enabled: boolean = true) {
-    this.webhookUrl = webhookUrl;
-    this.isEnabled = enabled;
-    
-    localStorage.setItem('n8n-config', JSON.stringify({
-      webhookUrl,
-      isEnabled: enabled
-    }));
-  }
-
-  async sendTradingSignal(payload: TradingSignalPayload): Promise<boolean> {
-    if (!this.isEnabled || !this.webhookUrl) {
-      console.log('N8N automation disabled or not configured');
-      return false;
-    }
-
+export class N8NAutomationService {
+  async sendTradingSignal(signalData: TradingSignalData): Promise<boolean> {
     try {
-      const response = await fetch(this.webhookUrl, {
+      const webhookUrl = localStorage.getItem('n8n_signal_webhook');
+      
+      if (!webhookUrl) {
+        console.warn('N8N trading signal webhook not configured');
+        return false;
+      }
+
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 'trading_signal',
-          data: payload
-        })
+          timestamp: new Date().toISOString(),
+          event: 'trading_signal',
+          data: signalData
+        }),
       });
 
       return response.ok;
@@ -74,22 +38,53 @@ class N8nAutomationService {
     }
   }
 
-  async sendRiskAlert(payload: RiskAlertPayload): Promise<boolean> {
-    if (!this.isEnabled || !this.webhookUrl) {
-      console.log('N8N automation disabled or not configured');
-      return false;
-    }
-
+  async sendPortfolioUpdate(portfolioData: any): Promise<boolean> {
     try {
-      const response = await fetch(this.webhookUrl, {
+      const webhookUrl = localStorage.getItem('n8n_rebalance_webhook');
+      
+      if (!webhookUrl) {
+        console.warn('N8N portfolio webhook not configured');
+        return false;
+      }
+
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 'risk_alert',
-          data: payload
-        })
+          timestamp: new Date().toISOString(),
+          event: 'portfolio_update',
+          data: portfolioData
+        }),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Failed to send portfolio update to N8N:', error);
+      return false;
+    }
+  }
+
+  async sendRiskAlert(riskData: any): Promise<boolean> {
+    try {
+      const webhookUrl = localStorage.getItem('n8n_risk_webhook');
+      
+      if (!webhookUrl) {
+        console.warn('N8N risk webhook not configured');
+        return false;
+      }
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+          event: 'risk_alert',
+          data: riskData
+        }),
       });
 
       return response.ok;
@@ -98,60 +93,6 @@ class N8nAutomationService {
       return false;
     }
   }
-
-  async sendPortfolioRebalance(payload: PortfolioRebalancePayload): Promise<boolean> {
-    if (!this.isEnabled || !this.webhookUrl) {
-      console.log('N8N automation disabled or not configured');
-      return false;
-    }
-
-    try {
-      const response = await fetch(this.webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'portfolio_rebalance',
-          data: payload
-        })
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error('Failed to send portfolio rebalance to N8N:', error);
-      return false;
-    }
-  }
-
-  isConfigured(): boolean {
-    return this.isEnabled && !!this.webhookUrl;
-  }
-
-  getConfig() {
-    return {
-      webhookUrl: this.webhookUrl,
-      isEnabled: this.isEnabled
-    };
-  }
-
-  disable() {
-    this.isEnabled = false;
-    this.saveConfig();
-  }
-
-  enable() {
-    this.isEnabled = true;
-    this.saveConfig();
-  }
-
-  private saveConfig() {
-    localStorage.setItem('n8n-config', JSON.stringify({
-      webhookUrl: this.webhookUrl,
-      isEnabled: this.isEnabled
-    }));
-  }
 }
 
-export const n8nAutomationService = new N8nAutomationService();
-export default n8nAutomationService;
+export const n8nAutomationService = new N8NAutomationService();

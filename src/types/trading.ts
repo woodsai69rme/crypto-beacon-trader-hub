@@ -410,23 +410,15 @@ export interface PriceCorrelationChartProps {
 }
 
 export interface DetachableDashboardProps {
-  onDetach?: () => void;
+  onClose: () => void;
   isDetached?: boolean;
-  initialCoinId?: string;
-  refreshInterval?: number;
-  onClose?: () => void;
-  darkMode?: boolean;
   children?: React.ReactNode;
 }
 
-export interface LiveAnalyticsDashboardProps {
-  selectedCoin?: CoinOption;
-  apiStats?: ApiUsageStats;
-  initialCoinId?: string;
-  refreshInterval?: number;
-  showDetailedView?: boolean;
-  onAlertTriggered?: (alert: any) => void;
-  darkMode?: boolean;
+export interface DetachedAiTradingDashboardProps {
+  onClose: () => void;
+  isDetached?: boolean;
+  children?: React.ReactNode;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {

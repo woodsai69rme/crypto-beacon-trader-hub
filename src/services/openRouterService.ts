@@ -1,4 +1,3 @@
-
 import { AITradingStrategy } from '@/types/trading';
 
 export interface TradingSignal {

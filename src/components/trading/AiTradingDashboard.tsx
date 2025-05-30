@@ -42,7 +42,9 @@ const AiTradingDashboard: React.FC = () => {
         <DetachedAiTradingDashboard 
           onClose={toggleDetachedMode}
           isDetached={true}
-        />
+        >
+          <AdvancedAiTradingDashboard />
+        </DetachedAiTradingDashboard>
       )}
     </Card>
   );
