@@ -92,6 +92,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_tools: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_custom: boolean | null
+          logo: string | null
+          name: string
+          reset_time: string
+          updated_at: string | null
+          usage_count: number
+          usage_limit: number
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_custom?: boolean | null
+          logo?: string | null
+          name: string
+          reset_time: string
+          updated_at?: string | null
+          usage_count?: number
+          usage_limit?: number
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_custom?: boolean | null
+          logo?: string | null
+          name?: string
+          reset_time?: string
+          updated_at?: string | null
+          usage_count?: number
+          usage_limit?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           asset_id: string | null
