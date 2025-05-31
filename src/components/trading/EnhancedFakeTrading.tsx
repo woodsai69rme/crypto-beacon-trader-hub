@@ -81,12 +81,10 @@ const EnhancedFakeTrading: React.FC = () => {
 
     const trade: Trade = {
       id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      symbol: tradeData.symbol,
       coinSymbol: tradeData.symbol,
       coinId: tradeData.symbol.toLowerCase(),
       coinName: selectedAsset.name,
       type: tradeData.type,
-      quantity,
       amount: quantity,
       price: selectedAsset.price,
       totalValue,
@@ -300,10 +298,10 @@ const EnhancedFakeTrading: React.FC = () => {
                         )}
                         <div>
                           <div className="font-semibold">
-                            {trade.type.toUpperCase()} {trade.symbol}
+                            {trade.type.toUpperCase()} {trade.coinSymbol}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {trade.quantity.toFixed(6)} units @ {formatCurrency(trade.price)}
+                            {trade.amount.toFixed(6)} units @ {formatCurrency(trade.price)}
                           </div>
                         </div>
                       </div>
