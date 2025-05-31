@@ -3,10 +3,36 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/components/auth/AuthProvider';
+import { LogOut, Settings, CreditCard, User } from 'lucide-react';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user, signOut, subscription } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const getUserInitials = () => {
+    if (!user?.email) return 'U';
+    return user.email.substring(0, 2).toUpperCase();
+  };
+
+  const getSubscriptionStatus = () => {
+    if (!subscription || !subscription.subscribed) return 'Free';
+    return subscription.subscription_tier || 'Pro';
+  };
 
   const navigationItems = [
     { value: "/", label: "Overview", path: "/" },
@@ -50,6 +76,51 @@ const Navigation: React.FC = () => {
               ))}
             </TabsList>
           </Tabs>
+
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="hidden sm:block">
+              {getSubscriptionStatus()}
+            </Badge>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="text-sm font-medium leading-none">{user?.email}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {getSubscriptionStatus()} Plan
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/subscription" className="cursor-pointer">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Subscription</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </div>
