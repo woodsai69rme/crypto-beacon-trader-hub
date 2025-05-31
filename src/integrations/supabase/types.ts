@@ -92,6 +92,50 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_suggestions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_applied: boolean | null
+          original_content: string | null
+          reason: string | null
+          resume_id: string
+          section_type: string
+          suggested_content: string
+          suggestion_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_applied?: boolean | null
+          original_content?: string | null
+          reason?: string | null
+          resume_id: string
+          section_type: string
+          suggested_content: string
+          suggestion_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_applied?: boolean | null
+          original_content?: string | null
+          reason?: string | null
+          resume_id?: string
+          section_type?: string
+          suggested_content?: string
+          suggestion_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_tools: {
         Row: {
           category: string
@@ -1060,6 +1104,154 @@ export type Database = {
           version?: number | null
         }
         Relationships: []
+      }
+      resume_analytics: {
+        Row: {
+          created_at: string | null
+          downloads_count: number | null
+          id: string
+          last_viewed: string | null
+          resume_id: string
+          shares_count: number | null
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          downloads_count?: number | null
+          id?: string
+          last_viewed?: string | null
+          resume_id: string
+          shares_count?: number | null
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          downloads_count?: number | null
+          id?: string
+          last_viewed?: string | null
+          resume_id?: string
+          shares_count?: number | null
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resume_analytics_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resume_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          design_config: Json
+          id: string
+          is_premium: boolean | null
+          name: string
+          preview_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          design_config?: Json
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          preview_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          design_config?: Json
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          preview_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      resumes: {
+        Row: {
+          ats_score: number | null
+          certifications: Json
+          created_at: string | null
+          custom_sections: Json
+          design_settings: Json
+          education: Json
+          experience: Json
+          id: string
+          is_public: boolean | null
+          languages: Json
+          personal_info: Json
+          projects: Json
+          share_token: string | null
+          skills: Json
+          template_id: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ats_score?: number | null
+          certifications?: Json
+          created_at?: string | null
+          custom_sections?: Json
+          design_settings?: Json
+          education?: Json
+          experience?: Json
+          id?: string
+          is_public?: boolean | null
+          languages?: Json
+          personal_info?: Json
+          projects?: Json
+          share_token?: string | null
+          skills?: Json
+          template_id?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ats_score?: number | null
+          certifications?: Json
+          created_at?: string | null
+          custom_sections?: Json
+          design_settings?: Json
+          education?: Json
+          experience?: Json
+          id?: string
+          is_public?: boolean | null
+          languages?: Json
+          personal_info?: Json
+          projects?: Json
+          share_token?: string | null
+          skills?: Json
+          template_id?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resumes_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "resume_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scraping_jobs: {
         Row: {
