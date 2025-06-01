@@ -1,326 +1,330 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useTradingContext } from '@/contexts/TradingContext';
-import { useCurrency } from '@/contexts/CurrencyContext';
-import { useToast } from '@/hooks/use-toast';
-import { TrendingUp, TrendingDown, Activity, Wallet } from 'lucide-react';
-import TradingHoldings from './TradingHoldings';
-import { Trade } from '@/types/trading';
+import { Switch } from '@/components/ui/switch';
+import useRealTimeMarketData from '@/hooks/useRealTimeMarketData';
+import AdvancedSortingFilters from './AdvancedSortingFilters';
+import MobileOptimizedInterface from '@/components/mobile/MobileOptimizedInterface';
+import { advancedOpenRouterService } from '@/services/ai/advancedOpenRouterService';
+import { TrendingUp, TrendingDown, Bot, Zap, Target, AlertTriangle } from 'lucide-react';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 const EnhancedFakeTrading: React.FC = () => {
-  const [tradeData, setTradeData] = useState({
-    symbol: '',
-    type: 'buy' as 'buy' | 'sell',
-    quantity: '',
-    price: '',
-    date: new Date().toISOString().split('T')[0]
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState('bitcoin');
+  const [tradingMode, setTradingMode] = useState<'manual' | 'ai'>('manual');
+  const [aiSignals, setAiSignals] = useState<any[]>([]);
+  const [isGeneratingSignals, setIsGeneratingSignals] = useState(false);
+  const [portfolioValue, setPortfolioValue] = useState(100000);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  const { data: marketData, isConnected, lastUpdate } = useRealTimeMarketData({
+    symbols: ['bitcoin', 'ethereum', 'solana', 'cardano', 'polkadot', 'chainlink'],
+    updateInterval: 5000,
+    enableWebSocket: true
   });
 
-  const { activeAccount, addTrade } = useTradingContext();
-  const { formatCurrency } = useCurrency();
-  const { toast } = useToast();
-
-  const cryptoAssets = [
-    { symbol: 'BTC', name: 'Bitcoin', price: 45000 + Math.random() * 10000 },
-    { symbol: 'ETH', name: 'Ethereum', price: 2500 + Math.random() * 1000 },
-    { symbol: 'ADA', name: 'Cardano', price: 0.5 + Math.random() * 0.5 },
-    { symbol: 'DOT', name: 'Polkadot', price: 8 + Math.random() * 4 },
-    { symbol: 'SOL', name: 'Solana', price: 80 + Math.random() * 40 },
-    { symbol: 'MATIC', name: 'Polygon', price: 1 + Math.random() * 1 },
-    { symbol: 'LINK', name: 'Chainlink', price: 15 + Math.random() * 10 }
+  const sortOptions = [
+    { key: 'price', label: 'Price', type: 'number' as const },
+    { key: 'changePercent', label: 'Change %', type: 'number' as const },
+    { key: 'volume', label: 'Volume', type: 'number' as const },
+    { key: 'marketCap', label: 'Market Cap', type: 'number' as const },
+    { key: 'name', label: 'Name', type: 'string' as const }
   ];
 
-  const selectedAsset = cryptoAssets.find(asset => asset.symbol === tradeData.symbol);
-  const totalValue = selectedAsset && tradeData.quantity ? 
-    parseFloat(tradeData.quantity) * selectedAsset.price : 0;
-
-  const handleTrade = () => {
-    if (!activeAccount) {
-      toast({
-        title: "No Active Account",
-        description: "Please create a trading account first",
-        variant: "destructive"
-      });
-      return;
+  const filterOptions = [
+    {
+      key: 'price',
+      label: 'Price Range',
+      type: 'range' as const,
+      min: 0,
+      max: 100000
+    },
+    {
+      key: 'changePercent',
+      label: 'Change %',
+      type: 'range' as const,
+      min: -50,
+      max: 50
+    },
+    {
+      key: 'marketCap',
+      label: 'Market Cap',
+      type: 'range' as const,
+      min: 0,
+      max: 3000000000000
     }
+  ];
 
-    if (!tradeData.symbol || !tradeData.quantity || !selectedAsset) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all trade details",
-        variant: "destructive"
-      });
-      return;
+  useEffect(() => {
+    if (tradingMode === 'ai' && marketData.length > 0) {
+      generateAISignals();
     }
+  }, [tradingMode, marketData]);
 
-    const quantity = parseFloat(tradeData.quantity);
-    if (quantity <= 0) {
-      toast({
-        title: "Invalid Quantity",
-        description: "Quantity must be greater than 0",
-        variant: "destructive"
-      });
-      return;
+  const generateAISignals = async () => {
+    setIsGeneratingSignals(true);
+    try {
+      const signals = [];
+      for (const asset of marketData.slice(0, 3)) {
+        const signal = await advancedOpenRouterService.generateAdvancedTradingSignal(
+          {
+            symbol: asset.symbol,
+            price: asset.price,
+            volume: asset.volume,
+            priceChange: asset.changePercent || 0,
+            rsi: 45 + Math.random() * 20,
+            macd: (Math.random() - 0.5) * 2
+          },
+          'trend-following',
+          { riskTolerance: 'MEDIUM' }
+        );
+        signals.push({ ...signal, asset: asset.symbol });
+      }
+      setAiSignals(signals);
+    } catch (error) {
+      console.error('Failed to generate AI signals:', error);
+    } finally {
+      setIsGeneratingSignals(false);
     }
-
-    if (tradeData.type === 'buy' && totalValue > activeAccount.balance) {
-      toast({
-        title: "Insufficient Balance",
-        description: `You need ${formatCurrency(totalValue)} but only have ${formatCurrency(activeAccount.balance)}`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const trade: Trade = {
-      id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      symbol: tradeData.symbol,
-      coinSymbol: tradeData.symbol,
-      coinId: tradeData.symbol.toLowerCase(),
-      coinName: selectedAsset.name,
-      type: tradeData.type,
-      quantity: quantity,
-      amount: quantity,
-      price: selectedAsset.price,
-      totalValue,
-      total: totalValue,
-      timestamp: new Date(tradeData.date).toISOString(),
-      currency: 'AUD',
-      tags: ['paper-trading']
-    };
-
-    addTrade(trade);
-
-    toast({
-      title: "Trade Executed",
-      description: `${tradeData.type.toUpperCase()} ${quantity} ${tradeData.symbol} for ${formatCurrency(totalValue)}`,
-    });
-
-    // Reset form
-    setTradeData({
-      symbol: '',
-      type: 'buy',
-      quantity: '',
-      price: '',
-      date: new Date().toISOString().split('T')[0]
-    });
   };
 
-  if (!activeAccount) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No Trading Account</h3>
-          <p className="text-muted-foreground">
-            Create a trading account to start paper trading
-          </p>
-        </CardContent>
-      </Card>
-    );
+  const handleDataChange = (newData: any[]) => {
+    setFilteredData(newData);
+  };
+
+  const executeTrade = (signal: any) => {
+    const amount = portfolioValue * 0.1; // Use 10% of portfolio
+    console.log(`Executing ${signal.signal} trade for ${signal.asset} with $${amount}`);
+    
+    // Simulate portfolio change
+    const change = signal.signal === 'BUY' ? amount * 0.02 : -amount * 0.02;
+    setPortfolioValue(prev => prev + change);
+  };
+
+  if (isMobile) {
+    return <MobileOptimizedInterface />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header with Portfolio Status */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Paper Trading</h1>
-          <p className="text-muted-foreground">Practice trading with virtual AUD funds</p>
+          <h2 className="text-2xl font-bold">Enhanced Paper Trading</h2>
+          <p className="text-muted-foreground">
+            Practice trading with {portfolioValue.toLocaleString('en-AU', { style: 'currency', currency: 'AUD' })} virtual funds
+          </p>
         </div>
-        <Badge variant="secondary" className="px-4 py-2">
-          Balance: {formatCurrency(activeAccount.balance)}
-        </Badge>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Trading Mode:</span>
+            <Switch
+              checked={tradingMode === 'ai'}
+              onCheckedChange={(checked) => setTradingMode(checked ? 'ai' : 'manual')}
+            />
+            <span className="text-sm">{tradingMode === 'ai' ? 'AI Assisted' : 'Manual'}</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-sm">{isConnected ? 'Live Data' : 'Offline'}</span>
+          </div>
+        </div>
       </div>
 
-      <Tabs defaultValue="trade" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="trade">Make Trade</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-          <TabsTrigger value="history">Trade History</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="trade" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Execute Trade</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="asset">Cryptocurrency</Label>
-                  <Select value={tradeData.symbol} onValueChange={(value) => setTradeData({ ...tradeData, symbol: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select cryptocurrency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cryptoAssets.map(asset => (
-                        <SelectItem key={asset.symbol} value={asset.symbol}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{asset.symbol} - {asset.name}</span>
-                            <span className="text-sm text-muted-foreground ml-4">
-                              {formatCurrency(asset.price)}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="type">Order Type</Label>
-                    <Select value={tradeData.type} onValueChange={(value: 'buy' | 'sell') => setTradeData({ ...tradeData, type: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="buy">
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-green-500" />
-                            Buy
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="sell">
-                          <div className="flex items-center gap-2">
-                            <TrendingDown className="h-4 w-4 text-red-500" />
-                            Sell
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="quantity">Quantity</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      step="0.00000001"
-                      value={tradeData.quantity}
-                      onChange={(e) => setTradeData({ ...tradeData, quantity: e.target.value })}
-                      placeholder="0.001"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="date">Trade Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={tradeData.date}
-                    onChange={(e) => setTradeData({ ...tradeData, date: e.target.value })}
-                  />
-                </div>
-
-                {selectedAsset && tradeData.quantity && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Current Price:</span>
-                      <span className="font-semibold">{formatCurrency(selectedAsset.price)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Total Value:</span>
-                      <span className="font-semibold text-lg">{formatCurrency(totalValue)}</span>
-                    </div>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={handleTrade} 
-                  className="w-full"
-                  disabled={!tradeData.symbol || !tradeData.quantity}
-                >
-                  {tradeData.type === 'buy' ? 'Buy' : 'Sell'} {tradeData.symbol}
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Market Prices</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {cryptoAssets.map(asset => {
-                    const change = (Math.random() - 0.5) * 10; // Mock 24h change
-                    return (
-                      <div key={asset.symbol} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <div className="font-semibold">{asset.symbol}</div>
-                          <div className="text-sm text-muted-foreground">{asset.name}</div>
+      {/* AI Trading Signals */}
+      {tradingMode === 'ai' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                AI Trading Signals
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                onClick={generateAISignals}
+                disabled={isGeneratingSignals}
+              >
+                {isGeneratingSignals ? 'Generating...' : 'Refresh Signals'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {aiSignals.map((signal, index) => (
+                <Card key={index} className="border-l-4 border-l-primary">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{signal.asset}</span>
+                        <Badge variant={
+                          signal.signal === 'BUY' ? 'default' : 
+                          signal.signal === 'SELL' ? 'destructive' : 'secondary'
+                        }>
+                          {signal.signal}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Confidence:</span>
+                          <span className="font-medium">{(signal.confidence * 100).toFixed(1)}%</span>
                         </div>
-                        <div className="text-right">
-                          <div className="font-semibold">{formatCurrency(asset.price)}</div>
-                          <div className={`text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {change >= 0 ? '+' : ''}{change.toFixed(2)}%
-                          </div>
+                        <div className="flex justify-between">
+                          <span>Entry:</span>
+                          <span>${signal.entryPrice?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Target:</span>
+                          <span className="text-green-500">${signal.targetPrice?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Stop Loss:</span>
+                          <span className="text-red-500">${signal.stopLoss?.toFixed(2)}</span>
                         </div>
                       </div>
-                    );
-                  })}
+                      
+                      <div className="text-xs text-muted-foreground">
+                        {signal.reasoning}
+                      </div>
+                      
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => executeTrade(signal)}
+                        disabled={signal.signal === 'HOLD'}
+                      >
+                        Execute Trade
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Market Data with Advanced Filtering */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Market Data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdvancedSortingFilters
+            data={marketData}
+            sortOptions={sortOptions}
+            filterOptions={filterOptions}
+            onDataChange={handleDataChange}
+            searchPlaceholder="Search cryptocurrencies..."
+          />
+          
+          <div className="mt-6 space-y-4">
+            {(filteredData.length > 0 ? filteredData : marketData).map((coin) => (
+              <div
+                key={coin.id}
+                className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                  selectedAsset === coin.id ? 'bg-primary/5 border-primary' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => setSelectedAsset(coin.id)}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="font-bold text-sm">{coin.symbol}</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium">{coin.name}</h4>
+                    <p className="text-sm text-muted-foreground">{coin.symbol}</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="text-right">
+                  <p className="font-bold">${coin.price?.toFixed(2) || '0.00'}</p>
+                  <div className={`flex items-center gap-1 text-sm ${
+                    (coin.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {(coin.changePercent || 0) >= 0 ? 
+                      <TrendingUp className="h-4 w-4" /> : 
+                      <TrendingDown className="h-4 w-4" />
+                    }
+                    <span>{(coin.changePercent || 0).toFixed(2)}%</span>
+                  </div>
+                </div>
+                
+                <div className="text-right text-sm text-muted-foreground">
+                  <p>Vol: {(coin.volume || 0).toLocaleString()}</p>
+                  <p>MCap: ${(coin.marketCap || 0).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Trading Interface */}
+      <Tabs defaultValue="spot" className="w-full">
+        <TabsList>
+          <TabsTrigger value="spot">Spot Trading</TabsTrigger>
+          <TabsTrigger value="strategies">Strategies</TabsTrigger>
+          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="spot" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Spot Trading - {selectedAsset.toUpperCase()}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center py-8 text-muted-foreground">
+                Enhanced trading interface will be implemented here with real-time charts,
+                order books, and advanced order types.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="strategies">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trading Strategies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center py-8 text-muted-foreground">
+                Strategy builder and backtesting tools will be available here.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="portfolio">
-          <TradingHoldings />
-        </TabsContent>
-
-        <TabsContent value="history">
           <Card>
             <CardHeader>
-              <CardTitle>Trade History</CardTitle>
+              <CardTitle>Portfolio Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              {activeAccount.trades.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No trades yet. Execute your first trade to see history here.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {[...activeAccount.trades].reverse().map(trade => (
-                    <div key={trade.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        {trade.type === 'buy' ? (
-                          <TrendingUp className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-5 w-5 text-red-500" />
-                        )}
-                        <div>
-                          <div className="font-semibold">
-                            {trade.type.toUpperCase()} {trade.symbol || trade.coinSymbol}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {(trade.quantity || trade.amount).toFixed(6)} units @ {formatCurrency(trade.price)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">{formatCurrency(trade.totalValue)}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(trade.timestamp).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="text-center py-8">
+                <h3 className="text-2xl font-bold">
+                  {portfolioValue.toLocaleString('en-AU', { style: 'currency', currency: 'AUD' })}
+                </h3>
+                <p className="text-muted-foreground">Total Portfolio Value</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {lastUpdate && (
+        <div className="text-center text-sm text-muted-foreground">
+          Last updated: {lastUpdate.toLocaleTimeString()}
+        </div>
+      )}
     </div>
   );
 };
