@@ -17,6 +17,7 @@ const ProjectStatus = React.lazy(() => import('@/pages/ProjectStatus'));
 const AuthPage = React.lazy(() => import('@/components/auth/AuthPage'));
 const LandingPage = React.lazy(() => import('@/components/marketing/LandingPage'));
 const SubscriptionPlans = React.lazy(() => import('@/components/subscription/SubscriptionPlans'));
+const PlatformTestDashboard = React.lazy(() => import('@/components/testing/PlatformTestDashboard'));
 
 const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -127,6 +128,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <ProjectStatus />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/testing" 
+              element={
+                <ProtectedRoute>
+                  <PlatformTestDashboard />
                 </ProtectedRoute>
               } 
             />

@@ -55,39 +55,39 @@ export type Database = {
           api_endpoint: string | null
           api_key_encrypted: string | null
           config: Json | null
-          created_at: string
+          created_at: string | null
           id: string
           is_active: boolean | null
           model_id: string
           name: string
           provider: string
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           api_endpoint?: string | null
           api_key_encrypted?: string | null
           config?: Json | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_active?: boolean | null
           model_id: string
           name: string
           provider: string
-          updated_at?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           api_endpoint?: string | null
           api_key_encrypted?: string | null
           config?: Json | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_active?: boolean | null
           model_id?: string
           name?: string
           provider?: string
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -183,48 +183,45 @@ export type Database = {
       }
       alerts: {
         Row: {
-          asset_id: string | null
-          condition: Json
-          created_at: string
+          condition_met: boolean | null
+          created_at: string | null
+          current_value: number | null
           expires_at: string | null
           id: string
-          notes: string | null
-          notification_channels: string[] | null
-          recurring: boolean | null
-          status: string
-          symbol: string | null
+          is_active: boolean | null
+          notification_sent: boolean | null
+          symbol: string
+          target_value: number
           triggered_at: string | null
-          type: string
+          type: Database["public"]["Enums"]["alert_type"]
           user_id: string
         }
         Insert: {
-          asset_id?: string | null
-          condition: Json
-          created_at?: string
+          condition_met?: boolean | null
+          created_at?: string | null
+          current_value?: number | null
           expires_at?: string | null
           id?: string
-          notes?: string | null
-          notification_channels?: string[] | null
-          recurring?: boolean | null
-          status?: string
-          symbol?: string | null
+          is_active?: boolean | null
+          notification_sent?: boolean | null
+          symbol: string
+          target_value: number
           triggered_at?: string | null
-          type: string
+          type: Database["public"]["Enums"]["alert_type"]
           user_id: string
         }
         Update: {
-          asset_id?: string | null
-          condition?: Json
-          created_at?: string
+          condition_met?: boolean | null
+          created_at?: string | null
+          current_value?: number | null
           expires_at?: string | null
           id?: string
-          notes?: string | null
-          notification_channels?: string[] | null
-          recurring?: boolean | null
-          status?: string
-          symbol?: string | null
+          is_active?: boolean | null
+          notification_sent?: boolean | null
+          symbol?: string
+          target_value?: number
           triggered_at?: string | null
-          type?: string
+          type?: Database["public"]["Enums"]["alert_type"]
           user_id?: string
         }
         Relationships: []
@@ -697,186 +694,180 @@ export type Database = {
       }
       market_data_cache: {
         Row: {
-          ask: number | null
-          bid: number | null
           change_24h: number | null
+          change_percentage_24h: number | null
           exchange: string
+          high_24h: number | null
           id: string
-          price: number
+          last_updated: string | null
+          low_24h: number | null
+          market_cap_aud: number | null
+          market_cap_usd: number | null
+          price_aud: number
+          price_usd: number
           symbol: string
-          timestamp: string | null
-          volume_24h: number | null
+          volume_24h_aud: number | null
+          volume_24h_usd: number | null
         }
         Insert: {
-          ask?: number | null
-          bid?: number | null
           change_24h?: number | null
-          exchange: string
+          change_percentage_24h?: number | null
+          exchange?: string
+          high_24h?: number | null
           id?: string
-          price: number
+          last_updated?: string | null
+          low_24h?: number | null
+          market_cap_aud?: number | null
+          market_cap_usd?: number | null
+          price_aud: number
+          price_usd: number
           symbol: string
-          timestamp?: string | null
-          volume_24h?: number | null
+          volume_24h_aud?: number | null
+          volume_24h_usd?: number | null
         }
         Update: {
-          ask?: number | null
-          bid?: number | null
           change_24h?: number | null
+          change_percentage_24h?: number | null
           exchange?: string
+          high_24h?: number | null
           id?: string
-          price?: number
+          last_updated?: string | null
+          low_24h?: number | null
+          market_cap_aud?: number | null
+          market_cap_usd?: number | null
+          price_aud?: number
+          price_usd?: number
           symbol?: string
-          timestamp?: string | null
-          volume_24h?: number | null
+          volume_24h_aud?: number | null
+          volume_24h_usd?: number | null
         }
         Relationships: []
       }
       news_analysis: {
         Row: {
-          created_at: string
+          content: string | null
+          created_at: string | null
           id: string
           published_at: string
-          sentiment: string | null
+          sentiment_label: string | null
           sentiment_score: number | null
           source: string
           summary: string | null
+          symbols_mentioned: string[] | null
           title: string
           url: string
-          user_id: string | null
         }
         Insert: {
-          created_at?: string
+          content?: string | null
+          created_at?: string | null
           id?: string
           published_at: string
-          sentiment?: string | null
+          sentiment_label?: string | null
           sentiment_score?: number | null
           source: string
           summary?: string | null
+          symbols_mentioned?: string[] | null
           title: string
           url: string
-          user_id?: string | null
         }
         Update: {
-          created_at?: string
+          content?: string | null
+          created_at?: string | null
           id?: string
           published_at?: string
-          sentiment?: string | null
+          sentiment_label?: string | null
           sentiment_score?: number | null
           source?: string
           summary?: string | null
+          symbols_mentioned?: string[] | null
           title?: string
           url?: string
-          user_id?: string | null
         }
         Relationships: []
       }
       orders: {
         Row: {
-          amount: number
-          average_price: number | null
+          average_fill_price: number | null
           bot_id: string | null
+          cancelled_at: string | null
           created_at: string | null
-          exchange: string
+          exchange: string | null
           exchange_order_id: string | null
-          execution_strategy: Json | null
           fees: number | null
-          filled_amount: number | null
+          filled_at: string | null
+          filled_quantity: number | null
           id: string
-          order_type: string
+          mode: Database["public"]["Enums"]["trading_mode"] | null
+          portfolio_id: string | null
           price: number | null
+          quantity: number
           side: string
-          status: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
           stop_price: number | null
           symbol: string
-          updated_at: string | null
+          type: Database["public"]["Enums"]["order_type"]
           user_id: string
         }
         Insert: {
-          amount: number
-          average_price?: number | null
+          average_fill_price?: number | null
           bot_id?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
-          exchange: string
+          exchange?: string | null
           exchange_order_id?: string | null
-          execution_strategy?: Json | null
           fees?: number | null
-          filled_amount?: number | null
+          filled_at?: string | null
+          filled_quantity?: number | null
           id?: string
-          order_type: string
+          mode?: Database["public"]["Enums"]["trading_mode"] | null
+          portfolio_id?: string | null
           price?: number | null
+          quantity: number
           side: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
           stop_price?: number | null
           symbol: string
-          updated_at?: string | null
+          type: Database["public"]["Enums"]["order_type"]
           user_id: string
         }
         Update: {
-          amount?: number
-          average_price?: number | null
+          average_fill_price?: number | null
           bot_id?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
-          exchange?: string
+          exchange?: string | null
           exchange_order_id?: string | null
-          execution_strategy?: Json | null
           fees?: number | null
-          filled_amount?: number | null
+          filled_at?: string | null
+          filled_quantity?: number | null
           id?: string
-          order_type?: string
+          mode?: Database["public"]["Enums"]["trading_mode"] | null
+          portfolio_id?: string | null
           price?: number | null
+          quantity?: number
           side?: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
           stop_price?: number | null
           symbol?: string
-          updated_at?: string | null
+          type?: Database["public"]["Enums"]["order_type"]
           user_id?: string
         }
-        Relationships: []
-      }
-      performance_metrics: {
-        Row: {
-          created_at: string | null
-          daily_return: number | null
-          entity_id: string
-          entity_type: string
-          id: string
-          max_drawdown: number | null
-          metric_date: string
-          profit_factor: number | null
-          sharpe_ratio: number | null
-          total_return: number | null
-          volatility: number | null
-          win_rate: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          daily_return?: number | null
-          entity_id: string
-          entity_type: string
-          id?: string
-          max_drawdown?: number | null
-          metric_date: string
-          profit_factor?: number | null
-          sharpe_ratio?: number | null
-          total_return?: number | null
-          volatility?: number | null
-          win_rate?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          daily_return?: number | null
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          max_drawdown?: number | null
-          metric_date?: string
-          profit_factor?: number | null
-          sharpe_ratio?: number | null
-          total_return?: number | null
-          volatility?: number | null
-          win_rate?: number | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "trading_bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_connections: {
         Row: {
@@ -917,33 +908,45 @@ export type Database = {
       portfolios: {
         Row: {
           created_at: string | null
+          current_balance: number | null
           id: string
+          initial_balance: number | null
+          is_default: boolean | null
+          mode: Database["public"]["Enums"]["trading_mode"] | null
           name: string
           positions: Json | null
-          profit_percentage: number | null
-          total_profit: number | null
+          total_pnl: number | null
+          total_pnl_percentage: number | null
           total_value: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          current_balance?: number | null
           id?: string
-          name: string
+          initial_balance?: number | null
+          is_default?: boolean | null
+          mode?: Database["public"]["Enums"]["trading_mode"] | null
+          name?: string
           positions?: Json | null
-          profit_percentage?: number | null
-          total_profit?: number | null
+          total_pnl?: number | null
+          total_pnl_percentage?: number | null
           total_value?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          current_balance?: number | null
           id?: string
+          initial_balance?: number | null
+          is_default?: boolean | null
+          mode?: Database["public"]["Enums"]["trading_mode"] | null
           name?: string
           positions?: Json | null
-          profit_percentage?: number | null
-          total_profit?: number | null
+          total_pnl?: number | null
+          total_pnl_percentage?: number | null
           total_value?: number | null
           updated_at?: string | null
           user_id?: string
@@ -953,26 +956,41 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string
+          created_at: string | null
           display_name: string | null
           id: string
-          updated_at: string
+          live_balance: number | null
+          paper_balance: number | null
+          subscription_expires_at: string | null
+          subscription_tier: string | null
+          trading_mode: Database["public"]["Enums"]["trading_mode"] | null
+          updated_at: string | null
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string
+          created_at?: string | null
           display_name?: string | null
           id: string
-          updated_at?: string
+          live_balance?: number | null
+          paper_balance?: number | null
+          subscription_expires_at?: string | null
+          subscription_tier?: string | null
+          trading_mode?: Database["public"]["Enums"]["trading_mode"] | null
+          updated_at?: string | null
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string
+          created_at?: string | null
           display_name?: string | null
           id?: string
-          updated_at?: string
+          live_balance?: number | null
+          paper_balance?: number | null
+          subscription_expires_at?: string | null
+          subscription_tier?: string | null
+          trading_mode?: Database["public"]["Enums"]["trading_mode"] | null
+          updated_at?: string | null
           username?: string | null
         }
         Relationships: []
@@ -1360,7 +1378,7 @@ export type Database = {
           performance_metrics: Json | null
           price: number | null
           rating: number | null
-          strategy_type: string
+          strategy_type: Database["public"]["Enums"]["strategy_type"]
           updated_at: string | null
         }
         Insert: {
@@ -1375,7 +1393,7 @@ export type Database = {
           performance_metrics?: Json | null
           price?: number | null
           rating?: number | null
-          strategy_type: string
+          strategy_type: Database["public"]["Enums"]["strategy_type"]
           updated_at?: string | null
         }
         Update: {
@@ -1390,112 +1408,146 @@ export type Database = {
           performance_metrics?: Json | null
           price?: number | null
           rating?: number | null
-          strategy_type?: string
+          strategy_type?: Database["public"]["Enums"]["strategy_type"]
           updated_at?: string | null
         }
         Relationships: []
       }
       trading_bots: {
         Row: {
-          active_since: string
           ai_model: string | null
-          alerts: Json | null
           config: Json | null
-          created_at: string
+          created_at: string | null
           current_value: number | null
           id: string
           initial_investment: number | null
-          last_trade: Json | null
+          last_trade_at: string | null
+          max_position_size: number | null
+          mode: Database["public"]["Enums"]["trading_mode"] | null
           name: string
-          performance: Json
+          performance: Json | null
+          portfolio_id: string | null
           risk_level: string | null
-          status: string
-          strategy: string
-          target_asset: string | null
+          status: Database["public"]["Enums"]["bot_status"] | null
+          stop_loss_percentage: number | null
+          strategy: Database["public"]["Enums"]["strategy_type"]
+          take_profit_percentage: number | null
+          target_symbols: string[] | null
           total_trades: number | null
-          underperforming: boolean | null
+          updated_at: string | null
           user_id: string
           win_rate: number | null
         }
         Insert: {
-          active_since?: string
           ai_model?: string | null
-          alerts?: Json | null
           config?: Json | null
-          created_at?: string
+          created_at?: string | null
           current_value?: number | null
           id?: string
           initial_investment?: number | null
-          last_trade?: Json | null
+          last_trade_at?: string | null
+          max_position_size?: number | null
+          mode?: Database["public"]["Enums"]["trading_mode"] | null
           name: string
-          performance?: Json
+          performance?: Json | null
+          portfolio_id?: string | null
           risk_level?: string | null
-          status?: string
-          strategy: string
-          target_asset?: string | null
+          status?: Database["public"]["Enums"]["bot_status"] | null
+          stop_loss_percentage?: number | null
+          strategy: Database["public"]["Enums"]["strategy_type"]
+          take_profit_percentage?: number | null
+          target_symbols?: string[] | null
           total_trades?: number | null
-          underperforming?: boolean | null
+          updated_at?: string | null
           user_id: string
           win_rate?: number | null
         }
         Update: {
-          active_since?: string
           ai_model?: string | null
-          alerts?: Json | null
           config?: Json | null
-          created_at?: string
+          created_at?: string | null
           current_value?: number | null
           id?: string
           initial_investment?: number | null
-          last_trade?: Json | null
+          last_trade_at?: string | null
+          max_position_size?: number | null
+          mode?: Database["public"]["Enums"]["trading_mode"] | null
           name?: string
-          performance?: Json
+          performance?: Json | null
+          portfolio_id?: string | null
           risk_level?: string | null
-          status?: string
-          strategy?: string
-          target_asset?: string | null
+          status?: Database["public"]["Enums"]["bot_status"] | null
+          stop_loss_percentage?: number | null
+          strategy?: Database["public"]["Enums"]["strategy_type"]
+          take_profit_percentage?: number | null
+          target_symbols?: string[] | null
           total_trades?: number | null
-          underperforming?: boolean | null
+          updated_at?: string | null
           user_id?: string
           win_rate?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trading_bots_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trading_signals: {
         Row: {
+          bot_id: string | null
           confidence: number
-          created_at: string
-          details: Json | null
-          execution_status: string
+          created_at: string | null
+          executed_at: string | null
+          execution_status: string | null
           id: string
           price: number
+          reasoning: string | null
+          signal_type: string
           symbol: string
-          type: string
+          technical_indicators: Json | null
           user_id: string
         }
         Insert: {
+          bot_id?: string | null
           confidence: number
-          created_at?: string
-          details?: Json | null
-          execution_status?: string
+          created_at?: string | null
+          executed_at?: string | null
+          execution_status?: string | null
           id?: string
           price: number
+          reasoning?: string | null
+          signal_type: string
           symbol: string
-          type: string
+          technical_indicators?: Json | null
           user_id: string
         }
         Update: {
+          bot_id?: string | null
           confidence?: number
-          created_at?: string
-          details?: Json | null
-          execution_status?: string
+          created_at?: string | null
+          executed_at?: string | null
+          execution_status?: string | null
           id?: string
           price?: number
+          reasoning?: string | null
+          signal_type?: string
           symbol?: string
-          type?: string
+          technical_indicators?: Json | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trading_signals_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "trading_bots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1523,54 +1575,57 @@ export type Database = {
       }
       user_settings: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           setting_name: string
           setting_value: Json
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           setting_name: string
           setting_value?: Json
-          updated_at?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           setting_name?: string
           setting_value?: Json
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
       }
       watchlists: {
         Row: {
-          assets: string[] | null
-          created_at: string
+          created_at: string | null
           id: string
+          is_default: boolean | null
           name: string
-          updated_at: string
+          symbols: string[] | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          assets?: string[] | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          name: string
-          updated_at?: string
+          is_default?: boolean | null
+          name?: string
+          symbols?: string[] | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          assets?: string[] | null
-          created_at?: string
+          created_at?: string | null
           id?: string
+          is_default?: boolean | null
           name?: string
-          updated_at?: string
+          symbols?: string[] | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1616,6 +1671,26 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      alert_type:
+        | "price_above"
+        | "price_below"
+        | "volume_spike"
+        | "sentiment_change"
+      bot_status: "active" | "paused" | "stopped" | "error"
+      order_status: "pending" | "filled" | "cancelled" | "rejected"
+      order_type: "market" | "limit" | "stop_loss" | "take_profit"
+      strategy_type:
+        | "trend_following"
+        | "mean_reversion"
+        | "scalping"
+        | "breakout"
+        | "arbitrage"
+        | "grid"
+        | "momentum"
+        | "pattern_recognition"
+        | "sentiment"
+        | "custom"
+      trading_mode: "paper" | "live"
       user_role: "admin" | "trader" | "viewer" | "api_only"
     }
     CompositeTypes: {
@@ -1732,6 +1807,28 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_type: [
+        "price_above",
+        "price_below",
+        "volume_spike",
+        "sentiment_change",
+      ],
+      bot_status: ["active", "paused", "stopped", "error"],
+      order_status: ["pending", "filled", "cancelled", "rejected"],
+      order_type: ["market", "limit", "stop_loss", "take_profit"],
+      strategy_type: [
+        "trend_following",
+        "mean_reversion",
+        "scalping",
+        "breakout",
+        "arbitrage",
+        "grid",
+        "momentum",
+        "pattern_recognition",
+        "sentiment",
+        "custom",
+      ],
+      trading_mode: ["paper", "live"],
       user_role: ["admin", "trader", "viewer", "api_only"],
     },
   },

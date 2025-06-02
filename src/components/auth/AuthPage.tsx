@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from './AuthProvider';
 import { useToast } from '@/hooks/use-toast';
+import DemoLoginButton from './DemoLoginButton';
 import { Loader2, Mail, Lock } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
@@ -117,7 +118,7 @@ const AuthPage: React.FC = () => {
             Crypto Beacon Trader Hub
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Professional crypto trading education platform
+            Professional crypto trading platform with AI-powered insights
           </p>
         </div>
 
@@ -129,6 +130,22 @@ const AuthPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Demo Login Section */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <DemoLoginButton />
+            </div>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>

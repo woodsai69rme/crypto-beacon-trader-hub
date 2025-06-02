@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/components/auth/AuthProvider';
-import { LogOut, Settings, CreditCard, User } from 'lucide-react';
+import { LogOut, Settings, CreditCard, User, TestTube } from 'lucide-react';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -39,7 +39,8 @@ const Navigation: React.FC = () => {
     { value: "/trading", label: "Paper Trading", path: "/trading" },
     { value: "/ai-bots", label: "AI Bots", path: "/ai-bots" },
     { value: "/analytics", label: "Analytics", path: "/analytics" },
-    { value: "/status", label: "Project Status", path: "/status", badge: "Complete" }
+    { value: "/status", label: "Project Status", path: "/status", badge: "Complete" },
+    { value: "/testing", label: "Testing", path: "/testing", badge: "New" }
   ];
 
   return (
@@ -56,7 +57,7 @@ const Navigation: React.FC = () => {
           </div>
           
           <Tabs value={currentPath} className="w-auto">
-            <TabsList className="grid grid-cols-5 w-fit">
+            <TabsList className="grid grid-cols-6 w-fit">
               {navigationItems.map((item) => (
                 <TabsTrigger
                   key={item.value}
@@ -65,9 +66,12 @@ const Navigation: React.FC = () => {
                   className="relative"
                 >
                   <Link to={item.path} className="flex items-center gap-2">
+                    {item.label === "Testing" && <TestTube className="h-4 w-4" />}
                     {item.label}
                     {item.badge && (
-                      <Badge className="bg-green-500 text-white text-xs">
+                      <Badge className={`text-xs ${
+                        item.badge === "New" ? "bg-blue-500" : "bg-green-500"
+                      } text-white`}>
                         {item.badge}
                       </Badge>
                     )}
@@ -104,6 +108,12 @@ const Navigation: React.FC = () => {
                   <Link to="/subscription" className="cursor-pointer">
                     <CreditCard className="mr-2 h-4 w-4" />
                     <span>Subscription</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/testing" className="cursor-pointer">
+                    <TestTube className="mr-2 h-4 w-4" />
+                    <span>Platform Testing</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
