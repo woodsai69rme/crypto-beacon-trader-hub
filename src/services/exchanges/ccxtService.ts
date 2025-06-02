@@ -1,6 +1,6 @@
 
 import ccxt from 'ccxt';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ExchangeConfig {
   id: string;
@@ -60,7 +60,7 @@ class CCXTService {
         throw new Error(`Exchange ${config.id} is not supported`);
       }
 
-      const ExchangeClass = ccxt[config.id as keyof typeof ccxt] as typeof ccxt.Exchange;
+      const ExchangeClass = (ccxt as any)[config.id];
       
       if (!ExchangeClass) {
         throw new Error(`Exchange class for ${config.id} not found`);
@@ -80,19 +80,10 @@ class CCXTService {
       
       this.exchanges.set(config.id, exchange);
 
-      toast({
-        title: "Exchange Connected",
-        description: `Successfully connected to ${exchange.name}`,
-      });
-
+      console.log(`Successfully connected to ${config.id}`);
       return true;
     } catch (error) {
       console.error(`Failed to connect to ${config.id}:`, error);
-      toast({
-        title: "Connection Failed",
-        description: `Failed to connect to ${config.id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      });
       return false;
     }
   }
@@ -102,11 +93,7 @@ class CCXTService {
     if (exchange) {
       await exchange.close();
       this.exchanges.delete(exchangeId);
-      
-      toast({
-        title: "Exchange Disconnected",
-        description: `Disconnected from ${exchangeId}`,
-      });
+      console.log(`Disconnected from ${exchangeId}`);
     }
   }
 
@@ -125,11 +112,6 @@ class CCXTService {
       return balance;
     } catch (error) {
       console.error(`Failed to fetch balance from ${exchangeId}:`, error);
-      toast({
-        title: "Balance Fetch Failed",
-        description: `Failed to fetch balance from ${exchangeId}`,
-        variant: "destructive",
-      });
       return null;
     }
   }
@@ -164,20 +146,10 @@ class CCXTService {
       }
 
       const order = await exchange.createOrder(symbol, type, side, amount, price);
-      
-      toast({
-        title: "Order Created",
-        description: `${side.toUpperCase()} order for ${amount} ${symbol} created successfully`,
-      });
-
+      console.log(`${side.toUpperCase()} order for ${amount} ${symbol} created successfully`);
       return order as CCXTOrder;
     } catch (error) {
       console.error(`Failed to create order on ${exchangeId}:`, error);
-      toast({
-        title: "Order Failed",
-        description: `Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      });
       return null;
     }
   }

@@ -1,9 +1,8 @@
-
-# Developer Guide
+# Crypto Beacon Trading Platform - Developer Guide
 
 ## 🎯 Project Overview
 
-Crypto Beacon Trader Hub is a React-based cryptocurrency trading platform built with TypeScript, Vite, and modern web technologies. The platform features AI-powered trading bots, real-time market data, and comprehensive automation workflows.
+Crypto Beacon is a professional-grade cryptocurrency trading platform featuring AI-powered bots, real exchange integration, comprehensive market analytics, and advanced portfolio management tools.
 
 ## 🏗️ Architecture & Tech Stack
 
@@ -11,32 +10,38 @@ Crypto Beacon Trader Hub is a React-based cryptocurrency trading platform built 
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS + Shadcn/UI
-- **State Management**: React Context API
-- **Icons**: Lucide React
+- **State Management**: React Context API + TanStack Query
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Exchange Integration**: CCXT Library
+- **AI Integration**: OpenRouter API
 - **Charts**: Recharts
-- **HTTP Client**: Native Fetch API
+- **Icons**: Lucide React
 
 ### Project Structure
 ```
 src/
-├── components/           # Reusable UI components
+├── components/           # UI components organized by feature
+│   ├── analytics/        # Market analysis and reporting
+│   ├── api/             # API management interfaces
+│   ├── auth/            # Authentication components
+│   ├── dashboard/       # Main dashboard and widgets
+│   ├── news/            # News aggregation and sentiment
+│   ├── settings/        # Configuration and preferences
+│   ├── testing/         # Platform testing and audit tools
+│   ├── trading/         # Trading interfaces and AI bots
 │   ├── ui/              # Base UI components (Shadcn)
-│   ├── trading/         # Trading-specific components
-│   ├── navigation/      # Navigation components
-│   └── settings/        # Settings and configuration
+│   └── wallets/         # Crypto wallet integration
 ├── contexts/            # React context providers
-│   ├── CurrencyContext.tsx
-│   ├── TradingContext.tsx
-│   └── AiTradingContext.tsx
+├── hooks/               # Custom React hooks
 ├── services/            # Business logic and API integrations
 │   ├── ai/              # AI trading bot services
 │   ├── api/             # External API integrations
-│   ├── automation/      # N8N and workflow services
-│   └── trading/         # Trading engine services
-├── hooks/               # Custom React hooks
+│   ├── exchanges/       # Exchange connectivity (CCXT)
+│   └── testing/         # Platform audit and testing
 ├── types/               # TypeScript type definitions
 ├── utils/               # Helper functions and utilities
-└── App.tsx              # Main application component
+└── docs/                # Documentation files
 ```
 
 ## 🚀 Getting Started
@@ -46,105 +51,185 @@ src/
 1. **Prerequisites**
    ```bash
    node --version  # Requires Node.js 18+
-   npm --version   # or yarn
+   npm --version   # or yarn/pnpm
    ```
 
 2. **Install Dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
 3. **Start Development Server**
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-4. **Open Browser**
+4. **Access Application**
    Navigate to `http://localhost:5173`
 
-### Build Commands
+### Available Scripts
 ```bash
-npm run build      # Production build
-npm run preview    # Preview production build
-npm run lint       # ESLint checking
-npm run type-check # TypeScript checking
+npm run dev          # Start development server
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run lint         # ESLint checking
+npm run type-check   # TypeScript checking
+npm test             # Run tests
 ```
 
-## 📝 Coding Standards
+## 📝 Core Features
 
-### TypeScript Guidelines
-- **Strict Mode**: All TypeScript strict checks enabled
-- **Type Definitions**: Use `src/types/` for shared interfaces
-- **Component Props**: Always define prop interfaces
-- **API Responses**: Type all external API responses
+### 1. Authentication System
 
-Example:
+**Supabase Integration** with demo login capability:
+
 ```typescript
+import { useAuth } from '@/components/auth/AuthProvider';
+
+const { user, signOut, subscription } = useAuth();
+
+// Demo login available for testing
+// Email: demo@cryptobeacon.com
+// Password: demo123456
+```
+
+### 2. Exchange Integration (CCXT)
+
+**Supported Exchanges**:
+- Binance, Coinbase, Kraken, Bybit, OKX, KuCoin
+- Bitfinex, Huobi, Gate.io, MEXC
+
+**Implementation**:
+```typescript
+import { ccxtService } from '@/services/exchanges/ccxtService';
+
+// Connect to exchange
+await ccxtService.connectExchange({
+  id: 'binance',
+  apiKey: 'your-key',
+  secret: 'your-secret',
+  sandbox: true
+});
+
+// Execute trade
+const order = await ccxtService.createOrder(
+  'binance', 'BTC/USDT', 'market', 'buy', 0.001
+);
+```
+
+### 3. AI Trading Bots
+
+**Supported Strategies**:
+- Trend Following
+- Mean Reversion
+- Scalping
+- Breakout Trading
+- Grid Trading
+- Cross-Exchange Arbitrage
+- Sentiment-Based Trading
+- Pattern Recognition
+
+**AI Models** (OpenRouter):
+- DeepSeek R1 (free)
+- Gemini 2 (free) 
+- GPT-4, Claude 3 (paid)
+
+### 4. Paper Trading System
+
+**Features**:
+- Risk-free testing environment
+- Real market data with simulated execution
+- Portfolio tracking and performance metrics
+- Strategy backtesting capabilities
+
+### 5. Market Data & Analytics
+
+**Data Sources**:
+- CoinGecko API (primary)
+- Exchange WebSocket streams
+- CCXT unified market data
+
+**Analytics**:
+- Real-time price tracking
+- Technical indicators (RSI, MACD, Bollinger Bands)
+- Market correlation analysis
+- Portfolio performance metrics
+
+## 🔧 Development Guidelines
+
+### TypeScript Best Practices
+
+```typescript
+// Define interfaces for all props and data structures
 interface TradingBotProps {
   bot: AITradingBot;
   onActivate: (botId: string) => void;
   onDeactivate: (botId: string) => void;
 }
 
+// Use strict typing for components
 const TradingBotCard: React.FC<TradingBotProps> = ({ bot, onActivate, onDeactivate }) => {
   // Component implementation
 };
+
+// Define API response types
+interface MarketData {
+  symbol: string;
+  price: number;
+  change24h: number;
+  volume: number;
+}
 ```
 
-### Component Guidelines
+### Component Architecture
 
-#### File Naming
-- **Components**: PascalCase (`TradingDashboard.tsx`)
-- **Hooks**: camelCase with 'use' prefix (`useTradingData.ts`)
-- **Services**: camelCase (`tradingService.ts`)
-- **Types**: camelCase (`trading.d.ts`)
-
-#### Component Structure
+**File Structure**:
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { ComponentProps } from '@/types';
-import { useCustomHook } from '@/hooks';
+// Component file organization
+ComponentName.tsx           # Main component
+ComponentName.types.ts      # Type definitions
+ComponentName.test.tsx      # Unit tests
+index.ts                    # Barrel export
+```
+
+**Component Pattern**:
+```typescript
+import React, { useState, useEffect, useCallback } from 'react';
+import { ComponentProps } from './types';
 
 interface ComponentNameProps {
   // Props interface
 }
 
 const ComponentName: React.FC<ComponentNameProps> = ({ ...props }) => {
-  // Hooks
-  // State
-  // Effects
+  // Hooks (useState, useEffect, custom hooks)
   // Event handlers
-  // Render
+  // Render logic
+  
+  return (
+    <div className="responsive-container">
+      {/* Component JSX */}
+    </div>
+  );
 };
 
 export default ComponentName;
 ```
 
-#### Component Organization
-- **Keep components focused**: Single responsibility principle
-- **Extract custom hooks**: Reusable logic goes into hooks
-- **Use compound patterns**: For complex components with multiple parts
-- **Prefer composition**: Over inheritance
-
 ### State Management
 
-#### Context Usage
+**Context Pattern**:
 ```typescript
-// Creating a context
 interface ContextType {
   data: DataType;
   actions: {
     updateData: (data: DataType) => void;
+    resetData: () => void;
   };
 }
 
 const Context = createContext<ContextType | undefined>(undefined);
 
-// Custom hook for context
 export const useContext = () => {
   const context = useContext(Context);
   if (!context) {
@@ -154,278 +239,321 @@ export const useContext = () => {
 };
 ```
 
-#### Local State Guidelines
-- Use `useState` for component-local state
-- Use `useReducer` for complex state logic
-- Lift state up when multiple components need it
-- Use refs for DOM access and mutable values
-
-### Styling Guidelines
-
-#### Tailwind CSS
-- **Responsive First**: Always consider mobile-first design
-- **Consistent Spacing**: Use Tailwind's spacing scale
-- **Color System**: Use semantic color names from theme
-- **Dark Mode**: Support both light and dark themes
-
-Example:
-```typescript
-<div className="p-4 bg-background border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow">
-  <h2 className="text-lg font-semibold text-foreground mb-2">Title</h2>
-  <p className="text-sm text-muted-foreground">Description</p>
-</div>
-```
-
-#### Component Styling
-- Use Shadcn/UI components as base
-- Extend with Tailwind utilities
-- Create custom components for repeated patterns
-- Avoid inline styles
-
-### Error Handling
-
-#### API Errors
-```typescript
-try {
-  const data = await apiCall();
-  return data;
-} catch (error) {
-  console.error('API Error:', error);
-  toast({
-    title: "Error",
-    description: "Failed to load data. Please try again.",
-    variant: "destructive"
-  });
-  throw error;
-}
-```
-
-#### Component Error Boundaries
-```typescript
-const ComponentWithErrorBoundary = () => (
-  <ErrorBoundary fallback={<ErrorFallback />}>
-    <MainComponent />
-  </ErrorBoundary>
-);
-```
-
-## 🔌 API Integration
-
 ### Service Layer Pattern
+
 ```typescript
 class TradingService {
-  private baseUrl = 'https://api.example.com';
+  private baseUrl: string;
   
-  async getTradingData(): Promise<TradingData> {
-    const response = await fetch(`${this.baseUrl}/trading`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  async executeOrder(orderData: OrderData): Promise<OrderResult> {
+    try {
+      const response = await fetch(`${this.baseUrl}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Trading service error:', error);
+      throw error;
     }
-    return response.json();
   }
 }
 
 export const tradingService = new TradingService();
 ```
 
-### API Key Management
-- Store sensitive keys in environment variables
-- Use secure storage for user-provided keys
-- Implement key rotation for production
+## 🔌 API Integrations
 
-## 🤖 AI Integration
+### CCXT Exchange Integration
 
-### OpenRouter Service
 ```typescript
-import { openRouterService } from '@/services/openRouterService';
+// Exchange configuration
+const exchangeConfig = {
+  id: 'binance',
+  apiKey: process.env.BINANCE_API_KEY,
+  secret: process.env.BINANCE_SECRET,
+  sandbox: true,  // Use testnet for development
+  enableRateLimit: true
+};
+
+// Market data fetching
+const ticker = await exchange.fetchTicker('BTC/USDT');
+const orderBook = await exchange.fetchOrderBook('BTC/USDT');
+const ohlcv = await exchange.fetchOHLCV('BTC/USDT', '1h', undefined, 100);
+```
+
+### AI Integration (OpenRouter)
+
+```typescript
+import { openRouterService from '@/services/openRouterService';
 
 // Generate trading signal
 const signal = await openRouterService.generateTradingSignal(
   marketData,
   'trend-following',
-  'deepseek/deepseek-r1'
+  'deepseek/deepseek-r1'  // Free model
+);
+
+// Process AI response
+const tradingDecision = {
+  action: signal.action,      // 'BUY', 'SELL', 'HOLD'
+  confidence: signal.confidence,
+  reasoning: signal.reasoning
+};
+```
+
+### Market Data APIs
+
+```typescript
+// CoinGecko price data
+const priceData = await fetch(
+  'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,aud'
+);
+
+// Historical market data
+const marketData = await fetch(
+  'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7'
 );
 ```
 
-### Bot Development
-- All bots must support paper trading mode
-- Implement comprehensive audit logging
-- Use standardized strategy interfaces
-- Include performance metrics calculation
+## 🧪 Testing & Quality Assurance
 
-## 🧪 Testing Strategy
+### Platform Audit System
 
-### Unit Testing
 ```typescript
-import { render, screen, fireEvent } from '@testing-library/react';
-import { TradingButton } from './TradingButton';
+import { platformAuditService } from '@/services/testing/platformAudit';
 
-test('trading button executes trade on click', () => {
-  const mockExecute = jest.fn();
-  render(<TradingButton onExecute={mockExecute} />);
-  
-  fireEvent.click(screen.getByText('Execute Trade'));
-  expect(mockExecute).toHaveBeenCalled();
+// Run comprehensive platform audit
+const auditResults = await platformAuditService.runFullAudit();
+
+console.log(`Overall health: ${auditResults.overall}`);
+console.log(`Health score: ${auditResults.score}%`);
+
+// Review specific test results
+auditResults.results.forEach(result => {
+  console.log(`${result.category}: ${result.status} - ${result.message}`);
 });
 ```
 
-### Integration Testing
-- Test complete user workflows
-- Mock external API calls
-- Test responsive behavior
-- Validate accessibility compliance
+**Test Categories**:
+- Authentication flow validation
+- Trading system functionality  
+- AI integration verification
+- Market data connectivity
+- UI component responsiveness
+- Performance benchmarks
 
-### End-to-End Testing
-```typescript
-// Cypress example
-cy.visit('/');
-cy.get('[data-testid="create-bot-button"]').click();
-cy.get('[data-testid="bot-name-input"]').type('Test Bot');
-cy.get('[data-testid="submit-button"]').click();
-cy.contains('Bot created successfully');
+### Manual Testing Checklist
+
+```markdown
+## Authentication
+- [ ] Demo login works (demo@cryptobeacon.com / demo123456)
+- [ ] User registration and email verification
+- [ ] Session persistence across browser refreshes
+- [ ] Logout functionality and session cleanup
+
+## Trading System
+- [ ] Paper trading order execution
+- [ ] Portfolio balance updates
+- [ ] Exchange connectivity (if API keys configured)
+- [ ] Order history and trade tracking
+
+## AI Trading Bots
+- [ ] Bot creation and strategy selection
+- [ ] AI signal generation and execution
+- [ ] Performance metrics tracking
+- [ ] Error handling and recovery
+
+## User Interface
+- [ ] Responsive design on mobile devices
+- [ ] Dark/light theme switching
+- [ ] Navigation and routing functionality
+- [ ] Loading states and error messages
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# Optional - for premium features
-VITE_OPENROUTER_API_KEY=your_key_here
-VITE_N8N_WEBHOOK_URL=your_n8n_instance
-```
-
-### Build Configuration
-```typescript
-// vite.config.ts
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-  build: {
-    target: 'esnext',
-    minify: 'esbuild',
-  },
-});
-```
-
-## 📦 Deployment
+## 🚀 Deployment
 
 ### Production Checklist
-- [ ] All TypeScript errors resolved
-- [ ] Build completes without warnings
-- [ ] Environment variables configured
-- [ ] API endpoints updated for production
-- [ ] Performance optimization applied
-- [ ] Security headers configured
-- [ ] Analytics and monitoring setup
 
-### Vercel Deployment
-```json
-{
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ]
-}
+**Code Quality**:
+- [ ] All TypeScript errors resolved
+- [ ] ESLint warnings addressed
+- [ ] Build completes without warnings
+- [ ] All tests passing
+
+**Configuration**:
+- [ ] Supabase project connected
+- [ ] Authentication providers configured
+- [ ] API keys set in Supabase secrets
+- [ ] CORS and URL settings configured
+
+**Security**:
+- [ ] No sensitive data in frontend code
+- [ ] HTTPS enforced for all API calls
+- [ ] Input validation implemented
+- [ ] Rate limiting configured
+
+**Performance**:
+- [ ] Bundle size optimized
+- [ ] Lazy loading implemented
+- [ ] Images optimized
+- [ ] Caching strategies configured
+
+### Build and Deploy
+
+```bash
+# Production build
+npm run build
+
+# Deploy using Lovable
+# Click the "Publish" button in Lovable interface
+
+# Deploy to custom hosting
+# Upload dist/ folder to your web server
 ```
 
-## 🐛 Debugging
+## 🔐 Security Best Practices
 
-### Development Tools
-- **React DevTools**: Component debugging
-- **TypeScript**: Compile-time error catching
-- **ESLint**: Code quality checking
-- **Browser DevTools**: Runtime debugging
+### API Key Management
+
+```typescript
+// ❌ Never do this (exposes keys)
+const apiKey = 'sk-1234567890abcdef';
+
+// ✅ Use Supabase secrets instead
+const response = await supabase.functions.invoke('trading-bot', {
+  body: { action: 'buy', symbol: 'BTC/USDT' }
+});
+```
+
+### Input Validation
+
+```typescript
+// Validate user inputs
+const validateOrderData = (order: OrderInput): OrderData => {
+  if (!order.symbol || typeof order.symbol !== 'string') {
+    throw new Error('Invalid symbol');
+  }
+  
+  if (!order.amount || order.amount <= 0) {
+    throw new Error('Invalid amount');
+  }
+  
+  return {
+    symbol: order.symbol.toUpperCase(),
+    amount: Math.abs(order.amount),
+    // ... other validated fields
+  };
+};
+```
+
+## 📊 Performance Optimization
+
+### React Performance
+
+```typescript
+// Memoize expensive calculations
+const expensiveValue = useMemo(() => {
+  return calculateComplexMetrics(marketData);
+}, [marketData]);
+
+// Memoize callbacks to prevent unnecessary re-renders
+const handleOrderSubmit = useCallback((orderData: OrderData) => {
+  submitOrder(orderData);
+}, [submitOrder]);
+
+// Use React.memo for pure components
+const PriceDisplay = React.memo<PriceDisplayProps>(({ price, currency }) => {
+  return <span>{formatCurrency(price, currency)}</span>;
+});
+```
+
+### Bundle Optimization
+
+```typescript
+// Lazy load components
+const TradingDashboard = lazy(() => import('@/components/trading/TradingDashboard'));
+const AnalyticsDashboard = lazy(() => import('@/components/analytics/AnalyticsDashboard'));
+
+// Use dynamic imports for large dependencies
+const loadChartingLibrary = async () => {
+  const { Chart } = await import('chart.js');
+  return Chart;
+};
+```
+
+## 🐛 Debugging & Troubleshooting
 
 ### Common Issues
-- **CORS Errors**: Check API endpoint configuration
-- **TypeScript Errors**: Verify type definitions
-- **Build Failures**: Check import paths and dependencies
-- **State Updates**: Verify context providers are properly wrapped
 
-### Logging Strategy
+**CCXT Connection Errors**:
 ```typescript
-// Development logging
-if (process.env.NODE_ENV === 'development') {
-  console.log('Debug info:', data);
+// Check API credentials and sandbox mode
+if (error.message.includes('Invalid API-key')) {
+  console.error('Check your API key configuration');
 }
 
-// Production error logging
-console.error('Production error:', error);
+if (error.message.includes('Signature mismatch')) {
+  console.error('Check your API secret configuration');
+}
 ```
 
-## 🔄 Git Workflow
+**Authentication Issues**:
+```typescript
+// Debug auth state
+useEffect(() => {
+  console.log('Auth state:', { user, session });
+}, [user, session]);
 
-### Branch Naming
-- `feature/feature-name` - New features
-- `bugfix/issue-description` - Bug fixes
-- `hotfix/critical-issue` - Critical production fixes
-- `chore/maintenance-task` - Maintenance tasks
-
-### Commit Messages
+// Check Supabase configuration
+console.log('Supabase URL:', supabase.supabaseUrl);
 ```
-feat: add AI trading bot creation interface
-fix: resolve currency conversion calculation bug
-docs: update API integration guide
-style: improve responsive design for mobile
-refactor: extract trading logic into service layer
+
+**Performance Issues**:
+```typescript
+// Monitor component re-renders
+useEffect(() => {
+  console.log('Component re-rendered:', componentName);
+});
+
+// Profile expensive operations
+console.time('Expensive Operation');
+const result = expensiveFunction();
+console.timeEnd('Expensive Operation');
+```
+
+## 🤝 Contributing
+
+### Git Workflow
+
+```bash
+# Create feature branch
+git checkout -b feature/trading-bot-enhancement
+
+# Make changes and commit
+git add .
+git commit -m "feat: add sentiment analysis to trading bot"
+
+# Push and create pull request
+git push origin feature/trading-bot-enhancement
+```
+
+### Commit Message Format
+
+```
+feat: add new trading strategy
+fix: resolve CCXT connection issue
+docs: update API documentation
+style: improve component styling
+refactor: extract trading logic to service
 test: add unit tests for portfolio calculations
-```
-
-### Pull Request Process
-1. Create feature branch from `main`
-2. Implement changes with tests
-3. Update documentation if needed
-4. Submit PR with detailed description
-5. Address review feedback
-6. Squash merge when approved
-
-## 📊 Performance Guidelines
-
-### Optimization Strategies
-- **Code Splitting**: Lazy load route components
-- **Memoization**: Use React.memo for expensive components
-- **Bundle Analysis**: Regular bundle size monitoring
-- **Image Optimization**: Use appropriate formats and sizes
-
-### Performance Monitoring
-```typescript
-// Performance measurement
-const startTime = performance.now();
-await expensiveOperation();
-const endTime = performance.now();
-console.log(`Operation took ${endTime - startTime} milliseconds`);
-```
-
-## 🔐 Security Considerations
-
-### Best Practices
-- **Input Validation**: Validate all user inputs
-- **XSS Prevention**: Sanitize dynamic content
-- **API Security**: Use HTTPS and secure headers
-- **Dependency Security**: Regular security audits
-
-### Secure Coding
-```typescript
-// Input sanitization
-const sanitizeInput = (input: string): string => {
-  return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-};
-
-// Secure API calls
-const headers = {
-  'Content-Type': 'application/json',
-  'X-Requested-With': 'XMLHttpRequest',
-  // Add security headers
-};
+chore: update dependencies
 ```
 
 ## 📚 Resources
@@ -435,6 +563,13 @@ const headers = {
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Shadcn/UI](https://ui.shadcn.com/)
+- [CCXT Documentation](https://docs.ccxt.com/)
+- [Supabase Documentation](https://supabase.com/docs)
+
+### APIs and Services
+- [CoinGecko API](https://www.coingecko.com/en/api/documentation)
+- [OpenRouter API](https://openrouter.ai/docs)
+- [Binance API](https://binance-docs.github.io/apidocs/)
 
 ### Development Tools
 - [VS Code Extensions](https://marketplace.visualstudio.com/vscode)
@@ -442,10 +577,10 @@ const headers = {
 - [TypeScript Playground](https://www.typescriptlang.org/play)
 
 ### Community
-- [React Community](https://react.dev/community)
-- [TypeScript Community](https://www.typescriptlang.org/community)
 - [Project Discord](https://discord.gg/crypto-beacon)
+- [GitHub Repository](https://github.com/crypto-beacon)
+- [Issue Tracker](https://github.com/crypto-beacon/issues)
 
 ---
 
-This guide will be updated as the project evolves. Always refer to the latest version in the repository.
+This guide provides comprehensive information for developers working on the Crypto Beacon trading platform. For the latest updates and detailed implementation guides, refer to the documentation in the `src/docs/` directory.

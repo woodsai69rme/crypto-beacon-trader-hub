@@ -1,236 +1,403 @@
 
-# Developer Guide for Lovable Trading Platform
+# Developer Guide for Crypto Beacon Trading Platform
+
+## Project Overview
+
+Crypto Beacon is a comprehensive cryptocurrency trading platform built with React, TypeScript, and modern web technologies. It features AI-powered trading bots, real-time market data, exchange integrations, and advanced analytics.
 
 ## Architecture Overview
 
-The Lovable Trading Platform is built using a modern front-end stack with a component-based architecture designed for scalability, maintainability, and performance.
-
 ### Technology Stack
 
-- **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **State Management**: React hooks and context
-- **Data Fetching**: Tanstack Query (React Query)
-- **Charting**: Recharts for data visualization
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with Shadcn/UI components
+- **State Management**: React Context API + Custom Hooks
+- **Data Fetching**: TanStack Query (React Query)
+- **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Exchange Integration**: CCXT library
+- **AI Integration**: OpenRouter API
 
 ### Project Structure
 
 ```
 src/
-├── components/     # UI components
-│   ├── api/        # API-related components
-│   ├── analytics/  # Analytics components
-│   ├── dashboard/  # Dashboard components
-│   ├── trading/    # Trading components
-│   ├── ui/         # Shadcn UI components
-│   └── ...
-├── contexts/       # React context providers
-├── hooks/          # Custom React hooks
-├── lib/            # Utility functions
-├── services/       # API services
-├── types/          # TypeScript type definitions
-└── docs/           # Documentation
+├── components/           # UI components
+│   ├── analytics/        # Analytics and reporting
+│   ├── api/             # API management components
+│   ├── auth/            # Authentication components
+│   ├── dashboard/       # Dashboard widgets and layouts
+│   ├── news/            # News and sentiment analysis
+│   ├── settings/        # Configuration panels
+│   ├── testing/         # Platform testing tools
+│   ├── trading/         # Trading interfaces and bots
+│   ├── ui/              # Base UI components (Shadcn)
+│   └── wallets/         # Wallet integration
+├── contexts/            # React context providers
+├── hooks/               # Custom React hooks
+├── services/            # Business logic and API services
+│   ├── ai/              # AI trading bot services
+│   ├── api/             # External API integrations
+│   ├── exchanges/       # Exchange connectivity
+│   └── testing/         # Platform audit services
+├── types/               # TypeScript type definitions
+├── utils/               # Helper functions
+└── docs/                # Documentation
 ```
 
-## Component Design Philosophy
+## Core Features
 
-The platform follows these key principles:
+### 1. Authentication System
 
-1. **Component Reusability**: Components are designed to be reusable across different parts of the application
-2. **Separation of Concerns**: Each component has a single responsibility
-3. **Composition over Inheritance**: Complex UIs are built by composing smaller components
-4. **Type Safety**: TypeScript is used throughout for type checking and better developer experience
+The platform uses Supabase for authentication with the following features:
 
-## Key Components
+- Email/password authentication
+- Demo login for testing
+- Protected routes with session management
+- User profile management
 
-### Dashboard Components
-
-The dashboard is built using a widget-based system with these key components:
-
-- `Dashboard`: Main container component that manages the layout
-- `WidgetGrid`: Manages the grid layout of widgets
-- `Widget`: Base widget component that renders different widget types
-- `CustomizableDashboard`: Allows users to add, remove, and position widgets
-
-### Trading Components
-
-Trading functionality is implemented through:
-
-- `RealTimeTrader`: Main trading interface
-- `TradingChart`: Interactive price chart with indicators
-- `OrderBook`: Displays market depth
-- `WalletConnection`: Handles wallet integration
-- `TradingForm`: Form for executing trades
-
-### API Integration Components
-
-API management is handled by:
-
-- `ApiProviderManagement`: Manages API provider configuration
-- `ApiUsageMetrics`: Displays API usage statistics
-- `RealTimeApiUsage`: Real-time monitoring of API calls
-
-### Analytics Components
-
-Advanced analytics are provided through:
-
-- `LiveAnalyticsDashboard`: Real-time analytics dashboard
-- `DetachableDashboard`: Detachable version for multi-monitor setups
-- `MarketCorrelations`: Market correlation visualization
-- `AiTradingDashboard`: AI-powered trading interface
-
-## Working with APIs
-
-### Adding a New API Provider
-
-To add support for a new API provider:
-
-1. Extend the `ApiProvider` interface in `types/trading.ts`
-2. Create service functions in a dedicated file under `services/`
-3. Update `ApiProviderManagement` component to include the new provider
-4. Add required authentication and endpoint configuration
-5. Implement rate limiting and usage tracking
-
-Example service implementation:
+#### Implementation Example:
 
 ```typescript
-import { ApiProvider } from '@/types/trading';
+import { useAuth } from '@/components/auth/AuthProvider';
 
-export const fetchDataFromNewProvider = async (endpoint: string, params: any) => {
-  const apiKey = getApiKey('new-provider');
-  const url = buildUrl('new-provider', endpoint, params);
-  
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
-  }
-  
-  return response.json();
-};
+const { user, signOut, subscription } = useAuth();
+
+// Protected component
+if (!user) {
+  return <Navigate to="/auth" replace />;
+}
 ```
 
-### API Usage Tracking
+### 2. Trading System
 
-API calls are tracked using:
+#### Paper Trading
+- Simulated trading environment
+- Mock portfolio management
+- Real market data with fake execution
 
-- Request counting per endpoint
-- Rate limit monitoring
-- Usage metrics visualization
+#### Live Trading (CCXT Integration)
+- Real exchange connectivity
+- Support for 10+ major exchanges
+- Real-time order management
 
-## State Management
+#### Supported Exchanges:
+- Binance
+- Coinbase
+- Kraken
+- Bybit
+- OKX
+- KuCoin
+- Bitfinex
+- Huobi
+- Gate.io
+- MEXC
 
-The application uses a combination of:
+### 3. AI Trading Bots
 
-- React Context for global state
-- React Query for server state
-- React useState and useReducer for component state
-- Custom hooks for shared logic
+The platform supports multiple AI trading strategies:
 
-### Core Context Providers
+- **Trend Following**: Market momentum analysis
+- **Mean Reversion**: Price deviation strategies
+- **Scalping**: High-frequency trading
+- **Breakout Trading**: Technical pattern recognition
+- **Grid Trading**: Automated buy/sell grid
+- **Arbitrage**: Cross-exchange opportunities
+- **Sentiment Analysis**: News-driven trading
 
-- `ThemeContext`: Manages theme settings
-- `UIContext`: Manages UI state
-- `CryptoDataContext`: Provides cryptocurrency data
-- `WalletContext`: Manages wallet connections
+#### AI Integration:
 
-## Adding New Features
+```typescript
+import { openRouterService } from '@/services/openRouterService';
 
-### Creating a New Widget
+const generateSignal = await openRouterService.generateTradingSignal(
+  marketData,
+  'trend-following',
+  'deepseek/deepseek-r1'
+);
+```
 
-To add a new widget type:
+### 4. Market Data & Analytics
 
-1. Add the new widget type to the `WidgetType` enum in `types/trading.ts`
-2. Create a new component for the widget content
-3. Update `WidgetComponent` to render the new widget type
-4. Add the widget to the available options in `AddWidgetDialog`
+#### Real-time Data Sources:
+- CoinGecko API (free tier)
+- Binance WebSocket streams
+- Exchange-specific APIs via CCXT
 
-### Implementing a New Chart Type
+#### Analytics Features:
+- Live price monitoring
+- Technical indicators (RSI, MACD, Bollinger Bands)
+- Market correlations
+- Portfolio performance tracking
+- Risk assessment tools
 
-To add a new visualization:
+### 5. News & Sentiment Analysis
 
-1. Create a new component using Recharts
-2. Define the data structure and props interface
-3. Implement data transformation logic
-4. Add to the appropriate parent component
+- Multi-source news aggregation
+- AI-powered sentiment scoring
+- Fake news detection
+- Market impact analysis
 
-## Testing
+## Development Setup
 
-### Component Testing
+### Prerequisites
 
-Components should be tested using:
+```bash
+Node.js 18+
+npm or yarn
+Git
+```
 
-- Unit tests for business logic
-- Component tests with React Testing Library
-- Snapshot tests for UI stability
+### Installation
 
-### Performance Testing
+```bash
+# Clone the repository
+git clone <repository-url>
 
-Monitor and optimize performance:
+# Install dependencies
+npm install
 
-- Use React DevTools Profiler
-- Watch for unnecessary re-renders
-- Implement memoization where beneficial
-- Virtualize long lists
+# Start development server
+npm run dev
+```
 
-## Best Practices
+### Environment Configuration
 
-### Code Style
+The platform uses Supabase for backend services. No environment variables are needed for basic functionality, but for full features:
 
-- Use functional components with hooks
-- Prefer named exports
-- Group related files in feature folders
-- Use explicit return types for functions
-- Document complex logic with comments
+1. Connect to Supabase via the green button in Lovable
+2. Configure API keys in Supabase secrets for:
+   - OpenRouter (AI features)
+   - Exchange APIs (live trading)
 
-### Performance Optimization
+## Component Architecture
 
-- Memoize expensive calculations
-- Use virtualization for long lists
-- Implement lazy loading for components
-- Optimize re-renders with React.memo and useMemo
-- Use windowing techniques for large datasets
+### Component Guidelines
 
-### Accessibility
+1. **Single Responsibility**: Each component should have one clear purpose
+2. **Composition over Inheritance**: Build complex UIs by composing smaller components
+3. **Type Safety**: Use TypeScript interfaces for all props and state
+4. **Responsive Design**: All components should work on mobile and desktop
 
-- Ensure all interactive elements are keyboard accessible
-- Use semantic HTML elements
-- Include proper ARIA attributes
-- Maintain sufficient color contrast
-- Test with screen readers
+### Example Component Structure:
+
+```typescript
+interface ComponentProps {
+  data: DataType;
+  onAction: (id: string) => void;
+}
+
+const Component: React.FC<ComponentProps> = ({ data, onAction }) => {
+  const [state, setState] = useState<StateType>(initialState);
+  
+  const handleEvent = useCallback((id: string) => {
+    // Handle event logic
+    onAction(id);
+  }, [onAction]);
+
+  return (
+    <div className="responsive-container">
+      {/* Component JSX */}
+    </div>
+  );
+};
+
+export default Component;
+```
+
+### Context Providers
+
+The application uses several context providers for state management:
+
+```typescript
+// Currency conversion and display
+<CurrencyProvider>
+  // Trading state and portfolio
+  <TradingProvider>
+    // AI bot management
+    <AiTradingProvider>
+      // Your components
+    </AiTradingProvider>
+  </TradingProvider>
+</CurrencyProvider>
+```
+
+## API Integration
+
+### Service Layer Pattern
+
+All external API calls are abstracted through service classes:
+
+```typescript
+class ApiService {
+  private baseUrl: string;
+  
+  async fetchData<T>(endpoint: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    return response.json();
+  }
+}
+```
 
 ### Error Handling
 
-- Implement error boundaries for component failures
-- Use try/catch for API calls
-- Display user-friendly error messages
-- Log errors for debugging
-- Gracefully degrade functionality when services are unavailable
+Consistent error handling across the application:
+
+```typescript
+try {
+  const data = await apiService.fetchData('/endpoint');
+  // Handle success
+} catch (error) {
+  console.error('API Error:', error);
+  toast({
+    title: "Error",
+    description: "Failed to fetch data",
+    variant: "destructive",
+  });
+}
+```
+
+## Testing Strategy
+
+### Platform Audit System
+
+The platform includes a comprehensive testing and audit system:
+
+```typescript
+import { platformAuditService } from '@/services/testing/platformAudit';
+
+const auditResults = await platformAuditService.runFullAudit();
+```
+
+#### Test Categories:
+- Authentication flow testing
+- Trading functionality validation
+- AI integration verification
+- Data service connectivity
+- UI component responsiveness
+- Performance monitoring
+
+### Manual Testing Checklist
+
+1. **Authentication**
+   - [ ] Demo login works
+   - [ ] User registration flow
+   - [ ] Session persistence
+   - [ ] Logout functionality
+
+2. **Trading**
+   - [ ] Paper trading executes orders
+   - [ ] Portfolio updates correctly
+   - [ ] Exchange connectivity (if configured)
+   - [ ] Order history tracking
+
+3. **AI Bots**
+   - [ ] Bot creation and configuration
+   - [ ] Strategy execution
+   - [ ] Performance tracking
+   - [ ] Error handling
+
+4. **UI/UX**
+   - [ ] Responsive design on mobile
+   - [ ] Dark/light theme switching
+   - [ ] Navigation functionality
+   - [ ] Loading states
 
 ## Deployment
 
-The platform can be deployed using:
+### Production Checklist
 
-- Static hosting (Netlify, Vercel)
-- Docker containers
-- Traditional web servers
+- [ ] All TypeScript errors resolved
+- [ ] Build completes without warnings
+- [ ] Environment variables configured in Supabase
+- [ ] Authentication providers configured
+- [ ] API rate limits considered
+- [ ] Error monitoring setup
+- [ ] Performance optimization applied
 
-Refer to the Deployment Guide for detailed instructions.
+### Build Commands
+
+```bash
+npm run build      # Production build
+npm run preview    # Preview production build
+npm run lint       # ESLint checking
+npm run type-check # TypeScript checking
+```
+
+## Best Practices
+
+### Code Quality
+
+1. **TypeScript**: Use strict mode and define interfaces for all data structures
+2. **Error Boundaries**: Implement error boundaries for component failures
+3. **Performance**: Use React.memo and useMemo for expensive operations
+4. **Accessibility**: Ensure keyboard navigation and screen reader support
+
+### Security Considerations
+
+1. **API Keys**: Never expose private keys in frontend code
+2. **User Input**: Validate and sanitize all user inputs
+3. **Authentication**: Implement proper session management
+4. **HTTPS**: Use secure connections for all API calls
+
+### Performance Optimization
+
+1. **Code Splitting**: Lazy load components with React.lazy
+2. **Memoization**: Cache expensive calculations
+3. **Bundle Analysis**: Monitor bundle size regularly
+4. **Image Optimization**: Use appropriate image formats and sizes
+
+## Troubleshooting
+
+### Common Issues
+
+1. **CCXT Connection Errors**: Check API credentials and sandbox mode
+2. **Build Failures**: Verify TypeScript definitions and imports
+3. **Authentication Issues**: Confirm Supabase configuration
+4. **Performance Problems**: Use React DevTools Profiler
+
+### Debug Tools
+
+- React DevTools for component inspection
+- Browser DevTools for network and console debugging
+- Platform Test Dashboard for system health monitoring
 
 ## Contributing
 
-When contributing to the codebase:
+### Development Workflow
 
-1. Follow the established code style
-2. Write tests for new functionality
+1. Create feature branch from main
+2. Implement changes with tests
 3. Update documentation
-4. Ensure accessibility requirements are met
-5. Test across different browsers and devices
+4. Submit pull request
+5. Code review and merge
 
-This developer guide provides a high-level overview of the platform's architecture and development practices. For more detailed information, refer to specific component documentation and code comments.
+### Code Style
+
+- Use Prettier for formatting
+- Follow ESLint rules
+- Write descriptive commit messages
+- Document complex logic with comments
+
+## Resources
+
+### Documentation Links
+- [React Documentation](https://react.dev/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [Shadcn/UI](https://ui.shadcn.com/)
+- [CCXT Documentation](https://docs.ccxt.com/)
+- [Supabase Documentation](https://supabase.com/docs)
+
+### Community
+- [Project Discord](https://discord.gg/crypto-beacon)
+- [GitHub Repository](https://github.com/crypto-beacon/platform)
+- [Issue Tracker](https://github.com/crypto-beacon/platform/issues)
+
+This developer guide provides comprehensive documentation for working with the Crypto Beacon trading platform. For specific implementation details, refer to the inline code comments and component documentation.

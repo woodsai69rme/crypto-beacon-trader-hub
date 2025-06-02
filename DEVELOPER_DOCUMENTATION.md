@@ -1,280 +1,522 @@
-# CryptoTrader Developer Documentation
 
-## Architecture Overview
+# Crypto Beacon Trading Platform - Developer Documentation
 
-CryptoTrader is built on a modern React/TypeScript stack with a focus on component reusability, type safety, and responsive design. The application uses a client-side architecture with RESTful API integrations for market data and trading functionality.
+## Table of Contents
 
-### Tech Stack
+1. [Project Overview](#project-overview)
+2. [Architecture](#architecture)
+3. [Setup & Installation](#setup--installation)
+4. [Core Features](#core-features)
+5. [API Integrations](#api-integrations)
+6. [Testing & Quality Assurance](#testing--quality-assurance)
+7. [Deployment](#deployment)
+8. [Contributing](#contributing)
 
-- **Framework**: React with TypeScript
-- **Bundler**: Vite
-- **Styling**: Tailwind CSS
-- **UI Components**: Shadcn UI
-- **State Management**: React Context API
-- **Data Fetching**: TanStack Query
-- **Charts**: Recharts, Nivo
-- **Icons**: Lucide React
-- **Build/Deploy**: Not specified (recommend GitHub Actions)
+## Project Overview
 
-## Project Structure
+Crypto Beacon is a comprehensive cryptocurrency trading platform built with modern web technologies. It provides:
+
+- **AI-Powered Trading Bots** with multiple strategies
+- **Real Exchange Integration** via CCXT library
+- **Paper Trading Environment** for testing
+- **Real-time Market Data** and analytics
+- **News & Sentiment Analysis** with fake news detection
+- **Multi-Exchange Support** for major cryptocurrency exchanges
+- **Responsive Web Interface** with dark/light themes
+
+### Technology Stack
+
+| Category | Technology |
+|----------|------------|
+| Frontend | React 18 + TypeScript |
+| Build Tool | Vite |
+| Styling | Tailwind CSS + Shadcn/UI |
+| State Management | React Context + TanStack Query |
+| Authentication | Supabase Auth |
+| Database | Supabase PostgreSQL |
+| Charts | Recharts |
+| Exchange APIs | CCXT Library |
+| AI Integration | OpenRouter API |
+
+## Architecture
+
+### High-Level Architecture
 
 ```
-src/
-├── components/       # UI components
-│   ├── api/          # API-related components
-│   ├── dashboard/    # Dashboard components
-│   ├── portfolio/    # Portfolio components
-│   ├── settings/     # Settings components
-│   ├── trading/      # Trading components
-│   └── ui/           # Shadcn UI components
-├── contexts/         # React contexts for state management
-├── docs/             # Documentation
-│   ├── developer/    # Developer documentation
-│   ├── features/     # Feature documentation
-│   └── user/         # User documentation
-├── hooks/            # Custom React hooks
-├── lib/              # Utility functions
-├── pages/            # Page components
-├── services/         # API services
-├── styles/           # Global styles
-└── types/            # TypeScript type definitions
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   React App     │    │   Supabase       │    │  External APIs  │
+│                 │    │                  │    │                 │
+│ ┌─────────────┐ │    │ ┌──────────────┐ │    │ ┌─────────────┐ │
+│ │ Components  │ │◄──►│ │ Auth Service │ │    │ │ CCXT        │ │
+│ │             │ │    │ │              │ │    │ │ Exchanges   │ │
+│ ├─────────────┤ │    │ ├──────────────┤ │    │ ├─────────────┤ │
+│ │ Services    │ │◄──►│ │ Database     │ │    │ │ CoinGecko   │ │
+│ │             │ │    │ │              │ │    │ │ API         │ │
+│ ├─────────────┤ │    │ ├──────────────┤ │    │ ├─────────────┤ │
+│ │ Contexts    │ │    │ │ Edge         │ │◄──►│ │ OpenRouter  │ │
+│ │             │ │    │ │ Functions    │ │    │ │ AI API      │ │
+│ └─────────────┘ │    │ └──────────────┘ │    │ └─────────────┘ │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## Core Components
+### Component Structure
 
-### Dashboard Components
-
-- `Dashboard`: Main dashboard container with tab navigation
-- `DashboardOverview`: Market overview with key metrics
-- `DashboardPortfolio`: Portfolio management and performance tracking
-- `DashboardTrading`: Trading interface with AI integration
-- `DashboardAnalysis`: Technical and fundamental analysis tools
-- `DashboardTools`: Utility tools for traders
-
-### Trading Components
-
-- `FakeTrading`: Simulated trading system for practice
-- `RealTimeTrading`: Live trading interface with market data
-- `AiTradingBots`: AI-powered trading bots with strategy selection
-- `AiTradingDashboard`: Comprehensive AI trading dashboard
-- `DetachedAiTradingDashboard`: Floating, resizable AI dashboard
-
-### Theme System
-
-- `ThemeProvider`: Context provider for theme state
-- `ThemeSwitcher`: UI component for changing theme and color scheme
-- Support for dark/light modes and multiple color schemes
-
-## State Management
-
-The application uses React Context API for state management across different domains:
-
-- `AiTradingContext`: Manages AI trading bots and strategies
-- `AuthContext`: Handles user authentication and permissions
-- `CurrencyContext`: Manages currency conversion and selection
-- `ThemeContext`: Controls dark/light theme switching and color schemes
-
-## API Integration
-
-### Service Pattern
-
-API integrations use a service pattern with the following structure:
-
-```typescript
-// Example service
-export const cryptoApi = {
-  getMarketOverview: () => fetchApi<MarketOverviewData>("/market/overview"),
-  getCoinData: (coinId: string) => fetchApi<CoinData>(`/coins/${coinId}`),
-  // ... additional methods
-};
+```
+src/components/
+├── analytics/          # Data visualization and reporting
+├── api/               # API management and monitoring
+├── auth/              # Authentication flows
+├── dashboard/         # Main dashboard widgets
+├── news/              # News aggregation and sentiment
+├── settings/          # Configuration panels
+├── testing/           # Platform testing tools
+├── trading/           # Trading interfaces and bots
+├── ui/                # Base UI components (Shadcn)
+└── wallets/           # Crypto wallet integration
 ```
 
-### Error Handling
+## Setup & Installation
 
-API errors are handled using a centralized error handler and displayed using toast notifications:
+### Prerequisites
 
-```typescript
-try {
-  const data = await cryptoApi.getCoinData(coinId);
-  // Handle success
-} catch (error) {
-  console.error("API Error:", error);
-  toast({
-    title: "Error",
-    description: "Failed to fetch coin data",
-    variant: "destructive",
-  });
-}
-```
+- Node.js 18 or higher
+- npm or yarn package manager
+- Git for version control
 
-## Type System
+### Installation Steps
 
-The application uses TypeScript for type safety. Key type definitions include:
-
-- `CryptoData`: Cryptocurrency market data
-- `Trade`: Trading transaction
-- `AITradingStrategy`: AI trading strategy configuration
-- `CoinOption`: Cryptocurrency option for selection
-- `ApiProvider`: API provider configuration
-
-## Theming System
-
-### Theme Context
-
-```typescript
-interface ThemeContextType {
-  theme: string;         // 'light' or 'dark'
-  setTheme: (t: string) => void;
-  colorScheme: string;   // 'default', 'blue', 'purple', etc.
-  setColorScheme: (c: string) => void;
-}
-```
-
-### CSS Implementation
-
-Themes use CSS variables and Tailwind classes:
-
-```css
-:root {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  /* Other variables */
-}
-
-.light {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  /* Light theme overrides */
-}
-
-/* Color schemes */
-.blue {
-  --primary: 221 83% 53%;
-}
-```
-
-## AI Trading System
-
-### AI Bot Types
-
-- **Trend Analyzer**: Follows market trends and momentum
-- **Pattern Recognition**: Identifies chart patterns and formations
-- **Sentiment Analyzer**: Analyzes news and social media sentiment
-- **Quantum AI**: Advanced ML with multi-timeframe analysis
-
-### Strategy Configuration
-
-```typescript
-type AITradingStrategy = {
-  id: string;
-  name: string;
-  description: string;
-  type: 'trend-following' | 'mean-reversion' | /* other types */;
-  timeframe: string;
-  parameters: any;
-  performance?: {
-    winRate?: number;
-    profitFactor?: number;
-    // Other metrics
-  };
-};
-```
-
-## Adding New Features
-
-### Creating a New Component
-
-1. Create a new file in the appropriate directory
-2. Define the component interface
-3. Implement the component
-4. Export the component
-5. Import and use it where needed
-
-### Adding a New Theme or Color Scheme
-
-1. Add CSS variables to the theme system
-2. Update the `ThemeSwitcher` component options
-3. Add the new theme class to the `ThemeContext` class handling
-
-### Implementing a New AI Strategy
-
-1. Define the strategy in the `AITradingStrategy` type
-2. Add implementation to the AI trading service
-3. Update the strategy selection UI
-4. Implement performance tracking for the new strategy
-
-## Best Practices
-
-### Code Organization
-
-- Keep components focused on a single responsibility
-- Use TypeScript interfaces for all props and state
-- Extract reusable logic to custom hooks
-- Maintain consistent naming conventions
-
-### Performance Optimization
-
-- Use React.memo for pure components
-- Implement virtualized lists for long data sets
-- Optimize re-renders with useMemo and useCallback
-- Lazy load components that aren't immediately needed
-
-### Error Handling
-
-- Implement error boundaries for component errors
-- Use try/catch for asynchronous operations
-- Display user-friendly error messages
-- Log detailed errors for debugging
-
-### Accessibility
-
-- Ensure all interactive elements are keyboard accessible
-- Maintain proper heading hierarchy
-- Use ARIA attributes where appropriate
-- Test with screen readers
-
-## Testing Strategy
-
-### Unit Tests
-
-- Test individual components in isolation
-- Mock API calls and context providers
-- Verify component behavior with different props
-
-### Integration Tests
-
-- Test interactions between related components
-- Verify context providers work correctly with consumers
-- Test form submissions and data flow
-
-### End-to-End Tests
-
-- Test critical user flows
-- Verify application behavior in realistic scenarios
-- Test across different browsers and devices
-
-## Deployment
-
-### Development
-
+1. **Clone the repository**
 ```bash
-# Install dependencies
-npm install
+git clone <repository-url>
+cd crypto-beacon-platform
+```
 
-# Start development server
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Start development server**
+```bash
 npm run dev
 ```
 
-### Production Build
+4. **Open browser**
+Navigate to `http://localhost:5173`
+
+### Development Commands
 
 ```bash
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+npm run dev          # Start development server
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript type checking
+npm test             # Run tests
 ```
 
-## Conclusion
+## Core Features
 
-This documentation provides a comprehensive overview of the CryptoTrader application architecture, components, and development practices. For more detailed information about specific features, refer to the documentation in the `src/docs` directory.
+### 1. Authentication System
+
+**Implementation**: Supabase Auth with custom UI
+
+**Features**:
+- Email/password authentication
+- Demo login for testing (no email verification)
+- Protected routes with session persistence
+- User profile management
+
+**Usage Example**:
+```typescript
+import { useAuth } from '@/components/auth/AuthProvider';
+
+const MyComponent = () => {
+  const { user, signOut, subscription } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/auth" />;
+  }
+  
+  return <div>Welcome, {user.email}!</div>;
+};
+```
+
+### 2. Trading System
+
+#### Paper Trading
+- **Purpose**: Risk-free testing environment
+- **Features**: Mock portfolio, real market data, simulated execution
+- **Implementation**: Local state management with realistic market simulation
+
+#### Live Trading (CCXT)
+- **Purpose**: Real exchange connectivity
+- **Supported Exchanges**: Binance, Coinbase, Kraken, Bybit, OKX, KuCoin, Bitfinex, Huobi, Gate.io, MEXC
+- **Features**: Real-time order execution, balance management, order history
+
+**Usage Example**:
+```typescript
+import { ccxtService } from '@/services/exchanges/ccxtService';
+
+// Connect to exchange
+await ccxtService.connectExchange({
+  id: 'binance',
+  name: 'Binance',
+  apiKey: 'your-api-key',
+  secret: 'your-secret',
+  sandbox: true
+});
+
+// Execute trade
+const order = await ccxtService.createOrder(
+  'binance',
+  'BTC/USDT',
+  'market',
+  'buy',
+  0.001
+);
+```
+
+### 3. AI Trading Bots
+
+**Supported Strategies**:
+- Trend Following
+- Mean Reversion
+- Scalping
+- Breakout Trading
+- Grid Trading
+- Arbitrage
+- Sentiment Analysis
+- Pattern Recognition
+
+**AI Models** (via OpenRouter):
+- DeepSeek R1 (free)
+- Gemini 2 (free)
+- GPT-4 (paid)
+- Claude 3 (paid)
+
+**Usage Example**:
+```typescript
+import { openRouterService } from '@/services/openRouterService';
+
+const signal = await openRouterService.generateTradingSignal(
+  marketData,
+  'trend-following',
+  'deepseek/deepseek-r1'
+);
+```
+
+### 4. Market Data & Analytics
+
+**Data Sources**:
+- CoinGecko API (primary, free)
+- Exchange WebSocket streams
+- CCXT unified API
+
+**Analytics Features**:
+- Real-time price tracking
+- Technical indicators (RSI, MACD, Bollinger Bands)
+- Portfolio performance metrics
+- Risk assessment tools
+- Market correlation analysis
+
+### 5. News & Sentiment Analysis
+
+**Features**:
+- Multi-source news aggregation
+- AI-powered sentiment scoring
+- Fake news detection
+- Market impact correlation
+
+## API Integrations
+
+### Exchange APIs (CCXT)
+
+CCXT provides unified access to 100+ cryptocurrency exchanges.
+
+**Configuration**:
+```typescript
+const exchangeConfig = {
+  id: 'binance',
+  apiKey: 'your-key',
+  secret: 'your-secret',
+  sandbox: true,     // Use testnet
+  enableRateLimit: true
+};
+```
+
+**Common Operations**:
+```typescript
+// Fetch balance
+const balance = await exchange.fetchBalance();
+
+// Get market data
+const ticker = await exchange.fetchTicker('BTC/USDT');
+
+// Place order
+const order = await exchange.createOrder(
+  'BTC/USDT', 'limit', 'buy', 1, 50000
+);
+```
+
+### Market Data APIs
+
+**CoinGecko API**:
+```typescript
+// Price data
+const prices = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+
+// Market data
+const marketData = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7');
+```
+
+### AI Integration (OpenRouter)
+
+**Configuration**:
+```typescript
+const openRouterConfig = {
+  apiKey: 'your-openrouter-key',
+  baseUrl: 'https://openrouter.ai/api/v1'
+};
+```
+
+**Trading Signal Generation**:
+```typescript
+const generateSignal = async (marketData: any, strategy: string) => {
+  const prompt = `Analyze this market data and provide a ${strategy} trading signal...`;
+  
+  const response = await openRouter.chat({
+    model: 'deepseek/deepseek-r1',
+    messages: [{ role: 'user', content: prompt }]
+  });
+  
+  return JSON.parse(response.choices[0].message.content);
+};
+```
+
+## Testing & Quality Assurance
+
+### Automated Testing
+
+The platform includes a comprehensive testing system:
+
+```typescript
+import { platformAuditService } from '@/services/testing/platformAudit';
+
+const runAudit = async () => {
+  const results = await platformAuditService.runFullAudit();
+  console.log(`Platform health: ${results.overall}`);
+  console.log(`Score: ${results.score}%`);
+};
+```
+
+**Test Categories**:
+- Authentication flow validation
+- Trading system functionality
+- AI integration verification
+- API connectivity tests
+- UI component responsiveness
+- Performance benchmarks
+
+### Manual Testing Checklist
+
+**Authentication**:
+- [ ] Demo login functionality
+- [ ] User registration and login
+- [ ] Session persistence across refreshes
+- [ ] Logout and session cleanup
+
+**Trading**:
+- [ ] Paper trading order execution
+- [ ] Portfolio balance updates
+- [ ] Exchange connectivity (if configured)
+- [ ] Order history tracking
+
+**AI Bots**:
+- [ ] Bot creation and configuration
+- [ ] Strategy selection and execution
+- [ ] Performance metrics tracking
+- [ ] Error handling and recovery
+
+**UI/UX**:
+- [ ] Responsive design on mobile devices
+- [ ] Dark/light theme switching
+- [ ] Navigation and routing
+- [ ] Loading states and error messages
+
+### Performance Testing
+
+**Metrics to Monitor**:
+- Bundle size and load times
+- Memory usage and leaks
+- API response times
+- Real-time data update frequency
+- Component render performance
+
+**Tools**:
+- React DevTools Profiler
+- Browser Performance tab
+- Platform Test Dashboard
+- Lighthouse auditing
+
+## Deployment
+
+### Production Checklist
+
+**Code Quality**:
+- [ ] All TypeScript errors resolved
+- [ ] ESLint warnings addressed
+- [ ] Build completes without warnings
+- [ ] Tests passing
+
+**Configuration**:
+- [ ] Environment variables set in Supabase
+- [ ] Authentication providers configured
+- [ ] API rate limits considered
+- [ ] CORS policies configured
+
+**Security**:
+- [ ] API keys secured (not in frontend code)
+- [ ] HTTPS enforced
+- [ ] Content Security Policy configured
+- [ ] Input validation implemented
+
+**Performance**:
+- [ ] Bundle size optimized
+- [ ] Images compressed
+- [ ] Lazy loading implemented
+- [ ] Caching strategies configured
+
+### Build Process
+
+```bash
+# Production build
+npm run build
+
+# Deploy to Lovable
+# Use the Publish button in Lovable interface
+
+# Deploy to custom hosting
+# Copy dist/ folder to your web server
+```
+
+### Environment Configuration
+
+**Supabase Setup**:
+1. Connect Lovable project to Supabase
+2. Configure authentication providers
+3. Set up API keys in Supabase secrets
+4. Configure CORS and URL settings
+
+**API Keys** (stored in Supabase secrets):
+- `OPENROUTER_API_KEY` - For AI trading features
+- Exchange API credentials - For live trading
+
+## Contributing
+
+### Development Workflow
+
+1. **Create Feature Branch**
+```bash
+git checkout -b feature/new-feature
+```
+
+2. **Implement Changes**
+- Write code with TypeScript
+- Add tests for new functionality
+- Update documentation
+- Follow existing code style
+
+3. **Test Changes**
+```bash
+npm run lint
+npm run type-check
+npm test
+npm run build
+```
+
+4. **Submit Pull Request**
+- Write clear commit messages
+- Include test coverage
+- Update CHANGELOG.md
+- Request code review
+
+### Code Style Guidelines
+
+**TypeScript**:
+- Use strict mode
+- Define interfaces for all props and data structures
+- Prefer type unions over any
+- Use meaningful variable names
+
+**React**:
+- Functional components with hooks
+- Use TypeScript for prop types
+- Implement error boundaries
+- Follow component composition patterns
+
+**Styling**:
+- Use Tailwind CSS classes
+- Follow responsive design principles
+- Maintain consistent spacing and typography
+- Support both light and dark themes
+
+### File Organization
+
+**Component Structure**:
+```typescript
+// ComponentName.tsx
+import React, { useState, useEffect } from 'react';
+import { ComponentProps } from './types';
+
+interface ComponentNameProps {
+  // Define props
+}
+
+const ComponentName: React.FC<ComponentNameProps> = ({ ...props }) => {
+  // Component implementation
+};
+
+export default ComponentName;
+```
+
+**Service Structure**:
+```typescript
+// serviceName.ts
+class ServiceName {
+  private config: ServiceConfig;
+  
+  constructor(config: ServiceConfig) {
+    this.config = config;
+  }
+  
+  public async method(): Promise<ReturnType> {
+    // Service implementation
+  }
+}
+
+export const serviceName = new ServiceName(config);
+```
+
+## Resources
+
+### Documentation
+- [React Documentation](https://react.dev/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [CCXT Documentation](https://docs.ccxt.com/)
+- [Supabase Documentation](https://supabase.com/docs)
+
+### APIs
+- [CoinGecko API](https://www.coingecko.com/en/api)
+- [OpenRouter API](https://openrouter.ai/docs)
+- [Binance API](https://binance-docs.github.io/apidocs/)
+
+### Community
+- [GitHub Repository](https://github.com/crypto-beacon)
+- [Discord Community](https://discord.gg/crypto-beacon)
+- [Issue Tracker](https://github.com/crypto-beacon/issues)
+
+---
+
+This documentation provides comprehensive guidance for developers working on the Crypto Beacon trading platform. For specific implementation details, refer to the inline code comments and component documentation.
