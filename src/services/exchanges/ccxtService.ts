@@ -30,7 +30,7 @@ interface CCXTOrder {
 }
 
 class CCXTService {
-  private exchanges: Map<string, ccxt.Exchange> = new Map();
+  private exchanges: Map<string, any> = new Map();
   private supportedExchanges = [
     'binance',
     'coinbase',
@@ -58,6 +58,10 @@ class CCXTService {
         throw new Error(`Exchange ${config.id} is not supported`);
       }
 
+      // Dynamic import to avoid TypeScript issues
+      const ccxtModule = await import('ccxt');
+      const ccxt = ccxtModule.default;
+      
       const ExchangeClass = ccxt[config.id];
       
       if (!ExchangeClass) {
