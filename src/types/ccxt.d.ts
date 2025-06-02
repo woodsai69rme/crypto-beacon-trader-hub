@@ -25,19 +25,33 @@ declare module 'ccxt' {
     close(): Promise<void>;
   }
 
-  export const binance: new (config?: any) => Exchange;
-  export const coinbase: new (config?: any) => Exchange;
-  export const kraken: new (config?: any) => Exchange;
-  export const bybit: new (config?: any) => Exchange;
-  export const okx: new (config?: any) => Exchange;
-  export const kucoin: new (config?: any) => Exchange;
-  export const bitfinex: new (config?: any) => Exchange;
-  export const huobi: new (config?: any) => Exchange;
-  export const gateio: new (config?: any) => Exchange;
-  export const mexc: new (config?: any) => Exchange;
+  export interface ExchangeClass {
+    new (config?: any): Exchange;
+  }
+
+  export const binance: ExchangeClass;
+  export const coinbase: ExchangeClass;
+  export const kraken: ExchangeClass;
+  export const bybit: ExchangeClass;
+  export const okx: ExchangeClass;
+  export const kucoin: ExchangeClass;
+  export const bitfinex: ExchangeClass;
+  export const huobi: ExchangeClass;
+  export const gateio: ExchangeClass;
+  export const mexc: ExchangeClass;
 
   const ccxt: {
-    [key: string]: new (config?: any) => Exchange;
+    [key: string]: ExchangeClass;
+    binance: ExchangeClass;
+    coinbase: ExchangeClass;
+    kraken: ExchangeClass;
+    bybit: ExchangeClass;
+    okx: ExchangeClass;
+    kucoin: ExchangeClass;
+    bitfinex: ExchangeClass;
+    huobi: ExchangeClass;
+    gateio: ExchangeClass;
+    mexc: ExchangeClass;
   };
 
   export default ccxt;

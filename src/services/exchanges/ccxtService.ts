@@ -1,6 +1,4 @@
-
 import ccxt from 'ccxt';
-import { useToast } from '@/hooks/use-toast';
 
 interface ExchangeConfig {
   id: string;
@@ -60,7 +58,7 @@ class CCXTService {
         throw new Error(`Exchange ${config.id} is not supported`);
       }
 
-      const ExchangeClass = (ccxt as any)[config.id];
+      const ExchangeClass = ccxt[config.id as keyof typeof ccxt];
       
       if (!ExchangeClass) {
         throw new Error(`Exchange class for ${config.id} not found`);

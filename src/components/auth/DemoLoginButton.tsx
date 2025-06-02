@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Crown, Loader2 } from 'lucide-react';
+import { Zap, Crown, Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,19 +13,23 @@ const DemoLoginButton: React.FC = () => {
   const handleDemoLogin = async () => {
     setIsLoading(true);
     try {
-      // Create or sign in demo user
+      // Demo credentials
       const demoEmail = 'demo@cryptobeacon.com';
       const demoPassword = 'demo123456';
 
-      // First try to sign in
-      let { error: signInError } = await supabase.auth.signInWithPassword({
+      console.log('Attempting demo login...');
+
+      // First try to sign in with existing demo account
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
       });
 
-      // If sign in fails, create the demo user
       if (signInError) {
-        const { error: signUpError } = await supabase.auth.signUp({
+        console.log('Sign in failed, attempting to create demo account:', signInError.message);
+        
+        // If sign in fails, try to create the demo user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: demoEmail,
           password: demoPassword,
           options: {
@@ -38,30 +42,38 @@ const DemoLoginButton: React.FC = () => {
         });
 
         if (signUpError) {
-          throw signUpError;
+          console.error('Sign up error:', signUpError);
+          throw new Error(`Demo account creation failed: ${signUpError.message}`);
         }
 
+        console.log('Demo account created, attempting sign in again...');
+        
         // Try signing in again after signup
-        const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+        const { data: secondSignInData, error: secondSignInError } = await supabase.auth.signInWithPassword({
           email: demoEmail,
           password: demoPassword,
         });
 
         if (secondSignInError) {
-          throw secondSignInError;
+          console.error('Second sign in error:', secondSignInError);
+          throw new Error(`Demo login failed after account creation: ${secondSignInError.message}`);
         }
+
+        console.log('Demo login successful after account creation');
+      } else {
+        console.log('Demo login successful');
       }
 
       toast({
-        title: "Demo Access Granted",
-        description: "Welcome to the full platform experience!",
+        title: "Demo Access Granted! 🎉",
+        description: "Welcome to the full crypto trading platform experience!",
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Demo login error:', error);
       toast({
         title: "Demo Login Failed",
-        description: "Please try again or contact support",
+        description: error.message || "Please try again or contact support",
         variant: "destructive",
       });
     } finally {
@@ -74,13 +86,13 @@ const DemoLoginButton: React.FC = () => {
       <Button 
         onClick={handleDemoLogin}
         disabled={isLoading}
-        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
         size="lg"
       >
         {isLoading ? (
           <>
             <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Connecting...
+            Connecting to Demo...
           </>
         ) : (
           <>
@@ -91,8 +103,8 @@ const DemoLoginButton: React.FC = () => {
       </Button>
       
       <div className="flex flex-wrap gap-2 justify-center">
-        <Badge variant="secondary" className="text-xs">
-          <Zap className="h-3 w-3 mr-1" />
+        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+          <CheckCircle className="h-3 w-3 mr-1" />
           All Features
         </Badge>
         <Badge variant="secondary" className="text-xs">AI Bots</Badge>
@@ -101,9 +113,14 @@ const DemoLoginButton: React.FC = () => {
         <Badge variant="secondary" className="text-xs">Paper Trading</Badge>
       </div>
       
-      <p className="text-xs text-muted-foreground text-center">
-        Experience the full platform with pre-configured portfolio and AI bots
-      </p>
+      <div className="text-xs text-muted-foreground text-center space-y-1">
+        <p className="font-medium">Experience the full platform instantly</p>
+        <p className="text-gray-500">Pre-configured with demo portfolio and AI trading bots</p>
+        <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-blue-700 dark:text-blue-300">
+          <p className="font-mono text-xs">demo@cryptobeacon.com</p>
+          <p className="font-mono text-xs">Password: demo123456</p>
+        </div>
+      </div>
     </div>
   );
 };
