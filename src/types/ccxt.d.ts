@@ -40,7 +40,8 @@ declare module 'ccxt' {
   export const gateio: ExchangeClass;
   export const mexc: ExchangeClass;
 
-  const ccxt: {
+  // Default export with index signature
+  declare const ccxt: {
     [key: string]: ExchangeClass;
     binance: ExchangeClass;
     coinbase: ExchangeClass;

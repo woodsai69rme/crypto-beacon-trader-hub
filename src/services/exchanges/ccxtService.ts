@@ -58,7 +58,7 @@ class CCXTService {
         throw new Error(`Exchange ${config.id} is not supported`);
       }
 
-      const ExchangeClass = ccxt[config.id as keyof typeof ccxt];
+      const ExchangeClass = ccxt[config.id];
       
       if (!ExchangeClass) {
         throw new Error(`Exchange class for ${config.id} not found`);
