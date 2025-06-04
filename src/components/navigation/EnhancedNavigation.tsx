@@ -13,7 +13,10 @@ import {
   Users, 
   Settings,
   Menu,
-  X
+  X,
+  TestTube,
+  CreditCard,
+  FileText
 } from 'lucide-react';
 import { useAiTrading } from '@/contexts/AiTradingContext';
 import { useState } from 'react';
@@ -34,10 +37,10 @@ const EnhancedNavigation: React.FC = () => {
   ];
 
   const utilityItems = [
-    { path: '/subscription', label: 'Subscription' },
-    { path: '/status', label: 'Status' },
-    { path: '/testing', label: 'Testing' },
-    { path: '/auth', label: 'Auth' },
+    { path: '/subscription', label: 'Subscription', icon: CreditCard },
+    { path: '/status', label: 'Status', icon: FileText },
+    { path: '/testing', label: 'Testing', icon: TestTube },
+    { path: '/auth', label: 'Auth', icon: Settings },
   ];
 
   const isActivePath = (path: string) => {
@@ -80,11 +83,21 @@ const EnhancedNavigation: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Link to="/settings">
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex items-center space-x-1">
+            {utilityItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                  title={item.label}
+                >
+                  <Icon className="h-4 w-4" />
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 
@@ -95,13 +108,20 @@ const EnhancedNavigation: React.FC = () => {
             CryptoTrader Pro
           </Link>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center space-x-2">
+            {activeBots.length > 0 && (
+              <Badge variant="secondary" className="mr-2">
+                {activeBots.length} Active
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
 
         {isMobileMenuOpen && (
@@ -132,16 +152,21 @@ const EnhancedNavigation: React.FC = () => {
               })}
               
               <div className="border-t pt-2 mt-2">
-                {utilityItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                <div className="text-sm font-medium text-muted-foreground mb-2 px-3">Tools</div>
+                {utilityItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>

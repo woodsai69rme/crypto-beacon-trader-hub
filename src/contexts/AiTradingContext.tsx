@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AITradingStrategy, AIBot, AuditLogEntry } from '@/types/trading';
 import { useToast } from '@/hooks/use-toast';
+import { comprehensiveAiStrategies } from '@/services/ai/comprehensiveAiStrategies';
 
 interface AiTradingContextType {
   bots: AIBot[];
@@ -32,39 +33,8 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setBots(JSON.parse(savedBots));
     }
 
-    // Initialize with sample strategies
-    setStrategies([
-      {
-        id: 'trend-following-1',
-        name: 'Advanced Trend Following',
-        description: 'Multi-timeframe trend analysis with AI confirmation',
-        type: 'trend-following',
-        timeframe: 24,
-        parameters: { fastMA: 20, slowMA: 50, rsiPeriod: 14 },
-        riskLevel: 'medium',
-        profitPotential: 'high'
-      },
-      {
-        id: 'grid-trading-1',
-        name: 'Grid Trading Bot',
-        description: 'Automated grid trading with dynamic grid adjustment',
-        type: 'grid',
-        timeframe: 1,
-        parameters: { gridSpacing: 0.01, gridCount: 10 },
-        riskLevel: 'low',
-        profitPotential: 'medium'
-      },
-      {
-        id: 'arbitrage-1',
-        name: 'Cross-Exchange Arbitrage',
-        description: 'Identify and execute arbitrage opportunities across exchanges',
-        type: 'arbitrage',
-        timeframe: 0.1,
-        parameters: { minSpread: 0.005, maxExposure: 0.1 },
-        riskLevel: 'medium',
-        profitPotential: 'high'
-      }
-    ]);
+    // Initialize with comprehensive AI strategies
+    setStrategies(comprehensiveAiStrategies.getAllStrategies());
   }, []);
 
   const createBot = (config: Partial<AIBot>): string => {

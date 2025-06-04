@@ -268,9 +268,15 @@ export interface PriceCorrelationChartProps {
   coins: CoinOption[];
 }
 
-// Risk Assessment Types
+// Risk Assessment Types - FIXED ALL MISSING PROPERTIES
 export interface RiskAssessmentResult {
   score: number;
+  overallScore: number;
+  diversificationScore: number;
+  volatilityScore: number;
+  liquidityScore: number;
+  concentrationRisk: number;
+  correlationRisk: number;
   factors: {
     volatility: number;
     correlation: number;
@@ -278,36 +284,51 @@ export interface RiskAssessmentResult {
     marketCap: number;
   };
   recommendations: string[];
+  riskByAsset: Record<string, { score: number; factors: string[] }>;
 }
 
-// Wallet Types
+// Wallet Types - FIXED ALL MISSING PROPERTIES
 export interface WalletAccount {
   address: string;
   balance: number;
   assets: PortfolioAsset[];
   network: string;
+  provider?: string;
 }
 
 export interface WalletProvider {
   id: string;
   name: string;
   icon: string;
+  logo?: string;
+  description?: string;
+  isInstalled: boolean;
   isConnected: boolean;
   accounts: WalletAccount[];
 }
 
 export interface WalletConnectionProps {
-  onConnect: (provider: WalletProvider) => void;
+  onConnect: (account: WalletAccount) => void;
   onDisconnect: () => void;
 }
 
-// Tax and Compliance Types
+// Tax and Compliance Types - FIXED ALL MISSING PROPERTIES
 export interface ATOTaxCalculation {
   capitalGains: number;
   taxableIncome: number;
   taxOwed: number;
   effectiveRate: number;
   bracket: string;
+  year?: number;
+  gains?: number;
+  losses?: number;
+  netPosition?: number;
+  financialYear?: string;
+  bracketInfo?: string;
+  CGTDiscount?: number;
+  effectiveTaxRate?: number;
+  taxRefundOrOwed?: number;
+  transactions?: any[];
 }
 
 export interface TaxBracket {
@@ -327,12 +348,18 @@ export interface TaxHarvestTradeItem {
   recommendedAction: 'sell' | 'hold';
 }
 
-// AI Portfolio Optimization Types
+// AI Portfolio Optimization Types - FIXED ALL MISSING PROPERTIES
 export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon: 'short' | 'medium' | 'long';
   maxDrawdown: number;
   targetReturn: number;
+  objectives?: string[];
+  constraints?: {
+    maxPosition?: number;
+    minPosition?: number;
+    sectors?: string[];
+  };
 }
 
 export interface PortfolioOptimizationResult {
@@ -341,6 +368,10 @@ export interface PortfolioOptimizationResult {
   expectedRisk: number;
   sharpeRatio: number;
   recommendations: string[];
+  diversification?: number;
+  suggestedAllocation?: Record<string, number>;
+  currentAllocation?: Record<string, number>;
+  rebalancingTrades?: Trade[];
 }
 
 // API Management Types
@@ -358,6 +389,11 @@ export interface ApiUsageStats {
   successRate: number;
   averageResponseTime: number;
   lastUsed: string;
+  provider?: string;
+  totalCalls?: number;
+  successfulCalls?: number;
+  failedCalls?: number;
+  avgResponseTime?: number;
 }
 
 // DeFi Types
@@ -431,7 +467,7 @@ export interface MarketInsightsResponse {
   marketSentiment: 'bullish' | 'bearish' | 'neutral';
 }
 
-// Real-time Price Types
+// Real-time Price Types - FIXED MISSING PROPERTIES
 export interface RealTimePriceChartProps {
   symbol: string;
   interval: string;
@@ -441,13 +477,18 @@ export interface RealTimePriceChartProps {
 export interface RealTimePricesProps {
   symbols: string[];
   onPriceUpdate?: (symbol: string, price: number) => void;
+  onSelectCoin?: (coinId: string) => void;
+  selectedCoinId?: string;
 }
 
-// Dashboard Props Types
+// Dashboard Props Types - FIXED MISSING PROPERTIES
 export interface DetachedAiTradingDashboardProps {
   onClose: () => void;
   isDetached: boolean;
   children: React.ReactNode;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
 }
 
 export interface DetachableDashboardProps {
