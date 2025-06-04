@@ -106,7 +106,7 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const toggleBot = (botId: string) => {
     const updatedBots = bots.map(bot => {
       if (bot.id === botId) {
-        const newStatus = bot.status === 'active' ? 'paused' : 'active';
+        const newStatus: 'active' | 'paused' | 'stopped' = bot.status === 'active' ? 'paused' : 'active';
         const isActive = newStatus === 'active';
         
         // Add audit entry
