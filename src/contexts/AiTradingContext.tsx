@@ -1,349 +1,127 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { openRouterService, TradingSignal } from '@/services/openRouterService';
-import { useTradingContext } from './TradingContext';
-import { useToast } from '@/hooks/use-toast';
-import { Trade, TradingAccount, SupportedCurrency } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
 
-export interface AiBot {
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { AITradingStrategy } from '@/types/trading';
+import { useToast } from '@/hooks/use-toast';
+
+export interface AIBot {
   id: string;
   name: string;
   strategy: string;
-  model: string;
-  aiModel?: string;
-  isActive: boolean;
-  riskLevel: 'low' | 'medium' | 'high';
-  maxTradeAmount: number;
-  targetAssets: string[];
-  createdAt: string;
-  account: TradingAccount;
+  status: 'active' | 'paused' | 'stopped';
   performance: {
-    totalTrades: number;
-    winRate: number;
     totalReturn: number;
-    sharpeRatio: number;
-    maxDrawdown: number;
+    winRate: number;
+    trades: number;
   };
-  auditLog: AuditEntry[];
-}
-
-export interface AuditEntry {
-  id: string;
-  timestamp: string;
-  action: string;
-  signal?: TradingSignal;
-  reasoning: string;
-  result?: string;
-  marketData?: any;
+  model: string;
+  createdAt: string;
 }
 
 interface AiTradingContextType {
-  bots: AiBot[];
-  activeBots: AiBot[];
-  createBot: (config: Partial<AiBot>) => string;
-  activateBot: (botId: string) => void;
-  deactivateBot: (botId: string) => void;
-  deleteBot: (botId: string) => void;
-  getBotById: (botId: string) => AiBot | undefined;
+  bots: AIBot[];
+  strategies: AITradingStrategy[];
+  createBot: (config: Partial<AIBot>) => string;
   toggleBot: (botId: string) => void;
-  getBotPerformance: (botId: string) => AiBot['performance'] | undefined;
-  isAnyBotActive: boolean;
+  deleteBot: (botId: string) => void;
+  getBotPerformance: (botId: string) => any;
+  addStrategy: (strategy: AITradingStrategy) => void;
 }
 
-const AiTradingContext = createContext<AiTradingContextType>({
-  bots: [],
-  activeBots: [],
-  createBot: () => '',
-  activateBot: () => {},
-  deactivateBot: () => {},
-  deleteBot: () => {},
-  getBotById: () => undefined,
-  toggleBot: () => {},
-  getBotPerformance: () => undefined,
-  isAnyBotActive: false,
-});
+const AiTradingContext = createContext<AiTradingContextType | undefined>(undefined);
 
 export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [bots, setBots] = useState<AiBot[]>([]);
-  const { addTrade, activeAccount } = useTradingContext();
+  const [bots, setBots] = useState<AIBot[]>([]);
+  const [strategies, setStrategies] = useState<AITradingStrategy[]>([]);
   const { toast } = useToast();
 
-  const activeBots = bots.filter(bot => bot.isActive);
-
   useEffect(() => {
-    const stored = localStorage.getItem('ai-trading-bots');
-    if (stored) {
-      setBots(JSON.parse(stored));
+    // Load saved bots from localStorage
+    const savedBots = localStorage.getItem('ai-trading-bots');
+    if (savedBots) {
+      setBots(JSON.parse(savedBots));
     }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('ai-trading-bots', JSON.stringify(bots));
-  }, [bots]);
-
-  const createBotAccount = (name: string): TradingAccount => {
-    return {
-      id: uuidv4(),
-      name,
-      trades: [],
-      balance: 10000,
-      currency: 'AUD' as SupportedCurrency,
+  const createBot = (config: Partial<AIBot>): string => {
+    const newBot: AIBot = {
+      id: `bot-${Date.now()}`,
+      name: config.name || 'New Trading Bot',
+      strategy: config.strategy || 'trend-following',
+      status: 'paused',
+      performance: { totalReturn: 0, winRate: 0, trades: 0 },
+      model: config.model || 'deepseek/deepseek-r1',
       createdAt: new Date().toISOString(),
-      type: 'paper',
-      assets: []
+      ...config
     };
+
+    const updatedBots = [...bots, newBot];
+    setBots(updatedBots);
+    localStorage.setItem('ai-trading-bots', JSON.stringify(updatedBots));
+    
+    toast({
+      title: "Bot Created",
+      description: `${newBot.name} has been created successfully.`
+    });
+
+    return newBot.id;
   };
 
   const toggleBot = (botId: string) => {
-    const bot = bots.find(b => b.id === botId);
-    if (!bot) return;
-
-    if (bot.isActive) {
-      deactivateBot(botId);
-    } else {
-      activateBot(botId);
-    }
-  };
-
-  const getBotPerformance = (botId: string): AiBot['performance'] | undefined => {
-    const bot = bots.find(b => b.id === botId);
-    return bot?.performance;
-  };
-
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const activeBotsToRun = bots.filter(bot => bot.isActive);
-      
-      for (const bot of activeBotsToRun) {
-        await executeBot(bot);
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [bots, activeAccount]);
-
-  const executeBot = async (bot: AiBot) => {
-    if (!activeAccount) return;
-
-    try {
-      const marketData = generateMockMarketData(bot.targetAssets[0] || 'BTC');
-      
-      const signal = await openRouterService.generateTradingSignal(
-        marketData,
-        bot.strategy,
-        bot.model
-      );
-
-      const auditEntry: AuditEntry = {
-        id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date().toISOString(),
-        action: 'ANALYSIS',
-        signal,
-        reasoning: signal.reasoning,
-        marketData
-      };
-
-      if (signal.signal !== 'HOLD' && signal.confidence > getConfidenceThreshold(bot.riskLevel)) {
-        const tradeAmount = calculateTradeAmount(bot, signal, activeAccount.balance);
-        
-        if (tradeAmount > 0) {
-          const trade: Trade = {
-            id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            symbol: bot.targetAssets[0] || 'BTC',
-            coinSymbol: bot.targetAssets[0] || 'BTC',
-            coinId: bot.targetAssets[0]?.toLowerCase() || 'bitcoin',
-            coinName: bot.targetAssets[0] || 'Bitcoin',
-            type: signal.signal.toLowerCase() as 'buy' | 'sell',
-            quantity: tradeAmount / signal.entryPrice,
-            amount: tradeAmount / signal.entryPrice,
-            price: signal.entryPrice,
-            totalValue: tradeAmount,
-            total: tradeAmount,
-            timestamp: new Date().toISOString(),
-            botId: bot.id,
-            botGenerated: true,
-            strategyId: bot.id,
-            currency: 'AUD',
-            tags: [`ai-${bot.strategy}`, `${bot.model}`, `confidence-${Math.round(signal.confidence * 100)}`]
-          };
-
-          addTrade(trade);
-          
-          auditEntry.action = 'TRADE_EXECUTED';
-          auditEntry.result = `${signal.signal} ${tradeAmount.toFixed(2)} AUD of ${trade.symbol}`;
-
-          toast({
-            title: `AI Bot Trade: ${bot.name}`,
-            description: `${signal.signal} ${trade.symbol} - ${(signal.confidence * 100).toFixed(1)}% confidence`,
-          });
-
-          updateBotPerformance(bot.id, trade, signal);
-        }
-      }
-
-      updateBotAuditLog(bot.id, auditEntry);
-
-    } catch (error) {
-      console.error(`Bot ${bot.name} execution failed:`, error);
-      
-      const errorEntry: AuditEntry = {
-        id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date().toISOString(),
-        action: 'ERROR',
-        reasoning: `Execution failed: ${error}`,
-      };
-      
-      updateBotAuditLog(bot.id, errorEntry);
-    }
-  };
-
-  const generateMockMarketData = (symbol: string) => {
-    const basePrice = symbol === 'BTC' ? 50000 : symbol === 'ETH' ? 3000 : 1;
-    const price = basePrice + (Math.random() - 0.5) * basePrice * 0.1;
-    
-    return {
-      symbol,
-      price,
-      change24h: (Math.random() - 0.5) * 20,
-      volume: Math.random() * 1000000000,
-      marketCap: price * 19000000,
-      rsi: 30 + Math.random() * 40,
-      ma20: price * (0.95 + Math.random() * 0.1)
-    };
-  };
-
-  const getConfidenceThreshold = (riskLevel: string): number => {
-    switch (riskLevel) {
-      case 'low': return 0.8;
-      case 'medium': return 0.7;
-      case 'high': return 0.6;
-      default: return 0.8;
-    }
-  };
-
-  const calculateTradeAmount = (bot: AiBot, signal: TradingSignal, balance: number): number => {
-    const maxAmount = Math.min(bot.maxTradeAmount, balance * 0.1);
-    const riskMultiplier = bot.riskLevel === 'low' ? 0.5 : bot.riskLevel === 'medium' ? 0.75 : 1.0;
-    return maxAmount * riskMultiplier * signal.confidence;
-  };
-
-  const updateBotPerformance = (botId: string, trade: any, signal: TradingSignal) => {
-    setBots(prev => prev.map(bot => {
+    const updatedBots = bots.map(bot => {
       if (bot.id === botId) {
-        const newTotalTrades = bot.performance.totalTrades + 1;
-        const isWin = Math.random() > 0.4;
-        const newWinRate = (bot.performance.winRate * bot.performance.totalTrades + (isWin ? 1 : 0)) / newTotalTrades;
-        
-        return {
-          ...bot,
-          performance: {
-            ...bot.performance,
-            totalTrades: newTotalTrades,
-            winRate: newWinRate,
-            totalReturn: bot.performance.totalReturn + (isWin ? 0.02 : -0.01),
-            sharpeRatio: 1.2 + Math.random() * 0.8,
-            maxDrawdown: Math.max(bot.performance.maxDrawdown, Math.random() * 0.15)
-          }
-        };
+        const newStatus = bot.status === 'active' ? 'paused' : 'active';
+        toast({
+          title: `Bot ${newStatus === 'active' ? 'Started' : 'Paused'}`,
+          description: `${bot.name} is now ${newStatus}.`
+        });
+        return { ...bot, status: newStatus };
       }
       return bot;
-    }));
-  };
-
-  const updateBotAuditLog = (botId: string, entry: AuditEntry) => {
-    setBots(prev => prev.map(bot => {
-      if (bot.id === botId) {
-        return {
-          ...bot,
-          auditLog: [entry, ...bot.auditLog].slice(0, 100)
-        };
-      }
-      return bot;
-    }));
-  };
-
-  const createBot = (config: Partial<AiBot>): string => {
-    const botId = `bot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const newBot: AiBot = {
-      id: botId,
-      name: config.name || 'AI Trading Bot',
-      strategy: config.strategy || 'trend-following',
-      model: config.model || 'deepseek/deepseek-r1',
-      aiModel: config.model || 'deepseek/deepseek-r1',
-      isActive: false,
-      riskLevel: config.riskLevel || 'low',
-      maxTradeAmount: config.maxTradeAmount || 1000,
-      targetAssets: config.targetAssets || ['BTC'],
-      createdAt: new Date().toISOString(),
-      account: createBotAccount(`${config.name || 'AI Trading Bot'} Account`),
-      performance: {
-        totalTrades: 0,
-        winRate: 0,
-        totalReturn: 0,
-        sharpeRatio: 0,
-        maxDrawdown: 0
-      },
-      auditLog: []
-    };
-
-    setBots(prev => [...prev, newBot]);
-    return botId;
-  };
-
-  const activateBot = (botId: string) => {
-    setBots(prev => prev.map(bot => 
-      bot.id === botId ? { ...bot, isActive: true } : bot
-    ));
-    
-    toast({
-      title: "AI Bot Activated",
-      description: "Bot will start analyzing markets and executing trades",
     });
-  };
 
-  const deactivateBot = (botId: string) => {
-    setBots(prev => prev.map(bot => 
-      bot.id === botId ? { ...bot, isActive: false } : bot
-    ));
-    
-    toast({
-      title: "AI Bot Deactivated",
-      description: "Bot has been stopped",
-    });
+    setBots(updatedBots);
+    localStorage.setItem('ai-trading-bots', JSON.stringify(updatedBots));
   };
 
   const deleteBot = (botId: string) => {
-    setBots(prev => prev.filter(bot => bot.id !== botId));
+    const updatedBots = bots.filter(bot => bot.id !== botId);
+    setBots(updatedBots);
+    localStorage.setItem('ai-trading-bots', JSON.stringify(updatedBots));
     
     toast({
-      title: "AI Bot Deleted",
-      description: "Bot has been permanently removed",
+      title: "Bot Deleted",
+      description: "Trading bot has been removed successfully."
     });
   };
 
-  const getBotById = (botId: string): AiBot | undefined => {
-    return bots.find(bot => bot.id === botId);
+  const getBotPerformance = (botId: string) => {
+    const bot = bots.find(b => b.id === botId);
+    return bot?.performance || { totalReturn: 0, winRate: 0, trades: 0 };
   };
 
-  const isAnyBotActive = bots.some(bot => bot.isActive);
+  const addStrategy = (strategy: AITradingStrategy) => {
+    setStrategies(prev => [...prev, strategy]);
+  };
 
   return (
     <AiTradingContext.Provider value={{
       bots,
-      activeBots,
+      strategies,
       createBot,
-      activateBot,
-      deactivateBot,
-      deleteBot,
-      getBotById,
       toggleBot,
+      deleteBot,
       getBotPerformance,
-      isAnyBotActive,
+      addStrategy
     }}>
       {children}
     </AiTradingContext.Provider>
   );
 };
 
-export const useAiTrading = () => useContext(AiTradingContext);
+export const useAiTrading = () => {
+  const context = useContext(AiTradingContext);
+  if (!context) {
+    throw new Error('useAiTrading must be used within an AiTradingProvider');
+  }
+  return context;
+};

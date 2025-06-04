@@ -31,6 +31,26 @@ export interface TradingAccount {
   currency: SupportedCurrency;
   createdAt: string;
   assets?: PortfolioAsset[];
+  type?: 'paper' | 'live';
+}
+
+export interface AITradingStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom';
+  riskLevel: 'low' | 'medium' | 'high';
+  profitPotential: 'low' | 'medium' | 'high';
+  timeframe: number; // in hours
+  indicators?: string[];
+  triggers?: string[];
+  parameters: Record<string, any>;
+  backtestResults?: {
+    winRate: number;
+    profitFactor: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+  };
 }
 
 export interface RiskAssessmentResult {
@@ -122,37 +142,6 @@ export interface ApiUsageStats {
   costEstimate?: number;
 }
 
-export interface DefiPosition {
-  id: string;
-  protocolId: string;
-  protocolName: string;
-  type: 'lending' | 'borrowing' | 'staking' | 'liquidity' | 'yield';
-  assetId: string;
-  assetSymbol: string;
-  amount: number;
-  value: number;
-  apy: number;
-  startDate: string;
-  endDate?: string;
-  rewards?: {
-    assetId: string;
-    assetSymbol: string;
-    amount: number;
-    value: number;
-  }[];
-}
-
-export interface DefiProtocol {
-  id: string;
-  name: string;
-  category: string;
-  chain: string;
-  tvl: number;
-  apy: number;
-  risk: 'low' | 'medium' | 'high';
-  url: string;
-}
-
 export interface NewsItem {
   id: string;
   title: string;
@@ -201,7 +190,6 @@ export interface SidebarSettings {
   showLabels: boolean;
 }
 
-// Enhanced SettingsFormValues to include all required fields
 export interface SettingsFormValues {
   email: string;
   username: string;
