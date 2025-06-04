@@ -1,247 +1,187 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Crown } from 'lucide-react';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-interface PlanFeature {
-  name: string;
-  included: boolean;
-}
-
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  interval: string;
-  description: string;
-  features: PlanFeature[];
-  popular?: boolean;
-  icon: React.ReactNode;
-  stripePriceId?: string;
-}
-
-const plans: SubscriptionPlan[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    currency: 'AUD',
-    interval: 'forever',
-    description: 'Perfect for getting started with crypto trading education',
-    icon: <Star className="h-6 w-6" />,
-    features: [
-      { name: 'Paper Trading (Basic)', included: true },
-      { name: '5 Cryptocurrencies', included: true },
-      { name: 'Basic AI Trading Bot', included: true },
-      { name: 'Community Support', included: true },
-      { name: 'Advanced Analytics', included: false },
-      { name: 'Premium AI Models', included: false },
-      { name: 'Unlimited Crypto Support', included: false },
-      { name: 'Priority Support', included: false },
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 19,
-    currency: 'AUD',
-    interval: 'month',
-    description: 'Ideal for serious traders and educators',
-    icon: <Zap className="h-6 w-6" />,
-    popular: true,
-    stripePriceId: 'price_pro_monthly',
-    features: [
-      { name: 'Paper Trading (Advanced)', included: true },
-      { name: '30+ Cryptocurrencies', included: true },
-      { name: 'Multiple AI Trading Bots', included: true },
-      { name: 'Advanced Analytics', included: true },
-      { name: 'Premium AI Models (GPT-4, Claude)', included: true },
-      { name: 'Custom Trading Strategies', included: true },
-      { name: 'Email Support', included: true },
-      { name: 'Data Export', included: true },
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    currency: 'AUD',
-    interval: 'month',
-    description: 'For institutions and professional traders',
-    icon: <Crown className="h-6 w-6" />,
-    stripePriceId: 'price_enterprise_monthly',
-    features: [
-      { name: 'Everything in Pro', included: true },
-      { name: 'Unlimited Cryptocurrencies', included: true },
-      { name: 'White-Label Options', included: true },
-      { name: 'Custom Integrations', included: true },
-      { name: 'Dedicated Account Manager', included: true },
-      { name: 'Priority Support', included: true },
-      { name: 'Advanced Reporting', included: true },
-      { name: 'Multi-User Management', included: true },
-    ],
-  },
-];
+import { Check, Zap, Crown, Building } from 'lucide-react';
 
 const SubscriptionPlans: React.FC = () => {
-  const { user, subscription } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState<string | null>(null);
-
-  const handleSubscribe = async (plan: SubscriptionPlan) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to subscribe to a plan",
-        variant: "destructive"
-      });
-      return;
+  const plans = [
+    {
+      name: 'Free',
+      price: 0,
+      description: 'Perfect for beginners',
+      icon: Zap,
+      features: [
+        'Paper trading with $10,000 AUD virtual balance',
+        'Basic AI trading bot (1 bot)',
+        'Real-time market data',
+        'Basic analytics dashboard',
+        'Community access',
+        'Email support'
+      ],
+      limitations: [
+        'No live trading',
+        'Limited AI models',
+        'Basic technical indicators'
+      ],
+      buttonText: 'Current Plan',
+      buttonVariant: 'secondary' as const,
+      popular: false
+    },
+    {
+      name: 'Premium',
+      price: 29,
+      description: 'For serious traders',
+      icon: Crown,
+      features: [
+        'Everything in Free',
+        'Live trading with real exchanges',
+        'Advanced AI trading bots (5 bots)',
+        'Premium AI models (GPT-4, Claude)',
+        'Advanced analytics & risk management',
+        'Social trading & copy trading',
+        'News sentiment analysis',
+        'Priority support'
+      ],
+      limitations: [
+        'Limited to 5 exchanges',
+        'Basic Web3 features'
+      ],
+      buttonText: 'Upgrade to Premium',
+      buttonVariant: 'default' as const,
+      popular: true
+    },
+    {
+      name: 'Enterprise',
+      price: 99,
+      description: 'For institutions and professionals',
+      icon: Building,
+      features: [
+        'Everything in Premium',
+        'Unlimited AI trading bots',
+        'All AI models + custom models',
+        'Advanced Web3 & DeFi integration',
+        'Portfolio management tools',
+        'API access',
+        'White-label options',
+        'Dedicated account manager',
+        '24/7 phone support'
+      ],
+      limitations: [],
+      buttonText: 'Contact Sales',
+      buttonVariant: 'outline' as const,
+      popular: false
     }
-
-    if (plan.id === 'free') {
-      toast({
-        title: "Free Plan Active",
-        description: "You're already on the free plan!",
-      });
-      return;
-    }
-
-    setLoading(plan.id);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planId: plan.id, priceId: plan.stripePriceId }
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      toast({
-        title: "Subscription Error",
-        description: "Unable to start subscription process. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const getCurrentPlan = () => {
-    if (!subscription || !subscription.subscribed) return 'free';
-    return subscription.subscription_tier?.toLowerCase() || 'free';
-  };
-
-  const currentPlan = getCurrentPlan();
+  ];
 
   return (
-    <div className="py-12">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Choose Your Trading Education Plan
-        </h2>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Start your crypto trading journey with our comprehensive educational platform. 
-          All plans include paper trading with virtual funds - no real money at risk.
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold">Choose Your Plan</h2>
+        <p className="text-muted-foreground mt-2">
+          Unlock the full power of AI-driven cryptocurrency trading
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan) => {
-          const isCurrentPlan = currentPlan === plan.id;
-          const isPopular = plan.popular;
-
+          const Icon = plan.icon;
           return (
-            <Card 
-              key={plan.id} 
-              className={`relative ${isPopular ? 'border-primary shadow-lg scale-105' : ''} ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
-            >
-              {isPopular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
-                  Most Popular
-                </Badge>
+            <Card key={plan.name} className={`relative ${plan.popular ? 'border-primary shadow-lg' : ''}`}>
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+                </div>
               )}
               
-              {isCurrentPlan && (
-                <Badge className="absolute -top-3 right-4 bg-green-500">
-                  Current Plan
-                </Badge>
-              )}
-
               <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
-                  {plan.icon}
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Icon className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <div className="text-4xl font-bold text-primary">
-                  ${plan.price}
-                  <span className="text-lg font-normal text-gray-600 dark:text-gray-400">
-                    /{plan.interval}
+                <CardDescription>{plan.description}</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">
+                    {plan.price === 0 ? 'Free' : `$${plan.price}`}
                   </span>
-                </div>
-                <CardDescription className="text-center">
-                  {plan.description}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <Check 
-                        className={`h-4 w-4 mr-3 ${
-                          feature.included 
-                            ? 'text-green-500' 
-                            : 'text-gray-300 dark:text-gray-600'
-                        }`} 
-                      />
-                      <span className={feature.included ? '' : 'text-gray-500 line-through'}>
-                        {feature.name}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  className="w-full"
-                  variant={isCurrentPlan ? 'secondary' : isPopular ? 'default' : 'outline'}
-                  onClick={() => handleSubscribe(plan)}
-                  disabled={loading === plan.id || isCurrentPlan}
-                >
-                  {loading === plan.id ? (
-                    'Processing...'
-                  ) : isCurrentPlan ? (
-                    'Current Plan'
-                  ) : plan.price === 0 ? (
-                    'Get Started Free'
-                  ) : (
-                    `Subscribe to ${plan.name}`
+                  {plan.price > 0 && (
+                    <span className="text-muted-foreground">/month</span>
                   )}
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <Button 
+                  className="w-full" 
+                  variant={plan.buttonVariant}
+                  disabled={plan.name === 'Free'}
+                >
+                  {plan.buttonText}
                 </Button>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-green-600">Included Features</h4>
+                  <ul className="space-y-1">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                {plan.limitations.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-muted-foreground">Limitations</h4>
+                    <ul className="space-y-1">
+                      {plan.limitations.map((limitation, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <span className="w-4 h-4 mt-0.5 text-center">•</span>
+                          <span>{limitation}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      <div className="text-center mt-12">
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          All plans include a 7-day free trial • Cancel anytime • No hidden fees
-        </p>
-        <p className="text-xs text-gray-500 dark:text-gray-500">
-          Educational platform only - Not financial advice • Virtual trading with no real money at risk
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Frequently Asked Questions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h4 className="font-semibold">Can I change plans anytime?</h4>
+            <p className="text-sm text-muted-foreground">
+              Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold">Is there a free trial for premium plans?</h4>
+            <p className="text-sm text-muted-foreground">
+              We offer a 14-day free trial for Premium plans. No credit card required.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold">What payment methods do you accept?</h4>
+            <p className="text-sm text-muted-foreground">
+              We accept all major credit cards, PayPal, and cryptocurrency payments.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold">How secure is live trading?</h4>
+            <p className="text-sm text-muted-foreground">
+              All API keys are encrypted and stored securely. We never have access to your exchange funds.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

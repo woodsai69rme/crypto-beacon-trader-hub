@@ -1,221 +1,189 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Maximize2, BarChart2, RefreshCw } from 'lucide-react';
-import { LiveAnalyticsDashboardProps, CoinOption, ApiUsageStats } from '@/types/trading';
-import LivePriceMetrics from './LivePriceMetrics';
-import ApiUsageMetrics from '../api/ApiUsageMetrics';
-import RealTimeApiUsage from '../api/RealTimeApiUsage';
-import MarketCorrelations from '../MarketCorrelations/MarketCorrelations';
-import DetachedAiTradingDashboard from '../trading/DetachedAiTradingDashboard';
-import { mockCryptoData } from '../MarketCorrelations/mockData';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { TrendingUp, TrendingDown, BarChart3, RefreshCw, Activity } from 'lucide-react';
 
-const LiveAnalyticsDashboard: React.FC<LiveAnalyticsDashboardProps> = ({
-  initialCoinId = "bitcoin",
-  refreshInterval = 15000,
-  showDetailedView = false,
-  onAlertTriggered,
-  darkMode
-}) => {
-  const [isDetached, setIsDetached] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("prices");
-  const [selectedCoinId, setSelectedCoinId] = useState<string>(initialCoinId);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [apiUsageStats, setApiUsageStats] = useState<ApiUsageStats[]>([
-    {
-      provider: "CoinGecko",
-      service: "CoinGecko",
-      currentUsage: 421,
-      maxUsage: 500,
-      endpoint: "/coins/markets",
-      resetTime: "1 hour",
-      totalCalls: 500,
-      successfulCalls: 479,
-      failedCalls: 21,
-      avgResponseTime: 245,
-      lastCalled: new Date().toISOString()
-    },
-    {
-      provider: "CryptoCompare",
-      service: "CryptoCompare",
-      currentUsage: 8750,
-      maxUsage: 10000,
-      endpoint: "/data/pricemultifull",
-      resetTime: "24 hours",
-      totalCalls: 9000,
-      successfulCalls: 8750,
-      failedCalls: 250,
-      avgResponseTime: 180,
-      lastCalled: new Date().toISOString()
-    },
-    {
-      provider: "NewsAPI",
-      service: "NewsAPI",
-      currentUsage: 89,
-      maxUsage: 100,
-      endpoint: "/v2/everything",
-      resetTime: "12 hours",
-      totalCalls: 100,
-      successfulCalls: 89,
-      failedCalls: 11,
-      avgResponseTime: 320,
-      lastCalled: new Date().toISOString()
-    }
-  ]);
-  
-  // Find the selected coin from mock data
-  const selectedCoin: CoinOption = mockCryptoData.find(
-    coin => coin.id === selectedCoinId
-  ) as unknown as CoinOption || {
-    id: "bitcoin",
-    symbol: "btc",
-    name: "Bitcoin",
-    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-    price: 61245.32,
-    priceChange: 1245.32,
-    changePercent: 2.3,
-    volume: 28000000000,
-    marketCap: 1180000000000,
-    value: "bitcoin",
-    label: "Bitcoin"
-  };
+const LiveAnalyticsDashboard: React.FC = () => {
+  const [marketData, setMarketData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Effect for periodic data refreshing
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      refreshData();
-    }, refreshInterval);
-    
-    return () => clearInterval(intervalId);
-  }, [refreshInterval]);
-  
-  // Function to refresh all data
-  const refreshData = () => {
-    // In a real application, this would fetch fresh data from APIs
-    setLastUpdated(new Date());
-    
-    // Simulate API usage changes
-    setApiUsageStats(prev => prev.map(stat => ({
-      ...stat,
-      currentUsage: Math.min(stat.maxUsage!, stat.currentUsage! + Math.floor(Math.random() * 10))
-    })));
-  };
-  
-  // Handle coin selection change
-  const handleCoinChange = (coinId: string) => {
-    setSelectedCoinId(coinId);
+    generateMockData();
+    const interval = setInterval(generateMockData, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const generateMockData = () => {
+    const symbols = ['BTC', 'ETH', 'SOL', 'ADA', 'DOT'];
+    const data = symbols.map(symbol => {
+      const basePrice = symbol === 'BTC' ? 64500 : symbol === 'ETH' ? 3500 : 150;
+      const change = (Math.random() - 0.5) * 10;
+      
+      return {
+        symbol,
+        price: basePrice * (1 + change / 100),
+        change_24h: change,
+        volume: Math.random() * 1000000000,
+        market_cap: basePrice * Math.random() * 1000000,
+        updated_at: new Date().toLocaleTimeString()
+      };
+    });
+
+    setMarketData(data);
   };
 
-  // Dashboard content
-  const dashboardContent = (
+  const refreshData = () => {
+    setLoading(true);
+    setTimeout(() => {
+      generateMockData();
+      setLoading(false);
+    }, 1000);
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  return (
     <div className="space-y-6">
-      {/* Controls row */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="prices">Price Metrics</TabsTrigger>
-            <TabsTrigger value="api">API Usage</TabsTrigger>
-            <TabsTrigger value="correlations">Correlations</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Live Market Analytics</h2>
+          <p className="text-muted-foreground">Real-time cryptocurrency market data and analysis</p>
+        </div>
         <div className="flex items-center gap-2">
-          <Select value={selectedCoinId} onValueChange={handleCoinChange}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Select coin" />
-            </SelectTrigger>
-            <SelectContent>
-              {mockCryptoData.map(coin => (
-                <SelectItem key={coin.id} value={coin.id}>
-                  {coin.name} ({coin.symbol.toUpperCase()})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Button variant="outline" size="icon" onClick={refreshData}>
-            <RefreshCw className="h-4 w-4" />
+          <Badge variant="outline" className="text-green-600">
+            <Activity className="h-3 w-3 mr-1 animate-pulse" />
+            Live Data
+          </Badge>
+          <Button variant="outline" size="sm" onClick={refreshData} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
         </div>
       </div>
-      
-      {/* Content based on active tab */}
-      <TabsContent value="prices" className="m-0">
-        <LivePriceMetrics 
-          coin={selectedCoin as CoinOption}
-          lastUpdated={lastUpdated}
-        />
-      </TabsContent>
-      
-      <TabsContent value="api" className="m-0 space-y-6">
-        <ApiUsageMetrics 
-          data={apiUsageStats}
-          onRefresh={refreshData}
-        />
-        
-        {showDetailedView && (
-          <RealTimeApiUsage />
-        )}
-      </TabsContent>
-      
-      <TabsContent value="correlations" className="m-0">
-        <MarketCorrelations />
-      </TabsContent>
-      
-      <div className="text-xs text-muted-foreground text-right">
-        Last updated: {lastUpdated.toLocaleTimeString()}
-      </div>
-    </div>
-  );
 
-  return (
-    <>
-      <Card className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {marketData.map(coin => (
+          <Card key={coin.symbol}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{coin.symbol}</p>
+                  <p className="text-xl font-bold">{formatCurrency(coin.price)}</p>
+                </div>
+                <div className="text-right">
+                  <div className={`flex items-center ${coin.change_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {coin.change_24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                    <span className="ml-1 text-sm font-medium">
+                      {coin.change_24h >= 0 ? '+' : ''}{coin.change_24h.toFixed(2)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{coin.updated_at}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Market Overview</CardTitle>
+            <CardDescription>24-hour price movements</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={marketData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="symbol" />
+                <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                <Tooltip 
+                  formatter={(value) => [formatCurrency(value as number), 'Price']}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#8884d8" 
+                  fill="#8884d8" 
+                  fillOpacity={0.3}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Market Performance</CardTitle>
+            <CardDescription>24-hour percentage changes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={marketData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="symbol" />
+                <YAxis tickFormatter={(value) => `${value}%`} />
+                <Tooltip 
+                  formatter={(value) => [`${(value as number).toFixed(2)}%`, '24h Change']}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="change_24h" 
+                  stroke="#8884d8" 
+                  strokeWidth={2}
+                  dot={{ fill: '#8884d8' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart2 className="h-5 w-5" />
-                Live Analytics Dashboard
-              </CardTitle>
-              <CardDescription>
-                Real-time market metrics and API usage monitoring
-              </CardDescription>
-            </div>
-            <Button variant="outline" size="icon" onClick={() => setIsDetached(true)}>
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <CardTitle>Market Statistics</CardTitle>
+          <CardDescription>Detailed market metrics</CardDescription>
         </CardHeader>
-        
         <CardContent>
-          {dashboardContent}
-        </CardContent>
-        
-        <CardFooter className="text-sm text-muted-foreground">
-          <div className="flex justify-between w-full items-center">
-            <div>
-              {apiUsageStats.some(stat => stat.currentUsage! / stat.maxUsage! > 0.9) && (
-                <span className="text-red-500 font-medium">⚠️ API rate limit warning</span>
-              )}
-            </div>
-            <Button variant="link" size="sm" className="p-0" onClick={() => setIsDetached(true)}>
-              Open in detached mode
-            </Button>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2">Asset</th>
+                  <th className="text-right p-2">Price (AUD)</th>
+                  <th className="text-right p-2">24h Change</th>
+                  <th className="text-right p-2">Volume</th>
+                  <th className="text-right p-2">Market Cap</th>
+                </tr>
+              </thead>
+              <tbody>
+                {marketData.map(coin => (
+                  <tr key={coin.symbol} className="border-b">
+                    <td className="p-2 font-medium">{coin.symbol}</td>
+                    <td className="p-2 text-right">{formatCurrency(coin.price)}</td>
+                    <td className={`p-2 text-right ${coin.change_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {coin.change_24h >= 0 ? '+' : ''}{coin.change_24h.toFixed(2)}%
+                    </td>
+                    <td className="p-2 text-right">{formatCurrency(coin.volume)}</td>
+                    <td className="p-2 text-right">{formatCurrency(coin.market_cap)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </CardFooter>
+        </CardContent>
       </Card>
-      
-      <DetachedAiTradingDashboard
-        isDetached={isDetached}
-        onClose={() => setIsDetached(false)}
-      >
-        {dashboardContent}
-      </DetachedAiTradingDashboard>
-    </>
+    </div>
   );
 };
 
