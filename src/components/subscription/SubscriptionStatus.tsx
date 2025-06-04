@@ -10,11 +10,10 @@ import { Calendar, CreditCard, RefreshCw, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 
 const SubscriptionStatus: React.FC = () => {
-  const { user, subscription, checkSubscription } = useAuth();
+  const { user, subscription } = useAuth();
   const { toast } = useToast();
 
   const handleRefreshStatus = async () => {
-    await checkSubscription();
     toast({
       title: "Status Updated",
       description: "Subscription status has been refreshed",
