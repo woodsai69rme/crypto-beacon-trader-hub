@@ -1,79 +1,62 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import EnhancedNavigation from '@/components/navigation/EnhancedNavigation';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { CurrencyProvider } from '@/contexts/CurrencyContext';
-import { TradingProvider } from '@/contexts/TradingContext';
-import { AiTradingProvider } from '@/contexts/AiTradingContext';
-import { AuthProvider } from '@/components/auth/AuthProvider';
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AiTradingProvider } from "@/contexts/AiTradingContext";
+import { TradingProvider } from "@/contexts/TradingContext";
+import { UIContextProvider } from "@/contexts/UIContext";
+import EnhancedNavigation from "@/components/navigation/EnhancedNavigation";
+import Dashboard from "@/components/Dashboard";
+import TradingPage from "@/pages/TradingPage";
+import AiBotsPage from "@/pages/AiBotsPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
+import NewsPage from "@/pages/NewsPage";
+import Web3Page from "@/pages/Web3Page";
+import SocialPage from "@/pages/SocialPage";
+import SubscriptionPage from "@/pages/SubscriptionPage";
+import ProjectStatus from "@/pages/ProjectStatus";
+import TestingPage from "@/pages/TestingPage";
+import AuthPage from "@/pages/AuthPage";
+import NotFound from "@/pages/NotFound";
 
-// Lazy load components for better performance
-const Dashboard = React.lazy(() => import('@/components/Dashboard'));
-const EnhancedFakeTrading = React.lazy(() => import('@/components/trading/EnhancedFakeTrading'));
-const ComprehensiveAiTradingDashboard = React.lazy(() => import('@/components/trading/ComprehensiveAiTradingDashboard'));
-const LiveAnalyticsDashboard = React.lazy(() => import('@/components/analytics/LiveAnalyticsDashboard'));
-const NewsAndSentimentDashboard = React.lazy(() => import('@/components/news/NewsAndSentimentDashboard'));
-const Web3WalletDashboard = React.lazy(() => import('@/components/web3/Web3WalletDashboard'));
-const SocialTradingDashboard = React.lazy(() => import('@/components/social/SocialTradingDashboard'));
-const ProjectStatus = React.lazy(() => import('@/pages/ProjectStatus'));
-const AuthPage = React.lazy(() => import('@/components/auth/AuthPage'));
-const LandingPage = React.lazy(() => import('@/components/marketing/LandingPage'));
-const SubscriptionPlans = React.lazy(() => import('@/components/subscription/SubscriptionPlans'));
-const PlatformTestDashboard = React.lazy(() => import('@/components/testing/PlatformTestDashboard'));
+const queryClient = new QueryClient();
 
-const LoadingSpinner: React.FC = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-  </div>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <UIContextProvider>
+        <TradingProvider>
+          <AiTradingProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="min-h-screen bg-background">
+                <EnhancedNavigation />
+                <main className="pb-16 md:pb-0">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/trading" element={<TradingPage />} />
+                    <Route path="/ai-bots" element={<AiBotsPage />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
+                    <Route path="/news" element={<NewsPage />} />
+                    <Route path="/web3" element={<Web3Page />} />
+                    <Route path="/social" element={<SocialPage />} />
+                    <Route path="/subscription" element={<SubscriptionPage />} />
+                    <Route path="/status" element={<ProjectStatus />} />
+                    <Route path="/testing" element={<TestingPage />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+              </div>
+            </BrowserRouter>
+          </AiTradingProvider>
+        </TradingProvider>
+      </UIContextProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <CurrencyProvider>
-          <TradingProvider>
-            <AiTradingProvider>
-              <Router>
-                <div className="min-h-screen bg-background">
-                  <EnhancedNavigation />
-                  <main className="container mx-auto p-4 pb-20 md:pb-4">
-                    <React.Suspense fallback={<LoadingSpinner />}>
-                      <Routes>
-                        {/* Main platform routes */}
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/trading" element={<EnhancedFakeTrading />} />
-                        <Route path="/ai-bots" element={<ComprehensiveAiTradingDashboard />} />
-                        <Route path="/analytics" element={<LiveAnalyticsDashboard />} />
-                        <Route path="/news" element={<NewsAndSentimentDashboard />} />
-                        <Route path="/web3" element={<Web3WalletDashboard />} />
-                        <Route path="/social" element={<SocialTradingDashboard />} />
-                        
-                        {/* Utility routes */}
-                        <Route path="/subscription" element={<SubscriptionPlans />} />
-                        <Route path="/status" element={<ProjectStatus />} />
-                        <Route path="/testing" element={<PlatformTestDashboard />} />
-                        
-                        {/* Auth and landing pages */}
-                        <Route path="/landing" element={<LandingPage />} />
-                        <Route path="/auth" element={<AuthPage />} />
-                        
-                        {/* Redirect unknown routes to dashboard */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </React.Suspense>
-                  </main>
-                  <Toaster />
-                </div>
-              </Router>
-            </AiTradingProvider>
-          </TradingProvider>
-        </CurrencyProvider>
-      </AuthProvider>
-    </ErrorBoundary>
-  );
-}
 
 export default App;

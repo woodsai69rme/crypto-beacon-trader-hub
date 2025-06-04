@@ -244,7 +244,7 @@ export interface BacktestResult {
 }
 
 // Widget and Dashboard Types
-export type WidgetType = 'chart' | 'portfolio' | 'news' | 'trade' | 'performance' | 'custom';
+export type WidgetType = 'chart' | 'portfolio' | 'news' | 'trade' | 'performance' | 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis';
 export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
 
 export interface Widget {
@@ -268,7 +268,7 @@ export interface PriceCorrelationChartProps {
   coins: CoinOption[];
 }
 
-// Risk Assessment Types - FIXED ALL MISSING PROPERTIES
+// Risk Assessment Types
 export interface RiskAssessmentResult {
   score: number;
   overallScore: number;
@@ -287,7 +287,7 @@ export interface RiskAssessmentResult {
   riskByAsset: Record<string, { score: number; factors: string[] }>;
 }
 
-// Wallet Types - FIXED ALL MISSING PROPERTIES
+// Wallet Types
 export interface WalletAccount {
   address: string;
   balance: number;
@@ -312,13 +312,13 @@ export interface WalletConnectionProps {
   onDisconnect: () => void;
 }
 
-// Tax and Compliance Types - FIXED ALL MISSING PROPERTIES
+// Tax and Compliance Types
 export interface ATOTaxCalculation {
   capitalGains: number;
   taxableIncome: number;
   taxOwed: number;
   effectiveRate: number;
-  bracket: string;
+  bracket: TaxBracket;
   year?: number;
   gains?: number;
   losses?: number;
@@ -348,7 +348,7 @@ export interface TaxHarvestTradeItem {
   recommendedAction: 'sell' | 'hold';
 }
 
-// AI Portfolio Optimization Types - FIXED ALL MISSING PROPERTIES
+// AI Portfolio Optimization Types
 export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon: 'short' | 'medium' | 'long';
@@ -359,6 +359,8 @@ export interface OptimizationSettings {
     maxPosition?: number;
     minPosition?: number;
     sectors?: string[];
+    maxAssetAllocation?: number;
+    minCash?: number;
   };
 }
 
@@ -381,6 +383,8 @@ export interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   headers?: Record<string, string>;
   rateLimit: number;
+  path?: string;
+  description?: string;
 }
 
 export interface ApiUsageStats {
@@ -394,6 +398,10 @@ export interface ApiUsageStats {
   successfulCalls?: number;
   failedCalls?: number;
   avgResponseTime?: number;
+  currentUsage?: number;
+  maxUsage?: number;
+  service?: string;
+  resetTime?: string;
 }
 
 // DeFi Types
@@ -404,6 +412,11 @@ export interface DefiProtocol {
   apy: number;
   category: string;
   riskLevel: 'low' | 'medium' | 'high';
+  chain?: string;
+  logoUrl?: string;
+  description?: string;
+  risk?: string;
+  url?: string;
 }
 
 export interface DefiPosition {
@@ -413,6 +426,10 @@ export interface DefiPosition {
   value: number;
   apy: number;
   rewards: number;
+  id?: string;
+  protocolName?: string;
+  type?: string;
+  assetSymbol?: string;
 }
 
 // Trading Form Types
@@ -467,11 +484,16 @@ export interface MarketInsightsResponse {
   marketSentiment: 'bullish' | 'bearish' | 'neutral';
 }
 
-// Real-time Price Types - FIXED MISSING PROPERTIES
+// Real-time Price Types
 export interface RealTimePriceChartProps {
   symbol: string;
   interval: string;
   height?: number;
+  coinId?: string;
+  selectedCoinId?: string;
+  onSelectCoin?: (coinId: string) => void;
+  availableCoins: CoinOption[];
+  updateInterval?: number;
 }
 
 export interface RealTimePricesProps {
@@ -481,7 +503,7 @@ export interface RealTimePricesProps {
   selectedCoinId?: string;
 }
 
-// Dashboard Props Types - FIXED MISSING PROPERTIES
+// Dashboard Props Types
 export interface DetachedAiTradingDashboardProps {
   onClose: () => void;
   isDetached: boolean;
