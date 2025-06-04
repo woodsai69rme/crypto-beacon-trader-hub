@@ -25,7 +25,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 12500000000,
       apy: 4.2,
-      risk: 'low',
+      riskLevel: 'low',
       url: 'https://aave.com',
       logoUrl: 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',
       description: 'Decentralized liquidity protocol'
@@ -37,7 +37,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 8900000000,
       apy: 3.8,
-      risk: 'low',
+      riskLevel: 'low',
       url: 'https://compound.finance',
       logoUrl: 'https://assets.coingecko.com/coins/images/10775/large/COMP.png',
       description: 'Algorithmic money market protocol'
@@ -49,7 +49,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 15600000000,
       apy: 12.5,
-      risk: 'medium',
+      riskLevel: 'medium',
       url: 'https://uniswap.org',
       logoUrl: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
       description: 'Decentralized exchange protocol'
@@ -61,7 +61,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 2100000000,
       apy: 8.7,
-      risk: 'medium',
+      riskLevel: 'medium',
       url: 'https://yearn.finance',
       logoUrl: 'https://assets.coingecko.com/coins/images/11849/large/yfi-192x192.png',
       description: 'Yield optimization protocol'
@@ -73,7 +73,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 6800000000,
       apy: 6.3,
-      risk: 'low',
+      riskLevel: 'low',
       url: 'https://curve.fi',
       logoUrl: 'https://assets.coingecko.com/coins/images/12124/large/Curve.png',
       description: 'Stablecoin exchange protocol'
@@ -85,7 +85,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 32000000000,
       apy: 5.2,
-      risk: 'low',
+      riskLevel: 'low',
       url: 'https://lido.fi',
       logoUrl: 'https://assets.coingecko.com/coins/images/13573/large/Lido_DAO.png',
       description: 'Liquid staking protocol'
@@ -97,7 +97,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'BSC',
       tvl: 4200000000,
       apy: 15.8,
-      risk: 'medium',
+      riskLevel: 'medium',
       url: 'https://pancakeswap.finance',
       logoUrl: 'https://assets.coingecko.com/coins/images/12632/large/pancakeswap-cake-logo.png',
       description: 'BSC-based DEX and yield farming'
@@ -109,7 +109,7 @@ const DefiProtocolIntegration: React.FC = () => {
       chain: 'Ethereum',
       tvl: 1800000000,
       apy: 9.4,
-      risk: 'medium',
+      riskLevel: 'medium',
       url: 'https://sushi.com',
       logoUrl: 'https://assets.coingecko.com/coins/images/12271/large/512x512_Logo_no_chop.png',
       description: 'Community-driven DEX'
@@ -124,6 +124,7 @@ const DefiProtocolIntegration: React.FC = () => {
       type: 'lending',
       assetId: 'ethereum',
       assetSymbol: 'ETH',
+      asset: 'ETH',
       amount: 5.5,
       value: 16000,
       apy: 4.2,
@@ -144,6 +145,7 @@ const DefiProtocolIntegration: React.FC = () => {
       type: 'liquidity',
       assetId: 'ethereum',
       assetSymbol: 'ETH-USDC',
+      asset: 'ETH-USDC',
       amount: 10000,
       value: 10000,
       apy: 12.5,
@@ -155,8 +157,8 @@ const DefiProtocolIntegration: React.FC = () => {
   const totalValueLocked = positions.reduce((sum, pos) => sum + pos.value, 0);
   const averageAPY = positions.reduce((sum, pos) => sum + pos.apy, 0) / positions.length;
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
+  const getRiskColor = (riskLevel: string) => {
+    switch (riskLevel) {
       case 'low': return 'text-green-600';
       case 'medium': return 'text-yellow-600';
       case 'high': return 'text-red-600';
@@ -164,8 +166,8 @@ const DefiProtocolIntegration: React.FC = () => {
     }
   };
 
-  const getRiskBadge = (risk: string) => {
-    switch (risk) {
+  const getRiskBadge = (riskLevel: string) => {
+    switch (riskLevel) {
       case 'low': return 'secondary';
       case 'medium': return 'default';
       case 'high': return 'destructive';
@@ -282,8 +284,8 @@ const DefiProtocolIntegration: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
-                      <Badge variant={getRiskBadge(protocol.risk)}>
-                        {protocol.risk} risk
+                      <Badge variant={getRiskBadge(protocol.riskLevel)}>
+                        {protocol.riskLevel} risk
                       </Badge>
                     </div>
                     <div className="flex gap-2">
@@ -344,8 +346,8 @@ const DefiProtocolIntegration: React.FC = () => {
                         <p className="text-sm text-muted-foreground">Rewards</p>
                         <p className="font-medium">
                           {position.rewards && position.rewards.length > 0 
-                            ? `${position.rewards.reduce((sum, r) => sum + r.value, 0).toLocaleString()}`
-                            : '0'
+                            ? `$${position.rewards.reduce((sum, r) => sum + r.value, 0).toLocaleString()}`
+                            : '$0'
                           }
                         </p>
                       </div>

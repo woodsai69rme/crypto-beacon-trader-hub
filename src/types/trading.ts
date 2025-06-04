@@ -257,17 +257,6 @@ export interface Widget {
   customContent?: string;
 }
 
-// Correlation and Analysis Types
-export interface CorrelationHeatmapProps {
-  correlationData: number[][];
-  coins: CoinOption[];
-  onCoinSelect?: (coin: CoinOption) => void;
-}
-
-export interface PriceCorrelationChartProps {
-  coins: CoinOption[];
-}
-
 // Risk Assessment Types
 export interface RiskAssessmentResult {
   score: number;
@@ -313,6 +302,14 @@ export interface WalletConnectionProps {
 }
 
 // Tax and Compliance Types
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  name: string;
+  bracket?: string;
+}
+
 export interface ATOTaxCalculation {
   capitalGains: number;
   taxableIncome: number;
@@ -329,13 +326,10 @@ export interface ATOTaxCalculation {
   effectiveTaxRate?: number;
   taxRefundOrOwed?: number;
   transactions?: any[];
-}
-
-export interface TaxBracket {
-  min: number;
-  max: number;
-  rate: number;
-  name: string;
+  netCapitalGain?: number;
+  taxableAmount?: number;
+  incomeTax?: number;
+  medicareLevy?: number;
 }
 
 export interface TaxHarvestTradeItem {
@@ -343,8 +337,11 @@ export interface TaxHarvestTradeItem {
   symbol: string;
   quantity: number;
   currentPrice: number;
+  currentValue?: number;
   costBasis: number;
   unrealizedLoss: number;
+  profitLoss?: number;
+  purchaseDate?: string;
   recommendedAction: 'sell' | 'hold';
 }
 
@@ -425,11 +422,13 @@ export interface DefiPosition {
   amount: number;
   value: number;
   apy: number;
-  rewards: number;
+  rewards: any[];
   id?: string;
   protocolName?: string;
   type?: string;
   assetSymbol?: string;
+  assetId?: string;
+  startDate?: string;
 }
 
 // Trading Form Types
@@ -504,6 +503,14 @@ export interface RealTimePricesProps {
 }
 
 // Dashboard Props Types
+export interface DetachableDashboardProps {
+  title: string;
+  onDetach: () => void;
+  isDetached: boolean;
+  children: React.ReactNode;
+  onClose?: () => void;
+}
+
 export interface DetachedAiTradingDashboardProps {
   onClose: () => void;
   isDetached: boolean;
@@ -513,15 +520,15 @@ export interface DetachedAiTradingDashboardProps {
   darkMode?: boolean;
 }
 
-export interface DetachableDashboardProps {
-  title: string;
-  onDetach: () => void;
-  isDetached: boolean;
-  children: React.ReactNode;
-}
-
 export interface AiBotTradingProps {
   botId: string;
+  onClose?: () => void;
+}
+
+export interface ExtendedAiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
   onClose?: () => void;
 }
 
@@ -530,37 +537,43 @@ export interface NewsTickerProps {
   items: NewsItem[];
   speed?: number;
   direction?: 'left' | 'right';
+  className?: string;
 }
 
 // Portfolio Benchmarking Types
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance: number[];
   portfolioDates: string[];
-  benchmarks?: {
-    name: string;
-    performance: number[];
-    color: string;
-  }[];
+  benchmarks?: string[];
   timeframe?: string;
 }
 
 // Settings Types
+export interface TickerSettings {
+  enabled: boolean;
+  position: 'top' | 'bottom' | 'both';
+  speed: number;
+  direction: 'left' | 'right';
+  autoPause: boolean;
+}
+
+export interface SidebarSettings {
+  enabled: boolean;
+  position: 'left' | 'right';
+  defaultCollapsed: boolean;
+  showLabels: boolean;
+  collapsed?: boolean;
+}
+
 export interface SettingsFormValues {
-  theme: ColorScheme;
-  currency: SupportedCurrency;
+  theme: string;
+  currency: string;
+  language?: string;
   notifications: {
     email: boolean;
     push: boolean;
-    sms: boolean;
+    app: boolean;
   };
-  trading: {
-    defaultAmount: number;
-    riskLevel: 'low' | 'medium' | 'high';
-    autoTrade: boolean;
-  };
-  privacy: {
-    shareData: boolean;
-    analytics: boolean;
-    marketing: boolean;
-  };
+  tickerSettings: TickerSettings;
+  sidebarSettings: SidebarSettings;
 }

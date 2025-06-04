@@ -30,7 +30,7 @@ const defaultSidebarSettings: SidebarSettings = {
 
 const defaultSettings: SettingsFormValues = {
   theme: 'dark',
-  currency: 'USD',
+  currency: 'AUD',
   language: 'en',
   notifications: {
     email: false,
@@ -50,7 +50,7 @@ const UIContext = createContext<UIContextType>({
   settings: defaultSettings
 });
 
-export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UIContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<SettingsFormValues>(defaultSettings);
   
   // Load settings from localStorage on mount
@@ -138,3 +138,6 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 };
 
 export const useUI = () => useContext(UIContext);
+
+// Also export as UIProvider for compatibility
+export const UIProvider = UIContextProvider;
