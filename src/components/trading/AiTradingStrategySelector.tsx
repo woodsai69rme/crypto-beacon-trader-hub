@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { AITradingStrategy } from '@/types/trading';
-import { TrendingUp, TrendingDown, Zap, Target, Grid, RefreshCw, Brain, Heart, BarChart3, Sparkles, Settings, Code } from 'lucide-react';
+import { TrendingUp, Target, Zap, Grid3X3, ArrowLeftRight, Activity, Brain, Eye, Shuffle, Wrench } from 'lucide-react';
 
 interface AiTradingStrategySelectorProps {
   onSelectStrategy: (strategy: AITradingStrategy) => void;
@@ -22,192 +21,286 @@ const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
     {
       id: 'trend-following-advanced',
       name: 'Advanced Trend Following',
-      description: 'AI-powered trend detection with multi-timeframe analysis and momentum confirmation',
+      description: 'Multi-timeframe trend analysis with AI confirmation and dynamic position sizing',
       type: 'trend-following',
+      timeframe: 24,
       riskLevel: 'medium',
       profitPotential: 'high',
-      timeframe: 24,
-      indicators: ['MACD', 'EMA', 'ADX', 'Volume Profile'],
-      triggers: ['Trend confirmation', 'Volume spike', 'Momentum alignment'],
+      indicators: ['EMA', 'MACD', 'ADX', 'Volume Profile'],
+      triggers: ['Trend Confirmation', 'Momentum Divergence'],
       parameters: {
-        fastEma: 12,
-        slowEma: 26,
+        fastEMA: 12,
+        slowEMA: 26,
+        signalLine: 9,
         adxThreshold: 25,
         volumeMultiplier: 1.5
       },
       backtestResults: {
         winRate: 68,
-        profitFactor: 1.85,
-        maxDrawdown: 12,
-        sharpeRatio: 1.42
+        profitFactor: 2.1,
+        maxDrawdown: 15,
+        sharpeRatio: 1.4
       }
     },
     {
-      id: 'mean-reversion-ml',
-      name: 'ML Mean Reversion',
-      description: 'Machine learning model that identifies overextended price movements for contrarian trades',
+      id: 'mean-reversion-pro',
+      name: 'Pro Mean Reversion',
+      description: 'Statistical mean reversion with Bollinger Bands and RSI confluence',
       type: 'mean-reversion',
+      timeframe: 4,
       riskLevel: 'low',
       profitPotential: 'medium',
-      timeframe: 168,
-      indicators: ['Bollinger Bands', 'RSI', 'Z-Score', 'Standard Deviation'],
-      triggers: ['Oversold/Overbought', 'Statistical deviation', 'Reversion signal'],
+      indicators: ['Bollinger Bands', 'RSI', 'Stochastic', 'Z-Score'],
+      triggers: ['Oversold Recovery', 'Band Squeeze'],
       parameters: {
-        lookbackPeriod: 20,
-        zScoreThreshold: 2.0,
-        rsiLower: 30,
-        rsiUpper: 70
+        bbPeriod: 20,
+        bbStdDev: 2,
+        rsiPeriod: 14,
+        rsiOversold: 30,
+        rsiOverbought: 70
       },
       backtestResults: {
-        winRate: 74,
-        profitFactor: 1.52,
+        winRate: 72,
+        profitFactor: 1.6,
         maxDrawdown: 8,
-        sharpeRatio: 1.68
+        sharpeRatio: 1.8
+      }
+    },
+    {
+      id: 'grid-trading-dynamic',
+      name: 'Dynamic Grid Trading',
+      description: 'Adaptive grid system that adjusts spacing based on volatility',
+      type: 'grid',
+      timeframe: 1,
+      riskLevel: 'low',
+      profitPotential: 'medium',
+      indicators: ['ATR', 'Volume', 'Support/Resistance'],
+      triggers: ['Grid Level Hit', 'Volatility Change'],
+      parameters: {
+        gridLevels: 10,
+        baseSpacing: 0.01,
+        volatilityAdjustment: true,
+        maxPosition: 0.1
+      },
+      backtestResults: {
+        winRate: 85,
+        profitFactor: 1.3,
+        maxDrawdown: 5,
+        sharpeRatio: 2.1
       }
     },
     {
       id: 'breakout-momentum',
-      name: 'Breakout Momentum',
-      description: 'Captures explosive price movements after consolidation periods with volume confirmation',
+      name: 'Momentum Breakout',
+      description: 'Identifies and trades significant price breakouts with volume confirmation',
       type: 'breakout',
-      riskLevel: 'high',
+      timeframe: 8,
+      riskLevel: 'medium',
       profitPotential: 'high',
-      timeframe: 1,
-      indicators: ['ATR', 'Volume', 'Support/Resistance', 'Volatility Squeeze'],
-      triggers: ['Price breakout', 'Volume explosion', 'Volatility expansion'],
+      indicators: ['Support/Resistance', 'Volume', 'ATR', 'Momentum'],
+      triggers: ['Volume Breakout', 'Price Breakout'],
       parameters: {
-        atrMultiplier: 2.0,
-        volumeThreshold: 200,
-        squeezePeriod: 20
+        breakoutThreshold: 0.02,
+        volumeMultiplier: 2.0,
+        confirmationCandles: 2
       },
       backtestResults: {
-        winRate: 45,
-        profitFactor: 2.15,
+        winRate: 58,
+        profitFactor: 2.8,
         maxDrawdown: 18,
-        sharpeRatio: 1.28
+        sharpeRatio: 1.3
       }
     },
     {
-      id: 'grid-trading-ai',
-      name: 'AI Grid Trading',
-      description: 'Intelligent grid system that adapts to market volatility and adjusts grid spacing dynamically',
-      type: 'grid',
+      id: 'arbitrage-cross-exchange',
+      name: 'Cross-Exchange Arbitrage',
+      description: 'Exploits price differences across multiple exchanges with real-time monitoring',
+      type: 'arbitrage',
+      timeframe: 0.1,
+      riskLevel: 'medium',
+      profitPotential: 'high',
+      indicators: ['Price Spread', 'Volume', 'Order Book Depth'],
+      triggers: ['Spread Threshold', 'Liquidity Check'],
+      parameters: {
+        minSpread: 0.005,
+        maxExposure: 0.1,
+        exchanges: ['Binance', 'Coinbase', 'Kraken']
+      },
+      backtestResults: {
+        winRate: 92,
+        profitFactor: 1.8,
+        maxDrawdown: 3,
+        sharpeRatio: 3.2
+      }
+    },
+    {
+      id: 'scalping-ai',
+      name: 'AI Scalping',
+      description: 'High-frequency scalping with AI pattern recognition',
+      type: 'scalping',
+      timeframe: 0.25,
+      riskLevel: 'high',
+      profitPotential: 'medium',
+      indicators: ['Order Flow', 'Level II', 'Tick Volume'],
+      triggers: ['Micro Pattern', 'Liquidity Imbalance'],
+      parameters: {
+        targetProfit: 0.001,
+        stopLoss: 0.0005,
+        maxTrades: 100
+      },
+      backtestResults: {
+        winRate: 65,
+        profitFactor: 1.4,
+        maxDrawdown: 12,
+        sharpeRatio: 1.1
+      }
+    },
+    {
+      id: 'momentum-ml',
+      name: 'ML Momentum',
+      description: 'Machine learning enhanced momentum trading with predictive analytics',
+      type: 'momentum',
+      timeframe: 12,
+      riskLevel: 'medium',
+      profitPotential: 'high',
+      indicators: ['ML Predictions', 'Momentum Oscillator', 'Rate of Change'],
+      triggers: ['ML Signal', 'Momentum Acceleration'],
+      parameters: {
+        lookbackPeriod: 50,
+        predictionHorizon: 24,
+        confidenceThreshold: 0.7
+      },
+      backtestResults: {
+        winRate: 71,
+        profitFactor: 2.3,
+        maxDrawdown: 14,
+        sharpeRatio: 1.6
+      }
+    },
+    {
+      id: 'pattern-recognition-ai',
+      name: 'AI Pattern Recognition',
+      description: 'Advanced pattern detection using computer vision and machine learning',
+      type: 'pattern-recognition',
+      timeframe: 6,
+      riskLevel: 'medium',
+      profitPotential: 'high',
+      indicators: ['Chart Patterns', 'Fibonacci', 'Support/Resistance'],
+      triggers: ['Pattern Completion', 'Breakout Confirmation'],
+      parameters: {
+        patternTypes: ['Head & Shoulders', 'Triangles', 'Flags', 'Wedges'],
+        minReliability: 0.8,
+        confirmationBars: 3
+      },
+      backtestResults: {
+        winRate: 66,
+        profitFactor: 2.0,
+        maxDrawdown: 16,
+        sharpeRatio: 1.3
+      }
+    },
+    {
+      id: 'sentiment-driven',
+      name: 'Sentiment-Driven Trading',
+      description: 'Social sentiment and news analysis for trading decisions',
+      type: 'sentiment',
+      timeframe: 2,
       riskLevel: 'medium',
       profitPotential: 'medium',
-      timeframe: 24,
-      indicators: ['ATR', 'Volatility', 'Price Range', 'Support/Resistance'],
-      triggers: ['Range identification', 'Grid level hit', 'Volatility adjustment'],
+      indicators: ['Social Sentiment', 'News Sentiment', 'Fear & Greed'],
+      triggers: ['Sentiment Shift', 'News Event'],
       parameters: {
-        gridLevels: 10,
-        minSpacing: 0.5,
-        maxSpacing: 2.0
+        sentimentSources: ['Twitter', 'Reddit', 'News'],
+        sentimentThreshold: 0.6,
+        newsWeight: 0.4
       },
       backtestResults: {
-        winRate: 82,
-        profitFactor: 1.35,
-        maxDrawdown: 6,
-        sharpeRatio: 1.95
+        winRate: 62,
+        profitFactor: 1.7,
+        maxDrawdown: 11,
+        sharpeRatio: 1.2
       }
     },
     {
-      id: 'sentiment-neural',
-      name: 'Neural Sentiment Analysis',
-      description: 'Deep learning model analyzing news, social media, and on-chain data for sentiment-driven trades',
-      type: 'sentiment',
-      riskLevel: 'medium',
+      id: 'ml-hybrid',
+      name: 'ML Hybrid Strategy',
+      description: 'Combines multiple ML models for comprehensive market analysis',
+      type: 'machine-learning',
+      timeframe: 8,
+      riskLevel: 'high',
       profitPotential: 'high',
-      timeframe: 24,
-      indicators: ['Sentiment Score', 'News Volume', 'Social Buzz', 'Fear & Greed Index'],
-      triggers: ['Sentiment shift', 'News catalyst', 'Social momentum'],
+      indicators: ['Ensemble Models', 'Feature Engineering', 'Deep Learning'],
+      triggers: ['Model Consensus', 'Confidence Threshold'],
       parameters: {
-        sentimentThreshold: 0.7,
-        newsWeight: 0.4,
-        socialWeight: 0.3
+        models: ['LSTM', 'Random Forest', 'XGBoost'],
+        ensembleWeights: [0.4, 0.3, 0.3],
+        retrainInterval: 168
       },
       backtestResults: {
-        winRate: 61,
-        profitFactor: 1.78,
-        maxDrawdown: 14,
-        sharpeRatio: 1.33
-      }
-    },
-    {
-      id: 'arbitrage-scanner',
-      name: 'Cross-Exchange Arbitrage',
-      description: 'Scans multiple exchanges for price discrepancies and executes arbitrage opportunities',
-      type: 'arbitrage',
-      riskLevel: 'low',
-      profitPotential: 'low',
-      timeframe: 1,
-      indicators: ['Price Spread', 'Volume', 'Latency', 'Fees'],
-      triggers: ['Price differential', 'Liquidity check', 'Execution window'],
-      parameters: {
-        minSpread: 0.3,
-        maxSlippage: 0.1,
-        feeThreshold: 0.2
-      },
-      backtestResults: {
-        winRate: 95,
-        profitFactor: 1.18,
-        maxDrawdown: 2,
-        sharpeRatio: 2.85
+        winRate: 74,
+        profitFactor: 2.5,
+        maxDrawdown: 13,
+        sharpeRatio: 1.9
       }
     }
   ];
 
-  const categories = [
-    { id: 'all', name: 'All Strategies', icon: Sparkles },
-    { id: 'trend-following', name: 'Trend Following', icon: TrendingUp },
-    { id: 'mean-reversion', name: 'Mean Reversion', icon: TrendingDown },
-    { id: 'breakout', name: 'Breakout', icon: Zap },
-    { id: 'grid', name: 'Grid Trading', icon: Grid },
-    { id: 'sentiment', name: 'Sentiment', icon: Heart },
-    { id: 'arbitrage', name: 'Arbitrage', icon: RefreshCw }
-  ];
-
-  const filteredStrategies = selectedCategory === 'all' 
-    ? strategies 
-    : strategies.filter(s => s.type === selectedCategory);
+  const getStrategyIcon = (type: string) => {
+    switch (type) {
+      case 'trend-following': return <TrendingUp className="h-5 w-5" />;
+      case 'mean-reversion': return <Target className="h-5 w-5" />;
+      case 'breakout': return <Zap className="h-5 w-5" />;
+      case 'grid': return <Grid3X3 className="h-5 w-5" />;
+      case 'arbitrage': return <ArrowLeftRight className="h-5 w-5" />;
+      case 'scalping': return <Activity className="h-5 w-5" />;
+      case 'momentum': return <TrendingUp className="h-5 w-5" />;
+      case 'pattern-recognition': return <Eye className="h-5 w-5" />;
+      case 'sentiment': return <Brain className="h-5 w-5" />;
+      case 'machine-learning': return <Brain className="h-5 w-5" />;
+      default: return <Wrench className="h-5 w-5" />;
+    }
+  };
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getProfitColor = (profit: string) => {
-    switch (profit) {
-      case 'low': return 'text-gray-600';
-      case 'medium': return 'text-blue-600';
-      case 'high': return 'text-green-600';
-      default: return 'text-gray-600';
-    }
-  };
+  const categories = [
+    { id: 'all', name: 'All Strategies' },
+    { id: 'conservative', name: 'Conservative' },
+    { id: 'aggressive', name: 'Aggressive' },
+    { id: 'ai-powered', name: 'AI-Powered' }
+  ];
+
+  const filteredStrategies = strategies.filter(strategy => {
+    if (selectedCategory === 'all') return true;
+    if (selectedCategory === 'conservative') return strategy.riskLevel === 'low';
+    if (selectedCategory === 'aggressive') return strategy.riskLevel === 'high';
+    if (selectedCategory === 'ai-powered') return ['machine-learning', 'sentiment', 'pattern-recognition'].includes(strategy.type);
+    return true;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {categories.map(category => {
-          const Icon = category.icon;
-          return (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.id ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(category.id)}
-              className="flex items-center gap-2"
-            >
-              <Icon className="h-4 w-4" />
-              {category.name}
-            </Button>
-          );
-        })}
+        {categories.map(category => (
+          <Button
+            key={category.id}
+            variant={selectedCategory === category.id ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedCategory(category.id)}
+          >
+            {category.name}
+          </Button>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredStrategies.map(strategy => (
           <Card 
             key={strategy.id} 
@@ -216,76 +309,76 @@ const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
             }`}
             onClick={() => onSelectStrategy(strategy)}
           >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {getStrategyIcon(strategy.type)}
                   <CardTitle className="text-lg">{strategy.name}</CardTitle>
-                  <CardDescription className="mt-1">
-                    {strategy.description}
-                  </CardDescription>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <Badge className={getRiskColor(strategy.riskLevel)} variant="outline">
-                    {strategy.riskLevel} risk
-                  </Badge>
-                  <Badge variant="outline" className={getProfitColor(strategy.profitPotential)}>
-                    {strategy.profitPotential} profit
-                  </Badge>
-                </div>
+                <Badge className={getRiskColor(strategy.riskLevel || 'medium')}>
+                  {strategy.riskLevel} risk
+                </Badge>
               </div>
+              <CardDescription className="text-sm">
+                {strategy.description}
+              </CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-4">
-              {/* Performance Metrics */}
-              {strategy.backtestResults && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-muted-foreground">Win Rate</span>
-                      <span className="font-medium">{strategy.backtestResults.winRate}%</span>
-                    </div>
-                    <Progress value={strategy.backtestResults.winRate} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-muted-foreground">Profit Factor</span>
-                      <span className="font-medium">{strategy.backtestResults.profitFactor}</span>
-                    </div>
-                    <Progress value={(strategy.backtestResults.profitFactor - 1) * 50} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-muted-foreground">Max Drawdown</span>
-                      <span className="font-medium text-red-600">{strategy.backtestResults.maxDrawdown}%</span>
-                    </div>
-                    <Progress value={100 - strategy.backtestResults.maxDrawdown} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-muted-foreground">Sharpe Ratio</span>
-                      <span className="font-medium">{strategy.backtestResults.sharpeRatio}</span>
-                    </div>
-                    <Progress value={strategy.backtestResults.sharpeRatio * 33.33} className="h-2" />
-                  </div>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Timeframe:</span>
+                  <span className="font-medium">{strategy.timeframe}h</span>
                 </div>
-              )}
 
-              {/* Indicators */}
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Key Indicators</p>
+                {strategy.backtestResults && (
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Win Rate:</span>
+                      <div className="font-medium text-green-600">
+                        {strategy.backtestResults.winRate}%
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Profit Factor:</span>
+                      <div className="font-medium">
+                        {strategy.backtestResults.profitFactor}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Max Drawdown:</span>
+                      <div className="font-medium text-red-600">
+                        {strategy.backtestResults.maxDrawdown}%
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Sharpe Ratio:</span>
+                      <div className="font-medium">
+                        {strategy.backtestResults.sharpeRatio}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-1">
-                  {strategy.indicators?.map(indicator => (
-                    <Badge key={indicator} variant="secondary" className="text-xs">
+                  {strategy.indicators?.slice(0, 3).map(indicator => (
+                    <Badge key={indicator} variant="outline" className="text-xs">
                       {indicator}
                     </Badge>
                   ))}
+                  {strategy.indicators && strategy.indicators.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{strategy.indicators.length - 3} more
+                    </Badge>
+                  )}
                 </div>
-              </div>
 
-              {/* Timeframe */}
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Timeframe</span>
-                <span className="font-medium">{strategy.timeframe}h</span>
+                <Button 
+                  className="w-full" 
+                  variant={selectedStrategyId === strategy.id ? 'default' : 'outline'}
+                >
+                  {selectedStrategyId === strategy.id ? 'Selected' : 'Select Strategy'}
+                </Button>
               </div>
             </CardContent>
           </Card>

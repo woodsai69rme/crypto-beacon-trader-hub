@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import Navigation from '@/components/Navigation';
+import EnhancedNavigation from '@/components/navigation/EnhancedNavigation';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { TradingProvider } from '@/contexts/TradingContext';
@@ -38,8 +38,8 @@ function App() {
             <AiTradingProvider>
               <Router>
                 <div className="min-h-screen bg-background">
-                  <Navigation />
-                  <main className="container mx-auto p-4">
+                  <EnhancedNavigation />
+                  <main className="container mx-auto p-4 pb-20 md:pb-4">
                     <React.Suspense fallback={<LoadingSpinner />}>
                       <Routes>
                         {/* Main platform routes */}

@@ -1,30 +1,18 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AITradingStrategy } from '@/types/trading';
+import { AITradingStrategy, AIBot, AuditLogEntry } from '@/types/trading';
 import { useToast } from '@/hooks/use-toast';
-
-export interface AIBot {
-  id: string;
-  name: string;
-  strategy: string;
-  status: 'active' | 'paused' | 'stopped';
-  performance: {
-    totalReturn: number;
-    winRate: number;
-    trades: number;
-  };
-  model: string;
-  createdAt: string;
-}
 
 interface AiTradingContextType {
   bots: AIBot[];
+  activeBots: AIBot[];
   strategies: AITradingStrategy[];
   createBot: (config: Partial<AIBot>) => string;
   toggleBot: (botId: string) => void;
   deleteBot: (botId: string) => void;
   getBotPerformance: (botId: string) => any;
   addStrategy: (strategy: AITradingStrategy) => void;
+  addAuditEntry: (botId: string, entry: AuditLogEntry) => void;
 }
 
 const AiTradingContext = createContext<AiTradingContextType | undefined>(undefined);
@@ -34,12 +22,49 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [strategies, setStrategies] = useState<AITradingStrategy[]>([]);
   const { toast } = useToast();
 
+  // Computed property for active bots
+  const activeBots = bots.filter(bot => bot.status === 'active');
+
   useEffect(() => {
     // Load saved bots from localStorage
     const savedBots = localStorage.getItem('ai-trading-bots');
     if (savedBots) {
       setBots(JSON.parse(savedBots));
     }
+
+    // Initialize with sample strategies
+    setStrategies([
+      {
+        id: 'trend-following-1',
+        name: 'Advanced Trend Following',
+        description: 'Multi-timeframe trend analysis with AI confirmation',
+        type: 'trend-following',
+        timeframe: 24,
+        parameters: { fastMA: 20, slowMA: 50, rsiPeriod: 14 },
+        riskLevel: 'medium',
+        profitPotential: 'high'
+      },
+      {
+        id: 'grid-trading-1',
+        name: 'Grid Trading Bot',
+        description: 'Automated grid trading with dynamic grid adjustment',
+        type: 'grid',
+        timeframe: 1,
+        parameters: { gridSpacing: 0.01, gridCount: 10 },
+        riskLevel: 'low',
+        profitPotential: 'medium'
+      },
+      {
+        id: 'arbitrage-1',
+        name: 'Cross-Exchange Arbitrage',
+        description: 'Identify and execute arbitrage opportunities across exchanges',
+        type: 'arbitrage',
+        timeframe: 0.1,
+        parameters: { minSpread: 0.005, maxExposure: 0.1 },
+        riskLevel: 'medium',
+        profitPotential: 'high'
+      }
+    ]);
   }, []);
 
   const createBot = (config: Partial<AIBot>): string => {
@@ -48,9 +73,21 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       name: config.name || 'New Trading Bot',
       strategy: config.strategy || 'trend-following',
       status: 'paused',
-      performance: { totalReturn: 0, winRate: 0, trades: 0 },
+      isActive: false,
       model: config.model || 'deepseek/deepseek-r1',
       createdAt: new Date().toISOString(),
+      riskLevel: config.riskLevel || 'medium',
+      maxTradeAmount: config.maxTradeAmount || 1000,
+      targetAssets: config.targetAssets || ['BTC', 'ETH'],
+      performance: {
+        totalReturn: 0,
+        winRate: 0,
+        trades: 0,
+        totalTrades: 0,
+        maxDrawdown: 0,
+        sharpeRatio: 0
+      },
+      auditLog: [],
       ...config
     };
 
@@ -70,11 +107,27 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const updatedBots = bots.map(bot => {
       if (bot.id === botId) {
         const newStatus = bot.status === 'active' ? 'paused' : 'active';
+        const isActive = newStatus === 'active';
+        
+        // Add audit entry
+        const auditEntry: AuditLogEntry = {
+          id: `audit-${Date.now()}`,
+          action: isActive ? 'BOT_STARTED' : 'BOT_STOPPED',
+          timestamp: new Date().toISOString(),
+          reasoning: `Bot ${isActive ? 'activated' : 'deactivated'} by user`
+        };
+
         toast({
-          title: `Bot ${newStatus === 'active' ? 'Started' : 'Paused'}`,
+          title: `Bot ${isActive ? 'Started' : 'Paused'}`,
           description: `${bot.name} is now ${newStatus}.`
         });
-        return { ...bot, status: newStatus };
+
+        return { 
+          ...bot, 
+          status: newStatus, 
+          isActive,
+          auditLog: [...bot.auditLog, auditEntry]
+        };
       }
       return bot;
     });
@@ -96,22 +149,38 @@ export const AiTradingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const getBotPerformance = (botId: string) => {
     const bot = bots.find(b => b.id === botId);
-    return bot?.performance || { totalReturn: 0, winRate: 0, trades: 0 };
+    return bot?.performance || { totalReturn: 0, winRate: 0, trades: 0, totalTrades: 0, maxDrawdown: 0, sharpeRatio: 0 };
   };
 
   const addStrategy = (strategy: AITradingStrategy) => {
     setStrategies(prev => [...prev, strategy]);
   };
 
+  const addAuditEntry = (botId: string, entry: AuditLogEntry) => {
+    const updatedBots = bots.map(bot => {
+      if (bot.id === botId) {
+        return {
+          ...bot,
+          auditLog: [...bot.auditLog, entry]
+        };
+      }
+      return bot;
+    });
+    setBots(updatedBots);
+    localStorage.setItem('ai-trading-bots', JSON.stringify(updatedBots));
+  };
+
   return (
     <AiTradingContext.Provider value={{
       bots,
+      activeBots,
       strategies,
       createBot,
       toggleBot,
       deleteBot,
       getBotPerformance,
-      addStrategy
+      addStrategy,
+      addAuditEntry
     }}>
       {children}
     </AiTradingContext.Provider>

@@ -1,172 +1,182 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
-  Menu, 
   Home, 
   TrendingUp, 
   Bot, 
-  Settings, 
-  Briefcase, 
   BarChart3, 
+  Newspaper, 
+  Wallet, 
   Users, 
-  GraduationCap,
-  Zap,
-  Newspaper
+  Settings,
+  Menu,
+  X
 } from 'lucide-react';
 import { useAiTrading } from '@/contexts/AiTradingContext';
+import { useState } from 'react';
 
 const EnhancedNavigation: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { activeBots } = useAiTrading();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems = [
-    { 
-      path: '/', 
-      label: 'Dashboard', 
-      icon: Home, 
-      description: 'Overview and analytics' 
-    },
-    { 
-      path: '/trading', 
-      label: 'Trading', 
-      icon: TrendingUp, 
-      description: 'Manual and paper trading' 
-    },
-    { 
-      path: '/ai', 
-      label: 'AI Trading', 
-      icon: Bot, 
-      description: 'AI-powered trading bots',
-      badge: activeBots.length > 0 ? activeBots.length.toString() : undefined
-    },
-    { 
-      path: '/portfolio', 
-      label: 'Portfolio', 
-      icon: Briefcase, 
-      description: 'Asset tracking and analytics' 
-    },
-    { 
-      path: '/market', 
-      label: 'Market Data', 
-      icon: BarChart3, 
-      description: 'Real-time market analysis' 
-    },
-    { 
-      path: '/automation', 
-      label: 'Automation', 
-      icon: Zap, 
-      description: 'N8N workflows and alerts' 
-    },
-    { 
-      path: '/social', 
-      label: 'Social Trading', 
-      icon: Users, 
-      description: 'Copy trading and community' 
-    },
-    { 
-      path: '/education', 
-      label: 'Education', 
-      icon: GraduationCap, 
-      description: 'Trading tutorials and resources' 
-    },
-    { 
-      path: '/settings', 
-      label: 'Settings', 
-      icon: Settings, 
-      description: 'Platform configuration' 
-    }
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/trading', label: 'Trading', icon: TrendingUp },
+    { path: '/ai-bots', label: 'AI Bots', icon: Bot, badge: activeBots.length },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/news', label: 'News', icon: Newspaper },
+    { path: '/web3', label: 'Web3', icon: Wallet },
+    { path: '/social', label: 'Social', icon: Users },
+  ];
+
+  const utilityItems = [
+    { path: '/subscription', label: 'Subscription' },
+    { path: '/status', label: 'Status' },
+    { path: '/testing', label: 'Testing' },
+    { path: '/auth', label: 'Auth' },
   ];
 
   const isActivePath = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
+    return location.pathname === path;
   };
 
-  const NavigationContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="p-6 border-b">
-        <h2 className="text-xl font-bold text-primary">Crypto Beacon</h2>
-        <p className="text-sm text-muted-foreground">AI Trading Hub</p>
-      </div>
-      
-      <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = isActivePath(item.path);
+  return (
+    <>
+      {/* Desktop Navigation */}
+      <nav className="hidden md:flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center space-x-6">
+          <Link to="/" className="text-xl font-bold text-primary">
+            CryptoTrader Pro
+          </Link>
           
-          return (
-            <Link 
-              key={item.path} 
-              to={item.path}
-              onClick={() => setIsOpen(false)}
-              className={`
-                flex items-center gap-3 p-3 rounded-lg transition-colors
-                ${isActive 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                }
-              `}
-            >
-              <Icon className="h-5 w-5" />
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-2">
+          <div className="flex items-center space-x-4">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
+                    isActivePath(item.path)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                  {item.badge && item.badge > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Link to="/settings">
+            <Button variant="ghost" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Mobile Navigation */}
+      <nav className="md:hidden">
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <Link to="/" className="text-lg font-bold text-primary">
+            CryptoTrader Pro
+          </Link>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+
+        {isMobileMenuOpen && (
+          <div className="border-b bg-background p-4">
+            <div className="space-y-2">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+                      isActivePath(item.path)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {item.badge && item.badge > 0 && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </Link>
+                );
+              })}
+              
+              <div className="border-t pt-2 mt-2">
+                {utilityItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Bottom Navigation for Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t">
+        <div className="grid grid-cols-4 gap-1 p-2">
+          {navigationItems.slice(0, 4).map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center p-2 rounded-md transition-colors ${
+                  isActivePath(item.path)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="relative">
+                  <Icon className="h-5 w-5" />
+                  {item.badge && item.badge > 0 && (
+                    <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
                       {item.badge}
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs opacity-70">{item.description}</p>
-              </div>
-            </Link>
-          );
-        })}
-      </nav>
-      
-      <div className="p-4 border-t">
-        <div className="text-xs text-muted-foreground">
-          <p>© 2025 Crypto Beacon</p>
-          <p>Paper Trading Mode Active</p>
+                <span className="text-xs mt-1">{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
-    </div>
-  );
-
-  return (
-    <>
-      {/* Mobile Navigation */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background border-b p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold">Crypto Beacon</h1>
-            <p className="text-xs text-muted-foreground">AI Trading Hub</p>
-          </div>
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
-              <NavigationContent />
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
-
-      {/* Desktop Navigation */}
-      <div className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-background border-r z-40">
-        <NavigationContent />
-      </div>
-
-      {/* Mobile spacer */}
-      <div className="lg:hidden h-20" />
     </>
   );
 };

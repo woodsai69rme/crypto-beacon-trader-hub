@@ -3,11 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { AiBot } from '@/contexts/AiTradingContext';
+import { AIBot } from '@/types/trading';
 import { TrendingUp, TrendingDown, Activity, DollarSign } from 'lucide-react';
 
 interface AiBotPerformanceProps {
-  bot: AiBot;
+  bot: AIBot;
 }
 
 const AiBotPerformance: React.FC<AiBotPerformanceProps> = ({ bot }) => {
