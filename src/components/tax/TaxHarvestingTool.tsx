@@ -1,143 +1,136 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TaxHarvestTradeItem } from '@/types/trading';
-import { TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
+import { TrendingDown, Calculator, AlertTriangle } from 'lucide-react';
 
 const TaxHarvestingTool: React.FC = () => {
-  const [positions] = useState<TaxHarvestTradeItem[]>([
+  const [harvestItems] = useState<TaxHarvestTradeItem[]>([
     {
       id: '1',
       symbol: 'BTC',
       quantity: 0.5,
-      purchasePrice: 70000,
-      currentPrice: 65000,
-      unrealizedGainLoss: -2500,
-      taxLotId: 'TL001',
+      purchasePrice: 65000,
+      currentPrice: 58000,
+      unrealizedGainLoss: -3500,
+      taxLotId: 'lot-1',
       purchaseDate: '2024-01-15'
     },
     {
       id: '2',
       symbol: 'ETH',
-      quantity: 5,
-      purchasePrice: 3000,
-      currentPrice: 3200,
-      unrealizedGainLoss: 1000,
-      taxLotId: 'TL002',
+      quantity: 10,
+      purchasePrice: 3200,
+      currentPrice: 2800,
+      unrealizedGainLoss: -4000,
+      taxLotId: 'lot-2',
       purchaseDate: '2024-02-20'
     }
   ]);
 
-  const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
+  const totalUnrealizedLoss = harvestItems
+    .filter(item => item.unrealizedGainLoss < 0)
+    .reduce((sum, item) => sum + Math.abs(item.unrealizedGainLoss), 0);
 
-  const totalLosses = positions.filter(p => p.unrealizedGainLoss < 0).reduce((sum, p) => sum + Math.abs(p.unrealizedGainLoss), 0);
-  const totalGains = positions.filter(p => p.unrealizedGainLoss > 0).reduce((sum, p) => sum + p.unrealizedGainLoss, 0);
-  const netPosition = totalGains - totalLosses;
-
-  const togglePosition = (id: string) => {
-    setSelectedPositions(prev => 
-      prev.includes(id) 
-        ? prev.filter(p => p !== id)
-        : [...prev, id]
-    );
-  };
-
-  const harvestLosses = () => {
-    const selectedItems = positions.filter(p => selectedPositions.includes(p.id));
-    console.log('Harvesting losses for positions:', selectedItems);
-    // Implementation for tax loss harvesting
-  };
+  const totalTaxSavings = totalUnrealizedLoss * 0.325; // 32.5% tax rate
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Tax Loss Harvesting
+            <TrendingDown className="h-5 w-5" />
+            Tax Loss Harvesting Opportunities
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-500">
-                -${totalLosses.toLocaleString()}
-              </div>
-              <div className="text-sm text-muted-foreground">Unrealized Losses</div>
+            <div className="p-4 bg-red-50 rounded-lg">
+              <h3 className="font-medium text-red-800">Total Unrealized Losses</h3>
+              <p className="text-2xl font-bold text-red-600">
+                ${totalUnrealizedLoss.toLocaleString()}
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-500">
-                +${totalGains.toLocaleString()}
-              </div>
-              <div className="text-sm text-muted-foreground">Unrealized Gains</div>
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h3 className="font-medium text-green-800">Potential Tax Savings</h3>
+              <p className="text-2xl font-bold text-green-600">
+                ${totalTaxSavings.toLocaleString()}
+              </p>
             </div>
-            <div className="text-center">
-              <div className={`text-2xl font-bold ${netPosition >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {netPosition >= 0 ? '+' : ''}${netPosition.toLocaleString()}
-              </div>
-              <div className="text-sm text-muted-foreground">Net Position</div>
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-medium text-blue-800">Harvestable Positions</h3>
+              <p className="text-2xl font-bold text-blue-600">
+                {harvestItems.filter(item => item.unrealizedGainLoss < 0).length}
+              </p>
             </div>
           </div>
 
-          <div className="space-y-2">
-            {positions.map((position) => (
-              <div 
-                key={position.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedPositions.includes(position.id) ? 'bg-primary/10 border-primary' : 'hover:bg-muted'
-                }`}
-                onClick={() => togglePosition(position.id)}
-              >
-                <div className="flex items-center justify-between">
+          <div className="space-y-4">
+            {harvestItems.map((item) => (
+              <div key={item.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="font-medium">{position.symbol}</div>
-                    <Badge variant="outline">{position.quantity} tokens</Badge>
-                    <div className="text-sm text-muted-foreground">
-                      Purchased: {new Date(position.purchaseDate).toLocaleDateString()}
-                    </div>
+                    <div className="font-medium text-lg">{item.symbol}</div>
+                    <Badge variant={item.unrealizedGainLoss < 0 ? 'destructive' : 'default'}>
+                      {item.unrealizedGainLoss < 0 ? 'Loss' : 'Gain'}
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">
-                        ${position.purchasePrice.toLocaleString()} → ${position.currentPrice.toLocaleString()}
-                      </div>
-                      <div className={`flex items-center gap-1 ${
-                        position.unrealizedGainLoss >= 0 ? 'text-green-500' : 'text-red-500'
-                      }`}>
-                        {position.unrealizedGainLoss >= 0 ? (
-                          <TrendingUp className="h-4 w-4" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4" />
-                        )}
-                        <span className="font-medium">
-                          {position.unrealizedGainLoss >= 0 ? '+' : ''}${position.unrealizedGainLoss.toLocaleString()}
-                        </span>
-                      </div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Purchase Date</div>
+                    <div className="font-medium">{new Date(item.purchaseDate).toLocaleDateString()}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Quantity</div>
+                    <div className="font-medium">{item.quantity}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Purchase Price</div>
+                    <div className="font-medium">${item.purchasePrice.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Current Price</div>
+                    <div className="font-medium">${item.currentPrice?.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Unrealized P&L</div>
+                    <div className={`font-medium ${item.unrealizedGainLoss < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      ${item.unrealizedGainLoss.toLocaleString()}
                     </div>
                   </div>
                 </div>
+
+                {item.unrealizedGainLoss < 0 && (
+                  <div className="mt-4 flex items-center justify-between p-3 bg-yellow-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm text-yellow-800">
+                        Harvesting this loss could save approximately ${Math.abs(item.unrealizedGainLoss * 0.325).toLocaleString()} in taxes
+                      </span>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      Harvest Loss
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
-          {selectedPositions.length > 0 && (
-            <div className="mt-4 p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">
-                    {selectedPositions.length} position(s) selected for harvesting
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Potential tax savings: Varies by income bracket
-                  </div>
-                </div>
-                <Button onClick={harvestLosses}>
-                  Harvest Selected Losses
-                </Button>
-              </div>
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Calculator className="h-4 w-4 text-blue-600" />
+              <span className="font-medium text-blue-800">Tax Harvesting Summary</span>
             </div>
-          )}
+            <div className="text-sm text-blue-700">
+              <p>By harvesting all available losses, you could potentially offset ${totalUnrealizedLoss.toLocaleString()} in capital gains.</p>
+              <p className="mt-1">Estimated tax savings: ${totalTaxSavings.toLocaleString()} (based on 32.5% marginal rate)</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

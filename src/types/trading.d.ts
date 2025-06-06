@@ -194,10 +194,10 @@ export interface EnhancedPortfolioBenchmarkingProps {
   }>;
 }
 
-export interface ExtendedAiBotTradingProps {
+export interface AiBotTradingProps {
   botId: string;
-  strategyId: string;
-  strategyName: string;
+  strategyId?: string;
+  strategyName?: string;
 }
 
 export interface DetachableDashboardProps {

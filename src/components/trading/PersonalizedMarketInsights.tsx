@@ -3,235 +3,197 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Brain, 
-  TrendingUp, 
-  AlertTriangle, 
-  Info,
-  Target,
-  RefreshCw,
-  Lightbulb
-} from 'lucide-react';
-import { MarketInsight, TradingSignal, TradingAccount, MarketInsightsResponse } from '@/types/trading';
+import { MarketInsight, TradingSignal } from '@/types/trading';
+import { TrendingUp, TrendingDown, AlertCircle, Lightbulb } from 'lucide-react';
 
-// Mock service function
-const getPersonalizedMarketInsights = async (account: TradingAccount): Promise<MarketInsightsResponse> => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return {
-    insights: [
+const PersonalizedMarketInsights: React.FC = () => {
+  const [insights, setInsights] = useState<MarketInsight[]>([]);
+  const [signals, setSignals] = useState<TradingSignal[]>([]);
+
+  useEffect(() => {
+    // Generate mock insights
+    const mockInsights: MarketInsight[] = [
       {
         id: '1',
-        type: 'opportunity',
-        title: 'Bitcoin Oversold Condition',
-        summary: 'BTC is showing oversold conditions on multiple timeframes',
-        relevance: 0.85,
-        confidence: 0.78,
-        timestamp: new Date().toISOString(),
+        title: 'Bitcoin Showing Strong Momentum',
+        summary: 'BTC has broken above key resistance levels with increasing volume',
+        details: 'Bitcoin has successfully broken through the $60,000 resistance level with significant volume support, indicating potential for further upward movement.',
+        confidence: 0.85,
         assets: ['BTC'],
-        details: 'Technical analysis suggests a potential bounce'
+        type: 'bullish',
+        relevance: 0.9,
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: '2',
+        title: 'Ethereum Network Upgrade Impact',
+        summary: 'Recent network improvements driving positive sentiment',
+        details: 'The latest Ethereum network upgrade has improved transaction efficiency, leading to increased adoption and positive price momentum.',
+        confidence: 0.78,
+        assets: ['ETH'],
+        type: 'bullish',
+        relevance: 0.8,
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: '3',
+        title: 'Market Correction Warning',
+        summary: 'Technical indicators suggest potential short-term correction',
+        details: 'Multiple technical indicators are showing overbought conditions across major cryptocurrencies, suggesting a potential correction in the near term.',
+        confidence: 0.72,
+        assets: ['BTC', 'ETH', 'SOL'],
+        type: 'bearish',
+        relevance: 0.7,
+        timestamp: new Date().toISOString()
       }
-    ],
-    signals: [
+    ];
+
+    const mockSignals: TradingSignal[] = [
       {
         id: '1',
         coinId: 'bitcoin',
         coinSymbol: 'BTC',
         type: 'buy',
-        price: 45000,
-        strength: 0.8,
+        price: 58500,
+        strength: 0.82,
         timestamp: new Date().toISOString(),
-        reason: 'Oversold RSI with bullish divergence',
+        reason: 'Strong momentum with volume confirmation',
         suggestedActions: {
-          entry: 45000,
-          target: 48000,
-          stopLoss: 43000
+          entry: 58500,
+          target: 62000,
+          stopLoss: 56000
         }
       }
-    ]
-  };
-};
+    ];
 
-const PersonalizedMarketInsights: React.FC = () => {
-  const [insights, setInsights] = useState<MarketInsight[]>([]);
-  const [signals, setSignals] = useState<TradingSignal[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Mock trading account for the service call
-  const mockAccount: TradingAccount = {
-    id: '1',
-    name: 'Default Account',
-    trades: [],
-    balance: 10000,
-    currency: 'AUD',
-    createdAt: new Date().toISOString(),
-    type: 'paper',
-    assets: []
-  };
-
-  const loadInsights = async () => {
-    setIsLoading(true);
-    try {
-      const data = await getPersonalizedMarketInsights(mockAccount);
-      setInsights(data.insights);
-      setSignals(data.signals);
-    } catch (error) {
-      console.error('Failed to load insights:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadInsights();
+    setInsights(mockInsights);
+    setSignals(mockSignals);
   }, []);
 
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'opportunity': return <Target className="h-4 w-4" />;
-      case 'risk': return <AlertTriangle className="h-4 w-4" />;
-      case 'trend': return <TrendingUp className="h-4 w-4" />;
-      default: return <Info className="h-4 w-4" />;
-    }
-  };
-
-  const getInsightColor = (type: string) => {
-    switch (type) {
-      case 'opportunity': return 'text-green-600';
-      case 'risk': return 'text-red-600';
-      case 'trend': return 'text-blue-600';
-      default: return 'text-gray-600';
-    }
-  };
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Brain className="h-5 w-5" />
-          <CardTitle>AI Market Insights</CardTitle>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={loadInsights}
-          disabled={isLoading}
-          className="gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </CardHeader>
-
-      <CardContent>
-        <Tabs defaultValue="insights" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="insights">Market Insights</TabsTrigger>
-            <TabsTrigger value="signals">Trading Signals</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="insights" className="mt-4">
-            <div className="space-y-4">
-              {insights.length === 0 ? (
-                <div className="text-center py-8">
-                  <Lightbulb className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No insights available</p>
-                  <p className="text-sm text-muted-foreground">AI analysis will appear here based on your portfolio</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5" />
+            Market Insights
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {insights.map((insight) => (
+              <div key={insight.id} className="border rounded-lg p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-medium mb-1">{insight.title}</h3>
+                    {insight.summary && (
+                      <p className="text-sm text-muted-foreground mb-2">{insight.summary}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {insight.type === 'bullish' && (
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Bullish
+                      </Badge>
+                    )}
+                    {insight.type === 'bearish' && (
+                      <Badge variant="destructive">
+                        <TrendingDown className="h-3 w-3 mr-1" />
+                        Bearish
+                      </Badge>
+                    )}
+                    <Badge variant="outline">
+                      {(insight.confidence * 100).toFixed(0)}% confidence
+                    </Badge>
+                  </div>
                 </div>
-              ) : (
-                insights.map((insight) => (
-                  <div key={insight.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className={getInsightColor(insight.type)}>
-                          {getInsightIcon(insight.type)}
-                        </span>
-                        <h3 className="font-medium">{insight.title}</h3>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          {Math.round(insight.confidence * 100)}% confidence
-                        </Badge>
-                        <Badge variant="secondary">
-                          {insight.type}
-                        </Badge>
-                      </div>
+                
+                <p className="text-sm mb-3">{insight.details}</p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Assets:</span>
+                    {insight.assets.map((asset) => (
+                      <Badge key={asset} variant="outline" className="text-xs">
+                        {asset}
+                      </Badge>
+                    ))}
+                  </div>
+                  {insight.relevance && (
+                    <span className="text-sm text-muted-foreground">
+                      Relevance: {(insight.relevance * 100).toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+                
+                {insight.timestamp && (
+                  <div className="text-xs text-muted-foreground mt-2">
+                    {new Date(insight.timestamp).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {signals && signals.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Trading Signals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {signals.map((signal) => (
+                <div key={signal.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Badge variant={signal.type === 'buy' ? 'default' : 'destructive'}>
+                        {signal.type.toUpperCase()}
+                      </Badge>
+                      <span className="font-medium">{signal.coinSymbol}</span>
                     </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-3">{insight.summary}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Relevance:</span>
-                        <Progress value={insight.relevance * 100} className="w-20 h-2" />
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(insight.timestamp).toLocaleDateString()}
-                      </span>
+                    <Badge variant="outline">
+                      {(signal.strength * 100).toFixed(0)}% strength
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-3">{signal.reason}</p>
+                  
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Entry:</span>
+                      <p className="font-medium">${signal.suggestedActions.entry.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Target:</span>
+                      <p className="font-medium text-green-600">${signal.suggestedActions.target.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Stop Loss:</span>
+                      <p className="font-medium text-red-600">${signal.suggestedActions.stopLoss.toLocaleString()}</p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="signals" className="mt-4">
-            <div className="space-y-4">
-              {signals.length === 0 ? (
-                <div className="text-center py-8">
-                  <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No trading signals available</p>
-                  <p className="text-sm text-muted-foreground">AI trading signals will appear here</p>
-                </div>
-              ) : (
-                signals.map((signal) => (
-                  <div key={signal.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <Badge variant={signal.type === 'buy' ? 'default' : 'secondary'}>
-                          {signal.type.toUpperCase()}
-                        </Badge>
-                        <span className="font-medium">{signal.coinSymbol}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">${signal.price.toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Strength: {Math.round(signal.strength * 100)}%
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-3">{signal.reason}</p>
-                    
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Entry:</span>
-                        <div className="font-medium">${signal.suggestedActions.entry.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Target:</span>
-                        <div className="font-medium text-green-600">
-                          ${signal.suggestedActions.target.toLocaleString()}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Stop Loss:</span>
-                        <div className="font-medium text-red-600">
-                          ${signal.suggestedActions.stopLoss.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
+                  
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" className="flex-1">
+                      Execute Trade
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      Save Signal
+                    </Button>
                   </div>
-                ))
-              )}
+                </div>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

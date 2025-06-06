@@ -1,6 +1,6 @@
-
 import { Trade, CoinOption, AIBot, TradingSignal } from '@/types/trading';
 import { algorandService } from '../algorand/algorandService';
+import { n8nAutomationService } from '../automation/n8nAutomationService';
 
 interface RealTimePrice {
   symbol: string;
@@ -61,6 +61,42 @@ class RealTimeTradingService {
       value: 'solana',
       label: 'Solana (SOL)',
       image: 'https://coin-images.coingecko.com/coins/images/4128/small/solana.png'
+    },
+    {
+      id: 'cardano',
+      name: 'Cardano',
+      symbol: 'ADA',
+      price: 0,
+      value: 'cardano',
+      label: 'Cardano (ADA)',
+      image: 'https://coin-images.coingecko.com/coins/images/975/small/cardano.png'
+    },
+    {
+      id: 'polkadot',
+      name: 'Polkadot',
+      symbol: 'DOT',
+      price: 0,
+      value: 'polkadot',
+      label: 'Polkadot (DOT)',
+      image: 'https://coin-images.coingecko.com/coins/images/12171/small/polkadot.png'
+    },
+    {
+      id: 'chainlink',
+      name: 'Chainlink',
+      symbol: 'LINK',
+      price: 0,
+      value: 'chainlink',
+      label: 'Chainlink (LINK)',
+      image: 'https://coin-images.coingecko.com/coins/images/877/small/chainlink-new-logo.png'
+    },
+    {
+      id: 'dogecoin',
+      name: 'Dogecoin',
+      symbol: 'DOGE',
+      price: 0,
+      value: 'dogecoin',
+      label: 'Dogecoin (DOGE)',
+      image: 'https://coin-images.coingecko.com/coins/images/5/small/dogecoin.png'
     }
   ];
 
@@ -121,8 +157,11 @@ class RealTimeTradingService {
             this.priceCache.set(coin.symbol, priceInfo);
             coin.price = priceInfo.price;
             coin.changePercent = priceInfo.change24h;
+            coin.volume = priceInfo.volume;
           }
         });
+
+        console.log('✅ Updated real-time prices from CoinGecko');
       } else {
         // Fallback to mock data if API fails
         this.generateMockPrices();
@@ -139,7 +178,11 @@ class RealTimeTradingService {
       'BTC': 105000 + (Math.random() - 0.5) * 2000,
       'ETH': 2500 + (Math.random() - 0.5) * 100,
       'ALGO': 0.48 + (Math.random() - 0.5) * 0.05,
-      'SOL': 150 + (Math.random() - 0.5) * 10
+      'SOL': 150 + (Math.random() - 0.5) * 10,
+      'ADA': 0.45 + (Math.random() - 0.5) * 0.05,
+      'DOT': 8.5 + (Math.random() - 0.5) * 1,
+      'LINK': 25 + (Math.random() - 0.5) * 2,
+      'DOGE': 0.08 + (Math.random() - 0.5) * 0.01
     };
 
     Object.entries(mockPrices).forEach(([symbol, price]) => {
@@ -159,6 +202,7 @@ class RealTimeTradingService {
       if (coin) {
         coin.price = price;
         coin.changePercent = change24h;
+        coin.volume = priceInfo.volume;
       }
     });
   }
@@ -391,6 +435,27 @@ class RealTimeTradingService {
       console.error('Error fetching Algorand data:', error);
       return algorandService.getMockData();
     }
+  }
+
+  // N8N Integration methods
+  async sendTradingSignalToN8N(signal: TradingSignal): Promise<boolean> {
+    return await n8nAutomationService.sendTradingSignal({
+      symbol: signal.coinSymbol,
+      signal: signal.type.toUpperCase() as 'BUY' | 'SELL',
+      confidence: signal.strength,
+      price: signal.price,
+      timestamp: signal.timestamp,
+      strategy: 'ai-bot',
+      reasoning: signal.reason
+    });
+  }
+
+  async sendPortfolioUpdateToN8N(portfolioData: any): Promise<boolean> {
+    return await n8nAutomationService.sendPortfolioUpdate(portfolioData);
+  }
+
+  async sendRiskAlertToN8N(riskData: any): Promise<boolean> {
+    return await n8nAutomationService.sendRiskAlert(riskData);
   }
 }
 

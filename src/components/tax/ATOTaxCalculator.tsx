@@ -1,18 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { TaxBracket, ATOTaxCalculation } from '@/types/trading';
 import { Calculator, FileText, Download } from 'lucide-react';
 
 const ATOTaxCalculator: React.FC = () => {
-  const [capitalGains, setCapitalGains] = useState<number>(0);
-  const [otherIncome, setOtherIncome] = useState<number>(0);
-  const [taxResult, setTaxResult] = useState<ATOTaxCalculation | null>(null);
+  const [capitalGain, setCapitalGain] = useState<number>(0);
+  const [calculation, setCalculation] = useState<ATOTaxCalculation | null>(null);
 
+  // 2024-25 Australian Tax Brackets
   const taxBrackets: TaxBracket[] = [
     { min: 0, max: 18200, rate: 0, name: 'Tax-free threshold' },
     { min: 18201, max: 45000, rate: 0.19, name: '19% bracket' },
@@ -22,73 +21,60 @@ const ATOTaxCalculator: React.FC = () => {
   ];
 
   const calculateTax = () => {
-    const totalIncome = capitalGains + otherIncome;
-    let tax = 0;
+    if (capitalGain <= 0) return;
+
+    const taxableIncome = capitalGain;
+    let totalTax = 0;
+    let marginalRate = 0;
     let applicableBracket = '';
 
+    // Calculate tax based on brackets
     for (const bracket of taxBrackets) {
-      if (totalIncome > bracket.min) {
-        const taxableInThisBracket = Math.min(totalIncome, bracket.max) - bracket.min + 1;
-        tax += taxableInThisBracket * bracket.rate;
-        if (totalIncome <= bracket.max) {
-          applicableBracket = bracket.name;
-          break;
-        }
+      if (taxableIncome > bracket.min) {
+        const taxableInBracket = Math.min(taxableIncome, bracket.max) - bracket.min + 1;
+        const taxInBracket = taxableInBracket * bracket.rate;
+        totalTax += taxInBracket;
+        marginalRate = bracket.rate;
+        applicableBracket = bracket.name;
       }
     }
 
-    const medicareLevy = totalIncome > 23226 ? totalIncome * 0.02 : 0;
-    const totalTax = tax + medicareLevy;
-    const netGain = totalIncome - totalTax;
-    const marginalRate = taxBrackets.find(b => totalIncome >= b.min && totalIncome <= b.max)?.rate || 0;
+    // Medicare levy (2% for most taxpayers)
+    const medicareLevy = taxableIncome * 0.02;
+    totalTax += medicareLevy;
 
-    setTaxResult({
-      capitalGains,
-      taxableIncome: totalIncome,
-      totalTax,
-      netGain,
-      marginalRate,
-      medicareLevy,
-      applicableBracket
+    const netGain = capitalGain - totalTax;
+
+    setCalculation({
+      capitalGains: capitalGain,
+      taxableIncome: taxableIncome,
+      totalTax: totalTax,
+      netGain: netGain,
+      marginalRate: marginalRate,
+      medicareLevy: medicareLevy,
+      applicableBracket: applicableBracket
     });
   };
 
-  useEffect(() => {
-    if (capitalGains > 0 || otherIncome > 0) {
-      calculateTax();
-    }
-  }, [capitalGains, otherIncome]);
+  const generateReport = () => {
+    if (!calculation) return;
 
-  const exportReport = () => {
-    if (!taxResult) return;
+    const reportData = {
+      date: new Date().toLocaleDateString(),
+      capitalGains: calculation.capitalGains,
+      totalTax: calculation.totalTax,
+      netGain: calculation.netGain,
+      marginalRate: calculation.marginalRate,
+      applicableBracket: calculation.applicableBracket
+    };
 
-    const report = `
-ATO Tax Calculation Report
-==========================
-
-Capital Gains: $${taxResult.capitalGains.toLocaleString()}
-Other Income: $${otherIncome.toLocaleString()}
-Total Taxable Income: $${taxResult.taxableIncome.toLocaleString()}
-
-Tax Breakdown:
-- Income Tax: $${(taxResult.totalTax - taxResult.medicareLevy).toLocaleString()}
-- Medicare Levy: $${taxResult.medicareLevy.toLocaleString()}
-- Total Tax: $${taxResult.totalTax.toLocaleString()}
-
-Net Income After Tax: $${taxResult.netGain.toLocaleString()}
-Marginal Tax Rate: ${(taxResult.marginalRate * 100).toFixed(1)}%
-Tax Bracket: ${taxResult.applicableBracket}
-
-Generated: ${new Date().toLocaleDateString('en-AU')}
-    `;
-
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'ato-tax-calculation.txt';
-    a.click();
-    URL.revokeObjectURL(url);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "crypto-tax-report.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
   };
 
   return (
@@ -97,104 +83,86 @@ Generated: ${new Date().toLocaleDateString('en-AU')}
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5" />
-            ATO Tax Calculator
+            Australian Crypto Tax Calculator
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="capitalGains">Capital Gains (AUD)</Label>
-              <Input
-                id="capitalGains"
-                type="number"
-                value={capitalGains}
-                onChange={(e) => setCapitalGains(Number(e.target.value))}
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="otherIncome">Other Income (AUD)</Label>
-              <Input
-                id="otherIncome"
-                type="number"
-                value={otherIncome}
-                onChange={(e) => setOtherIncome(Number(e.target.value))}
-                placeholder="0.00"
-              />
-            </div>
+          <div>
+            <Label htmlFor="capitalGain">Capital Gain (AUD)</Label>
+            <Input
+              id="capitalGain"
+              type="number"
+              value={capitalGain}
+              onChange={(e) => setCapitalGain(Number(e.target.value))}
+              placeholder="Enter your capital gain"
+            />
           </div>
 
           <Button onClick={calculateTax} className="w-full">
             Calculate Tax
           </Button>
+
+          {calculation && (
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <h3 className="font-semibold mb-3">Tax Calculation Results</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Capital Gain:</span>
+                  <span className="font-medium ml-2">${calculation.capitalGains.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Total Tax:</span>
+                  <span className="font-medium ml-2">${calculation.totalTax.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Net Gain:</span>
+                  <span className="font-medium ml-2">${calculation.netGain.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Marginal Rate:</span>
+                  <span className="font-medium ml-2">{(calculation.marginalRate * 100).toFixed(1)}%</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Tax Bracket:</span>
+                  <span className="font-medium ml-2">{calculation.applicableBracket}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <Button size="sm" variant="outline" onClick={generateReport}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Report
+                </Button>
+                <Button size="sm" variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate PDF
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {taxResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Tax Calculation Results
-              <Button variant="outline" size="sm" onClick={exportReport}>
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Capital Gains:</span>
-                  <span className="font-medium">${taxResult.capitalGains.toLocaleString()}</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Australian Tax Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <h4 className="font-medium">2024-25 Tax Brackets</h4>
+            <div className="space-y-2">
+              {taxBrackets.map((bracket, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
+                  <span className="text-sm">
+                    ${bracket.min.toLocaleString()} - {bracket.max === Infinity ? '∞' : `$${bracket.max.toLocaleString()}`}
+                  </span>
+                  <span className="text-sm font-medium">{(bracket.rate * 100).toFixed(1)}%</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Total Taxable Income:</span>
-                  <span className="font-medium">${taxResult.taxableIncome.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Income Tax:</span>
-                  <span className="font-medium">${(taxResult.totalTax - taxResult.medicareLevy).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Medicare Levy:</span>
-                  <span className="font-medium">${taxResult.medicareLevy.toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total Tax:</span>
-                  <span>${taxResult.totalTax.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold text-green-600">
-                  <span>Net Income:</span>
-                  <span>${taxResult.netGain.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Marginal Rate:</span>
-                  <Badge>{(taxResult.marginalRate * 100).toFixed(1)}%</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tax Bracket:</span>
-                  <Badge variant="outline">{taxResult.applicableBracket}</Badge>
-                </div>
-              </div>
+              ))}
             </div>
-
-            <div className="mt-6">
-              <h4 className="font-medium mb-2">2024-25 Tax Brackets</h4>
-              <div className="space-y-1 text-sm">
-                {taxBrackets.map((bracket, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span>{bracket.name}</span>
-                    <span>{(bracket.rate * 100).toFixed(1)}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
