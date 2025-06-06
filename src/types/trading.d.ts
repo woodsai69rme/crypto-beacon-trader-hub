@@ -20,6 +20,8 @@ export interface Trade {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
+  symbol?: string;
+  quantity?: number;
 }
 
 export interface PortfolioAsset {
@@ -64,14 +66,14 @@ export interface LocalModel {
   name: string;
   endpoint: string;
   type: "prediction" | "sentiment" | "trading" | "analysis";
-  isConnected: boolean;
+  isConnected?: boolean;
   lastUsed?: string;
   description?: string;
   performance?: {
     accuracy: number;
-    returns: number;
-    sharpeRatio: number;
-    maxDrawdown: number;
+    returns?: number;
+    sharpeRatio?: number;
+    maxDrawdown?: number;
     latency: number;
     uptime: number;
   };
@@ -79,9 +81,9 @@ export interface LocalModel {
 
 export interface ModelListProps {
   models: LocalModel[];
-  onSelect: (model: LocalModel) => void;
-  onConnect: (model: LocalModel) => void;
-  onDisconnect: (modelId: string) => void;
+  onSelect?: (model: LocalModel) => void;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
 }
 
 export interface CoinOption {
@@ -105,12 +107,13 @@ export interface CoinOption {
 export interface MarketInsight {
   id: string;
   title: string;
-  summary: string;
+  summary?: string;
   details: string;
-  relevance: number;
+  relevance?: number;
   confidence: number;
-  timestamp: string;
+  timestamp?: string;
   assets: string[];
+  type?: 'bullish' | 'bearish' | 'neutral';
 }
 
 export interface TradingSignal {
@@ -159,8 +162,9 @@ export interface TaxHarvestTradeItem {
   symbol: string;
   quantity: number;
   purchasePrice: number;
-  currentPrice: number;
+  currentPrice?: number;
   unrealizedGainLoss: number;
+  unrealizedLoss?: number;
   taxLotId: string;
   purchaseDate: string;
 }
@@ -206,23 +210,23 @@ export interface DetachableDashboardProps {
 export interface RealTimePricesProps {
   selectedCoinId: string;
   onSelectCoin: (coinId: string) => void;
-  initialCoins: CoinOption[];
-  refreshInterval: number;
+  initialCoins?: CoinOption[];
+  refreshInterval?: number;
 }
 
 export interface TradingFormProps {
-  balance: number;
-  availableCoins: CoinOption[];
-  onTrade: (trade: Partial<Trade>) => void;
-  getOwnedCoinAmount: (coinId: string) => number;
-  activeCurrency: SupportedCurrency;
-  onCurrencyChange: (currency: SupportedCurrency) => void;
-  conversionRate: number;
+  balance?: number;
+  availableCoins?: CoinOption[];
+  onTrade?: (trade: Partial<Trade>) => void;
+  getOwnedCoinAmount?: (coinId: string) => number;
+  activeCurrency?: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
+  conversionRate?: number;
 }
 
 export interface MarketInsightsResponse {
   insights: MarketInsight[];
-  signals: TradingSignal[];
+  signals?: TradingSignal[];
 }
 
 export interface WalletProvider {
@@ -274,4 +278,95 @@ export interface NewsItem {
   coins?: string[];
   isFake?: boolean;
   confidence?: number;
+}
+
+export interface AIBot {
+  id: string;
+  name: string;
+  strategy: string;
+  status: 'active' | 'paused' | 'stopped';
+  isActive: boolean;
+  model: string;
+  createdAt: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  maxTradeAmount: number;
+  targetAssets: string[];
+  performance: {
+    totalReturn: number;
+    winRate: number;
+    trades: number;
+    totalTrades: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+  };
+  auditLog: AuditLogEntry[];
+}
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  timestamp: string;
+  reasoning: string;
+}
+
+export interface BacktestResult {
+  startDate: string;
+  endDate: string;
+  initialBalance: number;
+  finalBalance: number;
+  profit: number;
+  profitPercentage: number;
+  winRate: number;
+  winningTrades: number;
+  totalTrades: number;
+  losingTrades: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  profitFactor: number;
+  trades: any[];
+  averageProfit: number;
+  averageLoss: number;
+  initialCapital: number;
+  finalCapital: number;
+  totalReturn: number;
+  sortinoRatio: number;
+}
+
+export interface OptimizationResult {
+  strategyId: string;
+  parameterValues: Record<string, any>;
+  performance: {
+    profit: number;
+    profitPercentage: number;
+    maxDrawdown: number;
+    winRate: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalReturn: number;
+  };
+  improvement: number;
+}
+
+export interface AlgorandAccountInfo {
+  address: string;
+  amount: number;
+  assets: AlgorandAssetHolding[];
+  'created-at-round': number;
+  'min-balance': number;
+  status: string;
+}
+
+export interface AlgorandAssetHolding {
+  'asset-id': number;
+  amount: number;
+  'is-frozen': boolean;
+}
+
+export interface AlgorandTransaction {
+  id: string;
+  'confirmed-round': number;
+  'round-time': number;
+  sender: string;
+  'tx-type': string;
+  fee: number;
 }
