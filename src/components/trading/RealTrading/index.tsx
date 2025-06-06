@@ -1,78 +1,50 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import RealTimePrices from './RealTimePrices';
-import { fetchTopCryptoData } from '@/services/cryptoService';
+import React, { useState } from 'react';
 import { CoinOption } from '@/types/trading';
+import RealTimePrices from './RealTimePrices';
 
-const RealTrading = () => {
-  const [activeTab, setActiveTab] = useState('watchlist');
-  const [isLoading, setIsLoading] = useState(true);
-  const [marketData, setMarketData] = useState<CoinOption[]>([]);
+const RealTimeTrading: React.FC = () => {
   const [selectedCoinId, setSelectedCoinId] = useState<string>('bitcoin');
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchTopCryptoData(20);
-        setMarketData(data);
-        if (data.length > 0 && !selectedCoinId) {
-          setSelectedCoinId(data[0].id);
-        }
-      } catch (error) {
-        console.error('Error fetching market data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-    
-    // Set up polling interval
-    const interval = setInterval(fetchData, 30000); // Every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-  
+  const initialCoins: CoinOption[] = [
+    {
+      id: 'bitcoin',
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      price: 65000,
+      priceChange: 1250,
+      changePercent: 2.1,
+      value: 'bitcoin',
+      label: 'Bitcoin (BTC)',
+      image: 'https://coin-images.coingecko.com/coins/images/1/small/bitcoin.png'
+    },
+    {
+      id: 'ethereum',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      price: 3200,
+      priceChange: -45,
+      changePercent: -1.4,
+      value: 'ethereum',
+      label: 'Ethereum (ETH)',
+      image: 'https://coin-images.coingecko.com/coins/images/279/small/ethereum.png'
+    }
+  ];
+
   const handleSelectCoin = (coinId: string) => {
     setSelectedCoinId(coinId);
   };
-  
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Real-Time Trading</CardTitle>
-        <CardDescription>
-          Monitor market prices and practice trading with virtual funds
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
-            <TabsTrigger value="trade">Trade</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="watchlist">
-            <RealTimePrices 
-              initialCoins={marketData}
-              selectedCoinId={selectedCoinId}
-              onSelectCoin={handleSelectCoin}
-              refreshInterval={15000} // 15 seconds
-            />
-          </TabsContent>
-          
-          <TabsContent value="trade">
-            <div className="text-center p-8">
-              <p className="text-lg">Trading functionality coming soon!</p>
-              <p className="text-muted-foreground">Practice trading with paper money</p>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <RealTimePrices
+        selectedCoinId={selectedCoinId}
+        onSelectCoin={handleSelectCoin}
+        initialCoins={initialCoins}
+        refreshInterval={5000}
+      />
+    </div>
   );
 };
 
-export default RealTrading;
+export default RealTimeTrading;

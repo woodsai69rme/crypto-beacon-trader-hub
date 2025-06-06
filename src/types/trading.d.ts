@@ -14,6 +14,12 @@ export interface Trade {
   currency: SupportedCurrency;
   total: number;
   tags?: string[];
+  fees?: number;
+  coin?: string;
+  currentValue?: number;
+  profitLoss?: number;
+  botGenerated?: boolean;
+  strategyId?: string;
 }
 
 export interface PortfolioAsset {
@@ -41,7 +47,7 @@ export interface AITradingStrategy {
   type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom';
   riskLevel: 'low' | 'medium' | 'high';
   profitPotential: 'low' | 'medium' | 'high';
-  timeframe: number; // in hours
+  timeframe: number;
   indicators?: string[];
   triggers?: string[];
   parameters: Record<string, any>;
@@ -53,31 +59,58 @@ export interface AITradingStrategy {
   };
 }
 
-export interface RiskAssessmentResult {
-  overallScore: number;
-  diversificationScore: number;
-  volatilityScore: number;
-  liquidityScore: number;
-  concentrationRisk: number;
-  correlationRisk: number;
-  recommendations: string[];
-  riskByAsset: Record<string, { score: number; factors: string[] }>;
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+    latency: number;
+    uptime: number;
+  };
 }
 
-export interface OptimizationSettings {
-  riskTolerance: 'low' | 'medium' | 'high';
-  timeHorizon?: 'short' | 'medium' | 'long';
-  focusArea?: 'growth' | 'income' | 'balanced';
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
 }
 
-export interface PortfolioOptimizationResult {
-  currentAllocation: Record<string, number>;
-  suggestedAllocation: Record<string, number>;
-  expectedReturn: number;
-  expectedRisk: number;
-  sharpeRatio: number;
-  diversification: number;
-  rebalancingTrades: Trade[];
+export interface CoinOption {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceAUD?: number;
+  priceEUR?: number; 
+  priceGBP?: number;
+  image?: string;
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
+  rank?: number;
+  value: string;
+  label: string;
+}
+
+export interface MarketInsight {
+  id: string;
+  title: string;
+  summary: string;
+  details: string;
+  relevance: number;
+  confidence: number;
+  timestamp: string;
+  assets: string[];
 }
 
 export interface TradingSignal {
@@ -96,50 +129,136 @@ export interface TradingSignal {
   };
 }
 
-export interface MarketInsight {
-  id: string;
-  type: 'trend' | 'opportunity' | 'risk' | 'event' | 'analysis';
-  title: string;
-  summary: string;
-  relevance: number;
-  confidence: number;
-  timestamp: string;
-  assets: string[];
-  details: string;
+export interface OptimizationSettings {
+  riskTolerance: 'low' | 'medium' | 'high';
+  timeHorizon?: 'short' | 'medium' | 'long';
+  focusArea?: 'growth' | 'income' | 'balanced';
+  maxDrawdown: number;
+  targetReturn: number;
 }
 
-export interface ApiProvider {
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  name: string;
+}
+
+export interface ATOTaxCalculation {
+  capitalGains: number;
+  taxableIncome: number;
+  totalTax: number;
+  netGain: number;
+  marginalRate: number;
+  medicareLevy: number;
+  applicableBracket: string;
+}
+
+export interface TaxHarvestTradeItem {
+  id: string;
+  symbol: string;
+  quantity: number;
+  purchasePrice: number;
+  currentPrice: number;
+  unrealizedGainLoss: number;
+  taxLotId: string;
+  purchaseDate: string;
+}
+
+export interface CorrelationHeatmapProps {
+  correlationData: Array<{
+    asset1: string;
+    asset2: string;
+    correlation: number;
+  }>;
+}
+
+export interface PriceCorrelationChartProps {
+  asset1Data: Array<{ timestamp: string; price: number }>;
+  asset2Data: Array<{ timestamp: string; price: number }>;
+  asset1Symbol: string;
+  asset2Symbol: string;
+}
+
+export interface EnhancedPortfolioBenchmarkingProps {
+  portfolioPerformance: number[];
+  portfolioDates: string[];
+  portfolioData: Array<{
+    date: string;
+    portfolioValue: number;
+    benchmarkValue: number;
+  }>;
+}
+
+export interface ExtendedAiBotTradingProps {
+  botId: string;
+  strategyId: string;
+  strategyName: string;
+}
+
+export interface DetachableDashboardProps {
+  title: string;
+  children: React.ReactNode;
+  isDetached: boolean;
+  onDetach: () => void;
+}
+
+export interface RealTimePricesProps {
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+  initialCoins: CoinOption[];
+  refreshInterval: number;
+}
+
+export interface TradingFormProps {
+  balance: number;
+  availableCoins: CoinOption[];
+  onTrade: (trade: Partial<Trade>) => void;
+  getOwnedCoinAmount: (coinId: string) => number;
+  activeCurrency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency) => void;
+  conversionRate: number;
+}
+
+export interface MarketInsightsResponse {
+  insights: MarketInsight[];
+  signals: TradingSignal[];
+}
+
+export interface WalletProvider {
   id: string;
   name: string;
-  type: 'free' | 'paid';
-  url: string;
-  documentation: string;
-  apiKey?: string;
-  rateLimit: {
-    requestsPerMinute: number;
-    requestsPerDay: number;
-  };
-  endpoints: {
-    price: string;
-    markets: string;
-    assets: string;
-    news?: string;
-  };
-  isActive: boolean;
+  icon: string;
+  logo: string;
+  description: string;
+  isInstalled: boolean;
+  isConnected: boolean;
+  accounts: string[];
 }
 
-export interface ApiUsageStats {
+export interface WalletAccount {
+  address: string;
+  balance: string;
+  network: string;
   provider: string;
-  totalCalls: number;
-  successfulCalls: number;
-  failedCalls: number;
-  avgResponseTime: number;
-  lastCalled: string;
-  remainingQuota?: {
-    day: number;
-    month: number;
-  };
-  costEstimate?: number;
+}
+
+export interface DefiProtocol {
+  id: string;
+  name: string;
+  category: string;
+  chain: string;
+  tvl: number;
+  apy: number;
+  riskLevel: string;
+  url: string;
+  logoUrl: string;
+  description: string;
+}
+
+export interface NewsTickerProps {
+  articles: NewsItem[];
+  className?: string;
 }
 
 export interface NewsItem {
@@ -155,65 +274,4 @@ export interface NewsItem {
   coins?: string[];
   isFake?: boolean;
   confidence?: number;
-}
-
-export interface CoinOption {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceChange?: number;
-  changePercent?: number;
-  marketCap?: number;
-  volume?: number;
-  image?: string;
-  value: string;
-  label: string;
-}
-
-export interface CryptoData extends CoinOption {
-  // Additional properties for crypto data
-}
-
-export interface TickerSettings {
-  enabled: boolean;
-  position: 'top' | 'bottom' | 'both';
-  speed: number;
-  direction: 'left' | 'right';
-  autoPause: boolean;
-}
-
-export interface SidebarSettings {
-  enabled: boolean;
-  position: 'left' | 'right';
-  defaultCollapsed: boolean;
-  showLabels: boolean;
-}
-
-export interface SettingsFormValues {
-  email: string;
-  username: string;
-  displayName: string;
-  bio: string;
-  theme: string;
-  currency: string;
-  language: string;
-  notifications: {
-    email: boolean;
-    push: boolean;
-    app: boolean;
-  };
-  tickerSettings: TickerSettings;
-  sidebarSettings: SidebarSettings;
-  sidebar: boolean;
-  appearance: {
-    colorScheme: string;
-    compactMode: boolean;
-    animationsEnabled: boolean;
-    highContrastMode: boolean;
-  };
-  privacy: {
-    dataCollection: boolean;
-    marketingConsent: boolean;
-  };
 }
