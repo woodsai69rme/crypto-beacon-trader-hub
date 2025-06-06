@@ -1,442 +1,659 @@
-# Design System
 
-## Advanced Crypto Trading Platform Design System
+# Design System Documentation
+# ZeroOne AI-Powered Workspace Platform
 
-### Document Information
+## Document Information
 - **Version**: 1.0
-- **Last Updated**: 2025-01-25
-- **Maintained by**: Design Team
+- **Last Updated**: June 2025
+- **Owner**: Design Team
+- **Status**: Active
 
----
-
-## 1. Design Principles
+## 1. Design Philosophy
 
 ### 1.1 Core Principles
-- **Clarity**: Information should be clear and easy to understand
-- **Efficiency**: Minimize cognitive load and clicks to complete tasks
-- **Trust**: Build confidence through professional and secure design
-- **Accessibility**: Ensure usability for all users regardless of abilities
-- **Consistency**: Maintain uniformity across all platform experiences
 
-### 1.2 Australian Market Focus
-- **Currency Display**: Default to AUD with clear currency indicators
-- **Localization**: Australian English spelling and terminology
-- **Cultural Sensitivity**: Respect for Australian financial culture and practices
-- **Regulatory Compliance**: Visual compliance with Australian financial regulations
+#### AI-First Experience
+Every interface element is designed to seamlessly integrate AI capabilities, making artificial intelligence feel natural and accessible rather than overwhelming or complex.
 
----
+#### Cyberpunk Aesthetics with Professional Functionality
+The design balances futuristic cyberpunk visual elements with professional usability, creating an environment that feels cutting-edge while remaining productive and focused.
+
+#### Progressive Disclosure
+Complex functionality is revealed progressively, allowing users to access advanced features without cluttering the primary interface.
+
+#### Contextual Intelligence
+The interface adapts based on user behavior, current tasks, and AI insights to provide relevant tools and information at the right time.
+
+### 1.2 Design Values
+
+- **Clarity**: Information hierarchy that guides user attention
+- **Efficiency**: Minimal cognitive load for maximum productivity
+- **Flexibility**: Adaptable to various workflows and preferences
+- **Innovation**: Forward-thinking design that embraces new technologies
+- **Accessibility**: Inclusive design for all users and abilities
 
 ## 2. Visual Identity
 
-### 2.1 Logo and Branding
-- **Primary Logo**: Modern, tech-forward design with crypto elements
-- **Logo Variations**: Light, dark, monochrome, and simplified versions
-- **Brand Mark**: Standalone symbol for app icons and favicons
-- **Usage Guidelines**: Clear spacing, minimum sizes, and don'ts
+### 2.1 Brand Colors
 
-### 2.2 Brand Voice
-- **Professional**: Expert-level knowledge with accessible communication
-- **Trustworthy**: Reliable, secure, and transparent
-- **Innovative**: Cutting-edge technology with proven results
-- **Australian**: Friendly, direct, and practical approach
-
----
-
-## 3. Color System
-
-### 3.1 Primary Colors
+#### Primary Palette
 ```css
-:root {
-  /* Primary Brand Colors */
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-500: #3b82f6;  /* Main brand color */
-  --primary-600: #2563eb;
-  --primary-700: #1d4ed8;
-  --primary-900: #1e3a8a;
-  
-  /* Secondary Colors */
-  --secondary-50: #f8fafc;
-  --secondary-100: #f1f5f9;
-  --secondary-500: #64748b;
-  --secondary-600: #475569;
-  --secondary-900: #0f172a;
-}
+/* Primary Green - AI/Tech Focus */
+--primary: hsl(142, 76%, 36%);           /* #16a34a */
+--primary-foreground: hsl(355, 7%, 97%); /* #fafafa */
+
+/* Secondary Blue - Trust/Professional */
+--secondary: hsl(215, 28%, 17%);         /* #1e293b */
+--secondary-foreground: hsl(210, 40%, 98%); /* #f8fafc */
+
+/* Accent Cyan - Highlights/Actions */
+--accent: hsl(180, 100%, 50%);           /* #00ffff */
+--accent-foreground: hsl(222, 84%, 5%);  /* #0a0a0a */
 ```
 
-### 3.2 Semantic Colors
+#### Status Colors
 ```css
-:root {
-  /* Success (Gains/Profits) */
-  --success-50: #f0fdf4;
-  --success-500: #22c55e;
-  --success-600: #16a34a;
-  --success-700: #15803d;
-  
-  /* Danger (Losses/Alerts) */
-  --danger-50: #fef2f2;
-  --danger-500: #ef4444;
-  --danger-600: #dc2626;
-  --danger-700: #b91c1c;
-  
-  /* Warning (Caution) */
-  --warning-50: #fffbeb;
-  --warning-500: #f59e0b;
-  --warning-600: #d97706;
-  
-  /* Info (Neutral information) */
-  --info-50: #f0f9ff;
-  --info-500: #06b6d4;
-  --info-600: #0891b2;
-}
+/* Success States */
+--success: hsl(142, 76%, 36%);           /* #16a34a */
+--success-foreground: hsl(0, 0%, 100%);  /* #ffffff */
+
+/* Warning States */
+--warning: hsl(38, 92%, 50%);            /* #f59e0b */
+--warning-foreground: hsl(222, 84%, 5%); /* #0a0a0a */
+
+/* Error States */
+--error: hsl(0, 84%, 60%);               /* #ef4444 */
+--error-foreground: hsl(0, 0%, 100%);    /* #ffffff */
+
+/* Info States */
+--info: hsl(221, 83%, 53%);              /* #3b82f6 */
+--info-foreground: hsl(0, 0%, 100%);     /* #ffffff */
 ```
 
-### 3.3 Theme Support
-**Light Theme**:
-- Background: `--secondary-50`
-- Surface: `#ffffff`
-- Text Primary: `--secondary-900`
-- Text Secondary: `--secondary-600`
-
-**Dark Theme**:
-- Background: `#0a0a0a`
-- Surface: `#1a1a1a`
-- Text Primary: `#ffffff`
-- Text Secondary: `--secondary-400`
-
-**High Contrast Mode**:
-- Enhanced contrast ratios for accessibility compliance
-- Bold borders and clear visual separations
-
----
-
-## 4. Typography
-
-### 4.1 Font Family
+#### Background System
 ```css
-:root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-numeric: 'Inter', tabular-nums, sans-serif;
-}
+/* Dark Theme (Primary) */
+--background: hsl(222, 84%, 5%);         /* #0a0a0a */
+--foreground: hsl(210, 40%, 98%);        /* #f8fafc */
+
+--card: hsl(222, 84%, 8%);               /* #0f172a */
+--card-foreground: hsl(210, 40%, 98%);   /* #f8fafc */
+
+--muted: hsl(215, 28%, 17%);             /* #1e293b */
+--muted-foreground: hsl(215, 20%, 65%);  /* #94a3b8 */
+
+--border: hsl(215, 28%, 17%);            /* #1e293b */
+--input: hsl(215, 28%, 17%);             /* #1e293b */
+--ring: hsl(142, 76%, 36%);              /* #16a34a */
 ```
 
-### 4.2 Type Scale
+### 2.2 Typography
+
+#### Font Families
 ```css
-:root {
-  /* Headings */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.875rem;    /* 14px */
-  --text-base: 1rem;      /* 16px */
-  --text-lg: 1.125rem;    /* 18px */
-  --text-xl: 1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;     /* 24px */
-  --text-3xl: 1.875rem;   /* 30px */
-  --text-4xl: 2.25rem;    /* 36px */
-  
-  /* Line Heights */
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.625;
-}
+/* Primary Font - Interface */
+--font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+/* Monospace Font - Code */
+--font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+/* Display Font - Headlines */
+--font-heading: 'Inter', system-ui, -apple-system, sans-serif;
 ```
 
-### 4.3 Financial Data Typography
-- **Price Display**: Use tabular figures for consistent alignment
-- **Currency Symbols**: Consistent positioning and sizing
-- **Percentage Changes**: Color-coded with +/- indicators
-- **Large Numbers**: Comma separation for thousands
-
----
-
-## 5. Spacing System
-
-### 5.1 Base Spacing Unit
+#### Type Scale
 ```css
-:root {
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
-  --space-10: 2.5rem;   /* 40px */
-  --space-12: 3rem;     /* 48px */
-  --space-16: 4rem;     /* 64px */
-  --space-20: 5rem;     /* 80px */
-}
+/* Headings */
+--text-6xl: 3.75rem;    /* 60px - Hero headings */
+--text-5xl: 3rem;       /* 48px - Page titles */
+--text-4xl: 2.25rem;    /* 36px - Section headers */
+--text-3xl: 1.875rem;   /* 30px - Card titles */
+--text-2xl: 1.5rem;     /* 24px - Subsection headers */
+--text-xl: 1.25rem;     /* 20px - Large text */
+
+/* Body Text */
+--text-lg: 1.125rem;    /* 18px - Large body text */
+--text-base: 1rem;      /* 16px - Default body text */
+--text-sm: 0.875rem;    /* 14px - Small text */
+--text-xs: 0.75rem;     /* 12px - Captions, labels */
 ```
 
-### 5.2 Component Spacing
-- **Card Padding**: `--space-6` (24px)
-- **Button Padding**: `--space-3 --space-4` (12px 16px)
-- **Form Element Spacing**: `--space-4` (16px)
-- **Section Spacing**: `--space-12` (48px)
+#### Font Weights
+```css
+--font-thin: 100;
+--font-light: 300;
+--font-normal: 400;
+--font-medium: 500;
+--font-semibold: 600;
+--font-bold: 700;
+--font-extrabold: 800;
+--font-black: 900;
+```
 
----
+### 2.3 Spacing System
 
-## 6. Component Library
+#### Base Unit
+```css
+--spacing-unit: 0.25rem; /* 4px base unit */
+```
 
-### 6.1 Buttons
+#### Spacing Scale
+```css
+--space-0: 0;           /* 0px */
+--space-1: 0.25rem;     /* 4px */
+--space-2: 0.5rem;      /* 8px */
+--space-3: 0.75rem;     /* 12px */
+--space-4: 1rem;        /* 16px */
+--space-5: 1.25rem;     /* 20px */
+--space-6: 1.5rem;      /* 24px */
+--space-8: 2rem;        /* 32px */
+--space-10: 2.5rem;     /* 40px */
+--space-12: 3rem;       /* 48px */
+--space-16: 4rem;       /* 64px */
+--space-20: 5rem;       /* 80px */
+--space-24: 6rem;       /* 96px */
+--space-32: 8rem;       /* 128px */
+```
+
+### 2.4 Border Radius
+
+```css
+--radius-none: 0;
+--radius-sm: 0.125rem;   /* 2px */
+--radius: 0.375rem;      /* 6px - Default */
+--radius-md: 0.5rem;     /* 8px */
+--radius-lg: 0.75rem;    /* 12px */
+--radius-xl: 1rem;       /* 16px */
+--radius-2xl: 1.5rem;    /* 24px */
+--radius-full: 9999px;   /* Pill shape */
+```
+
+### 2.5 Shadows
+
+```css
+/* Box Shadows */
+--shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+--shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+/* Cyberpunk Glow Effects */
+--glow-green: 0 0 20px hsl(142, 76%, 36%);
+--glow-cyan: 0 0 20px hsl(180, 100%, 50%);
+--glow-blue: 0 0 20px hsl(221, 83%, 53%);
+```
+
+## 3. Component System
+
+### 3.1 Component Categories
+
+#### Foundational Components
+- **Button**: Primary actions and interactions
+- **Input**: Text input and form fields
+- **Card**: Content containers and layout
+- **Badge**: Status indicators and labels
+- **Avatar**: User representation
+
+#### Navigation Components
+- **Sidebar**: Primary navigation
+- **Tabs**: Section navigation
+- **Breadcrumbs**: Hierarchical navigation
+- **Pagination**: Content pagination
+
+#### Data Display Components
+- **Table**: Structured data display
+- **Chart**: Data visualization
+- **Progress**: Progress indicators
+- **Skeleton**: Loading states
+
+#### Feedback Components
+- **Alert**: System messages
+- **Toast**: Temporary notifications
+- **Modal**: Overlay content
+- **Tooltip**: Contextual information
+
+### 3.2 Button System
+
+#### Button Variants
+```typescript
+type ButtonVariant = 
+  | 'default'    // Primary action button
+  | 'destructive' // Dangerous actions
+  | 'outline'    // Secondary actions
+  | 'secondary'  // Tertiary actions
+  | 'ghost'      // Minimal actions
+  | 'link';      // Text links
+```
+
+#### Button Sizes
+```typescript
+type ButtonSize = 
+  | 'default'    // Standard size (h-10, px-4, py-2)
+  | 'sm'         // Small size (h-9, px-3)
+  | 'lg'         // Large size (h-11, px-8)
+  | 'icon';      // Icon only (h-10, w-10)
+```
+
+#### Implementation Example
 ```tsx
-// Primary Button
-<Button variant="primary" size="md">
-  Execute Trade
+<Button variant="default" size="lg" className="glow-on-hover">
+  <Zap className="mr-2 h-4 w-4" />
+  Start AI Agent
 </Button>
-
-// Variants: primary, secondary, outline, ghost, destructive
-// Sizes: xs, sm, md, lg, xl
 ```
 
-**Button Specifications**:
-- Minimum height: 40px for touch targets
-- Border radius: 6px
-- Focus states with visible outlines
-- Loading states with spinners
-- Disabled states with reduced opacity
+### 3.3 Input System
 
-### 6.2 Cards
+#### Input Variants
+- **Text Input**: Standard text entry
+- **Password Input**: Password with visibility toggle
+- **Search Input**: Search with icon and clear button
+- **Textarea**: Multi-line text input
+- **Select**: Dropdown selection
+- **Combobox**: Searchable select
+
+#### Input States
+```css
+/* Default State */
+.input-default {
+  border: 1px solid var(--border);
+  background: var(--input);
+}
+
+/* Focus State */
+.input-focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+/* Error State */
+.input-error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 2px var(--error);
+}
+
+/* Disabled State */
+.input-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+```
+
+### 3.4 Card System
+
+#### Card Anatomy
 ```tsx
-// Trading Card
-<Card className="trading-card">
+<Card className="cyber-border">
   <CardHeader>
-    <CardTitle>Portfolio Overview</CardTitle>
+    <CardTitle>AI Agent Performance</CardTitle>
+    <CardDescription>Real-time metrics and insights</CardDescription>
   </CardHeader>
   <CardContent>
     {/* Card content */}
   </CardContent>
+  <CardFooter>
+    {/* Action buttons */}
+  </CardFooter>
 </Card>
 ```
 
-**Card Specifications**:
-- Border radius: 8px
-- Shadow: 0 1px 3px rgba(0,0,0,0.1)
-- Border: 1px solid border color
-- Hover states with elevated shadows
+#### Card Variants
+- **Default**: Standard content card
+- **Interactive**: Hoverable cards with actions
+- **Stat**: Metric display cards
+- **Feature**: Product feature cards
 
-### 6.3 Form Elements
-```tsx
-// Input Field
-<Input
-  type="number"
-  placeholder="0.00"
-  className="currency-input"
-  icon={<DollarSign />}
-/>
-```
+## 4. Layout System
 
-**Form Specifications**:
-- Height: 40px minimum
-- Border radius: 6px
-- Focus states with colored borders
-- Error states with red borders and error messages
-- Helper text for additional context
+### 4.1 Grid System
 
-### 6.4 Data Display
-```tsx
-// Price Display
-<PriceDisplay
-  value={58350.50}
-  currency="AUD"
-  change={2.34}
-  changePercent={4.2}
-/>
-```
-
-**Data Display Specifications**:
-- Consistent number formatting
-- Color coding for gains/losses
-- Responsive sizing based on viewport
-- Tabular number alignment
-
----
-
-## 7. Layout System
-
-### 7.1 Grid System
+#### Responsive Breakpoints
 ```css
+--screen-sm: 640px;   /* Small devices */
+--screen-md: 768px;   /* Medium devices */
+--screen-lg: 1024px;  /* Large devices */
+--screen-xl: 1280px;  /* Extra large devices */
+--screen-2xl: 1536px; /* 2X large devices */
+```
+
+#### Grid Classes
+```css
+/* Container */
 .container {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1rem;
 }
 
+/* Grid System */
 .grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(12, 1fr);
+}
+
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+```
+
+### 4.2 Sidebar Layout
+
+#### Sidebar Specifications
+```css
+.sidebar {
+  width: 256px;           /* Expanded width */
+  min-width: 64px;        /* Collapsed width */
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  transition: width 0.3s ease;
+}
+
+.sidebar-collapsed {
+  width: 64px;
 }
 ```
 
-### 7.2 Responsive Breakpoints
+#### Main Content Layout
+```css
+.main-content {
+  margin-left: 256px;     /* When sidebar expanded */
+  padding: 1.5rem;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content-collapsed {
+  margin-left: 64px;      /* When sidebar collapsed */
+}
+```
+
+### 4.3 Dashboard Layout
+
+#### Dashboard Grid
+```css
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.widget {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.widget-large {
+  grid-column: span 2;
+}
+
+.widget-tall {
+  grid-row: span 2;
+}
+```
+
+## 5. Iconography
+
+### 5.1 Icon System
+
+#### Icon Library
+**Primary**: Lucide React icons for consistency and quality
+**Secondary**: Custom SVG icons for specific features
+
+#### Icon Sizes
+```css
+--icon-xs: 0.75rem;    /* 12px */
+--icon-sm: 1rem;       /* 16px */
+--icon-md: 1.25rem;    /* 20px */
+--icon-lg: 1.5rem;     /* 24px */
+--icon-xl: 2rem;       /* 32px */
+--icon-2xl: 2.5rem;    /* 40px */
+```
+
+#### Icon Usage Guidelines
+- Use consistent sizing within contexts
+- Maintain adequate contrast with backgrounds
+- Apply appropriate semantic meaning
+- Include accessible alt text for screen readers
+
+### 5.2 Icon Categories
+
+#### Navigation Icons
+```tsx
+import { 
+  Home, Settings, Search, Menu, 
+  ChevronLeft, ChevronRight, ChevronDown 
+} from 'lucide-react';
+```
+
+#### Action Icons
+```tsx
+import { 
+  Plus, Edit, Trash2, Save, Download, 
+  Upload, Copy, Share, Eye, EyeOff 
+} from 'lucide-react';
+```
+
+#### Status Icons
+```tsx
+import { 
+  CheckCircle, AlertCircle, XCircle, 
+  Info, AlertTriangle, Clock 
+} from 'lucide-react';
+```
+
+#### Feature Icons
+```tsx
+import { 
+  Bot, Zap, Brain, Cpu, Database, 
+  MessageSquare, FileText, BarChart3 
+} from 'lucide-react';
+```
+
+## 6. Animation & Transitions
+
+### 6.1 Animation Principles
+
+#### Duration Guidelines
+```css
+--duration-fast: 150ms;      /* Micro-interactions */
+--duration-normal: 250ms;    /* Standard transitions */
+--duration-slow: 350ms;      /* Complex animations */
+--duration-slower: 500ms;    /* Page transitions */
+```
+
+#### Easing Functions
+```css
+--ease-in: cubic-bezier(0.4, 0, 1, 1);
+--ease-out: cubic-bezier(0, 0, 0.2, 1);
+--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+--ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+```
+
+### 6.2 Common Animations
+
+#### Fade Animations
+```css
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+```
+
+#### Slide Animations
+```css
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+```
+
+#### Cyberpunk Effects
+```css
+@keyframes cyberpunkGlow {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--primary);
+  }
+  50% { 
+    box-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary);
+  }
+}
+
+.cyber-glow {
+  animation: cyberpunkGlow 2s ease-in-out infinite;
+}
+```
+
+## 7. Responsive Design
+
+### 7.1 Mobile-First Approach
+
+#### Breakpoint Strategy
+1. **Mobile**: Design for mobile first (320px+)
+2. **Tablet**: Enhance for tablet (768px+)
+3. **Desktop**: Optimize for desktop (1024px+)
+4. **Large Desktop**: Scale for large screens (1280px+)
+
+#### Component Responsive Behavior
+```tsx
+// Example: Responsive grid
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  {/* Grid items */}
+</div>
+
+// Example: Responsive text
+<h1 className="text-2xl md:text-3xl lg:text-4xl">
+  ZeroOne Platform
+</h1>
+```
+
+### 7.2 Mobile Optimizations
+
+#### Touch Targets
+- Minimum 44px touch targets
+- Adequate spacing between interactive elements
+- Gesture-friendly interactions
+
+#### Performance Considerations
+- Optimize images and assets
+- Minimize bundle size
+- Implement progressive loading
+
+## 8. Accessibility
+
+### 8.1 WCAG 2.1 AA Compliance
+
+#### Color Contrast
+- Text: Minimum 4.5:1 contrast ratio
+- Large text: Minimum 3:1 contrast ratio
+- UI components: Minimum 3:1 contrast ratio
+
+#### Keyboard Navigation
+- All interactive elements accessible via keyboard
+- Visible focus indicators
+- Logical tab order
+
+#### Screen Reader Support
+- Semantic HTML elements
+- ARIA labels and descriptions
+- Alternative text for images
+
+### 8.2 Inclusive Design
+
+#### Motor Accessibility
+- Large enough touch targets
+- Alternative input methods
+- Reduced motion options
+
+#### Cognitive Accessibility
+- Clear information hierarchy
+- Consistent navigation patterns
+- Simple, clear language
+
+#### Visual Accessibility
+- High contrast mode support
+- Scalable text and UI elements
+- Color-blind friendly palette
+
+## 9. Component Documentation
+
+### 9.1 Component API
+
+#### Props Documentation
+```typescript
+interface ButtonProps {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  disabled?: boolean;
+  loading?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}
+```
+
+#### Usage Examples
+```tsx
+// Primary action button
+<Button variant="default" size="lg">
+  Create Project
+</Button>
+
+// Secondary action
+<Button variant="outline">
+  Cancel
+</Button>
+
+// Icon button
+<Button variant="ghost" size="icon">
+  <Settings className="h-4 w-4" />
+</Button>
+```
+
+### 9.2 Design Tokens
+
+#### CSS Custom Properties
 ```css
 :root {
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-}
-```
-
-### 7.3 Layout Patterns
-- **Dashboard Layout**: Sidebar + main content area
-- **Trading Layout**: Multi-panel layout with resizable sections
-- **Mobile Layout**: Single column with collapsible navigation
-- **Modal Layout**: Centered overlays with backdrop
-
----
-
-## 8. Iconography
-
-### 8.1 Icon Library
-Primary icon library: **Lucide React**
-- Consistent 24x24px default size
-- Stroke width: 2px
-- Scalable for different sizes (16px, 20px, 24px, 32px)
-
-### 8.2 Financial Icons
-```tsx
-// Trading Icons
-<TrendingUp />    // Gains/Bullish
-<TrendingDown />  // Losses/Bearish
-<DollarSign />    // Currency
-<BarChart />      // Analytics
-<Shield />        // Security/Risk
-<Bot />           // AI/Automation
-```
-
-### 8.3 Custom Icons
-- **Cryptocurrency Icons**: Custom SVG icons for major cryptocurrencies
-- **Exchange Icons**: Branded icons for supported exchanges
-- **Feature Icons**: Custom icons for platform-specific features
-
----
-
-## 9. Accessibility
-
-### 9.1 Color Contrast
-- **AA Compliance**: Minimum 4.5:1 contrast ratio for normal text
-- **AAA Compliance**: 7:1 contrast ratio for enhanced accessibility
-- **Color Independence**: Information not conveyed by color alone
-
-### 9.2 Keyboard Navigation
-- **Tab Order**: Logical tab sequence through interface
-- **Focus Indicators**: Visible focus states for all interactive elements
-- **Keyboard Shortcuts**: Common shortcuts for power users
-- **Screen Reader Support**: ARIA labels and semantic markup
-
-### 9.3 Responsive Design
-- **Touch Targets**: Minimum 44px for mobile interfaces
-- **Zoom Support**: Usable at 200% zoom level
-- **Mobile Optimization**: Optimized for one-handed use
-
----
-
-## 10. Animation and Motion
-
-### 10.1 Animation Principles
-- **Purposeful**: Animations serve a functional purpose
-- **Subtle**: Non-distracting and professional
-- **Fast**: Quick transitions (<300ms for most interactions)
-- **Respectful**: Respect user's motion preferences
-
-### 10.2 Common Animations
-```css
-/* Fade In */
-.fade-in {
-  animation: fadeIn 200ms ease-out;
-}
-
-/* Slide In */
-.slide-in {
-  animation: slideIn 300ms ease-out;
-}
-
-/* Loading Spinner */
-.spinner {
-  animation: spin 1s linear infinite;
-}
-```
-
-### 10.3 Performance Considerations
-- Use `transform` and `opacity` for smooth animations
-- Avoid animating layout properties
-- Implement `prefers-reduced-motion` support
-- Optimize for 60fps performance
-
----
-
-## 11. Data Visualization
-
-### 11.1 Chart Design
-- **Color Palette**: Consistent colors for different data types
-- **Grid Lines**: Subtle grid lines for better readability
-- **Tooltips**: Informative hover states
-- **Responsive**: Adaptive sizing for different screen sizes
-
-### 11.2 Financial Chart Conventions
-- **Candlestick Charts**: Green for gains, red for losses (following international conventions)
-- **Volume Bars**: Coordinated colors with price movement
-- **Technical Indicators**: Distinct colors for different indicators
-- **Time Axis**: Clear time labels with appropriate granularity
-
----
-
-## 12. Implementation Guidelines
-
-### 12.1 CSS Architecture
-```scss
-// BEM Methodology
-.trading-card {
-  &__header {
-    // Header styles
-  }
+  /* Colors */
+  --primary: hsl(142, 76%, 36%);
+  --secondary: hsl(215, 28%, 17%);
   
-  &__content {
-    // Content styles
-  }
+  /* Typography */
+  --font-sans: 'Inter', sans-serif;
+  --text-base: 1rem;
   
-  &--compact {
-    // Compact variant
-  }
+  /* Spacing */
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  
+  /* Borders */
+  --radius: 0.375rem;
+  --border-width: 1px;
 }
 ```
 
-### 12.2 Component Development
-- Use TypeScript for all components
-- Implement proper prop types and defaults
-- Include Storybook stories for each component
-- Write comprehensive unit tests
-- Document component APIs
-
-### 12.3 Design Tokens
-```typescript
-// Design tokens exported as TypeScript constants
-export const colors = {
-  primary: {
-    50: '#eff6ff',
-    500: '#3b82f6',
-    900: '#1e3a8a',
-  },
-  // ... other colors
-} as const;
-```
-
----
-
-## 13. Quality Assurance
-
-### 13.1 Design Review Process
-1. **Design Review**: Design team reviews for brand consistency
-2. **Accessibility Review**: Check for WCAG 2.1 compliance
-3. **Code Review**: Development team reviews implementation
-4. **User Testing**: Validate with real users
-5. **Performance Review**: Check for performance impact
-
-### 13.2 Maintenance
-- **Regular Audits**: Quarterly design system audits
-- **Version Control**: Semantic versioning for design system updates
-- **Documentation**: Keep documentation up-to-date with changes
-- **Training**: Regular training for team members on design system usage
+This design system provides a comprehensive foundation for creating consistent, accessible, and visually appealing interfaces across the ZeroOne platform while maintaining the cyberpunk aesthetic and professional functionality.

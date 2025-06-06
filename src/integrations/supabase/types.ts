@@ -226,6 +226,47 @@ export type Database = {
         }
         Relationships: []
       }
+      analysis_results: {
+        Row: {
+          analysis_type: string
+          content_ids: string[]
+          created_at: string
+          id: string
+          metadata: Json
+          project_id: string | null
+          results: Json
+          user_id: string | null
+        }
+        Insert: {
+          analysis_type: string
+          content_ids: string[]
+          created_at?: string
+          id?: string
+          metadata?: Json
+          project_id?: string | null
+          results?: Json
+          user_id?: string | null
+        }
+        Update: {
+          analysis_type?: string
+          content_ids?: string[]
+          created_at?: string
+          id?: string
+          metadata?: Json
+          project_id?: string | null
+          results?: Json
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_results_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           created_at: string | null
@@ -433,6 +474,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      collaboration_sessions: {
+        Row: {
+          created_at: string
+          cursor_position: Json | null
+          id: string
+          last_seen: string
+          project_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          cursor_position?: Json | null
+          id?: string
+          last_seen?: string
+          project_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          cursor_position?: Json | null
+          id?: string
+          last_seen?: string
+          project_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contents: {
         Row: {
@@ -782,6 +858,39 @@ export type Database = {
           symbols_mentioned?: string[] | null
           title?: string
           url?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
