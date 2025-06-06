@@ -1,571 +1,393 @@
 
 # Troubleshooting Guide
-# ZeroOne AI-Powered Workspace Platform
 
-## Document Information
-- **Version**: 1.0
-- **Last Updated**: June 2025
-- **Owner**: Support Engineering Team
-- **Status**: Active
+## Overview
 
-## 1. Common Issues and Solutions
+This guide helps resolve common issues encountered while using the Crypto Beacon Trader Hub platform. Follow the steps in order and escalate to the next level if the issue persists.
 
-### 1.1 Login and Authentication Issues
+## Quick Fixes (Try These First)
 
-#### Problem: Cannot log in to account
-**Symptoms:**
-- Login form shows "Invalid credentials" error
-- Page redirects back to login after entering credentials
-- Two-factor authentication codes are rejected
+### 🔄 Basic Troubleshooting Steps
+1. **Refresh the page** (F5 or Ctrl+F5 for hard refresh)
+2. **Clear browser cache** (Ctrl+Shift+Delete)
+3. **Try incognito/private mode**
+4. **Check internet connection**
+5. **Update your browser** to the latest version
+
+### 📱 Browser Compatibility Check
+- ✅ **Chrome 90+** (Recommended)
+- ✅ **Firefox 88+** 
+- ✅ **Safari 14+**
+- ✅ **Edge 90+**
+- ❌ **Internet Explorer** (Not supported)
+
+## Connection and Loading Issues
+
+### Problem: Platform Won't Load
+**Symptoms:** White screen, loading forever, error messages
 
 **Solutions:**
-1. **Verify credentials**
-   - Ensure email address is correct (check for typos)
-   - Verify password is entered correctly (check caps lock)
-   - Try copy-pasting credentials to avoid typing errors
+1. **Check Internet Connection**
+   - Test other websites
+   - Try mobile hotspot if on WiFi
+   - Contact ISP if widespread issues
 
-2. **Clear browser data**
+2. **Browser Issues**
    ```bash
-   # Clear browser cache and cookies
-   1. Open browser settings
-   2. Navigate to Privacy/Security section
-   3. Clear browsing data for last 24 hours
-   4. Include cookies and cached files
+   # Clear browser data
+   Chrome: Settings > Privacy > Clear browsing data
+   Firefox: Settings > Privacy > Clear Data
+   Safari: Develop > Empty Caches
    ```
 
-3. **Check 2FA settings**
-   - Ensure device clock is synchronized
-   - Try generating a new 2FA code
-   - Use backup recovery codes if available
+3. **Firewall/Antivirus**
+   - Temporarily disable firewall
+   - Add platform to antivirus whitelist
+   - Check corporate network restrictions
 
-4. **Reset password**
-   - Use "Forgot Password" link on login page
-   - Check email for reset instructions
-   - Follow link and create new password
+4. **DNS Issues**
+   - Try different DNS servers (8.8.8.8, 1.1.1.1)
+   - Flush DNS cache: `ipconfig /flushdns` (Windows)
 
-#### Problem: 2FA device lost or not working
-**Solutions:**
-1. **Use backup codes**
-   - Locate saved backup recovery codes
-   - Enter any unused backup code
-   - Disable and re-enable 2FA with new device
-
-2. **Contact support**
-   - Email support with account verification details
-   - Provide alternative verification (billing info, recent activity)
-   - Allow 24-48 hours for manual verification
-
-### 1.2 AI Chat and Model Issues
-
-#### Problem: AI responses are slow or timeout
-**Symptoms:**
-- Long delay before receiving responses
-- "Request timeout" error messages
-- Incomplete or cut-off responses
+### Problem: Real-Time Data Not Updating
+**Symptoms:** Prices frozen, old timestamps, "Last updated" not changing
 
 **Solutions:**
-1. **Check connection**
-   ```bash
-   # Test internet connection
-   ping google.com
-   # Test ZeroOne API connectivity
-   curl -I https://api.zeroone.ai/health
+1. **WebSocket Connection Issues**
+   - Check browser console for WebSocket errors
+   - Verify network allows WebSocket connections
+   - Try different network/VPN
+
+2. **Rate Limiting**
+   - Wait 5-10 minutes for rate limits to reset
+   - Reduce browser tabs using the platform
+   - Check if multiple users share same IP
+
+3. **API Service Outages**
+   - Check CoinGecko and Binance status pages
+   - Wait for service restoration
+   - Platform will show fallback data
+
+## Trading and Portfolio Issues
+
+### Problem: Trades Not Executing
+**Symptoms:** "Insufficient balance" errors, trades fail silently
+
+**Solutions:**
+1. **Balance Issues**
+   - Verify available balance covers trade cost
+   - Check for decimal precision errors
+   - Ensure amount is greater than minimum
+
+2. **Input Validation**
+   ```typescript
+   // Valid trade inputs:
+   Amount: Must be positive number > 0.00001
+   Price: Must be positive and current
+   Type: Must be "buy" or "sell"
    ```
 
-2. **Switch AI model**
-   - Try a different AI provider (OpenAI → Claude)
-   - Use a smaller/faster model variant
-   - Check model availability status
+3. **Storage Issues**
+   - Check browser storage quota
+   - Clear old trade data if storage full
+   - Try different browser profile
 
-3. **Reduce prompt length**
-   - Break complex prompts into smaller parts
-   - Remove unnecessary context or examples
-   - Use conversation history for context instead
-
-4. **Clear conversation history**
-   - Start a new conversation
-   - Archive old conversations with many messages
-   - Reduce context window size in settings
-
-#### Problem: AI gives incorrect or nonsensical responses
-**Solutions:**
-1. **Improve prompt quality**
-   - Be more specific in your requests
-   - Provide clear context and examples
-   - Use structured prompts with clear instructions
-
-2. **Check model temperature**
-   - Lower temperature for more consistent responses
-   - Adjust creativity settings in AI configuration
-   - Use system prompts to guide behavior
-
-3. **Verify model selection**
-   - Ensure you're using the right model for the task
-   - Check model capabilities and limitations
-   - Switch to a more capable model if needed
-
-### 1.3 Trading Bot Issues
-
-#### Problem: Trading bot won't start or stops unexpectedly
-**Symptoms:**
-- Bot status shows "Error" or "Stopped"
-- Orders are not being placed
-- Bot logs show connection errors
+### Problem: Portfolio Values Incorrect
+**Symptoms:** Wrong calculations, missing holdings, balance errors
 
 **Solutions:**
-1. **Check exchange connection**
+1. **Data Synchronization**
+   - Refresh market data
+   - Check trade history for accuracy
+   - Verify currency conversion rates
+
+2. **Calculation Errors**
+   - Clear localStorage and start fresh
+   - Re-execute recent trades if needed
+   - Export data before clearing
+
+3. **Browser Storage Corruption**
    ```javascript
-   // Verify API credentials
-   1. Go to Trading Settings
-   2. Test exchange connection
-   3. Verify API key permissions include trading
-   4. Check if API key has expired
-   ```
-
-2. **Verify account balances**
-   - Ensure sufficient balance for trading
-   - Check minimum order amounts
-   - Verify base and quote currency balances
-
-3. **Review bot configuration**
-   - Check trading pair is valid and active
-   - Verify price ranges are realistic
-   - Ensure risk parameters are properly set
-
-4. **Check exchange status**
-   - Verify exchange is operational
-   - Check for maintenance windows
-   - Review exchange API limits and restrictions
-
-#### Problem: Bot is not profitable or losing money
-**Solutions:**
-1. **Review strategy parameters**
-   - Analyze historical performance data
-   - Adjust grid spacing or DCA intervals
-   - Modify risk management settings
-
-2. **Test in paper trading mode**
-   - Run strategy in simulation first
-   - Backtest with historical data
-   - Optimize parameters before going live
-
-3. **Monitor market conditions**
-   - Ensure strategy suits current market
-   - Adjust for high/low volatility periods
-   - Consider pausing during major events
-
-### 1.4 Document Processing Issues
-
-#### Problem: Document upload fails or takes too long
-**Symptoms:**
-- Upload progress bar sticks at certain percentage
-- "Upload failed" error messages
-- Files appear corrupted after upload
-
-**Solutions:**
-1. **Check file size and format**
-   ```bash
-   # Verify file size (limit: 100MB per file)
-   ls -lh document.pdf
+   // Check localStorage integrity
+   console.log(localStorage.getItem('paperTrades'));
+   console.log(localStorage.getItem('paperBalance'));
    
-   # Check file format support
-   file document.pdf
+   // Clear if corrupted
+   localStorage.removeItem('paperTrades');
+   localStorage.removeItem('paperBalance');
    ```
 
-2. **Optimize large files**
-   - Compress PDF files before upload
-   - Split large documents into smaller parts
-   - Use lower resolution for image files
+## AI Bot Issues
 
-3. **Clear browser cache**
-   - Clear browser cache and cookies
+### Problem: AI Bots Not Working
+**Symptoms:** Bots stuck, no trades, status errors
+
+**Solutions:**
+1. **Bot Configuration**
+   - Verify all required settings are filled
+   - Check position size vs. available balance
+   - Ensure selected cryptocurrency is available
+
+2. **API Integration**
+   - Verify OpenRouter API key (if using)
+   - Check API key permissions
+   - Test API connection in settings
+
+3. **Strategy Issues**
+   - Try different strategy types
+   - Adjust risk parameters
+   - Reset bot to default settings
+
+### Problem: Bot Performance Poor
+**Symptoms:** Consistent losses, no trades executed, erratic behavior
+
+**Solutions:**
+1. **Strategy Optimization**
+   - Review market conditions vs. strategy
+   - Adjust position sizes
+   - Try different timeframes
+
+2. **Risk Management**
+   - Lower risk level settings
+   - Reduce maximum position size
+   - Diversify across multiple strategies
+
+3. **Market Analysis**
+   - Check if current market suits strategy
+   - Review technical indicators
+   - Consider pausing during high volatility
+
+## Performance Issues
+
+### Problem: Platform Running Slowly
+**Symptoms:** Lag, delayed responses, browser freezing
+
+**Solutions:**
+1. **Browser Optimization**
+   - Close unnecessary tabs
+   - Clear browser cache
+   - Restart browser
+   - Update to latest version
+
+2. **Memory Management**
+   ```bash
+   # Check memory usage
+   Chrome: Settings > More tools > Task manager
+   Firefox: about:memory
+   Safari: Develop > Show Web Inspector > Memory
+   ```
+
+3. **System Resources**
+   - Close other applications
+   - Restart computer
+   - Check available RAM and CPU
+
+### Problem: Charts and Graphics Issues
+**Symptoms:** Blank charts, visual glitches, rendering errors
+
+**Solutions:**
+1. **Graphics Acceleration**
+   - Enable hardware acceleration in browser
+   - Update graphics drivers
+   - Try different browser
+
+2. **Display Settings**
+   - Check browser zoom level (should be 100%)
+   - Verify screen resolution compatibility
+   - Test on different monitor if available
+
+## Data and Storage Issues
+
+### Problem: Lost Trading Data
+**Symptoms:** Missing trades, reset balance, lost bot configurations
+
+**Solutions:**
+1. **Browser Storage Check**
+   ```javascript
+   // Check if data exists
+   Object.keys(localStorage).filter(key => 
+     key.includes('paper') || key.includes('bot')
+   );
+   ```
+
+2. **Data Recovery**
+   - Check browser history for previous sessions
+   - Look for exported data files
+   - Contact support if data is critical
+
+3. **Prevention**
+   - Export data regularly
+   - Use browser bookmarks for backups
+   - Avoid clearing browser data
+
+### Problem: Settings Not Saving
+**Symptoms:** Preferences reset, configurations lost
+
+**Solutions:**
+1. **Storage Permissions**
+   - Check browser privacy settings
+   - Ensure cookies and site data allowed
+   - Disable private/incognito mode
+
+2. **Extension Conflicts**
    - Disable browser extensions temporarily
-   - Try uploading from incognito/private window
+   - Test in clean browser profile
+   - Check for ad blockers interfering
 
-4. **Check network connection**
-   - Test upload with smaller file first
-   - Verify stable internet connection
-   - Try different network if available
+## API and External Service Issues
 
-#### Problem: OCR extraction is inaccurate
-**Solutions:**
-1. **Improve image quality**
-   - Use higher resolution scans (minimum 300 DPI)
-   - Ensure good contrast and lighting
-   - Straighten skewed or rotated images
-
-2. **Preprocess images**
-   - Convert to black and white for text documents
-   - Remove noise and artifacts
-   - Crop to focus on text areas
-
-3. **Choose appropriate language**
-   - Set correct language in OCR settings
-   - Use language-specific OCR models
-   - Verify text orientation is correct
-
-### 1.5 Performance Issues
-
-#### Problem: Platform is slow or unresponsive
-**Symptoms:**
-- Pages take long time to load
-- UI elements don't respond to clicks
-- Browser tab becomes unresponsive
+### Problem: API Error Messages
+**Symptoms:** "Failed to fetch", "Network error", "Rate limit exceeded"
 
 **Solutions:**
-1. **Check browser performance**
-   ```bash
-   # Check browser memory usage
-   1. Open browser task manager (Shift+Esc in Chrome)
-   2. Identify high memory/CPU usage tabs
-   3. Close unnecessary tabs and extensions
-   ```
+1. **Rate Limiting**
+   - Wait 10-15 minutes before retrying
+   - Reduce API calls by closing extra tabs
+   - Check API provider status
 
-2. **Clear browser data**
-   - Clear cache, cookies, and local storage
-   - Disable unnecessary browser extensions
-   - Update browser to latest version
+2. **Network Configuration**
+   - Verify HTTPS connections allowed
+   - Check proxy/VPN settings
+   - Test direct connection without VPN
 
-3. **Optimize workspace**
-   - Close unused projects and documents
-   - Archive old conversations
-   - Reduce number of active widgets on dashboard
+3. **CORS Issues**
+   - Use different browser
+   - Disable browser security extensions
+   - Try different network
 
-4. **Check system resources**
-   - Monitor CPU and memory usage
-   - Close other resource-intensive applications
-   - Restart browser or computer if needed
+### Problem: OpenRouter AI Integration Issues
+**Symptoms:** AI features not working, strategy generation fails
 
-## 2. Error Messages and Codes
-
-### 2.1 Authentication Errors
-
-| Error Code | Message | Solution |
-|------------|---------|----------|
-| AUTH_001 | Invalid credentials | Verify email and password, try password reset |
-| AUTH_002 | Account locked | Wait 15 minutes or contact support |
-| AUTH_003 | 2FA code invalid | Check device clock, try new code |
-| AUTH_004 | Session expired | Log out and log back in |
-| AUTH_005 | Account suspended | Contact support for account review |
-
-### 2.2 AI Service Errors
-
-| Error Code | Message | Solution |
-|------------|---------|----------|
-| AI_001 | Model not available | Switch to different model or try later |
-| AI_002 | Request timeout | Reduce prompt length or check connection |
-| AI_003 | Rate limit exceeded | Wait or upgrade plan for higher limits |
-| AI_004 | Invalid prompt format | Review prompt structure and formatting |
-| AI_005 | Context too long | Start new conversation or reduce context |
-
-### 2.3 Trading Errors
-
-| Error Code | Message | Solution |
-|------------|---------|----------|
-| TRADE_001 | Insufficient balance | Add funds or reduce order size |
-| TRADE_002 | Invalid trading pair | Check pair availability on exchange |
-| TRADE_003 | Order size too small | Increase order amount above minimum |
-| TRADE_004 | Price out of range | Check current market price and adjust |
-| TRADE_005 | Exchange API error | Check exchange status and API credentials |
-
-### 2.4 File Processing Errors
-
-| Error Code | Message | Solution |
-|------------|---------|----------|
-| FILE_001 | File too large | Compress file or split into smaller parts |
-| FILE_002 | Unsupported format | Convert to supported format |
-| FILE_003 | Upload failed | Check connection and try again |
-| FILE_004 | Processing timeout | Try with smaller file or contact support |
-| FILE_005 | OCR failed | Improve image quality and try again |
-
-## 3. Browser-Specific Issues
-
-### 3.1 Chrome/Chromium Issues
-
-#### Problem: WebSocket connections fail
 **Solutions:**
-1. Disable extensions that might block WebSockets
-2. Check Chrome flags for WebSocket-related settings
-3. Clear browser data and restart Chrome
-4. Try Chrome Incognito mode to isolate extension issues
+1. **API Key Issues**
+   - Verify API key is correct
+   - Check OpenRouter account status
+   - Ensure sufficient credits/usage limits
 
-#### Problem: File uploads don't work
+2. **Model Selection**
+   - Try different AI models
+   - Use free models first
+   - Check model availability
+
+## Mobile and Responsive Issues
+
+### Problem: Mobile Interface Problems
+**Symptoms:** Layout broken, touch not working, small text
+
 **Solutions:**
-1. Check Chrome's download/upload permissions
-2. Disable ad blockers temporarily
-3. Clear Chrome cache and cookies
-4. Reset Chrome settings to default
+1. **Mobile Browser Optimization**
+   - Use latest Chrome or Safari on mobile
+   - Clear mobile browser cache
+   - Try landscape orientation
 
-### 3.2 Firefox Issues
+2. **Touch Interface**
+   - Ensure touch targets are large enough
+   - Avoid rapid tapping
+   - Use zoom if elements too small
 
-#### Problem: Real-time features don't work
-**Solutions:**
-1. Enable WebSocket support in Firefox settings
-2. Check Enhanced Tracking Protection settings
-3. Add ZeroOne to exceptions list
-4. Update Firefox to latest version
+3. **Performance on Mobile**
+   - Close other mobile apps
+   - Restart mobile browser
+   - Try on different mobile device
 
-#### Problem: AI chat interface is broken
-**Solutions:**
-1. Disable Strict Enhanced Tracking Protection
-2. Clear Firefox cache and cookies
-3. Check JavaScript permissions
-4. Try Firefox Safe Mode
+## Advanced Troubleshooting
 
-### 3.3 Safari Issues
+### Browser Console Debugging
+```javascript
+// Open browser console (F12) and run:
 
-#### Problem: Authentication redirects fail
-**Solutions:**
-1. Enable cross-site tracking in Safari settings
-2. Disable Prevent Cross-Site Tracking temporarily
-3. Clear Safari cache and website data
-4. Check Privacy settings for third-party cookies
+// Check for JavaScript errors
+console.log('Platform status check');
 
-### 3.4 Edge Issues
+// Verify WebSocket connection
+console.log('WebSocket status:', 
+  window.cryptoTrader?.websocketStatus || 'Unknown');
 
-#### Problem: Dashboard widgets don't load
-**Solutions:**
-1. Clear Edge browsing data
-2. Disable tracking prevention temporarily
-3. Check JavaScript permissions
-4. Reset Edge to default settings
+// Check localStorage usage
+console.log('Storage usage:', 
+  JSON.stringify(localStorage).length + ' bytes');
 
-## 4. Network and Connectivity Issues
+// Test API connectivity
+fetch('https://api.coingecko.com/api/v3/ping')
+  .then(response => console.log('API Status:', response.ok))
+  .catch(error => console.log('API Error:', error));
+```
 
-### 4.1 Firewall and Proxy Issues
+### Network Diagnostics
+```bash
+# Test network connectivity
+ping api.coingecko.com
+nslookup stream.binance.com
+tracert openrouter.ai
 
-#### Problem: Cannot connect to ZeroOne services
-**Solutions:**
-1. **Check firewall settings**
-   ```bash
-   # Required domains to whitelist
-   *.zeroone.ai
-   api.openai.com
-   api.anthropic.com
-   *.supabase.co
-   ```
+# Check DNS resolution
+nslookup api.coingecko.com 8.8.8.8
+```
 
-2. **Configure proxy settings**
-   - Add ZeroOne domains to proxy bypass list
-   - Configure authentication if required
-   - Test direct connection without proxy
+### Performance Profiling
+1. **Browser Performance Tab**
+   - Open DevTools (F12)
+   - Go to Performance tab
+   - Record 10-15 seconds of usage
+   - Analyze for bottlenecks
 
-3. **Corporate network restrictions**
-   - Contact IT department for domain whitelisting
-   - Request WebSocket traffic allowance
-   - Consider using mobile hotspot as workaround
+2. **Memory Usage**
+   - Monitor memory tab in DevTools
+   - Look for memory leaks
+   - Check garbage collection patterns
 
-### 4.2 SSL/TLS Certificate Issues
+## Error Code Reference
 
-#### Problem: SSL certificate errors
-**Solutions:**
-1. Check system date and time accuracy
-2. Update browser to latest version
-3. Clear SSL certificate cache
-4. Contact support if certificates appear invalid
+### Common Error Codes
+- **ERR_NETWORK_CHANGED**: Network connection switched
+- **ERR_INTERNET_DISCONNECTED**: No internet connection
+- **ERR_CONNECTION_REFUSED**: Server unreachable
+- **ERR_SSL_PROTOCOL_ERROR**: HTTPS certificate issues
+- **ERR_TOO_MANY_REQUESTS**: Rate limiting active
 
-### 4.3 DNS Resolution Issues
+### API Error Codes
+- **429**: Too Many Requests - wait and retry
+- **500**: Server Error - temporary issue
+- **403**: Forbidden - check API key
+- **401**: Unauthorized - verify credentials
+- **404**: Not Found - endpoint or resource missing
 
-#### Problem: Cannot resolve ZeroOne domains
-**Solutions:**
-1. **Flush DNS cache**
-   ```bash
-   # Windows
-   ipconfig /flushdns
-   
-   # macOS
-   sudo dscacheutil -flushcache
-   
-   # Linux
-   sudo systemctl restart systemd-resolved
-   ```
+## When to Escalate
 
-2. **Try alternative DNS servers**
-   - Google DNS: 8.8.8.8, 8.8.4.4
-   - Cloudflare DNS: 1.1.1.1, 1.0.0.1
-   - OpenDNS: 208.67.222.222, 208.67.220.220
+### Contact Support If:
+- Issues persist after following all troubleshooting steps
+- Critical functionality completely broken
+- Data loss affects important trading records
+- Security concerns or suspicious behavior
+- Platform-wide outages or service disruptions
 
-## 5. Mobile App Issues
+### Information to Provide:
+1. **Browser and version**
+2. **Operating system**
+3. **Steps to reproduce the issue**
+4. **Error messages or screenshots**
+5. **Console errors (if technical user)**
+6. **Network environment (home, office, mobile)**
 
-### 5.1 iOS Issues
+## Prevention Tips
 
-#### Problem: App crashes on startup
-**Solutions:**
-1. Force close and restart the app
-2. Restart iOS device
-3. Update app to latest version
-4. Free up device storage space
-5. Reinstall the app if needed
+### Best Practices:
+1. **Regular Maintenance**
+   - Clear cache weekly
+   - Update browser monthly
+   - Export data regularly
+   - Monitor storage usage
 
-#### Problem: Notifications not working
-**Solutions:**
-1. Check notification permissions in iOS Settings
-2. Verify Do Not Disturb is disabled
-3. Check app-specific notification settings
-4. Log out and log back in to refresh tokens
+2. **Stable Environment**
+   - Use reliable internet connection
+   - Keep browser updated
+   - Avoid experimental browser features
+   - Use standard display settings
 
-### 5.2 Android Issues
+3. **Data Protection**
+   - Export important data regularly
+   - Don't clear browser data without backup
+   - Use bookmarks for quick recovery
+   - Document custom configurations
 
-#### Problem: Login issues on Android
-**Solutions:**
-1. Clear app cache and data
-2. Check Google Play Services updates
-3. Verify date and time settings
-4. Disable battery optimization for ZeroOne app
-
-#### Problem: File uploads fail on Android
-**Solutions:**
-1. Check storage permissions
-2. Free up internal storage space
-3. Try uploading smaller files first
-4. Check if file is in supported format
-
-## 6. Data Backup and Recovery
-
-### 6.1 Data Export Issues
-
-#### Problem: Export fails or incomplete
-**Solutions:**
-1. **Reduce export scope**
-   - Export smaller date ranges
-   - Select specific data types only
-   - Use multiple smaller exports instead
-
-2. **Check browser limits**
-   - Ensure sufficient browser memory
-   - Close other tabs and applications
-   - Try different browser if needed
-
-3. **Verify permissions**
-   - Check account permissions for data access
-   - Ensure export feature is available in your plan
-   - Contact support for assistance
-
-### 6.2 Data Import Issues
-
-#### Problem: Import process fails
-**Solutions:**
-1. **Validate import format**
-   ```json
-   // Example valid import format
-   {
-     "version": "1.0",
-     "timestamp": "2025-06-01T12:00:00Z",
-     "data": {
-       "projects": [...],
-       "documents": [...],
-       "conversations": [...]
-     }
-   }
-   ```
-
-2. **Check file size limits**
-   - Split large import files
-   - Compress data before import
-   - Use batch import for large datasets
-
-3. **Verify data integrity**
-   - Check for corrupted or invalid JSON
-   - Ensure all required fields are present
-   - Validate date formats and IDs
-
-## 7. API and Integration Issues
-
-### 7.1 API Authentication
-
-#### Problem: API calls return 401 Unauthorized
-**Solutions:**
-1. **Check API key validity**
-   ```bash
-   # Test API key
-   curl -H "Authorization: Bearer YOUR_API_KEY" \
-        https://api.zeroone.ai/v1/user/profile
-   ```
-
-2. **Verify key permissions**
-   - Ensure API key has required scopes
-   - Check key expiration date
-   - Regenerate key if needed
-
-3. **Check request format**
-   - Verify Authorization header format
-   - Ensure Bearer token is included
-   - Check for URL encoding issues
-
-### 7.2 Webhook Issues
-
-#### Problem: Webhooks not being received
-**Solutions:**
-1. **Test webhook endpoint**
-   ```bash
-   # Test webhook URL accessibility
-   curl -X POST https://your-webhook-url.com/webhook \
-        -H "Content-Type: application/json" \
-        -d '{"test": "webhook"}'
-   ```
-
-2. **Check webhook configuration**
-   - Verify webhook URL is correct and accessible
-   - Ensure HTTPS is used for webhook endpoints
-   - Check webhook signature validation
-
-3. **Review webhook logs**
-   - Check ZeroOne webhook delivery logs
-   - Look for retry attempts and failure reasons
-   - Verify webhook endpoint response codes
-
-## 8. Getting Additional Help
-
-### 8.1 Collecting Debug Information
-
-Before contacting support, collect this information:
-
-1. **Browser Information**
-   ```bash
-   # Browser version and user agent
-   navigator.userAgent
-   
-   # Console errors
-   Open Developer Tools → Console → Copy errors
-   ```
-
-2. **Network Information**
-   ```bash
-   # Network timing
-   Open Developer Tools → Network → Check failed requests
-   
-   # WebSocket status
-   Check WebSocket connections in Network tab
-   ```
-
-3. **Account Information**
-   - Account email and plan type
-   - Approximate time when issue occurred
-   - Steps to reproduce the problem
-   - Screenshots or screen recordings
-
-### 8.2 Contact Support
-
-**Email Support**: support@zeroone.ai
-- Include debug information
-- Describe problem in detail
-- Mention troubleshooting steps already tried
-
-**Community Forum**: forum.zeroone.ai
-- Search existing topics first
-- Provide detailed problem description
-- Include relevant screenshots
-
-**Live Chat** (Pro/Enterprise plans)
-- Available 24/7 for urgent issues
-- Instant screen sharing support
-- Direct escalation to engineering team
-
-**Emergency Contact** (Enterprise plans)
-- Phone support for critical issues
-- Dedicated account manager
-- Priority issue resolution
-
----
-
-**Remember**: Most issues can be resolved by following the steps in this guide. If you're still experiencing problems after trying these solutions, don't hesitate to contact our support team with detailed information about your issue.
+This troubleshooting guide covers most common issues. For persistent problems, follow the escalation procedures and contact support with detailed information about your specific situation.
