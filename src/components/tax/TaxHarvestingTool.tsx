@@ -15,6 +15,7 @@ const TaxHarvestingTool: React.FC = () => {
       purchasePrice: 65000,
       currentPrice: 58000,
       unrealizedGainLoss: -3500,
+      unrealizedLoss: 3500,
       taxLotId: 'lot-1',
       purchaseDate: '2024-01-15'
     },
@@ -25,6 +26,7 @@ const TaxHarvestingTool: React.FC = () => {
       purchasePrice: 3200,
       currentPrice: 2800,
       unrealizedGainLoss: -4000,
+      unrealizedLoss: 4000,
       taxLotId: 'lot-2',
       purchaseDate: '2024-02-20'
     }

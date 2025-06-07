@@ -16,6 +16,7 @@ const PersonalizedMarketInsights: React.FC = () => {
       {
         id: '1',
         title: 'Bitcoin Showing Strong Momentum',
+        description: 'Bitcoin has successfully broken through the $60,000 resistance level with significant volume support, indicating potential for further upward movement.',
         summary: 'BTC has broken above key resistance levels with increasing volume',
         details: 'Bitcoin has successfully broken through the $60,000 resistance level with significant volume support, indicating potential for further upward movement.',
         confidence: 0.85,
@@ -27,6 +28,7 @@ const PersonalizedMarketInsights: React.FC = () => {
       {
         id: '2',
         title: 'Ethereum Network Upgrade Impact',
+        description: 'The latest Ethereum network upgrade has improved transaction efficiency, leading to increased adoption and positive price momentum.',
         summary: 'Recent network improvements driving positive sentiment',
         details: 'The latest Ethereum network upgrade has improved transaction efficiency, leading to increased adoption and positive price momentum.',
         confidence: 0.78,
@@ -38,6 +40,7 @@ const PersonalizedMarketInsights: React.FC = () => {
       {
         id: '3',
         title: 'Market Correction Warning',
+        description: 'Multiple technical indicators are showing overbought conditions across major cryptocurrencies, suggesting a potential correction in the near term.',
         summary: 'Technical indicators suggest potential short-term correction',
         details: 'Multiple technical indicators are showing overbought conditions across major cryptocurrencies, suggesting a potential correction in the near term.',
         confidence: 0.72,
@@ -114,7 +117,7 @@ const PersonalizedMarketInsights: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Assets:</span>
-                    {insight.assets.map((asset) => (
+                    {insight.assets?.map((asset) => (
                       <Badge key={asset} variant="outline" className="text-xs">
                         {asset}
                       </Badge>

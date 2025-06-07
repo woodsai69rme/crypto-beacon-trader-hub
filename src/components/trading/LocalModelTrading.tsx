@@ -13,6 +13,7 @@ const LocalModelTrading: React.FC = () => {
       name: 'Ollama LLaMA 2',
       endpoint: 'http://localhost:11434/api/generate',
       type: 'prediction',
+      status: 'disconnected',
       isConnected: false,
       description: 'Local LLaMA 2 model for price predictions'
     },
@@ -21,6 +22,7 @@ const LocalModelTrading: React.FC = () => {
       name: 'GPT4All Falcon',
       endpoint: 'http://localhost:8080/completion',
       type: 'analysis',
+      status: 'disconnected',
       isConnected: false,
       description: 'Local Falcon model for market analysis'
     }

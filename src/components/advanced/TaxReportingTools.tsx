@@ -1,19 +1,16 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, Download, Calculator, TrendingUp } from 'lucide-react';
-import { ATOTaxCalculation } from '@/types/trading';
+import { ATOTaxCalculation, TaxBracket } from '@/types/trading';
 
 const TaxReportingTools: React.FC = () => {
   const [taxData, setTaxData] = useState<ATOTaxCalculation>({
     year: 2024,
-    totalGains: 15000,
-    totalLosses: 3000,
-    netCapitalGain: 12000,
-    taxableAmount: 6000,
-    events: [],
+    totalTax: 21047,
     gains: 15000,
     losses: 3000,
     netPosition: 12000,
@@ -28,6 +25,10 @@ const TaxReportingTools: React.FC = () => {
     totalTaxLiability: 21047,
     taxWithheld: 18000,
     taxRefundOrOwed: -3047,
+    capitalGains: 15000,
+    netGain: 12000,
+    marginalRate: 0.325,
+    applicableBracket: '32.5% bracket',
     transactions: [
       {
         date: '2024-01-15',
@@ -48,10 +49,11 @@ const TaxReportingTools: React.FC = () => {
         isShortTerm: false
       }
     ],
-    bracketInfo: {
+    bracket: {
       min: 45001,
       max: 120000,
-      rate: 32.5,
+      rate: 0.325,
+      name: '$45,001 - $120,000',
       bracket: '$45,001 - $120,000'
     }
   });
@@ -149,7 +151,7 @@ const TaxReportingTools: React.FC = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Tax Bracket:</span>
-                <span>{taxData.bracketInfo?.bracket}</span>
+                <span>{taxData.bracket?.bracket}</span>
               </div>
               <div className="flex justify-between">
                 <span>CGT Discount Applied:</span>
