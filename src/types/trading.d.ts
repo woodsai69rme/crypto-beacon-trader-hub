@@ -106,9 +106,7 @@ export interface CoinOption {
   rank?: number;
 }
 
-export interface CryptoData extends CoinOption {
-  // Additional properties for crypto data
-}
+export interface CryptoData extends CoinOption {}
 
 export interface AlgorandAccount {
   address: string;

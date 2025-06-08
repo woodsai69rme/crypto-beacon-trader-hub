@@ -1,108 +1,140 @@
 
 import React, { useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PriceCorrelationChartProps } from '@/types/trading';
 
-const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({ coins }) => {
-  // Generate correlation data for visualization
-  const correlationData = useMemo(() => {
-    const data = [];
+const PriceCorrelationChart: React.FC<PriceCorrelationChartProps> = ({
+  coins,
+  asset1Data,
+  asset2Data,
+  asset1Symbol = 'Asset 1',
+  asset2Symbol = 'Asset 2'
+}) => {
+  const chartData = useMemo(() => {
+    if (!asset1Data || !asset2Data) return [];
     
-    for (let i = 0; i < coins.length; i++) {
-      for (let j = i + 1; j < coins.length; j++) {
-        const correlation = (Math.random() * 2 - 1); // Random correlation between -1 and 1
-        const volatility = Math.random() * 50 + 10; // Random volatility
-        
-        data.push({
-          x: correlation,
-          y: volatility,
-          z: Math.random() * 100 + 50, // Size of bubble
-          coin1: coins[i].symbol,
-          coin2: coins[j].symbol,
-          name: `${coins[i].symbol}-${coins[j].symbol}`
-        });
-      }
-    }
+    // Combine data by timestamp
+    const combinedData = asset1Data.map((item1) => {
+      const item2 = asset2Data.find(item => item.timestamp === item1.timestamp);
+      return {
+        timestamp: item1.timestamp,
+        asset1Price: item1.price,
+        asset2Price: item2?.price || null,
+        date: new Date(item1.timestamp).toLocaleDateString()
+      };
+    }).filter(item => item.asset1Price && item.asset2Price);
     
-    return data;
-  }, [coins]);
-
-  // Custom color map based on correlation strength
-  const colorMap = useMemo(() => {
-    return correlationData.map(item => {
-      const correlation = item.x;
-      if (correlation > 0.5) return '#22c55e'; // Green for strong positive
-      if (correlation > 0) return '#84cc16'; // Light green for positive
-      if (correlation > -0.5) return '#f59e0b'; // Orange for negative
-      return '#ef4444'; // Red for strong negative
-    });
-  }, [correlationData]);
+    return combinedData;
+  }, [asset1Data, asset2Data]);
+  
+  const correlation = useMemo(() => {
+    if (chartData.length < 2) return 0;
+    
+    const asset1Prices = chartData.map(d => d.asset1Price);
+    const asset2Prices = chartData.map(d => d.asset2Price);
+    
+    const n = asset1Prices.length;
+    const sum1 = asset1Prices.reduce((a, b) => a + b, 0);
+    const sum2 = asset2Prices.reduce((a, b) => a + b, 0);
+    const sum1Sq = asset1Prices.reduce((a, b) => a + b * b, 0);
+    const sum2Sq = asset2Prices.reduce((a, b) => a + b * b, 0);
+    const sum12 = asset1Prices.reduce((a, b, i) => a + b * asset2Prices[i], 0);
+    
+    const numerator = n * sum12 - sum1 * sum2;
+    const denominator = Math.sqrt((n * sum1Sq - sum1 * sum1) * (n * sum2Sq - sum2 * sum2));
+    
+    return denominator === 0 ? 0 : numerator / denominator;
+  }, [chartData]);
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-4">
-        <div className="text-sm mb-4">
-          <p>Price correlation vs volatility chart</p>
-          <p className="text-xs text-muted-foreground">
-            X-axis: Correlation coefficient (-1 to 1), Y-axis: Volatility (%), Bubble size: Market cap
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Price Correlation Analysis</CardTitle>
+        <CardDescription>
+          Price movement correlation between {asset1Symbol} and {asset2Symbol}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 p-4 bg-muted rounded-lg">
+          <div className="text-center">
+            <div className="text-2xl font-bold">
+              {correlation.toFixed(3)}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Correlation Coefficient
+            </div>
+            <div className="text-xs mt-1">
+              {Math.abs(correlation) > 0.7 ? 'Strong' : 
+               Math.abs(correlation) > 0.3 ? 'Moderate' : 'Weak'} {' '}
+              {correlation > 0 ? 'Positive' : 'Negative'} Correlation
+            </div>
+          </div>
         </div>
         
-        <div className="h-[400px]">
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart
-              margin={{
-                top: 20,
-                right: 20,
-                bottom: 20,
-                left: 20,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                type="number" 
-                dataKey="x" 
-                domain={[-1, 1]} 
-                tickFormatter={(value: number) => value.toFixed(1)}
-                label={{ value: 'Correlation', position: 'insideBottom', offset: -10 }}
+                dataKey="date" 
+                fontSize={12}
+                tick={{ fontSize: 10 }}
               />
               <YAxis 
-                type="number" 
-                dataKey="y" 
-                domain={[0, 60]}
-                tickFormatter={(value: number) => `${value.toFixed(0)}%`}
-                label={{ value: 'Volatility (%)', angle: -90, position: 'insideLeft' }}
+                yAxisId="left"
+                fontSize={12}
+                tick={{ fontSize: 10 }}
               />
-              <Tooltip
-                formatter={(value: any, name: string) => {
-                  const numValue = typeof value === 'number' ? value : parseFloat(value);
-                  if (name === 'x') return [numValue.toFixed(3), 'Correlation'];
-                  if (name === 'y') return [`${numValue.toFixed(1)}%`, 'Volatility'];
-                  return [value, name];
-                }}
-                labelFormatter={(label, payload) => {
-                  if (payload && payload[0]) {
-                    return `${payload[0].payload.name}`;
-                  }
-                  return label;
-                }}
+              <YAxis 
+                yAxisId="right" 
+                orientation="right"
+                fontSize={12}
+                tick={{ fontSize: 10 }}
+              />
+              <Tooltip 
+                formatter={(value, name) => [
+                  `$${Number(value).toLocaleString()}`,
+                  name
+                ]}
+                labelFormatter={(label) => `Date: ${label}`}
               />
               <Legend />
-              <Scatter
-                name="Asset Pairs"
-                data={correlationData}
-                fill="#3b82f6"
-                fillOpacity={0.6}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="asset1Price"
+                stroke="#8884d8"
+                strokeWidth={2}
+                name={asset1Symbol}
+                dot={false}
               />
-            </ScatterChart>
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="asset2Price"
+                stroke="#82ca9d"
+                strokeWidth={2}
+                name={asset2Symbol}
+                dot={false}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
         
-        <div className="mt-4 text-xs text-muted-foreground">
-          <p>• Strong positive correlation (≥0.7): Assets tend to move in the same direction</p>
-          <p>• Weak correlation (-0.3 to 0.3): Assets move relatively independently</p>
-          <p>• Strong negative correlation (≤-0.7): Assets tend to move in opposite directions</p>
+        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div className="p-3 bg-blue-50 rounded">
+            <div className="font-medium text-blue-800">{asset1Symbol}</div>
+            <div className="text-blue-600">
+              Latest: ${chartData[chartData.length - 1]?.asset1Price?.toLocaleString() || 'N/A'}
+            </div>
+          </div>
+          <div className="p-3 bg-green-50 rounded">
+            <div className="font-medium text-green-800">{asset2Symbol}</div>
+            <div className="text-green-600">
+              Latest: ${chartData[chartData.length - 1]?.asset2Price?.toLocaleString() || 'N/A'}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
