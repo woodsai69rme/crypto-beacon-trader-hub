@@ -5,166 +5,208 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { TradingFormProps, Trade } from '@/types/trading';
-import { ArrowUpDown, TrendingUp, TrendingDown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const TradingForm: React.FC<TradingFormProps> = ({
-  balance,
-  availableCoins,
-  onTrade,
-  getOwnedCoinAmount,
-  activeCurrency,
-  onCurrencyChange,
-  conversionRate
+  mode,
+  onSubmit,
+  selectedCoin,
+  balance = 10000,
+  availableCoins = [],
+  onTrade
 }) => {
-  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const [selectedCoin, setSelectedCoin] = useState<string>('');
-  const [amount, setAmount] = useState<string>('');
+  const { toast } = useToast();
+  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [side, setSide] = useState<'buy' | 'sell'>('buy');
+  const [quantity, setQuantity] = useState<string>('');
   const [price, setPrice] = useState<string>('');
-
-  const selectedCoinData = availableCoins.find(coin => coin.id === selectedCoin);
-  const ownedAmount = selectedCoin ? getOwnedCoinAmount(selectedCoin) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedCoinData || !amount || !price) return;
 
-    const tradeAmount = parseFloat(amount);
-    const tradePrice = parseFloat(price);
-    const totalValue = tradeAmount * tradePrice;
+    if (!selectedCoin || !quantity) {
+      toast({
+        title: "Invalid Order",
+        description: "Please select a coin and enter quantity",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const trade: Partial<Trade> = {
-      coinId: selectedCoinData.id,
-      coinName: selectedCoinData.name,
-      coinSymbol: selectedCoinData.symbol,
-      type: tradeType,
-      amount: tradeAmount,
-      price: tradePrice,
+    const orderPrice = orderType === 'market' ? selectedCoin.price : parseFloat(price);
+    const orderQuantity = parseFloat(quantity);
+    const totalValue = orderPrice * orderQuantity;
+
+    if (side === 'buy' && totalValue > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Not enough funds for this order",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const trade: Trade = {
+      id: Date.now().toString(),
+      symbol: selectedCoin.symbol,
+      type: side,
+      quantity: orderQuantity,
+      price: orderPrice,
       totalValue,
-      currency: activeCurrency,
-      total: totalValue,
       timestamp: new Date().toISOString(),
-      fees: totalValue * 0.001 // 0.1% fee
+      coinId: selectedCoin.id,
+      coinName: selectedCoin.name,
+      coinSymbol: selectedCoin.symbol
     };
 
-    onTrade(trade);
-    
+    if (onTrade) {
+      onTrade(trade);
+    }
+
+    onSubmit({
+      ...trade,
+      mode,
+      orderType
+    });
+
+    toast({
+      title: "Order Placed",
+      description: `${side.toUpperCase()} order for ${quantity} ${selectedCoin.symbol} placed successfully`,
+    });
+
     // Reset form
-    setAmount('');
+    setQuantity('');
     setPrice('');
   };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD'
+    }).format(amount);
+  };
+
+  const estimatedTotal = selectedCoin && quantity ? 
+    (orderType === 'market' ? selectedCoin.price : parseFloat(price || '0')) * parseFloat(quantity || '0') : 0;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ArrowUpDown className="h-5 w-5" />
+        <CardTitle className="flex items-center justify-between">
           Trading Form
+          <Badge variant={mode === 'paper' ? 'secondary' : 'default'}>
+            {mode === 'paper' ? 'Paper Trading' : 'Live Trading'}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Trade Type Selection */}
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant={tradeType === 'buy' ? 'default' : 'outline'}
-              onClick={() => setTradeType('buy')}
-              className={tradeType === 'buy' ? 'bg-green-500 hover:bg-green-600' : ''}
-            >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Buy
-            </Button>
-            <Button
-              type="button"
-              variant={tradeType === 'sell' ? 'default' : 'outline'}
-              onClick={() => setTradeType('sell')}
-              className={tradeType === 'sell' ? 'bg-red-500 hover:bg-red-600' : ''}
-            >
-              <TrendingDown className="h-4 w-4 mr-2" />
-              Sell
-            </Button>
-          </div>
-
-          {/* Coin Selection */}
-          <div>
-            <Label htmlFor="coin">Cryptocurrency</Label>
-            <Select value={selectedCoin} onValueChange={setSelectedCoin}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a cryptocurrency" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCoins.map((coin) => (
-                  <SelectItem key={coin.id} value={coin.id}>
-                    {coin.name} ({coin.symbol})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Amount Input */}
-          <div>
-            <Label htmlFor="amount">
-              Amount {selectedCoinData ? `(${selectedCoinData.symbol})` : ''}
-            </Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.00000001"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-            />
-            {tradeType === 'sell' && selectedCoin && (
-              <div className="text-sm text-muted-foreground mt-1">
-                Available: {ownedAmount.toFixed(8)} {selectedCoinData?.symbol}
-              </div>
-            )}
-          </div>
-
-          {/* Price Input */}
-          <div>
-            <Label htmlFor="price">Price ({activeCurrency})</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="0.00"
-            />
-            {selectedCoinData && (
-              <div className="text-sm text-muted-foreground mt-1">
-                Market price: ${selectedCoinData.price.toFixed(2)}
-              </div>
-            )}
-          </div>
-
-          {/* Order Summary */}
-          {selectedCoinData && amount && price && (
+          {/* Selected Coin Display */}
+          {selectedCoin && (
             <div className="p-3 bg-muted rounded-lg">
-              <div className="text-sm space-y-1">
-                <div className="flex justify-between">
-                  <span>Total Value:</span>
-                  <span>{activeCurrency} {(parseFloat(amount) * parseFloat(price)).toFixed(2)}</span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold">{selectedCoin.symbol}</h4>
+                  <p className="text-sm text-muted-foreground">{selectedCoin.name}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span>Fees (0.1%):</span>
-                  <span>{activeCurrency} {(parseFloat(amount) * parseFloat(price) * 0.001).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>Total:</span>
-                  <span>{activeCurrency} {(parseFloat(amount) * parseFloat(price) * 1.001).toFixed(2)}</span>
+                <div className="text-right">
+                  <div className="font-semibold">{formatCurrency(selectedCoin.price)}</div>
+                  <div className="text-sm text-muted-foreground">Current Price</div>
                 </div>
               </div>
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={!selectedCoin || !amount || !price}>
-            {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoinData?.symbol || 'Crypto'}
-          </Button>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Order Type</Label>
+              <Select value={orderType} onValueChange={(value: 'market' | 'limit') => setOrderType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="market">Market Order</SelectItem>
+                  <SelectItem value="limit">Limit Order</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Side</Label>
+              <Select value={side} onValueChange={(value: 'buy' | 'sell') => setSide(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="buy">Buy</SelectItem>
+                  <SelectItem value="sell">Sell</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="quantity">Quantity</Label>
+            <Input
+              id="quantity"
+              type="number"
+              step="0.00001"
+              placeholder="Enter quantity"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+          </div>
+
+          {orderType === 'limit' && (
+            <div className="space-y-2">
+              <Label htmlFor="price">Limit Price</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                placeholder="Enter limit price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+          )}
+
+          {/* Order Summary */}
+          {selectedCoin && quantity && (
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <h4 className="font-medium mb-2">Order Summary</h4>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span>Quantity:</span>
+                  <span>{quantity} {selectedCoin.symbol}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Price:</span>
+                  <span>{formatCurrency(orderType === 'market' ? selectedCoin.price : parseFloat(price || '0'))}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Total:</span>
+                  <span>{formatCurrency(estimatedTotal)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Available Balance:</span>
+              <span className="font-medium">{formatCurrency(balance)}</span>
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={!selectedCoin || !quantity}
+            >
+              Place {side.toUpperCase()} Order
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

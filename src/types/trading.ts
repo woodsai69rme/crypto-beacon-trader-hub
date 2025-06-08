@@ -106,9 +106,7 @@ export interface CoinOption {
   rank?: number;
 }
 
-export interface CryptoData extends CoinOption {
-  // Additional properties for crypto data
-}
+export interface CryptoData extends CoinOption {}
 
 export interface AlgorandAccount {
   address: string;
@@ -313,9 +311,14 @@ export interface TaxBracket {
 export interface ATOTaxCalculation {
   capitalGains: number;
   taxableIncome: number;
-  taxOwed: number;
-  effectiveRate: number;
-  bracket: TaxBracket;
+  totalTax: number;
+  netGain: number;
+  marginalRate: number;
+  medicareLevy: number;
+  applicableBracket: string;
+  taxOwed?: number;
+  effectiveRate?: number;
+  bracket?: TaxBracket;
   year?: number;
   gains?: number;
   losses?: number;
@@ -329,20 +332,25 @@ export interface ATOTaxCalculation {
   netCapitalGain?: number;
   taxableAmount?: number;
   incomeTax?: number;
-  medicareLevy?: number;
+  netCapitalGains?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
 }
 
 export interface TaxHarvestTradeItem {
   id: string;
   symbol: string;
   quantity: number;
+  purchasePrice: number;
   currentPrice: number;
   currentValue?: number;
-  costBasis: number;
+  costBasis?: number;
   unrealizedLoss: number;
+  unrealizedGainLoss: number;
   profitLoss?: number;
-  purchaseDate?: string;
-  recommendedAction: 'sell' | 'hold';
+  purchaseDate: string;
+  taxLotId?: string;
+  recommendedAction?: 'sell' | 'hold';
 }
 
 // AI Portfolio Optimization Types
@@ -443,6 +451,9 @@ export interface TradingFormProps {
   mode: 'paper' | 'live';
   onSubmit: (data: any) => void;
   selectedCoin?: CoinOption;
+  balance?: number;
+  availableCoins?: CoinOption[];
+  onTrade?: (trade: Trade) => void;
 }
 
 // Local AI Model Types
@@ -451,19 +462,27 @@ export interface LocalModel {
   name: string;
   endpoint: string;
   type: 'prediction' | 'sentiment' | 'trading' | 'analysis';
-  status: 'connected' | 'disconnected' | 'error';
+  status?: 'connected' | 'disconnected' | 'error';
+  isConnected?: boolean;
   lastUsed?: string;
+  description?: string;
   performance?: {
     accuracy: number;
     latency: number;
     uptime: number;
+    returns?: number;
+    sharpeRatio?: number;
+    maxDrawdown?: number;
   };
 }
 
 export interface ModelListProps {
   models: LocalModel[];
-  onModelSelect: (model: LocalModel) => void;
-  onModelRemove: (modelId: string) => void;
+  onSelect?: (model: LocalModel) => void;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
+  onModelSelect?: (model: LocalModel) => void;
+  onModelRemove?: (modelId: string) => void;
 }
 
 // Market Insights Types
@@ -471,10 +490,16 @@ export interface MarketInsight {
   id: string;
   title: string;
   description: string;
+  summary?: string;
+  details?: string;
   confidence: number;
-  impact: 'low' | 'medium' | 'high';
-  timeframe: string;
-  relatedAssets: string[];
+  impact?: 'low' | 'medium' | 'high';
+  timeframe?: string;
+  relatedAssets?: string[];
+  assets?: string[];
+  type?: 'bullish' | 'bearish' | 'neutral';
+  relevance?: number;
+  timestamp?: string;
 }
 
 export interface MarketInsightsResponse {
@@ -496,10 +521,12 @@ export interface RealTimePriceChartProps {
 }
 
 export interface RealTimePricesProps {
-  symbols: string[];
+  symbols?: string[];
   onPriceUpdate?: (symbol: string, price: number) => void;
   onSelectCoin?: (coinId: string) => void;
   selectedCoinId?: string;
+  initialCoins?: CoinOption[];
+  refreshInterval?: number;
 }
 
 // Dashboard Props Types
@@ -527,8 +554,8 @@ export interface AiBotTradingProps {
 
 export interface ExtendedAiBotTradingProps {
   botId: string;
-  strategyId: string;
-  strategyName: string;
+  strategyId?: string;
+  strategyName?: string;
   onClose?: () => void;
 }
 
@@ -544,8 +571,28 @@ export interface NewsTickerProps {
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance: number[];
   portfolioDates: string[];
+  portfolioData?: Array<{
+    date: string;
+    portfolioValue: number;
+    benchmarkValue: number;
+  }>;
   benchmarks?: string[];
   timeframe?: string;
+}
+
+// Correlation Types
+export interface CorrelationHeatmapProps {
+  correlationData: number[][];
+  coins: CoinOption[];
+  onCoinSelect?: (coin: CoinOption) => void;
+}
+
+export interface PriceCorrelationChartProps {
+  coins: CoinOption[];
+  asset1Data?: Array<{ timestamp: string; price: number }>;
+  asset2Data?: Array<{ timestamp: string; price: number }>;
+  asset1Symbol?: string;
+  asset2Symbol?: string;
 }
 
 // Settings Types
@@ -576,4 +623,139 @@ export interface SettingsFormValues {
   };
   tickerSettings: TickerSettings;
   sidebarSettings: SidebarSettings;
+}
+
+// NFT Types
+export interface NFTCollection {
+  id: string;
+  name: string;
+  contractAddress: string;
+  blockchain: string;
+  floorPrice: number;
+  totalSupply: number;
+  metadata: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NFTItem {
+  id: string;
+  collectionId: string;
+  tokenId: string;
+  name?: string;
+  imageUrl?: string;
+  traits: any;
+  rarityRank?: number;
+  lastSalePrice?: number;
+  currentPrice?: number;
+  owned: boolean;
+  createdAt: string;
+}
+
+// Price Alert Types
+export interface PriceAlert {
+  id: string;
+  userId: string;
+  symbol: string;
+  targetValue: number;
+  currentValue?: number;
+  conditionMet: boolean;
+  isActive: boolean;
+  notificationSent: boolean;
+  triggeredAt?: string;
+  expiresAt?: string;
+  createdAt: string;
+  type: 'price_above' | 'price_below' | 'volume_spike' | 'percentage_change';
+}
+
+// Impermanent Loss Types
+export interface ImpermanentLossData {
+  token1Symbol: string;
+  token2Symbol: string;
+  initialPrice1: number;
+  initialPrice2: number;
+  currentPrice1: number;
+  currentPrice2: number;
+  liquidityAmount: number;
+  impermanentLoss: number;
+  hodlValue: number;
+  lpValue: number;
+}
+
+// Yield Farming Types
+export interface YieldFarmingPool {
+  id: string;
+  protocol: string;
+  tokenPair: string;
+  apy: number;
+  tvl: number;
+  rewards: string[];
+  risk: 'low' | 'medium' | 'high';
+  blockchain: string;
+}
+
+// Advanced AI Bot Strategies
+export type AIBotStrategy = 
+  | 'trend-following'
+  | 'mean-reversion' 
+  | 'breakout'
+  | 'scalping'
+  | 'arbitrage'
+  | 'grid'
+  | 'momentum'
+  | 'pattern-recognition'
+  | 'machine-learning'
+  | 'sentiment'
+  | 'rsi-divergence'
+  | 'bollinger-bands'
+  | 'macd-crossover'
+  | 'volume-weighted'
+  | 'fibonacci-retracement'
+  | 'elliott-wave'
+  | 'ichimoku-cloud'
+  | 'support-resistance'
+  | 'candlestick-patterns'
+  | 'market-making'
+  | 'pairs-trading'
+  | 'delta-neutral'
+  | 'options-arbitrage'
+  | 'cross-exchange-arbitrage'
+  | 'triangular-arbitrage'
+  | 'statistical-arbitrage'
+  | 'news-sentiment'
+  | 'social-sentiment'
+  | 'whale-tracking'
+  | 'orderbook-analysis'
+  | 'flash-loan-arbitrage'
+  | 'yield-farming-optimizer'
+  | 'portfolio-rebalancing'
+  | 'risk-parity'
+  | 'black-litterman'
+  | 'markowitz-optimization'
+  | 'kelly-criterion'
+  | 'volatility-targeting'
+  | 'momentum-crash'
+  | 'reversal-detection'
+  | 'regime-switching'
+  | 'adaptive-algorithms'
+  | 'reinforcement-learning'
+  | 'deep-learning'
+  | 'ensemble-methods'
+  | 'genetic-algorithms'
+  | 'particle-swarm'
+  | 'quantum-computing'
+  | 'custom';
+
+export interface AdvancedAIBotConfig {
+  strategy: AIBotStrategy;
+  timeframe: string;
+  indicators: string[];
+  riskManagement: {
+    stopLoss: number;
+    takeProfit: number;
+    maxDrawdown: number;
+    positionSize: number;
+  };
+  backtestPeriod: string;
+  optimizationParameters: Record<string, any>;
 }

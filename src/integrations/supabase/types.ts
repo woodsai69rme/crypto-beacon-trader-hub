@@ -398,6 +398,60 @@ export type Database = {
           },
         ]
       }
+      blockchain_transactions: {
+        Row: {
+          amount: number
+          block_number: number | null
+          blockchain: string
+          created_at: string | null
+          from_address: string
+          gas_fee: number | null
+          id: string
+          status: string | null
+          timestamp: string
+          to_address: string
+          token_address: string | null
+          token_symbol: string
+          tx_hash: string
+          tx_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          block_number?: number | null
+          blockchain: string
+          created_at?: string | null
+          from_address: string
+          gas_fee?: number | null
+          id?: string
+          status?: string | null
+          timestamp: string
+          to_address: string
+          token_address?: string | null
+          token_symbol: string
+          tx_hash: string
+          tx_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          block_number?: number | null
+          blockchain?: string
+          created_at?: string | null
+          from_address?: string
+          gas_fee?: number | null
+          id?: string
+          status?: string | null
+          timestamp?: string
+          to_address?: string
+          token_address?: string | null
+          token_symbol?: string
+          tx_hash?: string
+          tx_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -557,6 +611,102 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crypto_news_feed: {
+        Row: {
+          author: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          published_at: string
+          sentiment_score: number | null
+          source: string
+          summary: string | null
+          symbols_mentioned: string[] | null
+          title: string
+          url: string
+        }
+        Insert: {
+          author?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          published_at: string
+          sentiment_score?: number | null
+          source: string
+          summary?: string | null
+          symbols_mentioned?: string[] | null
+          title: string
+          url: string
+        }
+        Update: {
+          author?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          sentiment_score?: number | null
+          source?: string
+          summary?: string | null
+          symbols_mentioned?: string[] | null
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      defi_positions: {
+        Row: {
+          amount_deposited: number
+          apy: number | null
+          blockchain: string
+          contract_address: string | null
+          created_at: string | null
+          current_value: number | null
+          id: string
+          impermanent_loss: number | null
+          position_type: string
+          protocol_name: string
+          rewards_earned: number | null
+          token_pair: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_deposited: number
+          apy?: number | null
+          blockchain?: string
+          contract_address?: string | null
+          created_at?: string | null
+          current_value?: number | null
+          id?: string
+          impermanent_loss?: number | null
+          position_type: string
+          protocol_name: string
+          rewards_earned?: number | null
+          token_pair?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_deposited?: number
+          apy?: number | null
+          blockchain?: string
+          contract_address?: string | null
+          created_at?: string | null
+          current_value?: number | null
+          id?: string
+          impermanent_loss?: number | null
+          position_type?: string
+          protocol_name?: string
+          rewards_earned?: number | null
+          token_pair?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -860,6 +1010,95 @@ export type Database = {
           url?: string
         }
         Relationships: []
+      }
+      nft_collections: {
+        Row: {
+          blockchain: string
+          contract_address: string
+          created_at: string | null
+          floor_price: number | null
+          id: string
+          metadata: Json | null
+          name: string
+          total_supply: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          blockchain?: string
+          contract_address: string
+          created_at?: string | null
+          floor_price?: number | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          total_supply?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          blockchain?: string
+          contract_address?: string
+          created_at?: string | null
+          floor_price?: number | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          total_supply?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nft_items: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          current_price: number | null
+          id: string
+          image_url: string | null
+          last_sale_price: number | null
+          name: string | null
+          owned: boolean | null
+          rarity_rank: number | null
+          token_id: string
+          traits: Json | null
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          current_price?: number | null
+          id?: string
+          image_url?: string | null
+          last_sale_price?: number | null
+          name?: string | null
+          owned?: boolean | null
+          rarity_rank?: number | null
+          token_id: string
+          traits?: Json | null
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          current_price?: number | null
+          id?: string
+          image_url?: string | null
+          last_sale_price?: number | null
+          name?: string | null
+          owned?: boolean | null
+          rarity_rank?: number | null
+          token_id?: string
+          traits?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "nft_collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1522,6 +1761,60 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_transactions: {
+        Row: {
+          amount: number
+          capital_gain_loss: number | null
+          cost_basis: number | null
+          created_at: string | null
+          exchange: string | null
+          fee: number | null
+          id: string
+          price_per_unit: number
+          symbol: string
+          tax_year: number
+          total_value: number
+          transaction_date: string
+          transaction_id: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          capital_gain_loss?: number | null
+          cost_basis?: number | null
+          created_at?: string | null
+          exchange?: string | null
+          fee?: number | null
+          id?: string
+          price_per_unit: number
+          symbol: string
+          tax_year: number
+          total_value: number
+          transaction_date: string
+          transaction_id: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          capital_gain_loss?: number | null
+          cost_basis?: number | null
+          created_at?: string | null
+          exchange?: string | null
+          fee?: number | null
+          id?: string
+          price_per_unit?: number
+          symbol?: string
+          tax_year?: number
+          total_value?: number
+          transaction_date?: string
+          transaction_id?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trading_bots: {
         Row: {
           ai_model: string | null
@@ -1657,6 +1950,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_news_preferences: {
+        Row: {
+          created_at: string | null
+          followed_symbols: string[] | null
+          id: string
+          notification_enabled: boolean | null
+          preferred_sources: string[] | null
+          sentiment_filter: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          followed_symbols?: string[] | null
+          id?: string
+          notification_enabled?: boolean | null
+          preferred_sources?: string[] | null
+          sentiment_filter?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          followed_symbols?: string[] | null
+          id?: string
+          notification_enabled?: boolean | null
+          preferred_sources?: string[] | null
+          sentiment_filter?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

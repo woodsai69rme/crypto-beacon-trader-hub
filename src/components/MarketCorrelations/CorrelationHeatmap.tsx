@@ -1,98 +1,67 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CorrelationHeatmapProps, CoinOption } from '@/types/trading';
+import { CorrelationHeatmapProps } from '@/types/trading';
 
 const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({ 
   correlationData, 
   coins, 
   onCoinSelect 
 }) => {
-  const getCorrelationColor = (value: number) => {
-    if (value > 0.7) return 'bg-green-600';
-    if (value > 0.3) return 'bg-green-400';
-    if (value > -0.3) return 'bg-gray-400';
-    if (value > -0.7) return 'bg-red-400';
-    return 'bg-red-600';
-  };
-
-  const getCorrelationText = (value: number) => {
-    return Math.abs(value) < 0.1 ? '0' : value.toFixed(2);
+  const getColorIntensity = (value: number) => {
+    const intensity = Math.abs(value);
+    if (value > 0) {
+      return `rgba(34, 197, 94, ${intensity})`;
+    } else {
+      return `rgba(239, 68, 68, ${intensity})`;
+    }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Asset Correlation Heatmap</CardTitle>
+        <CardTitle>Correlation Heatmap</CardTitle>
         <CardDescription>
-          Correlation coefficients between cryptocurrency assets
+          Visual representation of asset correlations
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <div className="min-w-full">
-            <div className="grid grid-cols-1 gap-4">
-              {/* Headers */}
-              <div className="flex items-center gap-2">
-                <div className="w-16"></div>
-                {coins.map((coin) => (
+          <div className="grid grid-cols-auto gap-1 min-w-fit">
+            {correlationData.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex gap-1">
+                {row.map((value, colIndex) => (
                   <div
-                    key={coin.id}
-                    className="w-16 text-center text-xs font-medium truncate"
+                    key={colIndex}
+                    className="w-12 h-12 flex items-center justify-center text-xs font-medium cursor-pointer rounded"
+                    style={{ backgroundColor: getColorIntensity(value) }}
+                    onClick={() => {
+                      if (onCoinSelect && coins[colIndex]) {
+                        onCoinSelect(coins[colIndex]);
+                      }
+                    }}
+                    title={`${coins[rowIndex]?.symbol} vs ${coins[colIndex]?.symbol}: ${value.toFixed(3)}`}
                   >
-                    {coin.symbol}
+                    {value.toFixed(2)}
                   </div>
                 ))}
               </div>
-              
-              {/* Correlation Matrix */}
-              {correlationData.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex items-center gap-2">
-                  <div className="w-16 text-xs font-medium truncate">
-                    {coins[rowIndex]?.symbol}
-                  </div>
-                  {row.map((value, colIndex) => (
-                    <div
-                      key={colIndex}
-                      className={`w-16 h-12 flex items-center justify-center text-xs font-bold text-white cursor-pointer rounded ${getCorrelationColor(value)}`}
-                      onClick={() => {
-                        if (onCoinSelect && coins[colIndex]) {
-                          onCoinSelect(coins[colIndex]);
-                        }
-                      }}
-                      title={`${coins[rowIndex]?.symbol} vs ${coins[colIndex]?.symbol}: ${value.toFixed(3)}`}
-                    >
-                      {getCorrelationText(value)}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
         
-        {/* Legend */}
-        <div className="mt-6 flex items-center justify-center gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-600 rounded"></div>
-            <span>Strong Negative</span>
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-500 rounded"></div>
+              <span>Positive Correlation</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span>Negative Correlation</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-400 rounded"></div>
-            <span>Negative</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-400 rounded"></div>
-            <span>Neutral</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-400 rounded"></div>
-            <span>Positive</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-600 rounded"></div>
-            <span>Strong Positive</span>
-          </div>
+          <span className="text-muted-foreground">Click cells to select assets</span>
         </div>
       </CardContent>
     </Card>
