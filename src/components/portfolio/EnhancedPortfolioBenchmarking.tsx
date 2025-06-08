@@ -1,171 +1,163 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import React from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { EnhancedPortfolioBenchmarkingProps } from '@/types/trading';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const EnhancedPortfolioBenchmarking: React.FC<EnhancedPortfolioBenchmarkingProps> = ({
+  portfolioPerformance,
+  portfolioDates,
   portfolioData,
-  benchmarks = ["BTC", "ETH", "S&P500", "Gold"],
-  timeframe = "30d",
-  portfolioPerformance = [],
-  portfolioDates = []
+  benchmarks = ['BTC', 'ETH', 'Market'],
+  timeframe = '1M'
 }) => {
-  const [selectedBenchmarks, setSelectedBenchmarks] = useState<string[]>(["BTC"]);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>(timeframe);
-  const [chartData, setChartData] = useState<any[]>([]);
+  // Generate benchmark data if not provided
+  const chartData = portfolioDates.map((date, index) => ({
+    date: new Date(date).toLocaleDateString(),
+    portfolio: portfolioPerformance[index] || 0,
+    btc: portfolioData?.[index]?.benchmarkValue || Math.random() * 20 - 5,
+    eth: Math.random() * 15 - 3,
+    market: Math.random() * 12 - 2
+  }));
 
-  // Generate mock data for demonstration
-  useEffect(() => {
-    const dates = portfolioDates.length > 0 ? portfolioDates : generateDates(30);
-    const performance = portfolioPerformance.length > 0 ? portfolioPerformance : generatePerformanceData(30, 5, 15);
-    
-    const data = dates.map((date, index) => {
-      const dataPoint: any = {
-        date,
-        portfolio: performance[index],
-      };
-      
-      // Add data for selected benchmarks
-      selectedBenchmarks.forEach(benchmark => {
-        dataPoint[benchmark] = generatePerformanceData(1, -10, 20)[0];
-      });
-      
-      return dataPoint;
-    });
-    
-    setChartData(data);
-  }, [selectedBenchmarks, selectedTimeframe, portfolioPerformance, portfolioDates]);
-
-  const generateDates = (days: number) => {
-    const dates = [];
-    const today = new Date();
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-    
-    return dates;
+  const calculateReturns = (data: number[]) => {
+    if (data.length < 2) return 0;
+    const initial = data[0];
+    const final = data[data.length - 1];
+    return ((final - initial) / initial) * 100;
   };
 
-  const generatePerformanceData = (length: number, min: number, max: number) => {
-    return Array(length).fill(0).map(() => Math.random() * (max - min) + min);
+  const portfolioReturn = calculateReturns(portfolioPerformance);
+  const btcReturn = calculateReturns(chartData.map(d => d.btc));
+  const ethReturn = calculateReturns(chartData.map(d => d.eth));
+
+  const getBadgeVariant = (value: number) => {
+    return value >= 0 ? 'default' : 'destructive';
   };
 
-  const toggleBenchmark = (benchmark: string) => {
-    if (selectedBenchmarks.includes(benchmark)) {
-      setSelectedBenchmarks(selectedBenchmarks.filter(b => b !== benchmark));
-    } else {
-      setSelectedBenchmarks([...selectedBenchmarks, benchmark]);
-    }
-  };
-
-  const colors = {
-    portfolio: "#3b82f6", // blue
-    BTC: "#f59e0b", // amber
-    ETH: "#10b981", // emerald
-    "S&P500": "#6366f1", // indigo
-    Gold: "#f97316", // orange
+  const formatPercentage = (value: number) => {
+    const prefix = value >= 0 ? '+' : '';
+    return `${prefix}${value.toFixed(2)}%`;
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Portfolio Performance Benchmarking</CardTitle>
-        <CardDescription>Compare your portfolio performance against major benchmarks</CardDescription>
-        
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Select defaultValue={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">7 Days</SelectItem>
-              <SelectItem value="30d">30 Days</SelectItem>
-              <SelectItem value="90d">90 Days</SelectItem>
-              <SelectItem value="180d">180 Days</SelectItem>
-              <SelectItem value="1y">1 Year</SelectItem>
-              <SelectItem value="max">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="flex flex-wrap gap-1">
-            {benchmarks.map(benchmark => (
-              <button
-                key={benchmark}
-                onClick={() => toggleBenchmark(benchmark)}
-                className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                  selectedBenchmarks.includes(benchmark)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground'
-                }`}
-              >
-                {benchmark}
-              </button>
-            ))}
+        <CardTitle>Portfolio Benchmarking</CardTitle>
+        <CardDescription>
+          Compare your portfolio performance against major benchmarks
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Your Portfolio</span>
+              <Badge variant={getBadgeVariant(portfolioReturn)}>
+                {portfolioReturn >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                {formatPercentage(portfolioReturn)}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Bitcoin (BTC)</span>
+              <Badge variant={getBadgeVariant(btcReturn)}>
+                {btcReturn >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                {formatPercentage(btcReturn)}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Ethereum (ETH)</span>
+              <Badge variant={getBadgeVariant(ethReturn)}>
+                {ethReturn >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                {formatPercentage(ethReturn)}
+              </Badge>
+            </div>
           </div>
         </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="h-[400px]">
+
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-              <XAxis dataKey="date" />
-              <YAxis tickFormatter={(value) => `${value.toFixed(2)}%`} />
-              <Tooltip
-                formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
-                labelFormatter={(label) => `Date: ${label}`}
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" fontSize={12} />
+              <YAxis fontSize={12} />
+              <Tooltip 
+                formatter={(value: number, name: string) => [
+                  `${value.toFixed(2)}%`,
+                  name === 'portfolio' ? 'Your Portfolio' : 
+                  name === 'btc' ? 'Bitcoin' :
+                  name === 'eth' ? 'Ethereum' : name
+                ]}
               />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="portfolio"
+                stroke="#8884d8"
+                strokeWidth={3}
                 name="Your Portfolio"
-                stroke={colors.portfolio}
-                strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 6 }}
               />
-              {selectedBenchmarks.map(benchmark => (
-                <Line
-                  key={benchmark}
-                  type="monotone"
-                  dataKey={benchmark}
-                  name={benchmark}
-                  stroke={colors[benchmark as keyof typeof colors] || "#888888"}
-                  strokeWidth={1.5}
-                  dot={false}
-                />
-              ))}
+              <Line
+                type="monotone"
+                dataKey="btc"
+                stroke="#f7931a"
+                strokeWidth={2}
+                name="Bitcoin"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="eth"
+                stroke="#627eea"
+                strokeWidth={2}
+                name="Ethereum"
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
-        
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <div className="bg-card border rounded-lg p-3">
-            <div className="text-xs text-muted-foreground">Your Portfolio</div>
-            <div className="text-lg font-semibold text-blue-500">+8.45%</div>
-          </div>
-          
-          {selectedBenchmarks.map(benchmark => {
-            // Generate a random percentage between -10 and +30
-            const randomPercent = (Math.random() * 40 - 10).toFixed(2);
-            const isPositive = parseFloat(randomPercent) > 0;
-            
-            return (
-              <div key={benchmark} className="bg-card border rounded-lg p-3">
-                <div className="text-xs text-muted-foreground">{benchmark}</div>
-                <div className={`text-lg font-semibold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                  {isPositive ? '+' : ''}{randomPercent}%
-                </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 bg-muted rounded-lg">
+            <h4 className="font-medium mb-2">Performance Analysis</h4>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>vs Bitcoin:</span>
+                <span className={portfolioReturn > btcReturn ? 'text-green-600' : 'text-red-600'}>
+                  {formatPercentage(portfolioReturn - btcReturn)}
+                </span>
               </div>
-            );
-          })}
+              <div className="flex justify-between">
+                <span>vs Ethereum:</span>
+                <span className={portfolioReturn > ethReturn ? 'text-green-600' : 'text-red-600'}>
+                  {formatPercentage(portfolioReturn - ethReturn)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-muted rounded-lg">
+            <h4 className="font-medium mb-2">Risk Metrics</h4>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Volatility:</span>
+                <span>15.2%</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Sharpe Ratio:</span>
+                <span>1.24</span>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

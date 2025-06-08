@@ -1,141 +1,144 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TaxHarvestTradeItem } from '@/types/trading';
-import { TrendingDown, Calculator, AlertTriangle } from 'lucide-react';
+import { TrendingDown, DollarSign } from 'lucide-react';
 
 const TaxHarvestingTool: React.FC = () => {
-  const [harvestItems] = useState<TaxHarvestTradeItem[]>([
+  const [positions] = useState<TaxHarvestTradeItem[]>([
     {
       id: '1',
       symbol: 'BTC',
       quantity: 0.5,
-      purchasePrice: 65000,
-      currentPrice: 58000,
-      unrealizedGainLoss: -3500,
-      unrealizedLoss: 3500,
-      taxLotId: 'lot-1',
-      purchaseDate: '2024-01-15'
+      purchasePrice: 70000,
+      currentPrice: 65000,
+      unrealizedLoss: -2500,
+      unrealizedGainLoss: -2500,
+      purchaseDate: '2024-01-15',
+      recommendedAction: 'sell'
     },
     {
       id: '2',
       symbol: 'ETH',
-      quantity: 10,
-      purchasePrice: 3200,
-      currentPrice: 2800,
-      unrealizedGainLoss: -4000,
-      unrealizedLoss: 4000,
-      taxLotId: 'lot-2',
-      purchaseDate: '2024-02-20'
+      quantity: 2.0,
+      purchasePrice: 4500,
+      currentPrice: 4200,
+      unrealizedLoss: -600,
+      unrealizedGainLoss: -600,
+      purchaseDate: '2024-02-10',
+      recommendedAction: 'sell'
     }
   ]);
 
-  const totalUnrealizedLoss = harvestItems
-    .filter(item => item.unrealizedGainLoss < 0)
-    .reduce((sum, item) => sum + Math.abs(item.unrealizedGainLoss), 0);
+  const totalLosses = positions.reduce((sum, pos) => 
+    sum + (pos.unrealizedGainLoss < 0 ? Math.abs(pos.unrealizedGainLoss) : 0), 0
+  );
+  
+  const eligiblePositions = positions.filter(pos => pos.unrealizedGainLoss < 0);
 
-  const totalTaxSavings = totalUnrealizedLoss * 0.325; // 32.5% tax rate
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD'
+    }).format(amount);
+  };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingDown className="h-5 w-5" />
-            Tax Loss Harvesting Opportunities
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="p-4 bg-red-50 rounded-lg">
-              <h3 className="font-medium text-red-800">Total Unrealized Losses</h3>
-              <p className="text-2xl font-bold text-red-600">
-                ${totalUnrealizedLoss.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h3 className="font-medium text-green-800">Potential Tax Savings</h3>
-              <p className="text-2xl font-bold text-green-600">
-                ${totalTaxSavings.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-medium text-blue-800">Harvestable Positions</h3>
-              <p className="text-2xl font-bold text-blue-600">
-                {harvestItems.filter(item => item.unrealizedGainLoss < 0).length}
-              </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingDown className="h-5 w-5" />
+          Tax Loss Harvesting
+        </CardTitle>
+        <CardDescription>
+          Identify opportunities to offset capital gains with losses
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-red-50 rounded-lg">
+            <div className="text-sm text-red-600">Total Unrealized Losses</div>
+            <div className="text-2xl font-bold text-red-700">
+              {formatCurrency(totalLosses)}
             </div>
           </div>
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <div className="text-sm text-blue-600">Eligible Positions</div>
+            <div className="text-2xl font-bold text-blue-700">
+              {eligiblePositions.length}
+            </div>
+          </div>
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="text-sm text-green-600">Potential Tax Savings</div>
+            <div className="text-2xl font-bold text-green-700">
+              {formatCurrency(totalLosses * 0.325)}
+            </div>
+          </div>
+        </div>
 
-          <div className="space-y-4">
-            {harvestItems.map((item) => (
-              <div key={item.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="font-medium text-lg">{item.symbol}</div>
-                    <Badge variant={item.unrealizedGainLoss < 0 ? 'destructive' : 'default'}>
-                      {item.unrealizedGainLoss < 0 ? 'Loss' : 'Gain'}
-                    </Badge>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Loss Harvesting Opportunities</h3>
+          {positions.map((position) => (
+            <div key={position.id} className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="font-medium text-lg">{position.symbol}</div>
+                  <Badge variant={
+                    position.unrealizedGainLoss < 0 ? 'destructive' : 'default'
+                  }>
+                    {position.unrealizedGainLoss < 0 ? 'Loss' : 'Gain'}
+                  </Badge>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium">
+                    {formatCurrency(Math.abs(position.unrealizedGainLoss))}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Purchase Date</div>
-                    <div className="font-medium">{new Date(item.purchaseDate).toLocaleDateString()}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {position.unrealizedGainLoss < 0 ? 'Unrealized Loss' : 'Unrealized Gain'}
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Quantity</div>
-                    <div className="font-medium">{item.quantity}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Purchase Price</div>
-                    <div className="font-medium">${item.purchasePrice.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Current Price</div>
-                    <div className="font-medium">${item.currentPrice?.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Unrealized P&L</div>
-                    <div className={`font-medium ${item.unrealizedGainLoss < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      ${item.unrealizedGainLoss.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-
-                {item.unrealizedGainLoss < 0 && (
-                  <div className="mt-4 flex items-center justify-between p-3 bg-yellow-50 rounded">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                      <span className="text-sm text-yellow-800">
-                        Harvesting this loss could save approximately ${Math.abs(item.unrealizedGainLoss * 0.325).toLocaleString()} in taxes
-                      </span>
-                    </div>
-                    <Button size="sm" variant="outline">
-                      Harvest Loss
-                    </Button>
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Quantity:</span>
+                  <p className="font-medium">{position.quantity}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Purchase Price:</span>
+                  <p className="font-medium">{formatCurrency(position.purchasePrice)}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Current Price:</span>
+                  <p className="font-medium">{formatCurrency(position.currentPrice)}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Purchase Date:</span>
+                  <p className="font-medium">{new Date(position.purchaseDate).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              {position.unrealizedGainLoss < 0 && (
+                <div className="mt-4 p-3 bg-orange-50 rounded">
+                  <div className="text-sm text-orange-800">
+                    <strong>Recommendation:</strong> Consider selling to realize loss for tax purposes.
+                    Potential tax benefit: {formatCurrency(Math.abs(position.unrealizedGainLoss) * 0.325)}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Calculator className="h-4 w-4 text-blue-600" />
-              <span className="font-medium text-blue-800">Tax Harvesting Summary</span>
-            </div>
-            <div className="text-sm text-blue-700">
-              <p>By harvesting all available losses, you could potentially offset ${totalUnrealizedLoss.toLocaleString()} in capital gains.</p>
-              <p className="mt-1">Estimated tax savings: ${totalTaxSavings.toLocaleString()} (based on 32.5% marginal rate)</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        <div className="text-xs text-muted-foreground">
+          <p>* Tax loss harvesting can help offset capital gains.</p>
+          <p>* Be aware of wash sale rules when repurchasing assets.</p>
+          <p>* Consult a tax professional for personalized advice.</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

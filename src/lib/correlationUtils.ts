@@ -1,116 +1,56 @@
 
-import { CryptoData } from '@/types/trading';
+import { CoinOption } from '@/types/trading';
 
-// Calculate correlation between two arrays
-export function calculateCorrelation(x: number[], y: number[]): number {
-  const n = Math.min(x.length, y.length);
-  if (n === 0) return 0;
-
-  // Calculate mean of x and y
-  const xMean = x.reduce((sum, val) => sum + val, 0) / n;
-  const yMean = y.reduce((sum, val) => sum + val, 0) / n;
-
-  // Calculate numerator and denominators
-  let numerator = 0;
-  let denominatorX = 0;
-  let denominatorY = 0;
-
-  for (let i = 0; i < n; i++) {
-    const xDiff = x[i] - xMean;
-    const yDiff = y[i] - yMean;
-    numerator += xDiff * yDiff;
-    denominatorX += xDiff * xDiff;
-    denominatorY += yDiff * yDiff;
-  }
-
-  // Calculate correlation
-  const denominator = Math.sqrt(denominatorX * denominatorY);
-  if (denominator === 0) return 0;
+export const generateCorrelationMatrix = (coins: CoinOption[]): number[][] => {
+  const matrix: number[][] = [];
   
-  return numerator / denominator;
-}
-
-// Generate correlation matrix from crypto data
-export function generateCorrelationMatrix(cryptoData: CryptoData[]): number[][] {
-  const n = cryptoData.length;
-  const matrix = Array(n).fill(0).map(() => Array(n).fill(0));
-  
-  // Fill diagonal with 1 (perfect correlation with self)
-  for (let i = 0; i < n; i++) {
-    matrix[i][i] = 1;
+  for (let i = 0; i < coins.length; i++) {
+    const row: number[] = [];
+    for (let j = 0; j < coins.length; j++) {
+      if (i === j) {
+        // Perfect correlation with itself
+        row.push(1.0);
+      } else {
+        // Generate realistic correlation values
+        // Major cryptos tend to be positively correlated
+        const baseCorrelation = 0.3 + Math.random() * 0.5; // 0.3 to 0.8
+        const variation = (Math.random() - 0.5) * 0.4; // ±0.2 variation
+        const correlation = Math.max(-0.9, Math.min(0.9, baseCorrelation + variation));
+        row.push(Number(correlation.toFixed(3)));
+      }
+    }
+    matrix.push(row);
   }
   
-  // Fill upper triangle with correlation values and mirror to lower triangle
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      // Generate mock historical price data for correlation calculation
-      const priceData1 = generateMockPriceHistory(cryptoData[i]);
-      const priceData2 = generateMockPriceHistory(cryptoData[j]);
-      
-      const correlation = calculateCorrelation(priceData1, priceData2);
-      matrix[i][j] = correlation;
-      matrix[j][i] = correlation; // Correlation matrix is symmetric
+  // Ensure matrix is symmetric
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[i].length; j++) {
+      if (i !== j) {
+        matrix[j][i] = matrix[i][j];
+      }
     }
   }
   
   return matrix;
-}
+};
 
-// Generate mock price history for correlation calculation
-function generateMockPriceHistory(coin: CryptoData): number[] {
-  const dataPoints = 30; // 30 days of data
-  const prices: number[] = [];
-  let currentPrice = coin.price;
-  
-  // Generate somewhat realistic price movements
-  for (let i = 0; i < dataPoints; i++) {
-    // Random walk with slight trend
-    const volatility = 0.02; // 2% daily volatility
-    const trend = 0.001; // 0.1% daily trend
-    const randomChange = (Math.random() - 0.5) * volatility + trend;
-    
-    currentPrice = currentPrice * (1 + randomChange);
-    prices.push(currentPrice);
+export const calculatePriceCorrelation = (
+  prices1: number[], 
+  prices2: number[]
+): number => {
+  if (prices1.length !== prices2.length || prices1.length < 2) {
+    return 0;
   }
   
-  return prices;
-}
-
-// Calculate correlations between selected coins for chart data
-export function calculateCorrelations(
-  cryptoData: CryptoData[],
-  selectedCoins: string[],
-  metric: 'price' | 'volume' | 'marketCap' = 'price'
-): any[] {
-  const result = [];
+  const n = prices1.length;
+  const sum1 = prices1.reduce((a, b) => a + b, 0);
+  const sum2 = prices2.reduce((a, b) => a + b, 0);
+  const sum1Sq = prices1.reduce((a, b) => a + b * b, 0);
+  const sum2Sq = prices2.reduce((a, b) => a + b * b, 0);
+  const sum12 = prices1.reduce((a, b, i) => a + b * prices2[i], 0);
   
-  // Filter data to only include selected coins
-  const filteredData = cryptoData.filter(crypto => selectedCoins.includes(crypto.id));
+  const numerator = n * sum12 - sum1 * sum2;
+  const denominator = Math.sqrt((n * sum1Sq - sum1 * sum1) * (n * sum2Sq - sum2 * sum2));
   
-  // Generate all pairs of coins
-  for (let i = 0; i < filteredData.length; i++) {
-    for (let j = i + 1; j < filteredData.length; j++) {
-      const coin1 = filteredData[i];
-      const coin2 = filteredData[j];
-      
-      // Generate mock historical data for correlation
-      const priceData1 = generateMockPriceHistory(coin1);
-      const priceData2 = generateMockPriceHistory(coin2);
-      
-      const correlation = calculateCorrelation(priceData1, priceData2);
-      
-      result.push({
-        coin1: coin1.id,
-        coin2: coin2.id,
-        coin1Name: coin1.name,
-        coin2Name: coin2.name,
-        correlation,
-        x: correlation,
-        y: Math.random() * 0.4 + 0.3, // Random y-position for visualization
-        z: 300 * Math.random() + 100, // Random size for bubble chart
-      });
-    }
-  }
-  
-  return result;
-}
+  return denominator === 0 ? 0 : numerator / denominator;
+};
