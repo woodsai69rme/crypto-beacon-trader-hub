@@ -130,7 +130,7 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom';
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom' | 'ai-predictive' | 'traditional';
   timeframe: number | string;
   parameters: any;
   riskLevel?: string;
@@ -206,7 +206,7 @@ export interface TradingSignal {
   id: string;
   coinId: string;
   coinSymbol: string;
-  type: 'buy' | 'sell';
+  type: 'buy' | 'sell' | 'hold';
   price: number;
   strength: number;
   timestamp: string;
@@ -398,6 +398,7 @@ export interface OptimizationResult {
 
 // API Management Types
 export interface ApiEndpoint {
+  id?: string;
   name: string;
   url: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -422,6 +423,7 @@ export interface ApiUsageStats {
   maxUsage?: number;
   service?: string;
   resetTime?: string;
+  lastCalled?: string;
 }
 
 // DeFi Types
@@ -776,6 +778,7 @@ export interface AdvancedAIBotConfig {
 }
 
 export interface CryptoChartData {
+  id?: string;
   timestamp: string;
   price: number;
   volume?: number;
@@ -791,6 +794,7 @@ export interface PortfolioBenchmark {
   symbol: string;
   performance: number[];
   dates: string[];
+  daily?: number[];
 }
 
 export interface RiskAlertData {

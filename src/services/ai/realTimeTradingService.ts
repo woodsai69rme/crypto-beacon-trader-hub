@@ -304,7 +304,7 @@ class RealTimeTradingService {
         } else if (change24h < -3) {
           signal = 'sell';
           confidence = Math.min(0.9, 0.5 + Math.abs(change24h) / 20);
-          reasoning = `Downward trend detected: ${change24h.toFixed(2)}%`;
+          reasoning = `Downward trend detected: ${change24h.toFixed(2)}% suggesting reversal`;
         }
         break;
         
@@ -356,7 +356,7 @@ class RealTimeTradingService {
       coinName: this.supportedCoins.find(c => c.symbol === signal.coinSymbol)?.name || signal.coinSymbol,
       coinSymbol: signal.coinSymbol,
       symbol: signal.coinSymbol,
-      type: signal.type,
+      type: signal.type as 'buy' | 'sell',
       amount,
       quantity: amount,
       price: signal.price,

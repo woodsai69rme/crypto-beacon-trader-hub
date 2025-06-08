@@ -104,119 +104,54 @@ export const generateMockCoin = (coinId: string): CoinOption => {
 };
 
 export const generateMockBenchmarks = (): PortfolioBenchmark[] => {
-  const generateData = (baseValue: number, volatility: number) => {
-    return Array.from({ length: 365 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (365 - i));
-      const randomChange = (Math.random() - 0.5) * volatility;
-      return baseValue * (1 + randomChange * i / 365);
-    });
-  };
-
-  const generateDates = () => {
-    return Array.from({ length: 365 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (365 - i));
-      return date.toISOString().split('T')[0];
-    });
-  };
-
   return [
     {
-      id: 'btc-benchmark',
-      name: 'Bitcoin Benchmark',
+      id: 'btc',
+      name: 'Bitcoin',
       symbol: 'BTC',
-      description: 'Pure Bitcoin holding strategy',
-      type: 'crypto',
-      data: generateData(100, 0.05),
-      dates: generateDates(),
-      currentValue: 156.78,
-      performance: {
-        daily: 2.34,
-        weekly: 8.12,
-        monthly: 15.67,
-        yearly: 56.78
-      }
+      performance: [100, 105, 98, 110, 108, 115, 112, 120, 125, 118, 130, 128],
+      dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      daily: [100, 105, 98, 110, 108, 115, 112, 120, 125, 118, 130, 128]
     },
     {
-      id: 'eth-benchmark',
-      name: 'Ethereum Benchmark',
+      id: 'eth',
+      name: 'Ethereum',
       symbol: 'ETH',
-      description: 'Pure Ethereum holding strategy',
-      type: 'crypto',
-      data: generateData(100, 0.06),
-      dates: generateDates(),
-      currentValue: 134.56,
-      performance: {
-        daily: 1.23,
-        weekly: 5.67,
-        monthly: 12.34,
-        yearly: 34.56
-      }
+      performance: [100, 108, 95, 125, 120, 135, 128, 145, 140, 138, 155, 150],
+      dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      daily: [100, 108, 95, 125, 120, 135, 128, 145, 140, 138, 155, 150]
     },
     {
-      id: 'crypto-index',
-      name: 'Crypto Market Index',
-      symbol: 'CRYPTOIDX',
-      description: 'Market cap weighted crypto index',
-      type: 'index',
-      data: generateData(100, 0.04),
-      dates: generateDates(),
-      currentValue: 145.23,
-      performance: {
-        daily: 1.78,
-        weekly: 6.45,
-        monthly: 13.89,
-        yearly: 45.23
-      }
+      id: 'sol',
+      name: 'Solana',
+      symbol: 'SOL',
+      performance: [100, 110, 88, 145, 135, 165, 155, 180, 170, 175, 200, 185],
+      dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      daily: [100, 110, 88, 145, 135, 165, 155, 180, 170, 175, 200, 185]
     },
     {
-      id: 'balanced-60-40',
-      name: '60/40 Balanced Portfolio',
-      symbol: 'BAL6040',
-      description: '60% Crypto, 40% Stablecoins',
-      type: 'custom',
-      data: generateData(100, 0.03),
-      dates: generateDates(),
-      currentValue: 112.89,
-      performance: {
-        daily: 0.89,
-        weekly: 3.45,
-        monthly: 8.12,
-        yearly: 12.89
-      }
+      id: 'ada',
+      name: 'Cardano',
+      symbol: 'ADA',
+      performance: [100, 95, 92, 105, 100, 108, 102, 115, 110, 108, 120, 118],
+      dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      daily: [100, 95, 92, 105, 100, 108, 102, 115, 110, 108, 120, 118]
     },
     {
-      id: 'defi-yield',
-      name: 'DeFi Yield Strategy',
-      symbol: 'DEFIYLD',
-      description: 'DeFi yield farming strategy',
-      type: 'custom',
-      data: generateData(100, 0.07),
-      dates: generateDates(),
-      currentValue: 189.45,
-      performance: {
-        daily: 3.21,
-        weekly: 12.34,
-        monthly: 28.67,
-        yearly: 89.45
-      }
+      id: 'avax',
+      name: 'Avalanche',
+      symbol: 'AVAX',
+      performance: [100, 115, 85, 135, 125, 155, 145, 170, 160, 165, 185, 175],
+      dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      daily: [100, 115, 85, 135, 125, 155, 145, 170, 160, 165, 185, 175]
     },
     {
-      id: 'conservative',
-      name: 'Conservative Crypto',
-      symbol: 'CONSV',
-      description: 'Low-risk crypto strategy',
-      type: 'custom',
-      data: generateData(100, 0.02),
-      dates: generateDates(),
-      currentValue: 108.23,
-      performance: {
-        daily: 0.45,
-        weekly: 2.12,
-        monthly: 5.67,
-        yearly: 8.23
-      }
+      id: 'dot',
+      name: 'Polkadot',
+      symbol: 'DOT',
+      performance: [100, 102, 88, 118, 112, 125, 120, 135, 130, 128, 145, 140],
+      dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      daily: [100, 102, 88, 118, 112, 125, 120, 135, 130, 128, 145, 140]
     }
   ];
 };

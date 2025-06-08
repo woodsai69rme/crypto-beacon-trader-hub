@@ -1,4 +1,3 @@
-
 import { TradingAccount, OptimizationSettings, PortfolioOptimizationResult, Trade, RiskAssessmentResult, MarketInsight } from '@/types/trading';
 
 export const optimizePortfolio = async (
@@ -105,6 +104,7 @@ export const getPersonalizedMarketInsights = async (
       id: 'insight-1',
       type: 'bullish',
       title: 'Bitcoin Support Level Identified',
+      description: 'BTC is approaching a key support level at $55,000',
       summary: 'BTC is approaching a key support level at $55,000',
       relevance: 8.5,
       confidence: 7.2,
@@ -116,6 +116,7 @@ export const getPersonalizedMarketInsights = async (
       id: 'insight-2',
       type: 'bearish',
       title: 'High Correlation Alert',
+      description: 'Your portfolio shows high correlation with overall market movements',
       summary: 'Your portfolio shows high correlation with overall market movements',
       relevance: 7.8,
       confidence: 8.1,

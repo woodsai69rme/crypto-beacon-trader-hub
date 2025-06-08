@@ -512,7 +512,7 @@ class ComprehensiveAiBotSystem {
       coinName: coinData.name,
       coinSymbol: signal.coinSymbol,
       symbol: signal.coinSymbol,
-      type: signal.type,
+      type: signal.type as 'buy' | 'sell',
       amount: quantity,
       quantity,
       price: signal.price,
