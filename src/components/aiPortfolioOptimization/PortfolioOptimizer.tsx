@@ -96,7 +96,7 @@ const PortfolioOptimizer: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="short">Short-term (< 1 year)</SelectItem>
+                  <SelectItem value="short">Short-term (&lt; 1 year)</SelectItem>
                   <SelectItem value="medium">Medium-term (1-5 years)</SelectItem>
                   <SelectItem value="long">Long-term (5+ years)</SelectItem>
                 </SelectContent>
