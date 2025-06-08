@@ -45,13 +45,19 @@ export const optimizePortfolio = async (
   ];
   
   return {
+    allocation: currentAllocation,
     currentAllocation,
     suggestedAllocation,
     expectedReturn: 12.5,
     expectedRisk: 18.2,
     sharpeRatio: 0.68,
     diversification: 75,
-    rebalancingTrades
+    rebalancingTrades,
+    recommendations: [
+      'Consider increasing allocation to Ethereum',
+      'Reduce Bitcoin exposure slightly',
+      'Maintain diversification across major assets'
+    ]
   };
 };
 
@@ -62,12 +68,19 @@ export const assessPortfolioRisk = async (
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   return {
+    score: 7.2,
     overallScore: 7.2,
     diversificationScore: 6.8,
     volatilityScore: 7.5,
     liquidityScore: 8.1,
     concentrationRisk: 6.5,
     correlationRisk: 7.0,
+    factors: {
+      volatility: 7.5,
+      correlation: 7.0,
+      liquidity: 8.1,
+      marketCap: 6.8
+    },
     recommendations: [
       'Consider diversifying into more asset classes',
       'Reduce exposure to high-volatility assets',
@@ -90,7 +103,7 @@ export const getPersonalizedMarketInsights = async (
   return [
     {
       id: 'insight-1',
-      type: 'opportunity',
+      type: 'bullish',
       title: 'Bitcoin Support Level Identified',
       summary: 'BTC is approaching a key support level at $55,000',
       relevance: 8.5,
@@ -101,7 +114,7 @@ export const getPersonalizedMarketInsights = async (
     },
     {
       id: 'insight-2',
-      type: 'risk',
+      type: 'bearish',
       title: 'High Correlation Alert',
       summary: 'Your portfolio shows high correlation with overall market movements',
       relevance: 7.8,

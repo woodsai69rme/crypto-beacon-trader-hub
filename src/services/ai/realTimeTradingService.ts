@@ -347,22 +347,26 @@ class RealTimeTradingService {
 
   private createTradeFromSignal(bot: AIBot, signal: TradingSignal): Trade {
     const amount = Math.min(bot.maxTradeAmount / signal.price, bot.maxTradeAmount * 0.1);
+    const totalValue = amount * signal.price;
+    const fees = totalValue * 0.001; // 0.1% fee
     
     return {
       id: `trade-${Date.now()}`,
       coinId: signal.coinId,
       coinName: this.supportedCoins.find(c => c.symbol === signal.coinSymbol)?.name || signal.coinSymbol,
       coinSymbol: signal.coinSymbol,
+      symbol: signal.coinSymbol,
       type: signal.type,
       amount,
+      quantity: amount,
       price: signal.price,
-      totalValue: amount * signal.price,
+      totalValue,
       timestamp: signal.timestamp,
       currency: 'AUD',
-      total: amount * signal.price,
+      total: totalValue,
       botGenerated: true,
       strategyId: bot.strategy,
-      fees: amount * signal.price * 0.001 // 0.1% fee
+      fees
     };
   }
 

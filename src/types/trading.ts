@@ -1,4 +1,3 @@
-
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
@@ -21,11 +20,12 @@ export interface Trade {
   strategyId?: string;
   botId?: string;
   tags?: string[];
+  fees?: number;
 }
 
 export interface AuditLogEntry {
   id: string;
-  action: 'TRADE_EXECUTED' | 'ANALYSIS' | 'ERROR' | 'SIGNAL_GENERATED' | 'STRATEGY_UPDATED' | 'BOT_STARTED' | 'BOT_STOPPED';
+  action: 'TRADE_EXECUTED' | 'ANALYSIS' | 'ERROR' | 'SIGNAL_GENERATED' | 'STRATEGY_UPDATED' | 'BOT_STARTED' | 'BOT_STOPPED' | 'BOT_CREATED' | 'BOT_UPDATED';
   timestamp: string;
   reasoning: string;
   signal?: {
@@ -381,6 +381,21 @@ export interface PortfolioOptimizationResult {
   rebalancingTrades?: Trade[];
 }
 
+export interface OptimizationResult {
+  strategyId: string;
+  parameterValues: Record<string, any>;
+  performance: {
+    profit: number;
+    profitPercentage: number;
+    maxDrawdown: number;
+    winRate: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalReturn: number;
+  };
+  improvement: number;
+}
+
 // API Management Types
 export interface ApiEndpoint {
   name: string;
@@ -497,7 +512,7 @@ export interface MarketInsight {
   timeframe?: string;
   relatedAssets?: string[];
   assets?: string[];
-  type?: 'bullish' | 'bearish' | 'neutral';
+  type?: 'neutral' | 'bullish' | 'bearish' | 'opportunity' | 'risk';
   relevance?: number;
   timestamp?: string;
 }
@@ -758,4 +773,34 @@ export interface AdvancedAIBotConfig {
   };
   backtestPeriod: string;
   optimizationParameters: Record<string, any>;
+}
+
+export interface CryptoChartData {
+  timestamp: string;
+  price: number;
+  volume?: number;
+  high?: number;
+  low?: number;
+  open?: number;
+  close?: number;
+}
+
+export interface PortfolioBenchmark {
+  id: string;
+  name: string;
+  symbol: string;
+  performance: number[];
+  dates: string[];
+}
+
+export interface RiskAlertData {
+  id: string;
+  type: 'high_volatility' | 'large_position' | 'correlation_risk' | 'drawdown';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  recommendations: string[];
+  timestamp: string;
+  accountId?: string;
+  portfolioId?: string;
+  assetId?: string;
 }

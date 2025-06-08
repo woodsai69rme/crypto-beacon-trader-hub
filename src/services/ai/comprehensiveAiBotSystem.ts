@@ -287,7 +287,7 @@ class ComprehensiveAiBotSystem {
       },
       auditLog: [{
         id: `log-${Date.now()}`,
-        action: 'Bot Created',
+        action: 'BOT_CREATED',
         timestamp: new Date().toISOString(),
         reasoning: `Created ${config.name} with ${config.strategy} strategy using ${config.model}`
       }]
@@ -307,7 +307,7 @@ class ComprehensiveAiBotSystem {
     
     bot.auditLog.push({
       id: `log-${Date.now()}`,
-      action: 'Bot Started',
+      action: 'BOT_STARTED',
       timestamp: new Date().toISOString(),
       reasoning: 'Bot activated for live trading'
     });
@@ -326,7 +326,7 @@ class ComprehensiveAiBotSystem {
     
     bot.auditLog.push({
       id: `log-${Date.now()}`,
-      action: 'Bot Stopped',
+      action: 'BOT_STOPPED',
       timestamp: new Date().toISOString(),
       reasoning: 'Bot deactivated by user'
     });
@@ -488,7 +488,7 @@ class ComprehensiveAiBotSystem {
           // Add to audit log
           bot.auditLog.push({
             id: `log-${Date.now()}`,
-            action: `${signal.type.toUpperCase()} Signal Executed`,
+            action: 'TRADE_EXECUTED',
             timestamp: new Date().toISOString(),
             reasoning: signal.reason
           });
@@ -503,22 +503,26 @@ class ComprehensiveAiBotSystem {
   private createTradeFromSignal(bot: AIBot, signal: TradingSignal, coinData: CoinOption): Trade {
     const maxAmount = Math.min(bot.maxTradeAmount, bot.maxTradeAmount * 0.1); // Max 10% per trade
     const quantity = maxAmount / signal.price;
+    const totalValue = quantity * signal.price;
+    const fees = totalValue * 0.001; // 0.1% fee
     
     return {
       id: `trade-${Date.now()}`,
       coinId: signal.coinId,
       coinName: coinData.name,
       coinSymbol: signal.coinSymbol,
+      symbol: signal.coinSymbol,
       type: signal.type,
       amount: quantity,
+      quantity,
       price: signal.price,
-      totalValue: quantity * signal.price,
+      totalValue,
       timestamp: signal.timestamp,
       currency: 'AUD',
-      total: quantity * signal.price,
+      total: totalValue,
       botGenerated: true,
       strategyId: bot.strategy,
-      fees: quantity * signal.price * 0.001 // 0.1% fee
+      fees
     };
   }
 
@@ -608,7 +612,7 @@ class ComprehensiveAiBotSystem {
 
     bot.auditLog.push({
       id: `log-${Date.now()}`,
-      action: 'Bot Updated',
+      action: 'BOT_UPDATED',
       timestamp: new Date().toISOString(),
       reasoning: `Bot configuration updated: ${Object.keys(updates).join(', ')}`
     });
