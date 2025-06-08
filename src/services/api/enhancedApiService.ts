@@ -38,6 +38,11 @@ class EnhancedApiService {
 
   private initializeUsageStats(providerId: string) {
     this.usageStats.set(providerId, {
+      endpoint: 'default',
+      requestCount: 0,
+      successRate: 100,
+      averageResponseTime: 0,
+      lastUsed: new Date().toISOString(),
       provider: providerId,
       totalCalls: 0,
       successfulCalls: 0,
@@ -90,19 +95,26 @@ class EnhancedApiService {
       const responseTime = Date.now() - startTime;
 
       // Update stats
+      stats.requestCount++;
       stats.totalCalls++;
       stats.successfulCalls++;
-      stats.avgResponseTime = ((stats.avgResponseTime * (stats.totalCalls - 1)) + responseTime) / stats.totalCalls;
+      stats.averageResponseTime = ((stats.averageResponseTime * (stats.totalCalls - 1)) + responseTime) / stats.totalCalls;
+      stats.avgResponseTime = stats.averageResponseTime;
+      stats.lastUsed = new Date().toISOString();
       stats.lastCalled = new Date().toISOString();
+      stats.successRate = (stats.successfulCalls / stats.totalCalls) * 100;
 
       // Cache the response
       this.cache.set(cacheKey, { data, timestamp: Date.now() });
 
       return data;
     } catch (error) {
+      stats.requestCount++;
       stats.totalCalls++;
       stats.failedCalls++;
+      stats.lastUsed = new Date().toISOString();
       stats.lastCalled = new Date().toISOString();
+      stats.successRate = (stats.successfulCalls / stats.totalCalls) * 100;
       throw error;
     }
   }

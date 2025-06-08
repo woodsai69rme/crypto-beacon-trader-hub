@@ -406,6 +406,7 @@ export interface ApiEndpoint {
   rateLimit: number;
   path?: string;
   description?: string;
+  requiresAuth?: boolean;
 }
 
 export interface ApiUsageStats {
@@ -786,6 +787,10 @@ export interface CryptoChartData {
   low?: number;
   open?: number;
   close?: number;
+  timestamps?: string[];
+  prices?: number[];
+  volumes?: number[];
+  chartData?: any[];
 }
 
 export interface PortfolioBenchmark {
@@ -807,4 +812,16 @@ export interface RiskAlertData {
   accountId?: string;
   portfolioId?: string;
   assetId?: string;
+}
+
+// Enhanced Asset Types for Algorand
+export interface AlgorandAssetHolding {
+  symbol: string;
+  name: string;
+  balance: number;
+  priceAUD: number;
+  valueAUD: number;
+  isNative: boolean;
+  assetId?: number;
+  decimals?: number;
 }

@@ -16,6 +16,7 @@ export const createApiEndpoint = (
   method,
   description,
   requiresAuth,
+  rateLimit: 10
 });
 
 export const coingeckoEndpoints = [
