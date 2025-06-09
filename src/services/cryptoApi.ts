@@ -1,4 +1,3 @@
-
 import { CryptoData, CryptoChartData, CoinOption } from "@/types/trading";
 import { toast } from "@/components/ui/use-toast";
 
@@ -87,11 +86,8 @@ export const fetchCoinHistory = async (coinId: string, days: string = '30'): Pro
     
     return {
       id: coinId,
-      name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
-      symbol: coinId.substring(0, 3).toUpperCase(),
+      timestamp: new Date().toISOString(),
       price: data.prices?.[data.prices.length - 1]?.[1] || 0,
-      value: coinId,
-      label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} (${coinId.substring(0, 3).toUpperCase()})`,
       timestamps: data.prices?.map((price: [number, number]) => new Date(price[0]).toISOString()) || [],
       prices: data.prices?.map((price: [number, number]) => price[1]) || [],
       volumes: data.total_volumes?.map((volume: [number, number]) => volume[1]) || [],
@@ -107,11 +103,8 @@ export const fetchCoinHistory = async (coinId: string, days: string = '30'): Pro
     
     return {
       id: coinId,
-      name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
-      symbol: coinId.substring(0, 3).toUpperCase(),
+      timestamp: new Date().toISOString(),
       price: 0,
-      value: coinId,
-      label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} (${coinId.substring(0, 3).toUpperCase()})`,
       timestamps: [],
       prices: [],
       volumes: [],

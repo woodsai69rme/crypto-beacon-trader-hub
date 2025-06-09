@@ -280,13 +280,13 @@ class EnhancedAlgorandService {
             const assetBalance = holding.amount / Math.pow(10, assetInfo.params.decimals);
             
             assets.push({
-              assetId: holding['asset-id'],
               symbol: assetInfo.params['unit-name'] || `ASA-${holding['asset-id']}`,
               name: assetInfo.params.name || `Asset ${holding['asset-id']}`,
               balance: assetBalance,
               priceAUD: 0, // Would need price feed for ASAs
               valueAUD: 0,
               isNative: false,
+              assetId: holding['asset-id'],
               decimals: assetInfo.params.decimals
             });
           } catch (error) {
