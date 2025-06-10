@@ -1,325 +1,238 @@
 
 # Product Requirements Document (PRD)
 
-## Advanced Crypto Trading Platform
-
-### Document Information
-- **Version**: 1.0
-- **Date**: 2025-01-25
-- **Author**: Product Team
-- **Status**: Final
-- **Review Date**: 2025-04-25
-
----
-
-## 1. Executive Summary
+## 1. Overview
 
 ### 1.1 Product Vision
-Create the most advanced, AI-powered cryptocurrency trading platform specifically designed for the Australian market, providing professional-grade tools that democratize access to sophisticated trading strategies and risk management.
+Create the most comprehensive and user-friendly cryptocurrency trading platform in Australia, empowering users with AI-driven insights, automated trading capabilities, and institutional-grade risk management tools.
 
-### 1.2 Business Objectives
-- **Revenue Goal**: $10M ARR within 24 months
-- **User Acquisition**: 50,000 registered users, 10,000 active traders
-- **Market Position**: Top 3 crypto trading platform in Australia
-- **Regulatory Standing**: Full AUSTRAC compliance and licensing
+### 1.2 Product Mission
+To democratize access to professional-grade cryptocurrency trading tools while maintaining the highest standards of security, compliance, and user experience.
 
-### 1.3 Success Metrics
-- **User Engagement**: >80% monthly active user rate
-- **Trading Volume**: $500M+ monthly trading volume
-- **Customer Satisfaction**: NPS score >50
-- **Platform Reliability**: 99.9% uptime SLA
+### 1.3 Success Criteria
+- Achieve 10,000+ active users within 12 months
+- Process $100M+ in trading volume annually
+- Maintain 99.9% uptime
+- Achieve 4.5+ star user satisfaction rating
 
----
+## 2. User Personas
 
-## 2. Market Analysis
+### 2.1 Primary Personas
 
-### 2.1 Target Market
-- **Primary**: Australian cryptocurrency traders (retail and semi-professional)
-- **Secondary**: Financial advisors managing crypto portfolios
-- **Tertiary**: International users seeking Australian market access
+#### Retail Crypto Trader (Sarah)
+- **Demographics**: 25-40 years old, tech-savvy, disposable income $50K-$150K
+- **Goals**: Maximize returns, minimize time spent on manual trading
+- **Pain Points**: Lack of professional tools, emotional trading decisions
+- **Key Features**: AI trading bots, automated portfolio rebalancing, risk management
 
-### 2.2 Market Size
-- **TAM**: $2.1B (Australian crypto trading market)
-- **SAM**: $420M (addressable active trading market)
-- **SOM**: $42M (achievable market share in 3 years)
+#### Professional Day Trader (Marcus)
+- **Demographics**: 30-50 years old, finance background, income $200K+
+- **Goals**: High-frequency trading, advanced analytics, multiple exchange access
+- **Pain Points**: Platform limitations, high fees, poor execution speed
+- **Key Features**: Advanced charting, multi-exchange trading, low-latency execution
 
-### 2.3 Competitive Landscape
-- **Direct Competitors**: CoinSpot, Swyftx, Independent Reserve
-- **Indirect Competitors**: Binance, Coinbase, eToro
-- **Differentiation**: AI-first approach, advanced automation, Australian focus
+#### Crypto Enthusiast/Investor (Jamie)
+- **Demographics**: 20-35 years old, early adopter, long-term investor
+- **Goals**: Stay informed, track portfolio performance, learn new strategies
+- **Pain Points**: Information overload, lack of consolidated view
+- **Key Features**: News aggregation, portfolio analytics, educational content
 
----
+### 2.2 Secondary Personas
 
-## 3. Product Requirements
+#### Financial Advisor (Robert)
+- **Demographics**: 35-55 years old, licensed professional, manages client funds
+- **Goals**: Offer crypto services to clients, compliance, reporting
+- **Key Features**: Client management, compliance tools, detailed reporting
 
-### 3.1 Core Features (Must-Have)
+#### Institutional Trader (Michelle)
+- **Demographics**: 30-45 years old, institutional background, large portfolios
+- **Goals**: Enterprise-grade tools, compliance, risk management
+- **Key Features**: API access, advanced risk tools, institutional reporting
 
-#### 3.1.1 AI Trading System
-**Requirement**: Multi-model AI trading with ensemble strategies
-- Support for 10+ AI models (GPT-4, Claude, DeepSeek, Gemini, etc.)
-- Real-time strategy generation and optimization
-- Confidence scoring and model reliability tracking
-- Automated strategy backtesting and validation
+## 3. Functional Requirements
 
-**Acceptance Criteria**:
-- [ ] Deploy trading bots using 3+ AI models simultaneously
-- [ ] Generate trading signals with >70% accuracy on backtests
-- [ ] Support custom strategy parameters and risk controls
-- [ ] Provide real-time performance monitoring and alerts
+### 3.1 Core Trading Features
 
-#### 3.1.2 Exchange Integration
-**Requirement**: Secure connection to major cryptocurrency exchanges
-- Support for Binance, Coinbase Pro, Kraken, Bybit, OKX, KuCoin
-- Real-time order execution with <100ms latency
-- Secure API key management with encryption
-- Cross-exchange arbitrage capabilities
+#### 3.1.1 Trading Engine
+- **REQ-001**: Support market, limit, and stop orders
+- **REQ-002**: Real-time order execution with sub-second latency
+- **REQ-003**: Multi-exchange order routing
+- **REQ-004**: Paper trading mode for risk-free testing
+- **REQ-005**: Advanced order types (OCO, trailing stop)
 
-**Acceptance Criteria**:
-- [ ] Connect to 6+ major exchanges with full trading functionality
-- [ ] Execute orders with sub-second confirmation
-- [ ] Store API keys with AES-256 encryption
-- [ ] Support limit, market, and stop orders across all exchanges
+#### 3.1.2 Portfolio Management
+- **REQ-006**: Real-time portfolio valuation in AUD
+- **REQ-007**: Multi-exchange portfolio aggregation
+- **REQ-008**: Performance analytics and reporting
+- **REQ-009**: Risk metrics calculation (VaR, Sharpe ratio)
+- **REQ-010**: Tax reporting for Australian regulations
 
-#### 3.1.3 Risk Management
-**Requirement**: Comprehensive risk monitoring and automated controls
-- Real-time portfolio risk assessment (VaR, Sharpe ratio, drawdown)
-- Automated stop-loss and take-profit execution
-- Position sizing based on risk parameters
-- Correlation analysis and diversification scoring
+### 3.2 AI Trading Features
 
-**Acceptance Criteria**:
-- [ ] Calculate portfolio VaR with 95% and 99% confidence levels
-- [ ] Automatically execute risk controls when thresholds are breached
-- [ ] Provide real-time risk alerts via multiple channels
-- [ ] Generate daily risk reports with actionable recommendations
+#### 3.2.1 AI Bot Framework
+- **REQ-011**: Support for 13+ trading strategies
+- **REQ-012**: Multi-model AI integration (GPT-4, Claude, etc.)
+- **REQ-013**: Customizable risk parameters
+- **REQ-014**: Backtesting capabilities
+- **REQ-015**: Performance monitoring and alerts
 
-#### 3.1.4 Real-Time Market Data
-**Requirement**: High-quality, low-latency market data integration
-- Sub-second price updates for major cryptocurrencies
-- Order book depth and market microstructure data
-- Historical data with minute-level granularity
-- Alternative data sources (sentiment, on-chain metrics)
+#### 3.2.2 Market Analysis
+- **REQ-016**: Real-time sentiment analysis
+- **REQ-017**: News impact assessment
+- **REQ-018**: Technical indicator analysis
+- **REQ-019**: Pattern recognition
+- **REQ-020**: Predictive modeling
 
-**Acceptance Criteria**:
-- [ ] Provide <500ms price update latency
-- [ ] Store 2+ years of historical price data
-- [ ] Integrate 15+ alternative data sources
-- [ ] Support real-time streaming of market data
+### 3.3 Data and Analytics
 
-### 3.2 Advanced Features (Should-Have)
+#### 3.3.1 Market Data
+- **REQ-021**: Real-time price feeds from multiple sources
+- **REQ-022**: Historical data (5+ years)
+- **REQ-023**: Order book visualization
+- **REQ-024**: Trading volume analysis
+- **REQ-025**: Market correlation analysis
 
-#### 3.2.1 N8N Workflow Automation
-**Requirement**: Visual workflow builder for trading automation
-- Drag-and-drop workflow designer
-- Pre-built templates for common trading scenarios
-- Integration with external services (email, SMS, Discord)
-- Custom trigger and action nodes
+#### 3.3.2 Charting and Visualization
+- **REQ-026**: Interactive charts with 50+ indicators
+- **REQ-027**: Multiple timeframes (1m to 1M)
+- **REQ-028**: Custom indicator creation
+- **REQ-029**: Chart annotation tools
+- **REQ-030**: Export capabilities (PDF, PNG)
 
-**Acceptance Criteria**:
-- [ ] Create workflows with 10+ pre-built nodes
-- [ ] Support webhook triggers and HTTP actions
-- [ ] Provide workflow templates for portfolio rebalancing
-- [ ] Enable custom JavaScript execution in workflow nodes
+### 3.4 Security and Compliance
 
-#### 3.2.2 Social Trading Features
-**Requirement**: Community-driven trading and strategy sharing
-- Copy trading with customizable risk parameters
-- Strategy marketplace with performance tracking
-- Social feeds and trading discussions
-- Leaderboards and trader rankings
+#### 3.4.1 Security Features
+- **REQ-031**: Multi-factor authentication
+- **REQ-032**: End-to-end encryption
+- **REQ-033**: Secure API key storage
+- **REQ-034**: Session management
+- **REQ-035**: Audit logging
 
-**Acceptance Criteria**:
-- [ ] Enable one-click copy trading with risk controls
-- [ ] Track and display historical performance of shared strategies
-- [ ] Support commenting and rating on shared strategies
-- [ ] Provide real-time social sentiment analysis
+#### 3.4.2 Compliance Features
+- **REQ-036**: KYC/AML verification
+- **REQ-037**: Transaction reporting
+- **REQ-038**: Regulatory compliance monitoring
+- **REQ-039**: Data privacy controls (GDPR)
+- **REQ-040**: Australian tax compliance
 
-#### 3.2.3 Advanced Analytics
-**Requirement**: Professional-grade portfolio and market analysis
-- Custom dashboard builder with drag-and-drop widgets
-- Advanced charting with 50+ technical indicators
-- Portfolio attribution and performance analytics
-- Scenario analysis and stress testing
-
-**Acceptance Criteria**:
-- [ ] Create custom dashboards with 20+ widget types
-- [ ] Support candlestick, line, and volume charts with indicators
-- [ ] Calculate portfolio metrics (alpha, beta, information ratio)
-- [ ] Perform Monte Carlo simulations for risk scenarios
-
-### 3.3 Nice-to-Have Features
-
-#### 3.3.1 DeFi Integration
-- Connect to major DeFi protocols (Uniswap, Aave, Compound)
-- Track yield farming and liquidity mining positions
-- Cross-chain asset management
-- Automated DeFi strategy execution
-
-#### 3.3.2 Mobile Application
-- Native iOS and Android applications
-- Push notifications for price alerts and trade executions
-- Biometric authentication
-- Offline mode for viewing historical data
-
-#### 3.3.3 Institutional Features
-- Multi-user account management
-- Advanced compliance and reporting tools
-- White-label solutions for financial advisors
-- API access for custom integrations
-
----
-
-## 4. Technical Requirements
+## 4. Non-Functional Requirements
 
 ### 4.1 Performance Requirements
-- **Response Time**: <200ms for 95% of API calls
-- **Throughput**: Support 10,000+ concurrent users
-- **Availability**: 99.9% uptime (8.76 hours downtime/year)
-- **Scalability**: Horizontal scaling to support 10x user growth
+- **NFR-001**: Page load time < 2 seconds
+- **NFR-002**: Order execution latency < 100ms
+- **NFR-003**: Support 10,000+ concurrent users
+- **NFR-004**: 99.9% uptime availability
+- **NFR-005**: Data refresh rate < 5 seconds
 
 ### 4.2 Security Requirements
-- **Encryption**: AES-256 for data at rest, TLS 1.3 for data in transit
-- **Authentication**: MFA support with TOTP and SMS
-- **Authorization**: Role-based access control (RBAC)
-- **Compliance**: AUSTRAC AML/KYC compliance
+- **NFR-006**: SOC 2 Type II compliance
+- **NFR-007**: ISO 27001 certification
+- **NFR-008**: Regular security audits
+- **NFR-009**: Penetration testing quarterly
+- **NFR-010**: Zero-trust architecture
 
-### 4.3 Data Requirements
-- **Data Retention**: 7 years for transaction data, 2 years for market data
-- **Backup**: Daily automated backups with 30-day retention
-- **Recovery**: RTO <4 hours, RPO <1 hour
-- **Privacy**: GDPR and Privacy Act 1988 compliance
+### 4.3 Usability Requirements
+- **NFR-011**: Mobile-responsive design
+- **NFR-012**: WCAG 2.1 AA accessibility
+- **NFR-013**: Multi-language support (EN, CN)
+- **NFR-014**: Dark/light theme support
+- **NFR-015**: Intuitive navigation (< 3 clicks)
 
-### 4.4 Integration Requirements
-- **APIs**: RESTful APIs with OpenAPI 3.0 specification
-- **Webhooks**: Support for real-time event notifications
-- **Third-Party**: Integration with 15+ external data providers
-- **Standards**: FIX protocol support for institutional connectivity
+### 4.4 Scalability Requirements
+- **NFR-016**: Horizontal scaling capability
+- **NFR-017**: Database partitioning support
+- **NFR-018**: CDN integration
+- **NFR-019**: Auto-scaling infrastructure
+- **NFR-020**: Load balancing
 
----
+## 5. Technical Requirements
 
-## 5. User Experience Requirements
+### 5.1 Frontend Requirements
+- **TECH-001**: React 18+ with TypeScript
+- **TECH-002**: Responsive design (mobile-first)
+- **TECH-003**: Progressive Web App (PWA)
+- **TECH-004**: Real-time updates (WebSocket)
+- **TECH-005**: Offline functionality
 
-### 5.1 Usability
-- **Learning Curve**: New users productive within 30 minutes
-- **Accessibility**: WCAG 2.1 AA compliance
-- **Internationalization**: Support for English and Chinese languages
-- **Mobile Responsiveness**: Full functionality on mobile devices
+### 5.2 Backend Requirements
+- **TECH-006**: Supabase backend infrastructure
+- **TECH-007**: PostgreSQL database
+- **TECH-008**: Edge Functions for API logic
+- **TECH-009**: Real-time subscriptions
+- **TECH-010**: File storage integration
 
-### 5.2 User Interface
-- **Design System**: Consistent component library and design tokens
-- **Dark/Light Mode**: User-selectable theme preferences
-- **Customization**: Personalized dashboards and layout options
-- **Performance**: <3 second initial page load times
+### 5.3 Integration Requirements
+- **TECH-011**: REST API architecture
+- **TECH-012**: WebSocket for real-time data
+- **TECH-013**: OAuth 2.0 authentication
+- **TECH-014**: Rate limiting and throttling
+- **TECH-015**: API versioning
 
-### 5.3 User Onboarding
-- **KYC Process**: Streamlined identity verification (<24 hours)
-- **Tutorial System**: Interactive product tours and help documentation
-- **Paper Trading**: Risk-free practice mode for new users
-- **Support**: 24/7 chat support with <2 minute response time
+### 5.4 Infrastructure Requirements
+- **TECH-016**: Cloud-native deployment
+- **TECH-017**: Auto-scaling groups
+- **TECH-018**: Load balancers
+- **TECH-019**: CDN integration
+- **TECH-020**: Monitoring and alerting
 
----
+## 6. Dependencies and Integrations
 
-## 6. Business Requirements
+### 6.1 External APIs
+- **DEP-001**: CoinGecko API for market data
+- **DEP-002**: OpenRouter for AI model access
+- **DEP-003**: Exchange APIs (Binance, Coinbase, etc.)
+- **DEP-004**: News APIs for sentiment analysis
+- **DEP-005**: Payment processing (Stripe)
 
-### 6.1 Monetization
-- **Commission Structure**: 0.1-0.5% per trade (tiered by volume)
-- **Subscription Plans**: Premium features at $29-199/month
-- **API Access**: Enterprise API pricing at $0.01 per call
-- **White-Label**: Custom deployment starting at $50,000
+### 6.2 Third-Party Services
+- **DEP-006**: Email service (Resend)
+- **DEP-007**: SMS service (Twilio)
+- **DEP-008**: Analytics (Google Analytics)
+- **DEP-009**: Error tracking (Sentry)
+- **DEP-010**: Customer support (Intercom)
 
-### 6.2 Compliance
-- **Licensing**: AUSTRAC registration and compliance program
-- **Reporting**: Automated suspicious transaction reporting
-- **Records**: Complete audit trail for all trading activities
-- **Privacy**: Data localization and privacy impact assessments
+## 7. Constraints and Assumptions
 
-### 6.3 Operations
-- **Customer Support**: 24/7 multi-channel support (chat, email, phone)
-- **SLA**: Response time SLAs based on user tier and issue severity
-- **Monitoring**: Real-time system monitoring with automated alerting
-- **Incident Response**: Documented procedures for security and operational incidents
+### 7.1 Technical Constraints
+- **CON-001**: Limited to React-based frontend
+- **CON-002**: Supabase backend dependency
+- **CON-003**: Browser compatibility (Chrome 90+)
+- **CON-004**: JavaScript/TypeScript only
+- **CON-005**: No native mobile apps initially
 
----
+### 7.2 Business Constraints
+- **CON-006**: Australian regulatory compliance required
+- **CON-007**: Limited budget for premium APIs
+- **CON-008**: 6-month launch timeline
+- **CON-009**: Small development team (3-5 people)
+- **CON-010**: Bootstrap funding model
 
-## 7. Risks and Mitigation
+### 7.3 Assumptions
+- **ASS-001**: Users have modern browsers
+- **ASS-002**: Stable internet connectivity
+- **ASS-003**: Basic crypto knowledge
+- **ASS-004**: English language proficiency
+- **ASS-005**: Australian market focus initially
 
-### 7.1 Technical Risks
-- **Risk**: API rate limiting from exchanges
-- **Mitigation**: Implement request queuing and multiple API key rotation
+## 8. Acceptance Criteria
 
-- **Risk**: AI model performance degradation
-- **Mitigation**: Continuous model monitoring and fallback strategies
+### 8.1 MVP Criteria
+- All core trading features functional
+- AI bot deployment and management
+- Basic portfolio analytics
+- Security and authentication
+- Mobile-responsive design
 
-### 7.2 Business Risks
-- **Risk**: Regulatory changes affecting operations
-- **Mitigation**: Proactive regulatory monitoring and compliance buffer
+### 8.2 Launch Criteria
+- Performance requirements met
+- Security audit passed
+- User acceptance testing completed
+- Documentation finalized
+- Support systems operational
 
-- **Risk**: Market volatility affecting user adoption
-- **Mitigation**: Strong risk management tools and education
-
-### 7.3 Security Risks
-- **Risk**: Cybersecurity attacks on user funds
-- **Mitigation**: Multi-signature wallets and comprehensive security audits
-
-- **Risk**: Data breaches exposing user information
-- **Mitigation**: Zero-trust architecture and regular penetration testing
-
----
-
-## 8. Success Criteria and KPIs
-
-### 8.1 User Metrics
-- **Monthly Active Users**: >10,000 within 12 months
-- **User Retention**: >70% after 30 days, >40% after 90 days
-- **Customer Acquisition Cost**: <$100 per user
-- **Lifetime Value**: >$1,000 per user
-
-### 8.2 Business Metrics
-- **Revenue Growth**: 20% month-over-month for first 18 months
-- **Trading Volume**: $100M+ monthly within 12 months
-- **Market Share**: 5% of Australian crypto trading market
-- **Profitability**: Break-even within 18 months
-
-### 8.3 Technical Metrics
-- **System Uptime**: >99.9% monthly average
-- **API Response Time**: <200ms for 95th percentile
-- **Security Incidents**: Zero successful breaches
-- **Customer Support**: <2 minute average response time
-
----
-
-## 9. Timeline and Milestones
-
-### 9.1 Phase 1: Core Platform (Months 1-6)
-- ✅ AI trading system development
-- ✅ Exchange integration and testing
-- ✅ Risk management implementation
-- ✅ Basic user interface and authentication
-
-### 9.2 Phase 2: Advanced Features (Months 7-12)
-- 🔄 N8N workflow automation
-- 🔄 Social trading features
-- 🔄 Advanced analytics dashboard
-- 🔄 Mobile application development
-
-### 9.3 Phase 3: Scale and Optimize (Months 13-18)
-- 🔄 DeFi protocol integration
-- 🔄 Institutional features
-- 🔄 International expansion
-- 🔄 White-label solutions
-
----
-
-## 10. Appendices
-
-### 10.1 Technical Architecture Diagram
-[Reference: 06_Technical_Architecture.md]
-
-### 10.2 User Journey Maps
-[Reference: 05_User_Journeys_And_Flows.md]
-
-### 10.3 API Specifications
-[Reference: 07_API_Documentation.md]
-
-### 10.4 Security Framework
-[Reference: 09_Auth_And_Security.md]
+### 8.3 Success Criteria
+- User acquisition targets met
+- Technical performance benchmarks achieved
+- Regulatory compliance verified
+- Customer satisfaction metrics met
+- Financial projections on track

@@ -1,175 +1,157 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Bot, 
-  DollarSign, 
-  Target, 
-  Shield, 
-  Activity,
-  BarChart3,
-  Zap,
-  Play,
-  Pause
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Activity, Bot, Play, Pause, Settings } from 'lucide-react';
 import { comprehensiveAiBotSystem } from '@/services/ai/comprehensiveAiBotSystem';
-import { useTradingContext } from '@/contexts/TradingContext';
-import AiBotCreator from './AiBotCreator';
-import EnhancedAiBotDashboard from './EnhancedAiBotDashboard';
-import FakeTradingForm from './FakeTradingForm';
-import { Trade, CoinOption } from '@/types/trading';
 
 const EnhancedPaperTradingDashboard: React.FC = () => {
-  const { toast } = useToast();
-  const { activeAccount, addTrade } = useTradingContext();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [bots, setBots] = useState([]);
-  const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
-  const [showBotCreator, setShowBotCreator] = useState(false);
-  
-  // Mock portfolio data
-  const [portfolioData, setPortfolioData] = useState({
-    totalValue: 100000,
-    dailyPnL: 2340.56,
-    dailyPnLPercent: 2.34,
-    totalReturn: 15.8,
-    activeBots: 3,
-    totalTrades: 127,
-    winRate: 68.5
-  });
+  const [portfolioValue, setPortfolioValue] = useState(50000);
+  const [totalPnL, setTotalPnL] = useState(2500);
+  const [activeBots, setActiveBots] = useState(0);
+  const [totalTrades, setTotalTrades] = useState(156);
+  const [winRate, setWinRate] = useState(68.5);
+  const [systemRunning, setSystemRunning] = useState(false);
 
-  // Mock coin data
-  const mockCoin: CoinOption = {
-    id: "bitcoin",
-    name: "Bitcoin",
-    symbol: "BTC",
-    price: 61245.32,
-    priceChange: 1200,
-    changePercent: 2.3,
-    image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-    volume: 28000000000,
-    marketCap: 1180000000000,
-    value: "BTC",
-    label: "Bitcoin (BTC)"
+  // Mock performance data
+  const performanceData = [
+    { date: '2024-01', value: 47500 },
+    { date: '2024-02', value: 48200 },
+    { date: '2024-03', value: 49800 },
+    { date: '2024-04', value: 48900 },
+    { date: '2024-05', value: 51200 },
+    { date: '2024-06', value: 50000 },
+  ];
+
+  const tradeData = [
+    { month: 'Jan', wins: 12, losses: 5 },
+    { month: 'Feb', wins: 15, losses: 8 },
+    { month: 'Mar', wins: 18, losses: 6 },
+    { month: 'Apr', wins: 14, losses: 9 },
+    { month: 'May', wins: 20, losses: 7 },
+    { month: 'Jun', wins: 16, losses: 4 },
+  ];
+
+  const recentTrades = [
+    { id: 1, symbol: 'BTC/AUD', side: 'BUY', amount: 0.5, price: 65000, pnl: 850, time: '10:23 AM' },
+    { id: 2, symbol: 'ETH/AUD', side: 'SELL', amount: 2.3, price: 4200, pnl: -120, time: '09:45 AM' },
+    { id: 3, symbol: 'SOL/AUD', side: 'BUY', amount: 15, price: 180, pnl: 340, time: '09:12 AM' },
+    { id: 4, symbol: 'ADA/AUD', side: 'SELL', amount: 500, price: 0.85, pnl: 75, time: '08:58 AM' },
+  ];
+
+  const handleStartSystem = async () => {
+    setSystemRunning(true);
+    // Start all active bots
+    const bots = comprehensiveAiBotSystem.getBots();
+    for (const bot of bots) {
+      if (bot.status === 'paused') {
+        await comprehensiveAiBotSystem.startBot(bot.config.id);
+      }
+    }
+    setActiveBots(bots.filter(bot => bot.status === 'active').length);
+  };
+
+  const handleStopSystem = async () => {
+    setSystemRunning(false);
+    // Stop all active bots
+    const bots = comprehensiveAiBotSystem.getBots();
+    for (const bot of bots) {
+      if (bot.status === 'active') {
+        await comprehensiveAiBotSystem.stopBot(bot.config.id);
+      }
+    }
+    setActiveBots(0);
   };
 
   useEffect(() => {
-    // Initialize the bot system
-    comprehensiveAiBotSystem.startSystem();
-    loadDashboardData();
-
-    // Set up real-time updates
-    const interval = setInterval(loadDashboardData, 10000);
-
-    return () => {
-      clearInterval(interval);
-      comprehensiveAiBotSystem.stopSystem();
+    const updateStats = () => {
+      const bots = comprehensiveAiBotSystem.getBots();
+      setActiveBots(bots.filter(bot => bot.status === 'active').length);
     };
+
+    updateStats();
+    const interval = setInterval(updateStats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const loadDashboardData = () => {
-    setBots(comprehensiveAiBotSystem.getAllBots());
-    
-    // Update portfolio with bot performance
-    const allBots = comprehensiveAiBotSystem.getAllBots();
-    const activeBotCount = allBots.filter(bot => bot.isActive).length;
-    const totalReturn = allBots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0);
-    
-    setPortfolioData(prev => ({
-      ...prev,
-      activeBots: activeBotCount,
-      totalReturn: totalReturn || prev.totalReturn
-    }));
-  };
-
-  const handleTrade = (trade: Trade) => {
-    addTrade(trade);
-    setRecentTrades(prev => [trade, ...prev.slice(0, 9)]); // Keep last 10 trades
-    
-    // Update portfolio value
-    setPortfolioData(prev => ({
-      ...prev,
-      totalValue: prev.totalValue + (trade.type === 'sell' ? trade.totalValue : -trade.totalValue),
-      totalTrades: prev.totalTrades + 1
-    }));
-
-    toast({
-      title: 'Trade Executed',
-      description: `${trade.type.toUpperCase()} ${trade.quantity} ${trade.symbol} at $${trade.price.toFixed(2)}`
-    });
-  };
-
-  const quickStartBot = async (strategy: string) => {
+  const createQuickBot = async () => {
     const botConfig = {
-      id: `quickbot-${Date.now()}`,
-      name: `Quick ${strategy} Bot`,
-      strategy,
-      model: 'deepseek/deepseek-r1',
+      id: `bot_${Date.now()}`,
+      name: `Quick Bot ${Date.now()}`,
+      description: 'Quick trading bot for immediate deployment',
+      strategy: 'trend-following',
+      model: 'gpt-4o-mini',
       riskLevel: 'medium' as const,
       maxTradeAmount: 1000,
       targetAssets: ['BTC', 'ETH'],
       parameters: {}
     };
-
-    try {
-      const botId = await comprehensiveAiBotSystem.createBot(botConfig);
-      await comprehensiveAiBotSystem.startBot(botId);
-      loadDashboardData();
-      
-      toast({
-        title: 'Quick Bot Started',
-        description: `${strategy} bot is now running!`
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to start quick bot',
-        variant: 'destructive'
-      });
-    }
+    
+    const botInstance = await comprehensiveAiBotSystem.createBot(botConfig);
+    await comprehensiveAiBotSystem.startBot(botConfig.id);
+    setActiveBots(prev => prev + 1);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Paper Trading Dashboard</h1>
-          <p className="text-muted-foreground">
-            Practice trading with virtual funds • Account: {activeAccount?.name || 'Default'}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button onClick={() => setShowBotCreator(true)} variant="outline">
-            <Bot className="h-4 w-4 mr-2" />
-            Create Bot
-          </Button>
-          <Button>
-            <Target className="h-4 w-4 mr-2" />
-            New Trade
-          </Button>
-        </div>
-      </div>
+      {/* System Control */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              AI Trading System Control
+            </span>
+            <Badge variant={systemRunning ? "default" : "secondary"}>
+              {systemRunning ? "Running" : "Stopped"}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <Button 
+              onClick={handleStartSystem} 
+              disabled={systemRunning}
+              className="flex items-center gap-2"
+            >
+              <Play className="h-4 w-4" />
+              Start System
+            </Button>
+            <Button 
+              onClick={handleStopSystem} 
+              disabled={!systemRunning}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Pause className="h-4 w-4" />
+              Stop System
+            </Button>
+            <Button 
+              onClick={createQuickBot}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Bot className="h-4 w-4" />
+              Quick Deploy Bot
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Portfolio Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Portfolio Value</p>
-                <p className="text-2xl font-bold">
-                  {portfolioData.totalValue.toLocaleString('en-AU', { style: 'currency', currency: 'AUD' })}
-                </p>
+                <p className="text-2xl font-bold">${portfolioValue.toLocaleString()}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-500" />
+              <DollarSign className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -178,18 +160,16 @@ const EnhancedPaperTradingDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Daily P&L</p>
-                <p className={`text-2xl font-bold ${portfolioData.dailyPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {portfolioData.dailyPnL >= 0 ? '+' : ''}${portfolioData.dailyPnL.toFixed(2)}
-                </p>
-                <p className={`text-sm ${portfolioData.dailyPnLPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {portfolioData.dailyPnLPercent >= 0 ? '+' : ''}{portfolioData.dailyPnLPercent.toFixed(2)}%
+                <p className="text-sm text-muted-foreground">Total P&L</p>
+                <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {totalPnL >= 0 ? '+' : ''}${totalPnL.toLocaleString()}
                 </p>
               </div>
-              {portfolioData.dailyPnL >= 0 ? 
-                <TrendingUp className="h-8 w-8 text-green-500" /> : 
-                <TrendingDown className="h-8 w-8 text-red-500" />
-              }
+              {totalPnL >= 0 ? (
+                <TrendingUp className="h-8 w-8 text-green-600" />
+              ) : (
+                <TrendingDown className="h-8 w-8 text-red-600" />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -199,12 +179,9 @@ const EnhancedPaperTradingDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active Bots</p>
-                <p className="text-2xl font-bold">{portfolioData.activeBots}</p>
-                <p className="text-sm text-muted-foreground">
-                  {portfolioData.totalTrades} total trades
-                </p>
+                <p className="text-2xl font-bold">{activeBots}</p>
               </div>
-              <Bot className="h-8 w-8 text-blue-500" />
+              <Bot className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -214,197 +191,131 @@ const EnhancedPaperTradingDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Win Rate</p>
-                <p className="text-2xl font-bold">{portfolioData.winRate.toFixed(1)}%</p>
-                <Progress value={portfolioData.winRate} className="mt-2" />
+                <p className="text-2xl font-bold">{winRate}%</p>
               </div>
-              <Target className="h-8 w-8 text-purple-500" />
+              <Activity className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Dashboard */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="trading">Trading</TabsTrigger>
-          <TabsTrigger value="bots">AI Bots</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+      <Tabs defaultValue="performance" className="w-full">
+        <TabsList>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="trades">Trades</TabsTrigger>
+          <TabsTrigger value="bots">Bot Status</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Quick Actions */}
+        <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Quick Start Trading Bots</CardTitle>
+              <CardTitle>Portfolio Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[
-                  { strategy: 'trend-following', name: 'Trend', icon: TrendingUp },
-                  { strategy: 'mean-reversion', name: 'Reversion', icon: Target },
-                  { strategy: 'scalping', name: 'Scalping', icon: Zap },
-                  { strategy: 'breakout', name: 'Breakout', icon: TrendingUp },
-                  { strategy: 'arbitrage', name: 'Arbitrage', icon: Shield }
-                ].map(({ strategy, name, icon: Icon }) => (
-                  <Button
-                    key={strategy}
-                    variant="outline"
-                    className="h-20 flex-col gap-2"
-                    onClick={() => quickStartBot(strategy)}
-                  >
-                    <Icon className="h-6 w-6" />
-                    <span className="text-sm">{name}</span>
-                  </Button>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="trades" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trading Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={tradeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="wins" fill="#10b981" />
+                  <Bar dataKey="losses" fill="#ef4444" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Trades</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {recentTrades.map((trade) => (
+                  <div key={trade.id} className="flex items-center justify-between p-3 border rounded">
+                    <div className="flex items-center gap-3">
+                      <Badge variant={trade.side === 'BUY' ? 'default' : 'secondary'}>
+                        {trade.side}
+                      </Badge>
+                      <span className="font-medium">{trade.symbol}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {trade.amount} @ ${trade.price.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className={`font-semibold ${trade.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {trade.pnl >= 0 ? '+' : ''}${trade.pnl}
+                      </span>
+                      <div className="text-xs text-muted-foreground">{trade.time}</div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Trades</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentTrades.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      No trades yet. Start trading to see activity here.
-                    </p>
-                  ) : (
-                    recentTrades.map((trade) => (
-                      <div key={trade.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Badge variant={trade.type === 'buy' ? 'default' : 'secondary'}>
-                            {trade.type.toUpperCase()}
-                          </Badge>
-                          <div>
-                            <p className="font-medium">{trade.symbol}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {trade.quantity.toFixed(6)} @ ${trade.price.toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">${trade.totalValue.toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(trade.timestamp).toLocaleTimeString()}
-                          </p>
-                        </div>
+        <TabsContent value="bots" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Bot Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {comprehensiveAiBotSystem.getBots().map((bot) => (
+                  <div key={bot.config.id} className="flex items-center justify-between p-4 border rounded">
+                    <div>
+                      <h3 className="font-semibold">{bot.config.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Strategy: {bot.config.strategy} | Model: {bot.config.model}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
+                        {bot.status}
+                      </Badge>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Win Rate: {bot.performance.winRate}%
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Bot Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {bots.filter(bot => bot.isActive).length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      No active bots. Create and start a bot to see performance.
-                    </p>
-                  ) : (
-                    bots.filter(bot => bot.isActive).map((bot) => (
-                      <div key={bot.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                          <div>
-                            <p className="font-medium">{bot.name}</p>
-                            <p className="text-sm text-muted-foreground">{bot.strategy}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-medium ${bot.performance.totalReturn >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {bot.performance.totalReturn >= 0 ? '+' : ''}{bot.performance.totalReturn.toFixed(1)}%
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {bot.performance.totalTrades} trades
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="trading" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Manual Trading</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FakeTradingForm
-                onTrade={handleTrade}
-                selectedCoin={mockCoin}
-                onAddTrade={handleTrade}
-                advancedMode={true}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="bots" className="space-y-6">
-          <EnhancedAiBotDashboard />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Advanced analytics dashboard coming soon
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="portfolio" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Portfolio Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Portfolio analysis tools coming soon
-                </p>
+                    </div>
+                  </div>
+                ))}
+                
+                {comprehensiveAiBotSystem.getBots().length === 0 && (
+                  <div className="text-center py-8">
+                    <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Bots Deployed</h3>
+                    <p className="text-muted-foreground mb-4">Create your first AI trading bot to get started</p>
+                    <Button onClick={createQuickBot}>
+                      <Bot className="h-4 w-4 mr-2" />
+                      Create Quick Bot
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Bot Creator Modal */}
-      {showBotCreator && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Create AI Trading Bot</h3>
-              <Button variant="ghost" onClick={() => setShowBotCreator(false)}>×</Button>
-            </div>
-            <div className="p-4">
-              <AiBotCreator />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

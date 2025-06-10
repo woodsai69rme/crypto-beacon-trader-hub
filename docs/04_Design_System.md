@@ -1,442 +1,529 @@
+
 # Design System
-
-## Advanced Crypto Trading Platform Design System
-
-### Document Information
-- **Version**: 1.0
-- **Last Updated**: 2025-01-25
-- **Maintained by**: Design Team
-
----
 
 ## 1. Design Principles
 
 ### 1.1 Core Principles
 - **Clarity**: Information should be clear and easy to understand
-- **Efficiency**: Minimize cognitive load and clicks to complete tasks
-- **Trust**: Build confidence through professional and secure design
-- **Accessibility**: Ensure usability for all users regardless of abilities
-- **Consistency**: Maintain uniformity across all platform experiences
+- **Consistency**: Consistent patterns across all interfaces
+- **Efficiency**: Minimize cognitive load and maximize productivity
+- **Accessibility**: Inclusive design for all users
+- **Trust**: Professional appearance that builds confidence
 
-### 1.2 Australian Market Focus
-- **Currency Display**: Default to AUD with clear currency indicators
-- **Localization**: Australian English spelling and terminology
-- **Cultural Sensitivity**: Respect for Australian financial culture and practices
-- **Regulatory Compliance**: Visual compliance with Australian financial regulations
+### 1.2 Visual Hierarchy
+- **Primary**: Most important actions and information
+- **Secondary**: Supporting actions and context
+- **Tertiary**: Additional details and metadata
 
----
+### 1.3 User Experience Guidelines
+- **Progressive Disclosure**: Show information as needed
+- **Feedback**: Immediate response to user actions
+- **Error Prevention**: Design to prevent mistakes
+- **Recognition**: Use familiar patterns and conventions
 
-## 2. Visual Identity
+## 2. Color Palette
 
-### 2.1 Logo and Branding
-- **Primary Logo**: Modern, tech-forward design with crypto elements
-- **Logo Variations**: Light, dark, monochrome, and simplified versions
-- **Brand Mark**: Standalone symbol for app icons and favicons
-- **Usage Guidelines**: Clear spacing, minimum sizes, and don'ts
-
-### 2.2 Brand Voice
-- **Professional**: Expert-level knowledge with accessible communication
-- **Trustworthy**: Reliable, secure, and transparent
-- **Innovative**: Cutting-edge technology with proven results
-- **Australian**: Friendly, direct, and practical approach
-
----
-
-## 3. Color System
-
-### 3.1 Primary Colors
+### 2.1 Primary Colors
 ```css
-:root {
-  /* Primary Brand Colors */
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-500: #3b82f6;  /* Main brand color */
-  --primary-600: #2563eb;
-  --primary-700: #1d4ed8;
-  --primary-900: #1e3a8a;
+/* Primary Brand Colors */
+--primary: 222.2 84% 4.9%;           /* Deep Blue-Black */
+--primary-foreground: 210 40% 98%;   /* Light Text */
+
+/* Secondary Colors */
+--secondary: 210 40% 96%;            /* Light Gray */
+--secondary-foreground: 222.2 84% 4.9%; /* Dark Text */
+
+/* Accent Colors */
+--accent: 210 40% 96%;               /* Subtle Accent */
+--accent-foreground: 222.2 84% 4.9%; /* Accent Text */
+```
+
+### 2.2 Semantic Colors
+```css
+/* Success (Gains) */
+--success: 142 76% 36%;              /* Green */
+--success-foreground: 355 100% 97%; /* Light Text */
+
+/* Destructive (Losses) */
+--destructive: 0 84% 60%;            /* Red */
+--destructive-foreground: 210 40% 98%; /* Light Text */
+
+/* Warning */
+--warning: 38 92% 50%;               /* Orange */
+--warning-foreground: 222.2 84% 4.9%; /* Dark Text */
+
+/* Info */
+--info: 199 89% 48%;                 /* Blue */
+--info-foreground: 210 40% 98%;     /* Light Text */
+```
+
+### 2.3 Neutral Colors
+```css
+/* Background Colors */
+--background: 0 0% 100%;             /* White */
+--foreground: 222.2 84% 4.9%;       /* Dark Text */
+
+/* Card and Surface Colors */
+--card: 0 0% 100%;                   /* White Cards */
+--card-foreground: 222.2 84% 4.9%;  /* Card Text */
+
+/* Popover Colors */
+--popover: 0 0% 100%;                /* White Popover */
+--popover-foreground: 222.2 84% 4.9%; /* Popover Text */
+
+/* Muted Colors */
+--muted: 210 40% 96%;                /* Light Gray */
+--muted-foreground: 215.4 16.3% 46.9%; /* Muted Text */
+
+/* Border Colors */
+--border: 214.3 31.8% 91.4%;        /* Light Border */
+--input: 214.3 31.8% 91.4%;         /* Input Border */
+```
+
+### 2.4 Dark Mode Colors
+```css
+/* Dark Mode Overrides */
+.dark {
+  --background: 222.2 84% 4.9%;      /* Dark Background */
+  --foreground: 210 40% 98%;         /* Light Text */
   
-  /* Secondary Colors */
-  --secondary-50: #f8fafc;
-  --secondary-100: #f1f5f9;
-  --secondary-500: #64748b;
-  --secondary-600: #475569;
-  --secondary-900: #0f172a;
+  --card: 222.2 84% 4.9%;            /* Dark Cards */
+  --card-foreground: 210 40% 98%;    /* Light Card Text */
+  
+  --popover: 222.2 84% 4.9%;         /* Dark Popover */
+  --popover-foreground: 210 40% 98%; /* Light Popover Text */
+  
+  --primary: 210 40% 98%;            /* Light Primary */
+  --primary-foreground: 222.2 84% 4.9%; /* Dark Primary Text */
+  
+  --secondary: 217.2 32.6% 17.5%;    /* Dark Secondary */
+  --secondary-foreground: 210 40% 98%; /* Light Secondary Text */
+  
+  --muted: 217.2 32.6% 17.5%;        /* Dark Muted */
+  --muted-foreground: 215 20.2% 65.1%; /* Muted Text */
+  
+  --accent: 217.2 32.6% 17.5%;       /* Dark Accent */
+  --accent-foreground: 210 40% 98%;  /* Light Accent Text */
+  
+  --border: 217.2 32.6% 17.5%;       /* Dark Border */
+  --input: 217.2 32.6% 17.5%;        /* Dark Input */
 }
 ```
 
-### 3.2 Semantic Colors
+## 3. Typography
+
+### 3.1 Font Stack
 ```css
-:root {
-  /* Success (Gains/Profits) */
-  --success-50: #f0fdf4;
-  --success-500: #22c55e;
-  --success-600: #16a34a;
-  --success-700: #15803d;
-  
-  /* Danger (Losses/Alerts) */
-  --danger-50: #fef2f2;
-  --danger-500: #ef4444;
-  --danger-600: #dc2626;
-  --danger-700: #b91c1c;
-  
-  /* Warning (Caution) */
-  --warning-50: #fffbeb;
-  --warning-500: #f59e0b;
-  --warning-600: #d97706;
-  
-  /* Info (Neutral information) */
-  --info-50: #f0f9ff;
-  --info-500: #06b6d4;
-  --info-600: #0891b2;
-}
+/* Primary Font */
+font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+/* Monospace Font */
+font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
 ```
 
-### 3.3 Theme Support
-**Light Theme**:
-- Background: `--secondary-50`
-- Surface: `#ffffff`
-- Text Primary: `--secondary-900`
-- Text Secondary: `--secondary-600`
-
-**Dark Theme**:
-- Background: `#0a0a0a`
-- Surface: `#1a1a1a`
-- Text Primary: `#ffffff`
-- Text Secondary: `--secondary-400`
-
-**High Contrast Mode**:
-- Enhanced contrast ratios for accessibility compliance
-- Bold borders and clear visual separations
-
----
-
-## 4. Typography
-
-### 4.1 Font Family
+### 3.2 Font Sizes
 ```css
-:root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-numeric: 'Inter', tabular-nums, sans-serif;
-}
+/* Heading Sizes */
+.text-4xl { font-size: 2.25rem; line-height: 2.5rem; }    /* 36px */
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }  /* 30px */
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }       /* 24px */
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }    /* 20px */
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }   /* 18px */
+
+/* Body Sizes */
+.text-base { font-size: 1rem; line-height: 1.5rem; }      /* 16px */
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }   /* 14px */
+.text-xs { font-size: 0.75rem; line-height: 1rem; }       /* 12px */
 ```
 
-### 4.2 Type Scale
+### 3.3 Font Weights
 ```css
-:root {
-  /* Headings */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.875rem;    /* 14px */
-  --text-base: 1rem;      /* 16px */
-  --text-lg: 1.125rem;    /* 18px */
-  --text-xl: 1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;     /* 24px */
-  --text-3xl: 1.875rem;   /* 30px */
-  --text-4xl: 2.25rem;    /* 36px */
-  
-  /* Line Heights */
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.625;
-}
+.font-thin { font-weight: 100; }
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+.font-black { font-weight: 900; }
 ```
 
-### 4.3 Financial Data Typography
-- **Price Display**: Use tabular figures for consistent alignment
-- **Currency Symbols**: Consistent positioning and sizing
-- **Percentage Changes**: Color-coded with +/- indicators
-- **Large Numbers**: Comma separation for thousands
+## 4. Spacing and Layout
 
----
-
-## 5. Spacing System
-
-### 5.1 Base Spacing Unit
+### 4.1 Spacing Scale
 ```css
-:root {
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
-  --space-10: 2.5rem;   /* 40px */
-  --space-12: 3rem;     /* 48px */
-  --space-16: 4rem;     /* 64px */
-  --space-20: 5rem;     /* 80px */
-}
+/* Tailwind Spacing Scale */
+.space-1 { margin: 0.25rem; }    /* 4px */
+.space-2 { margin: 0.5rem; }     /* 8px */
+.space-3 { margin: 0.75rem; }    /* 12px */
+.space-4 { margin: 1rem; }       /* 16px */
+.space-5 { margin: 1.25rem; }    /* 20px */
+.space-6 { margin: 1.5rem; }     /* 24px */
+.space-8 { margin: 2rem; }       /* 32px */
+.space-10 { margin: 2.5rem; }    /* 40px */
+.space-12 { margin: 3rem; }      /* 48px */
+.space-16 { margin: 4rem; }      /* 64px */
 ```
 
-### 5.2 Component Spacing
-- **Card Padding**: `--space-6` (24px)
-- **Button Padding**: `--space-3 --space-4` (12px 16px)
-- **Form Element Spacing**: `--space-4` (16px)
-- **Section Spacing**: `--space-12` (48px)
-
----
-
-## 6. Component Library
-
-### 6.1 Buttons
-```tsx
-// Primary Button
-<Button variant="primary" size="md">
-  Execute Trade
-</Button>
-
-// Variants: primary, secondary, outline, ghost, destructive
-// Sizes: xs, sm, md, lg, xl
-```
-
-**Button Specifications**:
-- Minimum height: 40px for touch targets
-- Border radius: 6px
-- Focus states with visible outlines
-- Loading states with spinners
-- Disabled states with reduced opacity
-
-### 6.2 Cards
-```tsx
-// Trading Card
-<Card className="trading-card">
-  <CardHeader>
-    <CardTitle>Portfolio Overview</CardTitle>
-  </CardHeader>
-  <CardContent>
-    {/* Card content */}
-  </CardContent>
-</Card>
-```
-
-**Card Specifications**:
-- Border radius: 8px
-- Shadow: 0 1px 3px rgba(0,0,0,0.1)
-- Border: 1px solid border color
-- Hover states with elevated shadows
-
-### 6.3 Form Elements
-```tsx
-// Input Field
-<Input
-  type="number"
-  placeholder="0.00"
-  className="currency-input"
-  icon={<DollarSign />}
-/>
-```
-
-**Form Specifications**:
-- Height: 40px minimum
-- Border radius: 6px
-- Focus states with colored borders
-- Error states with red borders and error messages
-- Helper text for additional context
-
-### 6.4 Data Display
-```tsx
-// Price Display
-<PriceDisplay
-  value={58350.50}
-  currency="AUD"
-  change={2.34}
-  changePercent={4.2}
-/>
-```
-
-**Data Display Specifications**:
-- Consistent number formatting
-- Color coding for gains/losses
-- Responsive sizing based on viewport
-- Tabular number alignment
-
----
-
-## 7. Layout System
-
-### 7.1 Grid System
+### 4.2 Grid System
 ```css
-.container {
+/* 12-Column Grid */
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+/* Common Grid Layouts */
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+```
+
+### 4.3 Container Sizes
+```css
+/* Container Widths */
+.container { 
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1rem;
 }
 
-.grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(12, 1fr);
+/* Responsive Containers */
+@media (min-width: 640px) {  /* sm */
+  .container { max-width: 640px; }
+}
+@media (min-width: 768px) {  /* md */
+  .container { max-width: 768px; }
+}
+@media (min-width: 1024px) { /* lg */
+  .container { max-width: 1024px; }
+}
+@media (min-width: 1280px) { /* xl */
+  .container { max-width: 1280px; }
 }
 ```
 
-### 7.2 Responsive Breakpoints
-```css
-:root {
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-}
-```
+## 5. Components
 
-### 7.3 Layout Patterns
-- **Dashboard Layout**: Sidebar + main content area
-- **Trading Layout**: Multi-panel layout with resizable sections
-- **Mobile Layout**: Single column with collapsible navigation
-- **Modal Layout**: Centered overlays with backdrop
+### 5.1 Buttons
 
----
-
-## 8. Iconography
-
-### 8.1 Icon Library
-Primary icon library: **Lucide React**
-- Consistent 24x24px default size
-- Stroke width: 2px
-- Scalable for different sizes (16px, 20px, 24px, 32px)
-
-### 8.2 Financial Icons
+#### Primary Button
 ```tsx
-// Trading Icons
-<TrendingUp />    // Gains/Bullish
-<TrendingDown />  // Losses/Bearish
-<DollarSign />    // Currency
-<BarChart />      // Analytics
-<Shield />        // Security/Risk
-<Bot />           // AI/Automation
+<Button variant="default" size="default">
+  Primary Action
+</Button>
+```
+- Background: Primary color
+- Text: Primary foreground
+- Hover: Darker primary
+- Active: Even darker primary
+
+#### Secondary Button
+```tsx
+<Button variant="secondary" size="default">
+  Secondary Action
+</Button>
+```
+- Background: Secondary color
+- Text: Secondary foreground
+- Border: Subtle border
+- Hover: Slightly darker
+
+#### Destructive Button
+```tsx
+<Button variant="destructive" size="default">
+  Delete
+</Button>
+```
+- Background: Destructive color
+- Text: Destructive foreground
+- Hover: Darker destructive
+
+#### Button Sizes
+```tsx
+<Button size="sm">Small</Button>
+<Button size="default">Default</Button>
+<Button size="lg">Large</Button>
+<Button size="icon">🎯</Button>
 ```
 
-### 8.3 Custom Icons
-- **Cryptocurrency Icons**: Custom SVG icons for major cryptocurrencies
-- **Exchange Icons**: Branded icons for supported exchanges
-- **Feature Icons**: Custom icons for platform-specific features
+### 5.2 Cards
 
----
+#### Basic Card
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle>Card Title</CardTitle>
+    <CardDescription>Card description</CardDescription>
+  </CardHeader>
+  <CardContent>
+    Card content goes here
+  </CardContent>
+  <CardFooter>
+    Card footer
+  </CardFooter>
+</Card>
+```
+
+#### Trading Card
+```tsx
+<Card className="trading-card">
+  <CardHeader className="pb-3">
+    <div className="flex items-center justify-between">
+      <CardTitle className="text-lg">BTC/AUD</CardTitle>
+      <Badge variant={trend > 0 ? "success" : "destructive"}>
+        {trend > 0 ? "+" : ""}{trend}%
+      </Badge>
+    </div>
+  </CardHeader>
+  <CardContent>
+    <div className="text-2xl font-bold">
+      ${price.toLocaleString()}
+    </div>
+  </CardContent>
+</Card>
+```
+
+### 5.3 Forms
+
+#### Input Field
+```tsx
+<div className="space-y-2">
+  <Label htmlFor="email">Email</Label>
+  <Input 
+    id="email" 
+    type="email" 
+    placeholder="Enter your email"
+  />
+</div>
+```
+
+#### Select Field
+```tsx
+<div className="space-y-2">
+  <Label htmlFor="strategy">Trading Strategy</Label>
+  <Select>
+    <SelectTrigger>
+      <SelectValue placeholder="Select strategy" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="trend">Trend Following</SelectItem>
+      <SelectItem value="mean">Mean Reversion</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+```
+
+### 5.4 Navigation
+
+#### Main Navigation
+```tsx
+<nav className="border-b">
+  <div className="container flex items-center justify-between h-16">
+    <div className="flex items-center space-x-8">
+      <Logo />
+      <NavigationMenu>
+        <NavigationMenuItem>
+          <NavigationMenuLink href="/dashboard">
+            Dashboard
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+      </NavigationMenu>
+    </div>
+    <UserMenu />
+  </div>
+</nav>
+```
+
+#### Sidebar Navigation
+```tsx
+<aside className="w-64 border-r bg-muted/40">
+  <div className="p-6">
+    <nav className="space-y-2">
+      <Link 
+        href="/dashboard" 
+        className="flex items-center space-x-3 rounded-lg px-3 py-2 hover:bg-accent"
+      >
+        <Home className="h-4 w-4" />
+        <span>Dashboard</span>
+      </Link>
+    </nav>
+  </div>
+</aside>
+```
+
+## 6. Icons
+
+### 6.1 Icon Library
+Using Lucide React for consistent iconography:
+
+```tsx
+import { 
+  Home,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Bot,
+  Settings,
+  User,
+  Bell,
+  Search,
+  Menu,
+  X
+} from 'lucide-react';
+```
+
+### 6.2 Icon Sizes
+```tsx
+<Icon className="h-4 w-4" />  {/* 16px - Small */}
+<Icon className="h-5 w-5" />  {/* 20px - Default */}
+<Icon className="h-6 w-6" />  {/* 24px - Medium */}
+<Icon className="h-8 w-8" />  {/* 32px - Large */}
+```
+
+### 6.3 Icon Usage Guidelines
+- Use consistent sizes within components
+- Align icons with text baseline
+- Use semantic colors (green for gains, red for losses)
+- Provide accessible labels for screen readers
+
+## 7. Charts and Data Visualization
+
+### 7.1 Chart Colors
+```css
+/* Trend Colors */
+--chart-positive: hsl(142 76% 36%);  /* Green */
+--chart-negative: hsl(0 84% 60%);    /* Red */
+--chart-neutral: hsl(215 20% 65%);   /* Gray */
+
+/* Chart Series Colors */
+--chart-1: hsl(199 89% 48%);   /* Blue */
+--chart-2: hsl(142 76% 36%);   /* Green */
+--chart-3: hsl(0 84% 60%);     /* Red */
+--chart-4: hsl(38 92% 50%);    /* Orange */
+--chart-5: hsl(271 81% 56%);   /* Purple */
+```
+
+### 7.2 Chart Components
+```tsx
+<ResponsiveContainer width="100%" height={300}>
+  <LineChart data={data}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="date" />
+    <YAxis />
+    <Tooltip />
+    <Line 
+      type="monotone" 
+      dataKey="value" 
+      stroke="var(--chart-1)" 
+      strokeWidth={2} 
+    />
+  </LineChart>
+</ResponsiveContainer>
+```
+
+## 8. Responsive Design
+
+### 8.1 Breakpoints
+```css
+/* Tailwind Breakpoints */
+sm: 640px   /* Small devices */
+md: 768px   /* Medium devices */
+lg: 1024px  /* Large devices */
+xl: 1280px  /* Extra large devices */
+2xl: 1536px /* 2X large devices */
+```
+
+### 8.2 Mobile-First Approach
+```tsx
+<div className="
+  grid 
+  grid-cols-1 
+  md:grid-cols-2 
+  lg:grid-cols-3 
+  gap-4
+">
+  {/* Responsive grid */}
+</div>
+```
+
+### 8.3 Mobile Navigation
+```tsx
+<div className="md:hidden">
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button variant="ghost" size="sm">
+        <Menu className="h-5 w-5" />
+      </Button>
+    </SheetTrigger>
+    <SheetContent side="left">
+      <MobileNavigation />
+    </SheetContent>
+  </Sheet>
+</div>
+```
 
 ## 9. Accessibility
 
 ### 9.1 Color Contrast
-- **AA Compliance**: Minimum 4.5:1 contrast ratio for normal text
-- **AAA Compliance**: 7:1 contrast ratio for enhanced accessibility
-- **Color Independence**: Information not conveyed by color alone
+- Maintain WCAG AA compliance (4.5:1 ratio)
+- Use semantic colors consistently
+- Provide alternative indicators beyond color
 
-### 9.2 Keyboard Navigation
-- **Tab Order**: Logical tab sequence through interface
-- **Focus Indicators**: Visible focus states for all interactive elements
-- **Keyboard Shortcuts**: Common shortcuts for power users
-- **Screen Reader Support**: ARIA labels and semantic markup
-
-### 9.3 Responsive Design
-- **Touch Targets**: Minimum 44px for mobile interfaces
-- **Zoom Support**: Usable at 200% zoom level
-- **Mobile Optimization**: Optimized for one-handed use
-
----
-
-## 10. Animation and Motion
-
-### 10.1 Animation Principles
-- **Purposeful**: Animations serve a functional purpose
-- **Subtle**: Non-distracting and professional
-- **Fast**: Quick transitions (<300ms for most interactions)
-- **Respectful**: Respect user's motion preferences
-
-### 10.2 Common Animations
+### 9.2 Focus States
 ```css
-/* Fade In */
-.fade-in {
-  animation: fadeIn 200ms ease-out;
+.focus\:outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 }
 
-/* Slide In */
-.slide-in {
-  animation: slideIn 300ms ease-out;
-}
-
-/* Loading Spinner */
-.spinner {
-  animation: spin 1s linear infinite;
+.focus\:ring-2:focus {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 ```
 
-### 10.3 Performance Considerations
-- Use `transform` and `opacity` for smooth animations
-- Avoid animating layout properties
-- Implement `prefers-reduced-motion` support
-- Optimize for 60fps performance
+### 9.3 Screen Reader Support
+```tsx
+<Button aria-label="Close dialog">
+  <X className="h-4 w-4" />
+  <span className="sr-only">Close</span>
+</Button>
+```
 
----
+## 10. Animation and Transitions
 
-## 11. Data Visualization
+### 10.1 Transition Classes
+```css
+.transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
 
-### 11.1 Chart Design
-- **Color Palette**: Consistent colors for different data types
-- **Grid Lines**: Subtle grid lines for better readability
-- **Tooltips**: Informative hover states
-- **Responsive**: Adaptive sizing for different screen sizes
-
-### 11.2 Financial Chart Conventions
-- **Candlestick Charts**: Green for gains, red for losses (following international conventions)
-- **Volume Bars**: Coordinated colors with price movement
-- **Technical Indicators**: Distinct colors for different indicators
-- **Time Axis**: Clear time labels with appropriate granularity
-
----
-
-## 12. Implementation Guidelines
-
-### 12.1 CSS Architecture
-```scss
-// BEM Methodology
-.trading-card {
-  &__header {
-    // Header styles
-  }
-  
-  &__content {
-    // Content styles
-  }
-  
-  &--compact {
-    // Compact variant
-  }
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 ```
 
-### 12.2 Component Development
-- Use TypeScript for all components
-- Implement proper prop types and defaults
-- Include Storybook stories for each component
-- Write comprehensive unit tests
-- Document component APIs
-
-### 12.3 Design Tokens
-```typescript
-// Design tokens exported as TypeScript constants
-export const colors = {
-  primary: {
-    50: '#eff6ff',
-    500: '#3b82f6',
-    900: '#1e3a8a',
-  },
-  // ... other colors
-} as const;
+### 10.2 Hover Effects
+```tsx
+<Button className="
+  transition-colors 
+  hover:bg-primary/90 
+  focus:bg-primary/90
+">
+  Hover Me
+</Button>
 ```
 
----
-
-## 13. Quality Assurance
-
-### 13.1 Design Review Process
-1. **Design Review**: Design team reviews for brand consistency
-2. **Accessibility Review**: Check for WCAG 2.1 compliance
-3. **Code Review**: Development team reviews implementation
-4. **User Testing**: Validate with real users
-5. **Performance Review**: Check for performance impact
-
-### 13.2 Maintenance
-- **Regular Audits**: Quarterly design system audits
-- **Version Control**: Semantic versioning for design system updates
-- **Documentation**: Keep documentation up-to-date with changes
-- **Training**: Regular training for team members on design system usage
+### 10.3 Loading States
+```tsx
+<Button disabled className="animate-pulse">
+  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+  Loading...
+</Button>
+```
