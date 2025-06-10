@@ -1,183 +1,267 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Zap, Crown, Building } from 'lucide-react';
+import { Check, Star, Zap, Crown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface PlanFeature {
+  name: string;
+  included: boolean;
+}
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  billingPeriod: 'month' | 'year';
+  icon: React.ReactNode;
+  popular?: boolean;
+  features: PlanFeature[];
+}
 
 const SubscriptionPlans: React.FC = () => {
-  const plans = [
+  const { toast } = useToast();
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  const plans: SubscriptionPlan[] = [
     {
+      id: 'free',
       name: 'Free',
+      description: 'Perfect for getting started',
       price: 0,
-      description: 'Perfect for beginners',
-      icon: Zap,
+      billingPeriod: 'month',
+      icon: <Star className="h-6 w-6" />,
       features: [
-        'Paper trading with $10,000 AUD virtual balance',
-        'Basic AI trading bot (1 bot)',
-        'Real-time market data',
-        'Basic analytics dashboard',
-        'Community access',
-        'Email support'
-      ],
-      limitations: [
-        'No live trading',
-        'Limited AI models',
-        'Basic technical indicators'
-      ],
-      buttonText: 'Current Plan',
-      buttonVariant: 'secondary' as const,
-      popular: false
+        { name: 'Paper Trading', included: true },
+        { name: 'Basic AI Models (3/day)', included: true },
+        { name: 'Market Data Access', included: true },
+        { name: 'Portfolio Tracking', included: true },
+        { name: 'Live Trading', included: false },
+        { name: 'Advanced AI Models', included: false },
+        { name: 'Priority Support', included: false },
+        { name: 'Copy Trading', included: false }
+      ]
     },
     {
-      name: 'Premium',
-      price: 29,
+      id: 'pro',
+      name: 'Pro',
       description: 'For serious traders',
-      icon: Crown,
+      price: 29,
+      billingPeriod: 'month',
+      icon: <Zap className="h-6 w-6" />,
+      popular: true,
       features: [
-        'Everything in Free',
-        'Live trading with real exchanges',
-        'Advanced AI trading bots (5 bots)',
-        'Premium AI models (GPT-4, Claude)',
-        'Advanced analytics & risk management',
-        'Social trading & copy trading',
-        'News sentiment analysis',
-        'Priority support'
-      ],
-      limitations: [
-        'Limited to 5 exchanges',
-        'Basic Web3 features'
-      ],
-      buttonText: 'Upgrade to Premium',
-      buttonVariant: 'default' as const,
-      popular: true
+        { name: 'Paper Trading', included: true },
+        { name: 'Unlimited AI Models', included: true },
+        { name: 'Live Trading', included: true },
+        { name: 'Advanced Analytics', included: true },
+        { name: 'Multi-Exchange Support', included: true },
+        { name: 'Real-time Alerts', included: true },
+        { name: 'Priority Support', included: false },
+        { name: 'Copy Trading', included: false }
+      ]
     },
     {
-      name: 'Enterprise',
+      id: 'premium',
+      name: 'Premium',
+      description: 'Professional trading suite',
       price: 99,
-      description: 'For institutions and professionals',
-      icon: Building,
+      billingPeriod: 'month',
+      icon: <Crown className="h-6 w-6" />,
       features: [
-        'Everything in Premium',
-        'Unlimited AI trading bots',
-        'All AI models + custom models',
-        'Advanced Web3 & DeFi integration',
-        'Portfolio management tools',
-        'API access',
-        'White-label options',
-        'Dedicated account manager',
-        '24/7 phone support'
-      ],
-      limitations: [],
-      buttonText: 'Contact Sales',
-      buttonVariant: 'outline' as const,
-      popular: false
+        { name: 'Everything in Pro', included: true },
+        { name: 'Copy Trading', included: true },
+        { name: 'Social Trading Features', included: true },
+        { name: 'Advanced Order Types', included: true },
+        { name: 'Custom Strategies', included: true },
+        { name: 'Priority Support', included: true },
+        { name: 'Tax Reporting', included: true },
+        { name: 'API Access', included: true }
+      ]
     }
   ];
 
+  const handleSubscribe = (planId: string) => {
+    setSelectedPlan(planId);
+    
+    if (planId === 'free') {
+      toast({
+        title: 'Free Plan Activated',
+        description: 'You can start using the free features immediately.',
+      });
+    } else {
+      toast({
+        title: 'Subscription Coming Soon',
+        description: 'Payment processing will be available soon.',
+      });
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold">Choose Your Plan</h2>
-        <p className="text-muted-foreground mt-2">
-          Unlock the full power of AI-driven cryptocurrency trading
+        <h1 className="text-3xl font-bold mb-4">Choose Your Trading Plan</h1>
+        <p className="text-muted-foreground text-lg">
+          Unlock advanced trading features and AI-powered strategies
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan) => {
-          const Icon = plan.icon;
-          return (
-            <Card key={plan.name} className={`relative ${plan.popular ? 'border-primary shadow-lg' : ''}`}>
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {plans.map((plan) => (
+          <Card 
+            key={plan.id} 
+            className={`relative overflow-hidden ${
+              plan.popular 
+                ? 'border-primary shadow-lg scale-105' 
+                : 'border-border'
+            }`}
+          >
+            {plan.popular && (
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium">
+                Most Popular
+              </div>
+            )}
+            
+            <CardHeader className="text-center pb-4">
+              <div className="flex items-center justify-center mb-4">
+                <div className={`p-3 rounded-full ${
+                  plan.popular 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {plan.icon}
                 </div>
-              )}
+              </div>
               
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <Icon className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">
-                    {plan.price === 0 ? 'Free' : `$${plan.price}`}
-                  </span>
-                  {plan.price > 0 && (
-                    <span className="text-muted-foreground">/month</span>
-                  )}
-                </div>
-              </CardHeader>
+              <CardTitle className="text-2xl">{plan.name}</CardTitle>
+              <p className="text-muted-foreground">{plan.description}</p>
               
-              <CardContent className="space-y-4">
-                <Button 
-                  className="w-full" 
-                  variant={plan.buttonVariant}
-                  disabled={plan.name === 'Free'}
-                >
-                  {plan.buttonText}
-                </Button>
-                
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-green-600">Included Features</h4>
-                  <ul className="space-y-1">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                {plan.limitations.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-muted-foreground">Limitations</h4>
-                    <ul className="space-y-1">
-                      {plan.limitations.map((limitation, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <span className="w-4 h-4 mt-0.5 text-center">•</span>
-                          <span>{limitation}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+              <div className="mt-4">
+                <span className="text-4xl font-bold">
+                  {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                </span>
+                {plan.price > 0 && (
+                  <span className="text-muted-foreground">/{plan.billingPeriod}</span>
                 )}
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${
+                      feature.included 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {feature.included ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <span className="text-xs">×</span>
+                      )}
+                    </div>
+                    <span className={feature.included ? '' : 'text-muted-foreground'}>
+                      {feature.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                onClick={() => handleSubscribe(plan.id)}
+                className={`w-full mt-6 ${
+                  plan.popular 
+                    ? 'bg-primary hover:bg-primary/90' 
+                    : ''
+                }`}
+                variant={plan.popular ? 'default' : 'outline'}
+                disabled={selectedPlan === plan.id}
+              >
+                {selectedPlan === plan.id 
+                  ? 'Processing...' 
+                  : plan.price === 0 
+                    ? 'Get Started' 
+                    : 'Subscribe'
+                }
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
+      {/* Feature Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Feature Comparison</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-3">Feature</th>
+                  <th className="text-center py-3">Free</th>
+                  <th className="text-center py-3">Pro</th>
+                  <th className="text-center py-3">Premium</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-3">AI Trading Bots</td>
+                  <td className="text-center">3/day</td>
+                  <td className="text-center">Unlimited</td>
+                  <td className="text-center">Unlimited</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3">Exchange Connections</td>
+                  <td className="text-center">1</td>
+                  <td className="text-center">5</td>
+                  <td className="text-center">Unlimited</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3">API Calls/Month</td>
+                  <td className="text-center">1,000</td>
+                  <td className="text-center">50,000</td>
+                  <td className="text-center">Unlimited</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3">Support Response</td>
+                  <td className="text-center">Community</td>
+                  <td className="text-center">24-48h</td>
+                  <td className="text-center">Priority</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* FAQ Section */}
       <Card>
         <CardHeader>
           <CardTitle>Frequently Asked Questions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h4 className="font-semibold">Can I change plans anytime?</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-medium mb-2">Can I change plans anytime?</h4>
+            <p className="text-muted-foreground text-sm">
               Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.
             </p>
           </div>
           <div>
-            <h4 className="font-semibold">Is there a free trial for premium plans?</h4>
-            <p className="text-sm text-muted-foreground">
-              We offer a 14-day free trial for Premium plans. No credit card required.
+            <h4 className="font-medium mb-2">Is there a free trial for paid plans?</h4>
+            <p className="text-muted-foreground text-sm">
+              All paid plans come with a 7-day free trial. No credit card required.
             </p>
           </div>
           <div>
-            <h4 className="font-semibold">What payment methods do you accept?</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-medium mb-2">What payment methods do you accept?</h4>
+            <p className="text-muted-foreground text-sm">
               We accept all major credit cards, PayPal, and cryptocurrency payments.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold">How secure is live trading?</h4>
-            <p className="text-sm text-muted-foreground">
-              All API keys are encrypted and stored securely. We never have access to your exchange funds.
             </p>
           </div>
         </CardContent>

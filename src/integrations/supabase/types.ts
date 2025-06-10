@@ -708,6 +708,92 @@ export type Database = {
         }
         Relationships: []
       }
+      context_sessions: {
+        Row: {
+          agent_id: string
+          context_data: Json | null
+          created_at: string | null
+          id: string
+          messages: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "context_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "context7_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      context7_agents: {
+        Row: {
+          context_window: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          knowledge_base: string[] | null
+          memory_type: string | null
+          model: string
+          name: string
+          performance_metrics: Json | null
+          tools: string[] | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          context_window?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          knowledge_base?: string[] | null
+          memory_type?: string | null
+          model: string
+          name: string
+          performance_metrics?: Json | null
+          tools?: string[] | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          context_window?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          knowledge_base?: string[] | null
+          memory_type?: string | null
+          model?: string
+          name?: string
+          performance_metrics?: Json | null
+          tools?: string[] | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       crypto_news_feed: {
         Row: {
           author: string | null
@@ -845,6 +931,45 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exchange_configs: {
+        Row: {
+          api_key: string | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          name: string
+          password: string | null
+          sandbox: boolean | null
+          secret: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          password?: string | null
+          sandbox?: boolean | null
+          secret?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          password?: string | null
+          sandbox?: boolean | null
+          secret?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1907,6 +2032,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trade_history: {
+        Row: {
+          amount: number
+          created_at: string | null
+          exchange_id: string
+          id: string
+          order_id: string | null
+          price: number | null
+          side: string
+          status: string | null
+          symbol: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          exchange_id: string
+          id?: string
+          order_id?: string | null
+          price?: number | null
+          side: string
+          status?: string | null
+          symbol: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          exchange_id?: string
+          id?: string
+          order_id?: string | null
+          price?: number | null
+          side?: string
+          status?: string | null
+          symbol?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_history_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_configs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trading_bots: {
         Row: {

@@ -1,215 +1,273 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Bot, 
-  Play, 
-  Pause, 
-  TrendingUp, 
-  TrendingDown, 
-  Activity, 
-  DollarSign,
-  Settings,
-  RefreshCw,
-  Zap
-} from 'lucide-react';
-import { realTimeTradingService } from '@/services/ai/realTimeTradingService';
+import { Bot, TrendingUp, Brain, Settings, Play, Pause } from 'lucide-react';
 import { comprehensiveAiBotSystem } from '@/services/ai/comprehensiveAiBotSystem';
-import { AIBot, CoinOption } from '@/types/trading';
-import EnhancedAiBotDashboard from './EnhancedAiBotDashboard';
+import AiBotCreator from './AiBotCreator';
+
+interface BotPerformance {
+  totalReturn: number;
+  winRate: number;
+  trades: number;
+  sharpeRatio: number;
+}
 
 const ComprehensiveAiTradingDashboard: React.FC = () => {
-  const [realTimeData, setRealTimeData] = useState<any>(null);
-  const [activeBots, setActiveBots] = useState<AIBot[]>([]);
-  const [recentTrades, setRecentTrades] = useState<any[]>([]);
-  const [marketData, setMarketData] = useState<CoinOption[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [activeBots, setActiveBots] = useState<any[]>([]);
+  const [selectedBot, setSelectedBot] = useState<string | null>(null);
+  const [showCreator, setShowCreator] = useState(false);
 
   useEffect(() => {
-    // Start real-time trading service
-    realTimeTradingService.startRealTimeTracking();
-    
-    // Subscribe to real-time updates
-    const unsubscribe = realTimeTradingService.subscribe((data) => {
-      setRealTimeData(data);
-      setMarketData(data.coins || []);
-      setIsConnected(true);
-    });
-
-    // Load bot data
-    const loadBotData = () => {
-      setActiveBots(comprehensiveAiBotSystem.getAllBots());
-      setRecentTrades(comprehensiveAiBotSystem.getRecentExecutions(10));
-    };
-
-    loadBotData();
-    
-    // Set up periodic updates
-    const interval = setInterval(loadBotData, 5000);
-
-    return () => {
-      unsubscribe();
-      clearInterval(interval);
-      realTimeTradingService.stopRealTimeTracking();
-    };
+    loadBots();
   }, []);
 
-  const activeBotCount = activeBots.filter(bot => bot.isActive).length;
-  const totalReturn = activeBots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0);
-  const totalTrades = activeBots.reduce((sum, bot) => sum + bot.performance.totalTrades, 0);
+  const loadBots = () => {
+    const bots = comprehensiveAiBotSystem.getBots();
+    setActiveBots(bots);
+  };
+
+  const toggleBot = async (botId: string) => {
+    const bot = comprehensiveAiBotSystem.getBot(botId);
+    if (!bot) return;
+
+    if (bot.status === 'active') {
+      await comprehensiveAiBotSystem.stopBot(botId);
+    } else {
+      await comprehensiveAiBotSystem.startBot(botId);
+    }
+    
+    loadBots();
+  };
+
+  const mockPerformance: BotPerformance = {
+    totalReturn: 15.4,
+    winRate: 68,
+    trades: 42,
+    sharpeRatio: 1.8
+  };
+
+  const strategies = comprehensiveAiBotSystem.getAvailableStrategies();
 
   return (
     <div className="space-y-6">
-      {/* Connection Status */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="text-sm">
-            {isConnected ? 'Live Data Connected' : 'Connecting...'}
-          </span>
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Brain className="h-6 w-6" />
+            AI Trading Command Center
+          </h2>
+          <p className="text-muted-foreground">
+            Manage your AI-powered trading strategies
+          </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {realTimeData && (
-            <>
-              <RefreshCw className="h-4 w-4" />
-              Last update: {new Date(realTimeData.timestamp).toLocaleTimeString()}
-            </>
-          )}
-        </div>
+        <Button onClick={() => setShowCreator(!showCreator)}>
+          <Bot className="h-4 w-4 mr-2" />
+          Create Bot
+        </Button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {showCreator && (
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Bots</p>
-                <p className="text-2xl font-bold">{activeBotCount}</p>
-              </div>
-              <Bot className="h-8 w-8 text-primary" />
-            </div>
+          <CardContent className="p-6">
+            <AiBotCreator />
           </CardContent>
         </Card>
+      )}
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Return</p>
-                <p className={`text-2xl font-bold ${totalReturn >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(1)}%
-                </p>
-              </div>
-              {totalReturn >= 0 ? 
-                <TrendingUp className="h-8 w-8 text-green-500" /> : 
-                <TrendingDown className="h-8 w-8 text-red-500" />
-              }
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="active-bots">Active Bots</TabsTrigger>
+          <TabsTrigger value="strategies">Strategies</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Trades</p>
-                <p className="text-2xl font-bold">{totalTrades}</p>
-              </div>
-              <Activity className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Market Assets</p>
-                <p className="text-2xl font-bold">{marketData.length}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Market Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Live Market Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {marketData.slice(0, 8).map((coin) => (
-              <div key={coin.id} className="p-3 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{coin.symbol}</span>
-                  <Badge variant={
-                    (coin.changePercent || 0) >= 0 ? 'default' : 'destructive'
-                  }>
-                    {(coin.changePercent || 0).toFixed(2)}%
-                  </Badge>
-                </div>
-                <div className="text-lg font-bold">
-                  ${coin.price?.toFixed(2) || '0.00'}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Vol: {(coin.volume || 0).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Trading Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Bot Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentTrades.slice(0, 5).map((trade, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Badge variant={trade.trade.type === 'buy' ? 'default' : 'secondary'}>
-                    {trade.trade.type.toUpperCase()}
-                  </Badge>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Performance Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">{trade.trade.coinSymbol}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Bot: {activeBots.find(b => b.id === trade.botId)?.name || 'Unknown'}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Total Return</p>
+                    <p className="text-2xl font-bold text-green-600">+{mockPerformance.totalReturn}%</p>
                   </div>
+                  <TrendingUp className="h-8 w-8 text-green-600" />
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">
-                    {trade.trade.amount.toFixed(4)} @ ${trade.trade.price.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(trade.timestamp).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {recentTrades.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
-                No recent trading activity. Start a bot to begin automated trading.
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
 
-      {/* Full Bot Dashboard */}
-      <EnhancedAiBotDashboard />
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Win Rate</p>
+                    <p className="text-2xl font-bold">{mockPerformance.winRate}%</p>
+                  </div>
+                  <Bot className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Trades</p>
+                    <p className="text-2xl font-bold">{mockPerformance.trades}</p>
+                  </div>
+                  <Settings className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Sharpe Ratio</p>
+                    <p className="text-2xl font-bold">{mockPerformance.sharpeRatio}</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Bot Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {activeBots.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Active Bots</h3>
+                    <p className="text-muted-foreground mb-4">Create your first AI trading bot to get started</p>
+                    <Button onClick={() => setShowCreator(true)}>
+                      Create Bot
+                    </Button>
+                  </div>
+                ) : (
+                  activeBots.map((bot, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          bot.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                        }`} />
+                        <div>
+                          <span className="font-medium">{bot.config.name}</span>
+                          <p className="text-sm text-muted-foreground">{bot.config.strategy}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
+                          {bot.status}
+                        </Badge>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleBot(bot.config.id)}
+                        >
+                          {bot.status === 'active' ? (
+                            <Pause className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="active-bots" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Trading Bots</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {activeBots.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No active bots found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeBots.map((bot, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="font-semibold">{bot.config.name}</h3>
+                          <p className="text-sm text-muted-foreground">{bot.config.description}</p>
+                        </div>
+                        <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
+                          {bot.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Strategy</p>
+                          <p className="font-medium">{bot.config.strategy}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Model</p>
+                          <p className="font-medium">{bot.config.model.split('/')[1]}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Risk Level</p>
+                          <p className="font-medium capitalize">{bot.config.riskLevel}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Max Trade</p>
+                          <p className="font-medium">${bot.config.maxTradeAmount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="strategies" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {strategies.map((strategy) => (
+              <Card key={strategy.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="text-center space-y-3">
+                    <Brain className="h-8 w-8 mx-auto text-primary" />
+                    <div>
+                      <h3 className="font-semibold">{strategy.name}</h3>
+                      <p className="text-sm text-muted-foreground">{strategy.description}</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Configure Strategy
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-4">
+          <div className="text-center py-8">
+            <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Performance Analytics</h3>
+            <p className="text-muted-foreground">Detailed performance metrics coming soon...</p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

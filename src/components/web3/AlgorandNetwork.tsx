@@ -1,334 +1,224 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { enhancedAlgorandService } from '@/services/algorand/enhancedAlgorandService';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Activity, 
-  CheckCircle2, 
-  Clock, 
-  Database, 
-  Globe, 
-  LinkIcon, 
-  Loader2, 
-  RefreshCw, 
-  Search,
-  XCircle
-} from 'lucide-react';
-
-type NetworkType = 'mainnet' | 'testnet' | 'betanet';
+import { AlertCircle, CheckCircle, Wallet, Search } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { EnhancedAlgorandService } from '@/services/algorand/enhancedAlgorandService';
 
 const AlgorandNetwork: React.FC = () => {
-  const [networkType, setNetworkType] = useState<NetworkType>('mainnet');
+  const { toast } = useToast();
+  const [algorandService] = useState(() => new EnhancedAlgorandService());
   const [networkStatus, setNetworkStatus] = useState<any>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchAddress, setSearchAddress] = useState<string>('');
-  const [addressDetails, setAddressDetails] = useState<any>(null);
-  const [addressLoading, setAddressLoading] = useState<boolean>(false);
-  
+  const [accountAddress, setAccountAddress] = useState('');
+  const [accountInfo, setAccountInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    const checkNetworkConnection = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Set the network type
-        enhancedAlgorandService.setNetwork(networkType);
-        
-        // Check network status
-        const status = await enhancedAlgorandService.getNetworkStatus();
-        setNetworkStatus(status);
-        setIsConnected(true);
-      } catch (err) {
-        console.error('Error connecting to Algorand network:', err);
-        setError(`Failed to connect to ${networkType}. Please try again.`);
-        setIsConnected(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkNetworkConnection();
-  }, [networkType]);
-  
-  const handleNetworkChange = (network: NetworkType) => {
-    setNetworkType(network);
-    setAddressDetails(null);
-    setSearchAddress('');
-  };
-  
-  const handleAddressSearch = async () => {
-    if (!searchAddress.trim()) return;
-    
+    checkNetworkHealth();
+  }, []);
+
+  const checkNetworkHealth = async () => {
     try {
-      setAddressLoading(true);
-      
-      // Validate Algorand address (basic check)
-      if (!enhancedAlgorandService.isValidAlgorandAddress(searchAddress)) {
-        throw new Error('Invalid Algorand address format');
-      }
-      
-      // Get account information
-      const accountInfo = await enhancedAlgorandService.getAccount(searchAddress);
-      
-      // Get AUD value of account
-      const portfolioValue = await enhancedAlgorandService.getPortfolioValue(searchAddress);
-      
-      setAddressDetails({
-        ...accountInfo,
-        portfolioValue
-      });
-    } catch (err) {
-      console.error('Error fetching address details:', err);
-      setError(`Failed to fetch details for address. ${err}`);
-    } finally {
-      setAddressLoading(false);
+      const health = await algorandService.healthCheck();
+      const status = await algorandService.getNetworkStatus();
+      setNetworkStatus({ health, status });
+    } catch (error) {
+      console.error('Network health check failed:', error);
     }
+  };
+
+  const lookupAccount = async () => {
+    if (!accountAddress.trim()) {
+      toast({
+        title: 'Invalid Address',
+        description: 'Please enter a valid Algorand address',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!algorandService.isValidAlgorandAddress(accountAddress)) {
+      toast({
+        title: 'Invalid Address Format',
+        description: 'Please enter a valid Algorand address',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const info = await algorandService.getAccount(accountAddress);
+      setAccountInfo(info);
+      
+      toast({
+        title: 'Account Found',
+        description: 'Successfully retrieved account information'
+      });
+    } catch (error) {
+      toast({
+        title: 'Account Lookup Failed',
+        description: 'Could not retrieve account information',
+        variant: 'destructive'
+      });
+      setAccountInfo(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatAlgoAmount = (microAlgos: number) => {
+    return (microAlgos / 1000000).toFixed(6);
   };
 
   return (
     <div className="space-y-6">
+      {/* Network Status */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Globe className="h-6 w-6 text-primary" />
-              Algorand Network Dashboard
-            </CardTitle>
-            <Badge 
-              variant={isConnected ? "default" : "destructive"}
-              className="py-1"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : isConnected ? (
-                <CheckCircle2 className="h-4 w-4 mr-1" />
-              ) : (
-                <XCircle className="h-4 w-4 mr-1" />
-              )}
-              {loading ? 'Connecting...' : isConnected ? 'Connected' : 'Disconnected'}
-            </Badge>
-          </div>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${
+              networkStatus?.health?.status ? 'bg-green-500' : 'bg-red-500'
+            }`} />
+            Algorand Network Status
+          </CardTitle>
         </CardHeader>
-        
         <CardContent>
-          <div className="space-y-6">
-            {/* Network Selection */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">Select Network</label>
-              <div className="flex space-x-2">
-                <Button 
-                  variant={networkType === 'mainnet' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => handleNetworkChange('mainnet')}
-                  disabled={loading}
-                >
-                  Mainnet
-                </Button>
-                <Button 
-                  variant={networkType === 'testnet' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => handleNetworkChange('testnet')}
-                  disabled={loading}
-                >
-                  Testnet
-                </Button>
-                <Button 
-                  variant={networkType === 'betanet' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => handleNetworkChange('betanet')}
-                  disabled={loading}
-                >
-                  Betanet
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleNetworkChange(networkType)}
-                  disabled={loading}
-                  title="Refresh Connection"
-                >
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
+          {networkStatus ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-2">
+                {networkStatus.health.status ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                )}
+                <span className="font-medium">
+                  {networkStatus.health.status ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Network: </span>
+                <Badge variant="secondary">{networkStatus.health.network}</Badge>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Last Round: </span>
+                <span className="font-mono">
+                  {networkStatus.status?.['last-round'] || 'N/A'}
+                </span>
               </div>
             </div>
-            
-            {/* Network Status */}
-            {isConnected && networkStatus && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-muted rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <Activity className="h-4 w-4" />
-                    <span>Current Round</span>
-                  </div>
-                  <div className="text-2xl font-bold">
-                    {networkStatus['last-round'].toLocaleString()}
+          ) : (
+            <div className="text-center py-4">
+              <div className="animate-pulse text-muted-foreground">
+                Checking network status...
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Account Lookup */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Account Lookup
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label htmlFor="address">Algorand Address</Label>
+              <Input
+                id="address"
+                value={accountAddress}
+                onChange={(e) => setAccountAddress(e.target.value)}
+                placeholder="Enter Algorand address..."
+                className="font-mono"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button onClick={lookupAccount} disabled={loading}>
+                {loading ? 'Looking up...' : 'Lookup'}
+              </Button>
+            </div>
+          </div>
+
+          {accountInfo && (
+            <div className="mt-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Address</Label>
+                  <div className="font-mono text-sm bg-muted p-2 rounded">
+                    {accountInfo.address}
                   </div>
                 </div>
-                
-                <div className="bg-muted rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <Clock className="h-4 w-4" />
-                    <span>Last Round Time</span>
+                <div>
+                  <Label>ALGO Balance</Label>
+                  <div className="text-lg font-semibold">
+                    {formatAlgoAmount(accountInfo.amount)} ALGO
                   </div>
-                  <div className="text-2xl font-bold">
-                    {networkStatus['time-since-last-round']} s
-                  </div>
-                </div>
-                
-                <div className="bg-muted rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <Database className="h-4 w-4" />
-                    <span>Sync Status</span>
-                  </div>
-                  <Badge variant={networkStatus['has-sync-finished'] ? "success" : "warning"}>
-                    {networkStatus['has-sync-finished'] ? 'Synced' : 'Syncing'}
-                  </Badge>
                 </div>
               </div>
-            )}
-            
-            {/* Error Display */}
-            {error && (
-              <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-            
-            {/* Address Search */}
-            {isConnected && (
-              <div className="pt-4 border-t">
-                <h3 className="text-lg font-semibold mb-4">Wallet Explorer</h3>
-                <div className="flex space-x-2">
-                  <div className="flex-1">
-                    <Input 
-                      placeholder="Enter Algorand address" 
-                      value={searchAddress}
-                      onChange={(e) => setSearchAddress(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddressSearch()}
-                    />
-                  </div>
-                  <Button 
-                    variant="default" 
-                    onClick={handleAddressSearch}
-                    disabled={addressLoading || !searchAddress}
-                  >
-                    {addressLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
-                    Search
-                  </Button>
-                </div>
-                
-                {addressDetails && (
-                  <div className="mt-6 space-y-4">
-                    <h4 className="font-medium text-lg">Wallet Details</h4>
-                    
-                    <div className="p-4 border rounded-lg">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {accountInfo.assets && accountInfo.assets.length > 0 && (
+                <div>
+                  <Label>Assets</Label>
+                  <div className="space-y-2 mt-2">
+                    {accountInfo.assets.map((asset: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded">
                         <div>
-                          <div className="text-sm text-muted-foreground">Address</div>
-                          <div className="font-mono text-xs mt-1 break-all">
-                            {addressDetails.address}
-                          </div>
+                          <span className="font-medium">{asset.name}</span>
+                          <span className="text-muted-foreground ml-2">({asset.symbol})</span>
                         </div>
-                        
-                        <div>
-                          <div className="text-sm text-muted-foreground">ALGO Balance</div>
-                          <div className="font-bold text-lg">
-                            {(addressDetails.amount / 1000000).toLocaleString()} ALGO
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            ≈ AUD ${addressDetails.portfolioValue?.totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                          </div>
+                        <div className="text-right">
+                          <div className="font-semibold">{asset.amount.toFixed(6)}</div>
+                          {asset.valueAUD > 0 && (
+                            <div className="text-sm text-muted-foreground">
+                              ${asset.valueAUD.toFixed(2)} AUD
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    
-                    <Tabs defaultValue="assets">
-                      <TabsList>
-                        <TabsTrigger value="assets">Assets ({addressDetails.assets?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                        <TabsTrigger value="apps">Applications</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="assets" className="space-y-4">
-                        {addressDetails.assets?.length > 0 ? (
-                          <div className="border rounded-lg overflow-hidden">
-                            <table className="min-w-full divide-y divide-border">
-                              <thead className="bg-muted">
-                                <tr>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Asset ID</th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Amount</th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Status</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-border">
-                                {addressDetails.assets.map((asset: any) => (
-                                  <tr key={asset['asset-id']}>
-                                    <td className="px-4 py-2 text-sm">
-                                      <a href={`https://algoexplorer.io/asset/${asset['asset-id']}`} 
-                                         target="_blank" 
-                                         rel="noopener noreferrer"
-                                         className="flex items-center text-primary hover:underline">
-                                        {asset['asset-id']}
-                                        <LinkIcon className="h-3 w-3 ml-1" />
-                                      </a>
-                                    </td>
-                                    <td className="px-4 py-2 text-sm">{asset.amount}</td>
-                                    <td className="px-4 py-2">
-                                      <Badge variant={asset['is-frozen'] ? "secondary" : "outline"}>
-                                        {asset['is-frozen'] ? 'Frozen' : 'Active'}
-                                      </Badge>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground">
-                            No assets found for this address
-                          </div>
-                        )}
-                      </TabsContent>
-                      
-                      <TabsContent value="transactions">
-                        <div className="flex justify-center py-8">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => window.open(`https://algoexplorer.io/address/${addressDetails.address}`, '_blank')}
-                          >
-                            <LinkIcon className="h-4 w-4 mr-2" />
-                            View in AlgoExplorer
-                          </Button>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="apps">
-                        <div className="text-center py-8 text-muted-foreground">
-                          Applications data available in enhanced version
-                        </div>
-                      </TabsContent>
-                    </Tabs>
+                    ))}
                   </div>
-                )}
-              </div>
-            )}
-            
-            {/* API Information */}
-            <div className="text-xs text-muted-foreground pt-4 mt-4 border-t">
-              <p className="mb-1">Algorand API Status</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <div>API Token: ✓ Valid</div>
-                <div>Network: {networkType}</div>
-                <div>Endpoint: nodely.io</div>
-                <div>Status: {isConnected ? 'Connected' : 'Disconnected'}</div>
-              </div>
+                </div>
+              )}
+
+              {accountInfo.apps && accountInfo.apps.length > 0 && (
+                <div>
+                  <Label>Applications</Label>
+                  <Badge variant="secondary" className="ml-2">
+                    {accountInfo.apps.length} apps
+                  </Badge>
+                </div>
+              )}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              Connect Wallet
+            </Button>
+            <Button variant="outline" onClick={checkNetworkHealth}>
+              Refresh Status
+            </Button>
+            <Button variant="outline">
+              View Explorer
+            </Button>
           </div>
         </CardContent>
       </Card>
