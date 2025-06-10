@@ -26,7 +26,17 @@ interface AIResponse {
 
 class AdvancedOpenRouterService {
   private readonly baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
-  private readonly apiKey = process.env.OPENROUTER_API_KEY || '';
+  private apiKey: string | null = null;
+
+  constructor() {
+    // Get API key from localStorage instead of process.env
+    this.apiKey = localStorage.getItem('openrouter_api_key');
+  }
+
+  setApiKey(key: string) {
+    this.apiKey = key;
+    localStorage.setItem('openrouter_api_key', key);
+  }
 
   private readonly models = {
     free: [

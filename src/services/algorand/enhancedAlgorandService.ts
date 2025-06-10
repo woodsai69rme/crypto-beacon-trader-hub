@@ -112,10 +112,45 @@ export class EnhancedAlgorandService {
   async getAccount(address: string): Promise<AlgorandAccountInfo> {
     try {
       const accountInfo = await this.algodClient.accountInformation(address).do();
+      
+      // Convert bigint to number for amount
+      const amount = typeof accountInfo.amount === 'bigint' 
+        ? Number(accountInfo.amount) 
+        : accountInfo.amount;
+
+      // Process assets to match AssetData interface
+      const processedAssets: AssetData[] = [];
+      
+      if (accountInfo.assets) {
+        for (const asset of accountInfo.assets) {
+          try {
+            const assetInfo = await this.algodClient.getAssetByID(asset['asset-id']).do();
+            const decimals = assetInfo.params.decimals || 0;
+            const assetAmount = typeof asset.amount === 'bigint' 
+              ? Number(asset.amount) / Math.pow(10, decimals)
+              : asset.amount / Math.pow(10, decimals);
+            
+            processedAssets.push({
+              coinId: `asa-${asset['asset-id']}`,
+              symbol: assetInfo.params['unit-name'] || 'UNKNOWN',
+              name: assetInfo.params.name || 'Unknown Asset',
+              amount: assetAmount,
+              price: 0, // Default price
+              value: 0, // Default value
+              priceAUD: 0, // Default price in AUD
+              valueAUD: 0, // Default value in AUD
+              isNative: false
+            });
+          } catch (error) {
+            console.error(`Error processing asset ${asset['asset-id']}:`, error);
+          }
+        }
+      }
+
       return {
         address: accountInfo.address,
-        amount: accountInfo.amount,
-        assets: accountInfo.assets || [],
+        amount: amount,
+        assets: processedAssets,
         apps: accountInfo['apps-local-state'],
         createdAssets: accountInfo['created-assets']
       };
@@ -170,7 +205,9 @@ export class EnhancedAlgorandService {
       const assets: AssetData[] = [];
       
       // Add ALGO (native asset)
-      const algoAmount = accountInfo.amount / 1000000; // Convert microAlgos to Algos
+      const algoAmount = (typeof accountInfo.amount === 'bigint' 
+        ? Number(accountInfo.amount) 
+        : accountInfo.amount) / 1000000; // Convert microAlgos to Algos
       const algoPrice = await this.getAssetPrice('algorand');
       
       assets.push({
@@ -191,7 +228,9 @@ export class EnhancedAlgorandService {
           try {
             const assetInfo = await this.algodClient.getAssetByID(asset['asset-id']).do();
             const decimals = assetInfo.params.decimals || 0;
-            const amount = asset.amount / Math.pow(10, decimals);
+            const amount = (typeof asset.amount === 'bigint' 
+              ? Number(asset.amount) 
+              : asset.amount) / Math.pow(10, decimals);
             
             // Try to get price from CoinGecko (this is a simplified approach)
             const price = { usd: 0, aud: 0 }; // Default for unknown assets
