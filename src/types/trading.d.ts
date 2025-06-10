@@ -1,4 +1,3 @@
-
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
@@ -76,6 +75,11 @@ export interface PortfolioAsset {
   allocation?: number;
   change24h?: number;
   changePercent24h?: number;
+  assetId?: number;
+  decimals?: number;
+  isNative?: boolean;
+  priceAUD?: number;
+  valueAUD?: number;
 }
 
 export interface TradingAccount {
@@ -124,6 +128,14 @@ export interface AlgorandAsset {
     decimals: number;
     creator: string;
   };
+}
+
+export interface AlgorandAssetHolding {
+  'asset-id': number;
+  amount: number;
+  'is-frozen': boolean;
+  assetId?: number;
+  decimals?: number;
 }
 
 export interface AITradingStrategy {
@@ -390,6 +402,7 @@ export interface ApiEndpoint {
   rateLimit: number;
   path?: string;
   description?: string;
+  requiresAuth?: boolean;
 }
 
 export interface ApiUsageStats {
@@ -620,4 +633,24 @@ export interface SettingsFormValues {
   };
   tickerSettings: TickerSettings;
   sidebarSettings: SidebarSettings;
+}
+
+export interface CryptoChartData {
+  id: string;
+  timestamp: string;
+  price: number;
+  timestamps: string[];
+  prices: number[];
+  volumes: number[];
+  chartData: any[];
+}
+
+export interface RiskAlertData {
+  type: string;
+  level: 'low' | 'medium' | 'high';
+  message: string;
+  timestamp: string;
+  accountId?: string;
+  symbol?: string;
+  value?: number;
 }

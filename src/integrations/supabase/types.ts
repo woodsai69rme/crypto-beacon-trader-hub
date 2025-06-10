@@ -50,6 +50,54 @@ export type Database = {
           },
         ]
       }
+      ai_agents: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          last_run: string | null
+          model: string
+          name: string
+          run_count: number
+          system_prompt: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          model: string
+          name: string
+          run_count?: number
+          system_prompt: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          model?: string
+          name?: string
+          run_count?: number
+          system_prompt?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_models: {
         Row: {
           api_endpoint: string | null
@@ -448,6 +496,51 @@ export type Database = {
           token_symbol?: string
           tx_hash?: string
           tx_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bookmarks: {
+        Row: {
+          created_at: string
+          description: string | null
+          favicon_url: string | null
+          id: string
+          is_favorite: boolean
+          metadata: Json
+          project_id: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          favicon_url?: string | null
+          id?: string
+          is_favorite?: boolean
+          metadata?: Json
+          project_id?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          favicon_url?: string | null
+          id?: string
+          is_favorite?: boolean
+          metadata?: Json
+          project_id?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          url?: string
           user_id?: string
         }
         Relationships: []
