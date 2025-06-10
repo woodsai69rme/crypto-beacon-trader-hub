@@ -264,9 +264,12 @@ class EnhancedAlgorandService {
       const algoValueAUD = algoBalance * algoPrice;
       
       const assets = [{
+        coinId: 'algorand',
         symbol: 'ALGO',
         name: 'Algorand',
-        balance: algoBalance,
+        amount: algoBalance,
+        price: algoPrice,
+        value: algoValueAUD,
         priceAUD: algoPrice,
         valueAUD: algoValueAUD,
         isNative: true
@@ -280,10 +283,13 @@ class EnhancedAlgorandService {
             const assetBalance = holding.amount / Math.pow(10, assetInfo.params.decimals);
             
             assets.push({
+              coinId: `asa-${holding['asset-id']}`,
               symbol: assetInfo.params['unit-name'] || `ASA-${holding['asset-id']}`,
               name: assetInfo.params.name || `Asset ${holding['asset-id']}`,
-              balance: assetBalance,
-              priceAUD: 0, // Would need price feed for ASAs
+              amount: assetBalance,
+              price: 0, // Would need price feed for ASAs
+              value: 0,
+              priceAUD: 0,
               valueAUD: 0,
               isNative: false,
               assetId: holding['asset-id'],
