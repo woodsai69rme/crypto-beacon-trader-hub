@@ -38,7 +38,7 @@ const AlgorandNetwork: React.FC = () => {
         setError(null);
         
         // Set the network type
-        await enhancedAlgorandService.setNetwork(networkType);
+        enhancedAlgorandService.setNetwork(networkType);
         
         // Check network status
         const status = await enhancedAlgorandService.getNetworkStatus();

@@ -379,8 +379,8 @@ class EnhancedFreeApiAggregator {
             results[provider.id] = true;
             break;
           case 'algorand':
-            await enhancedAlgorandService.healthCheck();
-            results[provider.id] = true;
+            const healthCheck = await enhancedAlgorandService.healthCheck();
+            results[provider.id] = healthCheck.status;
             break;
           default:
             results[provider.id] = false;
