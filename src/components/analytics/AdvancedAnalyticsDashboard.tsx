@@ -2,296 +2,181 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Target, AlertTriangle, RefreshCw } from 'lucide-react';
-import { advancedOpenRouterService } from '@/services/ai/advancedOpenRouterService';
-
-interface PerformanceMetric {
-  label: string;
-  value: number;
-  change: number;
-  trend: 'up' | 'down' | 'neutral';
-  format: 'currency' | 'percentage' | 'number';
-}
-
-interface RiskMetric {
-  label: string;
-  value: number;
-  threshold: number;
-  status: 'safe' | 'warning' | 'danger';
-}
+import { Badge } from '@/components/ui/badge';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Activity, Users, Zap } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
 const AdvancedAnalyticsDashboard: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [timeframe, setTimeframe] = useState('7d');
-  const [performanceData, setPerformanceData] = useState<any[]>([]);
-  const [portfolioMetrics, setPortfolioMetrics] = useState<PerformanceMetric[]>([]);
-  const [riskMetrics, setRiskMetrics] = useState<RiskMetric[]>([]);
-  const [correlationData, setCorrelationData] = useState<any[]>([]);
-  const [marketInsights, setMarketInsights] = useState<any>(null);
+  const [timeRange, setTimeRange] = useState('7d');
+  const [selectedMetric, setSelectedMetric] = useState('portfolio');
 
-  // Mock data generation
-  useEffect(() => {
-    generateMockData();
-  }, [timeframe]);
+  // Mock data for analytics
+  const portfolioData = [
+    { date: '2024-01-01', value: 100000, btc: 45000, eth: 30000, others: 25000 },
+    { date: '2024-01-02', value: 105000, btc: 47000, eth: 31000, others: 27000 },
+    { date: '2024-01-03', value: 98000, btc: 43000, eth: 29000, others: 26000 },
+    { date: '2024-01-04', value: 112000, btc: 50000, eth: 35000, others: 27000 },
+    { date: '2024-01-05', value: 108000, btc: 48000, eth: 33000, others: 27000 },
+    { date: '2024-01-06', value: 115000, btc: 52000, eth: 36000, others: 27000 },
+    { date: '2024-01-07', value: 118000, btc: 53000, eth: 37000, others: 28000 }
+  ];
 
-  const generateMockData = () => {
-    setIsLoading(true);
-    
-    // Performance chart data
-    const days = timeframe === '24h' ? 24 : timeframe === '7d' ? 7 : 30;
-    const performanceData = Array.from({ length: days }, (_, i) => ({
-      date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      portfolio: 100000 + Math.random() * 20000 - 10000,
-      benchmark: 100000 + Math.random() * 15000 - 7500,
-      volume: Math.random() * 1000000
-    }));
-    setPerformanceData(performanceData);
-
-    // Portfolio metrics
-    const metrics: PerformanceMetric[] = [
-      {
-        label: 'Total Return',
-        value: 15.34,
-        change: 2.1,
-        trend: 'up',
-        format: 'percentage'
-      },
-      {
-        label: 'Sharpe Ratio',
-        value: 1.45,
-        change: 0.12,
-        trend: 'up',
-        format: 'number'
-      },
-      {
-        label: 'Max Drawdown',
-        value: -8.7,
-        change: 1.2,
-        trend: 'down',
-        format: 'percentage'
-      },
-      {
-        label: 'Win Rate',
-        value: 68.5,
-        change: -2.3,
-        trend: 'down',
-        format: 'percentage'
-      }
-    ];
-    setPortfolioMetrics(metrics);
-
-    // Risk metrics
-    const risks: RiskMetric[] = [
-      { label: 'Portfolio Beta', value: 1.15, threshold: 1.5, status: 'safe' },
-      { label: 'VaR (95%)', value: 4.2, threshold: 10, status: 'safe' },
-      { label: 'Volatility', value: 18.5, threshold: 25, status: 'warning' },
-      { label: 'Concentration Risk', value: 35, threshold: 40, status: 'warning' }
-    ];
-    setRiskMetrics(risks);
-
-    // Correlation matrix data
-    const assets = ['BTC', 'ETH', 'SOL', 'ADA', 'DOT'];
-    const correlations = assets.map(asset1 => ({
-      asset: asset1,
-      ...assets.reduce((acc, asset2) => ({
-        ...acc,
-        [asset2]: asset1 === asset2 ? 1 : Math.random() * 2 - 1
-      }), {})
-    }));
-    setCorrelationData(correlations);
-
-    setTimeout(() => setIsLoading(false), 1000);
+  const tradingMetrics = {
+    totalTrades: 1247,
+    winRate: 68.5,
+    totalVolume: 2850000,
+    avgReturn: 12.3,
+    sharpeRatio: 1.42,
+    maxDrawdown: 8.7
   };
 
-  const generateAIInsights = async () => {
-    setIsLoading(true);
-    try {
-      const insights = await advancedOpenRouterService.generateMarketResearch('Current portfolio performance analysis');
-      setMarketInsights(insights);
-    } catch (error) {
-      console.error('Failed to generate AI insights:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const topPerformers = [
+    { symbol: 'BTC', return: 28.5, volume: 1200000 },
+    { symbol: 'ETH', return: 22.1, volume: 850000 },
+    { symbol: 'SOL', return: 45.2, volume: 420000 },
+    { symbol: 'ADA', return: 15.8, volume: 380000 }
+  ];
 
-  const formatValue = (value: number, format: string) => {
-    switch (format) {
-      case 'currency':
-        return `$${value.toLocaleString()}`;
-      case 'percentage':
-        return `${value.toFixed(2)}%`;
-      default:
-        return value.toFixed(2);
-    }
-  };
-
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up':
-        return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case 'down':
-        return <TrendingDown className="h-4 w-4 text-red-500" />;
-      default:
-        return <Activity className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getRiskColor = (status: string) => {
-    switch (status) {
-      case 'safe': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
-      case 'danger': return 'text-red-500';
-      default: return 'text-gray-500';
-    }
-  };
-
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'];
+  const aiBotsPerformance = [
+    { name: 'Trend Following Bot', return: 24.5, trades: 89, winRate: 72 },
+    { name: 'Mean Reversion Bot', return: 18.2, trades: 156, winRate: 65 },
+    { name: 'Scalping Bot', return: 31.8, trades: 423, winRate: 58 },
+    { name: 'Arbitrage Bot', return: 12.4, trades: 67, winRate: 89 }
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Advanced Analytics</h2>
-          <p className="text-muted-foreground">Comprehensive portfolio and market analysis</p>
-        </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Advanced Analytics</h1>
         <div className="flex gap-2">
-          <Tabs value={timeframe} onValueChange={setTimeframe} className="w-auto">
-            <TabsList>
-              <TabsTrigger value="24h">24H</TabsTrigger>
-              <TabsTrigger value="7d">7D</TabsTrigger>
-              <TabsTrigger value="30d">30D</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button variant="outline" onClick={generateAIInsights} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            AI Insights
-          </Button>
+          {['1d', '7d', '30d', '90d'].map((range) => (
+            <Button
+              key={range}
+              variant={timeRange === range ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeRange(range)}
+            >
+              {range}
+            </Button>
+          ))}
         </div>
       </div>
 
-      {/* Performance Metrics */}
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {portfolioMetrics.map((metric) => (
-          <Card key={metric.label}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{metric.label}</p>
-                  <p className="text-2xl font-bold">{formatValue(metric.value, metric.format)}</p>
-                </div>
-                {getTrendIcon(metric.trend)}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Portfolio Value</p>
+                <p className="text-2xl font-bold">{formatCurrency(118000)}</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +18.0% (7d)
+                </p>
               </div>
-              <div className="flex items-center mt-2">
-                <span className={`text-sm ${metric.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {metric.change >= 0 ? '+' : ''}{metric.change.toFixed(2)}%
-                </span>
-                <span className="text-sm text-muted-foreground ml-1">vs last period</span>
+              <DollarSign className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Trades</p>
+                <p className="text-2xl font-bold">{tradingMetrics.totalTrades}</p>
+                <p className="text-xs text-blue-600 flex items-center mt-1">
+                  <Activity className="h-3 w-3 mr-1" />
+                  {tradingMetrics.winRate}% Win Rate
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <Activity className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Active Bots</p>
+                <p className="text-2xl font-bold">12</p>
+                <p className="text-xs text-purple-600 flex items-center mt-1">
+                  <Zap className="h-3 w-3 mr-1" />
+                  8 Profitable
+                </p>
+              </div>
+              <Zap className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Sharpe Ratio</p>
+                <p className="text-2xl font-bold">{tradingMetrics.sharpeRatio}</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Excellent
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Tabs defaultValue="performance" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="performance">Performance</TabsTrigger>
+      <Tabs defaultValue="portfolio" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="portfolio">Portfolio Analysis</TabsTrigger>
+          <TabsTrigger value="trading">Trading Performance</TabsTrigger>
+          <TabsTrigger value="bots">AI Bots</TabsTrigger>
           <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
-          <TabsTrigger value="correlation">Correlation</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="performance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Portfolio Performance vs Benchmark</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="portfolio" stroke="#8884d8" strokeWidth={2} name="Portfolio" />
-                  <Line type="monotone" dataKey="benchmark" stroke="#82ca9d" strokeWidth={2} name="Benchmark" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Trading Volume</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="volume" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="risk" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TabsContent value="portfolio" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Risk Metrics</CardTitle>
+                <CardTitle>Portfolio Value Over Time</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {riskMetrics.map((risk) => (
-                    <div key={risk.label} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{risk.label}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Threshold: {risk.threshold}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-bold ${getRiskColor(risk.status)}`}>
-                          {risk.value.toFixed(2)}
-                        </p>
-                        <Badge variant={risk.status === 'safe' ? 'default' : risk.status === 'warning' ? 'secondary' : 'destructive'}>
-                          {risk.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={portfolioData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => [formatCurrency(value), 'Value']} />
+                    <Area type="monotone" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                  </AreaChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Risk Distribution</CardTitle>
+                <CardTitle>Asset Allocation</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={riskMetrics}
+                      data={[
+                        { name: 'Bitcoin', value: 45, fill: '#f7931a' },
+                        { name: 'Ethereum', value: 30, fill: '#627eea' },
+                        { name: 'Others', value: 25, fill: '#8b5cf6' }
+                      ]}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ label, value }) => `${label}: ${value.toFixed(1)}`}
-                      outerRadius={80}
-                      fill="#8884d8"
+                      outerRadius={100}
                       dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}%`}
                     >
-                      {riskMetrics.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
                     </Pie>
                     <Tooltip />
                   </PieChart>
@@ -301,115 +186,81 @@ const AdvancedAnalyticsDashboard: React.FC = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="correlation" className="space-y-6">
+        <TabsContent value="trading" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Asset Correlation Matrix</CardTitle>
+              <CardTitle>Top Performing Assets</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr>
-                      <th className="text-left p-2">Asset</th>
-                      {correlationData[0] && Object.keys(correlationData[0]).filter(key => key !== 'asset').map(asset => (
-                        <th key={asset} className="text-center p-2">{asset}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {correlationData.map((row) => (
-                      <tr key={row.asset}>
-                        <td className="font-medium p-2">{row.asset}</td>
-                        {Object.entries(row).filter(([key]) => key !== 'asset').map(([key, value]) => (
-                          <td key={key} className="text-center p-2">
-                            <div 
-                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                                Math.abs(Number(value)) > 0.7 ? 'bg-red-100 text-red-800' :
-                                Math.abs(Number(value)) > 0.3 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}
-                            >
-                              {Number(value).toFixed(2)}
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-4">
+                {topPerformers.map((asset, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">{asset.symbol}</Badge>
+                      <div>
+                        <div className="font-medium">{formatCurrency(asset.volume)}</div>
+                        <div className="text-sm text-muted-foreground">Volume</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-green-500">+{asset.return}%</div>
+                      <div className="text-sm text-muted-foreground">Return</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="insights" className="space-y-6">
-          {marketInsights ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI Market Analysis</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+        <TabsContent value="bots" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Bot Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {aiBotsPerformance.map((bot, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-semibold">Summary</h4>
-                      <p className="text-sm text-muted-foreground">{marketInsights.summary}</p>
+                      <div className="font-medium">{bot.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {bot.trades} trades • {bot.winRate}% win rate
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold">Key Points</h4>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground">
-                        {marketInsights.keyPoints.map((point: string, index: number) => (
-                          <li key={index}>{point}</li>
-                        ))}
-                      </ul>
+                    <div className="text-right">
+                      <div className="font-bold text-green-500">+{bot.return}%</div>
+                      <div className="text-sm text-muted-foreground">Return</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Risk Assessment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                        Risks
-                      </h4>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground">
-                        {marketInsights.risks.map((risk: string, index: number) => (
-                          <li key={index}>{risk}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold flex items-center gap-2">
-                        <Target className="h-4 w-4 text-green-500" />
-                        Opportunities
-                      </h4>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground">
-                        {marketInsights.opportunities.map((opportunity: string, index: number) => (
-                          <li key={index}>{opportunity}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <p className="text-muted-foreground mb-4">Click "AI Insights" to generate comprehensive market analysis</p>
-                <Button onClick={generateAIInsights} disabled={isLoading}>
-                  {isLoading ? 'Generating...' : 'Generate AI Insights'}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+        <TabsContent value="risk" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Risk Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold">{tradingMetrics.sharpeRatio}</div>
+                  <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-red-500">-{tradingMetrics.maxDrawdown}%</div>
+                  <div className="text-sm text-muted-foreground">Max Drawdown</div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold">{tradingMetrics.avgReturn}%</div>
+                  <div className="text-sm text-muted-foreground">Avg Return</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -176,10 +176,7 @@ const AdvancedPortfolioAnalytics: React.FC = () => {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip formatter={(value: number) => [`${value}%`, 'Return']} />
-                    <Bar 
-                      dataKey="return" 
-                      fill={(entry: any) => entry.return >= 0 ? '#10b981' : '#ef4444'}
-                    />
+                    <Bar dataKey="return" fill="#3b82f6" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

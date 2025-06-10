@@ -1,449 +1,161 @@
+import algosdk from 'algosdk';
+import { COINGECKO_API_URL } from '@/config';
 
-// Enhanced Algorand API Service with complete integration
-const ALGORAND_API_TOKEN = '98D9CE80660AD243893D56D9F125CD2D';
-const MAINNET_API = 'https://mainnet-api.4160.nodely.io';
-const MAINNET_INDEXER = 'https://mainnet-idx.4160.nodely.io';
-const TESTNET_API = 'https://testnet-api.4160.nodely.io';
-const TESTNET_INDEXER = 'https://testnet-idx.4160.nodely.io';
-const BETANET_API = 'https://betanet-api.4160.nodely.io';
-const BETANET_INDEXER = 'https://betanet-idx.4160.nodely.io';
+interface CoinGeckoPriceResponse {
+  [key: string]: {
+    usd: number;
+    aud: number;
+  };
+}
 
-// IPFS Gateway configuration
-const IPFS_GATEWAY = 'https://nodely.io/ipfs/';
-
-interface AlgorandNetworkStatus {
-  'last-round': number;
-  'time-since-last-round': number;
-  'catchup-time': number;
-  'has-sync-finished': boolean;
-  'stopped-at-unsupported-round': boolean;
+interface AssetData {
+  coinId: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  price: number;
+  value: number;
+  priceAUD: number;
+  valueAUD: number;
+  isNative: boolean;
 }
 
 interface AlgorandAccountInfo {
   address: string;
   amount: number;
-  assets: AlgorandAssetHolding[];
-  'created-at-round': number;
-  'min-balance': number;
-  status: string;
-  'apps-local-state'?: any[];
-  'apps-total-schema'?: any;
+  assets: AssetData[];
+  apps?: any[];
+  createdAssets?: any[];
 }
 
-interface AlgorandAssetHolding {
-  'asset-id': number;
-  amount: number;
-  'is-frozen': boolean;
-}
+export class EnhancedAlgorandService {
+  private algodClient: algosdk.Algodv2;
 
-interface AlgorandAssetInfo {
-  index: number;
-  params: {
-    name: string;
-    'unit-name': string;
-    total: number;
-    decimals: number;
-    creator: string;
-    url?: string;
-    'metadata-hash'?: string;
-    'default-frozen'?: boolean;
-  };
-}
-
-interface AlgorandTransaction {
-  id: string;
-  'confirmed-round': number;
-  'round-time': number;
-  sender: string;
-  'tx-type': string;
-  fee: number;
-  'payment-transaction'?: {
-    amount: number;
-    receiver: string;
-  };
-  'asset-transfer-transaction'?: {
-    'asset-id': number;
-    amount: number;
-    receiver: string;
-  };
-}
-
-interface TimeravelSnapshot {
-  account: AlgorandAccountInfo;
-  round: number;
-  timestamp: number;
-}
-
-type NetworkType = 'mainnet' | 'testnet' | 'betanet';
-
-class EnhancedAlgorandService {
-  private currentNetwork: NetworkType = 'mainnet';
-  private headers = {
-    'X-Algo-api-token': ALGORAND_API_TOKEN,
-    'Content-Type': 'application/json'
-  };
-
-  private getApiUrl(): string {
-    switch (this.currentNetwork) {
-      case 'testnet': return TESTNET_API;
-      case 'betanet': return BETANET_API;
-      default: return MAINNET_API;
-    }
+  constructor(algodServer: string, algodPort: string | number, algodToken: string) {
+    this.algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
   }
 
-  private getIndexerUrl(): string {
-    switch (this.currentNetwork) {
-      case 'testnet': return TESTNET_INDEXER;
-      case 'betanet': return BETANET_INDEXER;
-      default: return MAINNET_INDEXER;
-    }
-  }
-
-  async setNetwork(network: NetworkType): Promise<void> {
-    this.currentNetwork = network;
-    console.log(`Algorand network switched to: ${network}`);
-    
-    // Verify connection to new network
+  async healthCheck(): Promise<boolean> {
     try {
-      await this.getNetworkStatus();
-      console.log(`Successfully connected to ${network}`);
+      await this.algodClient.getStatus().do();
+      return true;
     } catch (error) {
-      console.error(`Failed to connect to ${network}:`, error);
-      throw new Error(`Failed to switch to ${network} network`);
+      console.error('Algorand node health check failed:', error);
+      return false;
     }
   }
 
-  async getNetworkStatus(): Promise<AlgorandNetworkStatus> {
+  async getAssetPrice(coinId: string): Promise<{ usd: number; aud: number }> {
     try {
-      const response = await fetch(`${this.getApiUrl()}/v2/status`, {
-        headers: this.headers
-      });
-      
+      const url = `${COINGECKO_API_URL}/simple/price?ids=${coinId}&vs_currencies=usd,aud`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      const data = await response.json();
-      console.log('Algorand network status:', data);
-      return data;
+      const data: CoinGeckoPriceResponse = await response.json();
+
+      if (data && data[coinId]) {
+        return data[coinId];
+      } else {
+        throw new Error(`Price not found for ${coinId}`);
+      }
     } catch (error) {
-      console.error('Error fetching Algorand network status:', error);
-      throw error;
+      console.error(`Failed to fetch price for ${coinId}:`, error);
+      return { usd: 0, aud: 0 };
     }
   }
 
-  async getAccount(address: string): Promise<AlgorandAccountInfo> {
+  async getAccountInfo(address: string): Promise<AlgorandAccountInfo> {
     try {
-      const response = await fetch(`${this.getIndexerUrl()}/v2/accounts/${address}`, {
-        headers: this.headers
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Algorand account data:', data);
-      return data.account;
-    } catch (error) {
-      console.error('Error fetching Algorand account:', error);
-      throw error;
-    }
-  }
-
-  async getAssetInfo(assetId: number): Promise<AlgorandAssetInfo> {
-    try {
-      const response = await fetch(`${this.getIndexerUrl()}/v2/assets/${assetId}`, {
-        headers: this.headers
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      return data.asset;
-    } catch (error) {
-      console.error('Error fetching Algorand asset info:', error);
-      throw error;
-    }
-  }
-
-  // Time Travel Balance Query Implementation
-  async getAccountSnapshot(address: string, round: number, assetId: number = 0): Promise<TimeravelSnapshot> {
-    try {
-      const response = await fetch(
-        `${this.getIndexerUrl()}/x2/account/${address}/snapshot/${round}/${assetId}`,
-        { headers: this.headers }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const accountInfo = await this.algodClient.accountInformation(address).do();
       return {
-        account: data.account,
-        round: round,
-        timestamp: data.timestamp || Date.now()
+        address: accountInfo.address,
+        amount: accountInfo.amount,
+        assets: [], // Initialize as empty, will be populated by getAccountAssets
+        apps: accountInfo['apps-local-state'],
+        createdAssets: accountInfo['created-assets']
       };
     } catch (error) {
-      console.error('Error fetching account snapshot:', error);
+      console.error('Error fetching account information:', error);
       throw error;
     }
   }
 
-  async searchTransactions(params: Record<string, any> = {}): Promise<{ transactions: AlgorandTransaction[] }> {
-    try {
-      const queryParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, value.toString());
+async getAccountAssets(address: string): Promise<AssetData[]> {
+  try {
+    const accountInfo = await this.algodClient.accountInformation(address).do();
+    const assets: AssetData[] = [];
+    
+    // Add ALGO (native asset)
+    const algoAmount = accountInfo.amount / 1000000; // Convert microAlgos to Algos
+    const algoPrice = await this.getAssetPrice('algorand');
+    
+    assets.push({
+      coinId: 'algorand',
+      symbol: 'ALGO',
+      name: 'Algorand',
+      amount: algoAmount,
+      price: algoPrice.usd,
+      value: algoAmount * algoPrice.usd,
+      priceAUD: algoPrice.aud,
+      valueAUD: algoAmount * algoPrice.aud,
+      isNative: true
+    });
+
+    // Add ASAs (Algorand Standard Assets)
+    if (accountInfo.assets) {
+      for (const asset of accountInfo.assets) {
+        try {
+          const assetInfo = await this.algodClient.getAssetByID(asset['asset-id']).do();
+          const decimals = assetInfo.params.decimals || 0;
+          const amount = asset.amount / Math.pow(10, decimals);
+          
+          // Try to get price from CoinGecko (this is a simplified approach)
+          // In practice, you'd need to map ASA IDs to CoinGecko IDs
+          const price = { usd: 0, aud: 0 }; // Default for unknown assets
+          
+          assets.push({
+            coinId: `asa-${asset['asset-id']}`,
+            symbol: assetInfo.params['unit-name'] || 'UNKNOWN',
+            name: assetInfo.params.name || 'Unknown Asset',
+            amount: amount,
+            price: price.usd,
+            value: amount * price.usd,
+            priceAUD: price.aud,
+            valueAUD: amount * price.aud,
+            isNative: false
+          });
+        } catch (error) {
+          console.error(`Error fetching asset info for ${asset['asset-id']}:`, error);
         }
-      });
-      
-      const response = await fetch(
-        `${this.getIndexerUrl()}/v2/transactions?${queryParams}`,
-        { headers: this.headers }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      return await response.json();
+    }
+
+    return assets;
+  } catch (error) {
+    console.error('Error fetching account assets:', error);
+    throw error;
+  }
+}
+
+  async getAppLocalState(address: string, appId: number): Promise<any> {
+    try {
+      const accountInfo = await this.algodClient.accountInformation(address).do();
+      const appState = accountInfo['apps-local-state']?.find((app: any) => app.id === appId);
+      return appState || null;
     } catch (error) {
-      console.error('Error searching transactions:', error);
-      throw error;
+      console.error(`Error fetching local state for app ${appId} and account ${address}:`, error);
+      return null;
     }
   }
 
-  async getAccountTransactions(address: string, limit: number = 10): Promise<AlgorandTransaction[]> {
+  async getCreatedAssets(address: string): Promise<any[]> {
     try {
-      const result = await this.searchTransactions({
-        address,
-        limit,
-        'tx-type': 'pay'
-      });
-      return result.transactions || [];
+      const accountInfo = await this.algodClient.accountInformation(address).do();
+      return accountInfo['created-assets'] || [];
     } catch (error) {
-      console.error('Error fetching account transactions:', error);
+      console.error(`Error fetching created assets for account ${address}:`, error);
       return [];
     }
   }
-
-  async getAssetHoldings(address: string): Promise<AlgorandAssetHolding[]> {
-    try {
-      const account = await this.getAccount(address);
-      return account.assets || [];
-    } catch (error) {
-      console.error('Error fetching asset holdings:', error);
-      return [];
-    }
-  }
-
-  async getAlgoPrice(): Promise<number> {
-    try {
-      // Get ALGO price from CoinGecko and convert to AUD
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=algorand&vs_currencies=aud');
-      const data = await response.json();
-      return data.algorand?.aud || 0.48; // Fallback price in AUD
-    } catch (error) {
-      console.error('Error fetching ALGO price:', error);
-      return 0.48; // Fallback price in AUD
-    }
-  }
-
-  async getPortfolioValue(address: string): Promise<{ totalValue: number; assets: any[] }> {
-    try {
-      const account = await this.getAccount(address);
-      const algoPrice = await this.getAlgoPrice();
-      
-      // Convert microAlgos to Algos and then to AUD
-      const algoBalance = account.amount / 1000000;
-      const algoValueAUD = algoBalance * algoPrice;
-      
-      const assets = [{
-        coinId: 'algorand',
-        symbol: 'ALGO',
-        name: 'Algorand',
-        amount: algoBalance,
-        price: algoPrice,
-        value: algoValueAUD,
-        priceAUD: algoPrice,
-        valueAUD: algoValueAUD,
-        isNative: true
-      }];
-
-      // Add asset holdings
-      if (account.assets && account.assets.length > 0) {
-        for (const holding of account.assets) {
-          try {
-            const assetInfo = await this.getAssetInfo(holding['asset-id']);
-            const assetBalance = holding.amount / Math.pow(10, assetInfo.params.decimals);
-            
-            assets.push({
-              coinId: `asa-${holding['asset-id']}`,
-              symbol: assetInfo.params['unit-name'] || `ASA-${holding['asset-id']}`,
-              name: assetInfo.params.name || `Asset ${holding['asset-id']}`,
-              amount: assetBalance,
-              price: 0, // Would need price feed for ASAs
-              value: 0,
-              priceAUD: 0,
-              valueAUD: 0,
-              isNative: false,
-              assetId: holding['asset-id'],
-              decimals: assetInfo.params.decimals
-            });
-          } catch (error) {
-            console.error(`Error fetching asset ${holding['asset-id']} info:`, error);
-          }
-        }
-      }
-
-      return {
-        totalValue: algoValueAUD, // Currently only counting ALGO value
-        assets
-      };
-    } catch (error) {
-      console.error('Error calculating portfolio value:', error);
-      return { totalValue: 0, assets: [] };
-    }
-  }
-
-  // IPFS Integration
-  async getIPFSContent(hash: string): Promise<any> {
-    try {
-      const response = await fetch(`${IPFS_GATEWAY}${hash}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch IPFS content: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching IPFS content:', error);
-      throw error;
-    }
-  }
-
-  async getOptimizedImage(hash: string, width?: number, height?: number, quality?: number): Promise<string> {
-    let url = `${IPFS_GATEWAY}${hash}`;
-    const params = new URLSearchParams();
-    
-    if (width) params.append('w', width.toString());
-    if (height) params.append('h', height.toString());
-    if (quality) params.append('q', quality.toString());
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
-    
-    return url;
-  }
-
-  // Advanced Analytics
-  async getNetworkMetrics(): Promise<any> {
-    try {
-      const status = await this.getNetworkStatus();
-      const algoPrice = await this.getAlgoPrice();
-      
-      return {
-        lastRound: status['last-round'],
-        timeSinceLastRound: status['time-since-last-round'],
-        catchupTime: status['catchup-time'],
-        hasSyncFinished: status['has-sync-finished'],
-        algoPrice: algoPrice,
-        network: this.currentNetwork,
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('Error fetching network metrics:', error);
-      throw error;
-    }
-  }
-
-  // Portfolio Tracking with Historical Data
-  async getPortfolioHistory(address: string, rounds: number[] = []): Promise<any[]> {
-    const history = [];
-    
-    try {
-      for (const round of rounds) {
-        const snapshot = await this.getAccountSnapshot(address, round);
-        const algoPrice = await this.getAlgoPrice(); // In production, get historical price
-        
-        const algoBalance = snapshot.account.amount / 1000000;
-        const valueAUD = algoBalance * algoPrice;
-        
-        history.push({
-          round,
-          timestamp: snapshot.timestamp,
-          balance: algoBalance,
-          valueAUD,
-          assets: snapshot.account.assets?.length || 0
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching portfolio history:', error);
-    }
-    
-    return history;
-  }
-
-  // Utility methods
-  formatAlgoAmount(microAlgos: number): number {
-    return microAlgos / 1000000;
-  }
-
-  formatAssetAmount(amount: number, decimals: number): number {
-    return amount / Math.pow(10, decimals);
-  }
-
-  isValidAlgorandAddress(address: string): boolean {
-    // Basic validation - Algorand addresses are 58 characters long
-    return typeof address === 'string' && address.length === 58;
-  }
-
-  async healthCheck(): Promise<{ status: boolean; network: string; lastRound?: number }> {
-    try {
-      const status = await this.getNetworkStatus();
-      return {
-        status: true,
-        network: this.currentNetwork,
-        lastRound: status['last-round']
-      };
-    } catch (error) {
-      console.error('Algorand health check failed:', error);
-      return {
-        status: false,
-        network: this.currentNetwork
-      };
-    }
-  }
-
-  // Demo data for testing
-  getMockAlgorandData() {
-    return {
-      network: this.currentNetwork,
-      status: 'connected',
-      lastRound: 12345678,
-      accounts: [
-        {
-          address: 'ALGORAND_DEMO_ADDRESS_123456789',
-          balance: 1250.5,
-          assets: ['ALGO', 'USDC', 'USDT'],
-          valueAUD: 600.24
-        }
-      ],
-      prices: {
-        ALGO: {
-          price: 0.48,
-          change24h: 2.5,
-          volume: 85000000,
-          marketCap: 3500000000
-        }
-      }
-    };
-  }
 }
-
-export const enhancedAlgorandService = new EnhancedAlgorandService();
-export default enhancedAlgorandService;
