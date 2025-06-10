@@ -252,7 +252,7 @@ class ComprehensiveAiBotSystem {
         const signal = await advancedOpenRouterService.generateAdvancedTradingSignal(
           assetData,
           bot.strategy,
-          { riskTolerance: bot.riskLevel.toUpperCase() }
+          { riskTolerance: bot.riskLevel.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH' }
         );
 
         if (signal.signal !== 'HOLD' && signal.confidence > 0.7) {
