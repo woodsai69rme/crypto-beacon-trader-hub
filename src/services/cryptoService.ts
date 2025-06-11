@@ -1,15 +1,21 @@
-
 import { CoinOption } from '@/types/trading';
 
-export const fetchCoinHistory = async (coinId: string, timeframe: string = '7d') => {
-  // Mock implementation for fetching coin history
-  const mockData = {
-    prices: Array.from({ length: 30 }, (_, i) => [
-      Date.now() - (30 - i) * 24 * 60 * 60 * 1000,
-      Math.random() * 50000 + 30000
-    ])
-  };
-  return mockData;
+export const fetchCoinHistory = async (coinId: string, days: number = 30) => {
+  try {
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
+    );
+    const data = await response.json();
+    
+    return {
+      prices: data.prices || [],
+      market_caps: data.market_caps || [],
+      total_volumes: data.total_volumes || []
+    };
+  } catch (error) {
+    console.error('Error fetching coin history:', error);
+    return { prices: [], market_caps: [], total_volumes: [] };
+  }
 };
 
 export const fetchTopCryptoData = async (limit: number = 10): Promise<CoinOption[]> => {
@@ -65,19 +71,20 @@ export const fetchMultipleCryptoData = async (coinIds: string[]): Promise<CoinOp
   return allCoins.filter(coin => coinIds.includes(coin.id));
 };
 
-export const convertToCoinOptions = (apiData: any[]): CoinOption[] => {
-  return apiData.map(coin => ({
+export const convertToCoinOptions = (data: any[]): CoinOption[] => {
+  return data.map(coin => ({
     id: coin.id,
-    symbol: coin.symbol.toUpperCase(),
     name: coin.name,
+    symbol: coin.symbol.toUpperCase(),
     price: coin.current_price || 0,
     priceChange: coin.price_change_24h || 0,
     changePercent: coin.price_change_percentage_24h || 0,
-    image: coin.image,
-    volume: coin.total_volume,
-    marketCap: coin.market_cap,
+    marketCap: coin.market_cap || 0,
+    volume: coin.total_volume || 0,
+    image: coin.image || '',
     value: coin.id,
-    label: `${coin.name} (${coin.symbol.toUpperCase()})`
+    label: `${coin.name} (${coin.symbol.toUpperCase()})`,
+    rank: coin.market_cap_rank || 0
   }));
 };
 

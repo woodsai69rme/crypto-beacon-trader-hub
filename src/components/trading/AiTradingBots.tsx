@@ -1,213 +1,226 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Bot, Plus, Play, Pause, Settings, TrendingUp } from 'lucide-react';
 import AiTradingStrategySelector from './AiTradingStrategySelector';
 import { AITradingStrategy } from '@/types/trading';
 
+interface AiBot {
+  id: string;
+  name: string;
+  strategy: AITradingStrategy;
+  status: 'active' | 'paused' | 'stopped';
+  performance: {
+    totalReturn: number;
+    winRate: number;
+    trades: number;
+  };
+  createdAt: string;
+}
+
 const AiTradingBots: React.FC = () => {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>("trending");
-  const [activeBots, setActiveBots] = useState<AITradingStrategy[]>([]);
-  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
-  
-  // Mock data for trending strategies
-  const trendingStrategies: AITradingStrategy[] = [
+  const [bots, setBots] = useState<AiBot[]>([
     {
-      id: "trend-following-1",
-      name: "Trend Following v2",
-      description: "Follows major market trends across multiple timeframes",
-      riskLevel: "medium",
-      profitPotential: "medium",
-      timeframe: 24,
-      type: 'trend-following',
-      parameters: {},
-      indicators: ["Moving Averages", "MACD", "Volume"],
-      backtestResults: {
-        winRate: 62,
-        profitFactor: 1.8,
-        maxDrawdown: 12,
-        sharpeRatio: 1.4
-      }
-    },
-    {
-      id: "breakout-strategy",
-      name: "Breakout Strategy",
-      description: "Captures price movements after periods of consolidation",
-      riskLevel: "high",
-      profitPotential: "high",
-      timeframe: 1,
-      type: 'breakout',
-      parameters: {},
-      indicators: ["Bollinger Bands", "ATR", "Support/Resistance"],
-      backtestResults: {
-        winRate: 45,
-        profitFactor: 2.1,
-        maxDrawdown: 18,
-        sharpeRatio: 1.2
-      }
-    },
-    {
-      id: "mean-reversion",
-      name: "Mean Reversion",
-      description: "Takes advantage of price returning to average levels",
-      riskLevel: "low",
-      profitPotential: "low",
-      timeframe: 168,
-      type: 'mean-reversion',
-      parameters: {},
-      indicators: ["RSI", "Stochastic", "Bollinger Bands"],
-      backtestResults: {
-        winRate: 73,
-        profitFactor: 1.5,
-        maxDrawdown: 8,
-        sharpeRatio: 1.7
-      }
+      id: '1',
+      name: 'Bitcoin Trend Bot',
+      strategy: {
+        id: 'trend-following',
+        name: 'Trend Following',
+        description: 'Follows market momentum',
+        type: 'trend-following',
+        timeframe: 'medium',
+        parameters: {}
+      },
+      status: 'active',
+      performance: {
+        totalReturn: 12.5,
+        winRate: 68,
+        trades: 45
+      },
+      createdAt: '2024-01-15'
     }
-  ];
-  
-  // Function to activate a bot
-  const activateBot = (bot: AITradingStrategy) => {
-    setActiveBots(prev => [...prev, bot]);
-    toast({
-      title: "Bot Activated",
-      description: `${bot.name} is now running.`,
-    });
-  };
-  
-  // Function to deactivate a bot
-  const deactivateBot = (botId: string) => {
-    setActiveBots(prev => prev.filter(bot => bot.id !== botId));
-    toast({
-      title: "Bot Deactivated",
-      description: "The trading bot has been stopped.",
-    });
-  };
-  
-  // Check if a bot is active
-  const isBotActive = (botId: string) => {
-    return activeBots.some(bot => bot.id === botId);
+  ]);
+
+  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
+
+  const handleCreateBot = () => {
+    if (!selectedStrategy) return;
+
+    const newBot: AiBot = {
+      id: Date.now().toString(),
+      name: `${selectedStrategy.name} Bot`,
+      strategy: selectedStrategy,
+      status: 'paused',
+      performance: {
+        totalReturn: 0,
+        winRate: 0,
+        trades: 0
+      },
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    setBots(prev => [...prev, newBot]);
+    setSelectedStrategy(null);
   };
 
-  // Handle strategy selection
-  const handleSelectStrategy = (strategy: AITradingStrategy) => {
-    setSelectedStrategy(strategy);
+  const toggleBotStatus = (botId: string) => {
+    setBots(prev => prev.map(bot => 
+      bot.id === botId 
+        ? { ...bot, status: bot.status === 'active' ? 'paused' : 'active' as const }
+        : bot
+    ));
   };
-  
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'paused': return 'bg-yellow-100 text-yellow-800';
+      case 'stopped': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>AI Trading Bots</CardTitle>
-          <CardDescription>
-            Deploy intelligent trading strategies powered by AI
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            AI Trading Bots
+          </CardTitle>
         </CardHeader>
-        
         <CardContent>
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="trending">Trending</TabsTrigger>
-              <TabsTrigger value="popular">Popular</TabsTrigger>
-              <TabsTrigger value="custom">Custom</TabsTrigger>
+          <Tabs defaultValue="bots" className="w-full">
+            <TabsList>
+              <TabsTrigger value="bots">My Bots</TabsTrigger>
+              <TabsTrigger value="create">Create Bot</TabsTrigger>
+              <TabsTrigger value="strategies">Strategies</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="trending" className="space-y-4">
-              {trendingStrategies.map(strategy => (
-                <Card key={strategy.id} className="overflow-hidden">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="flex-1 p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={`/avatars/bot-${Math.floor(Math.random() * 5) + 1}.png`} alt={strategy.name} />
-                            <AvatarFallback>AI</AvatarFallback>
-                          </Avatar>
+            <TabsContent value="bots" className="space-y-4">
+              {bots.length === 0 ? (
+                <div className="text-center py-8">
+                  <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No AI Bots Yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first AI trading bot to automate your trading strategy
+                  </p>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create First Bot
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {bots.map((bot) => (
+                    <Card key={bot.id}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h3 className="font-medium">{strategy.name}</h3>
-                            <p className="text-xs text-muted-foreground">{strategy.timeframe}h term</p>
+                            <h3 className="font-semibold text-lg">{bot.name}</h3>
+                            <p className="text-muted-foreground">{bot.strategy.description}</p>
+                          </div>
+                          <Badge className={getStatusColor(bot.status)}>
+                            {bot.status}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                              {bot.performance.totalReturn > 0 ? '+' : ''}{bot.performance.totalReturn}%
+                            </div>
+                            <div className="text-xs text-muted-foreground">Total Return</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {bot.performance.winRate}%
+                            </div>
+                            <div className="text-xs text-muted-foreground">Win Rate</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-purple-600">
+                              {bot.performance.trades}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Trades</div>
                           </div>
                         </div>
-                        
-                        <Badge variant={
-                          strategy.riskLevel === "low" ? "outline" :
-                          strategy.riskLevel === "medium" ? "secondary" : "destructive"
-                        }>
-                          {strategy.riskLevel} risk
-                        </Badge>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground mb-4">{strategy.description}</p>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-                        <div>
-                          <div className="text-muted-foreground">Win Rate</div>
-                          <div className="font-medium">{strategy.backtestResults?.winRate}%</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Profit Factor</div>
-                          <div className="font-medium">{strategy.backtestResults?.profitFactor}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Max Drawdown</div>
-                          <div className="font-medium">{strategy.backtestResults?.maxDrawdown}%</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Sharpe Ratio</div>
-                          <div className="font-medium">{strategy.backtestResults?.sharpeRatio}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-end">
-                        {isBotActive(strategy.id) ? (
-                          <Button variant="destructive" onClick={() => deactivateBot(strategy.id)}>
-                            Stop Bot
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => toggleBotStatus(bot.id)}
+                            className="flex items-center gap-2"
+                          >
+                            {bot.status === 'active' ? (
+                              <>
+                                <Pause className="h-4 w-4" />
+                                Pause
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-4 w-4" />
+                                Start
+                              </>
+                            )}
                           </Button>
-                        ) : (
-                          <Button onClick={() => activateBot(strategy)}>
-                            Activate Bot
+                          <Button variant="outline" size="sm">
+                            <Settings className="h-4 w-4 mr-2" />
+                            Configure
                           </Button>
-                        )}
+                          <Button variant="outline" size="sm">
+                            <TrendingUp className="h-4 w-4 mr-2" />
+                            View Performance
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="create" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create New AI Bot</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedStrategy ? (
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold">{selectedStrategy.name}</h3>
+                        <p className="text-muted-foreground">{selectedStrategy.description}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handleCreateBot}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Bot
+                        </Button>
+                        <Button variant="outline" onClick={() => setSelectedStrategy(null)}>
+                          Cancel
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  ) : (
+                    <p className="text-muted-foreground">
+                      Select a strategy from the Strategies tab to create a new bot.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
             
-            <TabsContent value="popular" className="space-y-4">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Popular strategies will be available soon.</p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="custom" className="space-y-4">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">You don't have any custom strategies yet.</p>
-                <Button>Create Custom Strategy</Button>
-              </div>
+            <TabsContent value="strategies">
+              <AiTradingStrategySelector 
+                strategies={[]}
+                onSelectStrategy={setSelectedStrategy}
+              />
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Strategy</CardTitle>
-          <CardDescription>
-            Design your own AI-powered trading strategy
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <AiTradingStrategySelector 
-            onSelectStrategy={handleSelectStrategy}
-            selectedStrategyId={selectedStrategy?.id}
-          />
         </CardContent>
       </Card>
     </div>

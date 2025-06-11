@@ -1,282 +1,199 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Check, ChevronsUpDown, AlertTriangle, Bell, BellOff } from "lucide-react";
-import { CoinOption } from '@/components/trading/types';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon } from "@radix-ui/react-icons"
 
-interface AssetAlertSettings {
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Bell, BellRing, AlertTriangle, TrendingUp, TrendingDown, Volume2, X } from 'lucide-react';
+
+interface Alert {
   id: string;
-  name: string;
+  type: 'price' | 'volume' | 'news' | 'technical';
   symbol: string;
-  price: number;
-  priceChange: number;
-  changePercent: number;
-  volume: number;
-  marketCap: number;
-  alertEnabled: boolean;
-  alertThreshold: number;
-  lastAlerted: string | null;
+  message: string;
+  timestamp: string;
+  severity: 'low' | 'medium' | 'high';
+  isRead: boolean;
 }
 
 const RealTimeAlerts: React.FC = () => {
-  const [assets, setAssets] = useState<AssetAlertSettings[]>([
-    {
-      id: "bitcoin",
-      name: "Bitcoin",
-      symbol: "BTC",
-      price: 58352.12,
-      priceChange: 1245.32,
-      changePercent: 2.18,
-      volume: 48941516789,
-      marketCap: 1143349097968,
-      alertEnabled: true,
-      alertThreshold: 5,
-      lastAlerted: null
-    },
-    {
-      id: "ethereum",
-      name: "Ethereum",
-      symbol: "ETH",
-      price: 3105.78,
-      priceChange: 65.43,
-      changePercent: 2.15,
-      volume: 21891456789,
-      marketCap: 373952067386,
-      alertEnabled: false,
-      alertThreshold: 3,
-      lastAlerted: null
-    },
-    {
-      id: "cardano",
-      name: "Cardano",
-      symbol: "ADA",
-      price: 0.45,
-      priceChange: -0.01,
-      changePercent: -2.17,
-      volume: 467891234,
-      marketCap: 15893456789,
-      alertEnabled: true,
-      alertThreshold: 7,
-      lastAlerted: null
-    },
-    {
-      id: "solana",
-      name: "Solana",
-      symbol: "SOL",
-      price: 152.37,
-      priceChange: 5.23,
-      changePercent: 3.55,
-      volume: 3578912345,
-      marketCap: 67891234567,
-      alertEnabled: false,
-      alertThreshold: 4,
-      lastAlerted: null
-    }
-  ]);
-  
-  const [coinData, setCoinData] = useState<CoinOption[]>([
-    {
-      id: "bitcoin",
-      name: "Bitcoin",
-      symbol: "BTC",
-      price: 58352.12,
-      priceChange: 1245.32,
-      changePercent: 2.18,
-      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
-      volume: 48941516789,
-      marketCap: 1143349097968,
-      value: "bitcoin",
-      label: "Bitcoin (BTC)"
-    },
-    {
-      id: "ethereum",
-      name: "Ethereum",
-      symbol: "ETH",
-      price: 3105.78,
-      priceChange: 65.43,
-      changePercent: 2.15,
-      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
-      volume: 21891456789,
-      marketCap: 373952067386,
-      value: "ethereum",
-      label: "Ethereum (ETH)"
-    },
-    {
-      id: "cardano",
-      name: "Cardano",
-      symbol: "ADA",
-      price: 0.45,
-      priceChange: -0.01,
-      changePercent: -2.17,
-      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
-      volume: 467891234,
-      marketCap: 15893456789,
-      value: "cardano",
-      label: "Cardano (ADA)"
-    },
-    {
-      id: "solana",
-      name: "Solana",
-      symbol: "SOL",
-      price: 152.37,
-      priceChange: 5.23,
-      changePercent: 3.55,
-      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-      volume: 3578912345,
-      marketCap: 67891234567,
-      value: "solana",
-      label: "Solana (SOL)"
-    }
-  ]);
-  
-  const [alertFrequency, setAlertFrequency] = useState<number>(60);
-  const [nextAlertCheck, setNextAlertCheck] = useState<Date>(new Date(Date.now() + alertFrequency * 1000));
-  const [isGlobalAlertsEnabled, setIsGlobalAlertsEnabled] = useState<boolean>(true);
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Mock alerts data
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      updateAssets();
-      setNextAlertCheck(new Date(Date.now() + alertFrequency * 1000));
-    }, alertFrequency * 1000);
-    
-    return () => clearInterval(intervalId);
-  }, [assets, alertFrequency]);
-  
-  const updateAssets = () => {
-    const updatedAssets = assets.map(asset => {
-      const updatedCoin = coinData.find(coin => coin.id === asset.id);
-      if (updatedCoin) {
-        return {
-          ...asset,
-          price: updatedCoin.price,
-          priceChange: updatedCoin.priceChange,
-          changePercent: updatedCoin.changePercent,
-          volume: updatedCoin.volume,
-          marketCap: updatedCoin.marketCap
-        };
+    const mockAlerts: Alert[] = [
+      {
+        id: '1',
+        type: 'price',
+        symbol: 'BTC',
+        message: 'Bitcoin crossed $65,000 resistance level',
+        timestamp: new Date().toISOString(),
+        severity: 'high',
+        isRead: false
+      },
+      {
+        id: '2',
+        type: 'volume',
+        symbol: 'ETH',
+        message: 'Ethereum volume spike detected - 300% above average',
+        timestamp: new Date(Date.now() - 300000).toISOString(),
+        severity: 'medium',
+        isRead: false
+      },
+      {
+        id: '3',
+        type: 'technical',
+        symbol: 'SOL',
+        message: 'Solana RSI oversold condition detected',
+        timestamp: new Date(Date.now() - 600000).toISOString(),
+        severity: 'medium',
+        isRead: true
+      },
+      {
+        id: '4',
+        type: 'news',
+        symbol: 'ADA',
+        message: 'Major Cardano development announcement',
+        timestamp: new Date(Date.now() - 900000).toISOString(),
+        severity: 'low',
+        isRead: false
       }
-      return asset;
-    });
-    setAssets(updatedAssets);
+    ];
+
+    setAlerts(mockAlerts);
+    setUnreadCount(mockAlerts.filter(alert => !alert.isRead).length);
+  }, []);
+
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case 'price': return <TrendingUp className="h-4 w-4" />;
+      case 'volume': return <Volume2 className="h-4 w-4" />;
+      case 'technical': return <AlertTriangle className="h-4 w-4" />;
+      case 'news': return <Bell className="h-4 w-4" />;
+      default: return <Bell className="h-4 w-4" />;
+    }
   };
-  
-  const toggleAlert = (id: string) => {
-    const updatedAssets = assets.map(asset =>
-      asset.id === id ? { ...asset, alertEnabled: !asset.alertEnabled } : asset
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const markAsRead = (alertId: string) => {
+    setAlerts(prevAlerts => 
+      prevAlerts.map(alert => 
+        alert.id === alertId ? { ...alert, isRead: true } : alert
+      )
     );
-    setAssets(updatedAssets);
+    setUnreadCount(prev => Math.max(0, prev - 1));
   };
-  
-  const setThreshold = (id: string, value: number) => {
-    const updatedAssets = assets.map(asset =>
-      asset.id === id ? { ...asset, alertThreshold: value } : asset
+
+  const dismissAlert = (alertId: string) => {
+    setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== alertId));
+    const alert = alerts.find(a => a.id === alertId);
+    if (alert && !alert.isRead) {
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
+  };
+
+  const markAllAsRead = () => {
+    setAlerts(prevAlerts => 
+      prevAlerts.map(alert => ({ ...alert, isRead: true }))
     );
-    setAssets(updatedAssets);
+    setUnreadCount(0);
   };
-  
-  const toggleGlobalAlerts = () => {
-    setIsGlobalAlertsEnabled(!isGlobalAlertsEnabled);
-  };
-  
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Real-Time Alerts</CardTitle>
-        <CardDescription>
-          Configure real-time alerts for your favorite cryptocurrencies
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <BellRing className="h-5 w-5" />
+            Real-time Alerts
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {unreadCount}
+              </Badge>
+            )}
+          </CardTitle>
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={markAllAsRead}>
+              Mark All Read
+            </Button>
+          )}
+        </div>
       </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="global-alerts">Global Alerts</Label>
-          <Switch 
-            id="global-alerts"
-            checked={isGlobalAlertsEnabled}
-            onCheckedChange={toggleGlobalAlerts}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <Label>Alert Frequency ({alertFrequency} seconds)</Label>
-          <Slider
-            defaultValue={[alertFrequency]}
-            max={300}
-            step={30}
-            onValueChange={(value) => setAlertFrequency(value[0])}
-          />
-        </div>
-        
-        <div className="text-sm text-muted-foreground">
-          Next alert check: {nextAlertCheck.toLocaleTimeString()}
-        </div>
-        
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Asset</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Change</TableHead>
-              <TableHead>Volume</TableHead>
-              <TableHead className="text-right">Alerts</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {assets.map((asset) => (
-              <TableRow key={asset.id}>
-                <TableCell className="font-medium">{asset.name} ({asset.symbol})</TableCell>
-                <TableCell>${asset.price.toFixed(2)}</TableCell>
-                <TableCell className={asset.priceChange > 0 ? "text-green-500" : "text-red-500"}>
-                  {asset.priceChange > 0 && "+"}${asset.priceChange.toFixed(2)} ({asset.changePercent.toFixed(2)}%)
-                </TableCell>
-                <TableCell>${(asset.volume / 1000000000).toFixed(2)}B</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <Switch
-                      id={`alert-${asset.id}`}
-                      checked={asset.alertEnabled}
-                      onCheckedChange={() => toggleAlert(asset.id)}
-                      disabled={!isGlobalAlertsEnabled}
-                    />
-                    <Label htmlFor={`alert-${asset.id}`} className="text-right">
-                      {asset.alertEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-                    </Label>
+      <CardContent>
+        <ScrollArea className="h-[400px]">
+          <div className="space-y-3">
+            {alerts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No alerts at the moment</p>
+                <p className="text-sm">You'll be notified when important events occur</p>
+              </div>
+            ) : (
+              alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`p-3 rounded-lg border transition-all ${getSeverityColor(alert.severity)} ${
+                    !alert.isRead ? 'shadow-sm' : 'opacity-70'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/50">
+                        {getAlertIcon(alert.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            {alert.symbol}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {alert.type}
+                          </Badge>
+                          {!alert.isRead && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium mb-1">{alert.message}</p>
+                        <p className="text-xs opacity-75">
+                          {new Date(alert.timestamp).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {!alert.isRead && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markAsRead(alert.id)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Bell className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => dismissAlert(alert.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

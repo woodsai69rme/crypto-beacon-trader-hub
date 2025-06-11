@@ -1,5 +1,5 @@
 
-import { AlertFrequency, NotificationMethod } from "@/types/alerts";
+import { AlertFrequency, NotificationMethod } from "@/types/trading";
 
 export interface PriceAlertFormData {
   coinId: string;
@@ -30,7 +30,29 @@ export interface TechnicalAlertFormData {
   indicator: string;
   condition: string;
   value: number;
+  timeframe: string;
   enabled: boolean;
+  notifyVia: NotificationMethod[];
+}
+
+export interface AlertFormData {
+  id?: string;
+  type: 'price' | 'volume' | 'technical';
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice?: number;
+  isAbove?: boolean;
+  recurring?: boolean;
+  percentageChange?: number;
+  volumeThreshold?: number;
+  frequency?: AlertFrequency;
+  indicator?: string;
+  condition?: string;
+  value?: number;
+  timeframe?: string;
+  enabled: boolean;
+  notifyVia: NotificationMethod[];
 }
 
 export type CoinOption = {

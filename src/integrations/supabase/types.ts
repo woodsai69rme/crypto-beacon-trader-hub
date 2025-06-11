@@ -140,6 +140,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_strategies: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          indicators: string[] | null
+          is_active: boolean | null
+          market_data_sources: string[] | null
+          model: string
+          name: string
+          parameters: Json
+          prompt: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          indicators?: string[] | null
+          is_active?: boolean | null
+          market_data_sources?: string[] | null
+          model?: string
+          name: string
+          parameters?: Json
+          prompt: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          indicators?: string[] | null
+          is_active?: boolean | null
+          market_data_sources?: string[] | null
+          model?: string
+          name?: string
+          parameters?: Json
+          prompt?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_suggestions: {
         Row: {
           created_at: string | null
@@ -442,6 +487,86 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      backtest_results: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          equity_curve: Json | null
+          final_capital: number | null
+          id: string
+          initial_capital: number | null
+          losing_trades: number | null
+          max_drawdown: number | null
+          parameters: Json | null
+          profit_factor: number | null
+          sharpe_ratio: number | null
+          start_date: string
+          strategy_id: string | null
+          symbol: string
+          timeframe: string
+          total_return: number | null
+          total_trades: number | null
+          trades: Json | null
+          user_id: string
+          win_rate: number | null
+          winning_trades: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          equity_curve?: Json | null
+          final_capital?: number | null
+          id?: string
+          initial_capital?: number | null
+          losing_trades?: number | null
+          max_drawdown?: number | null
+          parameters?: Json | null
+          profit_factor?: number | null
+          sharpe_ratio?: number | null
+          start_date: string
+          strategy_id?: string | null
+          symbol: string
+          timeframe?: string
+          total_return?: number | null
+          total_trades?: number | null
+          trades?: Json | null
+          user_id: string
+          win_rate?: number | null
+          winning_trades?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          equity_curve?: Json | null
+          final_capital?: number | null
+          id?: string
+          initial_capital?: number | null
+          losing_trades?: number | null
+          max_drawdown?: number | null
+          parameters?: Json | null
+          profit_factor?: number | null
+          sharpe_ratio?: number | null
+          start_date?: string
+          strategy_id?: string | null
+          symbol?: string
+          timeframe?: string
+          total_return?: number | null
+          total_trades?: number | null
+          trades?: Json | null
+          user_id?: string
+          win_rate?: number | null
+          winning_trades?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backtest_results_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "ai_strategies"
             referencedColumns: ["id"]
           },
         ]

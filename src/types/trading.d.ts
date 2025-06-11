@@ -1,6 +1,9 @@
+
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
+export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'always';
+export type NotificationMethod = 'email' | 'push' | 'sms' | 'in-app';
 
 export interface Trade {
   id: string;
@@ -20,6 +23,14 @@ export interface Trade {
   strategyId?: string;
   botId?: string;
   tags?: string[];
+}
+
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  name: string;
+  bracket?: string;
 }
 
 export interface AuditLogEntry {
@@ -66,6 +77,7 @@ export interface AIBot {
 
 export interface PortfolioAsset {
   coinId: string;
+  coinName?: string;
   amount: number;
   price: number;
   priceChange?: number;
@@ -149,6 +161,7 @@ export interface AITradingStrategy {
   indicators?: string[];
   triggers?: string[];
   confidence?: number;
+  tags?: string[];
   performance?: {
     winRate?: number;
     profitFactor?: number;
@@ -161,7 +174,6 @@ export interface AITradingStrategy {
     accuracy?: number;
   };
   creator?: string;
-  tags?: string[];
   profitPotential?: string;
   backtestResults?: {
     winRate?: number;
@@ -170,6 +182,47 @@ export interface AITradingStrategy {
     trades?: number;
     maxDrawdown?: number;
   };
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  status?: 'connected' | 'disconnected' | 'error';
+  isConnected?: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    latency: number;
+    uptime: number;
+    returns?: number;
+    sharpeRatio?: number;
+    maxDrawdown?: number;
+  };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect?: (model: LocalModel) => void;
+  onConnect?: (model: LocalModel) => void;
+  onDisconnect?: (modelId: string) => void;
+  onModelSelect?: (model: LocalModel) => void;
+  onModelRemove?: (modelId: string) => void;
+}
+
+export interface TradingFormProps {
+  mode: 'paper' | 'live';
+  onSubmit: (data: any) => void;
+  selectedCoin?: CoinOption;
+}
+
+export interface FakeTradingFormProps {
+  onTrade: (trade: Trade) => void;
+  selectedCoin: CoinOption;
+  onAddTrade: (trade: Trade) => void;
+  advancedMode?: boolean;
 }
 
 export interface NewsItem {
@@ -253,7 +306,6 @@ export interface BacktestResult {
   sortinoRatio: number;
 }
 
-// Widget and Dashboard Types
 export type WidgetType = 'chart' | 'portfolio' | 'news' | 'trade' | 'performance' | 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis';
 export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
 
@@ -267,7 +319,6 @@ export interface Widget {
   customContent?: string;
 }
 
-// Risk Assessment Types
 export interface RiskAssessmentResult {
   score: number;
   overallScore: number;
@@ -286,7 +337,6 @@ export interface RiskAssessmentResult {
   riskByAsset: Record<string, { score: number; factors: string[] }>;
 }
 
-// Wallet Types
 export interface WalletAccount {
   address: string;
   balance: number;
@@ -309,15 +359,6 @@ export interface WalletProvider {
 export interface WalletConnectionProps {
   onConnect: (account: WalletAccount) => void;
   onDisconnect: () => void;
-}
-
-// Tax and Compliance Types
-export interface TaxBracket {
-  min: number;
-  max: number;
-  rate: number;
-  name: string;
-  bracket?: string;
 }
 
 export interface ATOTaxCalculation {
@@ -365,7 +406,6 @@ export interface TaxHarvestTradeItem {
   recommendedAction?: 'sell' | 'hold';
 }
 
-// AI Portfolio Optimization Types
 export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon: 'short' | 'medium' | 'long';
@@ -393,7 +433,6 @@ export interface PortfolioOptimizationResult {
   rebalancingTrades?: Trade[];
 }
 
-// API Management Types
 export interface ApiEndpoint {
   name: string;
   url: string;
@@ -422,7 +461,6 @@ export interface ApiUsageStats {
   resetTime?: string;
 }
 
-// DeFi Types
 export interface DefiProtocol {
   id: string;
   name: string;
@@ -452,50 +490,6 @@ export interface DefiPosition {
   startDate?: string;
 }
 
-// Trading Form Types
-export interface FakeTradingFormProps {
-  onTrade: (trade: Trade) => void;
-  selectedCoin: CoinOption;
-  onAddTrade: (trade: Trade) => void;
-  advancedMode?: boolean;
-}
-
-export interface TradingFormProps {
-  mode: 'paper' | 'live';
-  onSubmit: (data: any) => void;
-  selectedCoin?: CoinOption;
-}
-
-// Local AI Model Types
-export interface LocalModel {
-  id: string;
-  name: string;
-  endpoint: string;
-  type: 'prediction' | 'sentiment' | 'trading' | 'analysis';
-  status?: 'connected' | 'disconnected' | 'error';
-  isConnected?: boolean;
-  lastUsed?: string;
-  description?: string;
-  performance?: {
-    accuracy: number;
-    latency: number;
-    uptime: number;
-    returns?: number;
-    sharpeRatio?: number;
-    maxDrawdown?: number;
-  };
-}
-
-export interface ModelListProps {
-  models: LocalModel[];
-  onSelect?: (model: LocalModel) => void;
-  onConnect?: (model: LocalModel) => void;
-  onDisconnect?: (modelId: string) => void;
-  onModelSelect?: (model: LocalModel) => void;
-  onModelRemove?: (modelId: string) => void;
-}
-
-// Market Insights Types
 export interface MarketInsight {
   id: string;
   title: string;
@@ -518,7 +512,6 @@ export interface MarketInsightsResponse {
   marketSentiment: 'bullish' | 'bearish' | 'neutral';
 }
 
-// Real-time Price Types
 export interface RealTimePriceChartProps {
   symbol: string;
   interval: string;
@@ -539,7 +532,6 @@ export interface RealTimePricesProps {
   refreshInterval?: number;
 }
 
-// Dashboard Props Types
 export interface DetachableDashboardProps {
   title: string;
   onDetach: () => void;
@@ -569,7 +561,6 @@ export interface ExtendedAiBotTradingProps {
   onClose?: () => void;
 }
 
-// News Ticker Types
 export interface NewsTickerProps {
   items: NewsItem[];
   speed?: number;
@@ -577,7 +568,6 @@ export interface NewsTickerProps {
   className?: string;
 }
 
-// Portfolio Benchmarking Types
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance: number[];
   portfolioDates: string[];
@@ -590,7 +580,6 @@ export interface EnhancedPortfolioBenchmarkingProps {
   timeframe?: string;
 }
 
-// Correlation Types
 export interface CorrelationHeatmapProps {
   correlationData: number[][];
   coins: CoinOption[];
@@ -605,7 +594,6 @@ export interface PriceCorrelationChartProps {
   asset2Symbol?: string;
 }
 
-// Settings Types
 export interface TickerSettings {
   enabled: boolean;
   position: 'top' | 'bottom' | 'both';

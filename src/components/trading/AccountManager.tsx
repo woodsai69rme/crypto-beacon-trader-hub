@@ -1,121 +1,102 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { useTradingContext } from '@/contexts/TradingContext';
 import { TradingAccount, PortfolioAsset } from '@/types/trading';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import { Plus, Trash2 } from 'lucide-react';
 
-interface AccountManagerProps {
-  accounts: TradingAccount[];
-  onAddAccount: (account: Omit<TradingAccount, 'id' | 'createdAt'>) => void;
-  activeAccountId?: string;
-  onSelectAccount: (accountId: string) => void;
-}
-
-const AccountManager: React.FC<AccountManagerProps> = ({
-  accounts,
-  onAddAccount,
-  activeAccountId,
-  onSelectAccount,
-}) => {
-  const { formatCurrency } = useCurrency();
-  const [isAdding, setIsAdding] = useState(false);
+const AccountManager: React.FC = () => {
+  const { accounts, createAccount, deleteAccount, setActiveAccount } = useTradingContext();
   const [newAccountName, setNewAccountName] = useState('');
-  const [newAccountBalance, setNewAccountBalance] = useState(10000);
   const [accountType, setAccountType] = useState<'paper' | 'live'>('paper');
 
-  const handleAddAccount = () => {
+  const handleCreateAccount = () => {
+    if (!newAccountName.trim()) return;
+
     const mockAssets: PortfolioAsset[] = [
       {
         coinId: 'bitcoin',
+        coinName: 'Bitcoin',
+        amount: 0.5,
+        price: 65000,
         symbol: 'BTC',
         name: 'Bitcoin',
-        amount: 0.5,
-        price: 45000,
-        value: 22500,
-        allocation: 45,
-        change24h: 1200,
-        changePercent24h: 2.7,
+        value: 32500,
+        allocation: 65,
+        change24h: 2.5,
+        priceAUD: 97500,
+        valueAUD: 48750
       },
       {
         coinId: 'ethereum',
+        coinName: 'Ethereum',
+        amount: 5,
+        price: 3500,
         symbol: 'ETH',
         name: 'Ethereum',
-        amount: 5,
-        price: 3000,
-        value: 15000,
-        allocation: 30,
-        change24h: 500,
-        changePercent24h: 3.5,
+        value: 17500,
+        allocation: 35,
+        change24h: -1.2,
+        priceAUD: 5250,
+        valueAUD: 26250
       },
       {
-        coinId: 'cardano',
-        symbol: 'ADA',
-        name: 'Cardano',
-        amount: 10000,
-        price: 1.2,
-        value: 12000,
-        allocation: 25,
-        change24h: -600,
-        changePercent24h: -4.8,
+        coinId: 'solana',
+        coinName: 'Solana',
+        amount: 100,
+        price: 180,
+        symbol: 'SOL',
+        name: 'Solana',
+        value: 18000,
+        allocation: 20,
+        change24h: 5.8,
+        priceAUD: 270,
+        valueAUD: 27000
       }
     ];
 
-    onAddAccount({
-      name: newAccountName || `Account ${accounts.length + 1}`,
-      balance: newAccountBalance,
+    const newAccount: Omit<TradingAccount, 'id' | 'createdAt'> = {
+      name: newAccountName,
+      balance: 50000,
       currency: 'AUD',
-      trades: [],
       type: accountType,
-      assets: accountType === 'live' ? mockAssets : [],
+      assets: mockAssets,
       isActive: true,
-    });
+      trades: [] // Add required trades field
+    };
 
-    setIsAdding(false);
+    createAccount(newAccount);
     setNewAccountName('');
-    setNewAccountBalance(10000);
-    setAccountType('paper');
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Trading Accounts</CardTitle>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setIsAdding(!isAdding)}
-        >
-          {isAdding ? 'Cancel' : 'Add Account'}
-        </Button>
+      <CardHeader>
+        <CardTitle>Account Manager</CardTitle>
       </CardHeader>
-      <CardContent>
-        {isAdding ? (
-          <div className="space-y-4">
+      <CardContent className="space-y-6">
+        {/* Create New Account */}
+        <div className="space-y-4 p-4 border rounded-lg">
+          <h3 className="font-semibold">Create New Account</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium block mb-1">Account Name</label>
+              <Label htmlFor="accountName">Account Name</Label>
               <Input
-                placeholder="My Trading Account"
+                id="accountName"
                 value={newAccountName}
                 onChange={(e) => setNewAccountName(e.target.value)}
+                placeholder="My Trading Account"
               />
             </div>
             <div>
-              <label className="text-sm font-medium block mb-1">Initial Balance</label>
-              <Input
-                type="number"
-                placeholder="10000"
-                value={newAccountBalance}
-                onChange={(e) => setNewAccountBalance(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium block mb-1">Account Type</label>
+              <Label htmlFor="accountType">Account Type</Label>
               <Select value={accountType} onValueChange={(value: 'paper' | 'live') => setAccountType(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="paper">Paper Trading</SelectItem>
@@ -123,41 +104,59 @@ const AccountManager: React.FC<AccountManagerProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleAddAccount} className="w-full">Create Account</Button>
+            <div className="flex items-end">
+              <Button onClick={handleCreateAccount} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Account
+              </Button>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {accounts.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">No accounts found. Create an account to start trading.</p>
-            ) : (
-              accounts.map((account) => (
-                <div
-                  key={account.id}
-                  className={`p-3 rounded-lg border cursor-pointer ${
-                    activeAccountId === account.id ? 'bg-primary/10 border-primary' : 'bg-card border-border hover:bg-secondary/50'
-                  }`}
-                  onClick={() => onSelectAccount(account.id)}
-                >
-                  <div className="flex justify-between items-center">
+        </div>
+
+        {/* Existing Accounts */}
+        <div className="space-y-4">
+          <h3 className="font-semibold">Existing Accounts</h3>
+          {accounts.length === 0 ? (
+            <p className="text-muted-foreground">No accounts created yet</p>
+          ) : (
+            <div className="grid gap-4">
+              {accounts.map((account) => (
+                <div key={account.id} className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">{account.name}</div>
-                      <div className="text-sm text-muted-foreground">{account.type === 'paper' ? 'Paper Trading' : 'Live Trading'}</div>
+                      <h4 className="font-semibold">{account.name}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={account.type === 'live' ? 'default' : 'secondary'}>
+                          {account.type === 'live' ? 'Live' : 'Paper'}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          Balance: ${account.balance.toLocaleString()} {account.currency}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-medium">{formatCurrency(account.balance)}</div>
-                      <div className="text-xs text-muted-foreground">Available Balance</div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setActiveAccount(account.id)}
+                        disabled={account.isActive}
+                      >
+                        {account.isActive ? 'Active' : 'Activate'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteAccount(account.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  {account.assets && account.assets.length > 0 && (
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {account.assets.length} asset{account.assets.length !== 1 ? 's' : ''}
-                    </div>
-                  )}
                 </div>
-              ))
-            )}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
