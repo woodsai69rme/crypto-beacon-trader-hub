@@ -1,8 +1,8 @@
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
-export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'always';
-export type NotificationMethod = 'email' | 'push' | 'sms' | 'in-app';
+export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'always' | '1h' | '4h' | '24h';
+export type NotificationMethod = 'email' | 'push' | 'sms' | 'in-app' | 'app';
 
 export interface Trade {
   id: string;

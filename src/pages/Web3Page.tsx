@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Web3WalletConnector from '@/components/web3/Web3WalletConnector';
+import EnhancedWeb3Dashboard from '@/components/web3/EnhancedWeb3Dashboard';
 import AlgorandNetwork from '@/components/web3/AlgorandNetwork';
-import DeFiDashboard from '@/components/web3/DeFiDashboard';
 
 const Web3Page: React.FC = () => {
   return (
@@ -11,26 +10,31 @@ const Web3Page: React.FC = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Web3 & DeFi Hub</h1>
-          <p className="text-muted-foreground">Connect wallets, track DeFi positions, and manage blockchain assets</p>
+          <p className="text-muted-foreground">Advanced Web3 integration with comprehensive DeFi portfolio management</p>
         </div>
         
-        <Tabs defaultValue="wallets" className="space-y-6">
+        <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="wallets">Wallets</TabsTrigger>
-            <TabsTrigger value="algorand">Algorand</TabsTrigger>
-            <TabsTrigger value="defi">DeFi</TabsTrigger>
+            <TabsTrigger value="dashboard">DeFi Dashboard</TabsTrigger>
+            <TabsTrigger value="algorand">Algorand Network</TabsTrigger>
+            <TabsTrigger value="governance">DAO Governance</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="wallets">
-            <Web3WalletConnector />
+          <TabsContent value="dashboard">
+            <EnhancedWeb3Dashboard />
           </TabsContent>
           
           <TabsContent value="algorand">
             <AlgorandNetwork />
           </TabsContent>
           
-          <TabsContent value="defi">
-            <DeFiDashboard />
+          <TabsContent value="governance">
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">DAO Governance Coming Soon</h3>
+              <p className="text-muted-foreground">
+                Participate in decentralized governance across multiple protocols
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
