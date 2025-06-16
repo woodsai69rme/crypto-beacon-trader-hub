@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Trade, TradingAccount, SupportedCurrency } from '@/types/trading';
+import { Trade, TradingAccount, SupportedCurrency, PortfolioAsset } from '@/types/trading';
 import { v4 as uuidv4 } from 'uuid';
 
 interface TradingContextType {
@@ -8,7 +8,8 @@ interface TradingContextType {
   activeAccount: TradingAccount | null;
   addTrade: (trade: Trade) => void;
   getTotalBalance: () => number;
-  createAccount: (name: string) => string;
+  createAccount: (accountData: Omit<TradingAccount, 'id' | 'createdAt'>) => string;
+  deleteAccount: (accountId: string) => void;
   setActiveAccount: (accountId: string) => void;
 }
 
@@ -18,6 +19,7 @@ const TradingContext = createContext<TradingContextType>({
   addTrade: () => {},
   getTotalBalance: () => 0,
   createAccount: () => '',
+  deleteAccount: () => {},
   setActiveAccount: () => {},
 });
 
@@ -43,7 +45,8 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         trades: [],
         type: 'paper',
         createdAt: new Date().toISOString(),
-        assets: []
+        assets: [],
+        isActive: true
       };
       setAccounts([defaultAccount]);
       setActiveAccountState(defaultAccount);
@@ -79,16 +82,11 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return accounts.reduce((total, account) => total + account.balance, 0);
   };
 
-  const createAccount = (name: string): string => {
+  const createAccount = (accountData: Omit<TradingAccount, 'id' | 'createdAt'>): string => {
     const newAccount: TradingAccount = {
       id: uuidv4(),
-      name,
-      balance: 10000,
-      currency: 'AUD' as SupportedCurrency,
-      trades: [],
-      type: 'paper',
       createdAt: new Date().toISOString(),
-      assets: []
+      ...accountData,
     };
 
     const updatedAccounts = [...accounts, newAccount];
@@ -96,6 +94,17 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('trading-accounts', JSON.stringify(updatedAccounts));
     
     return newAccount.id;
+  };
+
+  const deleteAccount = (accountId: string) => {
+    const updatedAccounts = accounts.filter(account => account.id !== accountId);
+    setAccounts(updatedAccounts);
+    
+    if (activeAccount?.id === accountId) {
+      setActiveAccountState(updatedAccounts.length > 0 ? updatedAccounts[0] : null);
+    }
+    
+    localStorage.setItem('trading-accounts', JSON.stringify(updatedAccounts));
   };
 
   const setActiveAccount = (accountId: string) => {
@@ -112,6 +121,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       addTrade,
       getTotalBalance,
       createAccount,
+      deleteAccount,
       setActiveAccount
     }}>
       {children}

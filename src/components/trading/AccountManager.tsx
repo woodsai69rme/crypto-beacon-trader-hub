@@ -20,7 +20,6 @@ const AccountManager: React.FC = () => {
     const mockAssets: PortfolioAsset[] = [
       {
         coinId: 'bitcoin',
-        coinName: 'Bitcoin',
         amount: 0.5,
         price: 65000,
         symbol: 'BTC',
@@ -33,7 +32,6 @@ const AccountManager: React.FC = () => {
       },
       {
         coinId: 'ethereum',
-        coinName: 'Ethereum',
         amount: 5,
         price: 3500,
         symbol: 'ETH',
@@ -46,7 +44,6 @@ const AccountManager: React.FC = () => {
       },
       {
         coinId: 'solana',
-        coinName: 'Solana',
         amount: 100,
         price: 180,
         symbol: 'SOL',
@@ -59,17 +56,17 @@ const AccountManager: React.FC = () => {
       }
     ];
 
-    const newAccount: Omit<TradingAccount, 'id' | 'createdAt'> = {
+    const newAccountData: Omit<TradingAccount, 'id' | 'createdAt'> = {
       name: newAccountName,
       balance: 50000,
       currency: 'AUD',
       type: accountType,
       assets: mockAssets,
       isActive: true,
-      trades: [] // Add required trades field
+      trades: []
     };
 
-    createAccount(newAccount);
+    createAccount(newAccountData);
     setNewAccountName('');
   };
 

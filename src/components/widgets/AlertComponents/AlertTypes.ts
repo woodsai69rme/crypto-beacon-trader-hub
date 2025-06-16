@@ -1,5 +1,7 @@
 
-import { AlertFrequency, NotificationMethod } from "@/types/trading";
+// Local type definitions to avoid import errors
+export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'always';
+export type NotificationMethod = 'email' | 'push' | 'sms' | 'in-app';
 
 export interface PriceAlertFormData {
   coinId: string;

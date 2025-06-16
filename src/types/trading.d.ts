@@ -1,4 +1,3 @@
-
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
@@ -77,7 +76,6 @@ export interface AIBot {
 
 export interface PortfolioAsset {
   coinId: string;
-  coinName?: string;
   amount: number;
   price: number;
   priceChange?: number;

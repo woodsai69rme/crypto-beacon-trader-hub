@@ -31,7 +31,7 @@ const RealTimePriceChart: React.FC<RealTimePriceChartProps> = ({
     setIsLoading(true);
     
     try {
-      const data = await fetchCoinHistory(coinId, `${timeframe}d`);
+      const data = await fetchCoinHistory(coinId, parseInt(timeframe));
       
       // Format data for chart
       const timestamps = data.prices.map((item: [number, number]) => {
