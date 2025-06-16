@@ -1,7 +1,7 @@
 
 // Local type definitions to avoid import errors
-export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'always';
-export type NotificationMethod = 'email' | 'push' | 'sms' | 'in-app';
+export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'always' | '1h' | '4h' | '24h';
+export type NotificationMethod = 'email' | 'push' | 'sms' | 'in-app' | 'app';
 
 export interface PriceAlertFormData {
   coinId: string;

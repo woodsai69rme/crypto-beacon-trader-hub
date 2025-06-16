@@ -205,7 +205,7 @@ export const PRE_CONFIGURED_BOTS: Omit<AIBot, 'id' | 'createdAt'>[] = ENHANCED_S
   riskLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high',
   maxTradeAmount: Math.floor(Math.random() * 5000) + 1000,
   targetAssets: ['BTC', 'ETH', 'SOL', 'ADA', 'DOT'].slice(0, Math.floor(Math.random() * 3) + 1),
-  performance: strategy.performance || {
+  performance: {
     totalReturn: Math.random() * 40 - 10,
     winRate: Math.floor(Math.random() * 30) + 50,
     trades: Math.floor(Math.random() * 500) + 50,

@@ -1,3 +1,4 @@
+
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
 export type ColorScheme = 'default' | 'neon-future' | 'sunset-gradient' | 'matrix-code' | 'cyber-pulse';
 export type AlertType = 'price' | 'volume' | 'news' | 'technical' | 'portfolio';
@@ -152,7 +153,7 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom';
+  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom' | 'whale-tracking' | 'portfolio-balancing';
   timeframe: number | string;
   parameters: any;
   riskLevel?: string;
