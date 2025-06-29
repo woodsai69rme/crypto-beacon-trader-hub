@@ -79,15 +79,13 @@ export interface PortfolioAsset {
   coinId: string;
   amount: number;
   price: number;
-  priceChange?: number;
-  symbol?: string;
-  name?: string;
-  value?: number;
-  allocation?: number;
-  change24h?: number;
-  changePercent24h?: number;
-  priceAUD?: number;
-  valueAUD?: number;
+  symbol: string;
+  name: string;
+  value: number;
+  allocation: number;
+  change24h: number;
+  priceAUD: number;
+  valueAUD: number;
 }
 
 export interface TradingAccount {
@@ -142,7 +140,7 @@ export interface AITradingStrategy {
   id: string;
   name: string;
   description: string;
-  type: 'trend-following' | 'mean-reversion' | 'breakout' | 'scalping' | 'arbitrage' | 'grid' | 'momentum' | 'pattern-recognition' | 'machine-learning' | 'sentiment' | 'hybrid' | 'custom' | 'ai-predictive' | 'traditional' | 'whale-tracking' | 'portfolio-balancing';
+  type: AITradingStrategyType;
   timeframe: number | string;
   parameters: any;
   riskLevel?: string;
@@ -702,3 +700,21 @@ export interface AlgorandAssetHolding {
   assetId?: number;
   decimals?: number;
 }
+
+export type AITradingStrategyType = 
+  | 'trend-following'
+  | 'mean-reversion'
+  | 'breakout'
+  | 'scalping'
+  | 'arbitrage'
+  | 'grid'
+  | 'momentum' 
+  | 'pattern-recognition'
+  | 'machine-learning'
+  | 'sentiment'
+  | 'hybrid'
+  | 'custom'
+  | 'ai-predictive'
+  | 'traditional'
+  | 'whale-tracking'
+  | 'portfolio-balancing';
