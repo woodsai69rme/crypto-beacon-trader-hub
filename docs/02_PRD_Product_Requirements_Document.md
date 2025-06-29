@@ -1,238 +1,242 @@
 
 # Product Requirements Document (PRD)
+## Crypto Beacon Trader Hub
 
-## 1. Overview
+### Problem Statement
 
-### 1.1 Product Vision
-Create the most comprehensive and user-friendly cryptocurrency trading platform in Australia, empowering users with AI-driven insights, automated trading capabilities, and institutional-grade risk management tools.
+Individual and institutional cryptocurrency traders face significant challenges in the current market:
 
-### 1.2 Product Mission
-To democratize access to professional-grade cryptocurrency trading tools while maintaining the highest standards of security, compliance, and user experience.
+1. **Fragmented Tools**: Traders must use multiple platforms for analysis, trading, news, and portfolio management
+2. **Lack of AI Integration**: Most platforms don't leverage AI for automated trading and market analysis
+3. **Poor Australian Support**: Limited AUD-focused trading platforms with local compliance
+4. **Information Overload**: Difficulty filtering relevant news from noise and fake information
+5. **Complex DeFi Management**: Managing Web3 assets across multiple protocols is cumbersome
+6. **Manual Analysis**: Time-intensive manual market analysis and correlation tracking
 
-### 1.3 Success Criteria
-- Achieve 10,000+ active users within 12 months
-- Process $100M+ in trading volume annually
-- Maintain 99.9% uptime
-- Achieve 4.5+ star user satisfaction rating
+### Product Goals
 
-## 2. User Personas
+#### Primary Goals
+1. **Unified Trading Platform**: Create an all-in-one cryptocurrency trading and management platform
+2. **AI-Powered Automation**: Integrate advanced AI trading bots with multiple strategy options
+3. **Australian Market Focus**: Provide AUD-centric features with local compliance (ATO tax reporting)
+4. **Real-time Intelligence**: Deliver real-time market data, news, and sentiment analysis
+5. **Web3 Integration**: Comprehensive DeFi portfolio management and protocol integration
 
-### 2.1 Primary Personas
+#### Secondary Goals
+1. **Social Trading**: Enable strategy sharing and community-driven insights
+2. **Educational Resources**: Provide learning tools for new and advanced traders
+3. **Risk Management**: Advanced risk assessment and portfolio optimization tools
+4. **Mobile Experience**: Fully responsive design for mobile trading
 
-#### Retail Crypto Trader (Sarah)
-- **Demographics**: 25-40 years old, tech-savvy, disposable income $50K-$150K
-- **Goals**: Maximize returns, minimize time spent on manual trading
-- **Pain Points**: Lack of professional tools, emotional trading decisions
-- **Key Features**: AI trading bots, automated portfolio rebalancing, risk management
+### User Personas
 
-#### Professional Day Trader (Marcus)
-- **Demographics**: 30-50 years old, finance background, income $200K+
-- **Goals**: High-frequency trading, advanced analytics, multiple exchange access
-- **Pain Points**: Platform limitations, high fees, poor execution speed
-- **Key Features**: Advanced charting, multi-exchange trading, low-latency execution
+#### Primary Persona: Active Crypto Trader (Alex)
+- **Demographics**: 28-45 years old, tech-savvy, Australian resident
+- **Background**: 2-5 years crypto experience, trades 2-3 times per week
+- **Goals**: Maximize returns, minimize time spent on analysis, automate routine trades
+- **Pain Points**: Managing multiple platforms, missing market opportunities, tax complexity
+- **Use Cases**: AI bot management, real-time trading, portfolio tracking
 
-#### Crypto Enthusiast/Investor (Jamie)
-- **Demographics**: 20-35 years old, early adopter, long-term investor
-- **Goals**: Stay informed, track portfolio performance, learn new strategies
-- **Pain Points**: Information overload, lack of consolidated view
-- **Key Features**: News aggregation, portfolio analytics, educational content
+#### Secondary Persona: Professional Portfolio Manager (Sarah)
+- **Demographics**: 35-50 years old, finance professional, manages client funds
+- **Background**: Traditional finance background, new to crypto, needs institutional tools
+- **Goals**: Risk management, compliance, client reporting, diversification
+- **Pain Points**: Regulatory uncertainty, risk assessment, client communication
+- **Use Cases**: Portfolio optimization, risk analysis, compliance reporting
 
-### 2.2 Secondary Personas
+#### Tertiary Persona: DeFi Enthusiast (Mark)
+- **Demographics**: 22-35 years old, early adopter, high risk tolerance
+- **Background**: Deep crypto knowledge, active in DeFi protocols, yield farming
+- **Goals**: Maximize DeFi yields, track cross-chain assets, discover new protocols
+- **Pain Points**: Protocol complexity, gas fees, tracking multiple positions
+- **Use Cases**: DeFi position management, yield optimization, protocol discovery
 
-#### Financial Advisor (Robert)
-- **Demographics**: 35-55 years old, licensed professional, manages client funds
-- **Goals**: Offer crypto services to clients, compliance, reporting
-- **Key Features**: Client management, compliance tools, detailed reporting
+### User Stories/Scenarios
 
-#### Institutional Trader (Michelle)
-- **Demographics**: 30-45 years old, institutional background, large portfolios
-- **Goals**: Enterprise-grade tools, compliance, risk management
-- **Key Features**: API access, advanced risk tools, institutional reporting
+#### Epic 1: Trading Automation
+**As an active trader, I want to automate my trading strategies so that I can capitalize on market opportunities 24/7**
 
-## 3. Functional Requirements
+- **Story 1.1**: As a trader, I want to select from pre-configured AI trading bots so that I can start automated trading quickly
+- **Story 1.2**: As a trader, I want to customize bot parameters so that I can align strategies with my risk tolerance
+- **Story 1.3**: As a trader, I want to monitor bot performance so that I can optimize my returns
+- **Story 1.4**: As a trader, I want to pause/resume bots so that I can maintain control during volatile periods
 
-### 3.1 Core Trading Features
+#### Epic 2: Market Intelligence
+**As a trader, I want comprehensive market intelligence so that I can make informed decisions**
 
-#### 3.1.1 Trading Engine
-- **REQ-001**: Support market, limit, and stop orders
-- **REQ-002**: Real-time order execution with sub-second latency
-- **REQ-003**: Multi-exchange order routing
-- **REQ-004**: Paper trading mode for risk-free testing
-- **REQ-005**: Advanced order types (OCO, trailing stop)
+- **Story 2.1**: As a trader, I want real-time news with sentiment analysis so that I can react to market-moving events
+- **Story 2.2**: As a trader, I want fake news detection so that I can avoid misinformation
+- **Story 2.3**: As a trader, I want correlation analysis so that I can understand asset relationships
+- **Story 2.4**: As a trader, I want price alerts so that I can be notified of important market movements
 
-#### 3.1.2 Portfolio Management
-- **REQ-006**: Real-time portfolio valuation in AUD
-- **REQ-007**: Multi-exchange portfolio aggregation
-- **REQ-008**: Performance analytics and reporting
-- **REQ-009**: Risk metrics calculation (VaR, Sharpe ratio)
-- **REQ-010**: Tax reporting for Australian regulations
+#### Epic 3: Portfolio Management
+**As an investor, I want comprehensive portfolio management so that I can track and optimize my investments**
 
-### 3.2 AI Trading Features
+- **Story 3.1**: As an investor, I want real-time portfolio tracking so that I can monitor my performance
+- **Story 3.2**: As an investor, I want tax reporting so that I can comply with ATO requirements
+- **Story 3.3**: As an investor, I want risk analysis so that I can manage my exposure
+- **Story 3.4**: As an investor, I want rebalancing suggestions so that I can optimize my allocation
 
-#### 3.2.1 AI Bot Framework
-- **REQ-011**: Support for 13+ trading strategies
-- **REQ-012**: Multi-model AI integration (GPT-4, Claude, etc.)
-- **REQ-013**: Customizable risk parameters
-- **REQ-014**: Backtesting capabilities
-- **REQ-015**: Performance monitoring and alerts
+#### Epic 4: Web3 Integration
+**As a DeFi user, I want comprehensive Web3 management so that I can track all my decentralized positions**
 
-#### 3.2.2 Market Analysis
-- **REQ-016**: Real-time sentiment analysis
-- **REQ-017**: News impact assessment
-- **REQ-018**: Technical indicator analysis
-- **REQ-019**: Pattern recognition
-- **REQ-020**: Predictive modeling
+- **Story 4.1**: As a DeFi user, I want to connect multiple wallets so that I can view all my assets
+- **Story 4.2**: As a DeFi user, I want to track DeFi positions so that I can monitor my yields
+- **Story 4.3**: As a DeFi user, I want protocol discovery so that I can find new opportunities
+- **Story 4.4**: As a DeFi user, I want cross-chain tracking so that I can manage multi-chain positions
 
-### 3.3 Data and Analytics
+### Features & Requirements
 
-#### 3.3.1 Market Data
-- **REQ-021**: Real-time price feeds from multiple sources
-- **REQ-022**: Historical data (5+ years)
-- **REQ-023**: Order book visualization
-- **REQ-024**: Trading volume analysis
-- **REQ-025**: Market correlation analysis
+| Feature | Priority | Complexity | Dependencies | Status |
+|---------|----------|------------|--------------|--------|
+| **Core Trading Engine** |
+| Real-time market data | P0 | Medium | CoinGecko API | ✅ Complete |
+| Paper trading system | P0 | Low | Local state | ✅ Complete |
+| Live trading integration | P0 | High | Exchange APIs | ⚠️ Partial |
+| Order management | P1 | Medium | Trading engine | ❌ Missing |
+| **AI Trading System** |
+| Pre-configured bots | P0 | Medium | OpenRouter | ✅ Complete |
+| Custom strategies | P1 | High | Strategy engine | ⚠️ Partial |
+| Performance tracking | P0 | Low | Database | ✅ Complete |
+| Risk management | P0 | Medium | Trading engine | ❌ Missing |
+| **Market Intelligence** |
+| News aggregation | P0 | Medium | News APIs | ✅ Complete |
+| Sentiment analysis | P0 | Medium | AI models | ✅ Complete |
+| Fake news detection | P0 | High | NLP models | ✅ Complete |
+| Price alerts | P1 | Low | Notification service | ⚠️ Partial |
+| **Portfolio Management** |
+| Asset tracking | P0 | Low | Price feeds | ✅ Complete |
+| Performance analytics | P0 | Medium | Calculations | ✅ Complete |
+| Tax reporting | P0 | High | ATO compliance | ⚠️ Partial |
+| Risk assessment | P1 | High | Analytics engine | ⚠️ Partial |
+| **Web3 Integration** |
+| Wallet connections | P0 | Medium | Web3 libraries | ✅ Complete |
+| DeFi tracking | P0 | High | Protocol APIs | ✅ Complete |
+| Yield optimization | P1 | High | DeFi protocols | ⚠️ Partial |
+| Cross-chain support | P2 | High | Bridge protocols | ❌ Missing |
+| **User Experience** |
+| Responsive design | P0 | Medium | CSS framework | ✅ Complete |
+| Theme system | P1 | Low | CSS variables | ✅ Complete |
+| Mobile optimization | P1 | Medium | PWA features | ⚠️ Partial |
+| User onboarding | P1 | Medium | Tutorial system | ❌ Missing |
+| **Social Features** |
+| Strategy sharing | P2 | High | Social platform | ❌ Missing |
+| Community insights | P2 | Medium | User system | ❌ Missing |
+| Leaderboards | P2 | Low | Ranking system | ❌ Missing |
+| Comments/ratings | P2 | Medium | User system | ❌ Missing |
 
-#### 3.3.2 Charting and Visualization
-- **REQ-026**: Interactive charts with 50+ indicators
-- **REQ-027**: Multiple timeframes (1m to 1M)
-- **REQ-028**: Custom indicator creation
-- **REQ-029**: Chart annotation tools
-- **REQ-030**: Export capabilities (PDF, PNG)
+### Out-of-Scope
 
-### 3.4 Security and Compliance
+#### Version 1.0 Exclusions
+1. **Mobile Native Apps**: Web-first approach, native apps in future versions
+2. **Fiat On/Off Ramps**: Third-party integration only, no native fiat processing
+3. **Margin Trading**: Spot trading only, margin trading in future versions
+4. **Options/Derivatives**: Basic spot trading focus initially
+5. **Multi-language Support**: English only for v1.0
+6. **White-label Solutions**: Direct consumer focus initially
 
-#### 3.4.1 Security Features
-- **REQ-031**: Multi-factor authentication
-- **REQ-032**: End-to-end encryption
-- **REQ-033**: Secure API key storage
-- **REQ-034**: Session management
-- **REQ-035**: Audit logging
+#### Future Considerations
+1. **Institutional Features**: Advanced compliance, multi-user management
+2. **Advanced Charting**: TradingView-level charting capabilities
+3. **API Access**: Public API for third-party integrations
+4. **Plugin System**: Third-party plugin marketplace
 
-#### 3.4.2 Compliance Features
-- **REQ-036**: KYC/AML verification
-- **REQ-037**: Transaction reporting
-- **REQ-038**: Regulatory compliance monitoring
-- **REQ-039**: Data privacy controls (GDPR)
-- **REQ-040**: Australian tax compliance
+### Constraints
 
-## 4. Non-Functional Requirements
+#### Technical Constraints
+1. **Browser-based**: Must work in modern web browsers without plugins
+2. **API Dependencies**: Reliant on third-party API availability and rate limits
+3. **Real-time Data**: WebSocket limitations and fallback mechanisms
+4. **Mobile Performance**: Must maintain performance on mobile devices
 
-### 4.1 Performance Requirements
-- **NFR-001**: Page load time < 2 seconds
-- **NFR-002**: Order execution latency < 100ms
-- **NFR-003**: Support 10,000+ concurrent users
-- **NFR-004**: 99.9% uptime availability
-- **NFR-005**: Data refresh rate < 5 seconds
+#### Business Constraints
+1. **Regulatory Compliance**: Must comply with Australian financial regulations
+2. **API Costs**: Limited by third-party API pricing models
+3. **User Privacy**: GDPR/Privacy Act compliance requirements
+4. **Security Standards**: Financial-grade security requirements
 
-### 4.2 Security Requirements
-- **NFR-006**: SOC 2 Type II compliance
-- **NFR-007**: ISO 27001 certification
-- **NFR-008**: Regular security audits
-- **NFR-009**: Penetration testing quarterly
-- **NFR-010**: Zero-trust architecture
+#### Resource Constraints
+1. **Development Timeline**: 3-month development window
+2. **Team Size**: Small development team
+3. **Infrastructure Budget**: Cloud hosting cost limitations
+4. **Third-party Services**: Limited budget for premium API access
 
-### 4.3 Usability Requirements
-- **NFR-011**: Mobile-responsive design
-- **NFR-012**: WCAG 2.1 AA accessibility
-- **NFR-013**: Multi-language support (EN, CN)
-- **NFR-014**: Dark/light theme support
-- **NFR-015**: Intuitive navigation (< 3 clicks)
+### Competitors
 
-### 4.4 Scalability Requirements
-- **NFR-016**: Horizontal scaling capability
-- **NFR-017**: Database partitioning support
-- **NFR-018**: CDN integration
-- **NFR-019**: Auto-scaling infrastructure
-- **NFR-020**: Load balancing
+#### Direct Competitors
+1. **CoinTracker**
+   - Strengths: Tax reporting, portfolio tracking
+   - Weaknesses: No trading, limited AI features
+   - Differentiation: We offer integrated trading with AI bots
 
-## 5. Technical Requirements
+2. **3Commas**
+   - Strengths: Trading bots, exchange integration
+   - Weaknesses: Complex UI, no Web3 integration
+   - Differentiation: We offer better UX and DeFi integration
 
-### 5.1 Frontend Requirements
-- **TECH-001**: React 18+ with TypeScript
-- **TECH-002**: Responsive design (mobile-first)
-- **TECH-003**: Progressive Web App (PWA)
-- **TECH-004**: Real-time updates (WebSocket)
-- **TECH-005**: Offline functionality
+3. **Coinigy**
+   - Strengths: Multi-exchange trading, charts
+   - Weaknesses: Outdated UI, no AI features
+   - Differentiation: We offer modern UI with AI automation
 
-### 5.2 Backend Requirements
-- **TECH-006**: Supabase backend infrastructure
-- **TECH-007**: PostgreSQL database
-- **TECH-008**: Edge Functions for API logic
-- **TECH-009**: Real-time subscriptions
-- **TECH-010**: File storage integration
+#### Indirect Competitors
+1. **Traditional Exchanges** (Binance, Coinbase)
+   - Competition: Basic trading functionality
+   - Differentiation: Advanced AI and portfolio management
 
-### 5.3 Integration Requirements
-- **TECH-011**: REST API architecture
-- **TECH-012**: WebSocket for real-time data
-- **TECH-013**: OAuth 2.0 authentication
-- **TECH-014**: Rate limiting and throttling
-- **TECH-015**: API versioning
+2. **DeFi Platforms** (DeFiPulse, Zapper)
+   - Competition: Web3 portfolio tracking
+   - Differentiation: Integrated trading and AI features
 
-### 5.4 Infrastructure Requirements
-- **TECH-016**: Cloud-native deployment
-- **TECH-017**: Auto-scaling groups
-- **TECH-018**: Load balancers
-- **TECH-019**: CDN integration
-- **TECH-020**: Monitoring and alerting
+3. **News Platforms** (CoinDesk, CoinTelegraph)
+   - Competition: Market intelligence
+   - Differentiation: AI-powered analysis and fake news detection
 
-## 6. Dependencies and Integrations
+### Success Metrics
 
-### 6.1 External APIs
-- **DEP-001**: CoinGecko API for market data
-- **DEP-002**: OpenRouter for AI model access
-- **DEP-003**: Exchange APIs (Binance, Coinbase, etc.)
-- **DEP-004**: News APIs for sentiment analysis
-- **DEP-005**: Payment processing (Stripe)
+#### Primary KPIs
+1. **User Acquisition**: 10,000 active users in first year
+2. **Trading Volume**: $100M AUD in platform trading volume
+3. **AI Bot Performance**: >60% average win rate across all bots
+4. **User Retention**: >80% monthly active user retention
+5. **Revenue**: $2M ARR by end of year 2
 
-### 6.2 Third-Party Services
-- **DEP-006**: Email service (Resend)
-- **DEP-007**: SMS service (Twilio)
-- **DEP-008**: Analytics (Google Analytics)
-- **DEP-009**: Error tracking (Sentry)
-- **DEP-010**: Customer support (Intercom)
+#### Secondary KPIs
+1. **User Engagement**: Average 5+ sessions per week per active user
+2. **Feature Adoption**: >70% of users use AI bots within 30 days
+3. **Portfolio Growth**: Average 15% portfolio growth for active users
+4. **News Accuracy**: <5% false positive rate for fake news detection
+5. **Mobile Usage**: >40% of sessions from mobile devices
 
-## 7. Constraints and Assumptions
+#### Technical KPIs
+1. **Performance**: <2 second average page load time
+2. **Uptime**: 99.9% platform availability
+3. **API Response**: <500ms average API response time
+4. **Error Rate**: <1% error rate across all features
+5. **Security**: Zero security breaches or data leaks
 
-### 7.1 Technical Constraints
-- **CON-001**: Limited to React-based frontend
-- **CON-002**: Supabase backend dependency
-- **CON-003**: Browser compatibility (Chrome 90+)
-- **CON-004**: JavaScript/TypeScript only
-- **CON-005**: No native mobile apps initially
+### Risk Assessment
 
-### 7.2 Business Constraints
-- **CON-006**: Australian regulatory compliance required
-- **CON-007**: Limited budget for premium APIs
-- **CON-008**: 6-month launch timeline
-- **CON-009**: Small development team (3-5 people)
-- **CON-010**: Bootstrap funding model
+#### High Risk
+1. **Regulatory Changes**: Crypto regulation changes affecting platform operations
+2. **API Dependencies**: Critical third-party API service disruptions
+3. **Security Breaches**: Platform security compromise affecting user funds/data
+4. **Market Volatility**: Extreme market conditions affecting AI bot performance
 
-### 7.3 Assumptions
-- **ASS-001**: Users have modern browsers
-- **ASS-002**: Stable internet connectivity
-- **ASS-003**: Basic crypto knowledge
-- **ASS-004**: English language proficiency
-- **ASS-005**: Australian market focus initially
+#### Medium Risk
+1. **Competition**: New competitors with similar features
+2. **Technical Debt**: Rapid development creating maintenance challenges
+3. **User Adoption**: Slower than expected user growth
+4. **Cost Overruns**: Higher than expected operational costs
 
-## 8. Acceptance Criteria
+#### Low Risk
+1. **Team Changes**: Key team member departures
+2. **Technology Changes**: Framework or library deprecation
+3. **Performance Issues**: Scaling challenges with user growth
+4. **Feature Complexity**: Underestimated development complexity
 
-### 8.1 MVP Criteria
-- All core trading features functional
-- AI bot deployment and management
-- Basic portfolio analytics
-- Security and authentication
-- Mobile-responsive design
+### Conclusion
 
-### 8.2 Launch Criteria
-- Performance requirements met
-- Security audit passed
-- User acceptance testing completed
-- Documentation finalized
-- Support systems operational
+This PRD outlines a comprehensive cryptocurrency trading platform that addresses key market gaps through AI automation, Australian market focus, and integrated Web3 capabilities. Success depends on executing the core features with high quality while maintaining focus on user experience and regulatory compliance.
 
-### 8.3 Success Criteria
-- User acquisition targets met
-- Technical performance benchmarks achieved
-- Regulatory compliance verified
-- Customer satisfaction metrics met
-- Financial projections on track
+The platform's competitive advantage lies in its unique combination of AI trading automation, comprehensive market intelligence, and integrated DeFi management, all designed specifically for the Australian market with AUD-centric features and local compliance requirements.

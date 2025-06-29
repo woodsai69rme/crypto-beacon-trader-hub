@@ -1,277 +1,214 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Bot, Play, Pause, Settings, TrendingUp, Filter, Search, BarChart3 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { enhancedAiBotService } from '@/services/ai/enhancedAiBotService';
-import { AIBot } from '@/types/trading';
+import { AIBot, AITradingStrategy } from '@/types/trading';
+import { Bot, Play, Pause, Settings, TrendingUp, DollarSign, Activity } from 'lucide-react';
 
 const EnhancedAiBotDashboard: React.FC = () => {
-  const [bots, setBots] = useState<AIBot[]>([]);
-  const [filteredBots, setFilteredBots] = useState<AIBot[]>([]);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterRisk, setFilterRisk] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    const allBots = enhancedAiBotService.getAllBots();
-    setBots(allBots);
-    setFilteredBots(allBots);
-  }, []);
-
-  useEffect(() => {
-    let filtered = bots;
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(bot => bot.status === filterStatus);
-    }
-
-    if (filterRisk !== 'all') {
-      filtered = filtered.filter(bot => bot.riskLevel === filterRisk);
-    }
-
-    if (searchTerm) {
-      filtered = filtered.filter(bot => 
-        bot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bot.strategy.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredBots(filtered);
-  }, [bots, filterStatus, filterRisk, searchTerm]);
+  const [selectedBot, setSelectedBot] = useState<AIBot | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  const allBots = enhancedAiBotService.getAllBots();
+  const activeBots = enhancedAiBotService.getActiveBots();
+  const topPerformers = enhancedAiBotService.getTopPerformingBots(5);
+  const availableStrategies = enhancedAiBotService.getAvailableStrategies();
 
   const toggleBot = (botId: string) => {
     enhancedAiBotService.toggleBot(botId);
-    const updatedBots = enhancedAiBotService.getAllBots();
-    setBots(updatedBots);
+    // Re-fetch data or trigger re-render
   };
 
-  const activeBots = bots.filter(bot => bot.status === 'active');
-  const totalReturn = bots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0) / bots.length;
-  const totalTrades = bots.reduce((sum, bot) => sum + bot.performance.trades, 0);
-  const avgWinRate = bots.reduce((sum, bot) => sum + bot.performance.winRate, 0) / bots.length;
+  const BotCard: React.FC<{ bot: AIBot }> = ({ bot }) => (
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedBot(bot)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{bot.name}</CardTitle>
+        <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
+          {bot.status}
+        </Badge>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Bot className="h-4 w-4" />
+            <span className="text-xs text-muted-foreground">{bot.model}</span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleBot(bot.id);
+            }}
+          >
+            {bot.status === 'active' ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+          </Button>
+        </div>
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Total Return:</span>
+            <span className={bot.performance.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}>
+              {bot.performance.totalReturn.toFixed(2)}%
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>Win Rate:</span>
+            <span>{bot.performance.winRate}%</span>
+          </div>
+          <Progress value={bot.performance.winRate} className="h-2" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const StrategyCard: React.FC<{ strategy: AITradingStrategy }> = ({ strategy }) => (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-sm">{strategy.name}</CardTitle>
+        <p className="text-xs text-muted-foreground">{strategy.description}</p>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <Badge variant="outline">{strategy.type}</Badge>
+          <div className="text-xs space-y-1">
+            <div>Timeframe: {strategy.timeframe}</div>
+            {strategy.performance && (
+              <div className="flex justify-between">
+                <span>Win Rate:</span>
+                <span>{strategy.performance.winRate}%</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">AI Trading Bot Command Center</h2>
-          <p className="text-muted-foreground">Manage and monitor your 20+ pre-configured trading bots</p>
-        </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          {activeBots.length} Active Bots
-        </Badge>
-      </div>
-
-      {/* Performance Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Combined Return</p>
-                <p className={`text-2xl font-bold ${totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(1)}%
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bots</CardTitle>
+            <Bot className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{allBots.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Bots</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{activeBots.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Performance</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {(allBots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0) / allBots.length).toFixed(2)}%
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Trades</p>
-                <p className="text-2xl font-bold">{totalTrades.toLocaleString()}</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Avg Win Rate</p>
-                <p className="text-2xl font-bold">{avgWinRate.toFixed(0)}%</p>
-              </div>
-              <Bot className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Bots</p>
-                <p className="text-2xl font-bold">{activeBots.length}/{bots.length}</p>
-              </div>
-              <Settings className="h-8 w-8 text-orange-600" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {allBots.reduce((sum, bot) => sum + bot.performance.trades, 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filter & Search Bots
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search bots..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="paused">Paused</SelectItem>
-                <SelectItem value="stopped">Stopped</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterRisk} onValueChange={setFilterRisk}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by risk" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Risk Levels</SelectItem>
-                <SelectItem value="low">Low Risk</SelectItem>
-                <SelectItem value="medium">Medium Risk</SelectItem>
-                <SelectItem value="high">High Risk</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={() => {
-              setFilterStatus('all');
-              setFilterRisk('all');
-              setSearchTerm('');
-            }}>
-              Clear Filters
-            </Button>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="active">Active Bots</TabsTrigger>
+          <TabsTrigger value="strategies">Strategies</TabsTrigger>
+          <TabsTrigger value="performance">Top Performers</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allBots.slice(0, 6).map((bot) => (
+              <BotCard key={bot.id} bot={bot} />
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+        
+        <TabsContent value="active" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activeBots.map((bot) => (
+              <BotCard key={bot.id} bot={bot} />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="strategies" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {availableStrategies.slice(0, 9).map((strategy) => (
+              <StrategyCard key={strategy.id} strategy={strategy} />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="performance" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {topPerformers.map((bot) => (
+              <BotCard key={bot.id} bot={bot} />
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* Bot Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredBots.map((bot) => (
-          <Card key={bot.id} className="relative hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm leading-tight">{bot.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 capitalize">
-                    {bot.strategy.replace('-', ' ')}
-                  </p>
-                </div>
-                <Badge 
-                  variant={bot.status === 'active' ? 'default' : 'secondary'}
-                  className="text-xs"
-                >
-                  {bot.status}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" className="text-xs">
-                  {bot.riskLevel} risk
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {bot.model.split('/')[1]}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <p className={`text-sm font-bold ${bot.performance.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {bot.performance.totalReturn >= 0 ? '+' : ''}{bot.performance.totalReturn.toFixed(1)}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">Return</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold">{bot.performance.winRate}%</p>
-                    <p className="text-xs text-muted-foreground">Win Rate</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <p className="text-sm font-bold">{bot.performance.trades}</p>
-                    <p className="text-xs text-muted-foreground">Trades</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold">{bot.performance.sharpeRatio?.toFixed(2) || 'N/A'}</p>
-                    <p className="text-xs text-muted-foreground">Sharpe</p>
-                  </div>
-                </div>
-
-                {/* Status Indicator */}
-                <div className="flex items-center gap-2 p-2 bg-muted rounded text-xs">
-                  <div className={`w-2 h-2 rounded-full ${bot.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  <span>{bot.status === 'active' ? 'Running' : 'Paused'}</span>
-                  {bot.status === 'active' && <TrendingUp className="h-3 w-3 text-green-500 ml-auto" />}
-                </div>
-
-                {/* Controls */}
-                <div className="flex gap-1">
-                  <Button
-                    variant={bot.status === 'active' ? 'destructive' : 'default'}
-                    size="sm"
-                    className="flex-1 text-xs h-8"
-                    onClick={() => toggleBot(bot.id)}
-                  >
-                    {bot.status === 'active' ? (
-                      <>
-                        <Pause className="h-3 w-3 mr-1" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-3 w-3 mr-1" />
-                        Start
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-8 px-2">
-                    <Settings className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredBots.length === 0 && (
+      {selectedBot && (
         <Card>
-          <CardContent className="p-12 text-center">
-            <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Bots Found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your filters or search criteria
-            </p>
+          <CardHeader>
+            <CardTitle>Bot Details: {selectedBot.name}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold">Configuration</h4>
+                  <div className="text-sm space-y-1 mt-2">
+                    <div>Strategy: {selectedBot.strategy}</div>
+                    <div>Model: {selectedBot.model}</div>
+                    <div>Risk Level: {selectedBot.riskLevel}</div>
+                    <div>Max Trade: ${selectedBot.maxTradeAmount.toLocaleString()}</div>
+                    <div>Target Assets: {selectedBot.targetAssets.join(', ')}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold">Performance Metrics</h4>
+                  <div className="text-sm space-y-1 mt-2">
+                    <div>Total Return: {selectedBot.performance.totalReturn.toFixed(2)}%</div>
+                    <div>Win Rate: {selectedBot.performance.winRate}%</div>
+                    <div>Total Trades: {selectedBot.performance.trades}</div>
+                    <div>Max Drawdown: {selectedBot.performance.maxDrawdown.toFixed(2)}%</div>
+                    <div>Sharpe Ratio: {selectedBot.performance.sharpeRatio.toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}

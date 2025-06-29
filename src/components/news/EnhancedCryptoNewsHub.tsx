@@ -1,45 +1,99 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Newspaper, TrendingUp, AlertTriangle, Search, Filter, ExternalLink, ThumbsUp, MessageCircle } from 'lucide-react';
-import { newsAggregatorService } from '@/services/news/newsAggregatorService';
 import { NewsItem } from '@/types/trading';
+import { Newspaper, TrendingUp, AlertTriangle, Search, ExternalLink } from 'lucide-react';
 
 const EnhancedCryptoNewsHub: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [filteredNews, setFilteredNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sentimentFilter, setSentimentFilter] = useState<string>('all');
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // Mock news data - in production, this would come from real APIs
   useEffect(() => {
-    loadNews();
+    const mockNews: NewsItem[] = [
+      {
+        id: '1',
+        title: 'Bitcoin Reaches New All-Time High as Institutional Adoption Grows',
+        summary: 'Bitcoin has surged to unprecedented levels as major institutions continue to add cryptocurrency to their balance sheets.',
+        url: 'https://example.com/news/1',
+        source: 'CoinDesk',
+        publishedAt: new Date().toISOString(),
+        sentiment: 'positive',
+        relevance: 0.95,
+        categories: ['Bitcoin', 'Institutional'],
+        coins: ['bitcoin'],
+        isFake: false,
+        confidence: 0.98
+      },
+      {
+        id: '2',
+        title: 'Ethereum 2.0 Staking Rewards Hit Record High',
+        summary: 'ETH staking yields have reached their highest point in 2024, attracting more validators to the network.',
+        url: 'https://example.com/news/2',
+        source: 'CoinTelegraph',
+        publishedAt: new Date(Date.now() - 3600000).toISOString(),
+        sentiment: 'positive',
+        relevance: 0.88,
+        categories: ['Ethereum', 'Staking'],
+        coins: ['ethereum'],
+        isFake: false,
+        confidence: 0.92
+      },
+      {
+        id: '3',
+        title: 'Regulatory Concerns Impact Crypto Market Sentiment',
+        summary: 'New regulatory proposals have created uncertainty in the cryptocurrency market, leading to increased volatility.',
+        url: 'https://example.com/news/3',
+        source: 'CryptoPanic',
+        publishedAt: new Date(Date.now() - 7200000).toISOString(),
+        sentiment: 'negative',
+        relevance: 0.76,
+        categories: ['Regulation', 'Market'],
+        coins: ['bitcoin', 'ethereum'],
+        isFake: false,
+        confidence: 0.85
+      },
+      {
+        id: '4',
+        title: 'DeFi Protocol Launches Revolutionary Yield Farming Feature',
+        summary: 'A major DeFi protocol has introduced a new yield farming mechanism that promises higher returns with lower risk.',
+        url: 'https://example.com/news/4',
+        source: 'DeFi Pulse',
+        publishedAt: new Date(Date.now() - 10800000).toISOString(),
+        sentiment: 'positive',
+        relevance: 0.82,
+        categories: ['DeFi', 'Yield Farming'],
+        coins: ['ethereum'],
+        isFake: false,
+        confidence: 0.89
+      },
+      {
+        id: '5',
+        title: 'SUSPECTED: Major Exchange Hack Reported - Unverified Claims',
+        summary: 'Unconfirmed reports suggest a major cryptocurrency exchange may have been compromised. Official statements pending.',
+        url: 'https://example.com/news/5',
+        source: 'Unknown Source',
+        publishedAt: new Date(Date.now() - 14400000).toISOString(),
+        sentiment: 'negative',
+        relevance: 0.65,
+        categories: ['Security', 'Exchange'],
+        coins: ['bitcoin', 'ethereum'],
+        isFake: true,
+        confidence: 0.45
+      }
+    ];
+
+    setNews(mockNews);
+    setFilteredNews(mockNews);
   }, []);
 
   useEffect(() => {
-    filterNews();
-  }, [news, searchTerm, sentimentFilter, sourceFilter]);
-
-  const loadNews = async () => {
-    setLoading(true);
-    try {
-      const newsData = await newsAggregatorService.aggregateNews(50);
-      const analyzedNews = await newsAggregatorService.detectFakeNews(newsData);
-      setNews(analyzedNews);
-    } catch (error) {
-      console.error('Failed to load news:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterNews = () => {
     let filtered = news;
 
     if (searchTerm) {
@@ -49,244 +103,183 @@ const EnhancedCryptoNewsHub: React.FC = () => {
       );
     }
 
-    if (sentimentFilter !== 'all') {
-      filtered = filtered.filter(item => item.sentiment === sentimentFilter);
-    }
-
-    if (sourceFilter !== 'all') {
-      filtered = filtered.filter(item => item.source === sourceFilter);
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(item =>
+        item.categories?.includes(selectedCategory)
+      );
     }
 
     setFilteredNews(filtered);
-  };
+  }, [searchTerm, selectedCategory, news]);
 
-  const getSentimentColor = (sentiment: string) => {
+  const getSentimentColor = (sentiment: string | undefined) => {
     switch (sentiment) {
-      case 'positive': return 'text-green-600 bg-green-50';
-      case 'negative': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'positive': return 'text-green-600';
+      case 'negative': return 'text-red-600';
+      default: return 'text-yellow-600';
     }
   };
 
-  const getSentimentIcon = (sentiment: string) => {
+  const getSentimentBadgeVariant = (sentiment: string | undefined) => {
     switch (sentiment) {
-      case 'positive': return '📈';
-      case 'negative': return '📉';
-      default: return '➖';
+      case 'positive': return 'default';
+      case 'negative': return 'destructive';
+      default: return 'secondary';
     }
   };
 
-  const marketSentiment = {
-    positive: news.filter(n => n.sentiment === 'positive').length,
-    negative: news.filter(n => n.sentiment === 'negative').length,
-    neutral: news.filter(n => n.sentiment === 'neutral').length
-  };
+  const NewsCard: React.FC<{ item: NewsItem }> = ({ item }) => (
+    <Card className={`${item.isFake ? 'border-red-200 bg-red-50' : ''}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-sm font-medium leading-tight">{item.title}</CardTitle>
+          <div className="flex items-center space-x-2 ml-2">
+            {item.isFake && (
+              <Badge variant="destructive" className="text-xs">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Suspected Fake
+              </Badge>
+            )}
+            <Badge variant={getSentimentBadgeVariant(item.sentiment)} className="text-xs">
+              {item.sentiment}
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <p className="text-sm text-muted-foreground mb-3">{item.summary}</p>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center space-x-4">
+            <span>{item.source}</span>
+            <span>{new Date(item.publishedAt).toLocaleTimeString()}</span>
+            <span>Confidence: {(item.confidence! * 100).toFixed(0)}%</span>
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <a href={item.url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </Button>
+        </div>
+        {item.categories && (
+          <div className="flex gap-1 mt-2">
+            {item.categories.slice(0, 3).map((category) => (
+              <Badge key={category} variant="outline" className="text-xs">
+                {category}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 
-  const fakeNewsCount = news.filter(n => n.isFake).length;
-  const totalNews = news.length;
+  const categories = ['all', 'Bitcoin', 'Ethereum', 'DeFi', 'Regulation', 'Market', 'Security'];
+  const positiveNews = filteredNews.filter(item => item.sentiment === 'positive');
+  const negativeNews = filteredNews.filter(item => item.sentiment === 'negative');
+  const suspiciousNews = filteredNews.filter(item => item.isFake);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Enhanced Crypto News Hub</h2>
-          <p className="text-muted-foreground">Real-time news with AI sentiment analysis and fake news detection</p>
-        </div>
-        <Button onClick={loadNews} disabled={loading}>
-          <Newspaper className="h-4 w-4 mr-2" />
-          Refresh News
-        </Button>
-      </div>
-
-      {/* Sentiment Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Positive Sentiment</p>
-                <p className="text-2xl font-bold text-green-600">{marketSentiment.positive}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {((marketSentiment.positive / totalNews) * 100).toFixed(0)}% of news
-            </p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Articles</CardTitle>
+            <Newspaper className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredNews.length}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Negative Sentiment</p>
-                <p className="text-2xl font-bold text-red-600">{marketSentiment.negative}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {((marketSentiment.negative / totalNews) * 100).toFixed(0)}% of news
-            </p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Positive Sentiment</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{positiveNews.length}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Neutral News</p>
-                <p className="text-2xl font-bold text-gray-600">{marketSentiment.neutral}</p>
-              </div>
-              <Newspaper className="h-8 w-8 text-gray-600" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {((marketSentiment.neutral / totalNews) * 100).toFixed(0)}% of news
-            </p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Negative Sentiment</CardTitle>
+            <TrendingUp className="h-4 w-4 text-red-600 transform rotate-180" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{negativeNews.length}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Fake News Detected</p>
-                <p className="text-2xl font-bold text-orange-600">{fakeNewsCount}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-orange-600" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {((fakeNewsCount / totalNews) * 100).toFixed(1)}% flagged
-            </p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Suspicious News</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{suspiciousNews.length}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filter News
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search news..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by sentiment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sentiments</SelectItem>
-                <SelectItem value="positive">Positive</SelectItem>
-                <SelectItem value="neutral">Neutral</SelectItem>
-                <SelectItem value="negative">Negative</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sources</SelectItem>
-                <SelectItem value="CryptoPanic">CryptoPanic</SelectItem>
-                <SelectItem value="CoinDesk">CoinDesk</SelectItem>
-                <SelectItem value="CoinTelegraph">CoinTelegraph</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={() => {
-              setSearchTerm('');
-              setSentimentFilter('all');
-              setSourceFilter('all');
-            }}>
-              Clear Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search news..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="px-3 py-2 border rounded-md bg-background"
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category === 'all' ? 'All Categories' : category}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* News Feed */}
-      <Tabs defaultValue="all" className="space-y-6">
+      <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">All News ({filteredNews.length})</TabsTrigger>
-          <TabsTrigger value="positive">Positive ({filteredNews.filter(n => n.sentiment === 'positive').length})</TabsTrigger>
-          <TabsTrigger value="negative">Negative ({filteredNews.filter(n => n.sentiment === 'negative').length})</TabsTrigger>
-          <TabsTrigger value="fake">Fake News ({filteredNews.filter(n => n.isFake).length})</TabsTrigger>
+          <TabsTrigger value="all">All News</TabsTrigger>
+          <TabsTrigger value="positive">Positive</TabsTrigger>
+          <TabsTrigger value="negative">Negative</TabsTrigger>
+          <TabsTrigger value="suspicious">Suspicious</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="all">
-          <div className="space-y-4">
-            {filteredNews.map((item) => (
-              <Card key={item.id} className={`hover:shadow-md transition-shadow ${item.isFake ? 'border-orange-200 bg-orange-50' : ''}`}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={getSentimentColor(item.sentiment || 'neutral')}>
-                        {getSentimentIcon(item.sentiment || 'neutral')} {item.sentiment}
-                      </Badge>
-                      <Badge variant="secondary">{item.source}</Badge>
-                      {item.isFake && (
-                        <Badge variant="destructive">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Potential Fake
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(item.publishedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  
-                  <h3 className="font-semibold text-lg mb-2 leading-tight">{item.title}</h3>
-                  <p className="text-muted-foreground mb-4 line-clamp-2">{item.summary}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <ThumbsUp className="h-4 w-4" />
-                        <span>{Math.floor(Math.random() * 100)}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MessageCircle className="h-4 w-4" />
-                        <span>{Math.floor(Math.random() * 50)}</span>
-                      </div>
-                      {item.relevance && (
-                        <Badge variant="outline">
-                          {item.relevance.toFixed(0)}% relevant
-                        </Badge>
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={item.url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Read More
-                      </a>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        
+        <TabsContent value="all" className="space-y-4">
+          {filteredNews.map((item) => (
+            <NewsCard key={item.id} item={item} />
+          ))}
         </TabsContent>
-
-        <TabsContent value="positive">
-          {/* Same structure but filtered for positive news */}
+        
+        <TabsContent value="positive" className="space-y-4">
+          {positiveNews.map((item) => (
+            <NewsCard key={item.id} item={item} />
+          ))}
         </TabsContent>
-
-        <TabsContent value="negative">
-          {/* Same structure but filtered for negative news */}
+        
+        <TabsContent value="negative" className="space-y-4">
+          {negativeNews.map((item) => (
+            <NewsCard key={item.id} item={item} />
+          ))}
         </TabsContent>
-
-        <TabsContent value="fake">
-          {/* Same structure but filtered for fake news */}
+        
+        <TabsContent value="suspicious" className="space-y-4">
+          {suspiciousNews.map((item) => (
+            <NewsCard key={item.id} item={item} />
+          ))}
+          {suspiciousNews.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No suspicious news detected. Our AI filtering is working well!
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
