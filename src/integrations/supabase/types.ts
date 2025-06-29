@@ -1663,6 +1663,62 @@ export type Database = {
           },
         ]
       }
+      paper_trades: {
+        Row: {
+          amount: number
+          bot_id: string
+          created_at: string
+          fee: number
+          id: string
+          price: number
+          reasoning: string | null
+          side: string
+          status: string
+          symbol: string
+          timestamp: string
+          total_value: number
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          bot_id: string
+          created_at?: string
+          fee?: number
+          id?: string
+          price?: number
+          reasoning?: string | null
+          side: string
+          status?: string
+          symbol: string
+          timestamp?: string
+          total_value?: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bot_id?: string
+          created_at?: string
+          fee?: number
+          id?: string
+          price?: number
+          reasoning?: string | null
+          side?: string
+          status?: string
+          symbol?: string
+          timestamp?: string
+          total_value?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_trades_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "trading_bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_connections: {
         Row: {
           access_token: string | null
@@ -1834,6 +1890,8 @@ export type Database = {
           display_name: string | null
           email: string
           id: string
+          paper_balance: number | null
+          trading_mode: Database["public"]["Enums"]["trading_mode"] | null
           updated_at: string | null
         }
         Insert: {
@@ -1843,6 +1901,8 @@ export type Database = {
           display_name?: string | null
           email: string
           id: string
+          paper_balance?: number | null
+          trading_mode?: Database["public"]["Enums"]["trading_mode"] | null
           updated_at?: string | null
         }
         Update: {
@@ -1852,6 +1912,8 @@ export type Database = {
           display_name?: string | null
           email?: string
           id?: string
+          paper_balance?: number | null
+          trading_mode?: Database["public"]["Enums"]["trading_mode"] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -2765,6 +2827,13 @@ export type Database = {
         | "volume_spike"
         | "sentiment_change"
       bot_status: "active" | "paused" | "stopped" | "error"
+      bot_strategy:
+        | "dca"
+        | "grid_trading"
+        | "momentum"
+        | "mean_reversion"
+        | "sentiment"
+        | "breakout"
       order_status: "pending" | "filled" | "cancelled" | "rejected"
       order_type: "market" | "limit" | "stop_loss" | "take_profit"
       strategy_type:
@@ -2902,6 +2971,14 @@ export const Constants = {
         "sentiment_change",
       ],
       bot_status: ["active", "paused", "stopped", "error"],
+      bot_strategy: [
+        "dca",
+        "grid_trading",
+        "momentum",
+        "mean_reversion",
+        "sentiment",
+        "breakout",
+      ],
       order_status: ["pending", "filled", "cancelled", "rejected"],
       order_type: ["market", "limit", "stop_loss", "take_profit"],
       strategy_type: [
