@@ -1,3 +1,4 @@
+
 import { AIBot, AITradingStrategy, AITradingStrategyType } from '@/types/trading';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,10 +23,12 @@ class EnhancedAiBotService {
         totalReturn: 24.5,
         winRate: 68,
         trades: 47,
+        totalTrades: 47,
         maxDrawdown: 8.2,
         sharpeRatio: 1.4
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Mean Reversion Maestro',
@@ -46,10 +49,12 @@ class EnhancedAiBotService {
         totalReturn: 18.9,
         winRate: 71,
         trades: 63,
+        totalTrades: 63,
         maxDrawdown: 5.9,
         sharpeRatio: 1.6
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Breakout Blitz',
@@ -70,10 +75,12 @@ class EnhancedAiBotService {
         totalReturn: 32.1,
         winRate: 59,
         trades: 31,
+        totalTrades: 31,
         maxDrawdown: 11.8,
         sharpeRatio: 1.9
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Scalping Samurai',
@@ -94,10 +101,12 @@ class EnhancedAiBotService {
         totalReturn: 15.6,
         winRate: 75,
         trades: 124,
+        totalTrades: 124,
         maxDrawdown: 3.5,
         sharpeRatio: 2.2
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Grid Guardian',
@@ -118,10 +127,12 @@ class EnhancedAiBotService {
         totalReturn: 11.2,
         winRate: 69,
         trades: 87,
+        totalTrades: 87,
         maxDrawdown: 4.8,
         sharpeRatio: 1.5
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Arbitrage Ace',
@@ -142,10 +153,12 @@ class EnhancedAiBotService {
         totalReturn: 9.5,
         winRate: 92,
         trades: 53,
+        totalTrades: 53,
         maxDrawdown: 2.1,
         sharpeRatio: 2.8
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Momentum Maverick',
@@ -166,10 +179,12 @@ class EnhancedAiBotService {
         totalReturn: 28.7,
         winRate: 63,
         trades: 39,
+        totalTrades: 39,
         maxDrawdown: 10.5,
         sharpeRatio: 1.7
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Pattern Prodigy',
@@ -190,10 +205,12 @@ class EnhancedAiBotService {
         totalReturn: 16.4,
         winRate: 72,
         trades: 95,
+        totalTrades: 95,
         maxDrawdown: 4.1,
         sharpeRatio: 2.0
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'AI Predictive Pioneer',
@@ -214,10 +231,12 @@ class EnhancedAiBotService {
         totalReturn: 21.9,
         winRate: 66,
         trades: 58,
+        totalTrades: 58,
         maxDrawdown: 7.3,
         sharpeRatio: 1.6
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Traditional Trend Tracker',
@@ -238,15 +257,17 @@ class EnhancedAiBotService {
         totalReturn: 10.3,
         winRate: 70,
         trades: 79,
+        totalTrades: 79,
         maxDrawdown: 3.9,
         sharpeRatio: 1.8
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Whale Activity Tracker',
       description: 'Monitors large wallet movements and follows whale patterns',
-      strategy: 'whale-tracking' as AITradingStrategyType,
+      strategy: 'whale-tracking',
       model: 'claude-3-sonnet',
       isActive: false,
       riskLevel: 'high',
@@ -262,15 +283,17 @@ class EnhancedAiBotService {
         totalReturn: 31.2,
         winRate: 61,
         trades: 23,
+        totalTrades: 23,
         maxDrawdown: 12.5,
         sharpeRatio: 1.8
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     },
     {
       name: 'Portfolio Rebalance Bot',
       description: 'Automatically rebalances portfolio based on target allocations',
-      strategy: 'portfolio-balancing' as AITradingStrategyType,
+      strategy: 'portfolio-balancing',
       model: 'gpt-4',
       isActive: false,
       riskLevel: 'low',
@@ -286,10 +309,12 @@ class EnhancedAiBotService {
         totalReturn: 12.8,
         winRate: 73,
         trades: 156,
+        totalTrades: 156,
         maxDrawdown: 4.2,
         sharpeRatio: 2.1
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     }
   ];
 
@@ -546,10 +571,12 @@ class EnhancedAiBotService {
         totalReturn: 0,
         winRate: 0,
         trades: 0,
+        totalTrades: 0,
         maxDrawdown: 0,
         sharpeRatio: 0
       },
-      status: 'inactive'
+      status: 'paused',
+      auditLog: []
     };
     this.bots.push(newBot);
     return newBot;

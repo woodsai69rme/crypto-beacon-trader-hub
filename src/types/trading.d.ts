@@ -61,6 +61,7 @@ export interface AIBot {
   isActive?: boolean;
   model: string;
   createdAt: string;
+  updatedAt?: string;
   riskLevel: 'low' | 'medium' | 'high';
   maxTradeAmount: number;
   targetAssets: string[];
@@ -73,6 +74,12 @@ export interface AIBot {
     sharpeRatio: number;
   };
   auditLog: AuditLogEntry[];
+  settings?: {
+    stopLoss?: number;
+    takeProfit?: number;
+    maxPositions?: number;
+    riskPerTrade?: number;
+  };
 }
 
 export interface PortfolioAsset {
@@ -86,6 +93,7 @@ export interface PortfolioAsset {
   change24h: number;
   priceAUD: number;
   valueAUD: number;
+  changePercent24h?: number;
 }
 
 export interface TradingAccount {
@@ -136,6 +144,24 @@ export interface AlgorandAsset {
   };
 }
 
+export type AITradingStrategyType = 
+  | 'trend-following'
+  | 'mean-reversion'
+  | 'breakout'
+  | 'scalping'
+  | 'arbitrage'
+  | 'grid'
+  | 'momentum' 
+  | 'pattern-recognition'
+  | 'machine-learning'
+  | 'sentiment'
+  | 'hybrid'
+  | 'custom'
+  | 'ai-predictive'
+  | 'traditional'
+  | 'whale-tracking'
+  | 'portfolio-balancing';
+
 export interface AITradingStrategy {
   id: string;
   name: string;
@@ -169,6 +195,8 @@ export interface AITradingStrategy {
     maxDrawdown?: number;
   };
 }
+
+// All remaining types... keep existing code the same
 
 export interface LocalModel {
   id: string;
@@ -700,21 +728,3 @@ export interface AlgorandAssetHolding {
   assetId?: number;
   decimals?: number;
 }
-
-export type AITradingStrategyType = 
-  | 'trend-following'
-  | 'mean-reversion'
-  | 'breakout'
-  | 'scalping'
-  | 'arbitrage'
-  | 'grid'
-  | 'momentum' 
-  | 'pattern-recognition'
-  | 'machine-learning'
-  | 'sentiment'
-  | 'hybrid'
-  | 'custom'
-  | 'ai-predictive'
-  | 'traditional'
-  | 'whale-tracking'
-  | 'portfolio-balancing';

@@ -1,11 +1,13 @@
 
 import React from 'react';
-import AdvancedPortfolioAnalytics from '@/components/trading/AdvancedPortfolioAnalytics';
+import WoodsAnalyticsDashboard from '@/components/analytics/WoodsAnalyticsDashboard';
 
 const AnalyticsPage: React.FC = () => {
   return (
-    <div className="container mx-auto px-4 py-6">
-      <AdvancedPortfolioAnalytics />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <WoodsAnalyticsDashboard />
+      </div>
     </div>
   );
 };

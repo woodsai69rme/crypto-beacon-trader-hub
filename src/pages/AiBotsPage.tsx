@@ -1,11 +1,13 @@
 
 import React from 'react';
-import EnhancedAiBotDashboard from '@/components/trading/EnhancedAiBotDashboard';
+import WoodsAiTradingSystem from '@/components/trading/WoodsAiTradingSystem';
 
 const AiBotsPage: React.FC = () => {
   return (
-    <div className="container mx-auto px-4 py-6">
-      <EnhancedAiBotDashboard />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <WoodsAiTradingSystem />
+      </div>
     </div>
   );
 };
