@@ -12,6 +12,7 @@ export interface BotInstance {
     totalReturn: number;
     winRate: number;
     trades: number;
+    totalTrades: number;
     maxDrawdown: number;
     sharpeRatio: number;
     lastTradeAt?: string;
@@ -47,11 +48,35 @@ class ComprehensiveAiBotSystem {
           parameters: {}
         },
         status: bot.status === 'active' ? 'active' : 'paused',
-        performance: bot.performance,
+        performance: {
+          ...bot.performance,
+          totalTrades: bot.performance.trades
+        },
         executionLog: [`Bot ${bot.name} initialized at ${new Date().toISOString()}`]
       };
       this.botInstances.set(bot.id, instance);
     });
+  }
+
+  getAvailableStrategies(): AITradingStrategyType[] {
+    return [
+      'grid',
+      'trend-following',
+      'mean-reversion',
+      'breakout',
+      'scalping',
+      'arbitrage',
+      'momentum',
+      'pattern-recognition',
+      'machine-learning',
+      'sentiment',
+      'hybrid',
+      'custom',
+      'ai-predictive',
+      'traditional',
+      'whale-tracking',
+      'portfolio-balancing'
+    ];
   }
 
   async createBot(config: BotConfig): Promise<BotInstance> {
@@ -62,6 +87,7 @@ class ComprehensiveAiBotSystem {
         totalReturn: 0,
         winRate: 0,
         trades: 0,
+        totalTrades: 0,
         maxDrawdown: 0,
         sharpeRatio: 0
       },
@@ -221,6 +247,7 @@ class ComprehensiveAiBotSystem {
 
     // Update performance metrics
     instance.performance.trades++;
+    instance.performance.totalTrades++;
     instance.performance.totalReturn += returnPercent;
     instance.performance.winRate = ((instance.performance.winRate * (instance.performance.trades - 1)) + (isWin ? 100 : 0)) / instance.performance.trades;
     instance.performance.lastTradeAt = new Date().toISOString();

@@ -90,6 +90,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_model_configs: {
+        Row: {
+          api_key_encrypted: string | null
+          config: Json
+          created_at: string
+          endpoint_url: string | null
+          id: string
+          is_active: boolean
+          last_used: string | null
+          model_name: string
+          provider: string
+          updated_at: string
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          config?: Json
+          created_at?: string
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean
+          last_used?: string | null
+          model_name: string
+          provider: string
+          updated_at?: string
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          config?: Json
+          created_at?: string
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean
+          last_used?: string | null
+          model_name?: string
+          provider?: string
+          updated_at?: string
+          usage_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_models: {
         Row: {
           api_endpoint: string | null
@@ -262,6 +307,72 @@ export type Database = {
           updated_at?: string | null
           usage_count?: number
           usage_limit?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_trading_bots: {
+        Row: {
+          ai_model: string
+          config: Json
+          created_at: string
+          id: string
+          last_trade_at: string | null
+          live_balance: number | null
+          max_position_size: number
+          mode: string
+          name: string
+          paper_balance: number
+          performance: Json
+          risk_level: string
+          status: string
+          stop_loss_percentage: number
+          strategy: string
+          take_profit_percentage: number
+          target_symbols: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_model?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          last_trade_at?: string | null
+          live_balance?: number | null
+          max_position_size?: number
+          mode?: string
+          name: string
+          paper_balance?: number
+          performance?: Json
+          risk_level?: string
+          status?: string
+          stop_loss_percentage?: number
+          strategy: string
+          take_profit_percentage?: number
+          target_symbols?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_model?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          last_trade_at?: string | null
+          live_balance?: number | null
+          max_position_size?: number
+          mode?: string
+          name?: string
+          paper_balance?: number
+          performance?: Json
+          risk_level?: string
+          status?: string
+          stop_loss_percentage?: number
+          strategy?: string
+          take_profit_percentage?: number
+          target_symbols?: string[]
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -681,6 +792,99 @@ export type Database = {
           title?: string
           updated_at?: string
           url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bot_audit_logs: {
+        Row: {
+          action: string
+          bot_id: string
+          details: Json
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          bot_id: string
+          details?: Json
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          bot_id?: string
+          details?: Json
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bot_transactions: {
+        Row: {
+          ai_reasoning: string | null
+          bot_id: string
+          created_at: string
+          executed_at: string | null
+          fee: number
+          id: string
+          mode: string
+          price: number
+          quantity: number
+          status: string
+          symbol: string
+          technical_indicators: Json | null
+          total_value: number
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          ai_reasoning?: string | null
+          bot_id: string
+          created_at?: string
+          executed_at?: string | null
+          fee?: number
+          id?: string
+          mode: string
+          price: number
+          quantity: number
+          status?: string
+          symbol: string
+          technical_indicators?: Json | null
+          total_value: number
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          ai_reasoning?: string | null
+          bot_id?: string
+          created_at?: string
+          executed_at?: string | null
+          fee?: number
+          id?: string
+          mode?: string
+          price?: number
+          quantity?: number
+          status?: string
+          symbol?: string
+          technical_indicators?: Json | null
+          total_value?: number
+          transaction_type?: string
           user_id?: string
         }
         Relationships: []
@@ -2055,6 +2259,51 @@ export type Database = {
           },
         ]
       }
+      real_time_market_data: {
+        Row: {
+          change_24h: number | null
+          change_percentage_24h: number | null
+          exchange: string
+          high_24h: number | null
+          id: string
+          last_updated: string
+          low_24h: number | null
+          market_cap: number | null
+          price_aud: number
+          price_usd: number
+          symbol: string
+          volume_24h: number | null
+        }
+        Insert: {
+          change_24h?: number | null
+          change_percentage_24h?: number | null
+          exchange?: string
+          high_24h?: number | null
+          id?: string
+          last_updated?: string
+          low_24h?: number | null
+          market_cap?: number | null
+          price_aud: number
+          price_usd: number
+          symbol: string
+          volume_24h?: number | null
+        }
+        Update: {
+          change_24h?: number | null
+          change_percentage_24h?: number | null
+          exchange?: string
+          high_24h?: number | null
+          id?: string
+          last_updated?: string
+          low_24h?: number | null
+          market_cap?: number | null
+          price_aud?: number
+          price_usd?: number
+          symbol?: string
+          volume_24h?: number | null
+        }
+        Relationships: []
+      }
       resume_analytics: {
         Row: {
           created_at: string | null
@@ -2815,6 +3064,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_initial_trading_bots: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
       populate_dummy_snapshots: {
         Args: Record<PropertyKey, never>
         Returns: undefined

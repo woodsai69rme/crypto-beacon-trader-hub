@@ -97,6 +97,7 @@ export interface AIBot {
     totalReturn: number;
     winRate: number;
     trades: number;
+    totalTrades: number;
     maxDrawdown: number;
     sharpeRatio: number;
   };

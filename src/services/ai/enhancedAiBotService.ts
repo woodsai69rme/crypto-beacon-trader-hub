@@ -1,380 +1,352 @@
 
-import { AIBot, BotConfig, AITradingStrategy } from '@/types/trading';
+import { AIBot, BotConfig } from '@/types/trading';
+import { v4 as uuidv4 } from 'uuid';
 
-export class EnhancedAiBotService {
+class EnhancedAiBotService {
   private bots: AIBot[] = [
     {
-      id: 'bot-1',
-      name: 'BTC Grid Master',
-      description: 'Advanced grid trading bot for Bitcoin with dynamic range adjustments',
+      id: uuidv4(),
+      name: 'Grid Master Pro',
+      description: 'Advanced grid trading with dynamic range adjustment',
       strategy: 'grid',
-      model: 'gpt-4o-mini',
-      status: 'active',
+      model: 'deepseek-r1',
+      status: 'paused',
       accountId: 'paper-1',
-      targetAssets: ['BTC'],
+      targetAssets: ['BTC', 'ETH'],
       riskLevel: 'medium',
-      maxTradeAmount: 5000,
+      maxTradeAmount: 1000,
       performance: {
-        totalReturn: 12.5,
-        winRate: 72,
-        trades: 156,
-        maxDrawdown: -3.2,
+        totalReturn: 15.2,
+        winRate: 72.5,
+        trades: 145,
+        totalTrades: 145,
+        maxDrawdown: 8.1,
         sharpeRatio: 1.8
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-2',
-      name: 'ETH Trend Follower',
-      description: 'Sophisticated trend following bot for Ethereum using multiple timeframes',
+      id: uuidv4(),
+      name: 'Trend Follower AI',
+      description: 'AI-powered trend following with momentum analysis',
       strategy: 'trend-following',
-      model: 'claude-3.5-sonnet',
+      model: 'gpt-4o-mini',
       status: 'active',
       accountId: 'paper-1',
-      targetAssets: ['ETH'],
-      riskLevel: 'medium',
-      maxTradeAmount: 3000,
+      targetAssets: ['BTC', 'SOL'],
+      riskLevel: 'high',
+      maxTradeAmount: 2000,
       performance: {
-        totalReturn: 18.3,
-        winRate: 68,
+        totalReturn: 28.7,
+        winRate: 68.2,
         trades: 89,
-        maxDrawdown: -5.1,
+        totalTrades: 89,
+        maxDrawdown: 12.4,
         sharpeRatio: 2.1
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-3',
-      name: 'Multi-Asset Momentum',
-      description: 'Advanced momentum trading bot covering multiple cryptocurrencies',
-      strategy: 'momentum',
-      model: 'deepseek-r1',
-      status: 'paused',
-      accountId: 'paper-1',
-      targetAssets: ['BTC', 'ETH', 'SOL', 'ADA'],
-      riskLevel: 'high',
-      maxTradeAmount: 8000,
+      id: uuidv4(),
+      name: 'Mean Reversion Wizard',
+      description: 'Statistical arbitrage with mean reversion detection',
+      strategy: 'mean-reversion',
+      model: 'claude-3.5-sonnet',
+      status: 'active',
+      accountId: 'paper-2',
+      targetAssets: ['ETH', 'ADA'],
+      riskLevel: 'low',
+      maxTradeAmount: 500,
       performance: {
-        totalReturn: 24.7,
-        winRate: 65,
-        trades: 234,
-        maxDrawdown: -8.3,
+        totalReturn: 12.3,
+        winRate: 78.9,
+        trades: 203,
+        totalTrades: 203,
+        maxDrawdown: 5.2,
         sharpeRatio: 1.9
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-4',
-      name: 'Arbitrage Hunter',
-      description: 'Cross-exchange arbitrage bot with real-time opportunity detection',
-      strategy: 'arbitrage',
-      model: 'gpt-4o',
-      status: 'active',
-      accountId: 'live-1',
-      targetAssets: ['BTC', 'ETH', 'USDT'],
-      riskLevel: 'low',
-      maxTradeAmount: 2000,
+      id: uuidv4(),
+      name: 'Breakout Hunter',
+      description: 'Volatility breakout detection with volume confirmation',
+      strategy: 'breakout',
+      model: 'gemini-2.0-flash',
+      status: 'paused',
+      accountId: 'paper-1',
+      targetAssets: ['BTC', 'ETH', 'SOL'],
+      riskLevel: 'high',
+      maxTradeAmount: 1500,
       performance: {
-        totalReturn: 8.9,
-        winRate: 85,
-        trades: 445,
-        maxDrawdown: -1.2,
-        sharpeRatio: 3.4
+        totalReturn: 22.1,
+        winRate: 65.4,
+        trades: 76,
+        totalTrades: 76,
+        maxDrawdown: 15.7,
+        sharpeRatio: 1.6
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-5',
-      name: 'Mean Reversion Pro',
-      description: 'Statistical mean reversion bot with advanced volatility modeling',
-      strategy: 'mean-reversion',
-      model: 'gemini-2.0-flash',
+      id: uuidv4(),
+      name: 'Scalp Master 3000',
+      description: 'High-frequency scalping with micro-trend analysis',
+      strategy: 'scalping',
+      model: 'deepseek-r1',
       status: 'active',
-      accountId: 'paper-1',
-      targetAssets: ['BTC', 'ETH'],
+      accountId: 'paper-2',
+      targetAssets: ['BTC'],
       riskLevel: 'medium',
-      maxTradeAmount: 4000,
+      maxTradeAmount: 300,
       performance: {
-        totalReturn: 15.2,
-        winRate: 74,
-        trades: 178,
-        maxDrawdown: -4.1,
+        totalReturn: 8.9,
+        winRate: 82.1,
+        trades: 567,
+        totalTrades: 567,
+        maxDrawdown: 3.8,
         sharpeRatio: 2.3
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-6',
-      name: 'Breakout Scanner',
-      description: 'Pattern recognition bot specialized in breakout trading strategies',
-      strategy: 'breakout',
-      model: 'local-llama',
-      status: 'active',
+      id: uuidv4(),
+      name: 'Arbitrage Scanner',
+      description: 'Cross-exchange arbitrage opportunity scanner',
+      strategy: 'arbitrage',
+      model: 'gpt-4o',
+      status: 'paused',
       accountId: 'paper-1',
-      targetAssets: ['SOL', 'ADA', 'DOT'],
-      riskLevel: 'high',
-      maxTradeAmount: 6000,
+      targetAssets: ['BTC', 'ETH', 'USDT'],
+      riskLevel: 'low',
+      maxTradeAmount: 2000,
       performance: {
-        totalReturn: 21.8,
-        winRate: 61,
-        trades: 92,
-        maxDrawdown: -7.5,
+        totalReturn: 6.7,
+        winRate: 89.3,
+        trades: 234,
+        totalTrades: 234,
+        maxDrawdown: 2.1,
+        sharpeRatio: 2.8
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: uuidv4(),
+      name: 'Momentum Rider',
+      description: 'Momentum-based trading with RSI and MACD confirmation',
+      strategy: 'momentum',
+      model: 'claude-3.5-sonnet',
+      status: 'active',
+      accountId: 'paper-2',
+      targetAssets: ['SOL', 'ADA', 'DOT'],
+      riskLevel: 'medium',
+      maxTradeAmount: 800,
+      performance: {
+        totalReturn: 19.4,
+        winRate: 71.2,
+        trades: 156,
+        totalTrades: 156,
+        maxDrawdown: 9.8,
         sharpeRatio: 1.7
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-7',
-      name: 'Scalping Speed Demon',
-      description: 'High-frequency scalping bot for quick profit opportunities',
-      strategy: 'scalping',
+      id: uuidv4(),
+      name: 'Pattern Recognition AI',
+      description: 'Advanced chart pattern recognition and trading',
+      strategy: 'pattern-recognition',
       model: 'gpt-4o-mini',
       status: 'paused',
-      accountId: 'live-1',
-      targetAssets: ['BTC', 'ETH'],
-      riskLevel: 'high',
-      maxTradeAmount: 1500,
-      performance: {
-        totalReturn: 32.1,
-        winRate: 58,
-        trades: 1247,
-        maxDrawdown: -12.3,
-        sharpeRatio: 1.4
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'bot-8',
-      name: 'Pattern Recognition AI',
-      description: 'Advanced ML-powered pattern recognition for complex market structures',
-      strategy: 'pattern-recognition',
-      model: 'claude-3.5-sonnet',
-      status: 'active',
       accountId: 'paper-1',
-      targetAssets: ['BTC', 'ETH', 'SOL'],
+      targetAssets: ['BTC', 'ETH'],
       riskLevel: 'medium',
-      maxTradeAmount: 7000,
+      maxTradeAmount: 1200,
       performance: {
-        totalReturn: 19.6,
-        winRate: 69,
-        trades: 134,
-        maxDrawdown: -6.2,
-        sharpeRatio: 2.0
+        totalReturn: 16.8,
+        winRate: 69.7,
+        trades: 98,
+        totalTrades: 98,
+        maxDrawdown: 11.2,
+        sharpeRatio: 1.5
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-9',
-      name: 'Sentiment Analysis Pro',
-      description: 'News and social sentiment-driven trading bot with fake news detection',
-      strategy: 'sentiment',
+      id: uuidv4(),
+      name: 'ML Predictor',
+      description: 'Machine learning price prediction model',
+      strategy: 'machine-learning',
       model: 'deepseek-r1',
       status: 'active',
-      accountId: 'paper-1',
-      targetAssets: ['BTC', 'ETH', 'DOGE', 'SHIB'],
-      riskLevel: 'medium',
-      maxTradeAmount: 3500,
+      accountId: 'paper-2',
+      targetAssets: ['BTC', 'ETH', 'SOL', 'ADA'],
+      riskLevel: 'high',
+      maxTradeAmount: 1800,
       performance: {
-        totalReturn: 16.4,
-        winRate: 71,
-        trades: 203,
-        maxDrawdown: -5.8,
+        totalReturn: 31.5,
+        winRate: 64.8,
+        trades: 112,
+        totalTrades: 112,
+        maxDrawdown: 18.3,
         sharpeRatio: 1.9
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-10',
-      name: 'Machine Learning Hybrid',
-      description: 'Advanced ML bot combining multiple strategies with adaptive learning',
-      strategy: 'machine-learning',
-      model: 'gpt-4o',
+      id: uuidv4(),
+      name: 'Sentiment Trader',
+      description: 'Social sentiment and news-based trading',
+      strategy: 'sentiment',
+      model: 'claude-3.5-sonnet',
       status: 'active',
-      accountId: 'live-1',
-      targetAssets: ['BTC', 'ETH', 'SOL', 'ADA', 'DOT'],
-      riskLevel: 'high',
-      maxTradeAmount: 10000,
+      accountId: 'paper-1',
+      targetAssets: ['BTC', 'ETH', 'DOGE'],
+      riskLevel: 'medium',
+      maxTradeAmount: 1000,
       performance: {
-        totalReturn: 28.9,
-        winRate: 66,
-        trades: 167,
-        maxDrawdown: -9.1,
-        sharpeRatio: 2.2
+        totalReturn: 24.6,
+        winRate: 67.3,
+        trades: 87,
+        totalTrades: 87,
+        maxDrawdown: 13.9,
+        sharpeRatio: 1.8
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
     {
-      id: 'bot-11',
-      name: 'AI Predictive Oracle',
-      description: 'Next-generation predictive AI using advanced forecasting models',
-      strategy: 'ai-predictive',
-      model: 'local-mistral',
+      id: uuidv4(),
+      name: 'Hybrid Strategy Bot',
+      description: 'Multi-strategy approach with dynamic switching',
+      strategy: 'hybrid',
+      model: 'gpt-4o',
+      status: 'paused',
+      accountId: 'paper-2',
+      targetAssets: ['BTC', 'ETH', 'SOL'],
+      riskLevel: 'medium',
+      maxTradeAmount: 1500,
+      performance: {
+        totalReturn: 21.7,
+        winRate: 73.1,
+        trades: 134,
+        totalTrades: 134,
+        maxDrawdown: 10.4,
+        sharpeRatio: 2.0
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: uuidv4(),
+      name: 'Custom Strategy X',
+      description: 'User-defined custom trading strategy',
+      strategy: 'custom',
+      model: 'local-llama',
+      status: 'paused',
+      accountId: 'paper-1',
+      targetAssets: ['BTC'],
+      riskLevel: 'low',
+      maxTradeAmount: 600,
+      performance: {
+        totalReturn: 7.8,
+        winRate: 76.4,
+        trades: 45,
+        totalTrades: 45,
+        maxDrawdown: 4.2,
+        sharpeRatio: 1.6
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: uuidv4(),
+      name: 'Whale Tracker',
+      description: 'Large transaction and whale movement tracker',
+      strategy: 'whale-tracking',
+      model: 'deepseek-r1',
       status: 'active',
       accountId: 'paper-1',
       targetAssets: ['BTC', 'ETH'],
       riskLevel: 'high',
-      maxTradeAmount: 12000,
+      maxTradeAmount: 2500,
       performance: {
-        totalReturn: 35.7,
-        winRate: 63,
-        trades: 98,
-        maxDrawdown: -11.4,
+        totalReturn: 18.9,
+        winRate: 61.2,
+        trades: 67,
+        totalTrades: 67,
+        maxDrawdown: 16.7,
+        sharpeRatio: 1.4
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: uuidv4(),
+      name: 'Portfolio Balancer',
+      description: 'Automated portfolio rebalancing and optimization',
+      strategy: 'portfolio-balancing',
+      model: 'claude-3.5-sonnet',
+      status: 'active',
+      accountId: 'paper-2',
+      targetAssets: ['BTC', 'ETH', 'SOL', 'ADA', 'DOT'],
+      riskLevel: 'low',
+      maxTradeAmount: 1000,
+      performance: {
+        totalReturn: 14.3,
+        winRate: 79.6,
+        trades: 189,
+        totalTrades: 189,
+        maxDrawdown: 6.8,
         sharpeRatio: 2.1
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'bot-12',
-      name: 'Traditional TA Master',
-      description: 'Classic technical analysis bot with proven indicators and strategies',
-      strategy: 'traditional',
-      model: 'gemini-2.0-flash',
-      status: 'active',
-      accountId: 'paper-1',
-      targetAssets: ['BTC', 'ETH', 'LTC'],
-      riskLevel: 'low',
-      maxTradeAmount: 2500,
-      performance: {
-        totalReturn: 11.3,
-        winRate: 78,
-        trades: 145,
-        maxDrawdown: -2.8,
-        sharpeRatio: 2.4
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ];
-
-  private strategies: AITradingStrategy[] = [
-    {
-      id: 'grid-1',
-      name: 'Dynamic Grid Trading',
-      description: 'Advanced grid trading with dynamic range adjustments',
-      type: 'grid',
-      timeframe: '5m',
-      parameters: {
-        gridSize: 20,
-        rangeFactor: 0.02,
-        dynamicAdjustment: true
-      }
-    },
-    {
-      id: 'trend-1',
-      name: 'Multi-Timeframe Trend Following',
-      description: 'Trend following across multiple timeframes',
-      type: 'trend-following',
-      timeframe: '15m',
-      parameters: {
-        fastMA: 12,
-        slowMA: 26,
-        signalMA: 9
-      }
-    },
-    {
-      id: 'arbitrage-1',
-      name: 'Cross-Exchange Arbitrage',
-      description: 'Profit from price differences between exchanges',
-      type: 'arbitrage',
-      timeframe: '1m',
-      parameters: {
-        minSpread: 0.5,
-        maxSlippage: 0.1
-      }
-    },
-    {
-      id: 'whale-1',
-      name: 'Whale Activity Tracker',
-      description: 'Monitor and follow large wallet movements',
-      type: 'whale-tracking',
-      timeframe: '1m',
-      parameters: {
-        minTransactionSize: 1000000,
-        followDelay: 30
-      }
-    },
-    {
-      id: 'portfolio-1',
-      name: 'Portfolio Rebalancing',
-      description: 'Automatic portfolio rebalancing based on targets',
-      type: 'portfolio-balancing',
-      timeframe: '1h',
-      parameters: {
-        rebalanceThreshold: 5,
-        targetAllocations: {
-          BTC: 40,
-          ETH: 30,
-          SOL: 20,
-          Others: 10
-        }
-      }
     }
   ];
 
   getAllBots(): AIBot[] {
-    return this.bots;
+    return [...this.bots];
+  }
+
+  getBotById(id: string): AIBot | undefined {
+    return this.bots.find(bot => bot.id === id);
   }
 
   getActiveBots(): AIBot[] {
     return this.bots.filter(bot => bot.status === 'active');
   }
 
-  getTopPerformingBots(limit: number = 5): AIBot[] {
-    return [...this.bots]
-      .sort((a, b) => b.performance.totalReturn - a.performance.totalReturn)
-      .slice(0, limit);
-  }
-
-  getBotsByAccount(accountId: string): AIBot[] {
-    return this.bots.filter(bot => bot.accountId === accountId);
-  }
-
   getBotsByStrategy(strategy: string): AIBot[] {
     return this.bots.filter(bot => bot.strategy === strategy);
   }
 
-  getAvailableStrategies(): AITradingStrategy[] {
-    return this.strategies;
-  }
-
-  toggleBot(botId: string): boolean {
-    const bot = this.bots.find(b => b.id === botId);
-    if (!bot) return false;
-
-    bot.status = bot.status === 'active' ? 'paused' : 'active';
-    bot.updatedAt = new Date().toISOString();
-    return true;
-  }
-
-  updateBotPerformance(botId: string, performance: Partial<AIBot['performance']>): boolean {
-    const bot = this.bots.find(b => b.id === botId);
-    if (!bot) return false;
-
-    bot.performance = { ...bot.performance, ...performance };
-    bot.updatedAt = new Date().toISOString();
-    return true;
-  }
-
   createBot(config: BotConfig): AIBot {
     const newBot: AIBot = {
-      ...config,
+      id: config.id,
+      name: config.name,
+      description: config.description,
+      strategy: config.strategy,
+      model: config.model,
       status: 'paused',
-      accountId: config.parameters.accountId || 'paper-1',
+      accountId: 'paper-1',
+      targetAssets: config.targetAssets,
+      riskLevel: config.riskLevel,
+      maxTradeAmount: config.maxTradeAmount,
       performance: {
         totalReturn: 0,
         winRate: 0,
         trades: 0,
+        totalTrades: 0,
         maxDrawdown: 0,
         sharpeRatio: 0
       },
@@ -386,27 +358,57 @@ export class EnhancedAiBotService {
     return newBot;
   }
 
-  deleteBot(botId: string): boolean {
-    const index = this.bots.findIndex(b => b.id === botId);
+  updateBot(id: string, updates: Partial<AIBot>): AIBot | null {
+    const index = this.bots.findIndex(bot => bot.id === id);
+    if (index === -1) return null;
+
+    this.bots[index] = {
+      ...this.bots[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    return this.bots[index];
+  }
+
+  deleteBot(id: string): boolean {
+    const index = this.bots.findIndex(bot => bot.id === id);
     if (index === -1) return false;
 
     this.bots.splice(index, 1);
     return true;
   }
 
-  getBotStats() {
-    const totalBots = this.bots.length;
-    const activeBots = this.bots.filter(bot => bot.status === 'active').length;
-    const totalTrades = this.bots.reduce((sum, bot) => sum + bot.performance.trades, 0);
-    const avgReturn = this.bots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0) / totalBots;
-    const avgWinRate = this.bots.reduce((sum, bot) => sum + bot.performance.winRate, 0) / totalBots;
+  startBot(id: string): boolean {
+    const bot = this.getBotById(id);
+    if (!bot) return false;
+
+    bot.status = 'active';
+    bot.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  stopBot(id: string): boolean {
+    const bot = this.getBotById(id);
+    if (!bot) return false;
+
+    bot.status = 'paused';
+    bot.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  getPerformanceStats() {
+    const activeBots = this.getActiveBots();
+    const totalReturn = activeBots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0);
+    const avgWinRate = activeBots.reduce((sum, bot) => sum + bot.performance.winRate, 0) / activeBots.length;
+    const totalTrades = activeBots.reduce((sum, bot) => sum + bot.performance.trades, 0);
 
     return {
-      totalBots,
-      activeBots,
-      totalTrades,
-      avgReturn,
-      avgWinRate
+      totalBots: this.bots.length,
+      activeBots: activeBots.length,
+      totalReturn: totalReturn / activeBots.length || 0,
+      avgWinRate: avgWinRate || 0,
+      totalTrades
     };
   }
 }
