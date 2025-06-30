@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,7 @@ import { AIBot, AuditLogEntry, AITradingStrategy } from '@/types/trading';
 import { enhancedAiBotService } from '@/services/ai/enhancedAiBotService';
 import { 
   Bot, Activity, DollarSign, TrendingUp, TrendingDown, 
-  Settings, Play, Pause, Stop, Plus, Trash2, Eye,
+  Settings, Play, Pause, Plus, Trash2, Eye,
   AlertTriangle, CheckCircle, Clock, Zap, Target,
   BarChart3, LineChart, PieChart, RefreshCw
 } from 'lucide-react';

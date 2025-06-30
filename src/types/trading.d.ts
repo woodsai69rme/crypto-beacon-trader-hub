@@ -56,6 +56,7 @@ export interface AuditLogEntry {
 export interface AIBot {
   id: string;
   name: string;
+  description?: string;
   strategy: string;
   status: 'active' | 'paused' | 'stopped';
   isActive?: boolean;
@@ -196,8 +197,6 @@ export interface AITradingStrategy {
   };
 }
 
-// All remaining types... keep existing code the same
-
 export interface LocalModel {
   id: string;
   name: string;
@@ -323,7 +322,6 @@ export interface BacktestResult {
   sortinoRatio: number;
 }
 
-// Widget and Dashboard Types
 export type WidgetType = 'chart' | 'portfolio' | 'news' | 'trade' | 'performance' | 'custom' | 'price-chart' | 'portfolio-summary' | 'watchlist' | 'alerts' | 'trading' | 'aiTrading' | 'aiAnalysis';
 export type WidgetSize = 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full';
 
@@ -337,7 +335,6 @@ export interface Widget {
   customContent?: string;
 }
 
-// Risk Assessment Types
 export interface RiskAssessmentResult {
   score: number;
   overallScore: number;
@@ -356,7 +353,6 @@ export interface RiskAssessmentResult {
   riskByAsset: Record<string, { score: number; factors: string[] }>;
 }
 
-// Wallet Types
 export interface WalletAccount {
   address: string;
   balance: number;
@@ -379,15 +375,6 @@ export interface WalletProvider {
 export interface WalletConnectionProps {
   onConnect: (account: WalletAccount) => void;
   onDisconnect: () => void;
-}
-
-// Tax and Compliance Types
-export interface TaxBracket {
-  min: number;
-  max: number;
-  rate: number;
-  name: string;
-  bracket?: string;
 }
 
 export interface ATOTaxCalculation {
@@ -435,7 +422,6 @@ export interface TaxHarvestTradeItem {
   recommendedAction?: 'sell' | 'hold';
 }
 
-// AI Portfolio Optimization Types
 export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon: 'short' | 'medium' | 'long';
@@ -478,7 +464,6 @@ export interface OptimizationResult {
   improvement: number;
 }
 
-// API Management Types
 export interface ApiEndpoint {
   id?: string;
   name: string;
@@ -509,7 +494,6 @@ export interface ApiUsageStats {
   lastCalled?: string;
 }
 
-// DeFi Types
 export interface DefiProtocol {
   id: string;
   name: string;
@@ -539,7 +523,6 @@ export interface DefiPosition {
   startDate?: string;
 }
 
-// Market Insights Types
 export interface MarketInsight {
   id: string;
   title: string;
@@ -562,7 +545,6 @@ export interface MarketInsightsResponse {
   marketSentiment: 'bullish' | 'bearish' | 'neutral';
 }
 
-// Real-time Price Types
 export interface RealTimePriceChartProps {
   symbol: string;
   interval: string;
@@ -583,7 +565,6 @@ export interface RealTimePricesProps {
   refreshInterval?: number;
 }
 
-// Dashboard Props Types
 export interface DetachableDashboardProps {
   title: string;
   onDetach: () => void;
@@ -613,7 +594,6 @@ export interface ExtendedAiBotTradingProps {
   onClose?: () => void;
 }
 
-// News Ticker Types
 export interface NewsTickerProps {
   items: NewsItem[];
   speed?: number;
@@ -621,7 +601,6 @@ export interface NewsTickerProps {
   className?: string;
 }
 
-// Portfolio Benchmarking Types
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance: number[];
   portfolioDates: string[];
@@ -634,7 +613,6 @@ export interface EnhancedPortfolioBenchmarkingProps {
   timeframe?: string;
 }
 
-// Correlation Types
 export interface CorrelationHeatmapProps {
   correlationData: number[][];
   coins: CoinOption[];
@@ -649,7 +627,6 @@ export interface PriceCorrelationChartProps {
   asset2Symbol?: string;
 }
 
-// Settings Types
 export interface TickerSettings {
   enabled: boolean;
   position: 'top' | 'bottom' | 'both';
@@ -678,8 +655,6 @@ export interface SettingsFormValues {
   tickerSettings: TickerSettings;
   sidebarSettings: SidebarSettings;
 }
-
-// All remaining types... keep existing code the same
 
 export interface CryptoChartData {
   id?: string;
@@ -717,7 +692,6 @@ export interface RiskAlertData {
   assetId?: string;
 }
 
-// Enhanced Asset Types for Algorand
 export interface AlgorandAssetHolding {
   symbol: string;
   name: string;
