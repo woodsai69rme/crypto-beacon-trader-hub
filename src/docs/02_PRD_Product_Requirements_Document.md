@@ -1,256 +1,210 @@
 
 # Product Requirements Document (PRD)
+## Woods Crypto Trading Platform
 
-## Crypto Beacon Trader Hub
+### Problem Statement
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-05-06
+The cryptocurrency trading landscape presents significant barriers to entry and success for retail traders:
 
-## 1. Introduction
+1. **Complexity Barrier**: Professional trading strategies require extensive technical knowledge and experience
+2. **Time Constraints**: Crypto markets operate 24/7, making manual trading impossible for most people
+3. **Emotional Trading**: Human psychology leads to poor decision-making under market stress
+4. **Limited Tools**: Existing platforms lack sophisticated AI integration and Australian market focus
+5. **High Risk**: Most traders lose money due to lack of proper risk management and strategy testing
+6. **Fragmented Experience**: Users must use multiple tools across different platforms to achieve professional results
 
-### 1.1 Purpose
-This PRD outlines the requirements for the Crypto Beacon Trader Hub, a comprehensive cryptocurrency trading and portfolio management platform designed for both individual traders and institutions.
+### Product Goals
 
-### 1.2 Scope
-This document covers the functional and non-functional requirements for the complete platform, including trading features, portfolio management, AI capabilities, local model integration, and supporting infrastructure.
+#### Primary Goals
+1. **Democratize AI Trading**: Make sophisticated AI trading strategies accessible to all skill levels
+2. **Eliminate Emotional Trading**: Provide automated, data-driven trading decisions
+3. **Maximize Profitability**: Deliver consistent returns through advanced AI algorithms and risk management
+4. **Ensure Safety**: Comprehensive paper trading and risk controls to protect user capital
+5. **Australian Focus**: Provide AUD-native experience with local compliance and tax features
 
-### 1.3 Target Audience
-- Cryptocurrency traders (individual and institutional)
-- Portfolio managers
-- Trading analysts and strategists
-- AI/ML enthusiasts applying models to trading
+#### Secondary Goals
+1. **Build Community**: Create marketplace for strategy sharing and collaborative trading
+2. **Educational Platform**: Teach users about crypto trading through hands-on experience
+3. **Technology Leadership**: Pioneer AI-native trading platform architecture
+4. **Market Expansion**: Scale globally while maintaining local market expertise
 
-## 2. Product Overview
+### User Personas
 
-### 2.1 Product Vision
-To create the most comprehensive and accessible cryptocurrency trading platform that combines institutional-grade tools with cutting-edge AI capabilities, while respecting user privacy through local model training and inference.
+#### Persona 1: "Crypto Chris" - The Curious Beginner
+- **Demographics**: 28-35 years old, Australian, white-collar professional
+- **Background**: Heard about crypto success stories, owns some Bitcoin/Ethereum
+- **Goals**: Learn to trade profitably without losing money or spending all day watching charts
+- **Pain Points**: Overwhelmed by complexity, afraid of losing money, doesn't understand technical analysis
+- **Needs**: Paper trading, educational content, simple automation, clear performance metrics
 
-### 2.2 User Personas
+#### Persona 2: "Algorithm Alice" - The Technical Trader
+- **Demographics**: 32-45 years old, software developer or quant analyst
+- **Background**: Experienced trader, builds own tools, understands programming
+- **Goals**: Create sophisticated trading strategies, backtest algorithms, scale operations
+- **Pain Points**: Time-consuming to build infrastructure, limited AI integration options
+- **Needs**: API access, custom strategy builder, advanced analytics, backtesting tools
 
-#### 2.2.1 Active Trader (Alex)
-- Trades cryptocurrencies daily
-- Seeks advanced charting and analysis tools
-- Values real-time data and quick execution
-- Wants to leverage AI for trading insights
+#### Persona 3: "Portfolio Paul" - The Professional Manager
+- **Demographics**: 40-55 years old, financial advisor or portfolio manager
+- **Background**: Manages client funds, needs institutional-grade tools and reporting
+- **Goals**: Consistent returns, comprehensive reporting, risk management, compliance
+- **Pain Points**: Limited institutional crypto tools, regulatory concerns, client reporting needs
+- **Needs**: Multi-account management, detailed reporting, compliance features, white-label options
 
-#### 2.2.2 Portfolio Manager (Morgan)
-- Manages crypto portfolios for multiple clients
-- Needs portfolio allocation and performance tracking
-- Requires tax reporting and documentation
-- Looks for risk management tools
+#### Persona 4: "Social Sarah" - The Community Trader
+- **Demographics**: 25-40 years old, active on social media, follows crypto influencers
+- **Background**: Trades based on social signals, interested in copy trading
+- **Goals**: Follow successful traders, share strategies, build following
+- **Pain Points**: Hard to identify genuine successful traders, social media noise
+- **Needs**: Copy trading, social features, verified performance, strategy marketplace
 
-#### 2.2.3 AI Enthusiast (Taylor)
-- Has ML/AI background
-- Wants to create and test trading models
-- Prioritizes data privacy and local processing
-- Seeks platform for model deployment and testing
+### User Stories & Scenarios
 
-#### 2.2.4 Institutional Trader (Jordan)
-- Works at a trading firm
-- Needs advanced order book analysis
-- Requires multi-exchange execution capabilities
-- Values low-latency and high-reliability systems
+#### Epic 1: AI Bot Trading
+**As a** crypto trader  
+**I want to** create and deploy AI trading bots  
+**So that** I can trade 24/7 without emotional decision-making
 
-## 3. Feature Requirements
+**Scenarios**:
+- User creates a grid trading bot for sideways markets
+- User deploys sentiment analysis bot during news events
+- User tests multiple strategies simultaneously in paper trading
+- User optimizes bot parameters based on performance data
 
-### 3.1 Core Trading Platform
+#### Epic 2: Risk Management
+**As a** crypto investor  
+**I want to** test strategies safely before risking real money  
+**So that** I can learn and optimize without financial loss
 
-#### 3.1.1 Real-Time Market Data
-- **Must Have:** Real-time price updates from major exchanges
-- **Must Have:** Order book visualization
-- **Must Have:** Trading volume and depth charts
-- **Should Have:** Historical data access with flexible timeframes
-- **Should Have:** Custom alert creation for price movements
+**Scenarios**:
+- User practices with $100,000 AUD paper trading account
+- User sets stop-loss and position sizing rules
+- User receives alerts when risk thresholds are exceeded
+- User views comprehensive risk analytics and recommendations
 
-#### 3.1.2 Trading Interface
-- **Must Have:** Buy/sell execution panel
-- **Must Have:** Order management system
-- **Must Have:** Position tracking
-- **Should Have:** Advanced order types (OCO, trailing stops)
-- **Could Have:** Trade journaling capability
+#### Epic 3: Market Analysis
+**As a** trader  
+**I want to** access professional-grade market analysis  
+**So that** I can make informed trading decisions
 
-#### 3.1.3 Portfolio Management
-- **Must Have:** Holdings overview with real-time valuation
-- **Must Have:** Performance metrics (ROI, drawdowns)
-- **Must Have:** Asset allocation visualization
-- **Should Have:** Portfolio rebalancing tools
-- **Should Have:** Historical portfolio performance tracking
+**Scenarios**:
+- User views real-time correlation between BTC and traditional assets
+- User receives AI-generated market insights and predictions
+- User analyzes technical indicators across multiple timeframes
+- User tracks whale movements and on-chain data
 
-### 3.2 Advanced Analysis Tools
+#### Epic 4: Strategy Marketplace
+**As a** successful trader  
+**I want to** monetize my trading strategies  
+**So that** I can earn passive income from my expertise
 
-#### 3.2.1 Technical Analysis
-- **Must Have:** Multiple chart types and timeframes
-- **Must Have:** Standard technical indicators (RSI, MACD, etc.)
-- **Must Have:** Drawing tools for trend lines and patterns
-- **Should Have:** Automatic pattern recognition
-- **Could Have:** Custom indicator creation
+**Scenarios**:
+- User publishes profitable bot strategy to marketplace
+- User earns commission from strategy subscribers
+- User provides copy trading service with verified track record
+- User builds reputation through community engagement
 
-#### 3.2.2 Institutional-Grade Tools
-- **Must Have:** Liquidity heatmaps
-- **Must Have:** Fibonacci auto-extensions and retracements
-- **Must Have:** Trade probability calculations
-- **Should Have:** Market maker liquidity target tracking
-- **Should Have:** Advanced correlation analysis
+### Features & Requirements (Detailed Table)
 
-### 3.3 AI and ML Capabilities
+| Feature | Priority | Type | Description | Acceptance Criteria | Dependencies |
+|---------|----------|------|-------------|-------------------|--------------|
+| **AI Trading Bots** | P0 | Core | Create, configure, and deploy AI trading bots | User can create bot, select strategy, deploy to paper/live | OpenRouter, Exchange APIs |
+| **Paper Trading** | P0 | Core | Risk-free trading simulation with real data | Unlimited paper accounts with real-time data | Market Data APIs |
+| **Multi-Exchange Support** | P0 | Core | Connect to major crypto exchanges | Support for 10+ major exchanges via CCXT | CCXT Library, API Keys |
+| **Real-time Analytics** | P0 | Core | Live market data and performance tracking | <1 second data updates, comprehensive metrics | Market Data APIs |
+| **Risk Management** | P0 | Core | Automated risk controls and position sizing | Stop-loss, take-profit, exposure limits enforced | Trading Engine |
+| **Strategy Builder** | P1 | Core | Visual tool for creating custom strategies | Drag-drop interface with backtesting | N8N Integration |
+| **Deribit Integration** | P1 | Core | Advanced derivatives trading | Options and futures trading capability | Deribit API |
+| **AI Market Analysis** | P1 | Enhanced | AI-powered market insights and predictions | Daily market analysis with 70%+ accuracy | OpenRouter, ML Models |
+| **Social Trading** | P1 | Enhanced | Copy trading and strategy sharing | Users can follow/copy successful traders | User Management |
+| **Mobile App** | P1 | Enhanced | Native mobile application | Full feature parity with web platform | React Native |
+| **Tax Reporting** | P2 | Compliance | ATO-compliant tax calculations and reporting | Automated tax forms generation | ATO Integration |
+| **Institutional Features** | P2 | Enterprise | Multi-user accounts and admin controls | Role-based access, audit trails | Auth System |
+| **API Access** | P2 | Developer | RESTful API for third-party integrations | Complete API documentation with rate limits | API Framework |
+| **White Label** | P3 | Enterprise | Customizable platform for partners | Branded interface with custom features | Multi-tenancy |
 
-#### 3.3.1 AI Trading Dashboard
-- **Must Have:** AI-generated trading signals
-- **Must Have:** Real-time market sentiment analysis
-- **Must Have:** Performance metrics for AI predictions
-- **Should Have:** Customizable AI strategy parameters
-- **Should Have:** Backtesting capabilities for AI strategies
+### Out of Scope
 
-#### 3.3.2 Local AI Model Integration (MCP)
-- **Must Have:** Local model connection interface
-- **Must Have:** Model training on historical data
-- **Must Have:** Real-time inference capabilities
-- **Must Have:** Performance monitoring for models
-- **Should Have:** Model version control and comparison
+#### Version 1.0 Exclusions
+- **Crypto Wallet**: Focus on trading, not storage (users connect existing exchange accounts)
+- **Crypto News**: Concentrate on analysis tools rather than news aggregation
+- **DeFi Integration**: Exclude decentralized finance features for initial release
+- **Staking Services**: No native staking or yield farming capabilities
+- **NFT Trading**: Focus solely on cryptocurrency trading
+- **Fiat On-ramps**: Users must already have exchange accounts funded
 
-#### 3.3.3 AI Model Types
-- **Must Have:** Price prediction models
-- **Must Have:** Pattern recognition enhancers
-- **Must Have:** Sentiment analysis models
-- **Should Have:** Strategy optimization models
-- **Could Have:** Risk management models
+#### Future Considerations
+- Blockchain integration for on-chain analysis
+- DeFi protocol integration
+- NFT market making
+- Decentralized exchange support
+- Cross-chain arbitrage
 
-### 3.4 User Experience
+### Constraints
 
-#### 3.4.1 Interface
-- **Must Have:** Responsive design for all devices
-- **Must Have:** Customizable dashboard layouts
-- **Must Have:** Dark/light mode with theme options
-- **Should Have:** Keyboard shortcuts for power users
-- **Could Have:** Accessibility features for diverse users
+#### Technical Constraints
+- **Browser Compatibility**: Must support Chrome, Firefox, Safari, Edge (latest 2 versions)
+- **Mobile Responsive**: Full functionality on screens 320px+
+- **API Rate Limits**: Must respect exchange and data provider rate limits
+- **Real-time Performance**: Sub-second latency for critical trading operations
+- **Data Storage**: Comply with Australian data sovereignty requirements
 
-#### 3.4.2 Notifications and Alerts
-- **Must Have:** Price alerts via in-app notifications
-- **Must Have:** Trading signals notifications
-- **Should Have:** Email alert options
-- **Should Have:** Custom alert conditions
-- **Could Have:** Mobile push notifications
+#### Business Constraints
+- **Regulatory Compliance**: Must comply with Australian financial services regulations
+- **Budget Limitations**: Initial development budget of $500K AUD
+- **Timeline**: MVP launch within 6 months
+- **Team Size**: Maximum 8 developers and 2 designers
+- **Infrastructure**: Cloud-first architecture with Australian data centers
 
-### 3.5 Integration and Connectivity
+#### Legal Constraints
+- **Financial Advice**: Cannot provide personalized financial advice
+- **Liability**: Users acknowledge trading risks through comprehensive disclaimers
+- **Data Privacy**: Full GDPR and Australian Privacy Act compliance
+- **Intellectual Property**: All AI models and strategies must be properly licensed
 
-#### 3.5.1 Exchange Connectivity
-- **Must Have:** Data integration with major exchanges
-- **Must Have:** API key management
-- **Should Have:** Direct trading via exchange APIs
-- **Could Have:** FIX protocol support for institutional users
+### Competitors
 
-#### 3.5.2 External Tools
-- **Must Have:** Data export capabilities (CSV, JSON)
-- **Should Have:** TradingView chart integration
-- **Could Have:** Integration with external portfolio trackers
+#### Direct Competitors
+| Competitor | Strengths | Weaknesses | Market Position |
+|------------|-----------|------------|-----------------|
+| **3Commas** | Established brand, good UX | Limited AI, expensive | Market leader |
+| **Pionex** | Built-in bots, low fees | Limited customization | Growing rapidly |
+| **TradingView** | Excellent charts, social | No trading execution | Analysis focus |
+| **Bitsgap** | Multi-exchange, arbitrage | Complex interface | Niche player |
 
-## 4. Non-Functional Requirements
+#### Indirect Competitors
+- **Manual Trading Platforms**: Binance, Coinbase Pro, Kraken
+- **Portfolio Trackers**: CoinTracker, Koinly, Blockfolio
+- **AI Trading Services**: Gekko, Freqtrade, Jesse
+- **Social Trading**: eToro (traditional assets), Bitget Copy Trading
 
-### 4.1 Performance
-- Real-time data updates with < 500ms latency
-- Chart rendering performance optimization
-- Support for handling large historical datasets
-- Efficient memory management for mobile devices
+#### Competitive Advantages
+1. **AI-First Design**: Every feature enhanced by artificial intelligence
+2. **Australian Focus**: Local currency, compliance, and market understanding
+3. **Comprehensive Paper Trading**: Most advanced simulation environment
+4. **Open Architecture**: No vendor lock-in, supports any exchange/AI model
+5. **Visual Strategy Builder**: Non-technical users can create complex strategies
+6. **Transparent Performance**: Real-time, auditable performance tracking
 
-### 4.2 Security
-- Secure API key storage
-- No storage of private keys or seeds
-- End-to-end encryption for sensitive data
-- Regular security audits and updates
+### Success Metrics
 
-### 4.3 Privacy
-- Local processing of sensitive trading data
-- Opt-in only data sharing
-- Compliance with GDPR and other privacy regulations
-- Transparent data usage policies
+#### Primary KPIs
+- **User Acquisition**: 10,000 registered users in first year
+- **Active Users**: 40% monthly active user rate
+- **Trading Volume**: $100M AUD in combined paper and live trading volume
+- **Bot Performance**: Average 15%+ annual returns across all strategies
+- **User Retention**: 60% user retention after 6 months
 
-### 4.4 Reliability
-- 99.9% uptime for core platform functions
-- Graceful degradation during API outages
-- Comprehensive error handling and user feedback
-- Data backup and recovery mechanisms
+#### Secondary KPIs
+- **Strategy Marketplace**: 500+ published strategies
+- **Revenue per User**: $50 AUD average monthly revenue per active user
+- **Support Satisfaction**: 90%+ customer satisfaction score
+- **Platform Uptime**: 99.9% availability
+- **Performance**: <2 second page load times
 
-## 5. Technical Requirements
+---
 
-### 5.1 Frontend
-- React with TypeScript for component development
-- Tailwind CSS for styling with component library support
-- Recharts and Nivo for data visualization
-- State management via Context API or Redux
-- WebSocket support for real-time data
-
-### 5.2 Backend Integration
-- REST API integration with multiple data providers
-- WebSocket connections for real-time updates
-- Secure credential management
-- Rate limiting and request optimization
-
-### 5.3 AI and Data Processing
-- Local model training capabilities
-- Efficient data pipelines for model inference
-- Time-series data processing optimizations
-- Technical indicator calculation library
-
-## 6. Constraints and Assumptions
-
-### 6.1 Constraints
-- API rate limits from third-party data providers
-- Browser limitations for WebSocket connections
-- Mobile device performance constraints
-- Regulatory limitations in certain jurisdictions
-
-### 6.2 Assumptions
-- Users have basic knowledge of cryptocurrency trading
-- Users provide their own exchange API keys
-- Internet connectivity is generally available
-- Users have moderate technical proficiency
-
-## 7. Success Metrics
-
-### 7.1 Technical Metrics
-- Platform load time < 3 seconds
-- Real-time data latency < 500ms
-- Chart rendering performance < 100ms
-- API failure rate < 0.1%
-
-### 7.2 User Engagement Metrics
-- Daily active user growth
-- Feature usage distribution
-- User retention rate
-- Session duration and frequency
-
-### 7.3 Trading Performance Metrics
-- AI model prediction accuracy
-- Portfolio performance vs benchmarks
-- Alert effectiveness rate
-- Trading strategy success rate
-
-## 8. Milestone Plan
-
-### Phase 1: Core Platform (Q2 2025)
-- Basic trading interface
-- Real-time market data
-- Portfolio tracking
-- Standard technical analysis
-
-### Phase 2: Advanced Features (Q3 2025)
-- Institutional-grade tools
-- Enhanced technical analysis
-- Basic AI trading signals
-- Multi-exchange support
-
-### Phase 3: AI Capabilities (Q4 2025)
-- Full AI trading dashboard
-- Local model integration (MCP)
-- Advanced pattern recognition
-- Strategy optimization tools
-
-### Phase 4: Enterprise Features (Q1 2026)
-- Multi-user support
-- Enhanced security features
-- Institutional compliance tools
-- Advanced API integrations
-
-## 9. Approval
-
-This PRD is subject to review and approval by the product and development teams before implementation begins.
+**Document Version**: 1.0  
+**Last Updated**: December 2024  
+**Next Review**: March 2025  
+**Stakeholders**: Product Team, Engineering, Design, Marketing, Legal

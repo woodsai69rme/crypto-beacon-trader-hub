@@ -1,222 +1,190 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, Target, Clock } from 'lucide-react';
-import { advancedOpenRouterService } from '@/services/ai/advancedOpenRouterService';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Play, Download, BarChart } from 'lucide-react';
 
-const BacktestingEngine: React.FC = () => {
-  const { toast } = useToast();
+interface BacktestResult {
+  totalReturn: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  winRate: number;
+  totalTrades: number;
+  profitFactor: number;
+}
+
+export function BacktestingEngine() {
+  const [symbol, setSymbol] = useState('BTC-USD');
+  const [strategy, setStrategy] = useState('grid');
+  const [startDate, setStartDate] = useState('2024-01-01');
+  const [endDate, setEndDate] = useState('2024-12-01');
+  const [initialCapital, setInitialCapital] = useState('10000');
+  const [results, setResults] = useState<BacktestResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<any>(null);
-  const [config, setConfig] = useState({
-    strategy: 'trend-following',
-    timeframe: '1M',
-    initialCapital: 10000,
-    startDate: '2023-01-01',
-    endDate: '2024-01-01'
-  });
-
-  const strategies = [
-    { id: 'trend-following', name: 'Trend Following' },
-    { id: 'mean-reversion', name: 'Mean Reversion' },
-    { id: 'breakout', name: 'Breakout' },
-    { id: 'momentum', name: 'Momentum' }
-  ];
 
   const runBacktest = async () => {
     setIsRunning(true);
-    setProgress(0);
-
-    try {
-      // Simulate progress
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      const backtestResults = await advancedOpenRouterService.performBacktest(
-        config.strategy,
-        config,
-        config.timeframe
-      );
-
-      clearInterval(interval);
-      setProgress(100);
-
-      // Generate mock performance data
-      const performanceData = Array.from({ length: 12 }, (_, i) => ({
-        month: `Month ${i + 1}`,
-        portfolio: 10000 + (backtestResults.totalReturn / 12) * (i + 1) * 100,
-        benchmark: 10000 + (5 / 12) * (i + 1) * 100
-      }));
-
-      setResults({
-        ...backtestResults,
-        performanceData,
-        totalReturn: backtestResults.totalReturn.toFixed(2),
-        winRate: backtestResults.winRate.toFixed(1),
-        maxDrawdown: backtestResults.maxDrawdown.toFixed(2),
-        sharpeRatio: backtestResults.sharpeRatio.toFixed(2)
-      });
-
-      toast({
-        title: 'Backtest Complete',
-        description: `Strategy returned ${backtestResults.totalReturn.toFixed(2)}% over the test period`
-      });
-    } catch (error) {
-      toast({
-        title: 'Backtest Failed',
-        description: 'Error running backtest. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsRunning(false);
-    }
+    
+    // Simulate backtesting delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Mock results
+    const mockResults: BacktestResult = {
+      totalReturn: Math.random() * 50 + 10,
+      sharpeRatio: Math.random() * 2 + 0.5,
+      maxDrawdown: Math.random() * 20 + 5,
+      winRate: Math.random() * 40 + 50,
+      totalTrades: Math.floor(Math.random() * 200 + 50),
+      profitFactor: Math.random() * 2 + 1
+    };
+    
+    setResults(mockResults);
+    setIsRunning(false);
   };
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Strategy Backtesting</CardTitle>
+          <CardTitle>Backtesting Engine</CardTitle>
+          <CardDescription>
+            Test your trading strategies against historical data
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <div>
-              <Label>Strategy</Label>
-              <Select value={config.strategy} onValueChange={(value) => setConfig(prev => ({ ...prev, strategy: value }))}>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="symbol">Trading Pair</Label>
+              <Select value={symbol} onValueChange={setSymbol}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {strategies.map(strategy => (
-                    <SelectItem key={strategy.id} value={strategy.id}>
-                      {strategy.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="BTC-USD">BTC-USD</SelectItem>
+                  <SelectItem value="ETH-USD">ETH-USD</SelectItem>
+                  <SelectItem value="SOL-USD">SOL-USD</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label>Timeframe</Label>
-              <Select value={config.timeframe} onValueChange={(value) => setConfig(prev => ({ ...prev, timeframe: value }))}>
+            <div className="space-y-2">
+              <Label htmlFor="strategy">Strategy</Label>
+              <Select value={strategy} onValueChange={setStrategy}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1W">1 Week</SelectItem>
-                  <SelectItem value="1M">1 Month</SelectItem>
-                  <SelectItem value="3M">3 Months</SelectItem>
-                  <SelectItem value="6M">6 Months</SelectItem>
-                  <SelectItem value="1Y">1 Year</SelectItem>
+                  <SelectItem value="grid">Grid Trading</SelectItem>
+                  <SelectItem value="trend-following">Trend Following</SelectItem>
+                  <SelectItem value="mean-reversion">Mean Reversion</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label>Initial Capital (AUD)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Start Date</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="endDate">End Date</Label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="capital">Initial Capital ($)</Label>
               <Input
                 type="number"
-                value={config.initialCapital}
-                onChange={(e) => setConfig(prev => ({ ...prev, initialCapital: Number(e.target.value) }))}
+                value={initialCapital}
+                onChange={(e) => setInitialCapital(e.target.value)}
               />
             </div>
           </div>
 
-          {isRunning && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Running Backtest</span>
-                <span className="text-sm text-muted-foreground">{progress}%</span>
-              </div>
-              <Progress value={progress} />
-            </div>
-          )}
-
           <Button onClick={runBacktest} disabled={isRunning} className="w-full">
+            <Play className="mr-2 h-4 w-4" />
             {isRunning ? 'Running Backtest...' : 'Run Backtest'}
           </Button>
         </CardContent>
       </Card>
 
       {results && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Metrics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center mb-2">
-                    <TrendingUp className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div className="text-2xl font-bold text-green-500">{results.totalReturn}%</div>
-                  <div className="text-sm text-muted-foreground">Total Return</div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Backtest Results</CardTitle>
+            <CardDescription>
+              Performance metrics for {strategy} strategy on {symbol}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {results.totalReturn.toFixed(2)}%
                 </div>
-
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center mb-2">
-                    <Target className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div className="text-2xl font-bold">{results.winRate}%</div>
-                  <div className="text-sm text-muted-foreground">Win Rate</div>
-                </div>
-
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center mb-2">
-                    <TrendingDown className="h-5 w-5 text-red-500" />
-                  </div>
-                  <div className="text-2xl font-bold text-red-500">{results.maxDrawdown}%</div>
-                  <div className="text-sm text-muted-foreground">Max Drawdown</div>
-                </div>
-
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center mb-2">
-                    <Clock className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div className="text-2xl font-bold">{results.trades}</div>
-                  <div className="text-sm text-muted-foreground">Total Trades</div>
-                </div>
+                <div className="text-sm text-muted-foreground">Total Return</div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Chart</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={results.performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
-                  <Line type="monotone" dataKey="portfolio" stroke="#3b82f6" strokeWidth={2} name="Strategy" />
-                  <Line type="monotone" dataKey="benchmark" stroke="#6b7280" strokeWidth={2} name="Benchmark" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {results.sharpeRatio.toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">
+                  {results.maxDrawdown.toFixed(2)}%
+                </div>
+                <div className="text-sm text-muted-foreground">Max Drawdown</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {results.winRate.toFixed(1)}%
+                </div>
+                <div className="text-sm text-muted-foreground">Win Rate</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {results.totalTrades}
+                </div>
+                <div className="text-sm text-muted-foreground">Total Trades</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {results.profitFactor.toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground">Profit Factor</div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <Button variant="outline">
+                <BarChart className="mr-2 h-4 w-4" />
+                View Details
+              </Button>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Export Results
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
-};
-
-export default BacktestingEngine;
+}

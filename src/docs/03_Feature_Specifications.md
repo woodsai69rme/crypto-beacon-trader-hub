@@ -1,432 +1,613 @@
 
 # Feature Specifications
-
-## Crypto Beacon Trader Hub
-
-**Version:** 1.0.0  
-**Last Updated:** 2025-05-06
-
-This document provides detailed specifications for the key features of the Crypto Beacon Trader Hub platform.
-
-## 1. Real-Time Trading System
-
-### 1.1 Market Data Display
-
-**Description:**  
-Real-time cryptocurrency price and market data visualization with configurable timeframes and data sources.
-
-**Components:**
-- Price charts with multiple visualization options (candlestick, line, OHLC)
-- Volume profile and trading activity indicators
-- Time-based view options (1m, 5m, 15m, 1h, 4h, 1d, 1w)
-- Exchange-specific data feeds with source selection
-- Asset comparison views
-
-**Technical Requirements:**
-- WebSocket connections for real-time data updates
-- Efficient data transformation for chart visualization
-- Memory management for historical data points
-- Throttling mechanisms for high-frequency updates
-
-**User Flow:**
-1. Select cryptocurrency pair from dropdown menu
-2. Choose preferred timeframe and chart type
-3. View real-time price updates and historical data
-4. Apply technical indicators and drawing tools as needed
-5. Toggle between data sources/exchanges
-
-**Success Criteria:**
-- Data refresh rate ≤ 500ms
-- Smooth chart rendering and updates
-- Accurate price and volume representation
-- Seamless timeframe switching
-
-### 1.2 Trade Execution
-
-**Description:**  
-Interface for executing simulated or real cryptocurrency trades with order management capabilities.
-
-**Components:**
-- Buy/sell order form with market and limit options
-- Order book visualization
-- Position sizing calculator
-- Fee estimation and slippage warnings
-- Order status tracking and history
-
-**Technical Requirements:**
-- Secure API key management for exchange connections
-- Order validation before submission
-- Real-time order status updates
-- Transaction record keeping
-
-**User Flow:**
-1. Select order type (market/limit/etc.)
-2. Enter quantity or position size
-3. Review order details and confirmation
-4. Submit order and receive confirmation
-5. Track order status until filled
-6. Review completed trade in history
-
-**Success Criteria:**
-- Order submission time ≤ 1 second
-- Accurate fee calculations
-- Clear feedback on order status
-- Comprehensive trade history recording
-
-## 2. AI Trading Features
-
-### 2.1 AI Trading Dashboard
-
-**Description:**  
-Centralized view of AI-generated trading insights, signals, and performance metrics.
-
-**Components:**
-- Signal strength indicators for major cryptocurrencies
-- Trend prediction visualizations
-- Performance tracking for AI recommendations
-- Market sentiment analysis
-- Customizable alert thresholds
-
-**Technical Requirements:**
-- Integration with prediction models
-- Historical signal tracking database
-- Performance calculation algorithms
-- Real-time signal generation pipeline
-
-**User Flow:**
-1. Access AI dashboard from main navigation
-2. View current signals and predictions
-3. Check historical performance of AI predictions
-4. Configure alert settings for new signals
-5. Explore detailed analysis for specific assets
-
-**Success Criteria:**
-- Signal accuracy metrics
-- User engagement with AI recommendations
-- Signal generation latency ≤ 2 seconds
-- Clear visualization of complex predictions
-
-### 2.2 Local Model Integration (MCP)
-
-**Description:**  
-Framework for connecting, training, and utilizing local AI models for trading analysis.
-
-**Components:**
-- Model connection interface
-- Training data selection and preparation tools
-- Model performance monitoring dashboard
-- Inference output visualization
-- Model management system
-
-**Technical Requirements:**
-- Secure local API connections
-- Data preprocessing pipelines
-- Model evaluation metrics
-- Version control for models
-- Error handling for connection issues
-
-**User Flow:**
-1. Configure local model server connection
-2. Select model type and parameters
-3. Choose training data and initiate training
-4. Monitor training progress
-5. Deploy model for inference
-6. View and utilize prediction results
-
-**Success Criteria:**
-- Successful connection to local models
-- Training completion with accuracy metrics
-- Real-time inference capabilities
-- Clear visualization of model outputs
-
-## 3. Advanced Analysis Tools
-
-### 3.1 Liquidity Heatmaps
-
-**Description:**  
-Visual representation of market liquidity and order book depth for identifying key price levels.
-
-**Components:**
-- Color-coded visualization of buy/sell orders
-- Time-based aggregation of order book activity
-- Large order highlighting
-- Market maker activity indicators
-- Liquidity profile comparison tools
-
-**Technical Requirements:**
-- Order book data aggregation algorithms
-- Visual heatmap rendering engine
-- Real-time data updates
-- Historical liquidity pattern storage
-
-**User Flow:**
-1. Select asset for liquidity analysis
-2. Choose timeframe and aggregation level
-3. View heatmap visualization
-4. Identify significant liquidity levels
-5. Compare current liquidity to historical patterns
-
-**Success Criteria:**
-- Accurate representation of market liquidity
-- Update frequency ≤ 1 second
-- Visual clarity of liquidity concentrations
-- Identification of significant price levels
-
-### 3.2 Fibonacci Analysis System
-
-**Description:**  
-Automated identification and visualization of Fibonacci retracement and extension levels.
-
-**Components:**
-- Automatic swing high/low detection
-- Fibonacci retracement level calculation
-- Fibonacci extension projection
-- Historical accuracy tracker
-- Custom Fibonacci ratio configuration
-
-**Technical Requirements:**
-- Price pattern recognition algorithms
-- Automatic trend identification
-- Dynamic drawing on price charts
-- Performance tracking database
-
-**User Flow:**
-1. Select asset and timeframe
-2. Activate Fibonacci analysis tool
-3. View automatically calculated levels
-4. Optional: adjust detected swing points
-5. Monitor price action around key levels
-6. Track historical accuracy of levels
-
-**Success Criteria:**
-- Accurate swing point detection
-- Clear visualization of Fibonacci levels
-- Historical effectiveness tracking
-- Seamless integration with price charts
-
-## 4. Portfolio Management
-
-### 4.1 Portfolio Dashboard
-
-**Description:**  
-Comprehensive view of cryptocurrency holdings with performance metrics and allocation analysis.
-
-**Components:**
-- Total portfolio value with real-time updates
-- Asset allocation visualization
-- Performance metrics (ROI, PnL, volatility)
-- Historical portfolio value chart
-- Cost basis tracking
-
-**Technical Requirements:**
-- Multi-exchange data aggregation
-- Performance calculation algorithms
-- Historical data storage
-- Portfolio rebalancing calculations
-
-**User Flow:**
-1. View overall portfolio metrics
-2. Explore individual asset performance
-3. Analyze allocation percentages
-4. Track historical portfolio value
-5. Identify rebalancing opportunities
-
-**Success Criteria:**
-- Accurate real-time portfolio valuation
-- Comprehensive performance metrics
-- Clear visualization of asset allocation
-- Actionable portfolio insights
-
-### 4.2 Tax Reporting Tools
-
-**Description:**  
-Utilities for tracking cryptocurrency transactions for tax compliance and reporting.
-
-**Components:**
-- Transaction categorization system
-- Tax lot tracking (FIFO, LIFO, etc.)
-- Realized/unrealized gains calculation
-- Tax event identification
-- Report generation in multiple formats
-
-**Technical Requirements:**
-- Transaction database with categorization
-- Tax calculation algorithms
-- Cost basis tracking system
-- Export functionality for various formats
-
-**User Flow:**
-1. Import or sync transaction history
-2. Select tax calculation method
-3. Review categorized transactions
-4. Generate tax reports for selected period
-5. Export reports in desired format
-
-**Success Criteria:**
-- Accurate gain/loss calculations
-- Comprehensive transaction coverage
-- Compliance with tax regulations
-- User-friendly report generation
-
-## 5. Trading Strategy Tools
-
-### 5.1 Multi-Timeframe Strategy Builder
-
-**Description:**  
-Framework for developing and testing trading strategies across multiple timeframes.
-
-**Components:**
-- Strategy rule builder interface
-- Multi-timeframe condition editor
-- Signal visualization on charts
-- Strategy backtest engine
-- Performance reporting dashboard
-
-**Technical Requirements:**
-- Technical indicator calculation library
-- Strategy execution engine
-- Historical data processing system
-- Performance metrics calculation
-
-**User Flow:**
-1. Create new strategy or select template
-2. Define entry/exit conditions across timeframes
-3. Set risk parameters and position sizing
-4. Run backtest on historical data
-5. Review performance metrics
-6. Refine strategy based on results
-
-**Success Criteria:**
-- Intuitive strategy building interface
-- Accurate backtest results
-- Comprehensive performance metrics
-- Clear visualization of strategy signals
-
-### 5.2 Trade Probability System
-
-**Description:**  
-Real-time calculation and visualization of trade outcome probabilities based on market conditions.
-
-**Components:**
-- Probability calculation engine
-- Risk/reward ratio visualization
-- Historical success rate for similar setups
-- Market condition analysis
-- Confidence scoring system
-
-**Technical Requirements:**
-- Statistical analysis algorithms
-- Pattern recognition for historical comparisons
-- Probability calculation models
-- Visual representation of complex data
-
-**User Flow:**
-1. Identify potential trade setup
-2. Analyze probability metrics
-3. Review historical similar setups
-4. Assess risk/reward based on probabilities
-5. Make informed trading decision
-
-**Success Criteria:**
-- Accurate probability calculations
-- Relevant historical pattern matching
-- Clear visualization of risk/reward
-- Actionable trading insights
-
-## 6. User Experience Features
-
-### 6.1 Customizable Dashboard
-
-**Description:**  
-User-configurable dashboard with drag-and-drop widget management.
-
-**Components:**
-- Widget library with various data modules
-- Layout configuration system
-- Widget settings and customization
-- Layout preset management
-- Layout sharing capabilities
-
-**Technical Requirements:**
-- Drag-and-drop interface implementation
-- Widget state management
-- Layout persistence
-- Widget communication system
-
-**User Flow:**
-1. Access dashboard customization mode
-2. Add/remove/rearrange widgets
-3. Configure widget-specific settings
-4. Save custom layout
-5. Optionally share layout with others
-
-**Success Criteria:**
-- Intuitive drag-and-drop experience
-- Stable widget performance
-- Persistent layout storage
-- Seamless widget interaction
-
-### 6.2 Theme System
-
-**Description:**  
-Customizable visual theming with predefined options and color scheme management.
-
-**Components:**
-- Light/dark mode toggle
-- Theme preset selection
-- Custom color scheme editor
-- Font and UI density settings
-- Color accessibility options
-
-**Technical Requirements:**
-- CSS variable-based theme system
-- Theme persistence
-- Real-time theme switching
-- Accessibility compliance
-
-**User Flow:**
-1. Access theme settings
-2. Select base mode (light/dark)
-3. Choose theme preset or create custom
-4. Adjust specific visual parameters
-5. Apply and save theme settings
-
-**Success Criteria:**
-- Seamless theme switching
-- Consistent styling across application
-- Accessibility compliance
-- User preference persistence
-
-## 7. Mobile Optimization
-
-### 7.1 Responsive Design
-
-**Description:**  
-Fully responsive interface adaptation for various screen sizes and device types.
-
-**Components:**
-- Breakpoint-based layout adjustments
-- Touch-optimized controls
-- Condensed navigation for small screens
-- Performance optimizations for mobile devices
-- Gesture support for common actions
-
-**Technical Requirements:**
-- Media query implementation
-- Touch event handling
-- Conditional rendering for different devices
-- Performance monitoring for mobile experience
-
-**User Flow:**
-1. Access platform from any device
-2. Experience optimized interface based on screen size
-3. Utilize touch controls on mobile devices
-4. Access all critical functionality regardless of device
-
-**Success Criteria:**
-- Functional experience across device types
-- Performance benchmarks on mobile devices
-- Touch control accuracy and responsiveness
-- Feature parity with desktop experience
-
-These feature specifications provide a detailed framework for development, testing, and validation of the Crypto Beacon Trader Hub platform. Additional features and refinements will be documented as the platform evolves.
+## Woods Crypto Trading Platform
+
+### Feature Overview
+
+This document provides detailed specifications for all features in the Woods Crypto Trading Platform, organized by priority and functional area.
+
+---
+
+## Core Trading Features
+
+### 1. AI Trading Bot Engine
+
+**Name**: AI Trading Bot System  
+**Description**: Comprehensive system for creating, managing, and deploying AI-powered trading bots with multiple strategies and models  
+**Priority**: P0 (Critical)  
+**Dependencies**: OpenRouter API, Exchange APIs, Market Data
+
+#### User Flow
+1. User navigates to "Bot Management" section
+2. Clicks "Create New Bot"
+3. Selects trading strategy from 15+ options
+4. Chooses AI model (DeepSeek R1, GPT-4, Claude, etc.)
+5. Configures parameters (risk level, max trade amount, target assets)
+6. Tests in paper trading environment
+7. Deploys to live trading when satisfied
+8. Monitors performance through real-time dashboard
+
+#### Technical Specifications
+- **Supported Strategies**: Grid, Trend Following, Mean Reversion, Arbitrage, Sentiment, Whale Tracking, Portfolio Balancing, Breakout, Scalping, Momentum, Pattern Recognition, ML Prediction, Hybrid, Custom
+- **AI Models**: OpenRouter integration with 20+ models including local LLM support
+- **Risk Controls**: Position sizing (0.1% - 10% of portfolio), stop-loss (1% - 50%), take-profit (1% - 100%)
+- **Execution Speed**: <100ms order execution latency
+- **Paper Trading**: Unlimited virtual accounts with real market data
+
+#### Acceptance Criteria
+- [ ] User can create bot in <2 minutes
+- [ ] All 15+ strategies function correctly
+- [ ] Performance tracking accurate to 0.01%
+- [ ] Real-time status updates
+- [ ] Paper trading matches live trading logic exactly
+- [ ] Bot can be paused/resumed without data loss
+
+---
+
+### 2. Multi-Exchange Integration
+
+**Name**: Universal Exchange Connector  
+**Description**: Unified interface for trading across 100+ cryptocurrency exchanges using CCXT library  
+**Priority**: P0 (Critical)  
+**Dependencies**: CCXT Library, Exchange API Keys, Rate Limiting
+
+#### User Flow
+1. User accesses "Exchange Settings"
+2. Selects exchange from supported list
+3. Enters API credentials (read-only recommended)
+4. Tests connection and permissions
+5. Configures trading pairs and limits
+6. Views unified portfolio across all exchanges
+7. Executes trades from single interface
+
+#### Supported Exchanges
+**Tier 1 (Full Support)**:
+- Binance, Coinbase Pro, Kraken, Bitfinex, Huobi, OKX, Bybit, KuCoin, Gate.io, Bitget
+
+**Tier 2 (Basic Support)**:
+- 90+ additional exchanges via CCXT
+
+**Special Integration**:
+- **Deribit**: Advanced derivatives trading with options and futures
+
+#### Technical Specifications
+- **API Security**: AES-256 encryption for stored credentials
+- **Rate Limiting**: Intelligent throttling to prevent API bans
+- **Error Handling**: Automatic retry with exponential backoff
+- **Data Synchronization**: Real-time balance and position updates
+- **Order Management**: Unified order book across exchanges
+
+#### Acceptance Criteria
+- [ ] Successfully connect to 10+ major exchanges
+- [ ] API key encryption functioning
+- [ ] Real-time balance synchronization
+- [ ] Order execution success rate >99%
+- [ ] Error handling prevents crashes
+- [ ] Unified portfolio view accurate
+
+---
+
+### 3. Real-Time Market Analytics
+
+**Name**: Advanced Market Data System  
+**Description**: Professional-grade market analysis with real-time data, technical indicators, and AI insights  
+**Priority**: P0 (Critical)  
+**Dependencies**: Market Data APIs, Chart Libraries, AI Analysis
+
+#### User Flow
+1. User opens "Analytics Dashboard"
+2. Selects cryptocurrencies to analyze
+3. Chooses timeframes and indicators
+4. Views real-time price charts
+5. Accesses AI-generated market insights
+6. Sets up custom alerts and notifications
+7. Exports analysis for further review
+
+#### Features
+**Real-Time Data**:
+- Price updates every 1-5 seconds
+- Volume and market cap tracking
+- Order book depth analysis
+- Trade history and patterns
+
+**Technical Indicators**:
+- Moving Averages (SMA, EMA, WMA)
+- Oscillators (RSI, Stochastic, MACD)
+- Volume indicators (OBV, Volume Profile)
+- Bollinger Bands, Fibonacci retracements
+- Custom indicator builder
+
+**AI Analysis**:
+- Automated pattern recognition
+- Sentiment analysis from news/social media
+- Price prediction models
+- Market correlation analysis
+- Risk assessment algorithms
+
+#### Technical Specifications
+- **Data Sources**: CoinGecko, CryptoCompare, exchange direct feeds
+- **Update Frequency**: 1-second for major pairs, 5-second for others
+- **Chart Library**: TradingView Charting Library or Recharts
+- **Indicators**: 50+ built-in technical indicators
+- **AI Processing**: OpenRouter integration for analysis
+
+#### Acceptance Criteria
+- [ ] Data latency <2 seconds
+- [ ] All indicators calculate correctly
+- [ ] Charts render smoothly on mobile
+- [ ] AI insights update every 15 minutes
+- [ ] Custom alerts trigger accurately
+- [ ] Export functionality works
+
+---
+
+## Advanced Features
+
+### 4. Strategy Builder & Backtesting
+
+**Name**: Visual Strategy Composer  
+**Description**: Drag-and-drop interface for creating custom trading strategies with comprehensive backtesting  
+**Priority**: P1 (High)  
+**Dependencies**: N8N Integration, Historical Data, Backtesting Engine
+
+#### User Flow
+1. User opens "Strategy Builder"
+2. Drags components onto canvas (indicators, conditions, actions)
+3. Connects components with logic flows
+4. Sets entry/exit conditions
+5. Configures risk management rules
+6. Runs backtest on historical data
+7. Analyzes performance metrics
+8. Deploys strategy as AI bot
+
+#### Components
+**Data Sources**:
+- Price data (OHLCV)
+- Volume indicators
+- Technical indicators
+- News sentiment
+- Social media signals
+- On-chain metrics
+
+**Logic Components**:
+- Conditional statements (if/then/else)
+- Mathematical operations
+- Time-based triggers
+- Portfolio allocation rules
+- Risk management controls
+
+**Actions**:
+- Buy/sell orders
+- Position sizing
+- Stop-loss/take-profit
+- Notifications
+- Data logging
+
+#### Technical Specifications
+- **Visual Editor**: N8N workflow builder integration
+- **Backtesting Engine**: Process 1M+ historical data points
+- **Performance Metrics**: Sharpe ratio, max drawdown, win rate, profit factor
+- **Data Range**: 5+ years of historical data
+- **Strategy Export**: JSON format for sharing
+
+#### Acceptance Criteria
+- [ ] Drag-drop interface responsive
+- [ ] Backtests complete in <30 seconds
+- [ ] Results match forward testing
+- [ ] Strategy can be saved/loaded
+- [ ] Performance metrics accurate
+- [ ] Visual editor works on mobile
+
+---
+
+### 5. Paper Trading Environment
+
+**Name**: Advanced Trading Simulator  
+**Description**: Comprehensive paper trading with real market data and portfolio management  
+**Priority**: P0 (Critical)  
+**Dependencies**: Real-time Market Data, Portfolio Engine
+
+#### User Flow
+1. User creates paper trading account
+2. Selects starting balance (default $100,000 AUD)
+3. Begins trading with real market data
+4. Deploys AI bots in simulation mode
+5. Tracks performance vs benchmarks
+6. Analyzes trading history and patterns
+7. Graduates to live trading when ready
+
+#### Features
+**Account Management**:
+- Multiple paper accounts
+- Custom starting balances
+- Account reset functionality
+- Portfolio snapshots
+- Performance tracking
+
+**Trading Simulation**:
+- Real market prices and spreads
+- Realistic slippage modeling
+- Fee calculations
+- Order types (market, limit, stop)
+- Partial fills and rejections
+
+**Performance Analytics**:
+- P&L tracking in AUD
+- Risk-adjusted returns
+- Drawdown analysis
+- Trade statistics
+- Benchmark comparisons
+
+#### Technical Specifications
+- **Data Accuracy**: Real-time prices with <1 second delay
+- **Slippage Model**: Dynamic based on market conditions
+- **Fee Structure**: Exchange-accurate fee calculations
+- **Portfolio Engine**: Handle 1000+ simultaneous positions
+- **Performance Calculation**: Real-time P&L updates
+
+#### Acceptance Criteria
+- [ ] Paper trading matches live prices exactly
+- [ ] All order types execute correctly
+- [ ] Performance metrics accurate
+- [ ] Account management functions work
+- [ ] Bots operate identically to live mode
+- [ ] Data persistence across sessions
+
+---
+
+## Security & Risk Management
+
+### 6. Advanced Risk Controls
+
+**Name**: Comprehensive Risk Management System  
+**Description**: Multi-layer risk controls to protect user capital  
+**Priority**: P0 (Critical)  
+**Dependencies**: Position Monitoring, Alert System
+
+#### Features
+**Position-Level Controls**:
+- Maximum position size limits
+- Stop-loss automation
+- Take-profit targets
+- Trailing stops
+- Position correlation limits
+
+**Account-Level Controls**:
+- Daily loss limits
+- Maximum drawdown protection
+- Portfolio concentration limits
+- Leverage restrictions
+- Emergency stop functionality
+
+**System-Level Controls**:
+- API key permissions validation
+- Unusual activity detection
+- Market volatility circuit breakers
+- System health monitoring
+- Automated position liquidation
+
+#### Technical Specifications
+- **Monitoring Frequency**: Real-time position checks
+- **Response Time**: <1 second for risk events
+- **Alert Channels**: Email, SMS, push notifications, Discord/Telegram
+- **Data Retention**: 7 years of risk event logs
+- **Backup Systems**: Redundant risk monitoring
+
+#### Acceptance Criteria
+- [ ] All risk limits enforced in real-time
+- [ ] Alerts trigger within 1 second
+- [ ] Emergency stops function correctly
+- [ ] Risk metrics accurate to 0.01%
+- [ ] System continues operating during high volatility
+- [ ] Audit trail complete and immutable
+
+---
+
+## Integration Features
+
+### 7. OpenRouter AI Integration
+
+**Name**: Universal AI Model Access  
+**Description**: Integration with OpenRouter for access to 20+ AI models  
+**Priority**: P1 (High)  
+**Dependencies**: OpenRouter API, Model Selection Engine
+
+#### Supported Models
+**Free Tier**:
+- DeepSeek R1, Gemini 2.0 Flash, Llama 3.1, Mixtral, Nous Hermes
+
+**Premium Tier**:
+- GPT-4o, Claude 3.5 Sonnet, Command R+, PaLM 2
+
+**Local Models**:
+- LLaMA via Ollama
+- Mistral via LM Studio
+- Code Llama via GPT4All
+
+#### Use Cases
+- Market analysis and insights
+- Strategy optimization recommendations
+- Risk assessment reports
+- News sentiment analysis
+- Trading signal generation
+- Portfolio rebalancing suggestions
+
+#### Technical Specifications
+- **API Integration**: RESTful API with streaming support
+- **Model Switching**: Dynamic model selection based on task
+- **Cost Optimization**: Automatic routing to most cost-effective model
+- **Rate Limiting**: Intelligent request batching
+- **Local Fallback**: Switch to local models if API unavailable
+
+#### Acceptance Criteria
+- [ ] All models respond within 10 seconds
+- [ ] Cost tracking accurate
+- [ ] Local models function offline
+- [ ] Model switching seamless
+- [ ] Analysis quality consistent
+- [ ] Error handling robust
+
+---
+
+### 8. N8N Workflow Automation
+
+**Name**: Visual Automation Builder  
+**Description**: Drag-and-drop workflow automation for complex trading strategies  
+**Priority**: P1 (High)  
+**Dependencies**: N8N Platform, Webhook Integration
+
+#### Workflow Templates
+**Trading Workflows**:
+- Multi-timeframe analysis
+- Cross-exchange arbitrage
+- News-based trading
+- Social sentiment trading
+- Portfolio rebalancing
+- Risk management automation
+
+**Notification Workflows**:
+- Performance alerts
+- Market event notifications
+- Portfolio health checks
+- Risk threshold warnings
+- Social media monitoring
+- News sentiment alerts
+
+**Integration Workflows**:
+- Data synchronization
+- Backup automation
+- Report generation
+- Tax calculation
+- API monitoring
+- System diagnostics
+
+#### Technical Specifications
+- **Workflow Engine**: N8N self-hosted instance
+- **Trigger Types**: Webhooks, scheduled, manual, event-driven
+- **Node Library**: 200+ pre-built nodes
+- **Custom Nodes**: Platform-specific trading nodes
+- **Execution**: Parallel processing with queue management
+- **Monitoring**: Real-time execution logs and error handling
+
+#### Acceptance Criteria
+- [ ] Visual editor intuitive for non-developers
+- [ ] Workflows execute reliably
+- [ ] Error handling prevents crashes
+- [ ] Performance scales with complexity
+- [ ] Templates work out-of-box
+- [ ] Integration with all platform features
+
+---
+
+## User Interface Features
+
+### 9. Responsive Dashboard
+
+**Name**: Unified Trading Dashboard  
+**Description**: Comprehensive dashboard showing all trading activity and performance  
+**Priority**: P0 (Critical)  
+**Dependencies**: UI Framework, Data Visualization
+
+#### Dashboard Sections
+**Overview Panel**:
+- Total portfolio value
+- Daily P&L
+- Active bot status
+- Market summary
+
+**Performance Analytics**:
+- Return charts
+- Risk metrics
+- Trade statistics
+- Benchmark comparisons
+
+**Bot Management**:
+- Active bot list
+- Performance rankings
+- Quick controls
+- Status monitoring
+
+**Market Data**:
+- Price tickers
+- Market movers
+- Correlation matrix
+- News feed
+
+#### Technical Specifications
+- **Framework**: React 18 with TypeScript
+- **Styling**: TailwindCSS with shadcn/ui components
+- **Charts**: Recharts for data visualization
+- **Responsive**: Mobile-first design
+- **Performance**: <2 second load time
+- **Real-time**: WebSocket updates every second
+
+#### Acceptance Criteria
+- [ ] Dashboard loads in <2 seconds
+- [ ] All data updates in real-time
+- [ ] Mobile interface fully functional
+- [ ] Charts render correctly on all devices
+- [ ] Navigation intuitive and fast
+- [ ] Offline mode shows cached data
+
+---
+
+### 10. Mobile Optimization
+
+**Name**: Mobile Trading Interface  
+**Description**: Full-featured mobile experience for trading on the go  
+**Priority**: P1 (High)  
+**Dependencies**: Responsive Design, Touch Optimization
+
+#### Mobile Features
+**Touch-Optimized Interface**:
+- Large tap targets
+- Swipe gestures
+- Pull-to-refresh
+- Touch-friendly charts
+
+**Mobile-Specific Functions**:
+- Push notifications
+- Offline mode
+- Quick actions
+- Voice commands (future)
+
+**Performance Optimization**:
+- Progressive loading
+- Image optimization
+- Cached data
+- Compressed assets
+
+#### Technical Specifications
+- **Viewport**: Supports 320px to 2048px width
+- **Touch Targets**: Minimum 44px tap area
+- **Performance**: <1 second load on 3G
+- **Offline**: Critical data cached locally
+- **Notifications**: Push API integration
+
+#### Acceptance Criteria
+- [ ] All features work on mobile
+- [ ] Performance matches desktop
+- [ ] Touch interactions responsive
+- [ ] Offline mode functional
+- [ ] Push notifications reliable
+- [ ] Charts readable on small screens
+
+---
+
+## Data & Analytics Features
+
+### 11. Market Correlation Analysis
+
+**Name**: Cross-Asset Correlation Engine  
+**Description**: Real-time correlation analysis between cryptocurrencies and traditional assets  
+**Priority**: P1 (High)  
+**Dependencies**: Market Data APIs, Statistical Analysis
+
+#### Correlation Types
+**Crypto-to-Crypto**:
+- Bitcoin dominance effects
+- Altcoin correlation patterns
+- Sector rotation analysis
+- Market cap correlation
+
+**Crypto-to-Traditional**:
+- Stock market correlation
+- Gold/silver relationships
+- Currency pair effects
+- Commodity correlations
+
+**Time-Based Analysis**:
+- Rolling correlations
+- Correlation stability
+- Regime change detection
+- Seasonal patterns
+
+#### Technical Specifications
+- **Calculation Method**: Pearson correlation coefficient
+- **Time Windows**: 7d, 30d, 90d, 1y rolling periods
+- **Update Frequency**: Every 15 minutes
+- **Statistical Significance**: P-value calculations
+- **Visualization**: Interactive heatmaps and time series
+
+#### Acceptance Criteria
+- [ ] Correlations calculate accurately
+- [ ] Heatmap updates in real-time
+- [ ] Time series charts interactive
+- [ ] Statistical significance shown
+- [ ] Export functionality works
+- [ ] Mobile visualization clear
+
+---
+
+### 12. Performance Tracking & Reporting
+
+**Name**: Comprehensive Analytics Suite  
+**Description**: Detailed performance tracking with professional-grade metrics  
+**Priority**: P0 (Critical)  
+**Dependencies**: Data Storage, Calculation Engine
+
+#### Performance Metrics
+**Return Analysis**:
+- Total return (%)
+- Annualized return
+- Risk-adjusted return
+- Alpha and beta calculations
+- Benchmark comparisons
+
+**Risk Metrics**:
+- Maximum drawdown
+- Sharpe ratio
+- Sortino ratio
+- Value at risk (VaR)
+- Expected shortfall
+
+**Trading Statistics**:
+- Win rate percentage
+- Profit factor
+- Average trade duration
+- Best/worst trades
+- Trade frequency analysis
+
+#### Report Types
+**Daily Reports**:
+- P&L summary
+- Position changes
+- Bot performance
+- Market summary
+
+**Weekly Reports**:
+- Performance analysis
+- Risk assessment
+- Strategy comparison
+- Market outlook
+
+**Monthly Reports**:
+- Comprehensive review
+- Tax preparation data
+- Goal progress tracking
+- Recommendations
+
+#### Technical Specifications
+- **Data Storage**: PostgreSQL with time-series optimization
+- **Calculation Engine**: Real-time metric computation
+- **Report Generation**: Automated PDF creation
+- **Export Formats**: PDF, CSV, Excel, JSON
+- **Scheduling**: Configurable report delivery
+
+#### Acceptance Criteria
+- [ ] All metrics calculate correctly
+- [ ] Reports generate automatically
+- [ ] Export formats work properly
+- [ ] Real-time updates accurate
+- [ ] Historical data preserved
+- [ ] Performance scales with data volume
+
+---
+
+This feature specification document provides the foundation for development and testing of the Woods Crypto Trading Platform. Each feature includes detailed technical requirements and acceptance criteria to ensure successful implementation.
+
+---
+
+**Document Version**: 1.0  
+**Last Updated**: December 2024  
+**Next Review**: January 2025

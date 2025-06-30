@@ -1,219 +1,189 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Play, Pause, Settings, TrendingUp, TrendingDown } from 'lucide-react';
 import { enhancedAiBotService } from '@/services/ai/enhancedAiBotService';
-import { AIBot, AITradingStrategy } from '@/types/trading';
-import { Bot, Play, Pause, Settings, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { AIBot } from '@/types/trading';
 
-const EnhancedAiBotDashboard: React.FC = () => {
-  const [selectedBot, setSelectedBot] = useState<AIBot | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  
-  const allBots = enhancedAiBotService.getAllBots();
-  const activeBots = enhancedAiBotService.getActiveBots();
-  const topPerformers = enhancedAiBotService.getTopPerformingBots(5);
-  const availableStrategies = enhancedAiBotService.getAvailableStrategies();
+export function EnhancedAiBotDashboard() {
+  const [bots, setBots] = useState<AIBot[]>([]);
+  const [topBots, setTopBots] = useState<AIBot[]>([]);
+  const [strategies, setStrategies] = useState<string[]>([]);
 
-  const toggleBot = (botId: string) => {
-    enhancedAiBotService.toggleBot(botId);
-    // Re-fetch data or trigger re-render
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    setBots(enhancedAiBotService.getAllBots());
+    setTopBots(enhancedAiBotService.getTopPerformingBots(5));
+    setStrategies(enhancedAiBotService.getAvailableStrategies());
   };
 
-  const BotCard: React.FC<{ bot: AIBot }> = ({ bot }) => (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedBot(bot)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{bot.name}</CardTitle>
-        <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
-          {bot.status}
-        </Badge>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Bot className="h-4 w-4" />
-            <span className="text-xs text-muted-foreground">{bot.model}</span>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleBot(bot.id);
-            }}
-          >
-            {bot.status === 'active' ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-          </Button>
-        </div>
-        <div className="mt-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Total Return:</span>
-            <span className={bot.performance.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}>
-              {bot.performance.totalReturn.toFixed(2)}%
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>Win Rate:</span>
-            <span>{bot.performance.winRate}%</span>
-          </div>
-          <Progress value={bot.performance.winRate} className="h-2" />
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const handleToggleBot = (botId: string) => {
+    enhancedAiBotService.toggleBot(botId);
+    loadData();
+  };
 
-  const StrategyCard: React.FC<{ strategy: AITradingStrategy }> = ({ strategy }) => (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-sm">{strategy.name}</CardTitle>
-        <p className="text-xs text-muted-foreground">{strategy.description}</p>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <Badge variant="outline">{strategy.type}</Badge>
-          <div className="text-xs space-y-1">
-            <div>Timeframe: {strategy.timeframe}</div>
-            {strategy.performance && (
-              <div className="flex justify-between">
-                <span>Win Rate:</span>
-                <span>{strategy.performance.winRate}%</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'paused': return 'bg-yellow-500';
+      case 'stopped': return 'bg-red-500';
+      case 'error': return 'bg-red-600';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getReturnColor = (value: number) => {
+    return value >= 0 ? 'text-green-600' : 'text-red-600';
+  };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold tracking-tight">AI Trading Bots</h2>
+        <Button>
+          <Settings className="mr-2 h-4 w-4" />
+          Configure Bots
+        </Button>
+      </div>
+
+      {/* Performance Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Bots</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{allBots.length}</div>
+            <div className="text-2xl font-bold">{bots.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {bots.filter(b => b.status === 'active').length} active
+            </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Bots</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{activeBots.length}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Performance</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Return</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {(allBots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0) / allBots.length).toFixed(2)}%
+            <div className="text-2xl font-bold text-green-600">
+              {enhancedAiBotService.getPerformanceStats().totalReturn.toFixed(1)}%
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {allBots.reduce((sum, bot) => sum + bot.performance.trades, 0).toLocaleString()}
+              {enhancedAiBotService.getPerformanceStats().avgWinRate.toFixed(1)}%
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {enhancedAiBotService.getPerformanceStats().totalTrades}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="active">Active Bots</TabsTrigger>
-          <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          <TabsTrigger value="performance">Top Performers</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {allBots.slice(0, 6).map((bot) => (
-              <BotCard key={bot.id} bot={bot} />
+      {/* Active Bots */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Trading Bots</CardTitle>
+          <CardDescription>
+            Monitor and control your AI trading bots
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {bots.map((bot) => (
+              <div key={bot.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3 h-3 rounded-full ${getStatusColor(bot.status)}`} />
+                  <div>
+                    <h3 className="font-semibold">{bot.name}</h3>
+                    <p className="text-sm text-muted-foreground">{bot.description}</p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Badge variant="outline">{bot.strategy}</Badge>
+                      <Badge variant="outline">{bot.model}</Badge>
+                      <Badge variant="outline">{bot.riskLevel}</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className={`font-semibold ${getReturnColor(bot.performance.totalReturn)}`}>
+                      {bot.performance.totalReturn >= 0 ? '+' : ''}{bot.performance.totalReturn.toFixed(2)}%
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {bot.performance.trades} trades
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleToggleBot(bot.id)}
+                  >
+                    {bot.status === 'active' ? (
+                      <Pause className="h-4 w-4" />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
-        </TabsContent>
-        
-        <TabsContent value="active" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeBots.map((bot) => (
-              <BotCard key={bot.id} bot={bot} />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="strategies" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availableStrategies.slice(0, 9).map((strategy) => (
-              <StrategyCard key={strategy.id} strategy={strategy} />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="performance" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {topPerformers.map((bot) => (
-              <BotCard key={bot.id} bot={bot} />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
 
-      {selectedBot && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Bot Details: {selectedBot.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">Configuration</h4>
-                  <div className="text-sm space-y-1 mt-2">
-                    <div>Strategy: {selectedBot.strategy}</div>
-                    <div>Model: {selectedBot.model}</div>
-                    <div>Risk Level: {selectedBot.riskLevel}</div>
-                    <div>Max Trade: ${selectedBot.maxTradeAmount.toLocaleString()}</div>
-                    <div>Target Assets: {selectedBot.targetAssets.join(', ')}</div>
+      {/* Top Performers */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Performing Bots</CardTitle>
+          <CardDescription>
+            Best performing bots by total return
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {topBots.map((bot, index) => (
+              <div key={bot.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="text-lg font-bold text-muted-foreground">
+                    #{index + 1}
+                  </div>
+                  <div>
+                    <div className="font-medium">{bot.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {bot.strategy} • {bot.performance.trades} trades
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">Performance Metrics</h4>
-                  <div className="text-sm space-y-1 mt-2">
-                    <div>Total Return: {selectedBot.performance.totalReturn.toFixed(2)}%</div>
-                    <div>Win Rate: {selectedBot.performance.winRate}%</div>
-                    <div>Total Trades: {selectedBot.performance.trades}</div>
-                    <div>Max Drawdown: {selectedBot.performance.maxDrawdown.toFixed(2)}%</div>
-                    <div>Sharpe Ratio: {selectedBot.performance.sharpeRatio.toFixed(2)}</div>
-                  </div>
+                <div className={`text-lg font-bold ${getReturnColor(bot.performance.totalReturn)}`}>
+                  {bot.performance.totalReturn >= 0 ? '+' : ''}{bot.performance.totalReturn.toFixed(2)}%
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default EnhancedAiBotDashboard;
+}
