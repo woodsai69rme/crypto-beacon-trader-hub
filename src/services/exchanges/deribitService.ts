@@ -1,5 +1,5 @@
 
-import ccxt from 'ccxt';
+import { Exchange } from 'ccxt';
 
 export interface DeribitAccount {
   id: string;
@@ -84,7 +84,7 @@ export interface DeribitTrade {
 }
 
 class DeribitService {
-  private exchange: ccxt.Exchange | null = null;
+  private exchange: Exchange | null = null;
   private isConnected: boolean = false;
   private credentials: {
     apiKey?: string;
@@ -98,18 +98,17 @@ class DeribitService {
 
   async connect(apiKey: string, secret: string, testnet: boolean = true): Promise<boolean> {
     try {
-      // Import ccxt dynamically to avoid TypeScript issues
-      const ccxtModule = await import('ccxt');
-      const ccxtLib = ccxtModule.default;
-
-      this.exchange = new ccxtLib.deribit({
+      // Dynamic import to avoid build issues
+      const ccxt = await import('ccxt');
+      
+      this.exchange = new ccxt.deribit({
         apiKey,
         secret,
         sandbox: testnet,
         enableRateLimit: true,
         timeout: 30000,
         options: {
-          defaultType: 'future', // Can be 'future' or 'option'
+          defaultType: 'future',
         },
       });
 

@@ -24,13 +24,13 @@ const AccountManager: React.FC = () => {
           coinId: 'bitcoin',
           amount: 0.5,
           price: 61245.32,
+          priceAUD: 61245.32,
           symbol: 'BTC',
           name: 'Bitcoin',
           value: 30622.66,
+          valueAUD: 30622.66,
           allocation: 50,
           change24h: 2.3,
-          priceAUD: 61245.32,
-          valueAUD: 30622.66,
           changePercent24h: 2.3
         }
       ],
@@ -49,13 +49,13 @@ const AccountManager: React.FC = () => {
           coinId: 'ethereum',
           amount: 2.5,
           price: 3234.12,
+          priceAUD: 3234.12,
           symbol: 'ETH',
           name: 'Ethereum',
           value: 8085.30,
+          valueAUD: 8085.30,
           allocation: 75,
           change24h: 1.8,
-          priceAUD: 3234.12,
-          valueAUD: 8085.30,
           changePercent24h: 1.8
         }
       ],
@@ -74,13 +74,13 @@ const AccountManager: React.FC = () => {
           coinId: 'solana',
           amount: 50,
           price: 234.56,
+          priceAUD: 234.56,
           symbol: 'SOL',
           name: 'Solana',
           value: 11728.00,
+          valueAUD: 11728.00,
           allocation: 100,
           change24h: -0.5,
-          priceAUD: 234.56,
-          valueAUD: 11728.00,
           changePercent24h: -0.5
         }
       ],
