@@ -332,7 +332,7 @@ const WoodsAnalyticsDashboard: React.FC = () => {
                     <AlertTriangle className="h-5 w-5 text-yellow-500" />
                     <div>
                       <div className="font-semibold text-yellow-800">High BTC Allocation</div>
-                      <div className="text-sm text-yellow-600">Consider rebalancing if > 50%</div>
+                      <div className="text-sm text-yellow-600">Consider rebalancing if &gt; 50%</div>
                     </div>
                   </div>
 
