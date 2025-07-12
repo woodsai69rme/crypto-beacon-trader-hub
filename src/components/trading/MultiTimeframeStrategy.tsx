@@ -6,7 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { BarChart3, Layers, Settings2, Play } from 'lucide-react';
-import { tradingTimeframes } from "./types/timeframes";
+
+const tradingTimeframes = [
+  { id: "1m", label: "1 Minute" },
+  { id: "5m", label: "5 Minutes" },
+  { id: "15m", label: "15 Minutes" },
+  { id: "1h", label: "1 Hour" },
+  { id: "4h", label: "4 Hours" },
+  { id: "1d", label: "1 Day" },
+  { id: "1w", label: "1 Week" }
+];
 
 const MultiTimeframeStrategy: React.FC = () => {
   const [selectedPrimaryTimeframe, setSelectedPrimaryTimeframe] = useState<string>("1d");

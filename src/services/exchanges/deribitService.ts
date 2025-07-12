@@ -1,217 +1,198 @@
 
 import ccxt from 'ccxt';
 
-export interface DeribitConfig {
-  apiKey?: string;
-  secret?: string;
-  testnet?: boolean;
+export interface DeribitCredentials {
+  apiKey: string;
+  apiSecret: string;
+  sandbox?: boolean;
 }
 
-export interface Position {
+export interface DeribitPosition {
   symbol: string;
+  side: 'buy' | 'sell';
   size: number;
-  side: 'long' | 'short';
-  unrealizedPnl: number;
   markPrice: number;
-  entryPrice: number;
+  unrealizedPnl: number;
+  leverage: number;
 }
 
-export interface OrderBook {
+export interface DeribitOrderbook {
+  symbol: string;
   bids: [number, number][];
   asks: [number, number][];
   timestamp: number;
 }
 
-class DeribitService {
-  private exchange: ccxt.Exchange | null = null;
-  private config: DeribitConfig;
+export class DeribitService {
+  private exchange: ccxt.deribit | null = null;
+  private credentials: DeribitCredentials | null = null;
+  private connectionActive: boolean = false;
 
-  constructor(config: DeribitConfig = {}) {
-    this.config = {
-      testnet: true,
-      ...config
-    };
+  constructor() {
     this.initializeExchange();
   }
 
-  private initializeExchange(): void {
+  private initializeExchange() {
     try {
-      // Use a generic exchange for demo purposes since ccxt.deribit might not be available
-      this.exchange = new ccxt.binance({
-        apiKey: this.config.apiKey,
-        secret: this.config.secret,
-        testnet: this.config.testnet,
+      this.exchange = new ccxt.deribit({
+        sandbox: true,
         enableRateLimit: true,
       });
-      
-      console.log('Deribit service initialized');
     } catch (error) {
-      console.error('Failed to initialize Deribit service:', error);
+      console.error('Error initializing Deribit exchange:', error);
     }
   }
 
-  async testConnection(): Promise<boolean> {
+  get isConnectionActive(): boolean {
+    return this.connectionActive && this.exchange !== null;
+  }
+
+  async connect(credentials: DeribitCredentials): Promise<boolean> {
     try {
-      if (!this.exchange) return false;
+      this.credentials = credentials;
       
-      // Test connection with a simple API call
-      await this.exchange.fetchMarkets();
-      return true;
+      if (!this.exchange) {
+        this.initializeExchange();
+      }
+
+      if (this.exchange) {
+        this.exchange.apiKey = credentials.apiKey;
+        this.exchange.secret = credentials.apiSecret;
+        this.exchange.sandbox = credentials.sandbox || true;
+
+        // Test connection
+        await this.exchange.fetchBalance();
+        this.connectionActive = true;
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error('Deribit connection test failed:', error);
+      console.error('Deribit connection error:', error);
+      this.connectionActive = false;
       return false;
     }
   }
 
-  async getAccountBalance(): Promise<any> {
+  getConnectionStatus(): { connected: boolean; error?: string } {
+    return {
+      connected: this.connectionActive,
+      error: !this.connectionActive ? 'Not connected to Deribit' : undefined
+    };
+  }
+
+  async getAccountInfo() {
+    if (!this.exchange || !this.connectionActive) {
+      throw new Error('Not connected to Deribit');
+    }
+
     try {
-      if (!this.exchange) throw new Error('Exchange not initialized');
-      
       const balance = await this.exchange.fetchBalance();
       return {
-        btc: balance.BTC || { free: 0, used: 0, total: 0 },
-        eth: balance.ETH || { free: 0, used: 0, total: 0 },
-        total: balance.total || {}
+        balance: balance.total,
+        currency: 'BTC',
+        equity: balance.total?.BTC || 0,
+        marginLevel: 1,
+        positions: await this.getPositions()
       };
     } catch (error) {
-      console.error('Error fetching account balance:', error);
-      return { btc: { free: 0, used: 0, total: 0 }, eth: { free: 0, used: 0, total: 0 }, total: {} };
+      console.error('Error fetching Deribit account info:', error);
+      throw error;
     }
   }
 
-  async getPositions(): Promise<Position[]> {
+  async getPositions(): Promise<DeribitPosition[]> {
+    if (!this.exchange || !this.connectionActive) {
+      return [];
+    }
+
     try {
-      if (!this.exchange) return [];
-      
-      // Mock positions for demo
-      return [
-        {
-          symbol: 'BTC-PERPETUAL',
-          size: 0.5,
-          side: 'long',
-          unrealizedPnl: 150.25,
-          markPrice: 42000,
-          entryPrice: 41700
-        }
-      ];
+      const positions = await this.exchange.fetchPositions();
+      return positions.map((pos: any) => ({
+        symbol: pos.symbol,
+        side: pos.side,
+        size: pos.contracts,
+        markPrice: pos.markPrice,
+        unrealizedPnl: pos.unrealizedPnl,
+        leverage: pos.leverage
+      }));
     } catch (error) {
       console.error('Error fetching positions:', error);
       return [];
     }
   }
 
-  async getOrderBook(symbol: string): Promise<OrderBook> {
+  async getOrderbook(symbol: string): Promise<DeribitOrderbook> {
+    if (!this.exchange || !this.connectionActive) {
+      throw new Error('Not connected to Deribit');
+    }
+
     try {
-      if (!this.exchange) throw new Error('Exchange not initialized');
-      
       const orderbook = await this.exchange.fetchOrderBook(symbol);
       return {
-        bids: orderbook.bids.slice(0, 10) as [number, number][],
-        asks: orderbook.asks.slice(0, 10) as [number, number][],
+        symbol,
+        bids: orderbook.bids,
+        asks: orderbook.asks,
         timestamp: orderbook.timestamp || Date.now()
       };
     } catch (error) {
-      console.error('Error fetching order book:', error);
-      return {
-        bids: [],
-        asks: [],
-        timestamp: Date.now()
-      };
+      console.error('Error fetching orderbook:', error);
+      throw error;
     }
   }
 
-  async placeOrder(
-    symbol: string,
-    type: 'market' | 'limit',
-    side: 'buy' | 'sell',
-    amount: number,
-    price?: number
-  ): Promise<any> {
+  async placeOrder(symbol: string, type: 'market' | 'limit', side: 'buy' | 'sell', amount: number, price?: number) {
+    if (!this.exchange || !this.connectionActive) {
+      throw new Error('Not connected to Deribit');
+    }
+
     try {
-      if (!this.exchange) throw new Error('Exchange not initialized');
-      
       const order = await this.exchange.createOrder(symbol, type, side, amount, price);
-      return order;
+      return {
+        id: order.id,
+        symbol: order.symbol,
+        side: order.side,
+        type: order.type,
+        amount: order.amount,
+        price: order.price,
+        status: order.status,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       console.error('Error placing order:', error);
       throw error;
     }
   }
 
-  async cancelOrder(orderId: string): Promise<boolean> {
-    try {
-      if (!this.exchange) return false;
-      
-      // Mock cancel order
-      console.log(`Cancelling order: ${orderId}`);
-      return true;
-    } catch (error) {
-      console.error('Error cancelling order:', error);
-      return false;
+  async getMarketData(symbol: string) {
+    if (!this.exchange) {
+      throw new Error('Exchange not initialized');
     }
-  }
 
-  async getOpenOrders(): Promise<any[]> {
     try {
-      if (!this.exchange) return [];
-      
-      const orders = await this.exchange.fetchOrders();
-      return orders.filter(order => order.status === 'open');
-    } catch (error) {
-      console.error('Error fetching open orders:', error);
-      return [];
-    }
-  }
-
-  async getInstruments(): Promise<any[]> {
-    try {
-      if (!this.exchange) return [];
-      
-      const markets = await this.exchange.fetchMarkets();
-      return markets.map(market => ({
-        symbol: market.symbol,
-        base: market.base,
-        quote: market.quote,
-        active: market.active,
-        type: market.type
-      }));
-    } catch (error) {
-      console.error('Error fetching instruments:', error);
-      return [];
-    }
-  }
-
-  async getTrades(symbol: string, limit: number = 50): Promise<any[]> {
-    try {
-      if (!this.exchange) return [];
-      
-      // Mock trade history
-      return Array.from({ length: limit }, (_, i) => ({
-        id: `trade-${i}`,
+      const ticker = await this.exchange.fetchTicker(symbol);
+      return {
         symbol,
-        side: Math.random() > 0.5 ? 'buy' : 'sell',
-        amount: Math.random() * 10,
-        price: 40000 + Math.random() * 5000,
-        timestamp: Date.now() - i * 60000
-      }));
+        price: ticker.last || 0,
+        change24h: ticker.percentage || 0,
+        volume24h: ticker.baseVolume || 0,
+        high24h: ticker.high || 0,
+        low24h: ticker.low || 0,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
-      console.error('Error fetching trades:', error);
-      return [];
+      console.error('Error fetching market data:', error);
+      throw error;
     }
   }
 
-  async getOHLCV(symbol: string, timeframe: string = '1h', limit: number = 100): Promise<number[][]> {
-    try {
-      if (!this.exchange) return [];
-      
-      const ohlcv = await this.exchange.fetchOHLCV(symbol, timeframe, undefined, limit);
-      return ohlcv;
-    } catch (error) {
-      console.error('Error fetching OHLCV:', error);
-      return [];
+  disconnect() {
+    this.connectionActive = false;
+    this.credentials = null;
+    if (this.exchange) {
+      this.exchange.apiKey = '';
+      this.exchange.secret = '';
     }
   }
 }
 
 export const deribitService = new DeribitService();
-export default deribitService;

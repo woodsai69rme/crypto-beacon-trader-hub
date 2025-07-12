@@ -16,7 +16,7 @@ interface BacktestResult {
   profitFactor: number;
 }
 
-export function BacktestingEngine() {
+export const BacktestingEngine: React.FC = () => {
   const [symbol, setSymbol] = useState('BTC-USD');
   const [strategy, setStrategy] = useState('grid');
   const [startDate, setStartDate] = useState('2024-01-01');
@@ -187,4 +187,6 @@ export function BacktestingEngine() {
       )}
     </div>
   );
-}
+};
+
+export default BacktestingEngine;

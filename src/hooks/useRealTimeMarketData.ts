@@ -1,50 +1,53 @@
 
 import { useState, useEffect } from 'react';
+import { MarketData } from '@/types/trading';
 
-export interface MarketData {
-  symbol: string;
-  price: number;
-  change24h: number;
-  volume: number;
-  marketCap?: number;
-  high24h?: number;
-  low24h?: number;
-}
-
-export function useRealTimeMarketData(symbols: string[], refreshInterval: number = 5000) {
-  const [data, setData] = useState<MarketData[]>([]);
-  const [loading, setLoading] = useState(true);
+export const useRealTimeMarketData = (symbols: string[] = []) => {
+  const [marketData, setMarketData] = useState<Record<string, MarketData>>({});
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    if (symbols.length === 0) return;
+
+    const fetchMarketData = async () => {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        setLoading(true);
-        // Mock market data for now
-        const mockData: MarketData[] = symbols.map(symbol => ({
-          symbol,
-          price: Math.random() * 50000 + 10000,
-          change24h: (Math.random() - 0.5) * 10,
-          volume: Math.random() * 1000000000,
-          marketCap: Math.random() * 100000000000,
-          high24h: Math.random() * 55000 + 10000,
-          low24h: Math.random() * 45000 + 10000,
-        }));
+        const data: Record<string, MarketData> = {};
         
-        setData(mockData);
-        setError(null);
+        // Simulate fetching market data for each symbol
+        for (const symbol of symbols) {
+          // Mock data for demonstration
+          data[symbol] = {
+            symbol,
+            price: Math.random() * 50000 + 10000,
+            change24h: (Math.random() - 0.5) * 10,
+            volume24h: Math.random() * 1000000,
+            high24h: Math.random() * 55000 + 10000,
+            low24h: Math.random() * 45000 + 10000,
+            timestamp: new Date().toISOString()
+          };
+        }
+
+        setMarketData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : 'Failed to fetch market data');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, refreshInterval);
-
+    fetchMarketData();
+    
+    // Set up interval for real-time updates
+    const interval = setInterval(fetchMarketData, 5000);
+    
     return () => clearInterval(interval);
-  }, [symbols, refreshInterval]);
+  }, [symbols]);
 
-  return { data, loading, error };
-}
+  return { marketData, isLoading, error };
+};
+
+export default useRealTimeMarketData;
