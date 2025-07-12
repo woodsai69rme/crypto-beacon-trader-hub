@@ -11,10 +11,10 @@ class EnhancedAiBotService {
       strategy: 'grid',
       model: 'deepseek-r1',
       status: 'paused',
-      accountId: 'paper-1',
-      targetAssets: ['BTC', 'ETH'],
       riskLevel: 'medium',
       maxTradeAmount: 1000,
+      targetAssets: ['BTC', 'ETH'],
+      balance: 10000,
       performance: {
         totalReturn: 15.2,
         winRate: 72.5,
@@ -33,10 +33,10 @@ class EnhancedAiBotService {
       strategy: 'trend-following',
       model: 'gpt-4o-mini',
       status: 'active',
-      accountId: 'paper-1',
-      targetAssets: ['BTC', 'SOL'],
       riskLevel: 'high',
       maxTradeAmount: 2000,
+      targetAssets: ['BTC', 'SOL'],
+      balance: 12000,
       performance: {
         totalReturn: 28.7,
         winRate: 68.2,
@@ -104,6 +104,15 @@ class EnhancedAiBotService {
     return true;
   }
 
+  pauseBot(id: string): boolean {
+    const bot = this.getBotById(id);
+    if (!bot) return false;
+
+    bot.status = 'paused';
+    bot.updatedAt = new Date().toISOString();
+    return true;
+  }
+
   createBot(config: BotConfig): AIBot {
     const newBot: AIBot = {
       id: config.id,
@@ -112,10 +121,10 @@ class EnhancedAiBotService {
       strategy: config.strategy,
       model: config.model,
       status: 'paused',
-      accountId: 'paper-1',
-      targetAssets: config.targetAssets,
       riskLevel: config.riskLevel,
       maxTradeAmount: config.maxTradeAmount,
+      targetAssets: config.targetAssets,
+      balance: 10000,
       performance: {
         totalReturn: 0,
         winRate: 0,

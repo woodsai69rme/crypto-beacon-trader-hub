@@ -1,4 +1,5 @@
 
+// @ts-ignore
 import ccxt from 'ccxt';
 
 export interface DeribitCredentials {
@@ -24,7 +25,7 @@ export interface DeribitOrderbook {
 }
 
 export class DeribitService {
-  private exchange: ccxt.deribit | null = null;
+  private exchange: any = null;
   private credentials: DeribitCredentials | null = null;
   private connectionActive: boolean = false;
 
@@ -34,7 +35,7 @@ export class DeribitService {
 
   private initializeExchange() {
     try {
-      this.exchange = new ccxt.deribit({
+      this.exchange = new (ccxt as any).deribit({
         sandbox: true,
         enableRateLimit: true,
       });

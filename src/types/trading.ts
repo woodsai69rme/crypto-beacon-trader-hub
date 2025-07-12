@@ -23,6 +23,16 @@ export interface Trade {
   fees?: number;
 }
 
+export interface MarketData {
+  symbol: string;
+  price: number;
+  change24h: number;
+  volume24h: number;
+  high24h: number;
+  low24h: number;
+  timestamp: string;
+}
+
 export interface AuditLogEntry {
   id: string;
   action: 'TRADE_EXECUTED' | 'ANALYSIS' | 'ERROR' | 'SIGNAL_GENERATED' | 'STRATEGY_UPDATED' | 'BOT_STARTED' | 'BOT_STOPPED' | 'BOT_CREATED' | 'BOT_UPDATED';
@@ -46,14 +56,17 @@ export interface AuditLogEntry {
 export interface AIBot {
   id: string;
   name: string;
+  description?: string;
   strategy: string;
   status: 'active' | 'paused' | 'stopped';
   isActive?: boolean;
   model: string;
   createdAt: string;
+  updatedAt?: string;
   riskLevel: 'low' | 'medium' | 'high';
   maxTradeAmount: number;
   targetAssets: string[];
+  balance?: number;
   performance: {
     totalReturn: number;
     winRate: number;
@@ -62,17 +75,57 @@ export interface AIBot {
     maxDrawdown: number;
     sharpeRatio: number;
   };
-  auditLog: AuditLogEntry[];
+  auditLog?: AuditLogEntry[];
 }
+
+export interface BotConfig {
+  id: string;
+  name: string;
+  description: string;
+  strategy: string;
+  model: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  maxTradeAmount: number;
+  targetAssets: string[];
+  parameters: Record<string, any>;
+}
+
+export interface AIModel {
+  id: string;
+  name: string;
+  provider: string;
+  endpoint?: string;
+  isLocal: boolean;
+}
+
+export type AITradingStrategy = 
+  | 'trend-following'
+  | 'mean-reversion' 
+  | 'scalping'
+  | 'breakout'
+  | 'grid'
+  | 'arbitrage'
+  | 'momentum'
+  | 'pattern-recognition'
+  | 'ml-prediction'
+  | 'sentiment-based'
+  | 'custom'
+  | 'risk-weighted'
+  | 'whale-tracking'
+  | 'portfolio-balancing';
+
+export type AITradingStrategyType = AITradingStrategy;
 
 export interface PortfolioAsset {
   coinId: string;
   amount: number;
   price: number;
+  priceAUD?: number;
   priceChange?: number;
   symbol?: string;
   name?: string;
   value?: number;
+  valueAUD?: number;
   allocation?: number;
   change24h?: number;
   changePercent24h?: number;
