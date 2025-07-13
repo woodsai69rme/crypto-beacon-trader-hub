@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +7,11 @@ import EnhancedFakeTrading from "../trading/EnhancedFakeTrading";
 
 const DashboardTrading = () => {
   const isMobile = useIsMobile();
+  
+  const handleTrade = (trade: any) => {
+    console.log('Trade executed:', trade);
+    // Handle trade logic here if needed
+  };
   
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -24,7 +28,7 @@ const DashboardTrading = () => {
         </TabsContent>
         
         <TabsContent value="paper-trading" className="animate-fade-in">
-          <EnhancedFakeTrading />
+          <EnhancedFakeTrading onTrade={handleTrade} />
         </TabsContent>
         
         <TabsContent value="automation" className="animate-fade-in">

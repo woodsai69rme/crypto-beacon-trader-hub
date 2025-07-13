@@ -27,7 +27,7 @@ const AiTradingBots: React.FC = () => {
       id: '1',
       name: 'Bitcoin Trend Bot',
       strategy: {
-        id: 'trend-following',
+        id: 'trend-following-1',
         name: 'Trend Following',
         description: 'Follows market momentum',
         type: 'trend-following',

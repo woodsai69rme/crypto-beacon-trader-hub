@@ -7,11 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useRealTimeMarketData } from '@/hooks/useRealTimeMarketData';
-import { Trade, MarketData } from '@/types/trading';
+import { Trade } from '@/types/trading';
 import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedFakeTradingProps {
-  onTrade: (trade: Trade) => void;
+  onTrade?: (trade: Trade) => void;
 }
 
 const EnhancedFakeTrading: React.FC<EnhancedFakeTradingProps> = ({ onTrade }) => {
@@ -67,7 +67,9 @@ const EnhancedFakeTrading: React.FC<EnhancedFakeTradingProps> = ({ onTrade }) =>
       setBalance(prev => prev + totalValue - trade.fees!);
     }
 
-    onTrade(trade);
+    if (onTrade) {
+      onTrade(trade);
+    }
     setAmount('');
     
     toast({
