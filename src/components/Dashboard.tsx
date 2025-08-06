@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EnhancedFakeTrading } from "@/components/trading/EnhancedFakeTrading";
+import EnhancedFakeTrading from "@/components/trading/EnhancedFakeTrading";
 import { Trade } from '@/types/trading';
 
 const Dashboard: React.FC = () => {
