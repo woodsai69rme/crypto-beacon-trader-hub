@@ -24,6 +24,22 @@ export interface CoinOption {
   label: string;
 }
 
+// Make CryptoData compatible with CoinOption
+export interface CryptoData {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceChange: number;
+  changePercent: number;
+  marketCap: number;
+  volume: number;
+  change24h: number;
+  image?: string;
+  value: string;
+  label: string;
+}
+
 export type SupportedCurrency = "USD" | "EUR" | "GBP" | "AUD" | "JPY" | "CAD" | "CHF";
 
 export interface Trade {
@@ -189,21 +205,6 @@ export interface Widget {
   customContent?: string;
 }
 
-// Market correlation types
-export interface CryptoData {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceChange: number;
-  changePercent: number;
-  marketCap: number;
-  volume: number;
-  image?: string;
-  value: string;
-  label: string;
-}
-
 export interface CorrelationHeatmapProps {
   correlationData: number[][];
   coins: CryptoData[];
@@ -223,6 +224,18 @@ export interface RiskAssessmentResult {
   score: number;
   factors: string[];
   recommendation: string;
+  recommendations: string[];
+  overallScore: number;
+  diversificationScore: number;
+  volatilityScore: number;
+  liquidityScore: number;
+  concentrationRisk: number;
+  correlationRisk: number;
+  riskByAsset: Array<{
+    symbol: string;
+    score: number;
+    factors: string[];
+  }>;
 }
 
 // Wallet and account types
@@ -232,12 +245,14 @@ export interface WalletAccount {
   address: string;
   balance: number;
   provider: string;
+  network: string;
 }
 
 export interface WalletProvider {
   id: string;
   name: string;
   isConnected: boolean;
+  icon: string;
 }
 
 export interface TradingAccount {
@@ -256,6 +271,16 @@ export interface ATOTaxCalculation {
   netGain: number;
   taxOwed: number;
   events: any[];
+  year: number;
+  gains: number;
+  losses: number;
+  netPosition: number;
+  financialYear: string;
+  bracket: string;
+  CGTDiscount: number;
+  effectiveTaxRate: number;
+  taxRefundOrOwed: number;
+  transactions: any[];
 }
 
 export interface TaxBracket {
@@ -346,20 +371,26 @@ export interface PriceAlert {
   condition: 'above' | 'below';
   isActive: boolean;
   createdAt: string;
+  userId: string;
+  type: string;
 }
 
 // Portfolio optimization types
 export interface OptimizationSettings {
   riskTolerance: number;
   timeHorizon: string;
+  targetReturn: number;
+  maxDrawdown: number;
   constraints: Record<string, any>;
 }
 
 export interface PortfolioOptimizationResult {
   allocation: Record<string, number>;
   expectedReturn: number;
+  expectedRisk: number;
   risk: number;
   sharpeRatio: number;
+  recommendations: string[];
 }
 
 // Dashboard types

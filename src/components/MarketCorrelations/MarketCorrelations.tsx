@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchTopCryptoData } from '@/services/cryptoService';
-import { CoinOption } from '@/types/trading';
+import { CoinOption, CryptoData } from '@/types/trading';
 import CorrelationMatrix from './CorrelationMatrix';
 import CorrelationHeatmap from './CorrelationHeatmap';
 import PriceCorrelationChart from './PriceCorrelationChart';
@@ -20,6 +19,24 @@ const MarketCorrelations: React.FC = () => {
   const [timeframe, setTimeframe] = useState<string>('30d');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper function to convert CoinOption to CryptoData
+  const convertCoinOptionToCryptoData = (coin: CoinOption): CryptoData => {
+    return {
+      id: coin.id,
+      name: coin.name,
+      symbol: coin.symbol,
+      price: coin.price,
+      priceChange: coin.priceChange || 0,
+      changePercent: coin.changePercent || 0,
+      marketCap: coin.marketCap || 0,
+      volume: coin.volume || 0,
+      change24h: coin.change24h,
+      image: coin.image,
+      value: coin.value,
+      label: coin.label
+    };
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -36,7 +53,8 @@ const MarketCorrelations: React.FC = () => {
         
         // Generate correlation matrix for selected coins
         const selectedCoinData = cryptoData.filter(coin => defaultSelection.includes(coin.id));
-        const matrix = generateCorrelationMatrix(selectedCoinData);
+        const cryptoDataConverted = selectedCoinData.map(convertCoinOptionToCryptoData);
+        const matrix = generateCorrelationMatrix(cryptoDataConverted);
         setCorrelationMatrix(matrix);
         
       } catch (err) {
@@ -53,7 +71,8 @@ const MarketCorrelations: React.FC = () => {
   useEffect(() => {
     if (selectedCoins.length > 0 && coins.length > 0) {
       const selectedCoinData = coins.filter(coin => selectedCoins.includes(coin.id));
-      const matrix = generateCorrelationMatrix(selectedCoinData);
+      const cryptoDataConverted = selectedCoinData.map(convertCoinOptionToCryptoData);
+      const matrix = generateCorrelationMatrix(cryptoDataConverted);
       setCorrelationMatrix(matrix);
     }
   }, [selectedCoins, coins, timeframe]);
@@ -69,11 +88,11 @@ const MarketCorrelations: React.FC = () => {
     });
   };
 
-  const handleCoinSelect = (coin: CoinOption) => {
+  const handleCoinSelect = (coin: CryptoData) => {
     console.log('Selected coin:', coin);
   };
 
-  const selectedCoinData = coins.filter(coin => selectedCoins.includes(coin.id));
+  const selectedCoinData = coins.filter(coin => selectedCoins.includes(coin.id)).map(convertCoinOptionToCryptoData);
 
   if (isLoading) {
     return (
