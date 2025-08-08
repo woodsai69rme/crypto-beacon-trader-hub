@@ -10,8 +10,8 @@ export interface CoinOption {
   name: string;
   symbol: string;
   price: number;
-  change24h: number;
-  priceAUD?: number;
+  change24h?: number;
+  priceAUD?: number; 
   priceEUR?: number; 
   priceGBP?: number;
   image?: string;
@@ -34,7 +34,7 @@ export interface CryptoData {
   changePercent: number;
   marketCap: number;
   volume: number;
-  change24h: number;
+  change24h?: number;
   image?: string;
   value: string;
   label: string;
@@ -253,6 +253,10 @@ export interface WalletProvider {
   name: string;
   isConnected: boolean;
   icon: string;
+  logo?: string;
+  description?: string;
+  isInstalled?: boolean;
+  accounts?: any[];
 }
 
 export interface TradingAccount {
@@ -276,17 +280,31 @@ export interface ATOTaxCalculation {
   losses: number;
   netPosition: number;
   financialYear: string;
-  bracket: string;
+  bracket: TaxBracket;
   CGTDiscount: number;
   effectiveTaxRate: number;
   taxRefundOrOwed: number;
   transactions: any[];
+
+  // Optional extended fields
+  totalTax?: number;
+  taxableIncome?: number;
+  netCapitalGains?: number;
+  incomeTax?: number;
+  medicareLevy?: number;
+  totalTaxLiability?: number;
+  taxWithheld?: number;
+  capitalGains?: number;
+  marginalRate?: number;
+  applicableBracket?: string;
 }
 
 export interface TaxBracket {
   min: number;
   max: number;
   rate: number;
+  name?: string;
+  bracket?: string;
 }
 
 export interface TaxHarvestTradeItem {
@@ -305,6 +323,18 @@ export interface ApiProvider {
   name: string;
   baseUrl: string;
   isEnabled: boolean;
+
+  // Optional fields used across UI
+  enabled?: boolean;
+  url?: string;
+  type?: string;
+  rateLimit?: number;
+  isActive?: boolean;
+  apiKey?: string;
+  description?: string;
+  documentation?: string;
+  usageLimit?: number;
+  endpoints?: ApiEndpoint[];
 }
 
 export interface ApiEndpoint {
@@ -313,6 +343,8 @@ export interface ApiEndpoint {
   url: string;
   method: string;
   rateLimit: number;
+  path?: string;
+  description?: string;
 }
 
 export interface ApiUsageStats {
@@ -320,6 +352,15 @@ export interface ApiUsageStats {
   requests: number;
   errors: number;
   responseTime: number;
+  totalCalls?: number;
+  successfulCalls?: number;
+  failedCalls?: number;
+  avgResponseTime?: number;
+  currentUsage?: number;
+  maxUsage?: number;
+  service?: string;
+  endpoint?: string;
+  resetTime?: string;
 }
 
 // DeFi types
@@ -329,6 +370,7 @@ export interface DefiProtocol {
   tvl: number;
   apy: number;
   risk: 'low' | 'medium' | 'high';
+  category?: string;
 }
 
 export interface DefiPosition {
@@ -366,29 +408,35 @@ export interface NewsTickerProps {
 // Alert types
 export interface PriceAlert {
   id: string;
+  userId: string;
   symbol: string;
-  targetPrice: number;
-  condition: 'above' | 'below';
+  targetPrice?: number;
+  targetValue?: number;
+  currentValue?: number;
+  condition?: 'above' | 'below';
+  conditionMet?: boolean;
   isActive: boolean;
   createdAt: string;
-  userId: string;
-  type: string;
+  notificationSent?: boolean;
+  triggeredAt?: string;
+  type: 'price_above' | 'price_below' | 'percentage_change' | 'volume_spike';
 }
 
 // Portfolio optimization types
 export interface OptimizationSettings {
-  riskTolerance: number;
-  timeHorizon: string;
+  riskTolerance: 'low' | 'medium' | 'high';
+  timeHorizon: 'short' | 'medium' | 'long' | string;
   targetReturn: number;
   maxDrawdown: number;
   constraints: Record<string, any>;
+  objectives?: string[];
 }
 
 export interface PortfolioOptimizationResult {
   allocation: Record<string, number>;
   expectedReturn: number;
   expectedRisk: number;
-  risk: number;
+  risk?: number;
   sharpeRatio: number;
   recommendations: string[];
 }
@@ -397,6 +445,12 @@ export interface PortfolioOptimizationResult {
 export interface DetachedAiTradingDashboardProps {
   bots: AIBot[];
   onBotUpdate: (bot: AIBot) => void;
+  onClose?: () => void;
+  isDetached?: boolean;
+  children?: React.ReactNode;
+  initialCoinId?: string;
+  refreshInterval?: number;
+  darkMode?: boolean;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
