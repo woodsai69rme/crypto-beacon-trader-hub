@@ -10,7 +10,7 @@ export interface CoinOption {
   name: string;
   symbol: string;
   price: number;
-  change24h?: number;
+  change24h: number;
   priceAUD?: number; 
   priceEUR?: number; 
   priceGBP?: number;
@@ -34,7 +34,7 @@ export interface CryptoData {
   changePercent: number;
   marketCap: number;
   volume: number;
-  change24h?: number;
+  change24h: number;
   image?: string;
   value: string;
   label: string;
@@ -51,11 +51,11 @@ export interface Trade {
   totalValue: number;
   timestamp: string;
   fees?: number;
-  coinId?: string;
-  coinName?: string;
-  coinSymbol?: string;
-  amount?: number;
-  currency?: SupportedCurrency;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  amount: number;
+  currency: SupportedCurrency;
   currentValue?: number;
   profitLoss?: number;
   botGenerated?: boolean;
@@ -252,7 +252,7 @@ export interface WalletProvider {
   id: string;
   name: string;
   isConnected: boolean;
-  icon: string;
+  icon?: string;
   logo?: string;
   description?: string;
   isInstalled?: boolean;
@@ -269,6 +269,14 @@ export interface TradingAccount {
 }
 
 // Tax and reporting types
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  name?: string;
+  bracket?: string;
+}
+
 export interface ATOTaxCalculation {
   totalGain: number;
   totalLoss: number;
@@ -285,7 +293,7 @@ export interface ATOTaxCalculation {
   effectiveTaxRate: number;
   taxRefundOrOwed: number;
   transactions: any[];
-
+  
   // Optional extended fields
   totalTax?: number;
   taxableIncome?: number;
@@ -299,14 +307,6 @@ export interface ATOTaxCalculation {
   applicableBracket?: string;
 }
 
-export interface TaxBracket {
-  min: number;
-  max: number;
-  rate: number;
-  name?: string;
-  bracket?: string;
-}
-
 export interface TaxHarvestTradeItem {
   id: string;
   symbol: string;
@@ -318,25 +318,6 @@ export interface TaxHarvestTradeItem {
 }
 
 // API types
-export interface ApiProvider {
-  id: string;
-  name: string;
-  baseUrl: string;
-  isEnabled: boolean;
-
-  // Optional fields used across UI
-  enabled?: boolean;
-  url?: string;
-  type?: string;
-  rateLimit?: number;
-  isActive?: boolean;
-  apiKey?: string;
-  description?: string;
-  documentation?: string;
-  usageLimit?: number;
-  endpoints?: ApiEndpoint[];
-}
-
 export interface ApiEndpoint {
   id: string;
   name: string;
@@ -347,20 +328,40 @@ export interface ApiEndpoint {
   description?: string;
 }
 
+export interface ApiProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  isEnabled: boolean;
+  enabled?: boolean;
+  url?: string;
+  type?: 'free' | 'paid';
+  rateLimit?: {
+    requestsPerMinute: number;
+    requestsPerDay: number;
+  };
+  isActive?: boolean;
+  apiKey?: string;
+  description?: string;
+  documentation?: string;
+  usageLimit?: number;
+  endpoints?: ApiEndpoint[];
+}
+
 export interface ApiUsageStats {
-  provider: string;
-  requests: number;
-  errors: number;
-  responseTime: number;
+  provider?: string;
+  service: string;
+  requests?: number;
+  errors?: number;
+  responseTime?: number;
   totalCalls?: number;
   successfulCalls?: number;
   failedCalls?: number;
   avgResponseTime?: number;
-  currentUsage?: number;
-  maxUsage?: number;
-  service?: string;
+  currentUsage: number;
+  maxUsage: number;
+  resetTime: string;
   endpoint?: string;
-  resetTime?: string;
 }
 
 // DeFi types
@@ -371,14 +372,32 @@ export interface DefiProtocol {
   apy: number;
   risk: 'low' | 'medium' | 'high';
   category?: string;
+  chain?: string;
+  logoUrl?: string;
+  description?: string;
+  url?: string;
+  riskLevel?: 'low' | 'medium' | 'high';
 }
 
 export interface DefiPosition {
   id: string;
   protocol: string;
+  protocolId?: string;
+  protocolName?: string;
+  type?: string;
+  assetId?: string;
+  assetSymbol?: string;
+  asset?: string;
   amount: number;
   value: number;
-  rewards: number;
+  rewards: Array<{
+    assetId?: string;
+    assetSymbol?: string;
+    amount: number;
+    value: number;
+  }>;
+  apy?: number;
+  startDate?: string;
 }
 
 export interface YieldFarmingPool {
@@ -387,6 +406,11 @@ export interface YieldFarmingPool {
   apy: number;
   tvl: number;
   tokens: string[];
+  protocol?: string;
+  tokenPair?: string;
+  rewards?: string[];
+  risk?: 'low' | 'medium' | 'high';
+  blockchain?: string;
 }
 
 // News types
@@ -397,6 +421,13 @@ export interface NewsItem {
   url: string;
   publishedAt: string;
   sentiment: 'positive' | 'negative' | 'neutral';
+  summary?: string;
+  source?: string;
+  isFake?: boolean;
+  confidence?: number;
+  tags?: string[];
+  image?: string;
+  author?: string;
 }
 
 export interface NewsTickerProps {
@@ -408,7 +439,7 @@ export interface NewsTickerProps {
 // Alert types
 export interface PriceAlert {
   id: string;
-  userId: string;
+  userId?: string;
   symbol: string;
   targetPrice?: number;
   targetValue?: number;
@@ -425,7 +456,7 @@ export interface PriceAlert {
 // Portfolio optimization types
 export interface OptimizationSettings {
   riskTolerance: 'low' | 'medium' | 'high';
-  timeHorizon: 'short' | 'medium' | 'long' | string;
+  timeHorizon: string;
   targetReturn: number;
   maxDrawdown: number;
   constraints: Record<string, any>;
@@ -435,8 +466,7 @@ export interface OptimizationSettings {
 export interface PortfolioOptimizationResult {
   allocation: Record<string, number>;
   expectedReturn: number;
-  expectedRisk: number;
-  risk?: number;
+  risk: number;
   sharpeRatio: number;
   recommendations: string[];
 }

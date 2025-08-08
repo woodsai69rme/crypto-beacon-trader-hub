@@ -28,13 +28,14 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerMinute: 10,
         requestsPerDay: 1000
       },
-      endpoints: {
-        price: "/simple/price",
-        markets: "/coins/markets",
-        assets: "/coins/list",
-        news: "/news"
-      },
-      isActive: true
+      endpoints: [
+        { id: "price", name: "Price", url: "/simple/price", method: "GET", rateLimit: 10 },
+        { id: "markets", name: "Markets", url: "/coins/markets", method: "GET", rateLimit: 10 },
+        { id: "assets", name: "Assets", url: "/coins/list", method: "GET", rateLimit: 10 },
+        { id: "news", name: "News", url: "/news", method: "GET", rateLimit: 10 }
+      ],
+      isActive: true,
+      isEnabled: true
     },
     {
       id: "cryptocompare",
@@ -49,13 +50,14 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerMinute: 100,
         requestsPerDay: 100000
       },
-      endpoints: {
-        price: "/price",
-        markets: "/top/mktcapfull",
-        assets: "/all/coinlist",
-        news: "/v2/news/"
-      },
-      isActive: true
+      endpoints: [
+        { id: "price", name: "Price", url: "/price", method: "GET", rateLimit: 100 },
+        { id: "markets", name: "Markets", url: "/top/mktcapfull", method: "GET", rateLimit: 100 },
+        { id: "assets", name: "Assets", url: "/all/coinlist", method: "GET", rateLimit: 100 },
+        { id: "news", name: "News", url: "/v2/news/", method: "GET", rateLimit: 100 }
+      ],
+      isActive: true,
+      isEnabled: true
     },
     {
       id: "newsapi",
@@ -70,13 +72,11 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerMinute: 500,
         requestsPerDay: 1000
       },
-      endpoints: {
-        price: "",
-        markets: "",
-        assets: "",
-        news: "/everything"
-      },
-      isActive: false
+      endpoints: [
+        { id: "news", name: "News", url: "/everything", method: "GET", rateLimit: 500 }
+      ],
+      isActive: false,
+      isEnabled: false
     }
   ]);
 
@@ -92,13 +92,9 @@ const ApiProviderManagement: React.FC = () => {
       requestsPerMinute: 10,
       requestsPerDay: 1000
     },
-    endpoints: {
-      price: "",
-      markets: "",
-      assets: "",
-      news: ""
-    },
-    isActive: true
+    endpoints: [],
+    isActive: true,
+    isEnabled: true
   });
 
   const [isAddingProvider, setIsAddingProvider] = useState(false);
@@ -123,8 +119,9 @@ const ApiProviderManagement: React.FC = () => {
       documentation: newProvider.documentation!,
       usageLimit: newProvider.usageLimit || 1000,
       rateLimit: newProvider.rateLimit!,
-      endpoints: newProvider.endpoints!,
-      isActive: newProvider.isActive ?? true
+      endpoints: newProvider.endpoints || [],
+      isActive: newProvider.isActive ?? true,
+      isEnabled: newProvider.isEnabled ?? true
     };
 
     setProviders([...providers, provider]);
@@ -140,13 +137,9 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerMinute: 10,
         requestsPerDay: 1000
       },
-      endpoints: {
-        price: "",
-        markets: "",
-        assets: "",
-        news: ""
-      },
-      isActive: true
+      endpoints: [],
+      isActive: true,
+      isEnabled: true
     });
     setIsAddingProvider(false);
 
@@ -242,11 +235,11 @@ const ApiProviderManagement: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-muted-foreground">Rate Limit:</span>
-                    <div>{provider.rateLimit.requestsPerMinute}/min</div>
+                    <div>{provider.rateLimit?.requestsPerMinute || 0}/min</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Daily Limit:</span>
-                    <div>{provider.rateLimit.requestsPerDay}/day</div>
+                    <div>{provider.rateLimit?.requestsPerDay || 0}/day</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Usage Limit:</span>
