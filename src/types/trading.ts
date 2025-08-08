@@ -118,6 +118,8 @@ export interface PortfolioAsset {
   valueAUD: number;
   change24h: number;
   allocation: number;
+  coinId?: string;
+  changePercent24h?: number;
 }
 
 export interface AIBot {
@@ -428,6 +430,8 @@ export interface NewsItem {
   tags?: string[];
   image?: string;
   author?: string;
+  relevance?: number;
+  categories?: string[];
 }
 
 export interface NewsTickerProps {
@@ -486,4 +490,7 @@ export interface DetachedAiTradingDashboardProps {
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance: number[];
   portfolioDates: string[];
+  portfolioData?: any[];
+  benchmarks?: any[];
+  timeframe?: string;
 }

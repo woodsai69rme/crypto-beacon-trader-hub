@@ -27,8 +27,10 @@ const YieldFarmingCalculator: React.FC = () => {
   const [pools] = useState<YieldFarmingPool[]>([
     {
       id: 'uniswap-eth-usdc',
+      name: 'Uniswap V3 ETH/USDC',
       protocol: 'Uniswap V3',
       tokenPair: 'ETH/USDC',
+      tokens: ['ETH', 'USDC'],
       apy: 24.5,
       tvl: 125000000,
       rewards: ['UNI', 'Fees'],
@@ -37,8 +39,10 @@ const YieldFarmingCalculator: React.FC = () => {
     },
     {
       id: 'pancakeswap-bnb-busd',
+      name: 'PancakeSwap BNB/BUSD',
       protocol: 'PancakeSwap',
       tokenPair: 'BNB/BUSD',
+      tokens: ['BNB', 'BUSD'],
       apy: 35.8,
       tvl: 89000000,
       rewards: ['CAKE', 'Fees'],
@@ -47,8 +51,10 @@ const YieldFarmingCalculator: React.FC = () => {
     },
     {
       id: 'curve-3pool',
+      name: 'Curve 3Pool',
       protocol: 'Curve Finance',
       tokenPair: 'DAI/USDC/USDT',
+      tokens: ['DAI', 'USDC', 'USDT'],
       apy: 8.2,
       tvl: 245000000,
       rewards: ['CRV', 'Fees'],
@@ -57,8 +63,10 @@ const YieldFarmingCalculator: React.FC = () => {
     },
     {
       id: 'compound-usdc',
+      name: 'Compound USDC',
       protocol: 'Compound',
       tokenPair: 'USDC',
+      tokens: ['USDC'],
       apy: 5.4,
       tvl: 150000000,
       rewards: ['COMP'],
@@ -67,8 +75,10 @@ const YieldFarmingCalculator: React.FC = () => {
     },
     {
       id: 'aave-eth',
+      name: 'Aave ETH',
       protocol: 'Aave',
       tokenPair: 'ETH',
+      tokens: ['ETH'],
       apy: 12.1,
       tvl: 185000000,
       rewards: ['AAVE'],
