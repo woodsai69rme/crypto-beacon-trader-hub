@@ -1,144 +1,162 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TaxHarvestTradeItem } from '@/types/trading';
-import { TrendingDown, DollarSign } from 'lucide-react';
+import { TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
 
 const TaxHarvestingTool: React.FC = () => {
-  const [positions] = useState<TaxHarvestTradeItem[]>([
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const mockTrades: TaxHarvestTradeItem[] = [
     {
       id: '1',
       symbol: 'BTC',
-      quantity: 0.5,
-      purchasePrice: 70000,
-      currentPrice: 65000,
-      unrealizedLoss: -2500,
-      unrealizedGainLoss: -2500,
-      purchaseDate: '2024-01-15',
-      recommendedAction: 'sell'
+      amount: 0.1,
+      price: 55000,
+      type: 'buy',
+      date: '2024-01-15',
+      gainLoss: -1500,
+      unrealizedGainLoss: -1500,
+      purchasePrice: 56500,
+      currentPrice: 55000
     },
     {
       id: '2',
       symbol: 'ETH',
-      quantity: 2.0,
-      purchasePrice: 4500,
-      currentPrice: 4200,
-      unrealizedLoss: -600,
-      unrealizedGainLoss: -600,
-      purchaseDate: '2024-02-10',
-      recommendedAction: 'sell'
+      amount: 2,
+      price: 2800,
+      type: 'buy',
+      date: '2024-02-20',
+      gainLoss: -800,
+      unrealizedGainLoss: -800,
+      purchasePrice: 3200,
+      currentPrice: 2800
     }
-  ]);
+  ];
 
-  const totalLosses = positions.reduce((sum, pos) => 
-    sum + (pos.unrealizedGainLoss < 0 ? Math.abs(pos.unrealizedGainLoss) : 0), 0
+  const totalLoss = mockTrades.reduce((sum, trade) => 
+    trade.gainLoss < 0 ? sum + Math.abs(trade.gainLoss) : sum, 0
   );
-  
-  const eligiblePositions = positions.filter(pos => pos.unrealizedGainLoss < 0);
 
-  const formatCurrency = (amount: number) => {
+  const toggleSelection = (id: string) => {
+    setSelectedItems(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
+  };
+
+  const executeTaxHarvesting = () => {
+    console.log('Executing tax harvesting for items:', selectedItems);
+  };
+
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-AU', {
       style: 'currency',
       currency: 'AUD'
-    }).format(amount);
+    }).format(Math.abs(value));
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingDown className="h-5 w-5" />
-          Tax Loss Harvesting
-        </CardTitle>
-        <CardDescription>
-          Identify opportunities to offset capital gains with losses
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-red-50 rounded-lg">
-            <div className="text-sm text-red-600">Total Unrealized Losses</div>
-            <div className="text-2xl font-bold text-red-700">
-              {formatCurrency(totalLosses)}
-            </div>
-          </div>
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <div className="text-sm text-blue-600">Eligible Positions</div>
-            <div className="text-2xl font-bold text-blue-700">
-              {eligiblePositions.length}
-            </div>
-          </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <div className="text-sm text-green-600">Potential Tax Savings</div>
-            <div className="text-2xl font-bold text-green-700">
-              {formatCurrency(totalLosses * 0.325)}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Loss Harvesting Opportunities</h3>
-          {positions.map((position) => (
-            <div key={position.id} className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="font-medium text-lg">{position.symbol}</div>
-                  <Badge variant={
-                    position.unrealizedGainLoss < 0 ? 'destructive' : 'default'
-                  }>
-                    {position.unrealizedGainLoss < 0 ? 'Loss' : 'Gain'}
-                  </Badge>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">
-                    {formatCurrency(Math.abs(position.unrealizedGainLoss))}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {position.unrealizedGainLoss < 0 ? 'Unrealized Loss' : 'Unrealized Gain'}
-                  </div>
-                </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Tax Loss Harvesting
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {formatCurrency(totalLoss)}
               </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Quantity:</span>
-                  <p className="font-medium">{position.quantity}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Purchase Price:</span>
-                  <p className="font-medium">{formatCurrency(position.purchasePrice)}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Current Price:</span>
-                  <p className="font-medium">{formatCurrency(position.currentPrice)}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Purchase Date:</span>
-                  <p className="font-medium">{new Date(position.purchaseDate).toLocaleDateString()}</p>
-                </div>
-              </div>
-              
-              {position.unrealizedGainLoss < 0 && (
-                <div className="mt-4 p-3 bg-orange-50 rounded">
-                  <div className="text-sm text-orange-800">
-                    <strong>Recommendation:</strong> Consider selling to realize loss for tax purposes.
-                    Potential tax benefit: {formatCurrency(Math.abs(position.unrealizedGainLoss) * 0.325)}
-                  </div>
-                </div>
-              )}
+              <p className="text-sm text-muted-foreground">Total Unrealized Losses</p>
             </div>
-          ))}
-        </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">
+                {selectedItems.length}
+              </div>
+              <p className="text-sm text-muted-foreground">Selected Positions</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(
+                  mockTrades
+                    .filter(trade => selectedItems.includes(trade.id))
+                    .reduce((sum, trade) => sum + Math.abs(trade.gainLoss), 0)
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">Potential Tax Savings</p>
+            </div>
+          </div>
 
-        <div className="text-xs text-muted-foreground">
-          <p>* Tax loss harvesting can help offset capital gains.</p>
-          <p>* Be aware of wash sale rules when repurchasing assets.</p>
-          <p>* Consult a tax professional for personalized advice.</p>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="space-y-3">
+            {mockTrades.map((trade) => (
+              <Card 
+                key={trade.id} 
+                className={`cursor-pointer transition-all ${
+                  selectedItems.includes(trade.id) 
+                    ? 'ring-2 ring-primary bg-muted/30' 
+                    : 'hover:bg-muted/20'
+                }`}
+                onClick={() => toggleSelection(trade.id)}
+              >
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.includes(trade.id)}
+                        onChange={() => toggleSelection(trade.id)}
+                        className="rounded"
+                      />
+                      <div>
+                        <div className="font-medium">{trade.symbol}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {trade.amount} coins @ {formatCurrency(trade.purchasePrice!)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="flex items-center">
+                        <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
+                        <span className="font-medium text-red-600">
+                          -{formatCurrency(Math.abs(trade.gainLoss))}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Current: {formatCurrency(trade.currentPrice!)}
+                      </div>
+                    </div>
+                    
+                    <Badge variant="destructive" className="text-xs">
+                      Unrealized Loss
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <div className="text-sm text-muted-foreground">
+              Select positions to harvest losses for tax benefits
+            </div>
+            <Button 
+              onClick={executeTaxHarvesting}
+              disabled={selectedItems.length === 0}
+            >
+              Execute Tax Harvesting
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

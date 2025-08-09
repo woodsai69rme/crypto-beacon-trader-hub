@@ -26,4 +26,16 @@ const ListItem = React.forwardRef<
 ))
 ListItem.displayName = "ListItem"
 
-export { List, ListItem }
+const ListHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-medium text-sm mb-2", className)}
+    {...props}
+  />
+))
+ListHeader.displayName = "ListHeader"
+
+export { List, ListItem, ListHeader }

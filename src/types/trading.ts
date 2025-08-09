@@ -1,4 +1,3 @@
-
 export interface Coin {
   id: string;
   name: string;
@@ -140,6 +139,10 @@ export interface AIBot {
   createdAt: string;
   updatedAt: string;
   isActive?: boolean;
+  model?: string;
+  riskLevel?: 'low' | 'medium' | 'high';
+  maxTradeAmount?: number;
+  targetAssets?: string[];
   auditLog?: Array<{
     id: string;
     action: string;
@@ -158,6 +161,16 @@ export interface BotConfig {
   stopLossPercentage: number;
   takeProfitPercentage: number;
   targetSymbols: string[];
+  model?: string;
+  maxTradeAmount?: number;
+  targetAssets?: string[];
+  parameters?: Record<string, any>;
+}
+
+export interface ExtendedAiBotTradingProps {
+  bots: AIBot[];
+  onBotUpdate: (bot: AIBot) => void;
+  selectedCoinId?: string;
 }
 
 export interface AIModel {

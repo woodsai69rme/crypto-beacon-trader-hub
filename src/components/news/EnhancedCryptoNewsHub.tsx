@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,70 +19,55 @@ const EnhancedCryptoNewsHub: React.FC = () => {
       {
         id: '1',
         title: 'Bitcoin Reaches New All-Time High as Institutional Adoption Grows',
-        summary: 'Bitcoin has surged to unprecedented levels as major institutions continue to add cryptocurrency to their balance sheets.',
+        content: 'Bitcoin has surged to unprecedented levels as major institutions continue to add cryptocurrency to their balance sheets. The latest rally has been driven by renewed interest from pension funds and corporate treasuries.',
         url: 'https://example.com/news/1',
         source: 'CoinDesk',
         publishedAt: new Date().toISOString(),
         sentiment: 'positive',
-        relevance: 0.95,
-        categories: ['Bitcoin', 'Institutional'],
-        coins: ['bitcoin'],
         isFake: false,
         confidence: 0.98
       },
       {
         id: '2',
         title: 'Ethereum 2.0 Staking Rewards Hit Record High',
-        summary: 'ETH staking yields have reached their highest point in 2024, attracting more validators to the network.',
+        content: 'ETH staking yields have reached their highest point in 2024, attracting more validators to the network. The increased participation is contributing to network security and decentralization.',
         url: 'https://example.com/news/2',
         source: 'CoinTelegraph',
         publishedAt: new Date(Date.now() - 3600000).toISOString(),
         sentiment: 'positive',
-        relevance: 0.88,
-        categories: ['Ethereum', 'Staking'],
-        coins: ['ethereum'],
         isFake: false,
         confidence: 0.92
       },
       {
         id: '3',
         title: 'Regulatory Concerns Impact Crypto Market Sentiment',
-        summary: 'New regulatory proposals have created uncertainty in the cryptocurrency market, leading to increased volatility.',
+        content: 'New regulatory proposals have created uncertainty in the cryptocurrency market, leading to increased volatility. Traders are closely watching for further developments from regulatory bodies.',
         url: 'https://example.com/news/3',
         source: 'CryptoPanic',
         publishedAt: new Date(Date.now() - 7200000).toISOString(),
         sentiment: 'negative',
-        relevance: 0.76,
-        categories: ['Regulation', 'Market'],
-        coins: ['bitcoin', 'ethereum'],
         isFake: false,
         confidence: 0.85
       },
       {
         id: '4',
         title: 'DeFi Protocol Launches Revolutionary Yield Farming Feature',
-        summary: 'A major DeFi protocol has introduced a new yield farming mechanism that promises higher returns with lower risk.',
+        content: 'A major DeFi protocol has introduced a new yield farming mechanism that promises higher returns with lower risk. The innovative approach combines liquidity mining with automated risk management.',
         url: 'https://example.com/news/4',
         source: 'DeFi Pulse',
         publishedAt: new Date(Date.now() - 10800000).toISOString(),
         sentiment: 'positive',
-        relevance: 0.82,
-        categories: ['DeFi', 'Yield Farming'],
-        coins: ['ethereum'],
         isFake: false,
         confidence: 0.89
       },
       {
         id: '5',
         title: 'SUSPECTED: Major Exchange Hack Reported - Unverified Claims',
-        summary: 'Unconfirmed reports suggest a major cryptocurrency exchange may have been compromised. Official statements pending.',
+        content: 'Unconfirmed reports suggest a major cryptocurrency exchange may have been compromised. Official statements are pending and users are advised to exercise caution.',
         url: 'https://example.com/news/5',
         source: 'Unknown Source',
         publishedAt: new Date(Date.now() - 14400000).toISOString(),
         sentiment: 'negative',
-        relevance: 0.65,
-        categories: ['Security', 'Exchange'],
-        coins: ['bitcoin', 'ethereum'],
         isFake: true,
         confidence: 0.45
       }
@@ -99,26 +83,18 @@ const EnhancedCryptoNewsHub: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(item =>
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.summary.toLowerCase().includes(searchTerm.toLowerCase())
+        item.content.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(item =>
-        item.categories?.includes(selectedCategory)
+        item.tags?.includes(selectedCategory)
       );
     }
 
     setFilteredNews(filtered);
   }, [searchTerm, selectedCategory, news]);
-
-  const getSentimentColor = (sentiment: string | undefined) => {
-    switch (sentiment) {
-      case 'positive': return 'text-green-600';
-      case 'negative': return 'text-red-600';
-      default: return 'text-yellow-600';
-    }
-  };
 
   const getSentimentBadgeVariant = (sentiment: string | undefined) => {
     switch (sentiment) {
@@ -147,7 +123,7 @@ const EnhancedCryptoNewsHub: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className="text-sm text-muted-foreground mb-3">{item.summary}</p>
+        <p className="text-sm text-muted-foreground mb-3">{item.content}</p>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center space-x-4">
             <span>{item.source}</span>
@@ -160,11 +136,11 @@ const EnhancedCryptoNewsHub: React.FC = () => {
             </a>
           </Button>
         </div>
-        {item.categories && (
+        {item.tags && (
           <div className="flex gap-1 mt-2">
-            {item.categories.slice(0, 3).map((category) => (
-              <Badge key={category} variant="outline" className="text-xs">
-                {category}
+            {item.tags.slice(0, 3).map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs">
+                {tag}
               </Badge>
             ))}
           </div>
