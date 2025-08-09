@@ -1,5 +1,4 @@
-
-import { AIBot, BotConfig } from '@/types/trading';
+import { AIBot, BotConfig, AITradingStrategy } from '@/types/trading';
 import { v4 as uuidv4 } from 'uuid';
 
 class EnhancedAiBotService {
@@ -8,7 +7,15 @@ class EnhancedAiBotService {
       id: uuidv4(),
       name: 'Grid Master Pro',
       description: 'Advanced grid trading with dynamic range adjustment',
-      strategy: 'grid',
+      strategy: {
+        id: 'grid-1',
+        name: 'Grid Trading',
+        description: 'Advanced grid trading with dynamic range adjustment',
+        type: 'grid',
+        timeframe: 'medium',
+        parameters: {},
+        riskLevel: 'medium'
+      },
       model: 'deepseek-r1',
       status: 'paused',
       riskLevel: 'medium',
@@ -30,7 +37,15 @@ class EnhancedAiBotService {
       id: uuidv4(),
       name: 'Trend Follower AI',
       description: 'AI-powered trend following with momentum analysis',
-      strategy: 'trend-following',
+      strategy: {
+        id: 'trend-1',
+        name: 'Trend Following',
+        description: 'AI-powered trend following with momentum analysis',
+        type: 'trend-following',
+        timeframe: 'medium',
+        parameters: {},
+        riskLevel: 'high'
+      },
       model: 'gpt-4o-mini',
       status: 'active',
       riskLevel: 'high',
@@ -63,7 +78,7 @@ class EnhancedAiBotService {
   }
 
   getBotsByStrategy(strategy: string): AIBot[] {
-    return this.bots.filter(bot => bot.strategy === strategy);
+    return this.bots.filter(bot => bot.strategy.type === strategy);
   }
 
   getTopPerformingBots(limit: number = 5): AIBot[] {
@@ -72,7 +87,7 @@ class EnhancedAiBotService {
       .slice(0, limit);
   }
 
-  getAvailableStrategies(): string[] {
+  getAvailableStrategies(): AITradingStrategy[] {
     return [
       'grid',
       'trend-following',
@@ -113,12 +128,22 @@ class EnhancedAiBotService {
     return true;
   }
 
-  createBot(config: BotConfig): AIBot {
+  createBot(config: any): AIBot {
+    const strategyConfig = {
+      id: config.strategy || 'custom',
+      name: config.name || 'Custom Strategy',
+      description: config.description || 'Custom trading strategy',
+      type: config.strategy as AITradingStrategy,
+      timeframe: config.parameters?.timeframe || 'medium' as const,
+      parameters: config.parameters || {},
+      riskLevel: config.riskLevel
+    };
+
     const newBot: AIBot = {
-      id: config.id,
+      id: config.id || uuidv4(),
       name: config.name,
       description: config.description,
-      strategy: config.strategy,
+      strategy: strategyConfig,
       model: config.model,
       status: 'paused',
       riskLevel: config.riskLevel,

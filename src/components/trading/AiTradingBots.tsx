@@ -6,12 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, Plus, Play, Pause, Settings, TrendingUp } from 'lucide-react';
 import AiTradingStrategySelector from './AiTradingStrategySelector';
-import { AITradingStrategy } from '@/types/trading';
+import { AITradingStrategyConfig } from '@/types/trading';
 
 interface AiBot {
   id: string;
   name: string;
-  strategy: AITradingStrategy;
+  strategy: AITradingStrategyConfig;
   status: 'active' | 'paused' | 'stopped';
   performance: {
     totalReturn: number;
@@ -44,7 +44,7 @@ const AiTradingBots: React.FC = () => {
     }
   ]);
 
-  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategy | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<AITradingStrategyConfig | null>(null);
 
   const handleCreateBot = () => {
     if (!selectedStrategy) return;

@@ -1,3 +1,4 @@
+
 export interface Coin {
   id: string;
   name: string;
@@ -86,7 +87,14 @@ export type AITradingStrategy =
   | 'custom'
   | 'risk-weighted'
   | 'whale-tracking'
-  | 'portfolio-balancing';
+  | 'portfolio-balancing'
+  | 'machine-learning'
+  | 'sentiment'
+  | 'hybrid'
+  | 'ai-predictive'
+  | 'traditional';
+
+export type AITradingStrategyType = AITradingStrategy;
 
 export interface AITradingStrategyConfig {
   id: string;
@@ -104,6 +112,7 @@ export interface AITradingStrategyConfig {
     totalTrades: number;
     maxDrawdown: number;
     sharpeRatio: number;
+    profitFactor?: number;
   };
 }
 
@@ -135,6 +144,7 @@ export interface AIBot {
     totalTrades: number;
     maxDrawdown?: number;
     sharpeRatio?: number;
+    trades?: number;
   };
   createdAt: string;
   updatedAt: string;
@@ -155,6 +165,9 @@ export interface AIBot {
 }
 
 export interface BotConfig {
+  id?: string;
+  name?: string;
+  description?: string;
   strategy: AITradingStrategyConfig;
   riskLevel: 'low' | 'medium' | 'high';
   maxPositionSize: number;

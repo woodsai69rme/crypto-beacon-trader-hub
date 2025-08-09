@@ -1,17 +1,16 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AITradingStrategy } from '@/types/trading';
+import { AITradingStrategyConfig } from '@/types/trading';
 import { TrendingUp, BarChart3, Zap, Target, Grid3X3, ArrowLeftRight, Activity, Brain, Lightbulb, MessageSquare, Bot, Calculator } from 'lucide-react';
 
 interface AiTradingStrategySelectorProps {
-  strategies: AITradingStrategy[];
-  onSelectStrategy: (strategy: AITradingStrategy) => void;
+  strategies: AITradingStrategyConfig[];
+  onSelectStrategy: (strategy: AITradingStrategyConfig) => void;
 }
 
-const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
+const BUILT_IN_STRATEGIES: AITradingStrategyConfig[] = [
   {
     id: 'trend-following',
     name: 'Trend Following',
@@ -30,7 +29,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 68,
       profitFactor: 1.8,
       sharpeRatio: 1.2,
-      maxDrawdown: 12
+      maxDrawdown: 12,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -51,7 +53,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 72,
       profitFactor: 2.1,
       sharpeRatio: 1.4,
-      maxDrawdown: 8
+      maxDrawdown: 8,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -72,7 +77,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 58,
       profitFactor: 2.5,
       sharpeRatio: 1.1,
-      maxDrawdown: 18
+      maxDrawdown: 18,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -93,7 +101,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 78,
       profitFactor: 1.6,
       sharpeRatio: 0.9,
-      maxDrawdown: 5
+      maxDrawdown: 5,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -114,7 +125,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 85,
       profitFactor: 1.3,
       sharpeRatio: 1.0,
-      maxDrawdown: 15
+      maxDrawdown: 15,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -135,7 +149,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 92,
       profitFactor: 1.2,
       sharpeRatio: 2.1,
-      maxDrawdown: 3
+      maxDrawdown: 3,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -156,7 +173,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 65,
       profitFactor: 2.2,
       sharpeRatio: 1.3,
-      maxDrawdown: 16
+      maxDrawdown: 16,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -176,7 +196,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 71,
       profitFactor: 1.9,
       sharpeRatio: 1.1,
-      maxDrawdown: 11
+      maxDrawdown: 11,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -197,7 +220,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 74,
       profitFactor: 2.0,
       sharpeRatio: 1.5,
-      maxDrawdown: 9
+      maxDrawdown: 9,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -218,7 +244,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 69,
       profitFactor: 1.7,
       sharpeRatio: 1.0,
-      maxDrawdown: 14
+      maxDrawdown: 14,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -238,7 +267,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 73,
       profitFactor: 1.8,
       sharpeRatio: 1.4,
-      maxDrawdown: 10
+      maxDrawdown: 10,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   },
   {
@@ -259,7 +291,10 @@ const BUILT_IN_STRATEGIES: AITradingStrategy[] = [
       winRate: 82,
       profitFactor: 1.4,
       sharpeRatio: 1.6,
-      maxDrawdown: 12
+      maxDrawdown: 12,
+      totalReturn: 0,
+      trades: 0,
+      totalTrades: 0
     }
   }
 ];
@@ -299,7 +334,7 @@ const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
     }
   };
 
-  const handleSelectStrategy = (strategy: AITradingStrategy) => {
+  const handleSelectStrategy = (strategy: AITradingStrategyConfig) => {
     setSelectedStrategy(strategy.id);
     onSelectStrategy(strategy);
   };
@@ -338,7 +373,7 @@ const AiTradingStrategySelector: React.FC<AiTradingStrategySelectorProps> = ({
                     {strategy.riskLevel || 'Medium'} Risk
                   </Badge>
                   <Badge variant="outline">
-                    {typeof strategy.timeframe === 'string' ? strategy.timeframe : 'Medium'} Term
+                    {strategy.timeframe} Term
                   </Badge>
                 </div>
               </div>
