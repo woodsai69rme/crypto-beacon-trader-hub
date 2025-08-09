@@ -120,6 +120,7 @@ export interface PortfolioAsset {
   allocation: number;
   coinId?: string;
   changePercent24h?: number;
+  priceChange?: number;
 }
 
 export interface AIBot {
@@ -133,9 +134,21 @@ export interface AIBot {
     totalReturn: number;
     winRate: number;
     totalTrades: number;
+    maxDrawdown?: number;
+    sharpeRatio?: number;
   };
   createdAt: string;
   updatedAt: string;
+  isActive?: boolean;
+  auditLog?: Array<{
+    id: string;
+    action: string;
+    timestamp: string;
+    reasoning: string;
+    signal?: any;
+    result?: string;
+    marketData?: any;
+  }>;
 }
 
 export interface BotConfig {
@@ -267,7 +280,11 @@ export interface TradingAccount {
   type: 'paper' | 'live';
   balance: number;
   currency: SupportedCurrency;
-  exchange?: string;
+  assets?: PortfolioAsset[];
+  createdAt?: string;
+  trades?: Trade[];
+  initialBalance?: number;
+  isActive?: boolean;
 }
 
 // Tax and reporting types
@@ -317,6 +334,11 @@ export interface TaxHarvestTradeItem {
   type: 'buy' | 'sell';
   date: string;
   gainLoss: number;
+  quantity?: number;
+  unrealizedGainLoss?: number;
+  purchasePrice?: number;
+  currentPrice?: number;
+  purchaseDate?: string;
 }
 
 // API types
@@ -432,12 +454,14 @@ export interface NewsItem {
   author?: string;
   relevance?: number;
   categories?: string[];
+  coins?: string[];
 }
 
 export interface NewsTickerProps {
   items: NewsItem[];
   speed?: number;
   direction?: 'left' | 'right';
+  className?: string;
 }
 
 // Alert types
@@ -473,6 +497,7 @@ export interface PortfolioOptimizationResult {
   risk: number;
   sharpeRatio: number;
   recommendations: string[];
+  expectedRisk?: number;
 }
 
 // Dashboard types

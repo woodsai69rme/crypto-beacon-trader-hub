@@ -1,208 +1,139 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { OptimizationSettings, PortfolioOptimizationResult } from '@/types/trading';
-import { TrendingUp, Target, Shield } from 'lucide-react';
 
 const PortfolioOptimizer: React.FC = () => {
   const [settings, setSettings] = useState<OptimizationSettings>({
     riskTolerance: 'medium',
-    timeHorizon: 'medium',
-    maxDrawdown: 20,
-    targetReturn: 15,
-    objectives: ['maximize_return', 'minimize_risk'],
-    constraints: {
-      maxAssetAllocation: 30,
-      minCash: 5,
-    },
+    timeHorizon: '1 year',
+    targetReturn: 0.15,
+    maxDrawdown: 0.20,
+    constraints: {}
   });
 
-  const [result, setResult] = useState<PortfolioOptimizationResult | null>(null);
-  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [result, setResult] = useState<PortfolioOptimizationResult>({
+    allocation: {
+      BTC: 0.4,
+      ETH: 0.3,
+      SOL: 0.15,
+      ADA: 0.1,
+      DOT: 0.05,
+      CASH: 0.0
+    },
+    expectedReturn: 0.18,
+    risk: 0.25,
+    sharpeRatio: 0.72,
+    recommendations: [
+      'Consider increasing Bitcoin allocation for stability',
+      'Reduce exposure to high-volatility altcoins',
+      'Maintain some cash reserves for opportunities'
+    ]
+  });
 
-  const handleOptimize = async () => {
-    setIsOptimizing(true);
-    
-    // Simulate optimization process
-    setTimeout(() => {
-      const mockResult: PortfolioOptimizationResult = {
-        allocation: {
-          'BTC': 25,
-          'ETH': 20,
-          'SOL': 15,
-          'ADA': 10,
-          'DOT': 10,
-          'CASH': 20
-        },
-        expectedReturn: 18.5,
-        expectedRisk: 22.3,
-        sharpeRatio: 0.83,
-        recommendations: [
-          'Consider increasing Bitcoin allocation for better risk-adjusted returns',
-          'Reduce exposure to smaller altcoins during high volatility periods',
-          'Maintain 20% cash position for opportunities'
-        ]
-      };
-      setResult(mockResult);
-      setIsOptimizing(false);
-    }, 2000);
+  const handleOptimize = () => {
+    // Simulation of optimization logic
+    console.log('Optimizing portfolio with settings:', settings);
+    setResult({
+      ...result,
+      expectedReturn: Math.random() * 0.3 + 0.1,
+      risk: Math.random() * 0.4 + 0.2,
+      sharpeRatio: Math.random() * 1.5 + 0.5
+    });
+  };
+
+  const handleSettingChange = (key: keyof OptimizationSettings, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          AI Portfolio Optimizer
-        </CardTitle>
-        <CardDescription>
-          Optimize your portfolio allocation using Modern Portfolio Theory
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Portfolio Optimization Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Risk Tolerance</label>
-              <Select 
-                value={settings.riskTolerance} 
-                onValueChange={(value: 'low' | 'medium' | 'high') => 
-                  setSettings(prev => ({ ...prev, riskTolerance: value }))
-                }
+              <label className="block text-sm font-medium mb-2">Risk Tolerance</label>
+              <select 
+                value={settings.riskTolerance}
+                onChange={(e) => handleSettingChange('riskTolerance', e.target.value as 'low' | 'medium' | 'high')}
+                className="w-full p-2 border rounded-md"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Conservative</SelectItem>
-                  <SelectItem value="medium">Moderate</SelectItem>
-                  <SelectItem value="high">Aggressive</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="low">Conservative</option>
+                <option value="medium">Moderate</option>
+                <option value="high">Aggressive</option>
+              </select>
             </div>
-
+            
             <div>
-              <label className="text-sm font-medium mb-2 block">Time Horizon</label>
-              <Select 
-                value={settings.timeHorizon} 
-                onValueChange={(value: 'short' | 'medium' | 'long') => 
-                  setSettings(prev => ({ ...prev, timeHorizon: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="short">Short-term (&lt; 1 year)</SelectItem>
-                  <SelectItem value="medium">Medium-term (1-5 years)</SelectItem>
-                  <SelectItem value="long">Long-term (5+ years)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Target Return: {settings.targetReturn}%
-              </label>
-              <Slider
-                value={[settings.targetReturn]}
-                onValueChange={(value) => setSettings(prev => ({ ...prev, targetReturn: value[0] }))}
-                max={50}
-                min={5}
-                step={1}
-                className="w-full"
+              <label className="block text-sm font-medium mb-2">Target Return (%)</label>
+              <input
+                type="number"
+                value={settings.targetReturn * 100}
+                onChange={(e) => handleSettingChange('targetReturn', Number(e.target.value) / 100)}
+                className="w-full p-2 border rounded-md"
+                min="0"
+                max="100"
+                step="1"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Max Drawdown: {settings.maxDrawdown}%
-              </label>
-              <Slider
-                value={[settings.maxDrawdown]}
-                onValueChange={(value) => setSettings(prev => ({ ...prev, maxDrawdown: value[0] }))}
-                max={50}
-                min={5}
-                step={1}
-                className="w-full"
-              />
-            </div>
+            <Button onClick={handleOptimize} className="w-full">
+              Optimize Portfolio
+            </Button>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <Button 
-          onClick={handleOptimize} 
-          disabled={isOptimizing}
-          className="w-full"
-        >
-          {isOptimizing ? 'Optimizing...' : 'Optimize Portfolio'}
-        </Button>
-
-        {result && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">Expected Return</span>
-                </div>
-                <div className="text-2xl font-bold text-green-800">
-                  {result.expectedReturn}%
+      <Card>
+        <CardHeader>
+          <CardTitle>Optimization Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Expected Return</label>
+                <div className="text-xl font-bold text-green-600">
+                  {(result.expectedReturn * 100).toFixed(1)}%
                 </div>
               </div>
-
-              <div className="p-4 bg-red-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-700">Expected Risk</span>
-                </div>
-                <div className="text-2xl font-bold text-red-800">
-                  {result.expectedRisk}%
-                </div>
-              </div>
-
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-700">Sharpe Ratio</span>
-                </div>
-                <div className="text-2xl font-bold text-blue-800">
-                  {result.sharpeRatio}
+              <div>
+                <label className="block text-sm font-medium mb-1">Risk Level</label>
+                <div className="text-xl font-bold">
+                  {(result.risk * 100).toFixed(1)}%
                 </div>
               </div>
             </div>
-
+            
             <div>
-              <h3 className="text-lg font-semibold mb-4">Recommended Allocation</h3>
+              <label className="block text-sm font-medium mb-1">Sharpe Ratio</label>
+              <div className="text-xl font-bold text-blue-600">
+                {result.sharpeRatio.toFixed(2)}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h4 className="font-semibold mb-2">Recommended Allocation</h4>
               <div className="space-y-2">
                 {Object.entries(result.allocation).map(([asset, percentage]) => (
-                  <div key={asset} className="flex items-center justify-between p-3 bg-muted rounded">
-                    <span className="font-medium">{asset}</span>
-                    <span className="text-lg font-bold">{percentage}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3">AI Recommendations</h3>
-              <div className="space-y-2">
-                {result.recommendations.map((recommendation, index) => (
-                  <div key={index} className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800">{recommendation}</p>
+                  <div key={asset} className="flex justify-between items-center">
+                    <span>{asset}</span>
+                    <span className="font-medium">{(percentage * 100).toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
