@@ -12,6 +12,7 @@ export function normalizeCoinOption(coin: any): CoinOption {
     price: coin.price || 0,
     priceChange: coin.priceChange || 0,
     changePercent: coin.changePercent || 0,
+    change24h: coin.change24h || coin.changePercent || 0, // Add change24h
     image: coin.image || '',
     volume: coin.volume || 0,
     marketCap: coin.marketCap || 0,

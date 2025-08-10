@@ -1,4 +1,3 @@
-
 import { SupportedCurrency } from "@/types/trading";
 
 export type Trade = {
@@ -16,8 +15,11 @@ export type Trade = {
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
-  fees?: number; // Add fees field to fix context errors
-  coin?: string; // Add coin field to fix context errors
+  fees?: number;
+  coin?: string;
+  quantity?: number;
+  symbol?: string;
+  total?: number;
 };
 
 export interface LocalModel {
@@ -47,13 +49,14 @@ export type CoinOption = {
   id: string;
   name: string;
   symbol: string;
-  price: number; // Required for this implementation
+  price: number;
   priceAUD?: number;
   priceEUR?: number; 
   priceGBP?: number;
   image?: string;
   priceChange?: number;
   changePercent?: number;
+  change24h?: number;
   volume?: number;
   marketCap?: number;
   rank?: number;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, Brain, Target, Shield, TrendingUp, Zap, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { comprehensiveAiBotSystem } from '@/services/ai/comprehensiveAiBotSystem';
+import { AITradingStrategy } from '@/types/trading';
 
 const AiBotCreator: React.FC = () => {
   const { toast } = useToast();
@@ -80,11 +80,22 @@ const AiBotCreator: React.FC = () => {
         id: `bot-${Date.now()}`,
         name: formData.name,
         description: formData.description,
-        strategy: formData.strategy,
+        strategy: {
+          id: formData.strategy,
+          name: formData.strategy,
+          description: formData.description,
+          type: formData.strategy as AITradingStrategy,
+          timeframe: 'medium' as const,
+          parameters: formData.parameters
+        },
         model: formData.model,
         riskLevel: formData.riskLevel,
         maxTradeAmount: formData.maxTradeAmount,
+        maxPositionSize: formData.maxTradeAmount,
+        stopLossPercentage: formData.stopLoss,
+        takeProfitPercentage: formData.takeProfit,
         targetAssets: formData.targetAssets,
+        targetSymbols: formData.targetAssets,
         parameters: {
           timeframe: formData.timeframe,
           stopLoss: formData.stopLoss,

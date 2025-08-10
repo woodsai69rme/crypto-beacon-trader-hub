@@ -14,6 +14,7 @@ const RealTimeTrading: React.FC = () => {
       price: 65000,
       priceChange: 1250,
       changePercent: 2.1,
+      change24h: 2.1, // Add change24h
       value: 'bitcoin',
       label: 'Bitcoin (BTC)',
       image: 'https://coin-images.coingecko.com/coins/images/1/small/bitcoin.png'
@@ -25,6 +26,7 @@ const RealTimeTrading: React.FC = () => {
       price: 3200,
       priceChange: -45,
       changePercent: -1.4,
+      change24h: -1.4, // Add change24h
       value: 'ethereum',
       label: 'Ethereum (ETH)',
       image: 'https://coin-images.coingecko.com/coins/images/279/small/ethereum.png'

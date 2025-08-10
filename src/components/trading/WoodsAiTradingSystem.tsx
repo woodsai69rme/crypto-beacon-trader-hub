@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { AIBot, AITradingStrategyType, AIModel } from '@/types/trading';
+import { AIBot, AITradingStrategy, SystemStats } from '@/types/trading';
 import { comprehensiveAiBotSystem } from '@/services/ai/comprehensiveAiBotSystem';
 import { enhancedAiBotService } from '@/services/ai/enhancedAiBotService';
 import { Play, Pause, Square, TrendingUp, TrendingDown, Activity, Settings, Plus, Trash2 } from 'lucide-react';
@@ -14,15 +13,22 @@ import { v4 as uuidv4 } from 'uuid';
 
 const WoodsAiTradingSystem: React.FC = () => {
   const [bots, setBots] = useState<AIBot[]>([]);
-  const [systemStats, setSystemStats] = useState<any>({});
+  const [systemStats, setSystemStats] = useState<SystemStats>({
+    totalBots: 0,
+    activeBots: 0,
+    avgReturn: 0,
+    avgWinRate: 0,
+    totalTrades: 0,
+    systemRunning: false
+  });
   const [isSystemRunning, setIsSystemRunning] = useState(false);
   const [selectedBot, setSelectedBot] = useState<AIBot | null>(null);
   const [showCreateBot, setShowCreateBot] = useState(false);
 
   // New bot form state
   const [newBotName, setNewBotName] = useState('');
-  const [newBotStrategy, setNewBotStrategy] = useState<AITradingStrategyType>('grid');
-  const [newBotModel, setNewBotModel] = useState<AIModel>('deepseek-r1');
+  const [newBotStrategy, setNewBotStrategy] = useState<AITradingStrategy>('grid');
+  const [newBotModel, setNewBotModel] = useState<string>('deepseek-r1');
   const [newBotRiskLevel, setNewBotRiskLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [newBotMaxAmount, setNewBotMaxAmount] = useState('1000');
   const [newBotAssets, setNewBotAssets] = useState('BTC,ETH');
@@ -47,7 +53,7 @@ const WoodsAiTradingSystem: React.FC = () => {
   const loadSystemStats = () => {
     const stats = comprehensiveAiBotSystem.getSystemStats();
     setSystemStats(stats);
-    setIsSystemRunning(stats.systemRunning);
+    setIsSystemRunning(stats.systemRunning || false);
   };
 
   const handleStartSystem = async () => {
@@ -90,11 +96,22 @@ const WoodsAiTradingSystem: React.FC = () => {
       id: uuidv4(),
       name: newBotName,
       description: `AI-powered ${newBotStrategy} trading bot`,
-      strategy: newBotStrategy,
+      strategy: {
+        id: newBotStrategy,
+        name: newBotStrategy,
+        description: `AI-powered ${newBotStrategy} trading bot`,
+        type: newBotStrategy,
+        timeframe: 'medium' as const,
+        parameters: {}
+      },
       model: newBotModel,
       riskLevel: newBotRiskLevel,
       maxTradeAmount: parseFloat(newBotMaxAmount) || 1000,
       targetAssets: newBotAssets.split(',').map(asset => asset.trim()),
+      maxPositionSize: parseFloat(newBotMaxAmount) || 1000,
+      stopLossPercentage: 5,
+      takeProfitPercentage: 10,
+      targetSymbols: newBotAssets.split(',').map(asset => asset.trim()),
       parameters: {}
     };
 
@@ -122,7 +139,7 @@ const WoodsAiTradingSystem: React.FC = () => {
     }
   };
 
-  const getStrategyIcon = (strategy: AITradingStrategyType) => {
+  const getStrategyIcon = (strategy: AITradingStrategy) => {
     switch (strategy) {
       case 'trend-following': return <TrendingUp className="h-4 w-4" />;
       case 'mean-reversion': return <TrendingDown className="h-4 w-4" />;
@@ -235,8 +252,8 @@ const WoodsAiTradingSystem: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2">
-                    {getStrategyIcon(bot.strategy)}
-                    <span className="text-sm font-medium">{bot.strategy}</span>
+                    {getStrategyIcon(bot.strategy.type)}
+                    <span className="text-sm font-medium">{bot.strategy.name}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -252,7 +269,7 @@ const WoodsAiTradingSystem: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Trades</p>
-                      <p className="font-semibold">{bot.performance.trades}</p>
+                      <p className="font-semibold">{bot.performance.trades || bot.performance.totalTrades}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Risk</p>
@@ -364,7 +381,7 @@ const WoodsAiTradingSystem: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Strategy</label>
-                <Select value={newBotStrategy} onValueChange={(value) => setNewBotStrategy(value as AITradingStrategyType)}>
+                <Select value={newBotStrategy} onValueChange={(value) => setNewBotStrategy(value as AITradingStrategy)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -380,7 +397,7 @@ const WoodsAiTradingSystem: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">AI Model</label>
-                <Select value={newBotModel} onValueChange={(value) => setNewBotModel(value as AIModel)}>
+                <Select value={newBotModel} onValueChange={(value) => setNewBotModel(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

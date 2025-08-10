@@ -1,4 +1,3 @@
-
 export interface Coin {
   id: string;
   name: string;
@@ -10,7 +9,7 @@ export interface CoinOption {
   name: string;
   symbol: string;
   price: number;
-  change24h: number;
+  change24h?: number;
   priceAUD?: number; 
   priceEUR?: number; 
   priceGBP?: number;
@@ -47,6 +46,7 @@ export interface Trade {
   symbol: string;
   type: 'buy' | 'sell';
   quantity: number;
+  amount: number;
   price: number;
   totalValue: number;
   timestamp: string;
@@ -54,13 +54,13 @@ export interface Trade {
   coinId: string;
   coinName: string;
   coinSymbol: string;
-  amount: number;
   currency: SupportedCurrency;
   currentValue?: number;
   profitLoss?: number;
   botGenerated?: boolean;
   strategyId?: string;
   coin?: string;
+  total?: number;
 }
 
 export interface MarketData {
@@ -153,6 +153,7 @@ export interface AIBot {
   riskLevel?: 'low' | 'medium' | 'high';
   maxTradeAmount?: number;
   targetAssets?: string[];
+  config?: BotConfig;
   auditLog?: Array<{
     id: string;
     action: string;
@@ -168,12 +169,12 @@ export interface BotConfig {
   id?: string;
   name?: string;
   description?: string;
-  strategy: AITradingStrategyConfig;
+  strategy: AITradingStrategyConfig | AITradingStrategy | string;
   riskLevel: 'low' | 'medium' | 'high';
-  maxPositionSize: number;
-  stopLossPercentage: number;
-  takeProfitPercentage: number;
-  targetSymbols: string[];
+  maxPositionSize?: number;
+  stopLossPercentage?: number;
+  takeProfitPercentage?: number;
+  targetSymbols?: string[];
   model?: string;
   maxTradeAmount?: number;
   targetAssets?: string[];
@@ -339,7 +340,7 @@ export interface ATOTaxCalculation {
   taxRefundOrOwed: number;
   transactions: any[];
   
-  // Optional extended fields
+  // Additional fields that are being used
   totalTax?: number;
   taxableIncome?: number;
   netCapitalGains?: number;
@@ -528,14 +529,10 @@ export interface PortfolioOptimizationResult {
 
 // Dashboard types
 export interface DetachedAiTradingDashboardProps {
-  bots: AIBot[];
-  onBotUpdate: (bot: AIBot) => void;
-  onClose?: () => void;
-  isDetached?: boolean;
-  children?: React.ReactNode;
-  initialCoinId?: string;
-  refreshInterval?: number;
-  darkMode?: boolean;
+  title: string;
+  children: React.ReactNode;
+  isDetached: boolean;
+  onDetach: () => void;
 }
 
 export interface EnhancedPortfolioBenchmarkingProps {
@@ -544,4 +541,104 @@ export interface EnhancedPortfolioBenchmarkingProps {
   portfolioData?: any[];
   benchmarks?: any[];
   timeframe?: string;
+}
+
+export interface AIBotStrategy {
+  id: string;
+  name: string;
+  description: string;
+  type: AITradingStrategy;
+  parameters: Record<string, any>;
+  riskLevel: 'low' | 'medium' | 'high';
+}
+
+export interface AdvancedAIBotConfig {
+  id: string;
+  name: string;
+  description: string;
+  strategy: AIBotStrategy;
+  model: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  maxTradeAmount: number;
+  targetAssets: string[];
+  parameters: Record<string, any>;
+}
+
+export interface FakeTradingFormProps {
+  onTrade: (trade: Trade) => void;
+  selectedCoin?: CoinOption;
+}
+
+export interface TradingFormProps {
+  onTrade: (trade: Trade) => void;
+  selectedCoin?: CoinOption;
+  balance: number;
+}
+
+export interface LocalModel {
+  id: string;
+  name: string;
+  endpoint: string;
+  type: "prediction" | "sentiment" | "trading" | "analysis";
+  isConnected: boolean;
+  lastUsed?: string;
+  description?: string;
+  performance?: {
+    accuracy: number;
+    returns: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
+}
+
+export interface ModelListProps {
+  models: LocalModel[];
+  onSelect: (model: LocalModel) => void;
+  onConnect: (model: LocalModel) => void;
+  onDisconnect: (modelId: string) => void;
+}
+
+export interface MarketInsight {
+  id: string;
+  title: string;
+  description: string;
+  type: 'bullish' | 'bearish' | 'neutral';
+  confidence: number;
+  timeframe: string;
+  source: string;
+  timestamp: string;
+}
+
+export interface TradingSignal {
+  id: string;
+  coinId: string;
+  type: 'buy' | 'sell' | 'hold';
+  price: number;
+  confidence: number;
+  source: string;
+  timestamp: string;
+  reason: string;
+}
+
+export interface RealTimePricesProps {
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+  initialCoins?: CoinOption[];
+  refreshInterval?: number;
+}
+
+export interface RealTimePriceChartProps {
+  selectedCoinId: string;
+  onSelectCoin: (coinId: string) => void;
+  coinId?: string;
+  availableCoins?: CoinOption[];
+}
+
+export interface SystemStats {
+  totalBots: number;
+  activeBots: number;
+  avgReturn: number;
+  avgWinRate: number;
+  totalTrades: number;
+  systemRunning: boolean;
 }
