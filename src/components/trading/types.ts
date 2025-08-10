@@ -22,6 +22,25 @@ export type Trade = {
   total?: number;
 };
 
+export type CoinOption = {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  priceAUD?: number;
+  priceEUR?: number; 
+  priceGBP?: number;
+  image?: string;
+  priceChange?: number;
+  changePercent?: number;
+  change24h?: number;
+  volume?: number;
+  marketCap?: number;
+  rank?: number;
+  value: string;
+  label: string;
+};
+
 export interface LocalModel {
   id: string;
   name: string;
@@ -44,25 +63,6 @@ export interface ModelListProps {
   onConnect: (model: LocalModel) => void;
   onDisconnect: (modelId: string) => void;
 }
-
-export type CoinOption = {
-  id: string;
-  name: string;
-  symbol: string;
-  price: number;
-  priceAUD?: number;
-  priceEUR?: number; 
-  priceGBP?: number;
-  image?: string;
-  priceChange?: number;
-  changePercent?: number;
-  change24h?: number;
-  volume?: number;
-  marketCap?: number;
-  rank?: number;
-  value: string;
-  label: string;
-};
 
 export interface FibonacciLevels {
   level0: number;
