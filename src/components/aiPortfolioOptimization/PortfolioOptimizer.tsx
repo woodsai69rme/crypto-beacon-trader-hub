@@ -6,22 +6,37 @@ import { OptimizationSettings, PortfolioOptimizationResult } from '@/types/tradi
 
 const PortfolioOptimizer: React.FC = () => {
   const [settings, setSettings] = useState<OptimizationSettings>({
-    riskTolerance: 'medium',
-    timeHorizon: '1 year',
+    riskTolerance: 'moderate',
+    timeHorizon: 'medium',
     targetReturn: 0.15,
     maxDrawdown: 0.20,
-    constraints: {}
+    constraints: {
+      maxAssetWeight: 0.4,
+      minAssetWeight: 0.05,
+      excludeAssets: []
+    }
   });
 
   const [result, setResult] = useState<PortfolioOptimizationResult>({
-    allocation: {
-      BTC: 0.4,
-      ETH: 0.3,
-      SOL: 0.15,
-      ADA: 0.1,
-      DOT: 0.05,
-      CASH: 0.0
+    strategyId: 'optimal-portfolio',
+    parameterValues: {},
+    performance: {
+      profit: 18000,
+      profitPercentage: 18,
+      maxDrawdown: 15,
+      winRate: 68,
+      sharpeRatio: 0.72,
+      profitFactor: 1.8,
+      totalReturn: 18
     },
+    improvement: 12,
+    allocations: [
+      { symbol: 'BTC', weight: 0.4, expectedReturn: 0.12, risk: 0.35 },
+      { symbol: 'ETH', weight: 0.3, expectedReturn: 0.15, risk: 0.42 },
+      { symbol: 'SOL', weight: 0.15, expectedReturn: 0.20, risk: 0.55 },
+      { symbol: 'ADA', weight: 0.1, expectedReturn: 0.08, risk: 0.45 },
+      { symbol: 'DOT', weight: 0.05, expectedReturn: 0.10, risk: 0.40 }
+    ],
     expectedReturn: 0.18,
     risk: 0.25,
     sharpeRatio: 0.72,
@@ -62,12 +77,25 @@ const PortfolioOptimizer: React.FC = () => {
               <label className="block text-sm font-medium mb-2">Risk Tolerance</label>
               <select 
                 value={settings.riskTolerance}
-                onChange={(e) => handleSettingChange('riskTolerance', e.target.value as 'low' | 'medium' | 'high')}
+                onChange={(e) => handleSettingChange('riskTolerance', e.target.value as 'conservative' | 'moderate' | 'aggressive')}
                 className="w-full p-2 border rounded-md"
               >
-                <option value="low">Conservative</option>
-                <option value="medium">Moderate</option>
-                <option value="high">Aggressive</option>
+                <option value="conservative">Conservative</option>
+                <option value="moderate">Moderate</option>
+                <option value="aggressive">Aggressive</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Time Horizon</label>
+              <select 
+                value={settings.timeHorizon}
+                onChange={(e) => handleSettingChange('timeHorizon', e.target.value as 'short' | 'medium' | 'long')}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="short">Short Term</option>
+                <option value="medium">Medium Term</option>
+                <option value="long">Long Term</option>
               </select>
             </div>
             
@@ -122,10 +150,10 @@ const PortfolioOptimizer: React.FC = () => {
             <div className="mt-6">
               <h4 className="font-semibold mb-2">Recommended Allocation</h4>
               <div className="space-y-2">
-                {Object.entries(result.allocation).map(([asset, percentage]) => (
-                  <div key={asset} className="flex justify-between items-center">
-                    <span>{asset}</span>
-                    <span className="font-medium">{(percentage * 100).toFixed(1)}%</span>
+                {result.allocations.map((allocation) => (
+                  <div key={allocation.symbol} className="flex justify-between items-center">
+                    <span>{allocation.symbol}</span>
+                    <span className="font-medium">{(allocation.weight * 100).toFixed(1)}%</span>
                   </div>
                 ))}
               </div>

@@ -1,302 +1,328 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  Shield, RefreshCw, AlertTriangle, LineChart, 
-  BarChart3, PieChart, Share2, Download, Info
-} from "lucide-react";
-import { useTrading } from "@/contexts/TradingContext";
-import { useToast } from "@/components/ui/use-toast";
-import { assessPortfolioRisk } from "@/services/aiPortfolioService";
-import { RiskAssessmentResult } from "@/types/trading";
+  Shield, 
+  ShieldAlert, 
+  ShieldCheck, 
+  TrendingDown,
+  TrendingUp,
+  AlertTriangle,
+  BarChart3,
+  Zap
+} from 'lucide-react';
+import { RiskAssessmentResult, PortfolioAsset } from '@/types/trading';
 
-const RiskAssessment: React.FC = () => {
-  const { toast } = useToast();
-  const { activeAccount } = useTrading();
-  
+interface RiskAssessmentProps {
+  portfolioAssets?: PortfolioAsset[];
+  onRecommendationApply?: (recommendation: string) => void;
+}
+
+const RiskAssessment: React.FC<RiskAssessmentProps> = ({ 
+  portfolioAssets = [], 
+  onRecommendationApply 
+}) => {
+  const [riskData, setRiskData] = useState<RiskAssessmentResult>({
+    score: 75,
+    overallScore: 75,
+    diversificationScore: 65,
+    volatilityScore: 80,
+    liquidityScore: 85,
+    concentrationRisk: 45,
+    correlationRisk: 60,
+    riskByAsset: [],
+    factors: [
+      {
+        name: 'Portfolio Diversification',
+        weight: 0.3,
+        score: 65,
+        description: 'Asset allocation spread across different sectors'
+      },
+      {
+        name: 'Volatility Exposure',
+        weight: 0.25,
+        score: 80,
+        description: 'Overall portfolio volatility relative to market'
+      }
+    ],
+    recommendations: [
+      'Consider diversifying into more stable assets',
+      'Reduce concentration in high-risk altcoins',
+      'Add some defensive positions during market uncertainty'
+    ],
+    riskLevel: 'Medium'
+  });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [riskResult, setRiskResult] = useState<RiskAssessmentResult | null>(null);
-  
-  useEffect(() => {
-    if (activeAccount) {
-      fetchRiskAssessment();
-    }
-  }, [activeAccount?.id]);
-  
-  const fetchRiskAssessment = async () => {
-    if (!activeAccount) {
-      toast({
-        title: "No Active Account",
-        description: "Please select an active account to assess risk",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+
+  const performRiskAssessment = async () => {
     setIsLoading(true);
     
-    try {
-      const result = await assessPortfolioRisk(activeAccount);
-      setRiskResult(result);
-      
-      toast({
-        title: "Risk Assessment Complete",
-        description: `Overall risk score: ${result.overallScore}/100`,
-      });
-    } catch (error) {
-      toast({
-        title: "Risk Assessment Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze portfolio risk",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    // Simulate risk assessment calculation
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const newRiskData: RiskAssessmentResult = {
+      score: Math.floor(Math.random() * 40) + 50,
+      overallScore: Math.floor(Math.random() * 40) + 50,
+      diversificationScore: Math.floor(Math.random() * 40) + 40,
+      volatilityScore: Math.floor(Math.random() * 30) + 60,
+      liquidityScore: Math.floor(Math.random() * 20) + 70,
+      concentrationRisk: Math.floor(Math.random() * 50) + 20,
+      correlationRisk: Math.floor(Math.random() * 40) + 30,
+      riskByAsset: portfolioAssets.map(asset => ({
+        symbol: asset.symbol,
+        score: Math.floor(Math.random() * 40) + 40,
+        factors: [
+          {
+            name: 'Volatility',
+            weight: 0.4,
+            score: Math.floor(Math.random() * 30) + 50,
+            description: `${asset.symbol} price volatility assessment`
+          },
+          {
+            name: 'Liquidity',
+            weight: 0.3,
+            score: Math.floor(Math.random() * 20) + 70,
+            description: `${asset.symbol} market liquidity`
+          }
+        ]
+      })),
+      factors: [
+        {
+          name: 'Portfolio Diversification',
+          weight: 0.3,
+          score: Math.floor(Math.random() * 40) + 40,
+          description: 'Asset allocation spread across different sectors'
+        },
+        {
+          name: 'Volatility Exposure',
+          weight: 0.25,
+          score: Math.floor(Math.random() * 30) + 60,
+          description: 'Overall portfolio volatility relative to market'
+        },
+        {
+          name: 'Liquidity Risk',
+          weight: 0.2,
+          score: Math.floor(Math.random() * 20) + 70,
+          description: 'Ability to quickly exit positions'
+        },
+        {
+          name: 'Concentration Risk',
+          weight: 0.15,
+          score: Math.floor(Math.random() * 50) + 30,
+          description: 'Risk from over-concentration in single assets'
+        },
+        {
+          name: 'Correlation Risk',
+          weight: 0.1,
+          score: Math.floor(Math.random() * 40) + 40,
+          description: 'Risk from high asset correlation'
+        }
+      ],
+      recommendations: [
+        'Consider diversifying into more stable assets',
+        'Reduce concentration in high-risk altcoins',
+        'Add some defensive positions during market uncertainty',
+        'Consider implementing stop-loss orders',
+        'Review position sizes relative to portfolio'
+      ],
+      riskLevel: Math.random() > 0.7 ? 'High' : Math.random() > 0.4 ? 'Medium' : 'Low'
+    };
+
+    setRiskData(newRiskData);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (portfolioAssets.length > 0) {
+      performRiskAssessment();
+    }
+  }, [portfolioAssets]);
+
+  const getRiskColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getRiskIcon = (level: string) => {
+    switch (level) {
+      case 'Low':
+        return <ShieldCheck className="h-5 w-5 text-green-600" />;
+      case 'Medium':
+        return <Shield className="h-5 w-5 text-yellow-600" />;
+      case 'High':
+      case 'Very High':
+        return <ShieldAlert className="h-5 w-5 text-red-600" />;
+      default:
+        return <Shield className="h-5 w-5" />;
     }
   };
-  
-  const getRiskScoreColor = (score: number) => {
-    if (score < 30) return "bg-green-600";
-    if (score < 60) return "bg-yellow-500";
-    if (score < 80) return "bg-orange-500";
-    return "bg-red-600";
-  };
-  
-  const getRiskLabel = (score: number) => {
-    if (score < 30) return "Low";
-    if (score < 60) return "Moderate";
-    if (score < 80) return "High";
-    return "Very High";
-  };
-  
-  const getRiskBadgeClass = (score: number) => {
-    if (score < 30) return "bg-green-100 text-green-800";
-    if (score < 60) return "bg-yellow-100 text-yellow-800";
-    if (score < 80) return "bg-orange-100 text-orange-800";
-    return "bg-red-100 text-red-800";
-  };
-  
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            <span>Portfolio Risk Assessment</span>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchRiskAssessment}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
-              </>
-            )}
-          </Button>
-        </CardTitle>
-        <CardDescription>Analyze and manage your portfolio risk exposure</CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {!riskResult && !isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <Shield className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">Run a risk assessment to analyze your portfolio</p>
-            <Button onClick={fetchRiskAssessment}>
-              <Shield className="mr-2 h-4 w-4" />
-              Assess Portfolio Risk
-            </Button>
-          </div>
-        ) : isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <RefreshCw className="h-12 w-12 text-muted-foreground mb-4 animate-spin" />
-            <p className="text-muted-foreground">Analyzing your portfolio risk...</p>
-          </div>
-        ) : riskResult && (
-          <>
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-medium">Overall Risk Assessment</h3>
-                <Badge className={getRiskBadgeClass(riskResult.overallScore)}>
-                  {getRiskLabel(riskResult.overallScore)} Risk
-                </Badge>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Portfolio Risk Assessment
+          </CardTitle>
+          <CardDescription>
+            Comprehensive analysis of your portfolio's risk profile
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Overall Risk Score</span>
+                <div className="flex items-center gap-2">
+                  {getRiskIcon(riskData.riskLevel)}
+                  <span className={`font-bold ${getRiskColor(riskData.overallScore)}`}>
+                    {riskData.overallScore}/100
+                  </span>
+                </div>
               </div>
-              
-              <div className="w-full h-4 bg-muted rounded-full overflow-hidden mb-1">
-                <div 
-                  className={`h-full ${getRiskScoreColor(riskResult.overallScore)}`}
-                  style={{ width: `${riskResult.overallScore}%` }}
-                ></div>
+              <Progress 
+                value={riskData.overallScore} 
+                className={`h-3 ${getRiskColor(riskData.overallScore)}`}
+              />
+              <Badge variant={riskData.riskLevel === 'Low' ? 'secondary' : 
+                           riskData.riskLevel === 'Medium' ? 'default' : 'destructive'}>
+                {riskData.riskLevel} Risk
+              </Badge>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Diversification</span>
+                <span className={`font-medium ${getRiskColor(riskData.diversificationScore)}`}>
+                  {riskData.diversificationScore}/100
+                </span>
               </div>
-              
-              <div className="flex justify-between text-xs text-muted-foreground mb-4">
-                <span>Low Risk</span>
-                <span>High Risk</span>
+              <Progress value={riskData.diversificationScore} className="h-2" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Volatility Control</span>
+                <span className={`font-medium ${getRiskColor(riskData.volatilityScore)}`}>
+                  {riskData.volatilityScore}/100
+                </span>
+              </div>
+              <Progress value={riskData.volatilityScore} className="h-2" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Liquidity</span>
+                <span className={`font-medium ${getRiskColor(riskData.liquidityScore)}`}>
+                  {riskData.liquidityScore}/100
+                </span>
+              </div>
+              <Progress value={riskData.liquidityScore} className="h-2" />
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Concentration Risk</span>
+                <span className={`font-medium ${getRiskColor(100 - riskData.concentrationRisk)}`}>
+                  {riskData.concentrationRisk}%
+                </span>
+              </div>
+              <Progress value={riskData.concentrationRisk} className="h-2" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Correlation Risk</span>
+                <span className={`font-medium ${getRiskColor(100 - riskData.correlationRisk)}`}>
+                  {riskData.correlationRisk}%
+                </span>
+              </div>
+              <Progress value={riskData.correlationRisk} className="h-2" />
+            </div>
+          </div>
+
+          {riskData.riskByAsset && riskData.riskByAsset.length > 0 && (
+            <div className="mt-6">
+              <h4 className="font-semibold mb-3">Risk by Asset</h4>
+              <div className="space-y-3">
+                {riskData.riskByAsset.map((asset) => (
+                  <div key={asset.symbol} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <span className="font-medium">{asset.symbol}</span>
+                      <div className="text-sm text-muted-foreground">
+                        {asset.factors.map((factor, index) => (
+                          <div key={index}>
+                            {factor.name}: {factor.description}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Badge variant={asset.score >= 70 ? 'secondary' : 
+                                  asset.score >= 50 ? 'default' : 'destructive'}>
+                      {asset.score}/100
+                    </Badge>
+                  </div>
+                ))}
               </div>
             </div>
-            
-            <Tabs defaultValue="metrics">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="metrics">Risk Metrics</TabsTrigger>
-                <TabsTrigger value="assets">Asset Risk</TabsTrigger>
-                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="metrics" className="space-y-4 pt-4">
-                <div className="space-y-6">
-                  <div>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-medium">Diversification</span>
-                      <span className="text-sm">{riskResult.diversificationScore}%</span>
-                    </div>
-                    <Progress value={riskResult.diversificationScore} />
-                  </div>
-                  
-                  <div>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-medium">Volatility</span>
-                      <span className="text-sm">{riskResult.volatilityScore}%</span>
-                    </div>
-                    <Progress value={riskResult.volatilityScore} className="bg-muted" />
-                  </div>
-                  
-                  <div>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-medium">Liquidity</span>
-                      <span className="text-sm">{riskResult.liquidityScore}%</span>
-                    </div>
-                    <Progress value={riskResult.liquidityScore} />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-md bg-muted/50 p-3">
-                      <div className="text-sm text-muted-foreground">Concentration Risk</div>
-                      <div className="font-medium flex items-center gap-1">
-                        <span 
-                          className={`w-2 h-2 rounded-full ${getRiskScoreColor(riskResult.concentrationRisk)}`}
-                        ></span>
-                        {getRiskLabel(riskResult.concentrationRisk)}
-                      </div>
-                    </div>
-                    
-                    <div className="rounded-md bg-muted/50 p-3">
-                      <div className="text-sm text-muted-foreground">Correlation Risk</div>
-                      <div className="font-medium flex items-center gap-1">
-                        <span 
-                          className={`w-2 h-2 rounded-full ${getRiskScoreColor(riskResult.correlationRisk)}`}
-                        ></span>
-                        {getRiskLabel(riskResult.correlationRisk)}
-                      </div>
-                    </div>
-                  </div>
+          )}
+
+          <div className="mt-6">
+            <Button 
+              onClick={performRiskAssessment} 
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 animate-spin" />
+                  Analyzing Risk...
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="assets" className="pt-4">
-                <div className="space-y-4">
-                  {Object.entries(riskResult.riskByAsset).map(([assetId, { score, factors }]) => (
-                    <div key={assetId} className="border rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">{assetId.charAt(0).toUpperCase() + assetId.slice(1)}</h4>
-                        <Badge className={getRiskBadgeClass(score)}>
-                          {getRiskLabel(score)} Risk
-                        </Badge>
-                      </div>
-                      
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-3">
-                        <div 
-                          className={`h-full ${getRiskScoreColor(score)}`}
-                          style={{ width: `${score}%` }}
-                        ></div>
-                      </div>
-                      
-                      {factors.length > 0 && (
-                        <div className="mt-2">
-                          <div className="text-sm font-medium mb-1">Risk Factors:</div>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {factors.map((factor, index) => (
-                              <li key={index} className="flex items-center gap-1">
-                                <AlertTriangle className="h-3 w-3 text-yellow-500" />
-                                {factor}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+              ) : (
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Refresh Risk Assessment
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="recommendations" className="pt-4">
-                <div className="space-y-4">
-                  <div className="rounded-lg border p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Info className="h-5 w-5 text-blue-500" />
-                      <h4 className="font-medium">Risk Management Recommendations</h4>
-                    </div>
-                    
-                    <ul className="space-y-2">
-                      {riskResult.recommendations.map((recommendation, index) => (
-                        <li key={index} className="flex gap-2 text-sm">
-                          <div className="rounded-full bg-blue-100 text-blue-800 w-5 h-5 flex items-center justify-center flex-shrink-0">
-                            {index + 1}
-                          </div>
-                          <span>{recommendation}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" size="sm">
-                      <LineChart className="mr-1 h-4 w-4" />
-                      View Details
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="mr-1 h-4 w-4" />
-                      Export Report
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
-      </CardContent>
-      
-      {riskResult && (
-        <CardFooter className="flex justify-between border-t pt-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Info className="h-4 w-4 mr-1" />
-            Updated {new Date().toLocaleString()}
-          </div>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <BarChart3 className="mr-1 h-4 w-4" />
-              Risk Analysis
-            </Button>
-            <Button variant="outline" size="sm">
-              <PieChart className="mr-1 h-4 w-4" />
-              Portfolio Balance
+              )}
             </Button>
           </div>
-        </CardFooter>
-      )}
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Risk Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {riskData.recommendations.map((recommendation, index) => (
+              <Alert key={index}>
+                <AlertDescription className="flex items-center justify-between">
+                  <span>{recommendation}</span>
+                  {onRecommendationApply && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => onRecommendationApply(recommendation)}
+                    >
+                      Apply
+                    </Button>
+                  )}
+                </AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

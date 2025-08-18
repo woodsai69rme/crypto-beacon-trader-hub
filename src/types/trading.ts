@@ -25,14 +25,13 @@ export interface CryptoData {
   symbol: string;
   name: string;
   current_price: number;
-  price: number; // Add this property
   price_change_percentage_24h: number;
-  change24h: number; // Add this property
+  change24h: number;
   market_cap: number;
   total_volume: number;
   image: string;
-  value: string; // Add this property
-  label: string; // Add this property
+  value: string;
+  label: string;
   priceChange?: number;
   changePercent?: number;
   volume?: number;
@@ -224,9 +223,9 @@ export interface ATOTaxCalculation {
   losses?: number;
   effectiveTaxRate?: number;
   netPosition?: number;
+  financialYear?: string;
 }
 
-// Widget types
 export type WidgetType = 
   | 'price-chart'
   | 'portfolio-summary'
@@ -249,7 +248,6 @@ export interface Widget {
   customContent?: string;
 }
 
-// Additional interfaces for missing types
 export interface DetachedAiTradingDashboardProps {
   onClose?: () => void;
   isDetached?: boolean;
@@ -334,7 +332,6 @@ export interface RealTimePricesProps {
   onSelectCoin: (coinId: string) => void;
   selectedCoinId: string;
   onPriceUpdate: (symbol: string, price: number) => void;
-  symbols?: string[];
   initialCoins?: CoinOption[];
   refreshInterval?: number;
 }
@@ -346,7 +343,6 @@ export interface RealTimePriceChartProps {
   availableCoins?: any[];
 }
 
-// Correlation types
 export interface CorrelationHeatmapProps {
   correlationData: number[][];
   coins: CoinOption[];
@@ -361,7 +357,6 @@ export interface PriceCorrelationChartProps {
   asset2Symbol?: string;
 }
 
-// Risk Assessment
 export interface RiskAssessmentResult {
   score: number;
   overallScore: number;
@@ -390,7 +385,6 @@ export interface RiskAssessmentResult {
   riskLevel: 'Low' | 'Medium' | 'High' | 'Very High';
 }
 
-// Wallet and DeFi types
 export interface WalletAccount {
   id: string;
   address: string;
@@ -407,6 +401,10 @@ export interface WalletProvider {
   type: 'metamask' | 'walletconnect' | 'coinbase' | 'phantom';
   isInstalled: boolean;
   icon?: string;
+  logo?: string;
+  description?: string;
+  isConnected: boolean;
+  accounts: string[];
 }
 
 export interface DefiProtocol {
@@ -417,6 +415,7 @@ export interface DefiProtocol {
   apy: number;
   chain: string;
   isActive: boolean;
+  category?: string;
 }
 
 export interface DefiPosition {
@@ -441,7 +440,6 @@ export interface YieldFarmingPool {
   riskLevel: 'low' | 'medium' | 'high';
 }
 
-// Tax types
 export interface TaxBracket {
   min: number;
   max: number;
@@ -460,7 +458,6 @@ export interface TaxHarvestTradeItem {
   recommended: boolean;
 }
 
-// News and API types
 export interface NewsItem {
   id: string;
   title: string;
@@ -483,20 +480,57 @@ export interface ApiProvider {
   id: string;
   name: string;
   type: string;
-  isActive: boolean;
+  baseUrl: string;
+  description?: string;
+  logo?: string;
+  documentation?: string;
+  version?: string;
+  authMethod?: 'header' | 'query' | 'none';
+  apiKeyName?: string;
+  requiresAuth?: boolean;
   enabled?: boolean;
-  endpoints: ApiEndpoint[];
+  priority?: number;
+  rateLimitPerMinute?: number;
+  rateLimitPerDay?: number;
+  rateLimitPerMonth?: number;
+  defaultHeaders?: Record<string, string>;
+  defaultParams?: Record<string, string>;
+  endpoints?: ApiEndpoint[];
+  apiKey?: string;
+  apiSecret?: string;
+  website?: string;
+  docs?: string;
+  authRequired?: boolean;
+  isActive: boolean;
+  isEnabled: boolean;
+  usageLimit: number;
   rateLimit: number;
-  cost: number;
+  url: string;
 }
 
 export interface ApiEndpoint {
   id: string;
   name: string;
   url: string;
+  path: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  description?: string;
+  requiresAuth?: boolean;
+  params?: ApiParameter[];
+  headers?: ApiParameter[];
+  body?: ApiParameter[];
+  rateLimited?: boolean;
+  cacheDuration?: number;
   isActive: boolean;
   rateLimit: number;
+}
+
+export interface ApiParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  description?: string;
+  defaultValue?: any;
 }
 
 export interface ApiUsageStats {
@@ -510,6 +544,7 @@ export interface ApiUsageStats {
   successfulCalls?: number;
   failedCalls?: number;
   errorRate?: number;
+  avgResponseTime?: number;
 }
 
 export interface PriceAlert {
@@ -526,11 +561,11 @@ export interface PriceAlert {
   condition?: string;
 }
 
-// Portfolio optimization
 export interface OptimizationSettings {
   riskTolerance: 'conservative' | 'moderate' | 'aggressive';
   timeHorizon: 'short' | 'medium' | 'long';
   targetReturn: number;
+  maxDrawdown: number;
   constraints: {
     maxAssetWeight: number;
     minAssetWeight: number;
@@ -554,9 +589,9 @@ export interface PortfolioOptimizationResult extends OptimizationResult {
   expectedReturn: number;
   risk: number;
   sharpeRatio: number;
+  recommendations: string[];
 }
 
-// Enhanced Portfolio types
 export interface EnhancedPortfolioBenchmarkingProps {
   portfolioPerformance: number[];
   portfolioDates: string[];
@@ -689,7 +724,6 @@ export interface QuantitativeAnalysisProps {
   depth?: number;
 }
 
-// Audit types
 export interface AuditTestResult {
   id: string;
   name: string;

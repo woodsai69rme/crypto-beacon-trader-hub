@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { List, ListHeader, ListItem } from '@/components/ui/list';
 import {
   AlertCircle,
   CheckCircle,
@@ -20,23 +20,25 @@ const PriceAlertSystem: React.FC = () => {
   const [alerts, setAlerts] = useState<PriceAlert[]>([
     {
       id: '1',
+      coinId: 'bitcoin',
       symbol: 'BTC',
       targetPrice: 65000,
-      condition: 'above',
+      currentPrice: 64000,
+      type: 'above',
       conditionMet: false,
       isActive: true,
-      createdAt: '2024-01-15T10:00:00Z',
-      type: 'price_above'
+      createdAt: '2024-01-15T10:00:00Z'
     },
     {
       id: '2',
+      coinId: 'ethereum',
       symbol: 'ETH',
       targetPrice: 3000,
-      condition: 'below',
+      currentPrice: 2900,
+      type: 'below',
       conditionMet: true,
       isActive: false,
-      createdAt: '2024-01-14T15:30:00Z',
-      type: 'price_below'
+      createdAt: '2024-01-14T15:30:00Z'
     }
   ]);
 
@@ -99,10 +101,10 @@ const PriceAlertSystem: React.FC = () => {
           </div>
 
           <div>
-            <Label htmlFor="condition">Condition</Label>
+            <Label htmlFor="type">Condition</Label>
             <Select
               onValueChange={(value) =>
-                setNewAlert({ ...newAlert, condition: value as 'above' | 'below' })
+                setNewAlert({ ...newAlert, type: value as 'above' | 'below' })
               }
             >
               <SelectTrigger>
@@ -129,53 +131,45 @@ const PriceAlertSystem: React.FC = () => {
           Create Alert
         </Button>
 
-        <List>
-          <ListHeader>
-            <div className="flex items-center justify-between">
-              <h3>Current Alerts</h3>
-              <p className="text-muted-foreground">
-                {alerts.length} active alerts
-              </p>
-            </div>
-          </ListHeader>
+        <div className="space-y-4 mt-6">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Current Alerts</h3>
+            <p className="text-muted-foreground">
+              {alerts.length} alerts
+            </p>
+          </div>
+          
           {alerts.map((alert) => (
-            <ListItem key={alert.id}>
-              <div className="grid grid-cols-3 gap-4">
+            <div key={alert.id} className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="font-medium">{alert.symbol}</p>
                   <p className="text-sm text-muted-foreground">
-                    Target: ${alert.targetPrice}
+                    Target: ${alert.targetPrice} ({alert.type})
                   </p>
                 </div>
-                <div>
-                  <p className="font-medium">Condition</p>
-                  <p className="text-sm text-muted-foreground">{alert.condition}</p>
-                </div>
-                <div>
-                  <p className="font-medium">Status</p>
-                  <div className="flex items-center gap-2">
-                    {getAlertStatus(alert) === 'active' && (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-green-500">Active</span>
-                      </>
-                    )}
-                    {getAlertStatus(alert) === 'triggered' && (
-                      <>
-                        <AlertCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-red-500">Triggered</span>
-                      </>
-                    )}
-                    {getAlertStatus(alert) === 'inactive' && (
-                      <>
-                        <AlertCircle className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-500">Inactive</span>
-                      </>
-                    )}
-                  </div>
+                <div className="flex items-center gap-2">
+                  {getAlertStatus(alert) === 'active' && (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-green-500 text-sm">Active</span>
+                    </>
+                  )}
+                  {getAlertStatus(alert) === 'triggered' && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <span className="text-red-500 text-sm">Triggered</span>
+                    </>
+                  )}
+                  {getAlertStatus(alert) === 'inactive' && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-500 text-sm">Inactive</span>
+                    </>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-end space-x-2">
                 <Button variant="ghost" size="sm">
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -183,9 +177,9 @@ const PriceAlertSystem: React.FC = () => {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-            </ListItem>
+            </div>
           ))}
-        </List>
+        </div>
       </CardContent>
     </Card>
   );
