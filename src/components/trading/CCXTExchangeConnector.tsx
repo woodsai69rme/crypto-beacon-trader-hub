@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ccxtService } from '@/services/exchanges/ccxtService';
+import { ccxtBrowserService } from '@/services/exchanges/ccxtBrowserService';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plug, 
@@ -37,14 +36,14 @@ const CCXTExchangeConnector: React.FC = () => {
   const [testResults, setTestResults] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
-  const supportedExchanges = ccxtService.getSupportedExchanges();
+  const supportedExchanges = ccxtBrowserService.getSupportedExchanges();
 
   useEffect(() => {
     updateConnectedExchanges();
   }, []);
 
   const updateConnectedExchanges = () => {
-    const connected = ccxtService.getConnectedExchanges();
+    const connected = ccxtBrowserService.getConnectedExchanges();
     setConnectedExchanges(connected);
   };
 
@@ -59,7 +58,7 @@ const CCXTExchangeConnector: React.FC = () => {
     }
 
     setIsConnecting(true);
-    const success = await ccxtService.connectExchange({
+    const success = await ccxtBrowserService.connectExchange({
       id: selectedExchange,
       name: selectedExchange,
       apiKey,
@@ -75,30 +74,49 @@ const CCXTExchangeConnector: React.FC = () => {
       setSecret('');
       setPassword('');
       fetchBalance(selectedExchange);
+      toast({
+        title: "Connection Successful",
+        description: `Connected to ${selectedExchange}`,
+      });
+    } else {
+      toast({
+        title: "Connection Failed",
+        description: `Failed to connect to ${selectedExchange}`,
+        variant: "destructive",
+      });
     }
     setIsConnecting(false);
   };
 
   const handleDisconnect = async (exchangeId: string) => {
-    await ccxtService.disconnectExchange(exchangeId);
+    await ccxtBrowserService.disconnectExchange(exchangeId);
     updateConnectedExchanges();
     setBalances(prev => {
       const newBalances = { ...prev };
       delete newBalances[exchangeId];
       return newBalances;
     });
+    toast({
+      title: "Disconnected",
+      description: `Disconnected from ${exchangeId}`,
+    });
   };
 
   const fetchBalance = async (exchangeId: string) => {
-    const balance = await ccxtService.fetchBalance(exchangeId);
+    const balance = await ccxtBrowserService.fetchBalance(exchangeId);
     if (balance) {
       setBalances(prev => ({ ...prev, [exchangeId]: balance }));
     }
   };
 
   const testConnection = async (exchangeId: string) => {
-    const result = await ccxtService.testConnection(exchangeId);
+    const result = await ccxtBrowserService.testConnection(exchangeId);
     setTestResults(prev => ({ ...prev, [exchangeId]: result }));
+    toast({
+      title: result ? "Connection Test Passed" : "Connection Test Failed",
+      description: `${exchangeId} connection ${result ? 'successful' : 'failed'}`,
+      variant: result ? "default" : "destructive",
+    });
   };
 
   const getBalanceDisplay = (exchangeBalance: any) => {
