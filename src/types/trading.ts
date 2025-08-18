@@ -1,3 +1,4 @@
+
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'CHF';
 
 export interface CoinOption {
@@ -17,6 +18,25 @@ export interface CoinOption {
   rank?: number;
   value: string;
   label: string;
+}
+
+export interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  price: number; // Add this property
+  price_change_percentage_24h: number;
+  change24h: number; // Add this property
+  market_cap: number;
+  total_volume: number;
+  image: string;
+  value: string; // Add this property
+  label: string; // Add this property
+  priceChange?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
 }
 
 export interface PortfolioAsset {
@@ -203,6 +223,7 @@ export interface ATOTaxCalculation {
   gains?: number;
   losses?: number;
   effectiveTaxRate?: number;
+  netPosition?: number;
 }
 
 // Widget types
@@ -326,17 +347,6 @@ export interface RealTimePriceChartProps {
 }
 
 // Correlation types
-export interface CryptoData {
-  id: string;
-  symbol: string;
-  name: string;
-  current_price: number;
-  price_change_percentage_24h: number;
-  market_cap: number;
-  total_volume: number;
-  image: string;
-}
-
 export interface CorrelationHeatmapProps {
   correlationData: number[][];
   coins: CoinOption[];
@@ -354,6 +364,22 @@ export interface PriceCorrelationChartProps {
 // Risk Assessment
 export interface RiskAssessmentResult {
   score: number;
+  overallScore: number;
+  diversificationScore: number;
+  volatilityScore: number;
+  liquidityScore: number;
+  concentrationRisk: number;
+  correlationRisk: number;
+  riskByAsset: Array<{
+    symbol: string;
+    score: number;
+    factors: Array<{
+      name: string;
+      weight: number;
+      score: number;
+      description: string;
+    }>;
+  }>;
   factors: Array<{
     name: string;
     weight: number;
@@ -372,6 +398,7 @@ export interface WalletAccount {
   currency: SupportedCurrency;
   provider: WalletProvider;
   isConnected: boolean;
+  network?: string;
 }
 
 export interface WalletProvider {
@@ -379,6 +406,7 @@ export interface WalletProvider {
   name: string;
   type: 'metamask' | 'walletconnect' | 'coinbase' | 'phantom';
   isInstalled: boolean;
+  icon?: string;
 }
 
 export interface DefiProtocol {
@@ -456,6 +484,7 @@ export interface ApiProvider {
   name: string;
   type: string;
   isActive: boolean;
+  enabled?: boolean;
   endpoints: ApiEndpoint[];
   rateLimit: number;
   cost: number;
@@ -477,6 +506,10 @@ export interface ApiUsageStats {
   currentUsage: number;
   maxUsage: number;
   resetTime?: string;
+  totalCalls?: number;
+  successfulCalls?: number;
+  failedCalls?: number;
+  errorRate?: number;
 }
 
 export interface PriceAlert {
@@ -489,6 +522,8 @@ export interface PriceAlert {
   isActive: boolean;
   createdAt: string;
   triggeredAt?: string;
+  conditionMet?: boolean;
+  condition?: string;
 }
 
 // Portfolio optimization
@@ -505,6 +540,12 @@ export interface OptimizationSettings {
 
 export interface PortfolioOptimizationResult extends OptimizationResult {
   allocations: Array<{
+    symbol: string;
+    weight: number;
+    expectedReturn: number;
+    risk: number;
+  }>;
+  allocation?: Array<{
     symbol: string;
     weight: number;
     expectedReturn: number;
