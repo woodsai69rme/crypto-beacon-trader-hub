@@ -167,6 +167,7 @@ export interface AITradingStrategyConfig {
     drawdown?: number;
     maxDrawdown?: number;
     returns?: number;
+    totalReturn?: number;
   };
   creator?: string;
   tags?: string[];
@@ -816,4 +817,22 @@ export interface AuditSummary {
   overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
   profitabilityAnalysis: ProfitabilityAnalysis;
   recommendations: string[];
+}
+
+export interface ExtendedAiBotTradingProps {
+  bots: Array<{
+    id: string;
+    name: string;
+    description: string;
+    strategy: AITradingStrategyConfig;
+    status: 'active' | 'paused' | 'stopped';
+    balance: number;
+    model?: string;
+    riskLevel?: 'low' | 'medium' | 'high';
+    performance: {
+      totalReturn: number;
+      winRate: number;
+      totalTrades: number;
+    };
+  }>;
 }
