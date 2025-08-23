@@ -1,133 +1,158 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, BarChart3, Wallet } from "lucide-react";
-import RealTimeTrading from './trading/RealTimeTrading';
-import WalletConnector from './wallets/WalletConnector';
-import { WalletAccount, WalletProvider } from '@/types/trading';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { WalletProvider, WalletAccount } from '@/types/trading';
 
 const TradingDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("realtime");
-  const [connectedAccount, setConnectedAccount] = useState<WalletAccount | null>(null);
-  
-  // List of supported wallets
-  const supportedWallets: WalletProvider[] = [
+  const [supportedWallets] = useState<WalletProvider[]>([
     {
-      id: "metamask",
-      name: "MetaMask",
-      icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/800px-MetaMask_Fox.svg.png",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/800px-MetaMask_Fox.svg.png",
-      description: "https://metamask.io/",
-      isInstalled: typeof window !== 'undefined' && window.ethereum && window.ethereum.isMetaMask,
+      id: 'metamask',
+      name: 'MetaMask',
+      type: 'metamask',
+      icon: '🦊',
+      logo: '/metamask-logo.png',
+      description: 'Connect using MetaMask',
+      isInstalled: typeof window !== 'undefined' && !!(window as any).ethereum?.isMetaMask,
       isConnected: false,
       accounts: []
     },
     {
-      id: "trustwallet",
-      name: "Trust Wallet",
-      icon: "https://trustwallet.com/assets/images/media/assets/TWT.png",
-      logo: "https://trustwallet.com/assets/images/media/assets/TWT.png",
-      description: "https://trustwallet.com/",
+      id: 'walletconnect',
+      name: 'WalletConnect',
+      type: 'walletconnect',
+      icon: '🔗',
+      logo: '/walletconnect-logo.png',
+      description: 'Connect using WalletConnect',
       isInstalled: false,
       isConnected: false,
       accounts: []
     },
     {
-      id: "walletconnect",
-      name: "WalletConnect",
-      icon: "https://docs.walletconnect.com/img/walletconnect-logo.svg",
-      logo: "https://docs.walletconnect.com/img/walletconnect-logo.svg",
-      description: "https://walletconnect.com/",
-      isInstalled: typeof window !== 'undefined' && !!window.ethereum,
+      id: 'coinbase',
+      name: 'Coinbase Wallet',
+      type: 'coinbase',
+      icon: '🔵',
+      logo: '/coinbase-logo.png',
+      description: 'Connect using Coinbase Wallet',
+      isInstalled: typeof window !== 'undefined' && !!(window as any).ethereum?.isCoinbaseWallet,
       isConnected: false,
       accounts: []
     },
     {
-      id: "phantom",
-      name: "Phantom",
-      icon: "https://phantom.app/img/phantom-logo.png",
-      logo: "https://phantom.app/img/phantom-logo.png",
-      description: "https://phantom.app/",
+      id: 'phantom',
+      name: 'Phantom',
+      type: 'phantom',
+      icon: '👻',
+      logo: '/phantom-logo.png',
+      description: 'Connect using Phantom (Solana)',
       isInstalled: true,
       isConnected: false,
       accounts: []
     }
-  ];
+  ]);
 
-  const handleWalletConnect = (account: WalletAccount) => {
-    setConnectedAccount(account);
-    toast({
-      title: "Wallet Connected",
-      description: `Successfully connected to ${account.provider}`,
-    });
+  const [connectedWallets, setConnectedWallets] = useState<WalletAccount[]>([]);
+
+  const handleConnectWallet = async (wallet: WalletProvider) => {
+    try {
+      console.log(`Connecting to ${wallet.name}...`);
+      // Simulate wallet connection
+      const mockAccount: WalletAccount = {
+        id: `${wallet.id}-account`,
+        address: `0x${Math.random().toString(16).substr(2, 40)}`,
+        balance: Math.random() * 1000,
+        currency: 'AUD',
+        provider: wallet,
+        isConnected: true,
+        network: 'mainnet'
+      };
+      
+      setConnectedWallets(prev => [...prev, mockAccount]);
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+    }
+  };
+
+  const handleDisconnectWallet = (accountId: string) => {
+    setConnectedWallets(prev => prev.filter(account => account.id !== accountId));
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Trading Dashboard</h1>
-        <p className="text-muted-foreground">
-          Real-time trading, portfolio management, and wallet integration
-        </p>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="realtime" className="flex items-center gap-2">
-            <LineChart className="h-4 w-4" />
-            Real-time Trading
-          </TabsTrigger>
-          <TabsTrigger value="portfolio" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Portfolio
-          </TabsTrigger>
-          <TabsTrigger value="wallets" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            Wallets
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="realtime" className="space-y-4">
-          <RealTimeTrading />
-        </TabsContent>
-
-        <TabsContent value="portfolio" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Portfolio Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Portfolio management features coming soon...
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="wallets" className="space-y-4">
-          {connectedAccount ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Connected Wallet</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p><strong>Address:</strong> {connectedAccount.address}</p>
-                  <p><strong>Balance:</strong> {connectedAccount.balance} {connectedAccount.network}</p>
-                  <p><strong>Network:</strong> {connectedAccount.network}</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Wallet Connections</CardTitle>
+          <CardDescription>Connect your crypto wallets to start trading</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {supportedWallets.map((wallet) => (
+              <div key={wallet.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{wallet.icon}</span>
+                    <div>
+                      <h3 className="font-medium">{wallet.name}</h3>
+                      <p className="text-sm text-muted-foreground">{wallet.description}</p>
+                    </div>
+                  </div>
+                  <Badge variant={wallet.isInstalled ? 'secondary' : 'outline'}>
+                    {wallet.isInstalled ? 'Installed' : 'Not Installed'}
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <WalletConnector 
-              supportedWallets={supportedWallets}
-              onConnect={handleWalletConnect}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+                <Button
+                  onClick={() => handleConnectWallet(wallet)}
+                  disabled={!wallet.isInstalled}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Connect {wallet.name}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {connectedWallets.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Connected Wallets</CardTitle>
+            <CardDescription>Manage your connected wallet accounts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {connectedWallets.map((account) => (
+                <div key={account.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">{account.provider.name}</h3>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {account.address.slice(0, 8)}...{account.address.slice(-8)}
+                      </p>
+                      <p className="text-sm">
+                        Balance: {account.balance.toFixed(4)} {account.currency}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Network: {account.network}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => handleDisconnectWallet(account.id)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Disconnect
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

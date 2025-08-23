@@ -32,6 +32,7 @@ export interface CryptoData {
   image: string;
   value: string;
   label: string;
+  price?: number; // Added optional price property
   priceChange?: number;
   changePercent?: number;
   volume?: number;
@@ -224,6 +225,7 @@ export interface ATOTaxCalculation {
   effectiveTaxRate?: number;
   netPosition?: number;
   financialYear?: string;
+  CGTDiscount?: number;
 }
 
 export type WidgetType = 
@@ -398,7 +400,7 @@ export interface WalletAccount {
 export interface WalletProvider {
   id: string;
   name: string;
-  type: 'metamask' | 'walletconnect' | 'coinbase' | 'phantom';
+  type: 'metamask' | 'walletconnect' | 'coinbase' | 'phantom' | 'trustwallet';
   isInstalled: boolean;
   icon?: string;
   logo?: string;
@@ -416,6 +418,11 @@ export interface DefiProtocol {
   chain: string;
   isActive: boolean;
   category?: string;
+  risk?: string;
+  logoUrl?: string;
+  description?: string;
+  riskLevel?: 'low' | 'medium' | 'high';
+  url?: string;
 }
 
 export interface DefiPosition {
@@ -425,8 +432,11 @@ export interface DefiPosition {
   amount: number;
   value: number;
   apy: number;
-  rewards: number;
+  rewards: string[];
   timestamp: string;
+  protocolName?: string;
+  type?: string;
+  assetSymbol?: string;
 }
 
 export interface YieldFarmingPool {
@@ -476,6 +486,11 @@ export interface NewsTickerProps {
   direction?: 'left' | 'right';
 }
 
+export interface ApiRateLimit {
+  requestsPerMinute: number;
+  requestsPerDay: number;
+}
+
 export interface ApiProvider {
   id: string;
   name: string;
@@ -504,8 +519,8 @@ export interface ApiProvider {
   isActive: boolean;
   isEnabled: boolean;
   usageLimit: number;
-  rateLimit: number;
-  url: string;
+  rateLimit: ApiRateLimit;
+  url?: string;
 }
 
 export interface ApiEndpoint {
@@ -540,18 +555,18 @@ export interface ApiUsageStats {
   currentUsage: number;
   maxUsage: number;
   resetTime?: string;
-  totalCalls?: number;
-  successfulCalls?: number;
-  failedCalls?: number;
+  totalCalls: number;
+  successfulCalls: number;
+  failedCalls: number;
   errorRate?: number;
-  avgResponseTime?: number;
+  avgResponseTime: number;
 }
 
 export interface PriceAlert {
   id: string;
   coinId: string;
   symbol: string;
-  type: 'above' | 'below';
+  type: 'above' | 'below' | 'price_above' | 'price_below';
   targetPrice: number;
   currentPrice: number;
   isActive: boolean;

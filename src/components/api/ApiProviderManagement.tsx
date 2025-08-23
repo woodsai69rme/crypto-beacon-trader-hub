@@ -19,7 +19,6 @@ const ApiProviderManagement: React.FC = () => {
       id: "coingecko",
       name: "CoinGecko",
       type: "free",
-      url: "https://api.coingecko.com/api/v3",
       baseUrl: "https://api.coingecko.com/api/v3",
       description: "Free crypto data API",
       documentation: "https://www.coingecko.com/en/api/documentation",
@@ -29,10 +28,10 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerDay: 1000
       },
       endpoints: [
-        { id: "price", name: "Price", url: "/simple/price", method: "GET", rateLimit: 10 },
-        { id: "markets", name: "Markets", url: "/coins/markets", method: "GET", rateLimit: 10 },
-        { id: "assets", name: "Assets", url: "/coins/list", method: "GET", rateLimit: 10 },
-        { id: "news", name: "News", url: "/news", method: "GET", rateLimit: 10 }
+        { id: "price", name: "Price", url: "/simple/price", path: "/simple/price", method: "GET", rateLimit: 10, isActive: true },
+        { id: "markets", name: "Markets", url: "/coins/markets", path: "/coins/markets", method: "GET", rateLimit: 10, isActive: true },
+        { id: "assets", name: "Assets", url: "/coins/list", path: "/coins/list", method: "GET", rateLimit: 10, isActive: true },
+        { id: "news", name: "News", url: "/news", path: "/news", method: "GET", rateLimit: 10, isActive: true }
       ],
       isActive: true,
       isEnabled: true
@@ -41,7 +40,6 @@ const ApiProviderManagement: React.FC = () => {
       id: "cryptocompare",
       name: "CryptoCompare",
       type: "free",
-      url: "https://min-api.cryptocompare.com/data",
       baseUrl: "https://min-api.cryptocompare.com/data",
       description: "Real-time and historical crypto data",
       documentation: "https://min-api.cryptocompare.com/documentation",
@@ -51,10 +49,10 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerDay: 100000
       },
       endpoints: [
-        { id: "price", name: "Price", url: "/price", method: "GET", rateLimit: 100 },
-        { id: "markets", name: "Markets", url: "/top/mktcapfull", method: "GET", rateLimit: 100 },
-        { id: "assets", name: "Assets", url: "/all/coinlist", method: "GET", rateLimit: 100 },
-        { id: "news", name: "News", url: "/v2/news/", method: "GET", rateLimit: 100 }
+        { id: "price", name: "Price", url: "/price", path: "/price", method: "GET", rateLimit: 100, isActive: true },
+        { id: "markets", name: "Markets", url: "/top/mktcapfull", path: "/top/mktcapfull", method: "GET", rateLimit: 100, isActive: true },
+        { id: "assets", name: "Assets", url: "/all/coinlist", path: "/all/coinlist", method: "GET", rateLimit: 100, isActive: true },
+        { id: "news", name: "News", url: "/v2/news/", path: "/v2/news/", method: "GET", rateLimit: 100, isActive: true }
       ],
       isActive: true,
       isEnabled: true
@@ -63,7 +61,6 @@ const ApiProviderManagement: React.FC = () => {
       id: "newsapi",
       name: "NewsAPI",
       type: "paid",
-      url: "https://newsapi.org/v2",
       baseUrl: "https://newsapi.org/v2",
       description: "News aggregation API",
       documentation: "https://newsapi.org/docs",
@@ -73,7 +70,7 @@ const ApiProviderManagement: React.FC = () => {
         requestsPerDay: 1000
       },
       endpoints: [
-        { id: "news", name: "News", url: "/everything", method: "GET", rateLimit: 500 }
+        { id: "news", name: "News", url: "/everything", path: "/everything", method: "GET", rateLimit: 500, isActive: true }
       ],
       isActive: false,
       isEnabled: false
@@ -83,7 +80,6 @@ const ApiProviderManagement: React.FC = () => {
   const [newProvider, setNewProvider] = useState<Partial<ApiProvider>>({
     name: "",
     type: "free",
-    url: "",
     baseUrl: "",
     description: "",
     documentation: "",
@@ -97,10 +93,8 @@ const ApiProviderManagement: React.FC = () => {
     isEnabled: true
   });
 
-  const [isAddingProvider, setIsAddingProvider] = useState(false);
-
   const handleAddProvider = () => {
-    if (!newProvider.name || !newProvider.url) {
+    if (!newProvider.name || !newProvider.baseUrl) {
       toast({
         title: "Error",
         description: "Please fill in required fields",
@@ -112,13 +106,12 @@ const ApiProviderManagement: React.FC = () => {
     const provider: ApiProvider = {
       id: newProvider.name!.toLowerCase().replace(/\s+/g, '-'),
       name: newProvider.name!,
-      type: newProvider.type as 'free' | 'paid',
-      url: newProvider.url!,
-      baseUrl: newProvider.baseUrl || newProvider.url!,
+      type: newProvider.type as string,
+      baseUrl: newProvider.baseUrl!,
       description: newProvider.description || "",
-      documentation: newProvider.documentation!,
+      documentation: newProvider.documentation || "",
       usageLimit: newProvider.usageLimit || 1000,
-      rateLimit: newProvider.rateLimit!,
+      rateLimit: newProvider.rateLimit || { requestsPerMinute: 10, requestsPerDay: 1000 },
       endpoints: newProvider.endpoints || [],
       isActive: newProvider.isActive ?? true,
       isEnabled: newProvider.isEnabled ?? true
@@ -128,7 +121,6 @@ const ApiProviderManagement: React.FC = () => {
     setNewProvider({
       name: "",
       type: "free",
-      url: "",
       baseUrl: "",
       description: "",
       documentation: "",
@@ -141,7 +133,6 @@ const ApiProviderManagement: React.FC = () => {
       isActive: true,
       isEnabled: true
     });
-    setIsAddingProvider(false);
 
     toast({
       title: "Success",
@@ -231,15 +222,15 @@ const ApiProviderManagement: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">URL:</span>
-                    <div className="font-mono truncate">{provider.url}</div>
+                    <div className="font-mono truncate">{provider.baseUrl}</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Rate Limit:</span>
-                    <div>{provider.rateLimit?.requestsPerMinute || 0}/min</div>
+                    <div>{provider.rateLimit.requestsPerMinute}/min</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Daily Limit:</span>
-                    <div>{provider.rateLimit?.requestsPerDay || 0}/day</div>
+                    <div>{provider.rateLimit.requestsPerDay}/day</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Usage Limit:</span>
@@ -286,7 +277,7 @@ const ApiProviderManagement: React.FC = () => {
                 <Label htmlFor="provider-type">Type</Label>
                 <Select 
                   value={newProvider.type || "free"} 
-                  onValueChange={(value: 'free' | 'paid') => setNewProvider({ ...newProvider, type: value })}
+                  onValueChange={(value) => setNewProvider({ ...newProvider, type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -304,7 +295,7 @@ const ApiProviderManagement: React.FC = () => {
                   id="provider-url"
                   placeholder="https://api.example.com"
                   value={newProvider.baseUrl || ""}
-                  onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value, url: e.target.value })}
+                  onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
                 />
               </div>
               
