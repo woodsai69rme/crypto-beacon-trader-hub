@@ -35,6 +35,7 @@ const YieldFarmingCalculator: React.FC = () => {
       tvl: 125000000,
       rewards: ['UNI', 'Fees'],
       risk: 'medium',
+      riskLevel: 'medium',
       blockchain: 'Ethereum'
     },
     {
@@ -47,6 +48,7 @@ const YieldFarmingCalculator: React.FC = () => {
       tvl: 89000000,
       rewards: ['CAKE', 'Fees'],
       risk: 'high',
+      riskLevel: 'high',
       blockchain: 'BSC'
     },
     {
@@ -59,6 +61,7 @@ const YieldFarmingCalculator: React.FC = () => {
       tvl: 245000000,
       rewards: ['CRV', 'Fees'],
       risk: 'low',
+      riskLevel: 'low',
       blockchain: 'Ethereum'
     },
     {
@@ -71,6 +74,7 @@ const YieldFarmingCalculator: React.FC = () => {
       tvl: 150000000,
       rewards: ['COMP'],
       risk: 'low',
+      riskLevel: 'low',
       blockchain: 'Ethereum'
     },
     {
@@ -83,6 +87,7 @@ const YieldFarmingCalculator: React.FC = () => {
       tvl: 185000000,
       rewards: ['AAVE'],
       risk: 'medium',
+      riskLevel: 'medium',
       blockchain: 'Ethereum'
     }
   ]);

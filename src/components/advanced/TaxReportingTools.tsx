@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,26 +16,38 @@ const TaxReportingTools: React.FC = () => {
     financialYear: '2023-24',
     taxableIncome: 80000,
     CGTDiscount: 22500,
-    taxRefundOrOwed: 0,
     medicareLevy: 1600,
     marginalRate: 0.37,
     applicableBracket: '$45,001 - $120,000',
     // Required fields from ATOTaxCalculation interface
+    capitalGains: 45000,
     totalGain: 45000,
     totalLoss: 5000,
     netGain: 40000,
     events: [],
+    shortTermGains: 30000,
+    longTermGains: 15000,
+    carryForwardLosses: 0,
+    discountEligible: 15000,
+    assessableGain: 37500,
+    effectiveRate: 0.32,
+    recommendations: [
+      'Consider holding assets for longer than 12 months to qualify for CGT discount',
+      'Review timing of asset sales to optimize tax position'
+    ],
+    optimizationSuggestions: [
+      'Defer some gains to next financial year',
+      'Realize some losses to offset gains'
+    ],
+    nextYearProjection: 18000,
     transactions: [],
     bracket: {
       min: 45001,
       max: 120000,
       rate: 0.37,
-      name: 'Middle Tax Bracket',
       bracket: '$45,001 - $120,000'
     } as TaxBracket
   });
-
-  
 
   return (
     <Card>
@@ -47,13 +60,13 @@ const TaxReportingTools: React.FC = () => {
             <div>
               <label className="block text-sm font-medium mb-2">Total Gains</label>
               <div className="text-2xl font-bold text-green-600">
-                AUD {taxCalculation.gains.toLocaleString()}
+                AUD {taxCalculation.gains?.toLocaleString() || '0'}
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Total Losses</label>
               <div className="text-2xl font-bold text-red-600">
-                AUD {taxCalculation.losses.toLocaleString()}
+                AUD {taxCalculation.losses?.toLocaleString() || '0'}
               </div>
             </div>
           </div>
@@ -69,7 +82,7 @@ const TaxReportingTools: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">Effective Rate</label>
                 <div className="text-xl font-semibold">
-                  {(taxCalculation.effectiveTaxRate * 100).toFixed(1)}%
+                  {((taxCalculation.effectiveTaxRate || 0) * 100).toFixed(1)}%
                 </div>
               </div>
             </div>

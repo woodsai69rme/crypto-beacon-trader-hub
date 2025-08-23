@@ -21,6 +21,7 @@ const DefiProtocolIntegration: React.FC = () => {
     {
       id: 'aave',
       name: 'Aave',
+      type: 'lending',
       category: 'Lending',
       chain: 'Ethereum',
       tvl: 12500000000,
@@ -29,11 +30,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'low',
       url: 'https://aave.com',
       logoUrl: 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',
-      description: 'Decentralized liquidity protocol'
+      description: 'Decentralized liquidity protocol',
+      isActive: true
     },
     {
       id: 'compound',
       name: 'Compound',
+      type: 'lending',
       category: 'Lending',
       chain: 'Ethereum',
       tvl: 8900000000,
@@ -42,11 +45,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'low',
       url: 'https://compound.finance',
       logoUrl: 'https://assets.coingecko.com/coins/images/10775/large/COMP.png',
-      description: 'Algorithmic money market protocol'
+      description: 'Algorithmic money market protocol',
+      isActive: true
     },
     {
       id: 'uniswap',
       name: 'Uniswap V3',
+      type: 'dex',
       category: 'DEX',
       chain: 'Ethereum',
       tvl: 15600000000,
@@ -55,11 +60,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'medium',
       url: 'https://uniswap.org',
       logoUrl: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
-      description: 'Decentralized exchange protocol'
+      description: 'Decentralized exchange protocol',
+      isActive: true
     },
     {
       id: 'yearn',
       name: 'Yearn Finance',
+      type: 'yield-farming',
       category: 'Yield',
       chain: 'Ethereum',
       tvl: 2100000000,
@@ -68,11 +75,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'medium',
       url: 'https://yearn.finance',
       logoUrl: 'https://assets.coingecko.com/coins/images/11849/large/yfi-192x192.png',
-      description: 'Yield optimization protocol'
+      description: 'Yield optimization protocol',
+      isActive: true
     },
     {
       id: 'curve',
       name: 'Curve Finance',
+      type: 'dex',
       category: 'DEX',
       chain: 'Ethereum',
       tvl: 6800000000,
@@ -81,11 +90,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'low',
       url: 'https://curve.fi',
       logoUrl: 'https://assets.coingecko.com/coins/images/12124/large/Curve.png',
-      description: 'Stablecoin exchange protocol'
+      description: 'Stablecoin exchange protocol',
+      isActive: true
     },
     {
       id: 'lido',
       name: 'Lido',
+      type: 'staking',
       category: 'Staking',
       chain: 'Ethereum',
       tvl: 32000000000,
@@ -94,11 +105,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'low',
       url: 'https://lido.fi',
       logoUrl: 'https://assets.coingecko.com/coins/images/13573/large/Lido_DAO.png',
-      description: 'Liquid staking protocol'
+      description: 'Liquid staking protocol',
+      isActive: true
     },
     {
       id: 'pancakeswap',
       name: 'PancakeSwap',
+      type: 'dex',
       category: 'DEX',
       chain: 'BSC',
       tvl: 4200000000,
@@ -107,11 +120,13 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'medium',
       url: 'https://pancakeswap.finance',
       logoUrl: 'https://assets.coingecko.com/coins/images/12632/large/pancakeswap-cake-logo.png',
-      description: 'BSC-based DEX and yield farming'
+      description: 'BSC-based DEX and yield farming',
+      isActive: true
     },
     {
       id: 'sushiswap',
       name: 'SushiSwap',
+      type: 'dex',
       category: 'DEX',
       chain: 'Ethereum',
       tvl: 1800000000,
@@ -120,7 +135,8 @@ const DefiProtocolIntegration: React.FC = () => {
       riskLevel: 'medium',
       url: 'https://sushi.com',
       logoUrl: 'https://assets.coingecko.com/coins/images/12271/large/512x512_Logo_no_chop.png',
-      description: 'Community-driven DEX'
+      description: 'Community-driven DEX',
+      isActive: true
     }
   ]);
 
@@ -128,7 +144,6 @@ const DefiProtocolIntegration: React.FC = () => {
     {
       id: 'pos-1',
       protocol: 'aave',
-      protocolId: 'aave',
       protocolName: 'Aave',
       type: 'lending',
       assetId: 'ethereum',
@@ -138,6 +153,7 @@ const DefiProtocolIntegration: React.FC = () => {
       value: 16000,
       apy: 4.2,
       startDate: '2024-01-15',
+      timestamp: '2024-01-15T00:00:00Z',
       rewards: [
         {
           assetId: 'aave',
@@ -150,7 +166,6 @@ const DefiProtocolIntegration: React.FC = () => {
     {
       id: 'pos-2',
       protocol: 'uniswap',
-      protocolId: 'uniswap',
       protocolName: 'Uniswap V3',
       type: 'liquidity',
       assetId: 'ethereum',
@@ -160,6 +175,7 @@ const DefiProtocolIntegration: React.FC = () => {
       value: 10000,
       apy: 12.5,
       startDate: '2024-01-10',
+      timestamp: '2024-01-10T00:00:00Z',
       rewards: []
     }
   ]);

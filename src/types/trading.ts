@@ -1,4 +1,3 @@
-
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'CHF';
 
 export interface CoinOption {
@@ -226,6 +225,9 @@ export interface ATOTaxCalculation {
   netPosition?: number;
   financialYear?: string;
   CGTDiscount?: number;
+  taxRefundOrOwed?: number;
+  transactions?: any[];
+  bracket?: TaxBracket;
 }
 
 export type WidgetType = 
@@ -432,20 +434,31 @@ export interface DefiPosition {
   amount: number;
   value: number;
   apy: number;
-  rewards: string[];
+  rewards: Array<{
+    assetId: string;
+    assetSymbol: string;
+    amount: number;
+    value: number;
+  }>;
   timestamp: string;
   protocolName?: string;
   type?: string;
   assetSymbol?: string;
+  assetId?: string;
+  startDate?: string;
 }
 
 export interface YieldFarmingPool {
   id: string;
   name: string;
+  protocol: string;
+  tokenPair: string;
   tokens: string[];
   apy: number;
   tvl: number;
   rewards: string[];
+  risk: 'low' | 'medium' | 'high';
+  blockchain: string;
   lockPeriod?: number;
   riskLevel: 'low' | 'medium' | 'high';
 }
