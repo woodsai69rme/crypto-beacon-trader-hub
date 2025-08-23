@@ -14,25 +14,33 @@ const TaxHarvestingTool: React.FC = () => {
       id: '1',
       symbol: 'BTC',
       amount: 0.1,
+      quantity: 0.1,
       price: 55000,
       type: 'buy',
       date: '2024-01-15',
       gainLoss: -1500,
       unrealizedGainLoss: -1500,
+      unrealizedLoss: 1500,
       purchasePrice: 56500,
-      currentPrice: 55000
+      currentPrice: 55000,
+      taxSavings: 450,
+      recommended: true
     },
     {
       id: '2',
       symbol: 'ETH',
       amount: 2,
+      quantity: 2,
       price: 2800,
       type: 'buy',
       date: '2024-02-20',
       gainLoss: -800,
       unrealizedGainLoss: -800,
+      unrealizedLoss: 800,
       purchasePrice: 3200,
-      currentPrice: 2800
+      currentPrice: 2800,
+      taxSavings: 240,
+      recommended: true
     }
   ];
 
@@ -117,7 +125,7 @@ const TaxHarvestingTool: React.FC = () => {
                       <div>
                         <div className="font-medium">{trade.symbol}</div>
                         <div className="text-sm text-muted-foreground">
-                          {trade.amount} coins @ {formatCurrency(trade.purchasePrice!)}
+                          {trade.amount} coins @ {formatCurrency(trade.purchasePrice)}
                         </div>
                       </div>
                     </div>
@@ -130,7 +138,7 @@ const TaxHarvestingTool: React.FC = () => {
                         </span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Current: {formatCurrency(trade.currentPrice!)}
+                        Current: {formatCurrency(trade.currentPrice)}
                       </div>
                     </div>
                     

@@ -31,7 +31,7 @@ export interface CryptoData {
   image: string;
   value: string;
   label: string;
-  price?: number; // Added optional price property
+  price?: number;
   priceChange?: number;
   changePercent?: number;
   volume?: number;
@@ -49,6 +49,33 @@ export interface PortfolioAsset {
   change24h: number;
   allocation: number;
   coinId?: string;
+  changePercent24h?: number;
+}
+
+export interface TradingSignal {
+  id: string;
+  signal: 'buy' | 'sell' | 'hold';
+  confidence: number;
+  entryPrice: number;
+  targetPrice: number;
+  stopLoss?: number;
+  reason?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  action: 'BOT_STARTED' | 'BOT_STOPPED' | 'TRADE_EXECUTED' | 'SIGNAL_GENERATED' | 'ANALYSIS' | 'ERROR';
+  timestamp: string;
+  reasoning: string;
+  data?: any;
+  signal?: TradingSignal;
+  result?: string;
+  marketData?: {
+    symbol: string;
+    price: number;
+    change24h: number;
+    volume24h?: number;
+  };
 }
 
 export interface AIBot {
@@ -72,17 +99,9 @@ export interface AIBot {
   };
   createdAt: string;
   updatedAt: string;
-  auditLog?: AuditLogEntry[];
+  auditLog: AuditLogEntry[];
   isActive?: boolean;
   config?: BotConfig;
-}
-
-export interface AuditLogEntry {
-  id: string;
-  action: 'BOT_STARTED' | 'BOT_STOPPED' | 'TRADE_EXECUTED' | 'SIGNAL_GENERATED';
-  timestamp: string;
-  reasoning: string;
-  data?: any;
 }
 
 export interface BotConfig {
@@ -146,6 +165,7 @@ export interface AITradingStrategyConfig {
     trades?: number;
     profitLoss?: number;
     drawdown?: number;
+    maxDrawdown?: number;
     returns?: number;
   };
   creator?: string;
@@ -197,6 +217,14 @@ export interface SystemStats {
   systemRunning?: boolean;
 }
 
+export interface TaxBracket {
+  min: number;
+  max: number;
+  rate: number;
+  bracket: string;
+  name?: string;
+}
+
 export interface ATOTaxCalculation {
   capitalGains: number;
   taxableIncome: number;
@@ -228,6 +256,98 @@ export interface ATOTaxCalculation {
   taxRefundOrOwed?: number;
   transactions?: any[];
   bracket?: TaxBracket;
+}
+
+export interface TaxHarvestTradeItem {
+  id: string;
+  symbol: string;
+  amount: number;
+  quantity: number;
+  purchasePrice: number;
+  currentPrice: number;
+  gainLoss: number;
+  unrealizedGainLoss: number;
+  unrealizedLoss: number;
+  taxSavings: number;
+  recommended: boolean;
+  price?: number;
+  type?: 'buy' | 'sell';
+  date?: string;
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  description: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  relevantCoins: string[];
+  image?: string;
+  isFake?: boolean;
+  confidence?: number;
+  tags?: string[];
+}
+
+export interface NewsTickerProps {
+  items: NewsItem[];
+  speed?: number;
+  direction?: 'left' | 'right';
+  className?: string;
+}
+
+export interface DefiProtocol {
+  id: string;
+  name: string;
+  type: 'lending' | 'dex' | 'yield-farming' | 'staking';
+  tvl: number;
+  apy: number;
+  chain: string;
+  isActive: boolean;
+  category?: string;
+  risk?: string;
+  logoUrl?: string;
+  description?: string;
+  riskLevel?: 'low' | 'medium' | 'high';
+  url?: string;
+}
+
+export interface DefiPosition {
+  id: string;
+  protocol: string;
+  asset: string;
+  amount: number;
+  value: number;
+  apy: number;
+  rewards: Array<{
+    assetId: string;
+    assetSymbol: string;
+    amount: number;
+    value: number;
+  }>;
+  timestamp: string;
+  protocolName?: string;
+  type?: string;
+  assetSymbol?: string;
+  assetId?: string;
+  startDate?: string;
+}
+
+export interface YieldFarmingPool {
+  id: string;
+  name: string;
+  protocol: string;
+  tokenPair: string;
+  tokens: string[];
+  apy: number;
+  tvl: number;
+  rewards: string[];
+  risk: 'low' | 'medium' | 'high';
+  blockchain: string;
+  lockPeriod?: number;
+  riskLevel: 'low' | 'medium' | 'high';
 }
 
 export type WidgetType = 
@@ -321,23 +441,13 @@ export interface MarketInsight {
   symbols: string[];
 }
 
-export interface TradingSignal {
-  id: string;
-  coinId: string;
-  type: 'buy' | 'sell' | 'hold';
-  price: number;
-  confidence: number;
-  source: string;
-  timestamp: string;
-  reason: string;
-}
-
 export interface RealTimePricesProps {
   onSelectCoin: (coinId: string) => void;
   selectedCoinId: string;
   onPriceUpdate: (symbol: string, price: number) => void;
   initialCoins?: CoinOption[];
   refreshInterval?: number;
+  symbols?: string[];
 }
 
 export interface RealTimePriceChartProps {
@@ -409,94 +519,6 @@ export interface WalletProvider {
   description?: string;
   isConnected: boolean;
   accounts: string[];
-}
-
-export interface DefiProtocol {
-  id: string;
-  name: string;
-  type: 'lending' | 'dex' | 'yield-farming' | 'staking';
-  tvl: number;
-  apy: number;
-  chain: string;
-  isActive: boolean;
-  category?: string;
-  risk?: string;
-  logoUrl?: string;
-  description?: string;
-  riskLevel?: 'low' | 'medium' | 'high';
-  url?: string;
-}
-
-export interface DefiPosition {
-  id: string;
-  protocol: string;
-  asset: string;
-  amount: number;
-  value: number;
-  apy: number;
-  rewards: Array<{
-    assetId: string;
-    assetSymbol: string;
-    amount: number;
-    value: number;
-  }>;
-  timestamp: string;
-  protocolName?: string;
-  type?: string;
-  assetSymbol?: string;
-  assetId?: string;
-  startDate?: string;
-}
-
-export interface YieldFarmingPool {
-  id: string;
-  name: string;
-  protocol: string;
-  tokenPair: string;
-  tokens: string[];
-  apy: number;
-  tvl: number;
-  rewards: string[];
-  risk: 'low' | 'medium' | 'high';
-  blockchain: string;
-  lockPeriod?: number;
-  riskLevel: 'low' | 'medium' | 'high';
-}
-
-export interface TaxBracket {
-  min: number;
-  max: number;
-  rate: number;
-  bracket: string;
-}
-
-export interface TaxHarvestTradeItem {
-  id: string;
-  symbol: string;
-  quantity: number;
-  purchasePrice: number;
-  currentPrice: number;
-  unrealizedLoss: number;
-  taxSavings: number;
-  recommended: boolean;
-}
-
-export interface NewsItem {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
-  source: string;
-  publishedAt: string;
-  sentiment: 'positive' | 'negative' | 'neutral';
-  relevantCoins: string[];
-  image?: string;
-}
-
-export interface NewsTickerProps {
-  items: NewsItem[];
-  speed?: number;
-  direction?: 'left' | 'right';
 }
 
 export interface ApiRateLimit {

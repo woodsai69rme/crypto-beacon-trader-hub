@@ -27,12 +27,22 @@ const ATOTaxCalculator: React.FC = () => {
       min: 45001,
       max: 120000,
       rate: 0.32,
+      bracket: '$45,001 - $120,000',
       name: 'Middle Tax Bracket'
     } as TaxBracket,
     CGTDiscount: 25000,
     effectiveTaxRate: 0.32,
     taxRefundOrOwed: 0,
-    transactions: []
+    transactions: [],
+    shortTermGains: 30000,
+    longTermGains: 20000,
+    carryForwardLosses: 0,
+    discountEligible: 20000,
+    assessableGain: 35000,
+    effectiveRate: 0.32,
+    recommendations: ['Consider holding assets for 12+ months for CGT discount'],
+    optimizationSuggestions: ['Review timing of asset sales'],
+    nextYearProjection: 20000
   });
 
   const handleCalculate = () => {
@@ -58,12 +68,22 @@ const ATOTaxCalculator: React.FC = () => {
         min: 45001,
         max: 120000,
         rate: 0.32,
+        bracket: '$45,001 - $120,000',
         name: 'Middle Tax Bracket'
       } as TaxBracket,
       CGTDiscount: 25000,
       effectiveTaxRate: 0.32,
       taxRefundOrOwed: 0,
-      transactions: []
+      transactions: [],
+      shortTermGains: 30000,
+      longTermGains: 20000,
+      carryForwardLosses: 0,
+      discountEligible: 20000,
+      assessableGain: 35000,
+      effectiveRate: 0.32,
+      recommendations: ['Consider holding assets for 12+ months for CGT discount'],
+      optimizationSuggestions: ['Review timing of asset sales'],
+      nextYearProjection: 20000
     };
     
     setCalculation(newCalculation);
