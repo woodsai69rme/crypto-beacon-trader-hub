@@ -1,3 +1,4 @@
+
 export type SupportedCurrency = 'AUD' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'CHF';
 
 export interface CoinOption {
@@ -60,6 +61,14 @@ export interface TradingSignal {
   targetPrice: number;
   stopLoss?: number;
   reason?: string;
+  coinId?: string;
+  type?: 'buy' | 'sell' | 'hold';
+  price?: number;
+  source?: string;
+  timestamp?: string;
+  coinSymbol?: string;
+  strength?: number;
+  suggestedActions?: string[];
 }
 
 export interface AuditLogEntry {
@@ -168,6 +177,7 @@ export interface AITradingStrategyConfig {
     maxDrawdown?: number;
     returns?: number;
     totalReturn?: number;
+    totalTrades?: number;
   };
   creator?: string;
   tags?: string[];
@@ -262,11 +272,9 @@ export interface ATOTaxCalculation {
 export interface TaxHarvestTradeItem {
   id: string;
   symbol: string;
-  amount: number;
   quantity: number;
   purchasePrice: number;
   currentPrice: number;
-  gainLoss: number;
   unrealizedGainLoss: number;
   unrealizedLoss: number;
   taxSavings: number;
@@ -339,7 +347,6 @@ export interface DefiPosition {
 export interface YieldFarmingPool {
   id: string;
   name: string;
-  protocol: string;
   tokenPair: string;
   tokens: string[];
   apy: number;
@@ -382,6 +389,11 @@ export interface DetachedAiTradingDashboardProps {
   children?: React.ReactNode;
 }
 
+export interface DetachableDashboardProps {
+  onClose?: () => void;
+  isDetached?: boolean;
+}
+
 export interface AIBotStrategy {
   id: string;
   name: string;
@@ -396,6 +408,8 @@ export interface AdvancedAIBotConfig extends BotConfig {
 
 export interface FakeTradingFormProps {
   onAddTrade?: (trade: Trade) => void;
+  onTrade?: (trade: Trade) => void;
+  selectedCoin?: CoinOption;
   advancedMode?: boolean;
   activeCurrency: SupportedCurrency;
   formatCurrency: (value: number) => string;
@@ -440,6 +454,11 @@ export interface MarketInsight {
   description: string;
   timeframe: string;
   symbols: string[];
+  summary?: string;
+  details?: string;
+  assets?: string[];
+  relevance?: number;
+  timestamp?: string;
 }
 
 export interface RealTimePricesProps {
@@ -456,6 +475,7 @@ export interface RealTimePriceChartProps {
   onSelectCoin: (coinId: string) => void;
   coinId?: string;
   availableCoins?: any[];
+  updateInterval?: number;
 }
 
 export interface CorrelationHeatmapProps {
@@ -835,4 +855,9 @@ export interface ExtendedAiBotTradingProps {
       totalTrades: number;
     };
   }>;
+}
+
+export interface AiBotCreatorProps {
+  onCreateBot: (config: BotConfig) => void;
+  strategies: AIBotStrategy[];
 }

@@ -1,0 +1,249 @@
+
+version: '3.8'
+
+services:
+  # Main application
+  crypto-beacon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: crypto-beacon-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
+      - VITE_COINGECKO_API_KEY=${VITE_COINGECKO_API_KEY}
+      - DATABASE_TYPE=sqlite
+      - DATABASE_PATH=/app/data/crypto_beacon.db
+    volumes:
+      - app_data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - crypto-beacon-network
+    depends_on:
+      - postgres
+      - redis
+
+  # PostgreSQL database (alternative to Supabase)
+  postgres:
+    image: postgres:15-alpine
+    container_name: crypto-beacon-db
+    environment:
+      POSTGRES_DB: crypto_beacon
+      POSTGRES_USER: crypto_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crypto_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crypto_user -d crypto_beacon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crypto-beacon-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: crypto-beacon-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - crypto-beacon-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: crypto-beacon-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      - crypto-beacon
+    networks:
+      - crypto-beacon-network
+
+  # Development service
+  crypto-beacon-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: crypto-beacon-dev
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_DEBUG_MODE=true
+      - VITE_USE_MOCK_DATA=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - development
+
+  # Testing service
+  crypto-beacon-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: crypto-beacon-test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - testing
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: crypto-beacon-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - monitoring
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: crypto-beacon-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - monitoring
+
+  # Log aggregation with ELK Stack
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: crypto-beacon-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - logging
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: crypto-beacon-logstash
+    volumes:
+      - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logs:/var/log/app:ro
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: crypto-beacon-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - crypto-beacon-network
+    profiles:
+      - logging
+
+networks:
+  crypto-beacon-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  app_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+# Development override
+# docker-compose -f docker-compose.yml -f docker-compose.dev.yml --profile development up
