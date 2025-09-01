@@ -15,9 +15,36 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({
   refreshInterval = 30000
 }) => {
   const [coins, setCoins] = useState<CoinOption[]>(initialCoins.length > 0 ? initialCoins : [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 45230.50, changePercent: 2.34, value: 'BTC', label: 'Bitcoin' },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3105.78, changePercent: -1.23, value: 'ETH', label: 'Ethereum' },
-    { id: 'solana', name: 'Solana', symbol: 'SOL', price: 95.67, changePercent: 5.67, value: 'SOL', label: 'Solana' }
+    { 
+      id: 'bitcoin', 
+      name: 'Bitcoin', 
+      symbol: 'BTC', 
+      price: 45230.50, 
+      changePercent: 2.34, 
+      change24h: 2.34,
+      value: 'BTC', 
+      label: 'Bitcoin' 
+    },
+    { 
+      id: 'ethereum', 
+      name: 'Ethereum', 
+      symbol: 'ETH', 
+      price: 3105.78, 
+      changePercent: -1.23, 
+      change24h: -1.23,
+      value: 'ETH', 
+      label: 'Ethereum' 
+    },
+    { 
+      id: 'solana', 
+      name: 'Solana', 
+      symbol: 'SOL', 
+      price: 95.67, 
+      changePercent: 5.67, 
+      change24h: 5.67,
+      value: 'SOL', 
+      label: 'Solana' 
+    }
   ]);
 
   useEffect(() => {
@@ -34,7 +61,8 @@ const RealTimePrices: React.FC<RealTimePricesProps> = ({
           return {
             ...coin,
             price: newPrice,
-            changePercent: newChange
+            changePercent: newChange,
+            change24h: newChange
           };
         })
       );

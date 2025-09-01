@@ -55,7 +55,7 @@ export interface PortfolioAsset {
 
 export interface TradingSignal {
   id: string;
-  signal: 'buy' | 'sell' | 'hold';
+  signal?: 'buy' | 'sell' | 'hold';
   confidence: number;
   entryPrice: number;
   targetPrice: number;
@@ -68,7 +68,11 @@ export interface TradingSignal {
   timestamp?: string;
   coinSymbol?: string;
   strength?: number;
-  suggestedActions?: string[];
+  suggestedActions: {
+    entry: number;
+    target: number;
+    stopLoss: number;
+  };
 }
 
 export interface AuditLogEntry {
@@ -282,6 +286,8 @@ export interface TaxHarvestTradeItem {
   price?: number;
   type?: 'buy' | 'sell';
   date?: string;
+  amount?: number;
+  gainLoss?: number;
 }
 
 export interface NewsItem {
@@ -347,6 +353,7 @@ export interface DefiPosition {
 export interface YieldFarmingPool {
   id: string;
   name: string;
+  protocol: string;
   tokenPair: string;
   tokens: string[];
   apy: number;
@@ -392,6 +399,9 @@ export interface DetachedAiTradingDashboardProps {
 export interface DetachableDashboardProps {
   onClose?: () => void;
   isDetached?: boolean;
+  title?: string;
+  children?: React.ReactNode;
+  onDetach?: () => void;
 }
 
 export interface AIBotStrategy {

@@ -13,11 +13,11 @@ const TaxReportingTools: React.FC = () => {
 
   // 2024-25 Australian Tax Brackets
   const taxBrackets: TaxBracket[] = [
-    { min: 0, max: 18200, rate: 0, name: 'Tax-free threshold' },
-    { min: 18201, max: 45000, rate: 0.19, name: '19% bracket' },
-    { min: 45001, max: 120000, rate: 0.325, name: '32.5% bracket' },
-    { min: 120001, max: 180000, rate: 0.37, name: '37% bracket' },
-    { min: 180001, max: Infinity, rate: 0.45, name: '45% bracket' }
+    { min: 0, max: 18200, rate: 0, bracket: '$0 - $18,200', name: 'Tax-free threshold' },
+    { min: 18201, max: 45000, rate: 0.19, bracket: '$18,201 - $45,000', name: '19% bracket' },
+    { min: 45001, max: 120000, rate: 0.325, bracket: '$45,001 - $120,000', name: '32.5% bracket' },
+    { min: 120001, max: 180000, rate: 0.37, bracket: '$120,001 - $180,000', name: '37% bracket' },
+    { min: 180001, max: Infinity, rate: 0.45, bracket: '$180,001+', name: '45% bracket' }
   ];
 
   const calculateTax = () => {
@@ -35,7 +35,7 @@ const TaxReportingTools: React.FC = () => {
         const taxInBracket = taxableInBracket * bracket.rate;
         totalTax += taxInBracket;
         marginalRate = bracket.rate;
-        applicableBracket = bracket.name;
+        applicableBracket = bracket.name || '';
       }
     }
 
@@ -52,7 +52,20 @@ const TaxReportingTools: React.FC = () => {
       netGain: netGain,
       marginalRate: marginalRate,
       medicareLevy: medicareLevy,
-      applicableBracket: applicableBracket
+      applicableBracket: applicableBracket,
+      totalGain: capitalGain,
+      totalLoss: 0,
+      taxOwed: totalTax,
+      events: [],
+      shortTermGains: capitalGain,
+      longTermGains: 0,
+      carryForwardLosses: 0,
+      discountEligible: 0,
+      assessableGain: capitalGain,
+      effectiveRate: totalTax / capitalGain,
+      recommendations: [],
+      optimizationSuggestions: [],
+      nextYearProjection: 0
     });
   };
 
@@ -153,9 +166,7 @@ const TaxReportingTools: React.FC = () => {
             <div className="space-y-2">
               {taxBrackets.map((bracket, index) => (
                 <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
-                  <span className="text-sm">
-                    ${bracket.min.toLocaleString()} - {bracket.max === Infinity ? '∞' : `$${bracket.max.toLocaleString()}`}
-                  </span>
+                  <span className="text-sm">{bracket.bracket}</span>
                   <span className="text-sm font-medium">{(bracket.rate * 100).toFixed(1)}%</span>
                 </div>
               ))}
