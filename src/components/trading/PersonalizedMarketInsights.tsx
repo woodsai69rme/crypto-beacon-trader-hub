@@ -3,50 +3,56 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { TrendingUp, TrendingDown, AlertTriangle, Target } from 'lucide-react';
 import { MarketInsight, TradingSignal } from '@/types/trading';
-import { TrendingUp, TrendingDown, AlertCircle, Lightbulb } from 'lucide-react';
 
 const PersonalizedMarketInsights: React.FC = () => {
   const [insights, setInsights] = useState<MarketInsight[]>([]);
-  const [signals, setSignals] = useState<TradingSignal[]>([]);
+  const [tradingSignals, setTradingSignals] = useState<TradingSignal[]>([]);
 
   useEffect(() => {
-    // Generate mock insights
+    // Mock market insights
     const mockInsights: MarketInsight[] = [
       {
         id: '1',
-        title: 'Bitcoin Showing Strong Momentum',
-        description: 'Bitcoin has successfully broken through the $60,000 resistance level with significant volume support, indicating potential for further upward movement.',
-        summary: 'BTC has broken above key resistance levels with increasing volume',
-        details: 'Bitcoin has successfully broken through the $60,000 resistance level with significant volume support, indicating potential for further upward movement.',
-        confidence: 0.85,
+        title: 'Bitcoin Showing Strong Bullish Momentum',
+        description: 'Technical indicators suggest BTC is breaking key resistance levels',
+        summary: 'BTC breaking $65,000 resistance with strong volume',
+        details: 'Multiple technical indicators including RSI, MACD, and moving averages are showing bullish alignment.',
+        confidence: 85,
         assets: ['BTC'],
+        symbols: ['BTC'],
         type: 'bullish',
-        relevance: 0.9,
+        timeframe: '1d',
+        relevance: 95,
         timestamp: new Date().toISOString()
       },
       {
         id: '2',
-        title: 'Ethereum Network Upgrade Impact',
-        description: 'The latest Ethereum network upgrade has improved transaction efficiency, leading to increased adoption and positive price momentum.',
-        summary: 'Recent network improvements driving positive sentiment',
-        details: 'The latest Ethereum network upgrade has improved transaction efficiency, leading to increased adoption and positive price momentum.',
-        confidence: 0.78,
+        title: 'Ethereum Layer 2 Adoption Accelerating',
+        description: 'Increased activity on Polygon and Arbitrum networks',
+        summary: 'L2 solutions driving ETH ecosystem growth',
+        details: 'Transaction volumes on Layer 2 networks have increased 300% this month.',
+        confidence: 78,
         assets: ['ETH'],
+        symbols: ['ETH'],
         type: 'bullish',
-        relevance: 0.8,
+        timeframe: '1w',
+        relevance: 88,
         timestamp: new Date().toISOString()
       },
       {
         id: '3',
-        title: 'Market Correction Warning',
-        description: 'Multiple technical indicators are showing overbought conditions across major cryptocurrencies, suggesting a potential correction in the near term.',
-        summary: 'Technical indicators suggest potential short-term correction',
-        details: 'Multiple technical indicators are showing overbought conditions across major cryptocurrencies, suggesting a potential correction in the near term.',
-        confidence: 0.72,
-        assets: ['BTC', 'ETH', 'SOL'],
+        title: 'Market Volatility Expected Due to Fed Meeting',
+        description: 'FOMC decision could impact crypto markets significantly',
+        summary: 'Prepare for increased volatility',
+        details: 'Historical data shows crypto markets react strongly to Federal Reserve announcements.',
+        confidence: 72,
+        assets: ['BTC', 'ETH'],
+        symbols: ['BTC', 'ETH'],
         type: 'bearish',
-        relevance: 0.7,
+        timeframe: '1d',
+        relevance: 90,
         timestamp: new Date().toISOString()
       }
     ];
@@ -57,145 +63,136 @@ const PersonalizedMarketInsights: React.FC = () => {
         coinId: 'bitcoin',
         coinSymbol: 'BTC',
         type: 'buy',
-        price: 58500,
-        strength: 0.82,
+        price: 65000,
+        confidence: 85,
+        entryPrice: 65000,
+        targetPrice: 70000,
+        stopLoss: 62000,
+        source: 'Technical Analysis',
         timestamp: new Date().toISOString(),
-        reason: 'Strong momentum with volume confirmation',
+        reason: 'Breaking resistance with strong volume',
         suggestedActions: {
-          entry: 58500,
-          target: 62000,
-          stopLoss: 56000
+          entry: 65000,
+          target: 70000,
+          stopLoss: 62000
         }
       }
     ];
 
     setInsights(mockInsights);
-    setSignals(mockSignals);
+    setTradingSignals(mockSignals);
   }, []);
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'bullish':
+        return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case 'bearish':
+        return <TrendingDown className="h-4 w-4 text-red-600" />;
+      default:
+        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+    }
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return 'bg-green-100 text-green-800';
+    if (confidence >= 60) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5" />
-            Market Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {insights.map((insight) => (
-              <div key={insight.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-medium mb-1">{insight.title}</h3>
-                    {insight.summary && (
-                      <p className="text-sm text-muted-foreground mb-2">{insight.summary}</p>
-                    )}
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Personalized Market Insights</h2>
+        <p className="text-muted-foreground mb-6">
+          AI-powered analysis tailored to your portfolio and trading preferences
+        </p>
+      </div>
+
+      {/* Market Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Market Insights</h3>
+          {insights.map((insight) => (
+            <Card key={insight.id}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    {getInsightIcon(insight.type)}
+                    <CardTitle className="text-base">{insight.title}</CardTitle>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {insight.type === 'bullish' && (
-                      <Badge variant="default" className="bg-green-100 text-green-800">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        Bullish
-                      </Badge>
-                    )}
-                    {insight.type === 'bearish' && (
-                      <Badge variant="destructive">
-                        <TrendingDown className="h-3 w-3 mr-1" />
-                        Bearish
-                      </Badge>
-                    )}
-                    <Badge variant="outline">
-                      {(insight.confidence * 100).toFixed(0)}% confidence
-                    </Badge>
-                  </div>
+                  <Badge className={getConfidenceColor(insight.confidence)}>
+                    {insight.confidence}% confidence
+                  </Badge>
                 </div>
-                
-                <p className="text-sm mb-3">{insight.details}</p>
-                
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {insight.description}
+                </p>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Assets:</span>
-                    {insight.assets?.map((asset) => (
-                      <Badge key={asset} variant="outline" className="text-xs">
-                        {asset}
+                  <div className="flex space-x-1">
+                    {insight.symbols.map((symbol) => (
+                      <Badge key={symbol} variant="outline" className="text-xs">
+                        {symbol}
                       </Badge>
                     ))}
                   </div>
-                  {insight.relevance && (
-                    <span className="text-sm text-muted-foreground">
-                      Relevance: {(insight.relevance * 100).toFixed(0)}%
-                    </span>
-                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {insight.timeframe}
+                  </span>
                 </div>
-                
-                {insight.timestamp && (
-                  <div className="text-xs text-muted-foreground mt-2">
-                    {new Date(insight.timestamp).toLocaleString()}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-      {signals && signals.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Trading Signals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {signals.map((signal) => (
-                <div key={signal.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Badge variant={signal.type === 'buy' ? 'default' : 'destructive'}>
-                        {signal.type.toUpperCase()}
-                      </Badge>
-                      <span className="font-medium">{signal.coinSymbol}</span>
-                    </div>
-                    <Badge variant="outline">
-                      {(signal.strength * 100).toFixed(0)}% strength
-                    </Badge>
+        {/* Trading Signals */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Trading Signals</h3>
+          {tradingSignals.map((signal) => (
+            <Card key={signal.id}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Target className="h-4 w-4 text-blue-600" />
+                    <CardTitle className="text-base">
+                      {signal.type.toUpperCase()} {signal.coinSymbol}
+                    </CardTitle>
                   </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">{signal.reason}</p>
-                  
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Entry:</span>
-                      <p className="font-medium">${signal.suggestedActions.entry.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Target:</span>
-                      <p className="font-medium text-green-600">${signal.suggestedActions.target.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Stop Loss:</span>
-                      <p className="font-medium text-red-600">${signal.suggestedActions.stopLoss.toLocaleString()}</p>
-                    </div>
+                  <Badge className={getConfidenceColor(signal.confidence)}>
+                    {signal.confidence}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  {signal.reason}
+                </p>
+                
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Entry</p>
+                    <p className="font-semibold">${signal.suggestedActions.entry.toLocaleString()}</p>
                   </div>
-                  
-                  <div className="mt-3 flex gap-2">
-                    <Button size="sm" className="flex-1">
-                      Execute Trade
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Save Signal
-                    </Button>
+                  <div>
+                    <p className="text-muted-foreground">Target</p>
+                    <p className="font-semibold text-green-600">${signal.suggestedActions.target.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Stop Loss</p>
+                    <p className="font-semibold text-red-600">${signal.suggestedActions.stopLoss.toLocaleString()}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
+                <Button size="sm" className="w-full">
+                  Execute Trade
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

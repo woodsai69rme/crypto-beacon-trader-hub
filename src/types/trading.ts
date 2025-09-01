@@ -430,6 +430,10 @@ export interface TradingFormProps {
   onSubmit: (trade: Trade) => void;
   availableCoins: any[];
   formatCurrency: (value: number) => string;
+  mode?: 'paper' | 'live';
+  onTrade?: (trade: Trade) => void;
+  selectedCoin?: CoinOption;
+  balance?: number;
 }
 
 export interface LocalModel {
@@ -871,3 +875,7 @@ export interface AiBotCreatorProps {
   onCreateBot: (config: BotConfig) => void;
   strategies: AIBotStrategy[];
 }
+
+export type ColorScheme = 'light' | 'dark' | 'system';
+
+export type AlertType = 'price' | 'volume' | 'technical' | 'news';

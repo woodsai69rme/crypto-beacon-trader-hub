@@ -1,176 +1,128 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { CoinOption, RealTimePricesProps } from '@/types/trading';
-import { enhancedFreeApiAggregator } from '@/services/freeApis/enhancedFreeApiAggregator';
-import { Loader2 } from 'lucide-react';
 
 const RealTimePrices: React.FC<RealTimePricesProps> = ({
-  symbols,
-  onPriceUpdate,
+  onSelectCoin,
   selectedCoinId,
-  onSelectCoin
+  onPriceUpdate,
+  initialCoins = [],
+  refreshInterval = 30000
 }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [prices, setPrices] = useState<CoinOption[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // Formats a price in AUD with the appropriate precision
-  const formatPrice = (price: number): string => {
-    if (price >= 1000) {
-      return `$${price.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    } else if (price >= 1) {
-      return `$${price.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-    } else {
-      return `$${price.toLocaleString('en-AU', { minimumFractionDigits: 4, maximumFractionDigits: 8 })}`;
-    }
-  };
-
-  // Determines the appropriate CSS class based on price change
-  const getPriceChangeClass = (change: number): string => {
-    if (change > 0) return "text-green-600";
-    if (change < 0) return "text-red-600";
-    return "text-muted-foreground";
-  };
+  const [coins, setCoins] = useState<CoinOption[]>(initialCoins);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Function to fetch real-time prices
-    const fetchPrices = async () => {
-      try {
-        setLoading(true);
-        const marketData = await enhancedFreeApiAggregator.getAggregatedMarketData(symbols);
-        
-        // Transform market data into coin options
-        const coinOptions = marketData.map(item => ({
-          id: item.coin.id,
-          name: item.coin.name,
-          symbol: item.coin.symbol,
-          price: item.priceAUD,
-          priceChange: item.change24h,
-          changePercent: item.change24h,
-          marketCap: item.marketCap,
-          volume: item.volume,
-          image: `https://assets.coingecko.com/coins/images/1/large/${item.coin.id}.png`, // Fallback
-          value: item.coin.id,
-          label: item.coin.name
-        }));
-        
-        setPrices(coinOptions);
-        
-        // Notify parent component of price updates if callback exists
-        if (onPriceUpdate && coinOptions.length > 0) {
-          coinOptions.forEach(coin => {
-            onPriceUpdate(coin.symbol, coin.price);
-          });
+    const interval = setInterval(() => {
+      // Simulate price updates
+      const updatedCoins = coins.map(coin => ({
+        ...coin,
+        price: coin.price * (0.95 + Math.random() * 0.1),
+        change24h: -5 + Math.random() * 10,
+        priceChange: coin.priceChange || 0,
+        changePercent: coin.changePercent || 0,
+        volume: coin.volume || 1000000,
+        marketCap: coin.marketCap || 10000000,
+        rank: coin.rank || 1
+      }));
+      
+      setCoins(updatedCoins);
+      
+      // Notify parent of price updates
+      updatedCoins.forEach(coin => {
+        onPriceUpdate(coin.symbol, coin.price);
+      });
+    }, refreshInterval);
+
+    return () => clearInterval(interval);
+  }, [coins, refreshInterval, onPriceUpdate]);
+
+  // Initialize with mock data if no initial coins provided
+  useEffect(() => {
+    if (initialCoins.length === 0) {
+      const mockCoins: CoinOption[] = [
+        {
+          id: 'bitcoin',
+          name: 'Bitcoin',
+          symbol: 'BTC',
+          price: 65000,
+          change24h: 2.5,
+          priceChange: 1500,
+          changePercent: 2.5,
+          marketCap: 1200000000000,
+          volume: 25000000000,
+          image: '',
+          value: 'bitcoin',
+          label: 'Bitcoin (BTC)',
+          rank: 1
+        },
+        {
+          id: 'ethereum',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          price: 3200,
+          change24h: -1.2,
+          priceChange: -40,
+          changePercent: -1.2,
+          marketCap: 400000000000,
+          volume: 15000000000,
+          image: '',
+          value: 'ethereum',
+          label: 'Ethereum (ETH)',
+          rank: 2
         }
-        
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching real-time prices:', err);
-        setError('Failed to load cryptocurrency prices. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Initial fetch
-    fetchPrices();
-    
-    // Set up interval for regular updates
-    const intervalId = setInterval(fetchPrices, 30000); // Update every 30 seconds
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [symbols, onPriceUpdate]);
-
-  const handleCoinSelect = (coinId: string) => {
-    if (onSelectCoin) {
-      onSelectCoin(coinId);
+      ];
+      setCoins(mockCoins);
     }
-  };
-
-  if (loading && prices.length === 0) {
-    return (
-      <div className="flex items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Loading prices in AUD...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center p-6 text-red-500">
-        <p>{error}</p>
-        <button 
-          onClick={() => setPrices([])}
-          className="mt-2 text-primary hover:underline"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  }, [initialCoins]);
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {prices.map(coin => (
-          <Card
-            key={coin.id}
-            className={`cursor-pointer transition-all hover:shadow-md ${
-              selectedCoinId === coin.id ? 'ring-2 ring-primary' : ''
-            }`}
-            onClick={() => handleCoinSelect(coin.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-3">
-                    {coin.symbol.slice(0, 1)}
-                  </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Real-Time Prices</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {coins.map((coin) => (
+              <div
+                key={coin.id}
+                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 ${
+                  selectedCoinId === coin.id ? 'bg-primary/10 border-primary' : ''
+                }`}
+                onClick={() => onSelectCoin(coin.id)}
+              >
+                <div className="flex items-center space-x-3">
                   <div>
-                    <h3 className="font-semibold">{coin.name}</h3>
-                    <p className="text-xs text-muted-foreground">{coin.symbol}</p>
+                    <p className="font-semibold">{coin.name}</p>
+                    <p className="text-sm text-muted-foreground">{coin.symbol}</p>
                   </div>
                 </div>
-                <Badge variant="outline">AUD</Badge>
-              </div>
-              
-              <div className="mt-3">
-                <div className="font-bold text-xl">
-                  {formatPrice(coin.price)}
-                </div>
-                <div className={`text-sm font-medium ${getPriceChangeClass(coin.changePercent || 0)}`}>
-                  {coin.changePercent && coin.changePercent > 0 ? '+' : ''}
-                  {coin.changePercent?.toFixed(2)}% (24h)
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                <div>
-                  <span className="text-muted-foreground">Market Cap</span>
-                  <p className="font-medium">
-                    {coin.marketCap ? `$${(coin.marketCap / 1000000).toFixed(1)}M` : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Volume (24h)</span>
-                  <p className="font-medium">
-                    {coin.volume ? `$${(coin.volume / 1000000).toFixed(1)}M` : 'N/A'}
-                  </p>
+                
+                <div className="text-right">
+                  <p className="font-semibold">${coin.price.toFixed(2)}</p>
+                  <div className="flex items-center space-x-1">
+                    {coin.change24h >= 0 ? (
+                      <TrendingUp className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 text-red-600" />
+                    )}
+                    <Badge
+                      variant={coin.change24h >= 0 ? 'default' : 'destructive'}
+                      className="text-xs"
+                    >
+                      {coin.change24h.toFixed(2)}%
+                    </Badge>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      
-      <div className="text-xs text-muted-foreground text-center">
-        <p>Data aggregated from multiple sources • Refreshes every 30 seconds • All prices in AUD</p>
-        <p className="mt-1">Powered by CryptoTrader Pro Free API Aggregator</p>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

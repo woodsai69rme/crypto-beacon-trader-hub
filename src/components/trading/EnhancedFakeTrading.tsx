@@ -51,20 +51,23 @@ const EnhancedFakeTrading: React.FC<EnhancedFakeTradingProps> = ({ onTrade }) =>
 
     const trade: Trade = {
       id: `trade-${Date.now()}`,
-      symbol: selectedSymbol,
+      coinId: selectedSymbol.toLowerCase(),
+      coinName: selectedSymbol,
+      coinSymbol: selectedSymbol,
       type: tradeType,
-      quantity: tradeAmount,
+      amount: tradeAmount,
       price: currentPrice,
       totalValue,
       timestamp: new Date().toISOString(),
+      currency: 'AUD',
       fees: totalValue * 0.001 // 0.1% fee
     };
 
     // Update balance
     if (tradeType === 'buy') {
-      setBalance(prev => prev - totalValue - trade.fees!);
+      setBalance(prev => prev - totalValue - (trade.fees || 0));
     } else {
-      setBalance(prev => prev + totalValue - trade.fees!);
+      setBalance(prev => prev + totalValue - (trade.fees || 0));
     }
 
     if (onTrade) {

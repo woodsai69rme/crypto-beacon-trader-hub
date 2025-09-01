@@ -1,225 +1,74 @@
-import { AIBot, BotConfig, AITradingStrategy } from '@/types/trading';
-import { v4 as uuidv4 } from 'uuid';
+
+import { AIBot, BotConfig, AITradingStrategyConfig } from '@/types/trading';
 
 class EnhancedAiBotService {
-  private bots: AIBot[] = [
-    {
-      id: uuidv4(),
-      name: 'Grid Master Pro',
-      description: 'Advanced grid trading with dynamic range adjustment',
+  private bots: AIBot[] = [];
+
+  async getAllBots(): Promise<AIBot[]> {
+    return this.bots;
+  }
+
+  async createBot(config: BotConfig): Promise<AIBot> {
+    const bot: AIBot = {
+      id: `bot-${Date.now()}`,
+      name: config.name || `AI Bot ${this.bots.length + 1}`,
+      description: config.description || 'AI Trading Bot',
       strategy: {
-        id: 'grid-1',
-        name: 'Grid Trading',
-        description: 'Advanced grid trading with dynamic range adjustment',
-        type: 'grid',
-        timeframe: 'medium',
-        parameters: {},
-        riskLevel: 'medium'
-      },
-      model: 'deepseek-r1',
-      status: 'paused',
-      riskLevel: 'medium',
-      maxTradeAmount: 1000,
-      targetAssets: ['BTC', 'ETH'],
+        id: config.strategy,
+        name: config.strategy,
+        description: 'AI Trading Strategy',
+        type: config.strategy,
+        timeframe: '1h',
+        parameters: config.parameters || {}
+      } as AITradingStrategyConfig,
+      status: 'stopped',
       balance: 10000,
-      performance: {
-        totalReturn: 15.2,
-        winRate: 72.5,
-        trades: 145,
-        totalTrades: 145,
-        maxDrawdown: 8.1,
-        sharpeRatio: 1.8
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: uuidv4(),
-      name: 'Trend Follower AI',
-      description: 'AI-powered trend following with momentum analysis',
-      strategy: {
-        id: 'trend-1',
-        name: 'Trend Following',
-        description: 'AI-powered trend following with momentum analysis',
-        type: 'trend-following',
-        timeframe: 'medium',
-        parameters: {},
-        riskLevel: 'high'
-      },
-      model: 'gpt-4o-mini',
-      status: 'active',
-      riskLevel: 'high',
-      maxTradeAmount: 2000,
-      targetAssets: ['BTC', 'SOL'],
-      balance: 12000,
-      performance: {
-        totalReturn: 28.7,
-        winRate: 68.2,
-        trades: 89,
-        totalTrades: 89,
-        maxDrawdown: 12.4,
-        sharpeRatio: 2.1
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ];
-
-  getAllBots(): AIBot[] {
-    return [...this.bots];
-  }
-
-  getBotById(id: string): AIBot | undefined {
-    return this.bots.find(bot => bot.id === id);
-  }
-
-  getActiveBots(): AIBot[] {
-    return this.bots.filter(bot => bot.status === 'active');
-  }
-
-  getBotsByStrategy(strategy: string): AIBot[] {
-    return this.bots.filter(bot => bot.strategy.type === strategy);
-  }
-
-  getTopPerformingBots(limit: number = 5): AIBot[] {
-    return [...this.bots]
-      .sort((a, b) => b.performance.totalReturn - a.performance.totalReturn)
-      .slice(0, limit);
-  }
-
-  getAvailableStrategies(): AITradingStrategy[] {
-    return [
-      'grid',
-      'trend-following',
-      'mean-reversion',
-      'breakout',
-      'scalping',
-      'arbitrage',
-      'momentum',
-      'pattern-recognition',
-      'machine-learning',
-      'sentiment',
-      'hybrid',
-      'custom',
-      'whale-tracking',
-      'portfolio-balancing'
-    ];
-  }
-
-  toggleBot(id: string): boolean {
-    const bot = this.getBotById(id);
-    if (!bot) return false;
-
-    if (bot.status === 'active') {
-      bot.status = 'paused';
-    } else if (bot.status === 'paused') {
-      bot.status = 'active';
-    }
-    bot.updatedAt = new Date().toISOString();
-    return true;
-  }
-
-  pauseBot(id: string): boolean {
-    const bot = this.getBotById(id);
-    if (!bot) return false;
-
-    bot.status = 'paused';
-    bot.updatedAt = new Date().toISOString();
-    return true;
-  }
-
-  createBot(config: any): AIBot {
-    const strategyConfig = {
-      id: config.strategy || 'custom',
-      name: config.name || 'Custom Strategy',
-      description: config.description || 'Custom trading strategy',
-      type: config.strategy as AITradingStrategy,
-      timeframe: config.parameters?.timeframe || 'medium' as const,
-      parameters: config.parameters || {},
-      riskLevel: config.riskLevel
-    };
-
-    const newBot: AIBot = {
-      id: config.id || uuidv4(),
-      name: config.name,
-      description: config.description,
-      strategy: strategyConfig,
-      model: config.model,
-      status: 'paused',
+      model: config.model || 'deepseek-r1',
       riskLevel: config.riskLevel,
       maxTradeAmount: config.maxTradeAmount,
       targetAssets: config.targetAssets,
-      balance: 10000,
       performance: {
         totalReturn: 0,
         winRate: 0,
-        trades: 0,
-        totalTrades: 0,
-        maxDrawdown: 0,
-        sharpeRatio: 0
+        totalTrades: 0
       },
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      auditLog: [],
+      config
     };
 
-    this.bots.push(newBot);
-    return newBot;
+    this.bots.push(bot);
+    return bot;
   }
 
-  updateBot(id: string, updates: Partial<AIBot>): AIBot | null {
-    const index = this.bots.findIndex(bot => bot.id === id);
-    if (index === -1) return null;
-
-    this.bots[index] = {
-      ...this.bots[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    return this.bots[index];
+  async startBot(botId: string): Promise<void> {
+    const bot = this.bots.find(b => b.id === botId);
+    if (bot) {
+      bot.status = 'active';
+      bot.updatedAt = new Date().toISOString();
+    }
   }
 
-  deleteBot(id: string): boolean {
-    const index = this.bots.findIndex(bot => bot.id === id);
-    if (index === -1) return false;
-
-    this.bots.splice(index, 1);
-    return true;
+  async pauseBot(botId: string): Promise<void> {
+    const bot = this.bots.find(b => b.id === botId);
+    if (bot) {
+      bot.status = 'paused';
+      bot.updatedAt = new Date().toISOString();
+    }
   }
 
-  startBot(id: string): boolean {
-    const bot = this.getBotById(id);
-    if (!bot) return false;
-
-    bot.status = 'active';
-    bot.updatedAt = new Date().toISOString();
-    return true;
+  async stopBot(botId: string): Promise<void> {
+    const bot = this.bots.find(b => b.id === botId);
+    if (bot) {
+      bot.status = 'stopped';
+      bot.updatedAt = new Date().toISOString();
+    }
   }
 
-  stopBot(id: string): boolean {
-    const bot = this.getBotById(id);
-    if (!bot) return false;
-
-    bot.status = 'paused';
-    bot.updatedAt = new Date().toISOString();
-    return true;
-  }
-
-  getPerformanceStats() {
-    const activeBots = this.getActiveBots();
-    const totalReturn = activeBots.reduce((sum, bot) => sum + bot.performance.totalReturn, 0);
-    const avgWinRate = activeBots.reduce((sum, bot) => sum + bot.performance.winRate, 0) / activeBots.length;
-    const totalTrades = activeBots.reduce((sum, bot) => sum + bot.performance.trades, 0);
-
-    return {
-      totalBots: this.bots.length,
-      activeBots: activeBots.length,
-      totalReturn: totalReturn / activeBots.length || 0,
-      avgWinRate: avgWinRate || 0,
-      totalTrades
-    };
+  async deleteBot(botId: string): Promise<void> {
+    this.bots = this.bots.filter(b => b.id !== botId);
   }
 }
 
 export const enhancedAiBotService = new EnhancedAiBotService();
-export default enhancedAiBotService;
